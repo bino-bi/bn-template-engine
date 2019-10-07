@@ -9,11 +9,15 @@ import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 
 export namespace Components {
-  interface BnDatasource {
+  interface BnContext {
     /**
-    * JSON that configure the data source.
+    * Enable the preview mode to generate fake data.
     */
-    'context'?: string;
+    'isPreview': boolean;
+  }
+  interface BnDatasource {
+    'emitData': (data: any) => Promise<void>;
+    'isPreview': boolean;
     /**
     * Unique (template scope) name of the datasource
     */
@@ -22,49 +26,39 @@ export namespace Components {
     * single or collection
     */
     'type': string;
-  }
-  interface MyComponent {
-    /**
-    * The first name
-    */
-    'first': string;
-    /**
-    * The last name
-    */
-    'last': string;
-    /**
-    * The middle name
-    */
-    'middle': string;
+    'updateDataSource'?: (name: string, data: object) => void;
   }
 }
 
 declare global {
 
 
+  interface HTMLBnContextElement extends Components.BnContext, HTMLStencilElement {}
+  var HTMLBnContextElement: {
+    prototype: HTMLBnContextElement;
+    new (): HTMLBnContextElement;
+  };
+
   interface HTMLBnDatasourceElement extends Components.BnDatasource, HTMLStencilElement {}
   var HTMLBnDatasourceElement: {
     prototype: HTMLBnDatasourceElement;
     new (): HTMLBnDatasourceElement;
   };
-
-  interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {}
-  var HTMLMyComponentElement: {
-    prototype: HTMLMyComponentElement;
-    new (): HTMLMyComponentElement;
-  };
   interface HTMLElementTagNameMap {
+    'bn-context': HTMLBnContextElement;
     'bn-datasource': HTMLBnDatasourceElement;
-    'my-component': HTMLMyComponentElement;
   }
 }
 
 declare namespace LocalJSX {
-  interface BnDatasource extends JSXBase.HTMLAttributes<HTMLBnDatasourceElement> {
+  interface BnContext {
     /**
-    * JSON that configure the data source.
+    * Enable the preview mode to generate fake data.
     */
-    'context'?: string;
+    'isPreview'?: boolean;
+  }
+  interface BnDatasource {
+    'isPreview'?: boolean;
     /**
     * Unique (template scope) name of the datasource
     */
@@ -73,25 +67,12 @@ declare namespace LocalJSX {
     * single or collection
     */
     'type'?: string;
-  }
-  interface MyComponent extends JSXBase.HTMLAttributes<HTMLMyComponentElement> {
-    /**
-    * The first name
-    */
-    'first'?: string;
-    /**
-    * The last name
-    */
-    'last'?: string;
-    /**
-    * The middle name
-    */
-    'middle'?: string;
+    'updateDataSource'?: (name: string, data: object) => void;
   }
 
   interface IntrinsicElements {
+    'bn-context': BnContext;
     'bn-datasource': BnDatasource;
-    'my-component': MyComponent;
   }
 }
 
@@ -100,7 +81,10 @@ export { LocalJSX as JSX };
 
 declare module "@stencil/core" {
   export namespace JSX {
-    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+    interface IntrinsicElements {
+      'bn-context': LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
+      'bn-datasource': LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
+    }
   }
 }
 

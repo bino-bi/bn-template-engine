@@ -1,29 +1,38 @@
-import {Component, Prop, h, Host} from "@stencil/core";
+import {Component, h, Prop, State} from "@stencil/core";
+import Tunnel, {ContextState} from '../../data/context';
 
 @Component({
-  tag: 'bn-context'
+  tag: 'bn-context',
+  shadow: true
 })
 export class Context {
-  /**
-   * Unique (template scope) name of the datasource
-   */
-  @Prop() name: string;
 
   /**
-   * single or collection
+   * Enable the preview mode to generate fake data.
    */
-  @Prop() type: string;
+  @Prop() isPreview: boolean = false;
 
-  /**
-   * JSON that configure the data source.
-   */
-  @Prop() context?: string;
+  constructor() {
+    this.updateDataSource = this.updateDataSource.bind(this)
+  }
 
-  @Prop({context: "ping"}) ping: string;
+  @State() dataSources: {} = {};
+
+  updateDataSource(name: string, data: object) {
+    this.dataSources = {...this.dataSources, [name]: data};
+  }
 
   render() {
-    return <Host>
-      I'm a datasource
-    </Host>
+    const state: ContextState = {
+      isPreview: this.isPreview,
+      dataSources: this.dataSources,
+      updateDataSource: this.updateDataSource
+    };
+
+    return (
+      <Tunnel.Provider state={state}>
+        <slot/>
+      </Tunnel.Provider>
+    )
   }
 }
