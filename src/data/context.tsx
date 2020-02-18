@@ -4,7 +4,7 @@ import {createProviderConsumer} from '@stencil/state-tunnel';
 export interface ContextState {
   isPreview: boolean,
   dataSources: {},
-  updateDataSource?: (name: string, data: object) => void
+  updateDataSource?: (name: string, data: object, hash?: string) => void
 }
 
 export default createProviderConsumer<ContextState>({

@@ -10,10 +10,63 @@
 
 </head>
 <body>
-<bn-context name="test_1">
-  <bn-datasource>
-    {lala: "test"}
-  </bn-datasource>
+<bn-context name="test_1" is-preview="true">
+  <bn-template>
+    <bn-datasource name="config">
+      {
+      "test": {
+      "type": "[string]"
+      },
+      "test2": {
+      "type": "[date]"
+      },
+      "unit" : {
+      "type": "string"
+      },
+
+      "message": {
+      "type": "string"
+      },
+
+      "measures": {
+      "type": "collection",
+      "schema": {
+      "name": {
+      "type": "string"
+      },
+      "measure": {
+      "type": "string"
+      }
+      }
+      },
+
+      "dimension": {
+      "type": "single",
+      "schema": {
+      "start": {
+      "type": "date"
+      },
+      "end": {
+      "type": "date"
+      }
+      }
+      }
+      }
+    </bn-datasource>
+
+    <bn-page>
+      <bn-title>
+        Title
+      </bn-title>
+      <bn-body>
+        <bn-table title="Title" scenarios="A,B,C"></bn-table>
+        <bn-text value="Hallo Test ${this.config.measures[0].name}"/>
+      </bn-body>
+      <bn-footer>
+        Footer
+      </bn-footer>
+    </bn-page>
+  </bn-template>
 </bn-context>
 </body>
 </html>

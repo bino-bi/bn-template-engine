@@ -18,8 +18,23 @@ export class Context {
 
   @State() dataSources: {} = {};
 
-  updateDataSource(name: string, data: object) {
-    this.dataSources = {...this.dataSources, [name]: data};
+  dataSourceHashCache: {} = {};
+
+  /**
+   *
+   * @param name
+   * @param data
+   * @param hash is used to avoid data regenerating on tempalte content changed in preview mode. Data should only create if the data schema changed.
+   */
+  updateDataSource(name: string, data: object, hash?: string) {
+    if (this.isPreview) {
+      if (this.dataSourceHashCache[name] !== hash) {
+        this.dataSourceHashCache[name] = hash;
+        this.dataSources = {...this.dataSources, [name]: data};
+      }
+    } else {
+      this.dataSources = {...this.dataSources, [name]: data};
+    }
   }
 
   render() {

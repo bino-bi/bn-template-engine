@@ -1,0 +1,59 @@
+@mixin portrait($format,$height, $width) {
+  &[format=#{$format}] {
+    height: $height;
+    width: $width;
+
+    &[orientation='portrait'] {
+      height: $height;
+      width: $width;
+    }
+
+    &[orientation='landscape'] {
+      height: $width;
+      width: $height;
+    }
+  }
+}
+
+@mixin landscape($format, $width ,$height) {
+  &[format="#{$format}"] {
+
+    height: $height;
+    width: $width;
+
+    &[orientation='portrait'] {
+      height: $width;
+      width: $height;
+    }
+
+    &[orientation='landscape'] {
+      height: $height;
+      width: $width;
+    }
+  }
+}
+
+
+bn-page {
+  background: white;
+
+  height: 768px; // XGA is the deafult size
+  width: 1024px; // XGA is the deafult size
+  display: flex;
+  flex-direction: column;
+
+  @include landscape("xga", 1024px, 768px);
+  @include landscape("hd", 1280px, 720px);
+  @include landscape("full-hd", 1920px, 1080px);
+  @include landscape("4k", 3840px, 2160px);
+  @include landscape("4k2k", 4096px, 2160px);
+
+  @include portrait("a4", 29.7cm, 21cm);
+  @include portrait("a3", 42.0cm, 29.7cm);
+  @include portrait("a2", 59.4cm, 42.0cm);
+  @include portrait("a1", 84.1cm, 59.4cm);
+  @include portrait("a0", 118.9cm, 84.1cm);
+
+  @include portrait("letter", 27.9cm, 21.6cm);
+  @include portrait("legal", 36.6cm, 21.6cm);
+}
