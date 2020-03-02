@@ -41,6 +41,7 @@ bn-page {
   width: 1024px; // XGA is the deafult size
   display: flex;
   flex-direction: column;
+  page-break-after: always;
 
   @include landscape("xga", 1024px, 768px);
   @include landscape("hd", 1280px, 720px);
