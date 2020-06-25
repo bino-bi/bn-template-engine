@@ -35,6 +35,6 @@
     "@emotion/hash": "^0.7.4",
     "@stencil/state-tunnel": "^1.0.1",
     "faker": "^4.1.0",
-    "ibcs-component": "file:../ibcs-components"
+    "ibcs-component": "git+ssh://git@bitbucket.org:bino-bi/ibcs-components.git"
   }
 }
