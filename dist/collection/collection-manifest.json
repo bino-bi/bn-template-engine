@@ -25,7 +25,9 @@
     {
       "name": "ibcs-component",
       "tags": [
-        "ibcs-table"
+        "ibcs-table",
+        "ibcs-title",
+        "test-runner"
       ]
     }
   ],
