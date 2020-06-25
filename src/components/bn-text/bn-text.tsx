@@ -16,9 +16,7 @@ export class Text {
   scopedEval = (scope, script) => Function(`"use strict"; return ${script}`).bind(scope)();
 
   render() {
-console.dir(this.dataSources);
     return <Host>
-
       {this.scopedEval(this.dataSources, "`" + this.value + "`")}
     </Host>
   }

@@ -9,7 +9,7 @@ export class Table {
   // @ts-ignore
   @Element() private element: HTMLElement;
 
-  @Prop() header: string;
+  @Prop() elementTitle: string;
   @Prop() scenarios: string;
   // @Prop() groups: string[];
   // @Prop() thereof: string[];
@@ -17,12 +17,11 @@ export class Table {
   // @Prop() type: string;
   // @Prop() limit: number;
 
+  type: string;
 
   render() {
-
     return <Host>
-      <p>{this.header}</p>
-      <p>{this.scenarios}</p>
+      <ibcs-table scenarios={['a', 'b', 'c']}/>
     </Host>
   }
 }

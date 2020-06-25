@@ -23,12 +23,18 @@
   },
   "devDependencies": {
     "@stencil/core": "^1.5.4",
-    "@stencil/sass": "^1.1.1"
+    "@stencil/sass": "^1.1.1",
+    "@types/jest": "24.0.20",
+    "@types/puppeteer": "1.19.0",
+    "jest": "24.9.0",
+    "jest-cli": "24.9.0",
+    "puppeteer": "1.19.0"
   },
   "license": "MIT",
   "dependencies": {
     "@emotion/hash": "^0.7.4",
     "@stencil/state-tunnel": "^1.0.1",
-    "faker": "^4.1.0"
+    "faker": "^4.1.0",
+    "ibcs-component": "file:../ibcs-components"
   }
 }
