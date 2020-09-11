@@ -1,3 +1,2 @@
-import 'ibcs-component'
-
+import 'ibcs-component/dist';
 export * from './components';

@@ -8,6 +8,8 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface BnBody {
     }
+    interface BnChart {
+    }
     interface BnContext {
         /**
           * Enable the preview mode to generate fake data.
@@ -40,8 +42,15 @@ export namespace Components {
         "orientation": String;
     }
     interface BnTable {
-        "elementTitle": string;
+        "grouped": boolean;
+        "limit"?: number;
+        "order"?: string;
+        "orderDirection"?: string;
         "scenarios": string;
+        "showGroupTitle": boolean;
+        "tableTitle": string;
+        "thereof"?: string;
+        "type": string;
     }
     interface BnTemplate {
     }
@@ -58,6 +67,12 @@ declare global {
     var HTMLBnBodyElement: {
         prototype: HTMLBnBodyElement;
         new (): HTMLBnBodyElement;
+    };
+    interface HTMLBnChartElement extends Components.BnChart, HTMLStencilElement {
+    }
+    var HTMLBnChartElement: {
+        prototype: HTMLBnChartElement;
+        new (): HTMLBnChartElement;
     };
     interface HTMLBnContextElement extends Components.BnContext, HTMLStencilElement {
     }
@@ -109,6 +124,7 @@ declare global {
     };
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
+        "bn-chart": HTMLBnChartElement;
         "bn-context": HTMLBnContextElement;
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
@@ -121,6 +137,8 @@ declare global {
 }
 declare namespace LocalJSX {
     interface BnBody {
+    }
+    interface BnChart {
     }
     interface BnContext {
         /**
@@ -153,8 +171,15 @@ declare namespace LocalJSX {
         "orientation"?: String;
     }
     interface BnTable {
-        "elementTitle"?: string;
+        "grouped"?: boolean;
+        "limit"?: number;
+        "order"?: string;
+        "orderDirection"?: string;
         "scenarios"?: string;
+        "showGroupTitle"?: boolean;
+        "tableTitle"?: string;
+        "thereof"?: string;
+        "type"?: string;
     }
     interface BnTemplate {
     }
@@ -166,6 +191,7 @@ declare namespace LocalJSX {
     }
     interface IntrinsicElements {
         "bn-body": BnBody;
+        "bn-chart": BnChart;
         "bn-context": BnContext;
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
@@ -181,6 +207,7 @@ declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
+            "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;

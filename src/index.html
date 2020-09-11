@@ -53,14 +53,36 @@
       }
       }
     </bn-datasource>
-
-    <bn-page>
+    
+    <bn-page format="a4" orientation="landscape">
       <bn-title>
         Title
       </bn-title>
       <bn-body>
-        <bn-table title="Title" scenarios="A,B,C"></bn-table>
-        <bn-text value="Hallo Test ${this.config.measures[0].name}"/>
+        <bn-table 
+          grouped="true" 
+          show-group-title="true"
+          table-title="title1" 
+          scenarios="ac"
+          type="SUM"
+          limit="3"
+          order='ac'
+          order-direction="desc"
+          thereof='[
+          {
+            "rowgroup":"Umsatz", 
+            "category": "Applications", 
+            "subcategory": "Applications-A",
+            "partof": "category"
+          },
+          {
+            "rowgroup": "Umsatz",
+            "category": "Applications",
+            "subcategory": "Applications-B",
+            "partof": "rowgroup"
+          }]'
+        ></bn-table>
+        <!-- <bn-text left="250px" top="500px" value="Hallo Test ${this.config.measures[0].name}"/> -->
       </bn-body>
       <bn-footer>
         Footer

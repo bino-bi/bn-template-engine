@@ -12,7 +12,6 @@ const observer = new MutationObserver((mutations) => {
 });
 
 const subscribe = (el: HTMLElement) => {
-  console.dir(el);
   const map = apply(el);
   styleSheet.apply(map);
   const classes = Array.from(map.values()).map(value => value.className);
