@@ -27,6 +27,7 @@ export class Context {
    * @param hash is used to avoid data regenerating on tempalte content changed in preview mode. Data should only create if the data schema changed.
    */
   updateDataSource(name: string, data: object, hash?: string) {
+    console.dir(["lalala",data])
     if (this.isPreview) {
       if (this.dataSourceHashCache[name] !== hash) {
         this.dataSourceHashCache[name] = hash;
