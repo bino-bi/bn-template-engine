@@ -1,4 +1,4 @@
-import {Component, h, Host, Prop, Watch} from "@stencil/core";
+import {Component, h, Host, Prop, Watch, Element} from "@stencil/core";
 
 @Component({
   tag: 'bn-page',
@@ -6,7 +6,7 @@ import {Component, h, Host, Prop, Watch} from "@stencil/core";
   //shadow: true, adjust css :) https://stenciljs.com/docs/host-element#shadow-dom
 })
 export class Template {
-
+  @Element() el: HTMLElement
   /**
    * Define the size of the page
    *
@@ -34,6 +34,7 @@ export class Template {
   }
 
   render() {
+    console.dir(this.el.parentElement.getAttribute("template-id"))
     return <Host/>
   }
 }

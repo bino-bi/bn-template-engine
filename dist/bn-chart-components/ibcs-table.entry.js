@@ -1,7 +1,6 @@
-import { r as registerInstance, h } from './index-6253379c.js';
-import './_commonjsHelpers-9eb5a9ce.js';
+import { r as registerInstance, h } from './index-947c0ad3.js';
 import { T as TableType, O as OrderDirection, I as I18nMode } from './model-06841a6d.js';
-import { a as alasql_min } from './alasql.min-a77c7b4c.js';
+import { a as alasql_min } from './alasql.min-c30224d5.js';
 
 /**
  * Ruleset defines styles and formats used for IBCS-Charts

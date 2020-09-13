@@ -1,6 +1,5 @@
 import {Component, Element, h, Host} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import Tunnel from "../../data/context";
 
 @Component({
   tag: 'bn-chart'
@@ -8,7 +7,7 @@ import Tunnel from "../../data/context";
 export class Chart {
   // @ts-ignore
   @Element() private element: HTMLElement;
-
+  
   render() {
     return <Host>
       <ibcs-chart-structure></ibcs-chart-structure>
@@ -16,5 +15,4 @@ export class Chart {
   }
 }
 
-Tunnel.injectProps(Chart, ['dataSources']);
 styled(Chart);

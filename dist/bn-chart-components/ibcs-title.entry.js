@@ -1,4 +1,4 @@
-import { r as registerInstance, h } from './index-6253379c.js';
+import { r as registerInstance, h } from './index-947c0ad3.js';
 
 var I18nMode;
 (function (I18nMode) {

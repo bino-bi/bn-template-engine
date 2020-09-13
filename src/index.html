@@ -4,62 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
   <title>Stencil Component Starter</title>
-
   <script type="module" src="/build/bn-chart-components.esm.js"></script>
   <script nomodule src="/build/bn-chart-components.js"></script>
-
 </head>
 <body>
-<bn-context name="test_1" is-preview="true">
-  <bn-template>
-    <bn-datasource name="config">
-      {
-      "test": {
-      "type": "[string]"
-      },
-      "test2": {
-      "type": "[date]"
-      },
-      "unit" : {
-      "type": "string"
-      },
-
-      "message": {
-      "type": "string"
-      },
-
-      "measures": {
-      "type": "collection",
-      "schema": {
-      "name": {
-      "type": "string"
-      },
-      "measure": {
-      "type": "string"
-      }
-      }
-      },
-
-      "dimension": {
-      "type": "single",
-      "schema": {
-      "start": {
-      "type": "date"
-      },
-      "end": {
-      "type": "date"
-      }
-      }
-      }
-      }
-    </bn-datasource>
-    
+  <bn-template template-id="test" version="1.0">
+    <bn-datasource></bn-datasource>
     <bn-page format="a4" orientation="landscape">
       <bn-title>
         Title
       </bn-title>
       <bn-body>
         <bn-table 
+          font-size="15pt"
+          left="100px"
           grouped="true" 
           show-group-title="true"
           table-title="title1" 
@@ -89,6 +47,5 @@
       </bn-footer>
     </bn-page>
   </bn-template>
-</bn-context>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import { r as registerInstance, h, e as Host } from './index-6253379c.js';
+import { r as registerInstance, h, e as Host } from './index-947c0ad3.js';
 
 const bnTitleCss = "bn-title{padding-bottom:0.5em;margin-bottom:0.5em;border-bottom:black solid 1px}";
 

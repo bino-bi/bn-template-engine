@@ -1,4 +1,5 @@
 export declare class Template {
+    el: HTMLElement;
     /**
      * Define the size of the page
      *

@@ -1,4 +1,4 @@
-import { r as registerInstance, h } from './index-6253379c.js';
+import { r as registerInstance, h } from './index-947c0ad3.js';
 import { T as TableType, I as I18nMode } from './model-06841a6d.js';
 
 const TestRunner = class {

@@ -1,4 +1,26 @@
-import { c as createCommonjsModule, a as commonjsGlobal } from './_commonjsHelpers-9eb5a9ce.js';
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function unwrapExports (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+function createCommonjsModule(fn, basedir, module) {
+	return module = {
+	  path: basedir,
+	  exports: {},
+	  require: function (path, base) {
+    return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
+  }
+	}, fn(module, module.exports), module.exports;
+}
+
+function getCjsExportFromNamespace (n) {
+	return n && n['default'] || n;
+}
+
+function commonjsRequire () {
+	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
+}
 
 var alasql_min = createCommonjsModule(function (module, exports) {
 //! AlaSQL v0.5.9-develop-b5a7a1b7undefined | © 2014-2018 Andrey Gershun & Mathias Rangel Wulff | License: MIT

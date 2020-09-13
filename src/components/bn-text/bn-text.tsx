@@ -1,6 +1,5 @@
 import {Component, h, Host, Element, Prop} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import Tunnel from '../../data/context';
 
 @Component({
   tag: 'bn-text',
@@ -22,5 +21,4 @@ export class Text {
   }
 }
 
-Tunnel.injectProps(Text, ['dataSources']);
 styled(Text);

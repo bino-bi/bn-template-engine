@@ -53,6 +53,12 @@ const left: AttributeInfo = {
   attrName: 'left'
 };
 
+const fontSize: AttributeInfo = {
+  className: 'fts',
+  cssName: 'font-size',
+  attrName: 'font-size'
+};
+
 const attributes = {
   "width": width,
   "height": height,
@@ -61,6 +67,7 @@ const attributes = {
   "right": right,
   "bottom": bottom,
   "left": left,
+  "font-size": fontSize
 };
 
 export const attributesNames = Object.keys(attributes);

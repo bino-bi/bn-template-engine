@@ -1,6 +1,5 @@
-import { r as registerInstance, h, e as Host, g as getElement } from './index-6253379c.js';
-import './_commonjsHelpers-9eb5a9ce.js';
-import { a as alasql_min } from './alasql.min-a77c7b4c.js';
+import { r as registerInstance, h, e as Host, g as getElement } from './index-947c0ad3.js';
+import { a as alasql_min } from './alasql.min-c30224d5.js';
 
 /*!
 * @svgdotjs/svg.js - A lightweight library for manipulating and animating SVG.

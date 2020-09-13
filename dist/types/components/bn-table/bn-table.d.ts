@@ -9,5 +9,9 @@ export declare class Table {
     thereof?: string;
     order?: string;
     orderDirection?: string;
+    datasouce: any;
+    unsubscribe: () => void;
+    componentWillLoad(): void;
+    componentDidUnload(): void;
     render(): any;
 }

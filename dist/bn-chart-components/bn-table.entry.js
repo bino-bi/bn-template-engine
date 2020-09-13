@@ -1,13 +1,22 @@
-import { r as registerInstance, h, e as Host, g as getElement } from './index-6253379c.js';
-import { s as styled } from './styled-6af7d37c.js';
-import './hash.browser.esm-715d0bba.js';
-import { T as Tunnel } from './context-2c0dcaee.js';
+import { r as registerInstance, h, e as Host, g as getElement } from './index-947c0ad3.js';
+import { s as styled } from './styled-89a75ade.js';
+import { g as get, o as onChange } from './datasource-c851b622.js';
+
+const bnTableCss = "bn-table{overflow:hidden}";
 
 const Table = class {
     constructor(hostRef) {
         registerInstance(this, hostRef);
     }
+    componentWillLoad() {
+        this.datasouce = get("test");
+        this.unsubscribe = onChange("test", (value) => this.datasouce = value);
+    }
+    componentDidUnload() {
+        this.unsubscribe();
+    }
     render() {
+        console.dir(["XX", this.datasouce]);
         const tableOrder = {
             columnshierachy: this.order.split(","),
             direction: this.orderDirection
@@ -189,7 +198,7 @@ const Table = class {
     }
     get element() { return getElement(this); }
 };
-Tunnel.injectProps(Table, ['dataSources']);
 styled(Table);
+Table.style = bnTableCss;
 
 export { Table as bn_table };

@@ -1,4 +1,4 @@
-import { r as registerInstance, h, e as Host } from './index-6253379c.js';
+import { r as registerInstance, h, e as Host } from './index-947c0ad3.js';
 
 const Template = class {
     constructor(hostRef) {

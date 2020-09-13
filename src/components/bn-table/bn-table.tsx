@@ -1,9 +1,10 @@
-import {Component, Element, h, Host, Prop} from "@stencil/core";
+import {Component, Element, h, Host, Prop, State} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import Tunnel from "../../data/context";
+import {get ,onChange} from '../../data/datasource';
 
 @Component({
-  tag: 'bn-table'
+  tag: 'bn-table',
+  styleUrl: 'bn-table.css'
 })
 export class Table {
   // @ts-ignore
@@ -19,8 +20,21 @@ export class Table {
   @Prop() order?: string;
   @Prop() orderDirection?: string;
 
-  render() {
+  @State() datasouce: any
 
+  unsubscribe: () => void
+
+  componentWillLoad() {
+    this.datasouce= get("test");
+      this.unsubscribe = onChange("test", (value) => this.datasouce = value);
+  }
+
+  componentDidUnload() {
+      this.unsubscribe();
+  }
+
+  render() {
+    console.dir(["XX",this.datasouce]);
     const tableOrder = {
       columnshierachy: this.order.split(","),
       direction: this.orderDirection
@@ -217,5 +231,4 @@ export class Table {
   }
 }
 
-Tunnel.injectProps(Table, ['dataSources']);
 styled(Table);
