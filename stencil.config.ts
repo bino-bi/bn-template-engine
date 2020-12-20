@@ -2,7 +2,7 @@ import { Config } from '@stencil/core';
 import { sass } from '@stencil/sass';
 
 export const config: Config = {
-  namespace: 'bn-chart-components',
+  namespace: 'bn-template-engine',
   plugins: [
     sass()
   ],
