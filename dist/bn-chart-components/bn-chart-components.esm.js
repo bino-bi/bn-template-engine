@@ -1,7 +1,0 @@
-import { b as bootstrapLazy } from './index-947c0ad3.js';
-import { p as patchBrowser, g as globalScripts } from './app-globals-7ee2380a.js';
-
-patchBrowser().then(options => {
-  globalScripts();
-  return bootstrapLazy([["bn-chart",[[0,"bn-chart"]]],["bn-table",[[0,"bn-table",{"tableTitle":[1,"table-title"],"scenarios":[1],"grouped":[4],"type":[1],"showGroupTitle":[4,"show-group-title"],"limit":[2],"thereof":[1],"order":[1],"orderDirection":[1,"order-direction"],"datasouce":[32]}]]],["test-runner",[[0,"test-runner"]]],["bn-body",[[0,"bn-body"]]],["bn-datasource",[[0,"bn-datasource",{"name":[1],"type":[1]}]]],["bn-footer",[[0,"bn-footer"]]],["bn-page",[[0,"bn-page",{"format":[16],"orientation":[16]}]]],["bn-template",[[0,"bn-template",{"templateId":[1,"template-id"]}]]],["bn-text",[[0,"bn-text",{"value":[1],"dataSources":[16]}]]],["bn-title",[[0,"bn-title"]]],["ibcs-title",[[1,"ibcs-title",{"tableTitle":[1,"table-title"],"scenarios":[16],"grouped":[4],"showGroupTitle":[4,"show-group-title"],"thereof":[16],"order":[16],"type":[1],"limit":[2],"i18n":[1,"i-1-8n"]}]]],["ibcs-chart-structure",[[1,"ibcs-chart-structure",{"width":[2],"height":[2],"data":[1],"scenarios":[16]}]]],["ibcs-table",[[1,"ibcs-table",{"data":[16],"tableTitle":[1,"table-title"],"scenarios":[16],"grouped":[4],"showGroupTitle":[4,"show-group-title"],"thereof":[16],"order":[16],"type":[1],"limit":[2],"i18n":[16],"i18nMode":[1,"i18n-mode"]}]]]], options);
-});
