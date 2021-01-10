@@ -25,10 +25,10 @@ export class Title {
 
   @State() datasouce: any
 
-  componentWillLoad() {
-      this.datasouce= get("test");
-      this.unsubscribe = onChange("test", (value) => this.datasouce = value);
-  }
+  //componentWillLoad() {
+  //    this.datasouce= get("test");
+  //    this.unsubscribe = onChange("test", (value) => this.datasouce = value);
+ // }
 
   unsubscribe: () => void
   
