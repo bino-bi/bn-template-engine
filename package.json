@@ -1,6 +1,6 @@
 {
   "name": "@bino-bi/bn-template-engine",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stencil Component Starter",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -23,7 +23,8 @@
     "start": "stencil build --dev --watch --serve",
     "test": "stencil test --spec --e2e",
     "test.watch": "stencil test --spec --e2e --watchAll",
-    "dependencies.update": "npm-upgrade check"
+    "dependencies.update": "npm-upgrade check",
+    "release": "standard-version"
   },
   "devDependencies": {
     "@stencil/core": "^1.17.3",
@@ -32,7 +33,8 @@
     "@types/puppeteer": "1.19.0",
     "jest": "24.9.0",
     "jest-cli": "24.9.0",
-    "puppeteer": "1.19.0"
+    "puppeteer": "1.19.0",
+    "standard-version": "^9.1.0"
   },
   "license": "MIT",
   "dependencies": {
