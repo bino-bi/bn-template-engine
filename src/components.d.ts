@@ -51,6 +51,15 @@ export namespace Components {
         "value"?: string;
     }
     interface BnTitle {
+        "businessUnit"?: string;
+        "dateEnd": string;
+        "dateFormat": string;
+        "dateLink": string;
+        "dateStart": string;
+        "measures"?: string;
+        "order"?: string;
+        "orderDirection"?: string;
+        "scenarios": string;
     }
 }
 declare global {
@@ -166,6 +175,15 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     interface BnTitle {
+        "businessUnit"?: string;
+        "dateEnd"?: string;
+        "dateFormat"?: string;
+        "dateLink"?: string;
+        "dateStart"?: string;
+        "measures"?: string;
+        "order"?: string;
+        "orderDirection"?: string;
+        "scenarios"?: string;
     }
     interface IntrinsicElements {
         "bn-body": BnBody;

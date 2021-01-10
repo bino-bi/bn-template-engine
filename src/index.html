@@ -11,21 +11,30 @@
   <bn-template template-id="test" version="1.0">
     <bn-datasource></bn-datasource>
     <bn-page format="a4" orientation="landscape">
-      <bn-title>
-        Title
-      </bn-title>
+      <bn-title
+        business-unit = 'BinoBI Racing' 
+        measures = '[{"name": "Nettoumsatz", "unit": "mEUR"}, {"name": "Bruttoumsatz", "unit": "mEUR"}]'
+        scenarios='ac,fc'
+        order ='ac'
+        order-direction='desc'
+        date-start='2020-01-12'
+        date-end='2020-05-12'
+        date-format = 'month'
+        date-link = 'interval'
+      >       
+      </bn-title>     
       <bn-body>
         <bn-table 
-          font-size="15pt"
-          left="100px"
+          font-size='15pt'
+          left='100px' 
           grouped="true" 
-          show-group-title="true"
-          table-title="title1" 
-          scenarios="ac"
-          type="SUM"
-          limit="3"
+          show-group-title='true'
+          table-title='title1' 
+          scenarios='ac,fc'
+          type='SUM'
+          limit='3'
           order='ac'
-          order-direction="desc"
+          order-direction='desc'
           thereof='[
           {
             "rowgroup":"Umsatz", 
@@ -40,6 +49,13 @@
             "partof": "rowgroup"
           }]'
         ></bn-table>
+        <bn-chart
+        
+        
+        >
+          Chart Example
+        </bn-chart>
+        
         <!-- <bn-text left="250px" top="500px" value="Hallo Test ${this.config.measures[0].name}"/> -->
       </bn-body>
       <bn-footer>

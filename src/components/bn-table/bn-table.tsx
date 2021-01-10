@@ -34,7 +34,7 @@ export class Table {
   }
 
   render() {
-    console.dir(["XX",this.datasouce]);
+    console.dir(["table ",this.datasouce]);
     const tableOrder = {
       columnshierachy: this.order.split(","),
       direction: this.orderDirection
@@ -49,7 +49,7 @@ export class Table {
         type={this.type}
         i18n-mode={"NONE"}
         limit={this.limit}
-        thereof={this.thereof ? JSON.parse(this.thereof!) : undefined}
+        thereof={this.thereof ? JSON.parse(this.thereof!) : null}
         order={tableOrder}
         i18n={new Map([
           ["title1", "🤩"]
