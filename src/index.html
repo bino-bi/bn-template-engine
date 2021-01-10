@@ -50,10 +50,23 @@
           }]'
         ></bn-table>
         <bn-chart      
-        
-        >
-          Chart Example
+          width = '400'
+          height = '300'
+          scenarios = 'ac,fc,py,pl'
+          variances = ''
+          hideCategories = false;
+          pixelPerUnit: 2     
+        >         
         </bn-chart>
+        <bn-chart      
+        width = '400'
+        height = '300'
+        scenarios = 'ac,fc,py,pl'
+        variances = 'dfc_ac_neg'
+        hideCategories = false;
+        pixelPerUnit: 2     
+      >         
+      </bn-chart>
         
         <!-- <bn-text left="250px" top="500px" value="Hallo Test ${this.config.measures[0].name}"/> -->
       </bn-body>

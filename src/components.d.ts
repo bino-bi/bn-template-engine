@@ -9,6 +9,12 @@ export namespace Components {
     interface BnBody {
     }
     interface BnChart {
+        "height"?: number;
+        "hideCategories": boolean;
+        "pixelPerUnit": number;
+        "scenarios": string;
+        "variances": string;
+        "width"?: number;
     }
     interface BnDatasource {
         /**
@@ -133,6 +139,12 @@ declare namespace LocalJSX {
     interface BnBody {
     }
     interface BnChart {
+        "height"?: number;
+        "hideCategories"?: boolean;
+        "pixelPerUnit"?: number;
+        "scenarios"?: string;
+        "variances"?: string;
+        "width"?: number;
     }
     interface BnDatasource {
         /**
