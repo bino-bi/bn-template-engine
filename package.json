@@ -1,6 +1,6 @@
 {
   "name": "@bino-bi/bn-template-engine",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Stencil Component Starter",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -15,7 +15,7 @@
     "loader/"
   ],
   "repository": {
-    "type" : "git",
+    "type": "git",
     "url": "git@github.com:bino-bi/bn-template-engine.git"
   },
   "scripts": {
