@@ -2,7 +2,7 @@
 import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
 //import {get ,onChange} from '../../data/datasource';
 import { styled } from "../../utils/styled/styled";
-import { validateScenarioList } from "../../utils/validate";
+import { isValidDate, isValidDateFormat, isValidDateLink, isValidMeasure, validateScenarioList } from "../../utils/validate";
 
 @Component({
   tag: 'bn-title',
@@ -12,44 +12,133 @@ export class Title {
   /** (optional) Name of business unit. If empty buisnes unit row is omitted */
   @Prop() businessUnit: string;    
  
-  /** (optional) List of scenarios. Valid scenarios are *( ac | fc | py | pl )* */
+   
+  /** (optional) List of scenarios. Valid scenarios are 
+   *  
+   *  values: ac | fc | py | pl 
+   */
   @Prop() scenarios: string;
    
-  /** (optional) Sets the primary scenario on which the order direction is applied */
+
+  /** (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are 
+   *  If order is set to a scenario it has also exists in scenariolist 
+   * 
+   *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+   */
   @Prop() order: string;
   
- /** (optional) The icon to display */
-  @Prop() orderDirection: 'asc' | 'desc' = 'asc'; // behind
-  
-  @Prop() measures?: string;
 
+  /** set sorting order directon
+   * 
+   * values: asc | desc
+   */
+  @Prop() orderDirection: string = 'asc'; 
+  
+  /**(optional) stringified Array of measure Objects {name: string, unit: string}
+   * 
+   * example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+   */
+  @Prop() measures: string;
+
+
+  /**(optional) String of start date 
+   * 
+   * format: yyyy-MM-dd 
+   */
   @Prop() dateStart: string;
+  
+
+  /**(optional) String of end date 
+   * 
+   * format: yyyy-MM-dd
+   */
   @Prop() dateEnd: string;
-  @Prop() dateFormat: string;
-  @Prop() dateLink: string;
+  
+  
+  /**(optional) String of end date (format: yyyy-MM-dd)
+   * 
+   * values: year | quarter | month | week | day | hour | auto | fallback
+   *   
+   *  detail: 
+   *  year: "YYYY",
+   *  quarter:  "Q[Q] YYYY",
+   *  month: "MMM YYYY",
+   *  week: "[KW]WW YYYY",
+   *  day: "DD.MM.YYYY",
+   *  time: "DD.MM.YYYY HH:mm:ss",
+   *  fallback: "DD.MM.YYYY",
+   */
+  @Prop() dateFormat: string = 'fallback';
+
+  
+  /**(optional) String of end date (format: yyyy-MM-dd)
+   * 
+   * values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none | 
+   *  
+   * detail: 
+   *   avg: "Ø[DATE]",
+   *   interval:  "[DATE]..[DATE2]",
+   *   start: ".[DATE]",
+   *   end: "[DATE].",
+   *   ytd: "_[DATE]",
+   *   ytg: "[DATE]_",
+   *   cum: "[DATE]_[DATE2]",
+   *   mat: "~[DATE]",
+   *   none: "[DATE]",
+   */
+  @Prop() dateLink: string = 'none';
+
 
   @State() datasouce: any
 
 
   @Watch('scenarios')  
-  validateName(newValue: string) {
+  validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue); 
-    if (invalidScenarios.length > 0) { throw new Error('businessUnit: invalid scenario(s) \'' + invalidScenarios.toString() + '\' are not supported.') }; 
+    if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') }; 
   }
 
-  //@Watch('order')  
-  //validateName(newValue: string) {
+  @Watch('measures')  
+    validateMeasures(newValue: string) {
+    if (!isValidMeasure(newValue)) { 
+        let newObj;
+       
+        newObj = JSON.parse(newValue) ;
+        
+        let error: any;
+      
+        if(newObj instanceof Array){
+           error = JSON.stringify(newObj.filter(elem => !(elem.hasOwnProperty('name') && elem.hasOwnProperty('unit'))));
+        }
+      else {
+        error = newValue;
+      }          
+      throw new Error('measures: invalid value \'' + error + '\' is not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]') 
+    }; 
 
-    //const invalidScenarios: string[] = validateScenarioList(newValue); 
-    //if (invalidScenarios.length > 0) { throw new Error('businessUnit: invalid scenario(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
-   
-  //}
+  }
 
-  
-  render() {
-    console.dir(["title",this.datasouce]);
-    console.log(this.businessUnit, this.scenarios,this.order, this.orderDirection,this.measures,this.dateStart,this.dateEnd,this.dateFormat,this.dateLink);
-    
+  @Watch('dateStart')  
+  validateDateStart(newValue: string) {
+    if (!isValidDate(newValue)) { throw new Error('dateStart: invalid value \'' + newValue.toString() + '\' is not supported.') }; 
+  }
+
+  @Watch('dateEnd')  
+  validateDateEnd(newValue: string) {
+    if (!isValidDate(newValue)) { throw new Error('dateEnd: invalid value \'' + newValue.toString() + '\' is not supported.') }; 
+  }
+
+  @Watch('dateFormat')  
+  validateDateFormat(newValue: string) {
+    if (!isValidDateFormat(newValue)) { throw new Error('dateFormat: invalid value \'' + newValue.toString() + '\' is not supported.') }; 
+  }
+
+  @Watch('dateLink')  
+  validateDateLink(newValue: string) {
+    if (!isValidDateLink(newValue)) {  throw new Error('dateLink: invalid value \''+ newValue.toString() + '\' is not supported.') }; 
+  }
+
+  render() {   
     const titleOrder = {
       columnshierachy: this.order? this.order.split(",") : null,
       direction: this.orderDirection  
