@@ -12,27 +12,30 @@
     <bn-datasource></bn-datasource>
     <bn-page format="a4" orientation="landscape">
       <bn-title
-        business-unit = 'BinoBI Racing' 
-        measures = '[{"name": "Nettoumsatz", "unit": "mEUR"}, {"name": "Bruttoumsatz", "unit": "mEUR"}]'
-        scenarios='ac,fc'
-        order ='ac'
-        order-direction='desc'
+        business-unit = 'BinoBI Racing'   
+        measures      = '[{"name": "Bruttoumsatz", "unit": "mEUR"}]'
+        scenarios     = 'ac,fc,pl,py'
+       
+        order         = 'category,ac,py'
+        order-direction='asc'
+  
+
+       
         date-start='2020-01-12'
         date-end='2020-05-12'
-        date-format = 'month'
+        date-format = 'quarter'
         date-link = 'interval'
       >       
-      </bn-title>     
-      <bn-body>
-        <bn-table 
-          font-size='15pt'
-          left='100px' 
-          grouped="true" 
+      </bn-title>    
+     
+     
+        <bn-table        
+          grouped="false" 
           show-group-title='true'
           table-title='title1' 
-          scenarios='ac,fc'
+          scenarios='ac,fc,py'
           type='SUM'
-          limit='3'
+          limit='40'
           order='ac'
           order-direction='desc'
           thereof='[
@@ -52,19 +55,18 @@
         <bn-chart      
           width = '400'
           height = '300'
-          scenarios = 'ac,fc,py,pl'
-          variances = ''
-          hideCategories = false;
-          pixelPerUnit: 2     
-        >         
+          scenarios = 'ac,py,fc,ac1'
+          variances = 'null'
+          hideCategories = true
+          pixelPerUnit = 20>         
         </bn-chart>
         <bn-chart      
         width = '400'
         height = '300'
         scenarios = 'ac,fc,py,pl'
-        variances = 'dfc_ac_neg'
-        hideCategories = false;
-        pixelPerUnit: 2     
+        variances = 'dpy_ac_pos'
+        hideCategories = true
+        pixelPerUnit =  20     
       >         
       </bn-chart>
         

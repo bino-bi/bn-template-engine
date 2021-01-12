@@ -7,10 +7,17 @@
 
 ## Properties
 
-| Property       | Attribute       | Description | Type     | Default     |
-| -------------- | --------------- | ----------- | -------- | ----------- |
-| `elementTitle` | `element-title` |             | `string` | `undefined` |
-| `scenarios`    | `scenarios`     |             | `string` | `undefined` |
+| Property         | Attribute          | Description | Type      | Default     |
+| ---------------- | ------------------ | ----------- | --------- | ----------- |
+| `grouped`        | `grouped`          |             | `boolean` | `undefined` |
+| `limit`          | `limit`            |             | `number`  | `undefined` |
+| `order`          | `order`            |             | `string`  | `undefined` |
+| `orderDirection` | `order-direction`  |             | `string`  | `undefined` |
+| `scenarios`      | `scenarios`        |             | `string`  | `undefined` |
+| `showGroupTitle` | `show-group-title` |             | `boolean` | `undefined` |
+| `tableTitle`     | `table-title`      |             | `string`  | `undefined` |
+| `thereof`        | `thereof`          |             | `string`  | `undefined` |
+| `type`           | `type`             |             | `string`  | `undefined` |
 
 
 ## Dependencies
@@ -18,13 +25,11 @@
 ### Depends on
 
 - ibcs-table
-- context-consumer
 
 ### Graph
 ```mermaid
 graph TD;
   bn-table --> ibcs-table
-  bn-table --> context-consumer
   style bn-table fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

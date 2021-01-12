@@ -57,14 +57,26 @@ export namespace Components {
         "value"?: string;
     }
     interface BnTitle {
-        "businessUnit"?: string;
+        /**
+          * (optional) Name of business unit. If empty buisnes unit row is omitted
+         */
+        "businessUnit": string;
         "dateEnd": string;
         "dateFormat": string;
         "dateLink": string;
         "dateStart": string;
         "measures"?: string;
-        "order"?: string;
-        "orderDirection"?: string;
+        /**
+          * (optional) Sets the primary scenario on which the order direction is applied
+         */
+        "order": string;
+        /**
+          * (optional) The icon to display
+         */
+        "orderDirection": 'asc' | 'desc';
+        /**
+          * (optional) List of scenarios. Valid scenarios are *( ac | fc | py | pl )*
+         */
         "scenarios": string;
     }
 }
@@ -187,14 +199,26 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     interface BnTitle {
+        /**
+          * (optional) Name of business unit. If empty buisnes unit row is omitted
+         */
         "businessUnit"?: string;
         "dateEnd"?: string;
         "dateFormat"?: string;
         "dateLink"?: string;
         "dateStart"?: string;
         "measures"?: string;
+        /**
+          * (optional) Sets the primary scenario on which the order direction is applied
+         */
         "order"?: string;
-        "orderDirection"?: string;
+        /**
+          * (optional) The icon to display
+         */
+        "orderDirection"?: 'asc' | 'desc';
+        /**
+          * (optional) List of scenarios. Valid scenarios are *( ac | fc | py | pl )*
+         */
         "scenarios"?: string;
     }
     interface IntrinsicElements {
