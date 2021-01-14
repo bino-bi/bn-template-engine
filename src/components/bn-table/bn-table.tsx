@@ -29,7 +29,7 @@ export class Table {
       this.unsubscribe = onChange("test", (value) => this.datasouce = value);
   }
 
-  componentDidUnload() {
+  disconnectedCallback() {
       this.unsubscribe();
   }
 
@@ -41,8 +41,8 @@ export class Table {
     };
 
     return <Host>
-      <ibcs-table 
-        table-title={this.tableTitle} 
+      <ibcs-table
+        table-title={this.tableTitle}
         scenarios={this.scenarios.split(",")}
         grouped={this.grouped}
         show-group-title={this.showGroupTitle}
