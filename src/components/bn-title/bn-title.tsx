@@ -100,11 +100,9 @@ export class Title {
 
   @Watch('measures')  
     validateMeasures(newValue: string) {
-    if (!isValidMeasure(newValue)) { 
-        let newObj;
+    if (!isValidMeasure(newValue)) {     
        
-        newObj = JSON.parse(newValue) ;
-        
+        const newObj = JSON.parse(newValue) ;        
         let error: any;
       
         if(newObj instanceof Array){
@@ -133,9 +131,18 @@ export class Title {
     if (!isValidDateFormat(newValue)) { throw new Error('dateFormat: invalid value \'' + newValue.toString() + '\' is not supported.') }; 
   }
 
-  @Watch('dateLink')  
+  @Watch('dateLink')   
   validateDateLink(newValue: string) {
     if (!isValidDateLink(newValue)) {  throw new Error('dateLink: invalid value \''+ newValue.toString() + '\' is not supported.') }; 
+  }
+  
+  componentWillLoad() {
+    this.validateScenario(this.scenarios);
+    this.validateMeasures(this.measures);
+    this.validateDateStart(this.dateStart);
+    this.validateDateEnd(this.dateEnd);
+    this.validateDateFormat(this.dateFormat);
+    this.validateDateLink(this.dateLink);
   }
 
   render() {   
