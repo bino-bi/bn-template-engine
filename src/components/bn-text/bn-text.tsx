@@ -14,9 +14,10 @@ export class Text {
 
   @Prop() datasourcesData: any
 
-  scopedEval = (scope, script) => Function(`"use strict"; return ${script}`).bind(scope)();
+  scopedEval = (scope, script) => Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
 
   render() {
+try { } catch {}
     return <Host>
       {this.scopedEval(this.datasourcesData, "`" + this.value + "`")}
     </Host>
