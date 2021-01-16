@@ -8,8 +8,13 @@
   <script nomodule src="/build/bn-template-engine.js"></script>
 </head>
 <body>
-  <bn-template template-id="test" version="1.0">
-    <bn-datasource></bn-datasource>
+  <bn-context>
+    <bn-datasource name="test">
+      [
+        {"setname": "de", "operation": "-", "rowgroup": "Kosten", "category": "lime", "subcategory": "lime", "ac": -1, "py": -7, "fc": -6, "pl": -13},
+        {"setname": "de", "operation": "-", "rowgroup": "Kosten", "category": "lime2", "subcategory": "lime", "ac": -1, "py": -7, "fc": -6, "pl": -13}
+      ]
+    </bn-datasource>
     <bn-page format="a4" orientation="landscape">
       <bn-title
         business-unit = 'BinoBI Racing'
@@ -18,55 +23,60 @@
         date-start='2019-01-12'
         date-end='2021-05-12'
         date-format = 'day'
-        date-link = 'interval'>
+        date-link = 'interval'      >
       </bn-title>
-    <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.config.measures[0].name}"/> -->
+      <bn-body>
+      <bn-text left="250px" top="500px" value="Hallo Test ${this.test.a}"></bn-text>
         <bn-table
-          table-title='Asetto Corsa Competizione' 
-          scenarios='ac,fc,py,pl'
-          grouped= 'true'  
-          show-group-title = 'true'
-          type='OPT'
-          limit = '0'
+          datasource="test"
+          font-size='15pt'
+          top='200px'
+          left='400px'
+          grouped="false"
+          show-group-title='true'
+          table-title='title1'
+          scenarios='ac,fc,py'
+          type='SUM'
+          limit='40'
+          order='ac'
+          order-direction='desc'
           thereof='[
           {
             "rowgroup":"Umsatz",
             "category": "Applications",
-            "subcategory": "Applications-A"
+            "subcategory": "Applications-A",
+            "partof": "category"
           },
           {
             "rowgroup": "Umsatz",
             "category": "Applications",
-            "subcategory": "Applications-B"
+            "subcategory": "Applications-B",
+            "partof": "rowgroup"
           }]'
-          order='ac,pl'
-          order-direction='asc'      
         ></bn-table>
-        <!--
-        <bn-chart
-          width = '400'
-          height = '300'
-          scenarios = 'ac,py,fc,ac1'
-          variances = 'null'
-          hideCategories = true
-          pixelPerUnit = 20>
-        </bn-chart>
-        <bn-chart
-        width = '400'
-        height = '300'
-        scenarios = 'ac,fc,py,pl'
-        variances = 'dpy_ac_pos'
-        hideCategories = true
-        pixelPerUnit =  20
-      >
-      </bn-chart>
-        -->
+<!--        <bn-chart-->
+<!--          width = '400px'-->
+<!--          height = '300px'-->
+<!--          scenarios = 'ac,py,fc,ac1'-->
+<!--          variances = 'null'-->
+<!--          hideCategories = true-->
+<!--          pixelPerUnit = 20>-->
+<!--        </bn-chart>-->
+<!--        <bn-chart-->
+<!--        width = '400px'-->
+<!--        height = '300px'-->
+<!--        scenarios = 'ac,fc,py,pl'-->
+<!--        variances = 'dpy_ac_pos'-->
+<!--        hideCategories = true-->
+<!--        pixelPerUnit =  20-->
+<!--      >-->
+<!--      </bn-chart>-->
       </bn-body>
       <bn-footer>
         Footer
       </bn-footer>
     </bn-page>
-  </bn-template>
+  </bn-context>
 </body>
 </html>
 

@@ -1,8 +1,8 @@
-import { Component, Element,  h, Host, Prop, State, Watch } from "@stencil/core";
-import { styled } from "../../utils/styled/styled";
-import { get, onChange } from '../../data/datasource';
-import { isValidBoolean, isValidDirection, isValidi18nMode, isValidOrderList, isValidTableType, isValidThereOf, validateScenarioList } from "../../utils/validate";
 
+import { Component, Element,  h, Host, Prop, Watch } from "@stencil/core";
+import { styled } from "../../utils/styled/styled";
+import { isValidBoolean, isValidDirection, isValidi18nMode, isValidOrderList, isValidTableType, isValidThereOf, validateScenarioList } from "../../utils/validate";
+import Tunnel from "../bn-context/tunnel";
 @Component({
   tag: 'bn-table',
   styleUrl: 'bn-table.css'
@@ -106,7 +106,9 @@ export class Table {
    */
   @Prop() i18nMode: string = "NONE";
 
-  @State() datasouce: any
+  @Prop() datasource: string
+  @Prop() datasourcesData: any
+
 
   unsubscribe: () => void
 
@@ -168,11 +170,9 @@ export class Table {
     if (!isValidi18nMode(newValue)) { throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.') };
   }
 
-
-
   componentWillLoad() {
-    this.datasouce = get("test");
-    this.unsubscribe = onChange("test", (value) => this.datasouce = value);
+    //this.datasouce = get("test");
+   // this.unsubscribe = onChange("test", (value) => this.datasouce = value);
 
     this.validateScenario(this.scenarios);
     this.validateGrouped(this.grouped);
@@ -194,6 +194,16 @@ export class Table {
       columnshierachy: this.order.split(","),
       direction: this.orderDirection
     };
+    let data = this.datasourcesData[this.datasource]
+    const groupByKey = (list, key) => list.reduce((hash, obj) => ({...hash, [obj[key]]:( hash[obj[key]] || [] ).concat(obj)}), {})
+    const explode = (map) =>  Object.keys(map).map((k) => ({"setname": k, "data": map[k]}))
+//TODO
+    var temp = []
+
+    if(data){
+      console.log("inner", data);
+      temp = explode(groupByKey([...data], 'setname'))
+    }
 
     return <Host>
       <ibcs-table
@@ -209,181 +219,11 @@ export class Table {
         i18n={new Map([
           ["title1", "🤩"]
         ])}
-        data={[{
-          "setname": "de",
-          "data": [{
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "matrices",
-            subcategory: "matrices",
-            ac: 1,
-            py: 7,
-            fc: 7,
-            pl: 4,
-          },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "Applications",
-            subcategory: "Applications-A",
-            ac: 1,
-            py: 7,
-            fc: 15,
-            pl: 5
-          },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "Applications",
-            subcategory: "Applications-B",
-            ac: 5,
-            py: 7,
-            fc: 10,
-            pl: 5
-          },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "mission-critical",
-            subcategory: "mission-critical",
-            ac: 1,
-            py: 7,
-            fc: 14,
-            pl: 11
-          },
-          { operation: '+', rowgroup: "Umsatz", category: "lime", subcategory: "lime", ac: 1, py: 7, fc: 2, pl: 15 },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "turquoise",
-            subcategory: "turquoise",
-            ac: 1,
-            py: 7,
-            fc: 8,
-            pl: 6
-          },
-          { operation: '+', rowgroup: "Umsatz", category: "Frozen", subcategory: "Frozen", ac: 1, py: 7, fc: 14, pl: 3 },
-          {
-            operation: '-',
-            rowgroup: "Kosten",
-            category: "Buckinghamshire",
-            subcategory: "Buckinghamshire",
-            ac: -1,
-            py: -7,
-            fc: -12,
-            pl: 0
-          },
-          {
-            operation: '-',
-            rowgroup: "Kosten",
-            category: "Credit Card Account",
-            subcategory: "Credit Card Account",
-            ac: -1,
-            py: -7,
-            fc: -12,
-            pl: -12
-          },
-          {
-            operation: '-',
-            rowgroup: "Kosten",
-            category: "Gorgeous Fresh Mouse",
-            subcategory: "Gorgeous Fresh Mouse",
-            ac: -1,
-            py: -7,
-            fc: -10,
-            pl: -11
-          },
-          { operation: '-', rowgroup: "Kosten", category: "lime", subcategory: "lime", ac: 1, py: 7, fc: 6, pl: 13 }]
-        },
-        {
-          "setname": "uk",
-          "data": [{
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "matrices",
-            subcategory: "matrices",
-            ac: 1,
-            py: 7,
-            fc: 7,
-            pl: 4
-          },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "Applications",
-            subcategory: "Applications",
-            ac: 1,
-            py: 7,
-            fc: 15,
-            pl: 5
-          },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "mission-critical",
-            subcategory: "mission-critical",
-            ac: 1,
-            py: 7,
-            fc: 14,
-            pl: 11
-          },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "application",
-            subcategory: "pplication",
-            ac: 1,
-            py: 7,
-            fc: 2,
-            pl: 15
-          },
-          {
-            operation: '+',
-            rowgroup: "Umsatz",
-            category: "turquoise",
-            subcategory: "turquoise",
-            ac: 1,
-            py: 7,
-            fc: 8,
-            pl: 6
-          },
-          { operation: '+', rowgroup: "Umsatz", category: "Frozen", subcategory: "Frozen", ac: 1, py: 7, fc: 14, pl: 3 },
-          {
-            operation: '-',
-            rowgroup: "Kosten",
-            category: "Buckinghamshire",
-            subcategory: "Buckinghamshire",
-            ac: -1,
-            py: -7,
-            fc: -12,
-            pl: 0
-          },
-          {
-            operation: '-',
-            rowgroup: "Kosten",
-            category: "Credit Card Account",
-            subcategory: "Credit Card Account",
-            ac: -1,
-            py: -7,
-            fc: -12,
-            pl: -12
-          },
-          {
-            operation: '-',
-            rowgroup: "Kosten",
-            category: "Gorgeous Fresh Mouse",
-            subcategory: "Gorgeous Fresh Mouse",
-            ac: -1,
-            py: -7,
-            fc: -10,
-            pl: -11
-          },
-          { operation: '-', rowgroup: "Kosten", category: "lime", subcategory: "lime", ac: -1, py: -7, fc: -6, pl: -13 }]
-        }
-        ]}
-      ></ibcs-table>
+        data={temp}
+    ></ibcs-table>
     </Host>
   }
 }
 
 styled(Table);
+Tunnel.injectProps(Table, ['datasourcesData'])

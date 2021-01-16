@@ -21,7 +21,11 @@ export class Chart {
   
   @Prop() pixelPerUnit: number;
   @State() datasouce: any
-  
+  @Prop() i18n?: I18nMode;
+
+
+  @Prop() styles?: 'String';
+ 
   render() {
     // console.dir(["title",this.datasouce]);
     

@@ -1,30 +1,29 @@
-import {Component, Prop, h, Host} from "@stencil/core";
-import {set} from '../../data/datasource';
+import {Component, Prop, h, Host, Listen} from "@stencil/core";
+import Tunnel from "../bn-context/tunnel";
 
 @Component({
   tag: 'bn-datasource',
   styleUrl: 'bn-datasource.css',
 })
 export class Datasource {
-
-  constructor(){
-    setInterval(() => {
-      set("test", {abc: new Date().getMilliseconds()});
-    }, 1000)
-    
-  }
-
   /**
    * Unique (template scope) name of the datasource
    */
   @Prop() name!: string;
 
-  /**
-   * single or collection
-   */
-  @Prop() type: string = 'single';
+  @Prop() updateDatasource?: (key: string, data: any) => void;
+
+  @Listen('DOMNodeInserted')
+  getChangedValue(event) {
+    const data = JSON.parse(event.target.textContent);
+    console.dir(['data:', this.name, data]);
+    this.updateDatasource?.(this.name, data);
+  }
+
 
   render() {
     return <Host/>
   }
 }
+
+Tunnel.injectProps(Datasource, ['updateDatasource'])

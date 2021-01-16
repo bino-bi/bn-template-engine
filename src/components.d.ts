@@ -16,15 +16,14 @@ export namespace Components {
         "variances": string;
         "width"?: number;
     }
+    interface BnContext {
+    }
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
          */
         "name": string;
-        /**
-          * single or collection
-         */
-        "type": string;
+        "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
     }
@@ -39,52 +38,23 @@ export namespace Components {
         "orientation": String;
     }
     interface BnTable {
-        /**
-          * Toggles of data should be grouped by  'rowgroup'.   values: true | false  default: true
-         */
+        "datasource": string;
+        "datasourcesData": any;
         "grouped": boolean;
-        /**
-          * set translaton mode.     values:   ALL | NONE | META
-         */
-        "i18nMode": string;
-        /**
-          * (optional) Set the maximum number of rows for each  group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
-         */
-        "limit": number;
-        /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are  If order is set to a scenario it has also exists in scenariolist   values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
-         */
-        "order": string;
-        /**
-          * set sorting order directon  values: asc | desc
-         */
-        "orderDirection": string;
-        /**
-          * (optional) List of scenarios. Valid scenarios are       values: ac | fc | py | pl
-         */
+        "limit"?: number;
+        "order"?: string;
+        "orderDirection"?: string;
         "scenarios": string;
-        /**
-          * Toggles a title header for each (row-)group  the title header value is found set by 'rowgroup'  values: true | false default: true
-         */
         "showGroupTitle": boolean;
-        /**
-          * A not mondane tile for the shard,  which discribes the shown data.
-         */
         "tableTitle": string;
-        /**
-          * (optional) stringified Array of drilldown Objects {         "rowgroup": string,         "category": string,         "subcategory": string,         "partof": string       }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row          example: [{         "rowgroup":"Umsatz",         "category": "Applications",         "subcategory": "Applications-A",       },]
-         */
-        "thereof": string;
-        /**
-          * Set the table type  LIST | SUM | OPT
-         */
+        "thereof"?: string;
         "type": string;
     }
     interface BnTemplate {
         "templateId": string;
     }
     interface BnText {
-        "dataSources": {};
+        "datasourcesData": any;
         "value"?: string;
     }
     interface BnTitle {
@@ -117,7 +87,7 @@ export namespace Components {
          */
         "order": string;
         /**
-          * (optional) set sorting order directon  values: asc | desc
+          * set sorting order directon  values: asc | desc
          */
         "orderDirection": string;
         /**
@@ -138,6 +108,12 @@ declare global {
     var HTMLBnChartElement: {
         prototype: HTMLBnChartElement;
         new (): HTMLBnChartElement;
+    };
+    interface HTMLBnContextElement extends Components.BnContext, HTMLStencilElement {
+    }
+    var HTMLBnContextElement: {
+        prototype: HTMLBnContextElement;
+        new (): HTMLBnContextElement;
     };
     interface HTMLBnDatasourceElement extends Components.BnDatasource, HTMLStencilElement {
     }
@@ -184,6 +160,7 @@ declare global {
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
         "bn-chart": HTMLBnChartElement;
+        "bn-context": HTMLBnContextElement;
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
         "bn-page": HTMLBnPageElement;
@@ -204,15 +181,14 @@ declare namespace LocalJSX {
         "variances"?: string;
         "width"?: number;
     }
+    interface BnContext {
+    }
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
          */
         "name": string;
-        /**
-          * single or collection
-         */
-        "type"?: string;
+        "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
     }
@@ -227,52 +203,23 @@ declare namespace LocalJSX {
         "orientation"?: String;
     }
     interface BnTable {
-        /**
-          * Toggles of data should be grouped by  'rowgroup'.   values: true | false  default: true
-         */
-        "grouped": boolean;
-        /**
-          * set translaton mode.     values:   ALL | NONE | META
-         */
-        "i18nMode"?: string;
-        /**
-          * (optional) Set the maximum number of rows for each  group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
-         */
+        "datasource"?: string;
+        "datasourcesData"?: any;
+        "grouped"?: boolean;
         "limit"?: number;
-        /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are  If order is set to a scenario it has also exists in scenariolist   values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
-         */
-        "order": string;
-        /**
-          * set sorting order directon  values: asc | desc
-         */
-        "orderDirection": string;
-        /**
-          * (optional) List of scenarios. Valid scenarios are       values: ac | fc | py | pl
-         */
-        "scenarios": string;
-        /**
-          * Toggles a title header for each (row-)group  the title header value is found set by 'rowgroup'  values: true | false default: true
-         */
-        "showGroupTitle": boolean;
-        /**
-          * A not mondane tile for the shard,  which discribes the shown data.
-         */
-        "tableTitle": string;
-        /**
-          * (optional) stringified Array of drilldown Objects {         "rowgroup": string,         "category": string,         "subcategory": string,         "partof": string       }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row          example: [{         "rowgroup":"Umsatz",         "category": "Applications",         "subcategory": "Applications-A",       },]
-         */
+        "order"?: string;
+        "orderDirection"?: string;
+        "scenarios"?: string;
+        "showGroupTitle"?: boolean;
+        "tableTitle"?: string;
         "thereof"?: string;
-        /**
-          * Set the table type  LIST | SUM | OPT
-         */
-        "type": string;
+        "type"?: string;
     }
     interface BnTemplate {
         "templateId"?: string;
     }
     interface BnText {
-        "dataSources"?: {};
+        "datasourcesData"?: any;
         "value"?: string;
     }
     interface BnTitle {
@@ -305,7 +252,7 @@ declare namespace LocalJSX {
          */
         "order"?: string;
         /**
-          * (optional) set sorting order directon  values: asc | desc
+          * set sorting order directon  values: asc | desc
          */
         "orderDirection"?: string;
         /**
@@ -316,6 +263,7 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "bn-body": BnBody;
         "bn-chart": BnChart;
+        "bn-context": BnContext;
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
         "bn-page": BnPage;
@@ -331,6 +279,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
             "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
+            "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
