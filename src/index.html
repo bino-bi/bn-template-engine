@@ -9,7 +9,12 @@
 </head>
 <body>
   <bn-context>
-    <bn-datasource></bn-datasource>
+    <bn-datasource name="test">
+      [
+        {"setname": "de", "operation": "-", "rowgroup": "Kosten", "category": "lime", "subcategory": "lime", "ac": -1, "py": -7, "fc": -6, "pl": -13},
+        {"setname": "de", "operation": "-", "rowgroup": "Kosten", "category": "lime2", "subcategory": "lime", "ac": -1, "py": -7, "fc": -6, "pl": -13}
+      ]
+    </bn-datasource>
     <bn-page format="a4" orientation="landscape">
       <bn-title
         business-unit = 'BinoBI Racing'
@@ -23,6 +28,7 @@
       <bn-body>
       <bn-text left="250px" top="500px" value="Hallo Test ${this.test.a}"></bn-text>
         <bn-table
+          datasource="test"
           font-size='15pt'
           top='200px'
           left='400px'

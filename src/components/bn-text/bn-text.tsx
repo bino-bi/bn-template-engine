@@ -14,8 +14,6 @@ export class Text {
 
   @Prop() datasourcesData: any
 
-  @Prop() updateDatasource?: (key: string, data: any) => void
-
   scopedEval = (scope, script) => Function(`"use strict"; return ${script}`).bind(scope)();
 
   render() {
@@ -25,6 +23,6 @@ export class Text {
   }
 }
 
-Tunnel.injectProps(Text, ['datasourcesData', 'updateDatasource'])
+Tunnel.injectProps(Text, ['datasourcesData'])
 styled(Text);
 

@@ -7,7 +7,7 @@ export interface ContextState {
 }
 
 export default createProviderConsumer<ContextState>({
-    datasourcesData: { test: {a: 1}}
+    datasourcesData: {}
   },
   (subscribe, child) => (
     <context-consumer subscribe={subscribe} renderer={child} />

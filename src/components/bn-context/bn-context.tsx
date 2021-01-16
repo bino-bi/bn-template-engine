@@ -11,7 +11,7 @@ export class Context {
     this.updateDatasource = this.updateDatasource.bind(this);
   }
 
-  @State() datasourcesData: {[key: string]: any} = { test: {a: 2}};
+  @State() datasourcesData: {[key: string]: any} = {};
 
   updateDatasource = (key: string, value: any) => ( this.datasourcesData = {...this.datasourcesData, [key]: value} )
 

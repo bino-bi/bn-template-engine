@@ -23,10 +23,7 @@ export namespace Components {
           * Unique (template scope) name of the datasource
          */
         "name": string;
-        /**
-          * single or collection
-         */
-        "type": 'single' | 'collection';
+        "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
     }
@@ -41,6 +38,8 @@ export namespace Components {
         "orientation": String;
     }
     interface BnTable {
+        "datasource": string;
+        "datasourcesData": any;
         "grouped": boolean;
         "limit"?: number;
         "order"?: string;
@@ -56,7 +55,6 @@ export namespace Components {
     }
     interface BnText {
         "datasourcesData": any;
-        "updateDatasource"?: (key: string, data: any) => void;
         "value"?: string;
     }
     interface BnTitle {
@@ -190,10 +188,7 @@ declare namespace LocalJSX {
           * Unique (template scope) name of the datasource
          */
         "name": string;
-        /**
-          * single or collection
-         */
-        "type"?: 'single' | 'collection';
+        "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
     }
@@ -208,6 +203,8 @@ declare namespace LocalJSX {
         "orientation"?: String;
     }
     interface BnTable {
+        "datasource"?: string;
+        "datasourcesData"?: any;
         "grouped"?: boolean;
         "limit"?: number;
         "order"?: string;
@@ -223,7 +220,6 @@ declare namespace LocalJSX {
     }
     interface BnText {
         "datasourcesData"?: any;
-        "updateDatasource"?: (key: string, data: any) => void;
         "value"?: string;
     }
     interface BnTitle {
