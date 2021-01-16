@@ -19,10 +19,7 @@ export class Text {
   scopedEval = (scope, script) => Function(`"use strict"; return ${script}`).bind(scope)();
 
   render() {
-    console.log("render renserc")
-    console.log(this.datasourcesData)
     return <Host>
-      <button value={'Arsch'} onClick={() => this.updateDatasource("test", {a: 10})}>ARsch</button>
       {this.scopedEval(this.datasourcesData, "`" + this.value + "`")}
     </Host>
   }
