@@ -12,7 +12,7 @@
     <bn-datasource name="test">
       [
         {"setname": "de", "operation": "-", "rowgroup": "Kosten", "category": "lime", "subcategory": "lime", "ac": -1, "py": -7, "fc": -6, "pl": -13},
-        {"setname": "de", "operation": "-", "rowgroup": "Kosten", "category": "lime2", "subcategory": "lime", "ac": -1, "py": -7, "fc": -6, "pl": -13}
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime2", "subcategory": "lime", "ac": -9, "py": 7, "fc": 6, "pl": 713}
       ]
     </bn-datasource>
     <bn-page format="a4" orientation="landscape">
@@ -26,7 +26,7 @@
         date-link = 'interval'      >
       </bn-title>
       <bn-body>
-      <bn-text left="250px" top="500px" value="Hallo Test ${this.test.a}"></bn-text>
+      <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text>
         <bn-table
           datasource="test"
           font-size='15pt'
