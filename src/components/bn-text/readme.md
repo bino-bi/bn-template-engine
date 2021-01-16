@@ -7,10 +7,10 @@
 
 ## Properties
 
-| Property      | Attribute | Description | Type     | Default     |
-| ------------- | --------- | ----------- | -------- | ----------- |
-| `dataSources` | --        |             | `{}`     | `undefined` |
-| `value`       | `value`   |             | `string` | `undefined` |
+| Property          | Attribute          | Description | Type     | Default     |
+| ----------------- | ------------------ | ----------- | -------- | ----------- |
+| `datasourcesData` | `datasources-data` |             | `any`    | `undefined` |
+| `value`           | `value`            |             | `string` | `undefined` |
 
 
 ----------------------------------------------

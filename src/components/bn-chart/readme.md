@@ -7,14 +7,16 @@
 
 ## Properties
 
-| Property         | Attribute         | Description | Type      | Default     |
-| ---------------- | ----------------- | ----------- | --------- | ----------- |
-| `height`         | `height`          |             | `number`  | `undefined` |
-| `hideCategories` | `hide-categories` |             | `boolean` | `undefined` |
-| `pixelPerUnit`   | `pixel-per-unit`  |             | `number`  | `undefined` |
-| `scenarios`      | `scenarios`       |             | `string`  | `undefined` |
-| `variances`      | `variances`       |             | `string`  | `undefined` |
-| `width`          | `width`           |             | `number`  | `undefined` |
+| Property         | Attribute         | Description | Type       | Default     |
+| ---------------- | ----------------- | ----------- | ---------- | ----------- |
+| `height`         | `height`          |             | `number`   | `undefined` |
+| `hideCategories` | `hide-categories` |             | `boolean`  | `undefined` |
+| `i18n`           | `i-1-8n`          |             | `any`      | `undefined` |
+| `pixelPerUnit`   | `pixel-per-unit`  |             | `number`   | `undefined` |
+| `scenarios`      | `scenarios`       |             | `string`   | `undefined` |
+| `styles`         | `styles`          |             | `"String"` | `undefined` |
+| `variances`      | `variances`       |             | `string`   | `undefined` |
+| `width`          | `width`           |             | `number`   | `undefined` |
 
 
 ## Dependencies

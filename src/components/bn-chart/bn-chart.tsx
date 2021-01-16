@@ -21,7 +21,7 @@ export class Chart {
   
   @Prop() pixelPerUnit: number;
   @State() datasouce: any
-  @Prop() i18n?: I18nMode;
+  @Prop() i18n?: string;
 
 
   @Prop() styles?: 'String';
