@@ -14,7 +14,6 @@ export function validateScenarioList(value: string): string[] {
     return result;
 }
 
-
 export function isValidDateLink(value: any): boolean {
     const validValues: string[] =["avg" , "interval" , "cum" , "start" , "end" , "ytd" , "ytg" , "cum"  , "mat" , "none"  ];
     return validValues.some( elem => elem === value);
@@ -41,4 +40,51 @@ export function isValidMeasure(value: any): boolean {
         }
     
 }
+
+export function isValidBoolean(value: any): boolean {
+    const validValues: any[] =["true" , "false", true, false];    
+    return validValues.some( elem => elem == value);
+}
+
+export function isValidTableType(value: any): boolean {
+    const validValues: string[] =["LIST" , "SUM", "OPT"];
+    return validValues.some( elem => elem === value); 
+}
+
+export function isValidThereOf(value: any): boolean {
+    
+    const newObj = JSON.parse(value);
+    if(newObj instanceof Array){
+       return newObj.every(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category')&& elem.hasOwnProperty('subcategory'))
+    }
+    else {    
+        return false;
+    }
+
+}
+
+export function isValidOrderList(value: string): string[] {
+    let result: string[] = [];
+    let supportedScenarios: string[] = ['ac','py','pl','fc','category', 'categoryindex' ,'rowgroup' , 'rowgroupindex' ];
+
+    if(!isBlankString(value)){
+        result = value.split(',').filter(element => !supportedScenarios.includes(element));
+    }
+
+    return result;
+}
+
+export function isValidDirection(value: any): boolean {
+    const validValues: string[] =["asc" , "desc"];
+    return validValues.some( elem => elem === value); 
+}
+
+export function isValidi18nMode(value: any): boolean {
+    const validValues: string[] =["NONE" , "ALL", "META"];
+    return validValues.some( elem => elem === value); 
+}
+
+
+
+
 
