@@ -1,6 +1,6 @@
 import {Component, Element, h, Host, Prop, State} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import {get ,onChange} from '../../data/datasource';
+//import {get ,onChange} from '../../data/datasource';
 
 @Component({
   tag: 'bn-table',
@@ -25,8 +25,8 @@ export class Table {
   unsubscribe: () => void
 
   componentWillLoad() {
-    this.datasouce= get("test");
-      this.unsubscribe = onChange("test", (value) => this.datasouce = value);
+    // this.datasouce= get("test");
+    //   this.unsubscribe = onChange("test", (value) => this.datasouce = value);
   }
 
   disconnectedCallback() {

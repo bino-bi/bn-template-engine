@@ -8,7 +8,7 @@
   <script nomodule src="/build/bn-template-engine.js"></script>
 </head>
 <body>
-  <bn-template template-id="test" version="1.0">
+  <bn-context>
     <bn-datasource></bn-datasource>
     <bn-page format="a4" orientation="landscape">
       <bn-title
@@ -20,16 +20,12 @@
         date-format = 'day'
         date-link = 'interval'      >
       </bn-title>
-
-
-
-        <!-- <bn-text left="250px" top="500px" value="Hallo Test ${this.config.measures[0].name}"/>
-
-
-
+      <bn-body>
+      <bn-text left="250px" top="500px" value="Hallo Test ${this.test.a}"></bn-text>
         <bn-table
           font-size='15pt'
-          left='100px'
+          top='200px'
+          left='400px'
           grouped="false"
           show-group-title='true'
           table-title='title1'
@@ -52,44 +48,29 @@
             "partof": "rowgroup"
           }]'
         ></bn-table>
-        <bn-chart
-          width = '400'
-          height = '300'
-          scenarios = 'ac,py,fc,ac1'
-          variances = 'null'
-          hideCategories = true
-          pixelPerUnit = 20>
-        </bn-chart>
-        <bn-chart
-        width = '400'
-        height = '300'
-        scenarios = 'ac,fc,py,pl'
-        variances = 'dpy_ac_pos'
-        hideCategories = true
-        pixelPerUnit =  20
-      >
-      </bn-chart>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        -->
+<!--        <bn-chart-->
+<!--          width = '400px'-->
+<!--          height = '300px'-->
+<!--          scenarios = 'ac,py,fc,ac1'-->
+<!--          variances = 'null'-->
+<!--          hideCategories = true-->
+<!--          pixelPerUnit = 20>-->
+<!--        </bn-chart>-->
+<!--        <bn-chart-->
+<!--        width = '400px'-->
+<!--        height = '300px'-->
+<!--        scenarios = 'ac,fc,py,pl'-->
+<!--        variances = 'dpy_ac_pos'-->
+<!--        hideCategories = true-->
+<!--        pixelPerUnit =  20-->
+<!--      >-->
+<!--      </bn-chart>-->
       </bn-body>
       <bn-footer>
         Footer
       </bn-footer>
     </bn-page>
-  </bn-template>
+  </bn-context>
 </body>
 </html>
 

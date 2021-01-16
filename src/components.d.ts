@@ -16,6 +16,8 @@ export namespace Components {
         "variances": string;
         "width"?: number;
     }
+    interface BnContext {
+    }
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
@@ -24,7 +26,7 @@ export namespace Components {
         /**
           * single or collection
          */
-        "type": string;
+        "type": 'single' | 'collection';
     }
     interface BnFooter {
     }
@@ -53,7 +55,8 @@ export namespace Components {
         "templateId": string;
     }
     interface BnText {
-        "dataSources": {};
+        "datasourcesData": any;
+        "updateDatasource"?: (key: string, data: any) => void;
         "value"?: string;
     }
     interface BnTitle {
@@ -108,6 +111,12 @@ declare global {
         prototype: HTMLBnChartElement;
         new (): HTMLBnChartElement;
     };
+    interface HTMLBnContextElement extends Components.BnContext, HTMLStencilElement {
+    }
+    var HTMLBnContextElement: {
+        prototype: HTMLBnContextElement;
+        new (): HTMLBnContextElement;
+    };
     interface HTMLBnDatasourceElement extends Components.BnDatasource, HTMLStencilElement {
     }
     var HTMLBnDatasourceElement: {
@@ -153,6 +162,7 @@ declare global {
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
         "bn-chart": HTMLBnChartElement;
+        "bn-context": HTMLBnContextElement;
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
         "bn-page": HTMLBnPageElement;
@@ -173,6 +183,8 @@ declare namespace LocalJSX {
         "variances"?: string;
         "width"?: number;
     }
+    interface BnContext {
+    }
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
@@ -181,7 +193,7 @@ declare namespace LocalJSX {
         /**
           * single or collection
          */
-        "type"?: string;
+        "type"?: 'single' | 'collection';
     }
     interface BnFooter {
     }
@@ -210,7 +222,8 @@ declare namespace LocalJSX {
         "templateId"?: string;
     }
     interface BnText {
-        "dataSources"?: {};
+        "datasourcesData"?: any;
+        "updateDatasource"?: (key: string, data: any) => void;
         "value"?: string;
     }
     interface BnTitle {
@@ -254,6 +267,7 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "bn-body": BnBody;
         "bn-chart": BnChart;
+        "bn-context": BnContext;
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
         "bn-page": BnPage;
@@ -269,6 +283,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
             "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
+            "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
