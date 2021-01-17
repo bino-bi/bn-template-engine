@@ -1,5 +1,6 @@
-import {Component, Element, h, Host, Prop, State} from "@stencil/core";
+import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
+import { validateScenarioList, validateVariancesList } from "../../utils/validate";
 
 @Component({
   tag: 'bn-chart'
@@ -7,32 +8,79 @@ import {styled} from "../../utils/styled/styled";
 export class Chart {
   // @ts-ignore
   @Element() private element: HTMLElement;
-  
+
   // @Prop() order?: string;
   // @Prop() orderDirection?: string;
 
-  @Prop() width?: number;
-  @Prop() height?: number;
-
-  @Prop() scenarios: string;
-  @Prop() variances: string;
+    /** 
+    * (mandatory) List of 4 scenarios. 
+    * the position of the scenario is maped to the datasource
+    * column scenario1 - scenario4
+    * 
+    * Valid scenarios are 
+    *  
+    *  values: ac | fc | py | pl  (1-4)
+    *  example: ac, ac2, ac3, ac4
+    */
+  @Prop() scenarios!: string;
   
+  /**
+   *  (optional) list of additonal variances which 
+   *   are calculated form the given scenarios.
+   *   the scenarios used in the variances have also 
+   *   be defined in the *scenarios* property.
+   *   
+   *   the variance is defiend as  (Scenario A -  SvenarioB)
+   *   neg and pos post fix defines which value is *good* 
+   *   a negative or a positive value.
+   * 
+   *   pattern:  d<scenarioB>_<scenarioA>_[pos|neg] 
+   * 
+   */
+  @Prop() variances: string = '';    //dfc_ac_neg
+
+
+  @Prop() hideMain: boolean; 
   @Prop() hideCategories: boolean;
-  
   @Prop() pixelPerUnit: number;
-  @State() datasouce: any
+
+  @Prop() chartTitle: string;
+  
   @Prop() i18n?: string;
-
-
+  @Prop() canvasWidth?: number;
+  @Prop() canvasHeight?: number;
   @Prop() styles?: 'String';
- 
+  @State() datasouce: any
+
+
+
+
+  @Watch('scenarios')
+  validateScenario(newValue: string) {
+    const invalidScenarios: string[] = validateScenarioList(newValue);
+    if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
+  } 
+  
+  @Watch('variances')
+  validateVariances(newValue: string) {
+    const invalidScenarios: string[] = validateVariancesList(newValue);
+    if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
+  }
+
+
+  componentWillLoad() {
+    this.validateScenario(this.scenarios);
+    this.validateVariances(this.variances);
+  }
+
+
   render() {
     // console.dir(["title",this.datasouce]);
     
     return <Host>
       <ibcs-chart-structure
-        width= {this.width}
-        height= {this.height}
+        width= {this.canvasWidth}
+        height= {this.canvasHeight}
         data= { [{name: "100",    scenario1: 5, scenario2: 15, scenario3: 10, scenario4: 5},
                  {name: "test-B", scenario1: 5,  scenario2: 30,  scenario3: 5, scenario4: 5},
                  {name: "test-CFDFDFDFG", scenario1: 10,  scenario2: 10, scenario3: 5, scenario4: 5},
@@ -45,6 +93,9 @@ export class Chart {
        variances={this.variances.split(",")}
        hideCategories={this.hideCategories}
        pixelPerUnit={this.pixelPerUnit}
+       chartTitle = {this.chartTitle}
+       styles = {null}
+       i18n = {null}
       ></ibcs-chart-structure>
     </Host>
   }

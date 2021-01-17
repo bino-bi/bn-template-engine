@@ -23,15 +23,18 @@
         date-start='2019-01-12'
         date-end='2021-05-12'
         date-format = 'day'
-        date-link = 'interval'      >
+        date-link = 'interval'
+        font-size='15pt'>
       </bn-title>
       <bn-body>
-      <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text>
-        <bn-table
+    <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text>
+    --> 
+      <bn-table
           datasource="test"
           font-size='15pt'
           top='100px'
           left='100px'
+          
           grouped="false"
           show-group-title='true'
           table-title='title1'
@@ -54,23 +57,24 @@
             "partof": "rowgroup"
           }]'
         ></bn-table>
-<!--        <bn-chart-->
-<!--          width = '400px'-->
-<!--          height = '300px'-->
-<!--          scenarios = 'ac,py,fc,ac1'-->
-<!--          variances = 'null'-->
-<!--          hideCategories = true-->
-<!--          pixelPerUnit = 20>-->
-<!--        </bn-chart>-->
-<!--        <bn-chart-->
-<!--        width = '400px'-->
-<!--        height = '300px'-->
-<!--        scenarios = 'ac,fc,py,pl'-->
-<!--        variances = 'dpy_ac_pos'-->
-<!--        hideCategories = true-->
-<!--        pixelPerUnit =  20-->
-<!--      >-->
-<!--      </bn-chart>-->
+        <bn-chart        
+          datasource="test"
+          font-size='15pt'
+          top='300px'
+          left='100px'  
+          width = '400px'
+          height = '300px'
+          
+          scenarios = 'ac,pl,fc,py'    
+          variances = 'dfc_ac_pos'        
+          hide-categories = 'true'
+          hide-main = ''
+
+
+          pixel-per-unit = 5
+          font-size='10pt'       '
+       >
+        </bn-chart>
       </bn-body>
       <bn-footer>
         Footer

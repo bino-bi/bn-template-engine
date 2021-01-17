@@ -24,7 +24,7 @@ const subscribe = (el: HTMLElement) => {
 };
 
 export const styled = (Cstr: any) => {
-  console.dir(Cstr);
+  // console.dir(Cstr);
 
   const CstrPrototype = Cstr.prototype;
   const cstrConnectedCallback = CstrPrototype.connectedCallback;

@@ -28,11 +28,13 @@
 ### Depends on
 
 - ibcs-table
+- context-consumer
 
 ### Graph
 ```mermaid
 graph TD;
   bn-table --> ibcs-table
+  bn-table --> context-consumer
   style bn-table fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

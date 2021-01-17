@@ -13,6 +13,19 @@
 | `updateDatasource`  | --        |                                                | `(key: string, data: any) => void` | `undefined` |
 
 
+## Dependencies
+
+### Depends on
+
+- context-consumer
+
+### Graph
+```mermaid
+graph TD;
+  bn-datasource --> context-consumer
+  style bn-datasource fill:#f9f,stroke:#333,stroke-width:4px
+```
+
 ----------------------------------------------
 
 *Built with [StencilJS](https://stenciljs.com/)*

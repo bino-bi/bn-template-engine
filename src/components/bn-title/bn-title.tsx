@@ -1,5 +1,5 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
-import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 //import {get ,onChange} from '../../data/datasource';
 import { styled } from "../../utils/styled/styled";
 import { isValidDate, isValidDateFormat, isValidDateLink, isValidDirection, isValidMeasure, isValidOrderList, validateScenarioList } from "../../utils/validate";
@@ -9,6 +9,10 @@ import { isValidDate, isValidDateFormat, isValidDateLink, isValidDirection, isVa
   styleUrl: 'bn-title.scss'
 })
 export class Title {
+  
+  // @ts-ignore
+  @Element() private element: HTMLElement;
+
   /** (optional) Name of business unit. If empty buisnes unit row is omitted */
   @Prop() businessUnit: string;
 
@@ -186,4 +190,5 @@ export class Title {
 }
 
 styled(Title);
+
 

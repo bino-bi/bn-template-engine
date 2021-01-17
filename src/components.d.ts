@@ -9,14 +9,22 @@ export namespace Components {
     interface BnBody {
     }
     interface BnChart {
-        "height"?: number;
+        "canvasHeight"?: number;
+        "canvasWidth"?: number;
+        "chartTitle": string;
         "hideCategories": boolean;
+        "hideMain": boolean;
         "i18n"?: string;
         "pixelPerUnit": number;
+        /**
+          * (mandatory) List of 4 scenarios.  the position of the scenario is maped to the datasource column scenario1 - scenario4  Valid scenarios are       values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4
+         */
         "scenarios": string;
         "styles"?: 'String';
+        /**
+          * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+         */
         "variances": string;
-        "width"?: number;
     }
     interface BnContext {
     }
@@ -207,14 +215,22 @@ declare namespace LocalJSX {
     interface BnBody {
     }
     interface BnChart {
-        "height"?: number;
+        "canvasHeight"?: number;
+        "canvasWidth"?: number;
+        "chartTitle"?: string;
         "hideCategories"?: boolean;
+        "hideMain"?: boolean;
         "i18n"?: string;
         "pixelPerUnit"?: number;
-        "scenarios"?: string;
+        /**
+          * (mandatory) List of 4 scenarios.  the position of the scenario is maped to the datasource column scenario1 - scenario4  Valid scenarios are       values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4
+         */
+        "scenarios": string;
         "styles"?: 'String';
+        /**
+          * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+         */
         "variances"?: string;
-        "width"?: number;
     }
     interface BnContext {
     }

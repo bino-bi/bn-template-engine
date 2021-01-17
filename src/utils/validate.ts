@@ -5,7 +5,10 @@ export function isBlankString(value: any): boolean {
 
 export function validateScenarioList(value: string): string[] {
     let result: string[] = [];
-    let supportedScenarios: string[] = ['ac','py','pl','fc'];
+    let supportedScenarios: string[] = ['ac','py','pl','fc',
+                                        'ac2','py2','pl2','fc2',
+                                        'ac3','py3','pl3','fc3',
+                                        'ac4','py4','pl4','fc4',];
 
     if(!isBlankString(value)){
         result = value.split(',').filter(element => !supportedScenarios.includes(element));
@@ -13,6 +16,31 @@ export function validateScenarioList(value: string): string[] {
 
     return result;
 }
+
+export function validateVariancesList(value: string): string[] {
+    let result: string[] = [];
+    let supportedScenarios: string[] = ['ac','py','pl','fc',
+                                        'ac2','py2','pl2','fc2',
+                                        'ac3','py3','pl3','fc3',
+                                        'ac4','py4','pl4','fc4'];
+     let supportedDirection: string[] = ['pos','neg'];
+
+
+    if(!isBlankString(value)){
+        result = value.split(',').filter(element=> {                 
+            let splitted = element.split('_');                
+            return splitted.length != 3 ||
+                   !supportedScenarios.includes(splitted[0].substring(1)) ||
+                   !supportedScenarios.includes(splitted[1]) ||
+                   !supportedDirection.includes(splitted[2]);
+        }    
+        );
+    }
+
+    return result;
+}
+
+
 
 export function isValidDateLink(value: any): boolean {
     const validValues: string[] =["avg" , "interval" , "cum" , "start" , "end" , "ytd" , "ytg" , "cum"  , "mat" , "none"  ];
@@ -65,7 +93,11 @@ export function isValidThereOf(value: any): boolean {
 
 export function isValidOrderList(value: string): string[] {
     let result: string[] = [];
-    let supportedScenarios: string[] = ['ac','py','pl','fc','category', 'categoryindex' ,'rowgroup' , 'rowgroupindex' ];
+    let supportedScenarios: string[] = [ 'ac','py','pl','fc',
+                                         'ac2','py2','pl2','fc2',
+                                         'ac3','py3','pl3','fc3',
+                                         'ac4','py4','pl4','fc4',
+                                         'category', 'categoryindex' ,'rowgroup' , 'rowgroupindex' ];
 
     if(!isBlankString(value)){
         result = value.split(',').filter(element => !supportedScenarios.includes(element));

@@ -16,7 +16,7 @@ export class Datasource {
   @Listen('DOMNodeInserted')
   getChangedValue(event) {
     const data = JSON.parse(event.target.textContent);
-    console.dir(['data:', this.name, data]);
+    // console.dir(['data:', this.name, data]);
     this.updateDatasource?.(this.name, data);
   }
 

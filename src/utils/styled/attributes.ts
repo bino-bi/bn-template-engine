@@ -96,6 +96,6 @@ export const apply = (el: Element): Map<string, ClassStyle> => {
       map.set(name, getCSS(attributes[name], value))
     }
   });
-console.dir(map)
+// console.dir(map)
   return map;
 };
