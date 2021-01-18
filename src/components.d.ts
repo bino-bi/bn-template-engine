@@ -11,6 +11,9 @@ export namespace Components {
     interface BnChart {
         "canvasHeight"?: number;
         "canvasWidth"?: number;
+        /**
+          * (optional) Name of Chart displayed on top of the axis
+         */
         "chartTitle": string;
         /**
           * (optional) toggle for hiding categories labels  values: true | false
@@ -29,7 +32,7 @@ export namespace Components {
         /**
           * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly     alternativly a number which represent the  pixel per measure unit directy. the
          */
-        "unitScaling": string | number;
+        "unitScaling": string;
         /**
           * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
@@ -226,6 +229,9 @@ declare namespace LocalJSX {
     interface BnChart {
         "canvasHeight"?: number;
         "canvasWidth"?: number;
+        /**
+          * (optional) Name of Chart displayed on top of the axis
+         */
         "chartTitle"?: string;
         /**
           * (optional) toggle for hiding categories labels  values: true | false
@@ -244,7 +250,7 @@ declare namespace LocalJSX {
         /**
           * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly     alternativly a number which represent the  pixel per measure unit directy. the
          */
-        "unitScaling": string | number;
+        "unitScaling": string;
         /**
           * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */

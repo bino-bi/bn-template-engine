@@ -63,24 +63,22 @@ export class Chart {
    * alternativly a number which represent the 
    * pixel per measure unit directy. the 
    */
-  @Prop() unitScaling!: string | number;
+  @Prop() unitScaling!: string;
 
+  /**
+   * (optional) Name of Chart displayed on top of the axis
+   * 
+   */
   @Prop() chartTitle: string;
-  
-
-
 
 
   @Prop() i18n?: string;
   @Prop() canvasWidth?: number;
   @Prop() canvasHeight?: number;
-  
   @Prop() styles?: 'String';
-   
   @State() datasouce: any
 
-
-
+  private pixelPerUnit: number = 0;
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
@@ -104,19 +102,36 @@ export class Chart {
     if (!isValidBoolean(newValue)) { throw new Error('scenarios: invalid value(s) \'' + newValue + '\' are not supported.') };
   }
 
+  @Watch('unitScaling')
+  validateUnitScaling(newValue: string) {
+    // test map DELME
+    let map = new Map<string, number>();
+    map.set('test', 2 );
+    // 
 
+    if( map.has(newValue) ) {
+      this.pixelPerUnit = map.get(newValue);  
+    }
+    else if( !isNaN( Number(newValue) ) ) {
+       this.pixelPerUnit = Number(newValue);
+    }
+    else{
+      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+    }  
+
+  }
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateHideCategories(this.hideCategories);
     this.validateHideMain(this.hideMain);
+    this.validateUnitScaling(this.unitScaling);
   }
-
 
   render() {
     // console.dir(["title",this.datasouce]);
-    
+
     return <Host>
       <ibcs-chart-structure
         width= {this.canvasWidth}
@@ -132,11 +147,11 @@ export class Chart {
        scenarios={this.scenarios.split(",")}
        variances={this.variances.split(",")}
        hideCategories={this.hideCategories}
-       pixelPerUnit={this.unitScaling}
+       pixelPerUnit={this.pixelPerUnit}
        chartTitle = {this.chartTitle}
        styles = {null}
        i18n = {null}
-      ></ibcs-chart-structure>
+      ></ibcs-chart-structure>    
     </Host>
   }
 }
