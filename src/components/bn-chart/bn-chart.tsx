@@ -1,6 +1,6 @@
 import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import { validateScenarioList, validateVariancesList } from "../../utils/validate";
+import { isValidBoolean, validateScenarioList, validateVariancesList } from "../../utils/validate";
 
 @Component({
   tag: 'bn-chart'
@@ -39,17 +39,44 @@ export class Chart {
    */
   @Prop() variances: string = '';    //dfc_ac_neg
 
+  /**
+   * (optional) toggle for hiding categories labels
+   * 
+   * values: true | false
+   */
+  @Prop() hideCategories: boolean = false;
 
-  @Prop() hideMain: boolean; 
-  @Prop() hideCategories: boolean;
-  @Prop() pixelPerUnit: number;
+  /**
+   * (optional) toggle for hiding main table 
+   * and only displays variances
+   * 
+   * if hidden variances can display categories 
+   *
+   * values: true | false
+   */
+  @Prop() hideMain: boolean = false; 
+  
+  /**
+   * Name of the 'scaling-group' which the chart uses 
+   * scalig groups are maintained globaly 
+   *  
+   * alternativly a number which represent the 
+   * pixel per measure unit directy. the 
+   */
+  @Prop() unitScaling!: string | number;
 
   @Prop() chartTitle: string;
   
+
+
+
+
   @Prop() i18n?: string;
   @Prop() canvasWidth?: number;
   @Prop() canvasHeight?: number;
+  
   @Prop() styles?: 'String';
+   
   @State() datasouce: any
 
 
@@ -67,10 +94,23 @@ export class Chart {
     if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
   }
 
+  @Watch('hideCategories')
+  validateHideCategories(newValue: boolean) {
+    if (!isValidBoolean(newValue)) { throw new Error('hideCategories: invalid value(s) \'' + newValue + '\' are not supported.') };
+  }
+  
+  @Watch('hideMain')
+  validateHideMain(newValue: boolean) {
+    if (!isValidBoolean(newValue)) { throw new Error('scenarios: invalid value(s) \'' + newValue + '\' are not supported.') };
+  }
+
+
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
+    this.validateHideCategories(this.hideCategories);
+    this.validateHideMain(this.hideMain);
   }
 
 
@@ -92,7 +132,7 @@ export class Chart {
        scenarios={this.scenarios.split(",")}
        variances={this.variances.split(",")}
        hideCategories={this.hideCategories}
-       pixelPerUnit={this.pixelPerUnit}
+       pixelPerUnit={this.unitScaling}
        chartTitle = {this.chartTitle}
        styles = {null}
        i18n = {null}

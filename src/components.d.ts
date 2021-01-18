@@ -12,15 +12,24 @@ export namespace Components {
         "canvasHeight"?: number;
         "canvasWidth"?: number;
         "chartTitle": string;
+        /**
+          * (optional) toggle for hiding categories labels  values: true | false
+         */
         "hideCategories": boolean;
+        /**
+          * (optional) toggle for hiding main table  and only displays variances  if hidden variances can display categories   values: true | false
+         */
         "hideMain": boolean;
         "i18n"?: string;
-        "pixelPerUnit": number;
         /**
           * (mandatory) List of 4 scenarios.  the position of the scenario is maped to the datasource column scenario1 - scenario4  Valid scenarios are       values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4
          */
         "scenarios": string;
         "styles"?: 'String';
+        /**
+          * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly     alternativly a number which represent the  pixel per measure unit directy. the
+         */
+        "unitScaling": string | number;
         /**
           * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
@@ -218,15 +227,24 @@ declare namespace LocalJSX {
         "canvasHeight"?: number;
         "canvasWidth"?: number;
         "chartTitle"?: string;
+        /**
+          * (optional) toggle for hiding categories labels  values: true | false
+         */
         "hideCategories"?: boolean;
+        /**
+          * (optional) toggle for hiding main table  and only displays variances  if hidden variances can display categories   values: true | false
+         */
         "hideMain"?: boolean;
         "i18n"?: string;
-        "pixelPerUnit"?: number;
         /**
           * (mandatory) List of 4 scenarios.  the position of the scenario is maped to the datasource column scenario1 - scenario4  Valid scenarios are       values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4
          */
         "scenarios": string;
         "styles"?: 'String';
+        /**
+          * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly     alternativly a number which represent the  pixel per measure unit directy. the
+         */
+        "unitScaling": string | number;
         /**
           * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */

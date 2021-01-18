@@ -201,7 +201,6 @@ export class Table {
     var temp = []
 
     if(data){
-      console.log("inner", data);
       temp = explode(groupByKey([...data], 'setname'))
     }
 
