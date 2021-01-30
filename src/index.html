@@ -11,8 +11,10 @@
   <bn-context>
     <bn-datasource name="test">
       [
-        {"setname": "de", "operation": "-", "rowgroup": "Kosten", "category": "lime", "subcategory": "lime", "ac": -1, "py": -7, "fc": -6, "pl": -13},
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime2", "subcategory": "lime", "ac": -9, "py": 7, "fc": 6, "pl": 713}
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime", "subcategory": "A", "ac": -1, "py": -7, "fc": -6, "pl": -13},
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime2", "subcategory": "B", "ac": -9, "py": 7, "fc": 6, "pl": 713},
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime3", "subcategory": "A", "ac": -1, "py": -7, "fc": -6, "pl": -13},
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime4", "subcategory": "B", "ac": 10, "py": 7, "fc": 6, "pl": 713}
       ]
     </bn-datasource>
     <bn-page format="a4" orientation="landscape">
@@ -28,17 +30,17 @@
       </bn-title>
       <bn-body>
     <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text>
-    --> 
+  
       <bn-table
           datasource="test"
-          font-size='15pt'
+          font-size='30px'
           top='100px'
           left='100px'
           
           grouped="false"
           show-group-title='true'
           table-title='title1'
-          scenarios='ac,fc,py'
+          scenarios='ac,py, dac_py_neg, dpy_ac_pos'
           type='SUM'
           limit='40'
           order='ac'
@@ -56,25 +58,19 @@
             "subcategory": "Applications-B",
             "partof": "rowgroup"
           }]'
-        ></bn-table>
+        ></bn-table>    -->  
         <bn-chart        
-          datasource="test"
-          font-size='16pt'
-          top='300px'
-          left='100px'  
-          width = '400px'
-          height = '300px'
-          
-          scenarios = 'ac,pl,fc,py'    
-          variances = ''  
-                    
-          hide-categories = 'true'         
-          hide-main = 'false'
-          unit-scaling = '20'
-
-          chart-title = 'BinoBi Racing'
-       >
-        </bn-chart>
+        datasource="test"
+        font-size='16px'
+        top='300px'
+        left='100px'  
+        width = '400px'
+        height = '300px'      
+        scenarios = 'ac,fc;dac_fc_pos'
+        unit-scaling = '5' 
+        chart-title = ''
+      >
+      </bn-chart>    
       </bn-body>
       <bn-footer>
         Footer

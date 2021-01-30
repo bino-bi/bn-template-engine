@@ -9,23 +9,14 @@ export namespace Components {
     interface BnBody {
     }
     interface BnChart {
-        "canvasHeight"?: number;
-        "canvasWidth"?: number;
         /**
           * (optional) Name of Chart displayed on top of the axis
          */
         "chartTitle": string;
-        /**
-          * (optional) toggle for hiding categories labels  values: true | false
-         */
-        "hideCategories": boolean;
-        /**
-          * (optional) toggle for hiding main table  and only displays variances  if hidden variances can display categories   values: true | false
-         */
-        "hideMain": boolean;
+        "height"?: number;
         "i18n"?: string;
         /**
-          * (mandatory) List of 4 scenarios.  the position of the scenario is maped to the datasource column scenario1 - scenario4  Valid scenarios are       values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4
+          * (mandatory) List of Scenarios Map.  the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are       values: ac | fc | py | pl  (1-4)    example: ac, ac2, ac3, ac4    list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    if empty variance charts are hidden      each variance creates a chart      pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
         "scenarios": string;
         "styles"?: 'String';
@@ -33,10 +24,7 @@ export namespace Components {
           * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly     alternativly a number which represent the  pixel per measure unit directy. the
          */
         "unitScaling": string;
-        /**
-          * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
-         */
-        "variances": string;
+        "width"?: number;
     }
     interface BnContext {
     }
@@ -227,23 +215,14 @@ declare namespace LocalJSX {
     interface BnBody {
     }
     interface BnChart {
-        "canvasHeight"?: number;
-        "canvasWidth"?: number;
         /**
           * (optional) Name of Chart displayed on top of the axis
          */
         "chartTitle"?: string;
-        /**
-          * (optional) toggle for hiding categories labels  values: true | false
-         */
-        "hideCategories"?: boolean;
-        /**
-          * (optional) toggle for hiding main table  and only displays variances  if hidden variances can display categories   values: true | false
-         */
-        "hideMain"?: boolean;
+        "height"?: number;
         "i18n"?: string;
         /**
-          * (mandatory) List of 4 scenarios.  the position of the scenario is maped to the datasource column scenario1 - scenario4  Valid scenarios are       values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4
+          * (mandatory) List of Scenarios Map.  the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are       values: ac | fc | py | pl  (1-4)    example: ac, ac2, ac3, ac4    list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    if empty variance charts are hidden      each variance creates a chart      pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
         "scenarios": string;
         "styles"?: 'String';
@@ -251,10 +230,7 @@ declare namespace LocalJSX {
           * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly     alternativly a number which represent the  pixel per measure unit directy. the
          */
         "unitScaling": string;
-        /**
-          * (optional) list of additonal variances which    are calculated form the given scenarios.   the scenarios used in the variances have also    be defined in the *scenarios* property.      the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*    a negative or a positive value.    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
-         */
-        "variances"?: string;
+        "width"?: number;
     }
     interface BnContext {
     }

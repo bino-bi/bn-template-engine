@@ -13,7 +13,7 @@ export function validateScenarioList(value: string): string[] {
     if(!isBlankString(value)){
         result = value.split(',').filter(element => !supportedScenarios.includes(element));
     }
-
+    
     return result;
 }
 
