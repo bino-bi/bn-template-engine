@@ -13,6 +13,8 @@ export namespace Components {
           * (optional) Name of Chart displayed on top of the axis
          */
         "chartTitle": string;
+        "datasource": string;
+        "datasourcesData": any;
         "height"?: number;
         "i18n"?: string;
         /**
@@ -219,6 +221,8 @@ declare namespace LocalJSX {
           * (optional) Name of Chart displayed on top of the axis
          */
         "chartTitle"?: string;
+        "datasource"?: string;
+        "datasourcesData"?: any;
         "height"?: number;
         "i18n"?: string;
         /**

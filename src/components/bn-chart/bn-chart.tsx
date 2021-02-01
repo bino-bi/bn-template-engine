@@ -1,7 +1,7 @@
 import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {validateScenarioList, validateVariancesList } from "../../utils/validate";
-
+import Tunnel from "../bn-context/tunnel";
 @Component({
   tag: 'bn-chart',
   styleUrl: "bn-chart.scss",
@@ -12,8 +12,7 @@ export class Chart {
 
   // @Prop() order?: string;
   // @Prop() orderDirection?: string;
-  
-  
+
     /** 
     * (mandatory) List of Scenarios Map. 
     * the position of the scenario is maped to the datasource
@@ -64,7 +63,11 @@ export class Chart {
   @Prop() width?: number;
   @Prop() height?: number;
   @Prop() styles?: 'String';
-  @State() datasouce: any
+  
+  @Prop() datasource: string
+  @Prop() datasourcesData: any
+  
+
 
   private pixelPerUnit: number = 0;
   private scenariosArray: string[];
@@ -141,18 +144,19 @@ export class Chart {
     if(isValidateVariancesList){
       localVariances = localScenarioString.split(',');
     }
- 
+    let data = this.datasourcesData[this.datasource]
+    const groupByKey = (list, key) => list.reduce((hash, obj) => ({...hash, [obj[key]]:( hash[obj[key]] || [] ).concat(obj)}), {})
+    const explode = (map) =>  Object.keys(map).map((k) => ({"setname": k, "data": map[k]}))
+//TODO
+    var temp = []
+
+    if(data){
+      temp = explode(groupByKey([...data], 'setname'))
+    }
     return     <ibcs-chart-structure
     width= {this.canvasWidthSegmented}
     height= {this.element.clientHeight}
-    data= { [{name: "100",    scenario1: 5, scenario2: 15, scenario3: 10, scenario4: 5},
-             {name: "test-B", scenario1: 5,  scenario2: 30,  scenario3: 5, scenario4: 5},
-             {name: "test-CFDFDFDFG", scenario1: 10,  scenario2: 10, scenario3: 5, scenario4: 5},
-             {name: "test-D", scenario1: 10, scenario2: 50, scenario3: 23, scenario4: 45},
-             {name: "test-E", scenario1: 25,  scenario2: 5,  scenario3: 43, scenario4: 56},
-             {name: "test-F", scenario1: 10,  scenario2: 20, scenario3: 44, scenario4: 23},
-             {name: "100",    scenario1: 10, scenario2: 5, scenario3: 5, scenario4: 5},
-   ]}
+    data={temp}
    scenarios={this.basicScenarios}
    variances={localVariances}
    hideCategories={isValidateVariancesList}
@@ -175,3 +179,4 @@ export class Chart {
 }
 
 styled(Chart);
+Tunnel.injectProps(Chart, ['datasourcesData'])
