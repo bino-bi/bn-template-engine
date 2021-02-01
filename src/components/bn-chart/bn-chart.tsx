@@ -1,4 +1,4 @@
-import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
+import {Component, Element, h, Host, Prop,  Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {validateScenarioList, validateVariancesList } from "../../utils/validate";
 import Tunnel from "../bn-context/tunnel";
