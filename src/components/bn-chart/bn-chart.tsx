@@ -93,6 +93,8 @@ export class Chart {
     if (invalidVariances.length > 0) { 
         throw new Error('scenarios: invalid value(s) \'' + invalidVariances.toString() + '\' are not supported.') 
     }
+
+    this.canvasWidthSegmented =  this.element.clientHeight / this.scenarios.length;
    
   }
 
@@ -133,7 +135,6 @@ export class Chart {
 
  
   chartTemplate(localScenarioString: string) {
-
     let localVariances = null;
     let isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
 
@@ -143,7 +144,7 @@ export class Chart {
  
     return     <ibcs-chart-structure
     width= {this.canvasWidthSegmented}
-    height= {this.height}
+    height= {this.element.clientHeight}
     data= { [{name: "100",    scenario1: 5, scenario2: 15, scenario3: 10, scenario4: 5},
              {name: "test-B", scenario1: 5,  scenario2: 30,  scenario3: 5, scenario4: 5},
              {name: "test-CFDFDFDFG", scenario1: 10,  scenario2: 10, scenario3: 5, scenario4: 5},
