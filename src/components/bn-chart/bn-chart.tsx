@@ -1,6 +1,6 @@
 import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import { isValidBoolean, isValidMeasure, validateScenarioList, validateVariancesList } from "../../utils/validate";
+import {validateScenarioList, validateVariancesList } from "../../utils/validate";
 
 @Component({
   tag: 'bn-chart',
@@ -73,7 +73,7 @@ export class Chart {
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
-    this.scenariosArray = this.scenarios.split(";"); 
+    this.scenariosArray = newValue.split(";"); 
     
     const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
   
@@ -94,7 +94,7 @@ export class Chart {
         throw new Error('scenarios: invalid value(s) \'' + invalidVariances.toString() + '\' are not supported.') 
     }
 
-    this.canvasWidthSegmented =  this.element.clientHeight / this.scenarios.length;
+    this.canvasWidthSegmented =  this.element.clientHeight / this.scenariosArray.length;
    
   }
 
