@@ -147,23 +147,22 @@ export class Chart {
     let data = this.datasourcesData[this.datasource]
     const groupByKey = (list, key) => list.reduce((hash, obj) => ({...hash, [obj[key]]:( hash[obj[key]] || [] ).concat(obj)}), {})
     const explode = (map) =>  Object.keys(map).map((k) => ({"setname": k, "data": map[k]}))
-//TODO
+
     var temp = []
 
     if(data){
       temp = explode(groupByKey([...data], 'setname'))
     }
     return     <ibcs-chart-structure
-    width= {this.canvasWidthSegmented}
-    height= {this.element.clientHeight}
-    data={temp}
-   scenarios={this.basicScenarios}
-   variances={localVariances}
-   hideCategories={isValidateVariancesList}
-   pixelPerUnit={this.pixelPerUnit}
-   chartTitle = {this.chartTitle}
-   styles = {null}
-   i18n = {null}
+          dimension = {{width: this.canvasWidthSegmented, height: this.element.clientHeight}}
+          data={temp}
+          scenarios={this.basicScenarios}
+          variances={localVariances}
+          hideCategories={isValidateVariancesList}
+          pixelPerUnit={this.pixelPerUnit}
+          chartTitle = {this.chartTitle}
+          styles = {null}
+          i18n = {null}
   ></ibcs-chart-structure>
   }
 
