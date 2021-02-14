@@ -153,7 +153,10 @@ export class Chart {
     if(data){
       temp = explode(groupByKey([...data], 'setname'))
     }
-    return     <ibcs-chart-structure
+
+    console.log('go', localScenarioString);
+    
+    return <ibcs-chart-structure
           dimension = {{width: this.canvasWidthSegmented, height: this.element.clientHeight}}
           data={temp}
           scenarios={this.basicScenarios}

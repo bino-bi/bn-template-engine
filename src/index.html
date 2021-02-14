@@ -24,19 +24,19 @@
         measures = '[{"name": "Bruttoumsatz", "unit": "mEUR"}, {"name": "Bruttoumsatz", "unit": "mEUR"}]'
         date-start='2019-01-12'
         date-end='2021-05-12'
-        date-format = 'day'
+        date-format = 'day'¼
         date-link = 'interval'
         font-size='15pt'>
       </bn-title>
       <bn-body>
-    <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text>
-  
+    <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text> -->
+
       <bn-table
           datasource="test"
           font-size='30px'
           top='100px'
           left='100px'
-          
+
           grouped="false"
           show-group-title='true'
           table-title='title1'
@@ -58,19 +58,16 @@
             "subcategory": "Applications-B",
             "partof": "rowgroup"
           }]'
-        ></bn-table>    -->  
-        <bn-chart        
+        ></bn-table>
+        <bn-chart
         datasource="test"
-        font-size='18px'
-
-        top = '20%' 
-        width = '600px'
-        height = '400px'      
-        scenarios = 'ac,fc;dac_fc_pos'
-        unit-scaling = '10' 
-   
-      >
-      </bn-chart>    
+        font-size='10px'
+        top = '60%'
+        width = '1000px'
+        height = '600px'
+        scenarios = 'ac,fc,pl;dfc_ac_pos'
+        unit-scaling = '12'>
+      </bn-chart>
       </bn-body>
       <bn-footer>
         Footer
