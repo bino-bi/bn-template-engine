@@ -12,56 +12,56 @@ export class Table {
   @Element() private element: HTMLElement;
 
   /**
-   * A not mondane tile for the shard, 
+   * A not mondane tile for the shard,
    * which discribes the shown data.
    */
   @Prop() tableTitle!: string;
 
 
-   /** 
-    * (optional) List of scenarios. Valid scenarios are 
-    *  
-    *  values: ac | fc | py | pl 
+   /**
+    * (optional) List of scenarios. Valid scenarios are
+    *
+    *  values: ac | fc | py | pl
     */
   @Prop() scenarios!: string;
 
-   
-  /** 
-    *  Toggles of data should be grouped by 
-    *  'rowgroup'. 
-    *  
-    *  values: true | false 
+
+  /**
+    *  Toggles of data should be grouped by
+    *  'rowgroup'.
+    *
+    *  values: true | false
     *  default: true
     */
   @Prop() grouped!: boolean;
 
 
   /**
-   *  Toggles a title header for each (row-)group 
+   *  Toggles a title header for each (row-)group
    *  the title header value is found set by 'rowgroup'
-   * 
+   *
    *  values: true | false
    *  default: true
-   * 
+   *
    */
   @Prop() showGroupTitle!: boolean;
 
-  
+
   /**
    *  Set the table type
-   *  
+   *
    *  LIST | SUM | OPT
-   * 
+   *
    */
   @Prop() type!: string;
 
-  
+
   /**
-   * (optional) Set the maximum number of rows for each 
+   * (optional) Set the maximum number of rows for each
    * group. The value 0 means *no limit*
-   * 
+   *
    * rows wich where cut by the limit are cumulated as REST
-   * 
+   *
    */
   @Prop() limit: number = 0;
 
@@ -74,7 +74,7 @@ export class Table {
             "partof": string
           },
    * rowgroup, categroy defines the location of the drill
-   * subcategory is the displayed label of the data row        
+   * subcategory is the displayed label of the data row
    *
    * example: [{
             "rowgroup":"Umsatz",
@@ -85,24 +85,24 @@ export class Table {
   @Prop() thereof: string = '[]';
 
 
-  /** List of the primary scenarios on which the order direction are applied  valid scenarios are 
-   *  If order is set to a scenario it has also exists in scenariolist 
-   * 
+  /** List of the primary scenarios on which the order direction are applied  valid scenarios are
+   *  If order is set to a scenario it has also exists in scenariolist
+   *
    *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
    */
   @Prop() order!: string;
 
- 
+
   /** set sorting order directon
-   * 
+   *
    * values: asc | desc
    */
   @Prop() orderDirection!: string;
 
 
  /** set translaton mode.
-   *    
-   * values:   ALL | NONE | META 
+   *
+   * values:   ALL | NONE | META
    */
   @Prop() i18nMode: string = "NONE";
 
@@ -112,7 +112,7 @@ export class Table {
 
   unsubscribe: () => void
 
- 
+
   @Watch('scenarios')
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
@@ -121,13 +121,13 @@ export class Table {
 
   @Watch('grouped')
   validateGrouped(newValue: string | boolean) {
-    if (!isValidBoolean(newValue)) { 
+    if (!isValidBoolean(newValue)) {
       throw new Error('grouped: invalid value(s) \'' + newValue.toString() + '\' are not supported.') };
   }
 
   @Watch('showGroupTitle')
   validateShowGroupTitle(newValue: string | boolean) {
-    if (!isValidBoolean(newValue)) { 
+    if (!isValidBoolean(newValue)) {
       throw new Error('showGroupTitle: invalid value(s) \'' + newValue.toString() + '\' are not supported.') };
   }
 
@@ -164,7 +164,7 @@ export class Table {
     if (!isValidOrderList(newValue)) { throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.') };
   }
 
-  
+
   @Watch('i18nMode')
   validatei18nMode(newValue: string) {
     if (!isValidi18nMode(newValue)) { throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.') };

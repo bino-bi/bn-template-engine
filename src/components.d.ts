@@ -53,19 +53,19 @@ export namespace Components {
         "datasource": string;
         "datasourcesData": any;
         /**
-          * Toggles of data should be grouped by  'rowgroup'.   values: true | false  default: true
+          * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean;
         /**
-          * set translaton mode.     values:   ALL | NONE | META
+          * set translaton mode.  values:   ALL | NONE | META
          */
         "i18nMode": string;
         /**
-          * (optional) Set the maximum number of rows for each  group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
+          * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
          */
         "limit": number;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are  If order is set to a scenario it has also exists in scenariolist   values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
          */
         "order": string;
         /**
@@ -73,19 +73,19 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are     values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are   values: ac | fc | py | pl
          */
         "scenarios": string;
         /**
-          * Toggles a title header for each (row-)group  the title header value is found set by 'rowgroup'  values: true | false default: true
+          * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
          */
         "showGroupTitle": boolean;
         /**
-          * A not mondane tile for the shard,  which discribes the shown data.
+          * A not mondane tile for the shard, which discribes the shown data.
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,        "partof": string      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row          example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
+          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,        "partof": string      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
          */
         "thereof": string;
         /**
@@ -261,19 +261,19 @@ declare namespace LocalJSX {
         "datasource"?: string;
         "datasourcesData"?: any;
         /**
-          * Toggles of data should be grouped by  'rowgroup'.   values: true | false  default: true
+          * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean;
         /**
-          * set translaton mode.     values:   ALL | NONE | META
+          * set translaton mode.  values:   ALL | NONE | META
          */
         "i18nMode"?: string;
         /**
-          * (optional) Set the maximum number of rows for each  group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
+          * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
          */
         "limit"?: number;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are  If order is set to a scenario it has also exists in scenariolist   values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
          */
         "order": string;
         /**
@@ -281,19 +281,19 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are     values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are   values: ac | fc | py | pl
          */
         "scenarios": string;
         /**
-          * Toggles a title header for each (row-)group  the title header value is found set by 'rowgroup'  values: true | false default: true
+          * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
          */
         "showGroupTitle": boolean;
         /**
-          * A not mondane tile for the shard,  which discribes the shown data.
+          * A not mondane tile for the shard, which discribes the shown data.
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,        "partof": string      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row          example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
+          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,        "partof": string      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
          */
         "thereof"?: string;
         /**

@@ -11,8 +11,8 @@
   <bn-context>
     <bn-datasource name="test">
       [
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "Hello", "subcategory": "A", "ac": -1, "py": -7, "fc": -6, "pl": -13},
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "World", "subcategory": "B", "ac": -9, "py": 7, "fc": 6, "pl": 713},
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "Hello", "subcategory": "A", "ac": 1, "py": -7, "fc": 10, "pl": -13},
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "World", "subcategory": "B", "ac": 1, "py": 7, "fc": 10, "pl": 713},
         {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime3", "subcategory": "A", "ac": -1, "py": -7, "fc": -6, "pl": -13},
         {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime4", "subcategory": "B", "ac": 10, "py": 7, "fc": 6, "pl": 713}
       ]
@@ -40,24 +40,19 @@
           grouped="false"
           show-group-title='true'
           table-title='title1'
-          scenarios='ac,py, dac_py_neg, dpy_ac_pos'
+          scenarios='ac,py,pl,fc,dfc_ac,dpy_ac_neg,drpl_ac_pos'
           type='SUM'
           limit='40'
           order='ac'
           order-direction='desc'
           thereof='[
           {
-            "rowgroup":"Umsatz",
-            "category": "Applications",
-            "subcategory": "Applications-A",
-            "partof": "category"
-          },
-          {
-            "rowgroup": "Umsatz",
-            "category": "Applications",
-            "subcategory": "Applications-B",
-            "partof": "rowgroup"
-          }]'
+            "rowgroup":"Kosten",
+            "category": "Hello",
+            "subcategory": "A",
+             "partof": "category" 
+          }
+          ]'
         ></bn-table>
         <bn-chart
         datasource="test"
@@ -65,7 +60,7 @@
         top = '60%'
         width = '1000px'
         height = '600px'
-        scenarios = 'ac,fc,pl;dfc_ac_pos'
+        scenarios = 'ac,fc,pl;dfc_ac_pos;dac_fc_pos'
         unit-scaling = '12'>
       </bn-chart>
       </bn-body>
