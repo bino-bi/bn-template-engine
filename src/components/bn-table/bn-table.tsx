@@ -50,7 +50,7 @@ export class Table {
   /**
    *  Set the table type
    *
-   *  LIST | SUM | OPT
+   *  list | sum | opt
    *
    */
   @Prop() type!: string;
@@ -102,7 +102,7 @@ export class Table {
 
  /** set translaton mode.
    *
-   * values:   ALL | NONE | META
+   * values:   all | none | meta
    */
   @Prop() i18nMode: string = "NONE";
 
