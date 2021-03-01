@@ -13,7 +13,7 @@ export function validateScenarioList(value: string): string[] {
     if(!isBlankString(value)){
         result = value.split(',').filter(element => !supportedScenarios.includes(element));
     }
-    
+
     return result;
 }
 
@@ -27,13 +27,13 @@ export function validateVariancesList(value: string): string[] {
 
 
     if(!isBlankString(value)){
-        result = value.split(',').filter(element=> {                 
-            let splitted = element.split('_');                
+        result = value.split(',').filter(element=> {
+            let splitted = element.split('_');
             return splitted.length != 3 ||
                    !supportedScenarios.includes(splitted[0].substring(1)) ||
                    !supportedScenarios.includes(splitted[1]) ||
                    !supportedDirection.includes(splitted[2]);
-        }    
+        }
         );
     }
 
@@ -58,34 +58,34 @@ export function isValidDate(value: any): boolean {
 }
 
 export function isValidMeasure(value: any): boolean {
-    
+
         const newObj = JSON.parse(value);
         if(newObj instanceof Array){
            return newObj.every(elem => elem.hasOwnProperty('name') && elem.hasOwnProperty('unit'))
         }
-        else {    
+        else {
             return false;
         }
-    
+
 }
 
 export function isValidBoolean(value: any): boolean {
-    const validValues: any[] =["true" , "false", true, false];    
+    const validValues: any[] =["true" , "false", true, false];
     return validValues.some( elem => elem == value);
 }
 
 export function isValidTableType(value: any): boolean {
-    const validValues: string[] =["LIST" , "SUM", "OPT"];
-    return validValues.some( elem => elem === value); 
+    const validValues: string[] =["list" , "sum", "opt"];
+    return validValues.some( elem => elem === value);
 }
 
 export function isValidThereOf(value: any): boolean {
-    
+
     const newObj = JSON.parse(value);
     if(newObj instanceof Array){
        return newObj.every(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category')&& elem.hasOwnProperty('subcategory'))
     }
-    else {    
+    else {
         return false;
     }
 
@@ -108,12 +108,12 @@ export function isValidOrderList(value: string): string[] {
 
 export function isValidDirection(value: any): boolean {
     const validValues: string[] =["asc" , "desc"];
-    return validValues.some( elem => elem === value); 
+    return validValues.some( elem => elem === value);
 }
 
 export function isValidi18nMode(value: any): boolean {
-    const validValues: string[] =["NONE" , "ALL", "META"];
-    return validValues.some( elem => elem === value); 
+    const validValues: string[] =["none" , "all", "meta"];
+    return validValues.some( elem => elem === value);
 }
 
 
