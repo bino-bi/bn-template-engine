@@ -57,7 +57,7 @@ export namespace Components {
          */
         "grouped": boolean;
         /**
-          * set translaton mode.  values:   ALL | NONE | META
+          * set translaton mode.  values:   all | none | meta
          */
         "i18nMode": string;
         /**
@@ -89,7 +89,7 @@ export namespace Components {
          */
         "thereof": string;
         /**
-          * Set the table type  LIST | SUM | OPT
+          * Set the table type  list | sum | opt
          */
         "type": string;
     }
@@ -265,7 +265,7 @@ declare namespace LocalJSX {
          */
         "grouped": boolean;
         /**
-          * set translaton mode.  values:   ALL | NONE | META
+          * set translaton mode.  values:   all | none | meta
          */
         "i18nMode"?: string;
         /**
@@ -297,7 +297,7 @@ declare namespace LocalJSX {
          */
         "thereof"?: string;
         /**
-          * Set the table type  LIST | SUM | OPT
+          * Set the table type  list | sum | opt
          */
         "type": string;
     }

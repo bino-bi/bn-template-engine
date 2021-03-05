@@ -6,6 +6,12 @@
   <title>Stencil Component Starter</title>
   <script type="module" src="/build/bn-template-engine.esm.js"></script>
   <script nomodule src="/build/bn-template-engine.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
 </head>
 <body>
   <bn-context>
@@ -26,14 +32,13 @@
         date-end='2021-05-12'
         date-format = 'day'¼
         date-link = 'interval'
-        font-size='15pt'>
+        >
       </bn-title>
       <bn-body>
     <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text> -->
 
       <bn-table
           datasource="test"
-          font-size='30px'
           top='100px'
           left='100px'
 
@@ -50,13 +55,12 @@
             "rowgroup":"Kosten",
             "category": "Hello",
             "subcategory": "A",
-             "partof": "category" 
+             "partof": "category"
           }
           ]'
         ></bn-table>
         <bn-chart
         datasource="test"
-        font-size='10px'
         top = '60%'
         width = '1000px'
         height = '600px'

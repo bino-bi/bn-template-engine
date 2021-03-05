@@ -89,13 +89,16 @@ function getCSS(attr: AttributeInfo, value: string): ClassStyle {
 
 export const apply = (el: Element): Map<string, ClassStyle> => {
   const map = new Map<string, ClassStyle>();
-  map.set("position", getCSS(attributes["position"], "absolute"))
+  //map.set("position", getCSS(attributes["position"], "absolute"))
   attributesNames.forEach(name => {
     const value = el.getAttribute(name);
     if (value) {
+      if(['top', 'left', 'right', 'bottom'].includes(name)) {
+        map.set("position", getCSS(attributes["position"], "absolute"))
+      }
       map.set(name, getCSS(attributes[name], value))
     }
   });
-// console.dir(map)
+
   return map;
 };
