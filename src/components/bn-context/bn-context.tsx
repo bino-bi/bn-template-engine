@@ -22,11 +22,9 @@ export class Context {
     };
 
     return (<Host>
-
       <Tunnel.Provider state={tunnelState}>
         <slot/>
       </Tunnel.Provider>
-      <p>Hallo</p>
     </Host>);
   }
 }
