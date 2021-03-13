@@ -9,7 +9,7 @@ import { isValidDate, isValidDateFormat, isValidDateLink, isValidDirection, isVa
   styleUrl: 'bn-title.scss'
 })
 export class Title {
-  
+
   // @ts-ignore
   @Element() private element: HTMLElement;
 
@@ -17,53 +17,56 @@ export class Title {
   @Prop() businessUnit: string;
 
 
-  /** (optional) List of scenarios. Valid scenarios are 
-   *  
-   *  values: ac | fc | py | pl 
+  /** (optional) List of scenarios. Valid scenarios are
+   *
+   *  values: ac | fc | py | pl
    */
   @Prop() scenarios: string;
 
 
-  /** (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are 
-   *  If order is set to a scenario it has also exists in scenariolist 
-   * 
+  /** (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are
+   *  If order is set to a scenario it has also exists in scenariolist
+   *
    *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
    */
   @Prop() order: string;
 
 
   /** (optional) set sorting order directon
-   * 
+   *
    * values: asc | desc
    */
   @Prop() orderDirection: string = 'asc';
 
   /**(optional) stringified Array of measure Objects {name: string, unit: string}
-   * 
+   *
+   * IF all units are the same the redundant units will be reduced and names concatenated
+   * IF unit is null  the 'in' label is omitted
+   *
    * example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
    */
   @Prop() measures: string;
 
 
-  /**(optional) String of start date 
-   * 
-   * format: yyyy-MM-dd 
+  /**(optional) String of start date
+   *
+   * format: yyyy-MM-dd
    */
   @Prop() dateStart: string;
 
 
-  /**(optional) String of end date 
-   * 
+  /**(optional) String of end date
+   *
    * format: yyyy-MM-dd
    */
   @Prop() dateEnd: string;
 
 
   /**(optional) String of end date (format: yyyy-MM-dd)
-   * 
+   *
    * values: year | quarter | month | week | day | hour | auto | fallback
-   *   
-   *  detail: 
+   *
+   *  detail:
    *  year: "YYYY",
    *  quarter:  "Q[Q] YYYY",
    *  month: "MMM YYYY",
@@ -76,10 +79,10 @@ export class Title {
 
 
   /**(optional) String of end date (format: yyyy-MM-dd)
-   * 
-   * values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none | 
-   *  
-   * detail: 
+   *
+   * values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |
+   *
+   * detail:
    *   avg: "Ø[DATE]",
    *   interval:  "[DATE]..[DATE2]",
    *   start: ".[DATE]",

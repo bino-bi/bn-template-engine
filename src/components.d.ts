@@ -57,7 +57,7 @@ export namespace Components {
          */
         "grouped": boolean;
         /**
-          * set translaton mode.  values:   ALL | NONE | META
+          * set translaton mode.  values:   all | none | meta
          */
         "i18nMode": string;
         /**
@@ -89,7 +89,7 @@ export namespace Components {
          */
         "thereof": string;
         /**
-          * Set the table type  LIST | SUM | OPT
+          * Set the table type  list | sum | opt
          */
         "type": string;
     }
@@ -106,27 +106,27 @@ export namespace Components {
          */
         "businessUnit": string;
         /**
-          * (optional) String of end date   format: yyyy-MM-dd
+          * (optional) String of end date  format: yyyy-MM-dd
          */
         "dateEnd": string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback   detail:  year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
          */
         "dateFormat": string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |   detail:   avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
          */
         "dateLink": string;
         /**
-          * (optional) String of start date   format: yyyy-MM-dd
+          * (optional) String of start date  format: yyyy-MM-dd
          */
         "dateStart": string;
         /**
-          * (optional) stringified Array of measure Objects {name: string, unit: string}  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
          */
         "measures": string;
         /**
-          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are  If order is set to a scenario it has also exists in scenariolist   values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
          */
         "order": string;
         /**
@@ -134,7 +134,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl
          */
         "scenarios": string;
     }
@@ -265,7 +265,7 @@ declare namespace LocalJSX {
          */
         "grouped": boolean;
         /**
-          * set translaton mode.  values:   ALL | NONE | META
+          * set translaton mode.  values:   all | none | meta
          */
         "i18nMode"?: string;
         /**
@@ -297,7 +297,7 @@ declare namespace LocalJSX {
          */
         "thereof"?: string;
         /**
-          * Set the table type  LIST | SUM | OPT
+          * Set the table type  list | sum | opt
          */
         "type": string;
     }
@@ -314,27 +314,27 @@ declare namespace LocalJSX {
          */
         "businessUnit"?: string;
         /**
-          * (optional) String of end date   format: yyyy-MM-dd
+          * (optional) String of end date  format: yyyy-MM-dd
          */
         "dateEnd"?: string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback   detail:  year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
          */
         "dateFormat"?: string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |   detail:   avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
          */
         "dateLink"?: string;
         /**
-          * (optional) String of start date   format: yyyy-MM-dd
+          * (optional) String of start date  format: yyyy-MM-dd
          */
         "dateStart"?: string;
         /**
-          * (optional) stringified Array of measure Objects {name: string, unit: string}  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
          */
         "measures"?: string;
         /**
-          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are  If order is set to a scenario it has also exists in scenariolist   values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
          */
         "order"?: string;
         /**
@@ -342,7 +342,7 @@ declare namespace LocalJSX {
          */
         "orderDirection"?: string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl
          */
         "scenarios"?: string;
     }
