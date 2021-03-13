@@ -42,6 +42,7 @@ bn-page {
   display: flex;
   flex-direction: column;
   page-break-after: always;
+  overflow: hidden;
 
   @include landscape("xga", 1024px, 768px);
   @include landscape("hd", 1280px, 720px);

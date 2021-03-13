@@ -39,6 +39,12 @@ export namespace Components {
     }
     interface BnFooter {
     }
+    interface BnGrid {
+        "align": 'start' | 'end' | 'center' | 'stretch';
+        "columns": number;
+        "justify": 'start' | 'end' | 'center' | 'stretch';
+        "rows": number;
+    }
     interface BnPage {
         /**
           * Define the size of the page  values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal default: xga
@@ -170,6 +176,12 @@ declare global {
         prototype: HTMLBnFooterElement;
         new (): HTMLBnFooterElement;
     };
+    interface HTMLBnGridElement extends Components.BnGrid, HTMLStencilElement {
+    }
+    var HTMLBnGridElement: {
+        prototype: HTMLBnGridElement;
+        new (): HTMLBnGridElement;
+    };
     interface HTMLBnPageElement extends Components.BnPage, HTMLStencilElement {
     }
     var HTMLBnPageElement: {
@@ -206,6 +218,7 @@ declare global {
         "bn-context": HTMLBnContextElement;
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
+        "bn-grid": HTMLBnGridElement;
         "bn-page": HTMLBnPageElement;
         "bn-table": HTMLBnTableElement;
         "bn-template": HTMLBnTemplateElement;
@@ -246,6 +259,12 @@ declare namespace LocalJSX {
         "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
+    }
+    interface BnGrid {
+        "align"?: 'start' | 'end' | 'center' | 'stretch';
+        "columns"?: number;
+        "justify"?: 'start' | 'end' | 'center' | 'stretch';
+        "rows"?: number;
     }
     interface BnPage {
         /**
@@ -352,6 +371,7 @@ declare namespace LocalJSX {
         "bn-context": BnContext;
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
+        "bn-grid": BnGrid;
         "bn-page": BnPage;
         "bn-table": BnTable;
         "bn-template": BnTemplate;
@@ -368,6 +388,7 @@ declare module "@stencil/core" {
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
+            "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;

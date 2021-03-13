@@ -6,6 +6,12 @@
   <title>Stencil Component Starter</title>
   <script type="module" src="/build/bn-template-engine.esm.js"></script>
   <script nomodule src="/build/bn-template-engine.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
 </head>
 <body>
   <bn-context>
@@ -26,17 +32,20 @@
         date-end='2021-05-12'
         date-format = 'day'¼
         date-link = 'interval'
-        font-size='15pt'>
+        >
       </bn-title>
       <bn-body>
+
+        <bn-grid rows="2" columns="2" top="0" left="0" height="100%">
+
+
+
     <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text> -->
 
       <bn-table
+          grid-column="1"
+          grid-row="1"
           datasource="test"
-          font-size='30px'
-          top='100px'
-          left='100px'
-
           grouped="false"
           show-group-title='true'
           table-title='title1'
@@ -54,15 +63,37 @@
           }
           ]'
         ></bn-table>
-        <bn-chart
-        datasource="test"
-        font-size='10px'
-        top = '60%'
-        width = '1000px'
-        height = '600px'
-        scenarios = 'ac,fc,pl;dfc_ac_pos;dac_fc_pos'
-        unit-scaling = '12'>
-      </bn-chart>
+          <bn-table
+            grid-column="2"
+            grid-row="1/2"
+            datasource="test"
+            grouped="false"
+            show-group-title='true'
+            table-title='title1'
+            scenarios='ac,py,pl,fc,dfc_ac,dpy_ac_neg,drpl_ac_pos'
+            type='SUM'
+            limit='40'
+            order='ac'
+            order-direction='desc'
+            thereof='[
+          {
+            "rowgroup":"Kosten",
+            "category": "Hello",
+            "subcategory": "A",
+             "partof": "category"
+          }
+          ]'
+          ></bn-table>
+<!--        <bn-chart-->
+<!--          grid-column="1"-->
+<!--          grid-row="2"-->
+<!--        datasource="test"-->
+<!--        width = '1000px'-->
+<!--        height = '600px'-->
+<!--        scenarios = 'ac,fc,pl;dfc_ac_pos;dac_fc_pos'-->
+<!--        unit-scaling = '12'>-->
+<!--      </bn-chart>-->
+        </bn-grid>
       </bn-body>
       <bn-footer>
         Footer

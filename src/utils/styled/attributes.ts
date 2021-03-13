@@ -59,6 +59,18 @@ const fontSize: AttributeInfo = {
   attrName: 'font-size'
 };
 
+const gridColumn: AttributeInfo = {
+  className: 'gdc',
+  cssName: 'grid-column',
+  attrName: 'grid-column'
+};
+
+const gridRow: AttributeInfo = {
+  className: 'gdr',
+  cssName: 'grid-row',
+  attrName: 'grid-row'
+};
+
 const attributes = {
   "width": width,
   "height": height,
@@ -67,7 +79,9 @@ const attributes = {
   "right": right,
   "bottom": bottom,
   "left": left,
-  "font-size": fontSize
+  "font-size": fontSize,
+  "grid-column": gridColumn,
+  "grid-row": gridRow,
 };
 
 export const attributesNames = Object.keys(attributes);
@@ -89,13 +103,16 @@ function getCSS(attr: AttributeInfo, value: string): ClassStyle {
 
 export const apply = (el: Element): Map<string, ClassStyle> => {
   const map = new Map<string, ClassStyle>();
-  map.set("position", getCSS(attributes["position"], "absolute"))
+  //map.set("position", getCSS(attributes["position"], "absolute"))
   attributesNames.forEach(name => {
     const value = el.getAttribute(name);
     if (value) {
+      if(['top', 'left', 'right', 'bottom'].includes(name)) {
+        map.set("position", getCSS(attributes["position"], "relative"))
+      }
       map.set(name, getCSS(attributes[name], value))
     }
   });
-// console.dir(map)
+
   return map;
 };
