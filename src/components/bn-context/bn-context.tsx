@@ -3,7 +3,7 @@ import Tunnel, { ContextState} from './tunnel';
 
 @Component({
   tag: 'bn-context',
-  shadow: false
+  styleUrl: 'bn-context.scss'
 })
 export class Context {
 
@@ -22,9 +22,11 @@ export class Context {
     };
 
     return (<Host>
+
       <Tunnel.Provider state={tunnelState}>
         <slot/>
       </Tunnel.Provider>
+      <p>Hallo</p>
     </Host>);
   }
 }

@@ -6,7 +6,7 @@ import { isValidDate, isValidDateFormat, isValidDateLink, isValidDirection, isVa
 
 @Component({
   tag: 'bn-title',
-  styleUrl: 'bn-title.scss'
+  styleUrl: 'bn-title.scss',
 })
 export class Title {
 

@@ -3,7 +3,6 @@ import {Component, h, Host, Prop, Watch, Element} from "@stencil/core";
 @Component({
   tag: 'bn-page',
   styleUrl: 'bn-page.scss',
-  //shadow: true, adjust css :) https://stenciljs.com/docs/host-element#shadow-dom
 })
 export class Template {
   @Element() el: HTMLElement
