@@ -79,7 +79,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | py | pl | dfc_ac | drfc_ac
          */
         "scenarios": string;
         /**
@@ -140,7 +140,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
          */
         "scenarios": string;
     }
@@ -300,7 +300,7 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | py | pl | dfc_ac | drfc_ac
          */
         "scenarios": string;
         /**
@@ -361,7 +361,7 @@ declare namespace LocalJSX {
          */
         "orderDirection"?: string;
         /**
-          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl
+          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
          */
         "scenarios"?: string;
     }

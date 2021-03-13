@@ -21,7 +21,10 @@ export class Table {
    /**
     * (optional) List of scenarios. Valid scenarios are
     *
-    *  values: ac | fc | py | pl
+    *  variances pattern d<scenario_baseScenario>
+    *  relative variance pattern dr<scenario_baseScenario>
+    *
+    *  values: ac | fc | py | pl | dfc_ac | drfc_ac
     */
   @Prop() scenarios!: string;
 
@@ -104,7 +107,7 @@ export class Table {
    *
    * values:   all | none | meta
    */
-  @Prop() i18nMode: string = "NONE";
+  @Prop() i18nMode: string = "none";
 
   @Prop() datasource: string
   @Prop() datasourcesData: any

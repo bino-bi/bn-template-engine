@@ -26,11 +26,11 @@
     <bn-page format="a4" orientation="landscape">
       <bn-title
         business-unit = 'BinoBI Racing'
-        scenarios     = 'ac'
+
         measures = '[{"name": "Bruttoumsatz", "unit": "mEUR"}, {"name": "Bruttoumsatz", "unit": "mEUR"}]'
         date-start='2019-01-12'
         date-end='2021-05-12'
-        date-format = 'day'¼
+        date-format = 'quarter'
         date-link = 'interval'
         >
       </bn-title>
@@ -49,8 +49,8 @@
           grouped="false"
           show-group-title='true'
           table-title='title1'
-          scenarios='ac,py,pl,fc,dfc_ac,dpy_ac_neg,drpl_ac_pos'
-          type='SUM'
+          scenarios='ac,py,pl,fc,dfc_ac_neg,dpy_ac_neg,drpl_ac_pos'
+          type='sum'
           limit='40'
           order='ac'
           order-direction='desc'
@@ -70,8 +70,8 @@
             grouped="false"
             show-group-title='true'
             table-title='title1'
-            scenarios='ac,py,pl,fc,dfc_ac,dpy_ac_neg,drpl_ac_pos'
-            type='SUM'
+            scenarios='ac,py,pl,fc,dfc_ac_neg,dpy_ac_neg,drpl_ac_pos'
+            type='sum'
             limit='40'
             order='ac'
             order-direction='desc'

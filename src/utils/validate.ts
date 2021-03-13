@@ -14,6 +14,7 @@ export function validateScenarioList(value: string): string[] {
         result = value.split(',').filter(element => !supportedScenarios.includes(element));
     }
 
+    result = validateVariancesList(result.toString());
     return result;
 }
 
@@ -23,14 +24,20 @@ export function validateVariancesList(value: string): string[] {
                                         'ac2','py2','pl2','fc2',
                                         'ac3','py3','pl3','fc3',
                                         'ac4','py4','pl4','fc4'];
-     let supportedDirection: string[] = ['pos','neg'];
+     let supportedDirection: string[] = ['pos','neg','neu'];
 
 
     if(!isBlankString(value)){
         result = value.split(',').filter(element=> {
             let splitted = element.split('_');
+            let subStringOffset = 1;
+
+            if( splitted[0].substring(0,2) === 'dr'){
+              subStringOffset = 2;
+            }
+
             return splitted.length != 3 ||
-                   !supportedScenarios.includes(splitted[0].substring(1)) ||
+                   !supportedScenarios.includes(splitted[0].substring(subStringOffset)) ||
                    !supportedScenarios.includes(splitted[1]) ||
                    !supportedDirection.includes(splitted[2]);
         }

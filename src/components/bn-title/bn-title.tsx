@@ -19,7 +19,7 @@ export class Title {
 
   /** (optional) List of scenarios. Valid scenarios are
    *
-   *  values: ac | fc | py | pl
+   *  values: ac | fc | py | pl | null
    */
   @Prop() scenarios: string;
 
@@ -102,6 +102,7 @@ export class Title {
   @Watch('scenarios')
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
+
     if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
   }
 
@@ -180,7 +181,7 @@ export class Title {
     return <Host>
       <ibcs-title
         businessUnit={this.businessUnit}
-        scenarios={this.scenarios.split(",")}
+        scenarios={this.scenarios ? this.scenarios.split(",") : null}
         measures={this.measures ? JSON.parse(this.measures!) : null}
         timeperiod={titleTimeperiod}
         order={titleOrder}
