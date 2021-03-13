@@ -101,9 +101,12 @@ export class Title {
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
-    const invalidScenarios: string[] = validateScenarioList(newValue);
+    if ( newValue != null){
+      const invalidScenarios: string[] = validateScenarioList(newValue);
 
-    if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
+      if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
+
+    }
   }
 
   @Watch('measures')
@@ -181,7 +184,7 @@ export class Title {
     return <Host>
       <ibcs-title
         businessUnit={this.businessUnit}
-        scenarios={this.scenarios ? this.scenarios.split(",") : null}
+        scenarios={this.scenarios == null? this.scenarios.split(",") : null}
         measures={this.measures ? JSON.parse(this.measures!) : null}
         timeperiod={titleTimeperiod}
         order={titleOrder}
