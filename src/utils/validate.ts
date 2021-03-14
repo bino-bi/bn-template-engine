@@ -18,6 +18,17 @@ export function validateScenarioList(value: string): string[] {
     return result;
 }
 
+export function validateScenarioUnitType(value: string): string [] {
+  let result: string[] = [];
+  let supportedScenarioTypes: string[] = ['decimal', 'percent'];
+
+  if(!isBlankString(value)){
+    result = value.split(',').filter(element => !supportedScenarioTypes.includes(element));
+  }
+
+  return result
+}
+
 export function validateVariancesList(value: string): string[] {
     let result: string[] = [];
     let supportedScenarios: string[] = ['ac','py','pl','fc',

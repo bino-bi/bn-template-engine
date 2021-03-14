@@ -17,7 +17,7 @@
   <bn-context>
     <bn-datasource name="test">
       [
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "Hello", "subcategory": "A", "ac": 11516.61, "py": -7, "fc": 10, "pl": -13},
+        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "Hello", "subcategory": "A", "ac": 116.6, "py": -7, "fc": 10, "pl": -13},
         {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "World", "subcategory": "B", "ac": 1, "py": 7, "fc": 10, "pl": 713},
         {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime3", "subcategory": "A", "ac": -1, "py": -7, "fc": -6, "pl": -13},
         {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime4", "subcategory": "B", "ac": 10, "py": 7, "fc": 6, "pl": 713}
@@ -50,6 +50,7 @@
           show-group-title='true'
           table-title='title1'
           scenarios='ac,py,pl,fc,dfc_ac_neg,dpy_ac_neg,drpl_ac_pos'
+          scenarios-unit-type="percent"
           type='sum'
           limit='40'
           order='ac'

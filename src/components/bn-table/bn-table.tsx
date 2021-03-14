@@ -1,7 +1,7 @@
 
 import { Component, Element,  h, Host, Prop, Watch } from "@stencil/core";
 import { styled } from "../../utils/styled/styled";
-import { isValidBoolean, isValidDirection, isValidi18nMode, isValidOrderList, isValidTableType, isValidThereOf, validateScenarioList } from "../../utils/validate";
+import { isValidBoolean, isValidDirection, isValidi18nMode, isValidOrderList, isValidTableType, isValidThereOf, validateScenarioList, validateScenarioUnitType } from "../../utils/validate";
 import Tunnel from "../bn-context/tunnel";
 @Component({
   tag: 'bn-table',
@@ -27,6 +27,16 @@ export class Table {
     *  values: ac | fc | py | pl | dfc_ac | drfc_ac
     */
   @Prop() scenarios!: string;
+  /**
+   * (optional) Scenario Unit Type
+   *
+   *  percent all data values are converted into percent
+   *  (0.02 ->  2%)
+   *
+   *  default volume
+   *  values: percent | decimal
+   */
+  @Prop() scenariosUnitType!: string;
 
 
   /**
@@ -117,10 +127,17 @@ export class Table {
 
 
   @Watch('scenarios')
+  validateScenarioUnitType(newValue: string) {
+    const invalidScenarios: string[] = validateScenarioUnitType(newValue);
+    if (invalidScenarios.length > 0) { throw new Error('scenariosUnitType: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
+  }
+
+  @Watch('scenariosUnitType')
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
     if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
   }
+
 
   @Watch('grouped')
   validateGrouped(newValue: string | boolean) {
@@ -178,6 +195,7 @@ export class Table {
    // this.unsubscribe = onChange("test", (value) => this.datasouce = value);
 
     this.validateScenario(this.scenarios);
+    this.validateScenarioUnitType(this.scenariosUnitType);
     this.validateGrouped(this.grouped);
     this.validateShowGroupTitle(this.showGroupTitle);
     this.validateType(this.type);
@@ -211,6 +229,7 @@ export class Table {
       <ibcs-table
         table-title={this.tableTitle}
         scenarios={this.scenarios.split(",")}
+        scenarios-unit-type={this.scenariosUnitType}
         grouped={this.grouped}
         show-group-title={this.showGroupTitle}
         type={this.type}
