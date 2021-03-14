@@ -83,6 +83,10 @@ export namespace Components {
          */
         "scenarios": string;
         /**
+          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
+         */
+        "scenariosUnitType": string;
+        /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
          */
         "showGroupTitle": boolean;
@@ -303,6 +307,10 @@ declare namespace LocalJSX {
           * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | py | pl | dfc_ac | drfc_ac
          */
         "scenarios": string;
+        /**
+          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
+         */
+        "scenariosUnitType": string;
         /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
          */
