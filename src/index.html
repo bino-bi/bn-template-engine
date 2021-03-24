@@ -14,93 +14,178 @@
   </style>
 </head>
 <body>
-  <bn-context>
-    <bn-datasource name="test">
-      [
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "Hello", "subcategory": "A", "ac": 116.6, "py": -7, "fc": 10, "pl": -13},
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "World", "subcategory": "B", "ac": 1, "py": 7, "fc": 10, "pl": 713},
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime3", "subcategory": "A", "ac": -1, "py": -7, "fc": -6, "pl": -13},
-        {"setname": "de", "operation": "+", "rowgroup": "Kosten", "category": "lime4", "subcategory": "B", "ac": 10, "py": 7, "fc": 6, "pl": 713}
-      ]
-    </bn-datasource>
-    <bn-page format="a4" orientation="landscape">
-      <bn-title
-        business-unit = 'BinoBI Racing'
-        scenarios = null
-        measures = '[{"name": "Bruttoumsatz", "unit": "mEUR"}, {"name": "Bruttoumsatz", "unit": "mEUR"}]'
-        date-start='2019-01-12'
-        date-end='2021-05-12'
-        date-format = 'quarter'
-        date-link = 'interval'
-        >
-      </bn-title>
-      <bn-body>
+<bn-context>
+  <bn-datasource name="Kapitalzusagen">       [
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Immobilien", "subcategory": "Beratungsmandate", "py": 0.5361, "ac": 0.6506, "pl": 0.5506, "fc": 0.7506},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Beratungsmandate", "subcategory": "Beratungsmandate", "py": 0.5361, "ac": 0.6506, "pl": 0.5506, "fc": 0.7506},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Einanleger Dachfonds", "subcategory": "Einanleger Dachfonds", "py": 0.3852, "ac": 0.4829, "pl": 0.3829, "fc": 0.5829},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Mehranleger Dachfonds", "subcategory": "Mehranleger Dachfonds", "py": 0.1050, "ac": 0.1050, "pl": 0.950, "fc": 0.1150},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Luxemburg", "subcategory": "Luxemburg", "py": 0.423, "ac": 0.968, "pl": 0.868, "fc": 0.1068},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Immobilienkredit Fonds", "subcategory": "Immobilienkredit Fonds", "py": 0.200, "ac": 0.210, "pl": 0.205, "fc": 0.215},
 
-        <bn-grid rows="2" columns="2" top="0" left="0" height="100%">
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Beratungsmandate", "subcategory": "Beratungsmandate", "py": 0.2691, "ac": 0.3145, "pl": 0.3045, "fc": 0.3245},
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Mehranleger Dachfonds", "subcategory": "Mehranleger Dachfonds", "py": 0.313, "ac": 0.813, "pl": 0.713, "fc": 0.913},
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Einanleger Dachfonds", "subcategory": "Einanleger Dachfonds", "py": 0.437, "ac": 0.717, "pl": 0.617, "fc": 0.817},
 
+    {"setname": "de", "operation": "+", "rowgroup": "Advisory Desk", "category": "Advisory Desk", "subcategory": "", "py": 0.349, "ac": 0.5157, "pl": 0.4157, "fc": 0.6157}
 
+    ]     </bn-datasource>
 
-    <!--  <bn-text left="250px" top="500px" value="Hallo Test ${this.test[0].setname}"></bn-text> -->
+  <bn-datasource name="Allokiertes Kapital">       [
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Beratungsmandate", "subcategory": "Beratungsmandate", "py": 0.5315, "ac": 0.5763, "pl": 0.5663, "fc": 0.5863},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Einanleger Dachfonds", "subcategory": "Einanleger Dachfonds", "py": 0.3646, "ac": 0.4051, "pl": 0.3951, "fc": 0.4151},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Mehranleger Dachfonds", "subcategory": "Mehranleger Dachfonds", "py": 0.853, "ac": 0.932, "pl": 0.922, "fc": 0.942},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Luxemburg", "subcategory": "Luxemburg", "py": 0.398, "ac": 0.751, "pl": 0.651, "fc": 0.851},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Immobilienkredit Fonds", "subcategory": "Immobilienkredit Fonds", "py": 0.0, "ac": 0.0, "pl": 0.0, "fc": 0.0},
 
-      <bn-table
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Beratungsmandate", "subcategory": "Beratungsmandate", "py": 0.1913, "ac": 0.2003, "pl": 0.1993, "fc": 0.2013},
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Mehranleger Dachfonds", "subcategory": "Mehranleger Dachfonds", "py": 0.160, "ac": 0.452, "pl": 0.352, "fc": 0.552},
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Einanleger Dachfonds", "subcategory": "Einanleger Dachfonds", "py": 0.320, "ac": 0.583, "pl": 0.483, "fc": 0.683},
+
+    {"setname": "de", "operation": "+", "rowgroup": "Advisory Desk", "category": "Advisory Desk", "subcategory": "", "py": 0.3699, "ac": 0.5157, "pl": 0.4157, "fc": 0.6157}
+
+    ]     </bn-datasource>
+
+  <bn-datasource name="Marktwert">       [
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Beratungsmandate", "subcategory": "Beratungsmandate", "py": 0.4886, "ac": 0.5267, "pl": 0.5167, "fc": 0.5367},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Einanleger Dachfonds", "subcategory": "Einanleger Dachfonds", "py": 0.3501, "ac": 0.3909, "pl": 0.3809, "fc": 0.4009},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Mehranleger Dachfonds", "subcategory": "Mehranleger Dachfonds", "py": 0.835, "ac": 0.965, "pl": 0.955, "fc": 0.975},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Luxemburg", "subcategory": "Luxemburg", "py": 0.423, "ac": 0.741, "pl": 0.641, "fc": 0.841},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Immobilienkredit Fonds", "subcategory": "Immobilienkredit Fonds", "py": 0.88, "ac": 0.103, "pl": 0.110, "fc": 0.130},
+
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Beratungsmandate", "subcategory": "Beratungsmandate", "py": 0.1168, "ac": 0.1303, "pl": 0.1203, "fc": 0.1403},
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Mehranleger Dachfonds", "subcategory": "Mehranleger Dachfonds", "py": 0.67, "ac": 0.158, "pl": 0.148, "fc": 0.168},
+    {"setname": "de", "operation": "+", "rowgroup": "Alternative Investments", "category": "Einanleger Dachfonds", "subcategory": "Einanleger Dachfonds", "py": 0.208, "ac": 0.266, "pl": 0.256, "fc": 0.276},
+
+    {"setname": "de", "operation": "+", "rowgroup": "Advisory Desk", "category": "Advisory Desk", "subcategory": "", "py": 0.3605, "ac": 0.4611, "pl": 0.4511, "fc": 0.4711}
+
+    ]     </bn-datasource>
+
+  <bn-datasource name="Test">       [
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Beratungsmandate", "subcategory": "Beratungsmandate", "py": 10, "ac": 5, "pl": 5, "fc": 5},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Einanleger Dachfonds", "subcategory": "Einanleger Dachfonds", "py":5, "ac": 10, "pl": 5, "fc": 5},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Mehranleger Dachfonds", "subcategory": "Mehranleger Dachfonds", "py": 10, "ac": 5, "pl": 0, "fc": 0},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Luxemburg", "subcategory": "Luxemburg", "py": 5, "ac": 10, "pl": 0, "fc": 0},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Luxemburg", "subcategory": "TEST", "py": 10, "ac": 10, "pl": 0, "fc": 0},
+    {"setname": "de", "operation": "+", "rowgroup": "Immobilien", "category": "Immobilienkredit Fonds", "subcategory": "Immobilienkredit Fonds", "py": 5, "ac": 10, "pl": 0, "fc": 0}
+
+    ]     </bn-datasource>
+
+  <bn-page format     ="a4" orienation="portrait">
+    <bn-title
+      business-unit   = 'Geschäftsfeld AM Illiquide'
+      scenarios       = 'py,pl,ac,fc'
+      measures        = '[{"name": "Performance von"},{"name": "Kapitalzusagen"}, {"name": "Allokiertes Kapital"}, {"name": "Marktwert", "unit": "%"}]'
+      date-start      = '2019-12-31'
+      date-end        = '2020-12-31'
+      date-format     = 'day'
+      date-link       = 'interval'>
+    </bn-title>
+    <bn-body>
+      <bn-grid rows="3" columns="2" top="0" left="0" height="100%">
+        <bn-table
+          datasource    ="Kapitalzusagen"
           grid-column="1"
           grid-row="1"
-          datasource="test"
-          grouped="false"
-          show-group-title='true'
-          table-title='title1'
-          scenarios='ac,py,pl,fc,dfc_ac_neg,dpy_ac_neg,drpl_ac_pos'
-          scenarios-unit-type="percent"
-          type='sum'
-          limit='40'
-          order='ac'
-          order-direction='desc'
-          thereof='[
+          grouped             ="true"
+          show-group-title    ='false'
+          table-title         ='Kapitalzusagen'
+          scenarios           ='py,pl,ac,fc'
+          scenarios-unit-type = 'percent'
+          type                ='list'
+          limit               =''
+          order               ='subcategory'
+          order-direction     ='asc'
+          thereof             ='[
           {
-            "rowgroup":"Kosten",
-            "category": "Hello",
-            "subcategory": "A",
-             "partof": "category"
-          }
-          ]'
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Immobilien",
+            "subcategory":  "",
+            "partof":       ""
+          },
+          {
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Alternative Investments",
+            "subcategory":  "",
+            "partof":       ""
+          }]'
         ></bn-table>
-          <bn-table
-            grid-column="2"
-            grid-row="1/2"
-            datasource="test"
-            grouped="false"
-            show-group-title='true'
-            table-title='title1'
-            scenarios='ac,py,pl,fc,dfc_ac_neg,dpy_ac_neg,drpl_ac_pos'
-            type='sum'
-            limit='40'
-            order='ac'
-            order-direction='desc'
-            thereof='[
+
+        <bn-table
+          datasource    ="Allokiertes Kapital"
+
+          grid-column="2"
+          grid-row="1"
+
+          grouped             ="true"
+          show-group-title    ='false'
+          table-title         ='Allokiertes Kapital'
+          scenarios           ='py,pl,ac,fc'
+          scenarios-unit-type = 'percent'
+          type                ='list'
+          limit               =''
+          order               ='subcategory'
+          order-direction     ='asc'
+          thereof             ='[
           {
-            "rowgroup":"Kosten",
-            "category": "Hello",
-            "subcategory": "A",
-             "partof": "category"
-          }
-          ]'
-          ></bn-table>
-<!--        <bn-chart-->
-<!--          grid-column="1"-->
-<!--          grid-row="2"-->
-<!--        datasource="test"-->
-<!--        width = '1000px'-->
-<!--        height = '600px'-->
-<!--        scenarios = 'ac,fc,pl;dfc_ac_pos;dac_fc_pos'-->
-<!--        unit-scaling = '12'>-->
-<!--      </bn-chart>-->
-        </bn-grid>
-      </bn-body>
-      <bn-footer>
-        Footer
-      </bn-footer>
-    </bn-page>
-  </bn-context>
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Immobilien",
+            "subcategory":  "",
+            "partof":       ""
+          },
+          {
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Alternative Investments",
+            "subcategory":  "",
+            "partof":       ""
+          }]'
+        ></bn-table>
+
+        <bn-table
+          datasource    ="Marktwert"
+
+          grid-column="1 / span 2"
+          grid-row="2"
+
+          grouped             ="true"
+          show-group-title    ='false'
+          table-title         ='Marktwert'
+          scenarios           ='py,pl,ac,fc,dpy_ac,drpy_ac_pos,drpl_ac_pos'
+          scenarios-unit-type = 'percent'
+          type                ='list'
+          limit               =''
+          order               ='subcategory'
+          order-direction     ='asc'
+          thereof             ='[
+          {
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Immobilien",
+            "subcategory":  "",
+            "partof":       ""
+          },
+          {
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Alternative Investments",
+            "subcategory":  "",
+            "partof":       ""
+          }]'
+        ></bn-table>
+
+        <bn-chart
+          datasource      = "Test"
+          grid-column="1/2"
+          grid-row="3"
+          width           ='1000px'
+          height          ='400px'
+          scenarios       ='ac,pl,fc,py;dpy_ac_pos;drpy_ac_pos'
+          unit-scaling    ='5'
+          chart-title     ='Marktwert'
+          styles          =''
+        >       </bn-chart>
+      </bn-grid>
+    </bn-body>
+  </bn-page>
+</bn-context>
 </body>
 </html>
 

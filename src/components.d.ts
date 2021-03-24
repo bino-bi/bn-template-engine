@@ -18,12 +18,12 @@ export namespace Components {
         "height"?: number;
         "i18n"?: string;
         /**
-          * (mandatory) List of Scenarios Map.  the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are     values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.  the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)  neg and pos post fix defines which value is *good*   a negative or a positive value.   if empty variance charts are hidden    each variance creates a chart     pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which  are calculated form the given scenarios.  the scenarios used in the variances have also  be defined in the *scenarios* property.   the variance is defiend as  (Scenario A -  SvenarioB)  neg and pos post fix defines which value is *good*  a negative or a positive value.   if empty variance charts are hidden   each variance creates a chart   pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
         "scenarios": string;
         "styles"?: 'String';
         /**
-          * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly    alternativly a number which represent the  pixel per measure unit directy. the
+          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly  alternativly a number which represent the pixel per measure unit directy. the
          */
         "unitScaling": string;
         "width"?: number;
@@ -243,12 +243,12 @@ declare namespace LocalJSX {
         "height"?: number;
         "i18n"?: string;
         /**
-          * (mandatory) List of Scenarios Map.  the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are     values: ac | fc | py | pl  (1-4)   example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.  the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)  neg and pos post fix defines which value is *good*   a negative or a positive value.   if empty variance charts are hidden    each variance creates a chart     pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which  are calculated form the given scenarios.  the scenarios used in the variances have also  be defined in the *scenarios* property.   the variance is defiend as  (Scenario A -  SvenarioB)  neg and pos post fix defines which value is *good*  a negative or a positive value.   if empty variance charts are hidden   each variance creates a chart   pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
         "scenarios": string;
         "styles"?: 'String';
         /**
-          * Name of the 'scaling-group' which the chart uses  scalig groups are maintained globaly    alternativly a number which represent the  pixel per measure unit directy. the
+          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly  alternativly a number which represent the pixel per measure unit directy. the
          */
         "unitScaling": string;
         "width"?: number;

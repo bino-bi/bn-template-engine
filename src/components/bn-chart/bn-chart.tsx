@@ -13,48 +13,48 @@ export class Chart {
   // @Prop() order?: string;
   // @Prop() orderDirection?: string;
 
-    /** 
-    * (mandatory) List of Scenarios Map. 
+    /**
+    * (mandatory) List of Scenarios Map.
     * the position of the scenario is maped to the datasource
     * column scenario1 - scenario4
-    * 
+    *
     * if empty the main chart is hidden
-    * 
-    * Valid scenarios are 
-    *  
-    *  values: ac | fc | py | pl  (1-4) 
+    *
+    * Valid scenarios are
+    *
+    *  values: ac | fc | py | pl  (1-4)
     *  example: ac, ac2, ac3, ac4
-    * 
-    *  list of additonal variances which 
+    *
+    *  list of additonal variances which
    *   are calculated form the given scenarios.
-   *   the scenarios used in the variances have also 
+   *   the scenarios used in the variances have also
    *   be defined in the *scenarios* property.
-   *   
+   *
    *   the variance is defiend as  (Scenario A -  SvenarioB)
-   *   neg and pos post fix defines which value is *good* 
+   *   neg and pos post fix defines which value is *good*
    *   a negative or a positive value.
-   * 
+   *
    *   if empty variance charts are hidden
-   *   
-   *   each variance creates a chart  
-   *  
-   *   pattern:  d<scenarioB>_<scenarioA>_[pos|neg] 
+   *
+   *   each variance creates a chart
+   *
+   *   pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
     */
    @Prop() scenarios!: string;
-  
-    
+
+
   /**
-   * Name of the 'scaling-group' which the chart uses 
-   * scalig groups are maintained globaly 
-   *  
-   * alternativly a number which represent the 
-   * pixel per measure unit directy. the 
+   * Name of the 'scaling-group' which the chart uses
+   * scalig groups are maintained globaly
+   *
+   * alternativly a number which represent the
+   * pixel per measure unit directy. the
    */
   @Prop() unitScaling!: string;
 
   /**
    * (optional) Name of Chart displayed on top of the axis
-   * 
+   *
    */
   @Prop() chartTitle: string;
 
@@ -63,10 +63,10 @@ export class Chart {
   @Prop() width?: number;
   @Prop() height?: number;
   @Prop() styles?: 'String';
-  
+
   @Prop() datasource: string
   @Prop() datasourcesData: any
-  
+
 
 
   private pixelPerUnit: number = 0;
@@ -76,55 +76,55 @@ export class Chart {
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
-    this.scenariosArray = newValue.split(";"); 
-    
+    this.scenariosArray = newValue.split(";");
+
     const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
-  
-    if (invalidScenarios.length > 0) { 
-          throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') 
+
+    if (invalidScenarios.length > 0) {
+          throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
     }
     else{
         this.basicScenarios = this.scenariosArray[0].split(',');
     }
-  
+
     let invalidVariances: string[] = [];
     for(let  i = 1; i < this.scenariosArray.length; i++) {
-  
+
       invalidVariances = invalidVariances.concat(validateVariancesList(this.scenariosArray[i]));
     }
-    
-    if (invalidVariances.length > 0) { 
-        throw new Error('scenarios: invalid value(s) \'' + invalidVariances.toString() + '\' are not supported.') 
+
+    if (invalidVariances.length > 0) {
+        throw new Error('scenarios: invalid value(s) \'' + invalidVariances.toString() + '\' are not supported.')
     }
 
     this.canvasWidthSegmented =  this.element.clientHeight / this.scenariosArray.length;
-   
+
   }
 
- 
-  
+
+
   @Watch('unitScaling')
   validateUnitScaling(newValue: string) {
-    // 
-    // Change with global unitmap  
+    //
+    // Change with global unitmap
     //
     let map = new Map<string, number>();
     map.set('test', 2 );
-    // 
+    //
 
     if( map.has(newValue) ) {
-      this.pixelPerUnit = map.get(newValue);  
+      this.pixelPerUnit = map.get(newValue);
     }
     else if( !isNaN( Number(newValue) ) ) {
        this.pixelPerUnit = Number(newValue);
     }
     else{
       throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
-    }  
+    }
 
   }
 
- 
+
 
   constructor(){
     this.chartTemplate = this.chartTemplate.bind(this);
@@ -136,7 +136,7 @@ export class Chart {
     this.validateUnitScaling(this.unitScaling);
   }
 
- 
+
   chartTemplate(localScenarioString: string) {
     let localVariances = null;
     let isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
@@ -154,23 +154,24 @@ export class Chart {
       temp = explode(groupByKey([...data], 'setname'))
     }
 
-    console.log('go', localScenarioString);
-    
-    return <ibcs-chart-structure
+    let chartTitle = isValidateVariancesList? null : this.chartTitle;
+   // let canvasWidthSegmented = isValidateVariancesList?  this.canvasWidthSegmented / 2  :  this.canvasWidthSegmented
+
+     return <ibcs-chart-structure
           dimension = {{width: this.canvasWidthSegmented, height: this.element.clientHeight}}
           data={temp}
           scenarios={this.basicScenarios}
           variances={localVariances}
           hideCategories={isValidateVariancesList}
           pixelPerUnit={this.pixelPerUnit}
-          chartTitle = {this.chartTitle}
+          chartTitle = {chartTitle}
           styles = {null}
           i18n = {null}
   ></ibcs-chart-structure>
   }
 
   render() {
-    this.canvasWidthSegmented = this.width / this.scenariosArray.length;
+    this.canvasWidthSegmented = this.width ; // this.scenariosArray.length;
 
     return <Host>
     <div class="container">
