@@ -93,7 +93,7 @@ export function isValidBoolean(value: any): boolean {
 }
 
 export function isValidTableType(value: any): boolean {
-    const validValues: string[] =["list" , "sum", "opt"];
+    const validValues: string[] =["list" , "sum", "opt","optnototal"];
     return validValues.some( elem => elem === value);
 }
 
