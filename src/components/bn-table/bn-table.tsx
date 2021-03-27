@@ -1,8 +1,26 @@
+import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
+import {styled} from "../../utils/styled/styled";
+import {
+  isValidBoolean,
+  isValidDirection,
+  isValidi18nMode,
+  isValidOrderList,
+  isValidTableType,
+  isValidThereOf,
+  validateScenarioList,
+  validateScenarioUnitType
+} from "../../utils/validate";
 
-import { Component, Element,  h, Host, Prop, Watch } from "@stencil/core";
-import { styled } from "../../utils/styled/styled";
-import { isValidBoolean, isValidDirection, isValidi18nMode, isValidOrderList, isValidTableType, isValidThereOf, validateScenarioList, validateScenarioUnitType } from "../../utils/validate";
+import {
+  I18nMode,
+  OrderDirection,
+  TableComponentOrder,
+  TableType
+} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
+
 import Tunnel from "../bn-context/tunnel";
+
+
 @Component({
   tag: 'bn-table',
   styleUrl: 'bn-table.css'
@@ -211,9 +229,9 @@ export class Table {
   }
 
   render() {
-    const tableOrder = {
+    const tableOrder: TableComponentOrder = {
       columnshierachy: this.order.split(","),
-      direction: this.orderDirection
+      direction: this.orderDirection as  OrderDirection
     };
     let data = this.datasourcesData[this.datasource]
     const groupByKey = (list, key) => list.reduce((hash, obj) => ({...hash, [obj[key]]:( hash[obj[key]] || [] ).concat(obj)}), {})
@@ -232,8 +250,8 @@ export class Table {
         scenarios-unit-type={this.scenariosUnitType}
         grouped={this.grouped}
         show-group-title={this.showGroupTitle}
-        type={this.type}
-        i18n-mode={this.i18nMode}
+        type={this.type as TableType}
+        i18n-mode={this.i18nMode as I18nMode}
         limit={this.limit}
         thereof={this.thereof ? JSON.parse(this.thereof!) : null}
         order={tableOrder}

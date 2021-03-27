@@ -1,8 +1,24 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
-//import {get ,onChange} from '../../data/datasource';
-import { styled } from "../../utils/styled/styled";
-import { isValidDate, isValidDateFormat, isValidDateLink, isValidDirection, isValidMeasure, isValidOrderList, validateScenarioList } from "../../utils/validate";
+import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
+
+import {styled} from "../../utils/styled/styled";
+import {
+  isValidDate,
+  isValidDateFormat,
+  isValidDateLink,
+  isValidDirection,
+  isValidMeasure,
+  isValidOrderList,
+  validateScenarioList
+} from "../../utils/validate";
+
+
+import {
+  DateDistance,
+  DateLink,
+  OrderDirection,
+  TimePeriod
+} from "@bino-bi/ibcs-component/dist/types/components/ibcs-title/utils/model";
 
 @Component({
   tag: 'bn-title',
@@ -169,28 +185,33 @@ export class Title {
   }
 
   render() {
-    const titleOrder = {
+    const titleOrder  = {
       columnshierachy: this.order ? this.order.split(",") : null,
-      direction: this.orderDirection
+      direction: this.orderDirection as OrderDirection
     };
 
-    const titleTimeperiod = {
+    //console.log('this.dateFormat', this.dateFormat,this.dateFormat as DateDistanceType, DateDistanceType.Day)
+
+    const titleTimeperiod: TimePeriod = {
       start: this.dateStart,
       end: this.dateEnd,
-      format: this.dateFormat,
-      link: this.dateLink,
+      format: DateDistance.Day,// this.dateFormat as DateDistanceType,
+      link: DateLink.Interval, //this.dateLink as DateLinkType,
     };
 
+    let i18n= new Map([
+          ["title1", "🤩"]
+    ]);
+
+    console.log('this.businessUnit',this.businessUnit, 'this.scenarios',this.scenarios,'titleTimeperiod',titleTimeperiod,'titleOrder',titleOrder);
     return <Host>
       <ibcs-title
         businessUnit={this.businessUnit}
         scenarios={this.scenarios == null? this.scenarios.split(",") : null}
         measures={this.measures ? JSON.parse(this.measures!) : null}
         timeperiod={titleTimeperiod}
-        order={titleOrder}
-        i18n={new Map([
-          ["title1", "🤩"]
-        ])}
+        order= {titleOrder}
+        i18n={i18n}
       ></ibcs-title>
     </Host>
   }
