@@ -18,7 +18,7 @@ import {
   DateLink,
   OrderDirection,
   TimePeriod
-} from "@bino-bi/ibcs-component/dist/types/components/ibcs-title/utils/model";
+} from "@bino-bi/ibcs-component-interface";
 
 @Component({
   tag: 'bn-title',
@@ -190,9 +190,7 @@ export class Title {
       direction: this.orderDirection as OrderDirection
     };
 
-    //console.log('this.dateFormat', this.dateFormat,this.dateFormat as DateDistanceType, DateDistanceType.Day)
-
-    const titleTimeperiod: TimePeriod = {
+    const titleTimePeriod: TimePeriod = {
       start: this.dateStart,
       end: this.dateEnd,
       format: DateDistance.Day,// this.dateFormat as DateDistanceType,
@@ -203,13 +201,13 @@ export class Title {
           ["title1", "🤩"]
     ]);
 
-    console.log('this.businessUnit',this.businessUnit, 'this.scenarios',this.scenarios,'titleTimeperiod',titleTimeperiod,'titleOrder',titleOrder);
+  //  console.log('this.businessUnit',this.businessUnit, 'this.scenarios',this.scenarios,'titleTimeperiod',titleTimePeriod,'titleOrder',titleOrder,"JSON.parse(this.measures!) ", JSON.parse(this.measures!) );
     return <Host>
       <ibcs-title
         businessUnit={this.businessUnit}
-        scenarios={this.scenarios == null? this.scenarios.split(",") : null}
+        scenarios={this.scenarios?.split(",")}
         measures={this.measures ? JSON.parse(this.measures!) : null}
-        timeperiod={titleTimeperiod}
+        timeperiod={titleTimePeriod}
         order= {titleOrder}
         i18n={i18n}
       ></ibcs-title>
