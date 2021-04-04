@@ -14,8 +14,10 @@ import {
 
 
 import {
-  DateDistance,
-  DateLink,
+
+  DateDistanceType,
+
+  DateLinkType,
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
@@ -190,18 +192,19 @@ export class Title {
       direction: this.orderDirection as OrderDirection
     };
 
+   // console.log(this.dateFormat as DateDistanceType, this.dateFormat, typeof  this.dateFormat)
     const titleTimePeriod: TimePeriod = {
       start: this.dateStart,
       end: this.dateEnd,
-      format: DateDistance.Day,// this.dateFormat as DateDistanceType,
-      link: DateLink.Interval, //this.dateLink as DateLinkType,
+      format: this.dateFormat as DateDistanceType,
+      link: this.dateLink as DateLinkType,
     };
 
     let i18n= new Map([
           ["title1", "🤩"]
     ]);
 
-  //  console.log('this.businessUnit',this.businessUnit, 'this.scenarios',this.scenarios,'titleTimeperiod',titleTimePeriod,'titleOrder',titleOrder,"JSON.parse(this.measures!) ", JSON.parse(this.measures!) );
+    // console.log('this.businessUnit',this.businessUnit, 'this.scenarios',this.scenarios,'titleTimeperiod',titleTimePeriod,'titleOrder',titleOrder,"JSON.parse(this.measures!) ", JSON.parse(this.measures!) );
     return <Host>
       <ibcs-title
         businessUnit={this.businessUnit}
