@@ -52,13 +52,6 @@ export class Chart {
    */
   @Prop() unitScaling!: string;
 
-  /**
-   * (optional) Name of Chart displayed on top of the axis
-   *
-   */
-  @Prop() chartTitle: string;
-
-
   @Prop() i18n?: string;
   @Prop() width?: number;
   @Prop() height?: number;
@@ -136,7 +129,6 @@ export class Chart {
     this.validateUnitScaling(this.unitScaling);
   }
 
-
   chartTemplate(localScenarioString: string) {
     let localVariances = null;
     let isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
@@ -154,7 +146,6 @@ export class Chart {
       temp = explode(groupByKey([...data], 'setname'))
     }
 
-    let chartTitle = isValidateVariancesList? null : this.chartTitle;
    // let canvasWidthSegmented = isValidateVariancesList?  this.canvasWidthSegmented / 2  :  this.canvasWidthSegmented
 
 
@@ -167,7 +158,7 @@ export class Chart {
           variances={localVariances}
           hideCategories={isValidateVariancesList}
           pixelPerUnit={this.pixelPerUnit}
-          chartTitle = {chartTitle}
+          chartTitle = {null}
           styles = {null}
           i18n = {null}
   ></ibcs-chart-structure>

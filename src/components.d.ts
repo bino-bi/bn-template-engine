@@ -9,10 +9,6 @@ export namespace Components {
     interface BnBody {
     }
     interface BnChart {
-        /**
-          * (optional) Name of Chart displayed on top of the axis
-         */
-        "chartTitle": string;
         "datasource": string;
         "datasourcesData": any;
         "height"?: number;
@@ -234,10 +230,6 @@ declare namespace LocalJSX {
     interface BnBody {
     }
     interface BnChart {
-        /**
-          * (optional) Name of Chart displayed on top of the axis
-         */
-        "chartTitle"?: string;
         "datasource"?: string;
         "datasourcesData"?: any;
         "height"?: number;
