@@ -4,7 +4,7 @@ import {
   isValidBoolean,
   isValidDirection,
   isValidi18nMode,
-  isValidOrderList,
+  validateOrderList,
   isValidTableType,
   isValidThereOf,
   validateScenarioList,
@@ -199,7 +199,7 @@ export class Table {
 
   @Watch('order')
   validateOrderList(newValue: string) {
-    if (!isValidOrderList(newValue)) { throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.') };
+    if (!validateOrderList(newValue)) { throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.') };
   }
 
 

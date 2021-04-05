@@ -146,11 +146,6 @@ export class Chart {
       temp = explode(groupByKey([...data], 'setname'))
     }
 
-   // let canvasWidthSegmented = isValidateVariancesList?  this.canvasWidthSegmented / 2  :  this.canvasWidthSegmented
-
-
-
-
      return <ibcs-chart-structure
           dimension = {{width: this.canvasWidthSegmented, height: this.element.clientHeight}}
           data={temp}

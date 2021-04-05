@@ -7,39 +7,49 @@ import {
   isValidDateFormat,
   isValidDateLink,
   isValidDirection,
-  isValidMeasure,
-  isValidOrderList,
-  validateScenarioList
+  validateOrderList,
+  validateScenarioList,
+  validateMeasureList, isBlankInput,
 } from "../../utils/validate";
 
 
 import {
-
-  DateDistanceType,
-
-  DateLinkType,
+  DateDistance,
+  DateLink, MeasureEntry, Order, OrderColumn,
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
+
 
 @Component({
   tag: 'bn-title',
   styleUrl: 'bn-title.scss',
 })
+
+
 export class Title {
 
   // @ts-ignore
-  @Element() private element: HTMLElement;
+  @Element() private readonly element: HTMLElement;
+
 
   /** (optional) Name of business unit. If empty buisnes unit row is omitted */
-  @Prop() businessUnit: string;
+  @Prop() readonly businessUnit: string;
 
 
   /** (optional) List of scenarios. Valid scenarios are
    *
    *  values: ac | fc | py | pl | null
    */
-  @Prop() scenarios: string;
+  @Prop() readonly scenarios: string;
+
+  @Watch('scenarios')
+  validateScenario(newValue: string) {
+    const invalidScenarios: string[] = validateScenarioList(newValue);
+    if (invalidScenarios?.length > 0) {
+      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
+    }
+  }
 
 
   /** (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are
@@ -47,14 +57,30 @@ export class Title {
    *
    *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
    */
-  @Prop() order: string;
+  @Prop() readonly order: string;
+
+  @Watch('order')
+  validateOrder(newValue: string) {
+    const invalidScenarios: string[] = validateOrderList(newValue);
+    if (invalidScenarios?.length > 0) {
+      throw new Error('order: invalid value \'' + invalidScenarios.toString() + '\' is not supported.')
+    }
+  }
 
 
   /** (optional) set sorting order directon
    *
    * values: asc | desc
    */
-  @Prop() orderDirection: string = 'asc';
+  @Prop() readonly orderDirection: string = 'asc';
+
+  @Watch('orderDirection')
+  validateOrderDirection(newValue: string) {
+    if (!isValidDirection(newValue)) {
+      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.')
+    }
+  }
+
 
   /**(optional) stringified Array of measure Objects {name: string, unit: string}
    *
@@ -63,22 +89,42 @@ export class Title {
    *
    * example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
    */
-  @Prop() measures: string;
+  @Prop() readonly measures: string;
 
+  @Watch('measures')
+  validateMeasures(newValue: string) {
+    const invalidMeasures: string[] = validateMeasureList(newValue);
+    if (invalidMeasures?.length > 0) {
+      throw new Error('measures: invalid value \'' + invalidMeasures + '\' is not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]')
+    }
+  }
 
   /**(optional) String of start date
    *
    * format: yyyy-MM-dd
    */
-  @Prop() dateStart: string;
+  @Prop() readonly dateStart: string;
+
+  @Watch('dateStart')
+  validateDateStart(newValue: string) {
+    if (!isValidDate(newValue)) {
+      throw new Error('dateStart: invalid value \'' + newValue.toString() + '\' is not supported.')
+    }
+  }
 
 
   /**(optional) String of end date
    *
    * format: yyyy-MM-dd
    */
-  @Prop() dateEnd: string;
+  @Prop() readonly dateEnd: string;
 
+  @Watch('dateEnd')
+  validateDateEnd(newValue: string) {
+    if (!isValidDate(newValue)) {
+      throw new Error('dateEnd: invalid value \'' + newValue.toString() + '\' is not supported.')
+    }
+  }
 
   /**(optional) String of end date (format: yyyy-MM-dd)
    *
@@ -93,7 +139,14 @@ export class Title {
    *  time: "DD.MM.YYYY HH:mm:ss",
    *  fallback: "DD.MM.YYYY",
    */
-  @Prop() dateFormat: string = 'fallback';
+  @Prop() readonly dateFormat: string = 'fallback';
+
+  @Watch('dateFormat')
+  validateDateFormat(newValue: string) {
+    if (!isValidDateFormat(newValue)) {
+      throw new Error('dateFormat: invalid value \'' + newValue.toString() + '\' is not supported.')
+    }
+  }
 
 
   /**(optional) String of end date (format: yyyy-MM-dd)
@@ -111,69 +164,17 @@ export class Title {
    *   mat: "~[DATE]",
    *   none: "[DATE]",
    */
-  @Prop() dateLink: string = 'none';
-
-
-  @State() datasouce: any
-
-
-  @Watch('scenarios')
-  validateScenario(newValue: string) {
-    if ( newValue != null){
-      const invalidScenarios: string[] = validateScenarioList(newValue);
-
-      if (invalidScenarios.length > 0) { throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.') };
-
-    }
-  }
-
-  @Watch('measures')
-  validateMeasures(newValue: string) {
-    if (!isValidMeasure(newValue)) {
-
-      const newObj = JSON.parse(newValue);
-      let error: any;
-
-      if (newObj instanceof Array) {
-        error = JSON.stringify(newObj.filter(elem => !(elem.hasOwnProperty('name') && elem.hasOwnProperty('unit'))));
-      }
-      else {
-        error = newValue;
-      }
-      throw new Error('measures: invalid value \'' + error + '\' is not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]')
-    };
-
-  }
-
-  @Watch('dateStart')
-  validateDateStart(newValue: string) {
-    if (!isValidDate(newValue)) { throw new Error('dateStart: invalid value \'' + newValue.toString() + '\' is not supported.') };
-  }
-
-  @Watch('dateEnd')
-  validateDateEnd(newValue: string) {
-    if (!isValidDate(newValue)) { throw new Error('dateEnd: invalid value \'' + newValue.toString() + '\' is not supported.') };
-  }
-
-  @Watch('dateFormat')
-  validateDateFormat(newValue: string) {
-    if (!isValidDateFormat(newValue)) { throw new Error('dateFormat: invalid value \'' + newValue.toString() + '\' is not supported.') };
-  }
+  @Prop() readonly dateLink: string = 'none';
 
   @Watch('dateLink')
   validateDateLink(newValue: string) {
-    if (!isValidDateLink(newValue)) { throw new Error('dateLink: invalid value \'' + newValue.toString() + '\' is not supported.') };
+    if (!isValidDateLink(newValue)) {
+      throw new Error('dateLink: invalid value \'' + newValue.toString() + '\' is not supported.')
+    }
   }
 
-  @Watch('orderDirection')
-  validateOrderDirection(newValue: string) {
-    if (!isValidDirection(newValue)) { throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.') };
-  }
 
-  @Watch('order')
-  validateOrderList(newValue: string) {
-    if (!isValidOrderList(newValue)) { throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.') };
-  }
+  @State() readonly datasource: any
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
@@ -183,36 +184,49 @@ export class Title {
     this.validateDateFormat(this.dateFormat);
     this.validateDateLink(this.dateLink);
     this.validateOrderDirection(this.orderDirection);
-    this.validateOrderList(this.order);
+    this.validateOrder(this.order);
+  }
+
+
+  private prepareI18n(): Map<string, string> {
+    return new Map([
+      ["title1", "🤩"]
+    ]);
+  }
+
+  private prepareTitleOrder(): Order {
+    return {
+      columnshierachy: this.order?.split(",") as OrderColumn[],
+      direction: this.orderDirection as OrderDirection
+    };
+  }
+
+  private prepareTitleTimePeriod(): TimePeriod {
+    return {
+      start: new Date(this.dateStart),
+      end: new Date(this.dateEnd),
+      format: this.dateFormat as DateDistance,
+      link: this.dateLink as DateLink,
+    };
+  }
+
+  private prepareMeasures(): MeasureEntry[] {
+    if (isBlankInput(this.measures)) {
+      return [];
+    }
+
+    return JSON.parse(this.measures) as MeasureEntry[];
   }
 
   render() {
-    const titleOrder  = {
-      columnshierachy: this.order ? this.order.split(",") : null,
-      direction: this.orderDirection as OrderDirection
-    };
-
-   // console.log(this.dateFormat as DateDistanceType, this.dateFormat, typeof  this.dateFormat)
-    const titleTimePeriod: TimePeriod = {
-      start: this.dateStart,
-      end: this.dateEnd,
-      format: this.dateFormat as DateDistanceType,
-      link: this.dateLink as DateLinkType,
-    };
-
-    let i18n= new Map([
-          ["title1", "🤩"]
-    ]);
-
-    // console.log('this.businessUnit',this.businessUnit, 'this.scenarios',this.scenarios,'titleTimeperiod',titleTimePeriod,'titleOrder',titleOrder,"JSON.parse(this.measures!) ", JSON.parse(this.measures!) );
     return <Host>
       <ibcs-title
         businessUnit={this.businessUnit}
         scenarios={this.scenarios?.split(",")}
-        measures={this.measures ? JSON.parse(this.measures!) : null}
-        timeperiod={titleTimePeriod}
-        order= {titleOrder}
-        i18n={i18n}
+        measures={this.prepareMeasures()}
+        timeperiod={this.prepareTitleTimePeriod()}
+        order={this.prepareTitleOrder()}
+        i18n={this.prepareI18n()}
       ></ibcs-title>
     </Host>
   }
