@@ -87,7 +87,7 @@ export namespace Components {
          */
         "showGroupTitle": boolean;
         /**
-          * A not mondane tile for the shard, which discribes the shown data.
+          * A not mundane tile for the shard, which describes the shown data.
          */
         "tableTitle": string;
         /**
@@ -308,7 +308,7 @@ declare namespace LocalJSX {
          */
         "showGroupTitle": boolean;
         /**
-          * A not mondane tile for the shard, which discribes the shown data.
+          * A not mundane tile for the shard, which describes the shown data.
          */
         "tableTitle": string;
         /**

@@ -30,8 +30,8 @@ export class Table {
   @Element() private element: HTMLElement;
 
   /**
-   * A not mondane tile for the shard,
-   * which discribes the shown data.
+   * A not mundane tile for the shard,
+   * which describes the shown data.
    */
   @Prop() tableTitle!: string;
 
@@ -228,6 +228,12 @@ export class Table {
     this.unsubscribe();
   }
 
+  private prepareI18n(): Map<string, string> {
+    return new Map([
+      ["title1", "🤩"]
+    ]);
+  }
+
   render() {
     const tableOrder: TableComponentOrder = {
       columnshierachy: this.order.split(","),
@@ -255,9 +261,7 @@ export class Table {
         limit={this.limit}
         thereof={this.thereof ? JSON.parse(this.thereof!) : null}
         order={tableOrder}
-        i18n={new Map([
-          ["title1", "🤩"]
-        ])}
+        i18n={this.prepareI18n()}
         data={temp}
     ></ibcs-table>
     </Host>
