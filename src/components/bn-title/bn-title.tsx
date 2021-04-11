@@ -3,19 +3,23 @@ import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 
 import {styled} from "../../utils/styled/styled";
 import {
+  isBlankInput,
   isValidDate,
   isValidDateFormat,
   isValidDateLink,
   isValidDirection,
+  validateMeasureList,
   validateOrderList,
   validateScenarioList,
-  validateMeasureList, isBlankInput,
 } from "../../utils/validate";
 
 
 import {
   DateDistance,
-  DateLink, MeasureEntry, Order, OrderColumn,
+  DateLink,
+  MeasureEntry,
+  Order,
+  OrderColumn,
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
@@ -197,7 +201,7 @@ export class Title {
   private prepareTitleOrder(): Order {
     return {
       columnshierachy: this.order?.split(",") as OrderColumn[],
-      direction: this.orderDirection as OrderDirection
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof DateDistance]
     };
   }
 
@@ -205,8 +209,8 @@ export class Title {
     return {
       start: new Date(this.dateStart),
       end: new Date(this.dateEnd),
-      format: this.dateFormat as DateDistance,
-      link: this.dateLink as DateLink,
+      format: DateDistance[this.dateFormat?.toUpperCase() as keyof typeof DateDistance],
+      link: DateLink[this.dateLink?.toUpperCase() as keyof typeof OrderDirection],
     };
   }
 
