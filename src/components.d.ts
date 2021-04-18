@@ -52,12 +52,16 @@ export namespace Components {
         "orientation": String;
     }
     interface BnTable {
+        /**
+          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
+         */
+        "dataFormat": string;
         "datasource": string;
         "datasourcesData": any;
         /**
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
-        "grouped": boolean;
+        "grouped": boolean | string;
         /**
           * set translaton mode.  values:   all | none | meta
          */
@@ -79,13 +83,9 @@ export namespace Components {
          */
         "scenarios": string;
         /**
-          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
-         */
-        "scenariosUnitType": string;
-        /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
          */
-        "showGroupTitle": boolean;
+        "showGroupTitle": boolean | string;
         /**
           * A not mundane tile for the shard, which describes the shown data.
          */
@@ -273,12 +273,16 @@ declare namespace LocalJSX {
         "orientation"?: String;
     }
     interface BnTable {
+        /**
+          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
+         */
+        "dataFormat": string;
         "datasource"?: string;
         "datasourcesData"?: any;
         /**
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
-        "grouped": boolean;
+        "grouped": boolean | string;
         /**
           * set translaton mode.  values:   all | none | meta
          */
@@ -300,13 +304,9 @@ declare namespace LocalJSX {
          */
         "scenarios": string;
         /**
-          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
-         */
-        "scenariosUnitType": string;
-        /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
          */
-        "showGroupTitle": boolean;
+        "showGroupTitle": boolean | string;
         /**
           * A not mundane tile for the shard, which describes the shown data.
          */

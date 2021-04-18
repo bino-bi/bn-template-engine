@@ -1,9 +1,9 @@
 import {
   isBlankInput, isValidDate, isValidDateFormat, isValidDateLink,
   isValidDirection, validateMeasureList,
-  validateOrderList,
+  validateOrderList, isValidDataFormat,
   validateScenarioList,
-  validateVariancesList
+  validateVariancesList, isValidBoolean, isValidTableType
 } from './validate';
 
 describe('validateScenarioList', () => {
@@ -279,3 +279,76 @@ describe('isValidDateFormat', () => {
   });
 });
 
+
+describe('isValidDataFormat', () => {
+  it('returns true for percent', () => {
+    expect(isValidDataFormat("percent")).toEqual(true);
+  });
+
+  it('returns true for decimal', () => {
+    expect(isValidDataFormat("decimal")).toEqual(true);
+  });
+
+  it('returns false for ""  ', () => {
+    expect(isValidDataFormat('')).toEqual(false);
+  });
+
+  it('returns false for "42" ', () => {
+    expect(isValidDataFormat("42")).toEqual(false);
+  });
+});
+
+
+describe('isValidBoolean', () => {
+  it('returns true for "true"', () => {
+    expect(isValidBoolean("true")).toEqual(true);
+  });
+
+  it('returns true for "false"', () => {
+    expect(isValidBoolean("false")).toEqual(true);
+  })
+
+  it('returns true for true', () => {
+    expect(isValidBoolean("true")).toEqual(true);
+  });
+
+  it('returns true for false', () => {
+    expect(isValidBoolean("false")).toEqual(true);
+  });
+
+
+  it('returns false for ""  ', () => {
+    expect(isValidBoolean('')).toEqual(false);
+  });
+
+  it('returns false for "42" ', () => {
+    expect(isValidBoolean("42")).toEqual(false);
+  });
+});
+
+
+describe('isValidTableType', () => {
+  it('returns true for "list"', () => {
+    expect(isValidTableType("list")).toEqual(true);
+  });
+
+  it('returns true for "sum"', () => {
+    expect(isValidTableType("sum")).toEqual(true);
+  })
+
+  it('returns true for "opt"', () => {
+    expect(isValidTableType("opt")).toEqual(true);
+  });
+
+  it('returns false for false', () => {
+    expect(isValidTableType("false")).toEqual(false);
+  });
+
+  it('returns false for ""  ', () => {
+    expect(isValidTableType('')).toEqual(false);
+  });
+
+  it('returns false for "42" ', () => {
+    expect(isValidTableType("42")).toEqual(false);
+  });
+});

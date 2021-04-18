@@ -32,7 +32,6 @@ import {
 
 
 export class Title {
-
   // @ts-ignore
   @Element() private readonly element: HTMLElement;
 
@@ -180,6 +179,7 @@ export class Title {
 
   @State() readonly datasource: any
 
+ 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateMeasures(this.measures);
@@ -218,7 +218,6 @@ export class Title {
     if (isBlankInput(this.measures)) {
       return [];
     }
-
     return JSON.parse(this.measures) as MeasureEntry[];
   }
 
