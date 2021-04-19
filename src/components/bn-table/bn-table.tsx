@@ -15,10 +15,11 @@ import {
 import Tunnel from "../bn-context/tunnel";
 import {
   DataFormat,
+  I18nMode,
   OrderDirection,
-  TableType,
   TableComponentOrder,
-  TableDrillGroup
+  TableDrillGroup,
+  TableType
 } from "@bino-bi/ibcs-component-interface";
 
 
@@ -174,6 +175,7 @@ export class Table {
    *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
    */
   @Prop() order!: string;
+
   @Watch('order')
   validateOrderList(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
@@ -188,6 +190,7 @@ export class Table {
    * values: asc | desc
    */
   @Prop() orderDirection!: string;
+
   /** set translaton mode.
    *
    * values:   all | none | meta
@@ -265,25 +268,21 @@ export class Table {
       return [];
     }
 
-  return JSON.parse(this.thereof!) as TableDrillGroup[];
+    return JSON.parse(this.thereof!) as TableDrillGroup[];
 
   }
 
   private prepareTableOrder(): TableComponentOrder {
     const tableOrder: TableComponentOrder = {
       columnshierachy: this.order.split(","),
-      direction:       OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
 
     return tableOrder;
   }
 
-  /*private prepareI18nMode(): I18nMode {
-    return  I18nMode[this.i18nMode?.toUpperCase() as keyof typeof I18nMode];
-  }*/
-
-  private prepareI18nMode(): string {
-    return "all";// I18nMode[this.i18nMode?.toUpperCase() as keyof typeof I18nMode];
+  private prepareI18nMode(): I18nMode {
+    return I18nMode[this.i18nMode?.toUpperCase() as keyof typeof I18nMode];
   }
 
   private prepareI18n(): Map<string, string> {
@@ -295,19 +294,20 @@ export class Table {
   private prepareData() {
     const data = this.datasourcesData[this.datasource];
 
-    if(data == null){
+    if (data == null) {
       return [];
     }
 
     const groupByKey = (list, key) => list.reduce((hash, obj) => ({
-                                                                   ...hash,
-                                                                   [obj[key]]: (hash[obj[key]] || []).concat(obj)
-                                                                  }), {});
+      ...hash,
+      [obj[key]]: (hash[obj[key]] || []).concat(obj)
+    }), {});
     const explode = (map) => Object.keys(map).map((k) => ({"setname": k, "data": map[k]}));
 
     return explode(groupByKey([...data], 'setname'));
 
- }
+  }
+
   render() {
     return <Host>
       <ibcs-table

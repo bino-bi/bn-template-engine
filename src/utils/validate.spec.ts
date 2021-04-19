@@ -518,8 +518,8 @@ describe('isValidi18nMode', () => {
     expect(isValidi18nMode("ac,fc")).toEqual(false);
   })
 
-  it('returns false for meta', () => {
-    expect(isValidi18nMode('meta')).toEqual(false);
+  it('returns true for meta', () => {
+    expect(isValidi18nMode('meta')).toEqual(true);
   })
 
   it('returns false for "category,ac" ', () => {

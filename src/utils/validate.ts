@@ -1,7 +1,7 @@
 import {
   DataFormat,
   DateDistance,
-  DateLink,
+  DateLink, I18nMode,
   OrderColumn,
   OrderDirection,
   Scenarios,
@@ -151,8 +151,7 @@ export function validateThereOfJsonStr(value: string): string[] {
 
 
 export function isValidi18nMode(value: string): boolean {
-  console.log(value)
-  return true; //value?.toUpperCase() in I18nMode;
+  return value?.toUpperCase() in I18nMode;
 }
 
 
