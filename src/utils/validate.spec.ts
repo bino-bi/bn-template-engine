@@ -3,7 +3,7 @@ import {
   isValidDirection, validateMeasureList,
   validateOrderList, isValidDataFormat,
   validateScenarioList,
-  validateVariancesList, isValidBoolean, isValidTableType
+  validateVariancesList, isValidBoolean, isValidTableType, isValidInteger, validateThereOfJsonStr, isValidi18nMode
 } from './validate';
 
 describe('validateScenarioList', () => {
@@ -351,4 +351,184 @@ describe('isValidTableType', () => {
   it('returns false for "42" ', () => {
     expect(isValidTableType("42")).toEqual(false);
   });
+});
+
+
+describe('isValidInteger', () => {
+  it('returns true for "42"', () => {
+    expect(isValidInteger(42)).toEqual(true);
+  });
+
+  it('returns true for 42', () => {
+    expect(isValidInteger("42")).toEqual(true);
+  })
+
+  it('returns true for -42', () => {
+    expect(isValidInteger(-42)).toEqual(true);
+  })
+
+  it('returns true for 42.42', () => {
+    expect(isValidInteger(42.42)).toEqual(false);
+  })
+
+  it('returns false for "opt"', () => {
+    expect(isValidInteger("opt")).toEqual(false);
+  });
+
+  it('returns false for false', () => {
+    expect(isValidInteger("false")).toEqual(false);
+  });
+
+  it('returns false for ""  ', () => {
+    expect(isValidInteger('')).toEqual(false);
+  });
+
+});
+
+
+describe('validateThereOfJsonStr', () => {
+  it('returns [] for valid json string', () => {
+    let valid = '[' +
+      '          {' +
+      '            "rowgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "category":     "Immobilien",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          },' +
+      '          {' +
+      '            "rowgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "category":     "Alternative Investments",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          }]';
+
+
+    expect(validateThereOfJsonStr(valid)).toEqual([]);
+  });
+
+  it('returns array of 1  of invalid ', () => {
+    let invalid = '[' +
+      '          {' +
+      '            "rowfgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "category":     "Immobilien",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          },' +
+      '          {' +
+      '            "rowgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "category":     "Alternative Investments",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          }]';
+
+    let expected = [{
+                  rowfgroup:    "Geschäftsfeld AM Illiquide",
+                  category:     "Immobilien",
+                  subcategory:  "",
+                  partof:       ""
+                 }];
+
+    expect(validateThereOfJsonStr(invalid)).toEqual(expected);
+  });
+
+  it('returns array of 1  of invalid missing category', () => {
+    let invalid = '[' +
+      '          {' +
+      '            "rowgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "category":     "Immobilien",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          },' +
+      '          {' +
+      '            "rowgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          }]';
+
+    let expected = [{
+      rowgroup:    "Geschäftsfeld AM Illiquide",
+      subcategory:  "",
+      partof:       ""
+    }];
+
+    expect(validateThereOfJsonStr(invalid)).toEqual(expected);
+  });
+
+  it('returns true for -42', () => {
+    let invalid = '[' +
+      '          ' +
+      '            "rowgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "category":     "Immobilien",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          },' +
+      '          {' +
+      '            "rowgroup":     "Geschäftsfeld AM Illiquide",' +
+      '            "subcategory":  "",' +
+      '            "partof":       ""' +
+      '          }';
+    expect(validateThereOfJsonStr(invalid)).toEqual(["Invalid JSON structure"]);
+  })
+
+});
+
+
+describe('validateOrderList', () => {
+  it('returns [] for ""', () => {
+    expect(validateOrderList("")).toEqual([]);
+  });
+
+  it('returns [] for ac', () => {
+    expect(validateOrderList("ac")).toEqual([]);
+  })
+
+  it('returns [] for ac,fc', () => {
+    expect(validateOrderList("ac,fc")).toEqual([]);
+  })
+
+  it('returns []] for category', () => {
+    expect(validateOrderList('category')).toEqual([]);
+  })
+
+  it('returns [] for "category,ac" ', () => {
+    expect(validateOrderList("category,ac")).toEqual([]);
+  });
+
+  it('returns [false, false] for "category,false,ac,false"', () => {
+    expect(validateOrderList("category,false,ac,false")).toEqual(['false','false']);
+  });
+
+  it('returns [true] for "true"  ', () => {
+    expect(validateOrderList('true')).toEqual(['true']);
+  });
+
+});
+
+
+describe('isValidi18nMode', () => {
+  it('returns true for none', () => {
+    expect(isValidi18nMode("none")).toEqual(true);
+  });
+
+  it('returns true for all', () => {
+    expect(isValidi18nMode("all")).toEqual(true);
+  })
+
+  it('returns false for ac,fc', () => {
+    expect(isValidi18nMode("ac,fc")).toEqual(false);
+  })
+
+  it('returns false for meta', () => {
+    expect(isValidi18nMode('meta')).toEqual(false);
+  })
+
+  it('returns false for "category,ac" ', () => {
+    expect(isValidi18nMode("category,ac")).toEqual(false);
+  });
+
+  it('returns false for null ', () => {
+    expect(isValidi18nMode(null)).toEqual(false);
+  });
+
+
 });

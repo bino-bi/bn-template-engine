@@ -1,2 +1,2 @@
-import '@bino-bi/ibcs-component/dist';
-export * from './components';
+//import '@bino-bi/ibcs-component/dist';
+//export * from './components';

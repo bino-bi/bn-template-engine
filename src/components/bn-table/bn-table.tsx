@@ -2,22 +2,24 @@ import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
   isValidBoolean,
+  isValidDataFormat,
   isValidDirection,
   isValidi18nMode,
+  isValidInteger,
   isValidTableType,
-  isValidThereOf,
-  validateOrderList, isValidDataFormat,
-  validateScenarioList, isValidNumber
+  validateOrderList,
+  validateScenarioList,
+  validateThereOfJsonStr
 } from "../../utils/validate";
 
-import {
-  I18nMode,
-  TableComponentOrder,
-  TableComponentOrder,
-} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
-
 import Tunnel from "../bn-context/tunnel";
-import {DataFormat, OrderDirection, TableType} from "@bino-bi/ibcs-component-interface";
+import {
+  DataFormat,
+  OrderDirection,
+  TableType,
+  TableComponentOrder,
+  TableDrillGroup
+} from "@bino-bi/ibcs-component-interface";
 
 
 @Component({
@@ -46,7 +48,7 @@ export class Table {
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
     if (invalidScenarios.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
+      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.');
     }
   }
 
@@ -65,7 +67,7 @@ export class Table {
   @Watch('dataFormat')
   validateDataFormat(newValue: string) {
     if (!isValidDataFormat(newValue)) {
-      throw new Error('dataFormat: invalid value(s) \'' + newValue.toString() + '\' are not supported.')
+      throw new Error('dataFormat: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
     }
   }
 
@@ -82,7 +84,7 @@ export class Table {
   @Watch('grouped')
   validateGrouped(newValue: string | boolean) {
     if (!isValidBoolean(newValue)) {
-      throw new Error('grouped: invalid value(s) \'' + newValue.toString() + '\' are not supported.')
+      throw new Error('grouped: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
     }
   }
 
@@ -100,7 +102,7 @@ export class Table {
   @Watch('showGroupTitle')
   validateShowGroupTitle(newValue: string | boolean) {
     if (!isValidBoolean(newValue)) {
-      throw new Error('showGroupTitle: invalid value(s) \'' + newValue.toString() + '\' are not supported.')
+      throw new Error('showGroupTitle: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
     }
   }
 
@@ -108,7 +110,7 @@ export class Table {
   /**
    *  Set the table type
    *
-   *  list | sum | opt
+   *  list | sum | opt | sumnototal | optnototal
    *
    */
   @Prop() type!: string;
@@ -116,7 +118,7 @@ export class Table {
   @Watch('type')
   validateType(newValue: string | boolean) {
     if (!isValidTableType(newValue)) {
-      throw new Error('type: invalid value(s) \'' + newValue.toString() + '\' are not supported.')
+      throw new Error('type: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
     }
   }
 
@@ -132,13 +134,10 @@ export class Table {
 
   @Watch('limit')
   validateLimit(newValue: number) {
-    console.log("my Limit", limit);
-    if (!isValidNumber(newValue)) {
-      throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidInteger(newValue)) {
+      throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.');
     }
-
   }
-
 
 
   /**
@@ -158,12 +157,32 @@ export class Table {
           },]
    */
   @Prop() thereof: string = '[]';
+
+
+  @Watch('thereof')
+  validateThereOf(newValue: string) {
+    const invalidElements: string[] = validateThereOfJsonStr(newValue);
+    if (invalidElements.length > 0) {
+      throw new Error('scenarios: invalid value(s) \'' + invalidElements.toString() + '\' are not supported.');
+    }
+  }
+
+
   /** List of the primary scenarios on which the order direction are applied  valid scenarios are
    *  If order is set to a scenario it has also exists in scenariolist
    *
    *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
    */
   @Prop() order!: string;
+  @Watch('order')
+  validateOrderList(newValue: string) {
+    const invalidElements: string[] = validateOrderList(newValue);
+    if (invalidElements.length > 0) {
+      throw new Error('order: invalid value(s) \'' + invalidElements.toString() + '\' are not supported.');
+    }
+  }
+
+
   /** set sorting order directon
    *
    * values: asc | desc
@@ -173,59 +192,32 @@ export class Table {
    *
    * values:   all | none | meta
    */
+
+  @Watch('orderDirection')
+  validateOrderDirection(newValue: string) {
+    if (!isValidDirection(newValue)) {
+      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.');
+    }
+
+  }
+
+
   @Prop() i18nMode: string = "none";
+
+  @Watch('i18nMode')
+  validatei18nMode(newValue: string) {
+    if (!isValidi18nMode(newValue)) {
+      throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.');
+    }
+
+  }
+
   @Prop() datasource: string
   @Prop() datasourcesData: any
   unsubscribe: () => void
   // @ts-ignore
   @Element() private element: HTMLElement;
 
-
-
-
-
-  @Watch('thereof')
-  validateThereOf(newValue: string) {
-    if (!isValidThereOf(newValue)) {
-
-      const newObj = JSON.parse(newValue);
-      let error: any;
-
-      if (newObj instanceof Array) {
-        error = JSON.stringify(newObj.filter(elem => !(elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))));
-      } else {
-        error = newValue;
-      }
-      throw new Error('measures: invalid value \'' + error + '\' is not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]')
-    }
-
-
-  }
-
-  @Watch('orderDirection')
-  validateOrderDirection(newValue: string) {
-    if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.')
-    }
-
-  }
-
-  @Watch('order')
-  validateOrderList(newValue: string) {
-    if (!validateOrderList(newValue)) {
-      throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.')
-    }
-
-  }
-
-
-  @Watch('i18nMode')
-  validatei18nMode(newValue: string) {
-    if (!isValidi18nMode(newValue)) {
-      throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.')
-    }
-
-  }
 
   componentWillLoad() {
     //this.datasouce = get("test");
@@ -248,44 +240,75 @@ export class Table {
     this.unsubscribe();
   }
 
-  private prepareDataFormat(): DataFormat{
-    return DataFormat[this.dataFormat?.toUpperCase() as keyof typeof DataFormat]
+  private prepareDataFormat(): DataFormat {
+    return DataFormat[this.dataFormat?.toUpperCase() as keyof typeof DataFormat];
   }
 
   private prepareGrouped(): boolean {
-    return (this.grouped == true || this.grouped == "true")
+    return (this.grouped == true || this.grouped == "true");
   }
 
-    private prepareShowGroupTitle(): boolean {
-      return  (this.showGroupTitle == true ||  this.showGroupTitle == "true")
-    }
+  private prepareShowGroupTitle(): boolean {
+    return (this.showGroupTitle == true || this.showGroupTitle == "true");
+  }
 
   private prepareTableType(): TableType {
-    return TableType[this.type?.toUpperCase() as keyof typeof TableType]
+    return TableType[this.type?.toUpperCase() as keyof typeof TableType];
   }
 
   private prepareLimit(): number {
-    return Number(this.limit) || 0
+    return Math.floor(Number(this.limit) || 0);
   }
 
-  render() {
-    const tableOrder: TableComponentOrder = {
-      columnshierachy: this.order.split(","),
-      direction: this.orderDirection as OrderDirection
-    };
-    let data = this.datasourcesData[this.datasource]
-    const groupByKey = (list, key) => list.reduce((hash, obj) => ({
-      ...hash,
-      [obj[key]]: (hash[obj[key]] || []).concat(obj)
-    }), {})
-    const explode = (map) => Object.keys(map).map((k) => ({"setname": k, "data": map[k]}))
-//TODO
-    var temp = []
-
-    if (data) {
-      temp = explode(groupByKey([...data], 'setname'))
+  private prepareThereOf(): TableDrillGroup[] {
+    if (this.thereof == null) {
+      return [];
     }
 
+  return JSON.parse(this.thereof!) as TableDrillGroup[];
+
+  }
+
+  private prepareTableOrder(): TableComponentOrder {
+    const tableOrder: TableComponentOrder = {
+      columnshierachy: this.order.split(","),
+      direction:       OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
+    };
+
+    return tableOrder;
+  }
+
+  /*private prepareI18nMode(): I18nMode {
+    return  I18nMode[this.i18nMode?.toUpperCase() as keyof typeof I18nMode];
+  }*/
+
+  private prepareI18nMode(): string {
+    return "all";// I18nMode[this.i18nMode?.toUpperCase() as keyof typeof I18nMode];
+  }
+
+  private prepareI18n(): Map<string, string> {
+    return new Map([
+      ["title1", "🤩"]
+    ]);
+  }
+
+  private prepareData() {
+    const data = this.datasourcesData[this.datasource];
+
+    if(data == null){
+      return [];
+    }
+
+    const groupByKey = (list, key) => list.reduce((hash, obj) => ({
+                                                                   ...hash,
+                                                                   [obj[key]]: (hash[obj[key]] || []).concat(obj)
+                                                                  }), {});
+    const explode = (map) => Object.keys(map).map((k) => ({"setname": k, "data": map[k]}));
+
+    return explode(groupByKey([...data], 'setname'));
+
+ }
+  render() {
     return <Host>
       <ibcs-table
         table-title={this.tableTitle}
@@ -295,24 +318,14 @@ export class Table {
         show-group-title={this.prepareShowGroupTitle()}
         type={this.prepareTableType()}
         limit={this.prepareLimit()}
-
-        i18n-mode={this.i18nMode as I18nMode}
-
-        thereof={this.thereof ? JSON.parse(this.thereof!) : null}
-        order={tableOrder}
+        thereof={this.prepareThereOf()}
+        order={this.prepareTableOrder()}
+        i18n-mode={this.prepareI18nMode()}
         i18n={this.prepareI18n()}
-        data={temp}
+        data={this.prepareData()}
       ></ibcs-table>
     </Host>
   }
-
-
-  private prepareI18n(): Map<string, string> {
-    return new Map([
-      ["title1", "🤩"]
-    ]);
-  }
-
 }
 
 styled(Table);

@@ -6,7 +6,8 @@ import {
   OrderDirection,
   Scenarios,
   Sentiments,
-  TableType
+  TableType,
+
 } from "@bino-bi/ibcs-component-interface";
 
 export function isBlankInput(value: any): boolean {
@@ -57,12 +58,13 @@ export function validateOrderList(value: string): string[] {
 
 }
 
-export function isValidNumber(value: number): boolean {
+
+export function isValidInteger(value: number | string): boolean {
   if (isBlankInput(value)) {
     return false;
   }
 
-  return true;
+  return Number.isInteger(Number(value));
 }
 
 
@@ -129,21 +131,28 @@ export function isValidTableType(value: any): boolean {
   return value?.toUpperCase() in TableType;
 }
 
-export function isValidThereOf(value: any): boolean {
 
-  const newObj = JSON.parse(value);
-  if (newObj instanceof Array) {
-    return newObj.every(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))
-  } else {
-    return false;
+export function validateThereOfJsonStr(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
   }
 
+  try {
+    const newObj = JSON.parse(value);
+    if (newObj instanceof Array) {
+      // return newObj.filter(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))
+      return newObj.filter(elem => !(elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory')));
+
+    }
+  } catch {
+  }
+  return ["Invalid JSON structure"]
 }
 
 
-export function isValidi18nMode(value: any): boolean {
-  const validValues: string[] = ["none", "all", "meta"];
-  return validValues.some(elem => elem === value);
+export function isValidi18nMode(value: string): boolean {
+  console.log(value)
+  return true; //value?.toUpperCase() in I18nMode;
 }
 
 

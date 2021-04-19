@@ -62,9 +62,6 @@ export namespace Components {
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean | string;
-        /**
-          * set translaton mode.  values:   all | none | meta
-         */
         "i18nMode": string;
         /**
           * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
@@ -95,7 +92,7 @@ export namespace Components {
          */
         "thereof": string;
         /**
-          * Set the table type  list | sum | opt
+          * Set the table type  list | sum | opt | sumnototal | optnototal
          */
         "type": string;
     }
@@ -283,9 +280,6 @@ declare namespace LocalJSX {
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean | string;
-        /**
-          * set translaton mode.  values:   all | none | meta
-         */
         "i18nMode"?: string;
         /**
           * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
@@ -316,7 +310,7 @@ declare namespace LocalJSX {
          */
         "thereof"?: string;
         /**
-          * Set the table type  list | sum | opt
+          * Set the table type  list | sum | opt | sumnototal | optnototal
          */
         "type": string;
     }
