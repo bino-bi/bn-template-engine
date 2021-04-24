@@ -21,11 +21,13 @@
 
 ### Depends on
 
+- ibcs-chart-structure
 - context-consumer
 
 ### Graph
 ```mermaid
 graph TD;
+  bn-chart --> ibcs-chart-structure
   bn-chart --> context-consumer
   style bn-chart fill:#f9f,stroke:#333,stroke-width:4px
 ```

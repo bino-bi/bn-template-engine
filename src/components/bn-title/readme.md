@@ -24,11 +24,13 @@
 
 ### Depends on
 
+- ibcs-title
 - context-consumer
 
 ### Graph
 ```mermaid
 graph TD;
+  bn-title --> ibcs-title
   bn-title --> context-consumer
   style bn-title fill:#f9f,stroke:#333,stroke-width:4px
 ```
