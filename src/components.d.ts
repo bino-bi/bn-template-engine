@@ -54,6 +54,8 @@ export namespace Components {
           * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
          */
         "dataFormat": string;
+        "dataFormatDigitsDecimal"?: number;
+        "dataFormatDigitsPercent"?: number;
         "datasource": string;
         "datasourcesData": any;
         /**
@@ -271,6 +273,8 @@ declare namespace LocalJSX {
           * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
          */
         "dataFormat": string;
+        "dataFormatDigitsDecimal"?: number;
+        "dataFormatDigitsPercent"?: number;
         "datasource"?: string;
         "datasourcesData"?: any;
         /**

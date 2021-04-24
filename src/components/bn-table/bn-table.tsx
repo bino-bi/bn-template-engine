@@ -14,7 +14,7 @@ import {
 
 import Tunnel from "../bn-context/tunnel";
 import {
-  DataFormat,
+  DataFormat, DataFormatDigits,
   I18nMode,
   OrderDirection,
   TableComponentOrder,
@@ -212,7 +212,6 @@ export class Table {
     if (!isValidi18nMode(newValue)) {
       throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.');
     }
-
   }
 
   @Prop() i18n?: string;
@@ -224,6 +223,24 @@ export class Table {
     }
   }
 
+  @Prop() dataFormatDigitsDecimal?: number;
+
+  @Watch('dataFormatDigitsDecimal')
+  validateDataFormatDigitsDecimal(newValue: number) {
+    if (!isValidInteger(newValue)) {
+      throw new Error('dataFormatDigitsDecimal: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
+
+  @Prop() dataFormatDigitsPercent?: number;
+
+  @Watch('dataFormatDigitsPercent')
+  validateDateFormatDigitsPercent(newValue: number) {
+    if (!isValidInteger(newValue)) {
+      throw new Error('dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
   @Prop() datasource: string
   @Prop() datasourcesData: any
   unsubscribe: () => void
@@ -246,7 +263,8 @@ export class Table {
     this.validateOrderList(this.order);
     this.validatei18nMode(this.i18nMode);
     this.validateI18n(this.i18n);
-
+    this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
+    this.validateDateFormatDigitsPercent(this.dataFormatDigitsPercent);
   }
 
   disconnectedCallback() {
@@ -318,6 +336,13 @@ export class Table {
 
   }
 
+  private prepareDataFormatDigits(): DataFormatDigits{
+    const formatDigits: DataFormatDigits  = { percent: this.dataFormatDigitsPercent,
+                                              decimal: this.dataFormatDigitsDecimal };
+    console.log('format', formatDigits);
+    return formatDigits;
+  }
+
   render() {
     return <Host>
       <ibcs-table
@@ -333,6 +358,7 @@ export class Table {
         i18n-mode={this.prepareI18nMode()}
         i18n={this.prepareI18n()}
         data={this.prepareData()}
+        dataFormatDigits= {this.prepareDataFormatDigits()}
       ></ibcs-table>
     </Host>
   }
