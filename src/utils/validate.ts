@@ -67,6 +67,15 @@ export function isValidInteger(value: number | string): boolean {
   return Number.isInteger(Number(value));
 }
 
+export function isValidNumber(value: number | string): boolean {
+  if (isBlankInput(value)) {
+    return false;
+  }
+
+  return !Number.isNaN(Number(value));
+}
+
+
 
 export function isValidDirection(value: string): boolean {
   return value?.toUpperCase() in OrderDirection;

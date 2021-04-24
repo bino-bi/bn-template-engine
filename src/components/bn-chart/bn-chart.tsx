@@ -1,11 +1,10 @@
 import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
-  isValidInteger,
   validateScenarioList,
   validateVariancesList,
   validateI18nString,
-  validateStylesString
+  validateStylesString, isValidNumber
 } from "../../utils/validate";
 import Tunnel from "../bn-context/tunnel";
 
@@ -80,7 +79,7 @@ export class Chart {
 
   @Watch('unitScaling')
   validateUnitScaling(newValue: string) {
-    if (!isValidInteger(newValue) && !this.pixelPerUnitGroupMap.has(newValue)) {
+    if (!isValidNumber(newValue) && !this.pixelPerUnitGroupMap.has(newValue)) {
       throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
