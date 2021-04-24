@@ -11,10 +11,9 @@ export namespace Components {
     interface BnChart {
         "datasource": string;
         "datasourcesData": any;
-        "height"?: number;
         "i18n"?: string;
         /**
-          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which  are calculated form the given scenarios.  the scenarios used in the variances have also  be defined in the *scenarios* property.   the variance is defiend as  (Scenario A -  SvenarioB)  neg and pos post fix defines which value is *good*  a negative or a positive value.   if empty variance charts are hidden   each variance creates a chart   pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*   a negative or a positive value.    if empty variance charts are hidden    each variance creates a chart    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
         "scenarios": string;
         "styles"?: 'String';
@@ -22,7 +21,6 @@ export namespace Components {
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly  alternativly a number which represent the pixel per measure unit directy. the
          */
         "unitScaling": string;
-        "width"?: number;
     }
     interface BnContext {
     }
@@ -62,6 +60,7 @@ export namespace Components {
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean | string;
+        "i18n"?: string;
         "i18nMode": string;
         /**
           * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
@@ -229,10 +228,9 @@ declare namespace LocalJSX {
     interface BnChart {
         "datasource"?: string;
         "datasourcesData"?: any;
-        "height"?: number;
         "i18n"?: string;
         /**
-          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which  are calculated form the given scenarios.  the scenarios used in the variances have also  be defined in the *scenarios* property.   the variance is defiend as  (Scenario A -  SvenarioB)  neg and pos post fix defines which value is *good*  a negative or a positive value.   if empty variance charts are hidden   each variance creates a chart   pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*   a negative or a positive value.    if empty variance charts are hidden    each variance creates a chart    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
         "scenarios": string;
         "styles"?: 'String';
@@ -240,7 +238,6 @@ declare namespace LocalJSX {
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly  alternativly a number which represent the pixel per measure unit directy. the
          */
         "unitScaling": string;
-        "width"?: number;
     }
     interface BnContext {
     }
@@ -280,6 +277,7 @@ declare namespace LocalJSX {
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean | string;
+        "i18n"?: string;
         "i18nMode"?: string;
         /**
           * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST

@@ -23,6 +23,8 @@ import {
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
+import Tunnel from "../bn-context/tunnel";
+import {Table} from "../bn-table/bn-table";
 
 
 @Component({
@@ -179,7 +181,6 @@ export class Title {
 
   @State() readonly datasource: any
 
- 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateMeasures(this.measures);
@@ -224,6 +225,20 @@ export class Title {
   render() {
     return <Host>
       <ibcs-title
+        businessUnit = "Test Cars"
+        scenarios = {["ac", "py", "dpy_ac_pos"]}
+      ></ibcs-title>
+    </Host>
+  }
+}
+
+styled(Title);
+Tunnel.injectProps(Title, ['datasourcesData']);
+
+
+/*
+
+      <ibcs-title
         businessUnit={this.businessUnit}
         scenarios={this.scenarios?.split(",")}
         measures={this.prepareMeasures()}
@@ -231,10 +246,4 @@ export class Title {
         order={this.prepareTitleOrder()}
         i18n={this.prepareI18n()}
       ></ibcs-title>
-    </Host>
-  }
-}
-
-styled(Title);
-
-
+ */

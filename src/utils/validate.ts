@@ -138,10 +138,10 @@ export function validateThereOfJsonStr(value: string): string[] {
   }
 
   try {
-    const newObj = JSON.parse(value);
-    if (newObj instanceof Array) {
+    const jsonObject = JSON.parse(value);
+    if (jsonObject instanceof Array) {
       // return newObj.filter(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))
-      return newObj.filter(elem => !(elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory')));
+      return jsonObject.filter(elem => !(elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory')));
 
     }
   } catch {
@@ -154,6 +154,39 @@ export function isValidi18nMode(value: string): boolean {
   return value?.toUpperCase() in I18nMode;
 }
 
+export function validateI18nString(value: string): string[]  {
+  if (isBlankInput(value)) {
+    return [];
+  }
+  try {
+    const jsonObject = JSON.parse(value);
+    let errList = [];
+
+    for (var value in jsonObject) {
+      if (typeof jsonObject[value] === 'object'){
+        errList.push(value +":"+jsonObject[value]);
+      }
+      return errList;
+    }
+
+  }catch{}
+
+  return ["Invalid JSON structure"]
+}
+
+
+export function validateStylesString(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+  try {
+    JSON.parse(value);
+    return [];
+  }
+  catch{}
+
+  return ["Invalid JSON structure"];
+}
 
 
 

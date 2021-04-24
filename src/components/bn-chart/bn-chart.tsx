@@ -1,7 +1,14 @@
-import {Component, Element, h, Host, Prop,  Watch} from "@stencil/core";
+import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import {validateScenarioList, validateVariancesList } from "../../utils/validate";
+import {
+  isValidInteger,
+  validateScenarioList,
+  validateVariancesList,
+  validateI18nString,
+  validateStylesString
+} from "../../utils/validate";
 import Tunnel from "../bn-context/tunnel";
+
 @Component({
   tag: 'bn-chart',
   styleUrl: "bn-chart.scss",
@@ -13,19 +20,19 @@ export class Chart {
   // @Prop() order?: string;
   // @Prop() orderDirection?: string;
 
-    /**
-    * (mandatory) List of Scenarios Map.
-    * the position of the scenario is maped to the datasource
-    * column scenario1 - scenario4
-    *
-    * if empty the main chart is hidden
-    *
-    * Valid scenarios are
-    *
-    *  values: ac | fc | py | pl  (1-4)
-    *  example: ac, ac2, ac3, ac4
-    *
-    *  list of additonal variances which
+  /**
+   * (mandatory) List of Scenarios Map.
+   * the position of the scenario is maped to the datasource
+   * column scenario1 - scenario4
+   *
+   * if empty the main chart is hidden
+   *
+   * Valid scenarios are
+   *
+   *  values: ac | fc | py | pl  (1-4)
+   *  example: ac, ac2, ac3, ac4
+   *
+   *  list of additonal variances which
    *   are calculated form the given scenarios.
    *   the scenarios used in the variances have also
    *   be defined in the *scenarios* property.
@@ -39,9 +46,28 @@ export class Chart {
    *   each variance creates a chart
    *
    *   pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
-    */
-   @Prop() scenarios!: string;
+   */
+  @Prop() scenarios!: string;
 
+  @Watch('scenarios')
+  validateScenario(newValue: string) {
+    this.scenariosArray = newValue.split(";");
+    const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
+
+    if (invalidScenarios.length > 0) {
+      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
+    }
+
+    let invalidVariances: string[] = [];
+
+    for (let i = 1; i < this.scenariosArray.length; i++) {
+      invalidVariances = invalidVariances.concat(validateVariancesList(this.scenariosArray[i]));
+    }
+
+    if (invalidVariances.length > 0) {
+      throw new Error('scenarios: invalid value(s) \'' + invalidVariances.toString() + '\' are not supported.')
+    }
+  }
 
   /**
    * Name of the 'scaling-group' which the chart uses
@@ -52,74 +78,40 @@ export class Chart {
    */
   @Prop() unitScaling!: string;
 
+  @Watch('unitScaling')
+  validateUnitScaling(newValue: string) {
+    if (!isValidInteger(newValue) && !this.pixelPerUnitGroupMap.has(newValue)) {
+      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
   @Prop() i18n?: string;
-  @Prop() width?: number;
-  @Prop() height?: number;
+
+  @Watch('i18n')
+  validateI18n(newValue: string) {
+    if (!validateI18nString(newValue)) {
+      throw new Error('i18: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
   @Prop() styles?: 'String';
+
+  @Watch('styles')
+  validateStles(newValue: string) {
+    if (!validateStylesString(newValue)) {
+      throw new Error('i18: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
 
   @Prop() datasource: string
   @Prop() datasourcesData: any
 
-
-
-  private pixelPerUnit: number = 0;
   private scenariosArray: string[];
-  private basicScenarios: string[];
   private canvasWidthSegmented: number;
+  private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
-  @Watch('scenarios')
-  validateScenario(newValue: string) {
-    this.scenariosArray = newValue.split(";");
-
-    const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
-
-    if (invalidScenarios.length > 0) {
-          throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
-    }
-    else{
-        this.basicScenarios = this.scenariosArray[0].split(',');
-    }
-
-    let invalidVariances: string[] = [];
-    for(let  i = 1; i < this.scenariosArray.length; i++) {
-
-      invalidVariances = invalidVariances.concat(validateVariancesList(this.scenariosArray[i]));
-    }
-
-    if (invalidVariances.length > 0) {
-        throw new Error('scenarios: invalid value(s) \'' + invalidVariances.toString() + '\' are not supported.')
-    }
-
-    this.canvasWidthSegmented =  this.element.clientHeight / this.scenariosArray.length;
-
-  }
-
-
-
-  @Watch('unitScaling')
-  validateUnitScaling(newValue: string) {
-    //
-    // Change with global unitmap
-    //
-    let map = new Map<string, number>();
-    map.set('test', 2 );
-    //
-
-    if( map.has(newValue) ) {
-      this.pixelPerUnit = map.get(newValue);
-    }
-    else if( !isNaN( Number(newValue) ) ) {
-       this.pixelPerUnit = Number(newValue);
-    }
-    else{
-      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
-    }
-
-  }
-
-
-
-  constructor(){
+  constructor() {
     this.chartTemplate = this.chartTemplate.bind(this);
   }
 
@@ -127,48 +119,86 @@ export class Chart {
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
+    this.validateStles(this.styles);
+    this.validateI18n(this.i18n);
+  }
+
+  prepareDimension(): {height: number , width: number} {
+    this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
+    return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
+  }
+
+  private prepareData(): { setname: string; data: any }[]{
+    const data = this.datasourcesData[this.datasource];
+
+    if (data == null) {
+      return [];
+    }
+
+    const groupByKey = (list, key) => list.reduce((hash, obj) => ({
+      ...hash,
+      [obj[key]]: (hash[obj[key]] || []).concat(obj)
+    }), {});
+    const explode = (map) => Object.keys(map).map((k) => ({"setname": k, "data": map[k]}));
+
+    return explode(groupByKey([...data], 'setname'));
+  }
+
+  private prepareScenarios(): string[] {
+    return this.scenariosArray[0].split(',');
+  }
+
+  private prepareVariances(localScenarioString: string):string[] {
+   const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
+
+   if (isValidateVariancesList == false) {
+     return null;
+   }
+
+   return localScenarioString.split(',');
+  }
+
+
+  private prepareHideCategories(localScenarioString: string): boolean{
+    return validateVariancesList(localScenarioString).length == 0;
+  }
+
+  private prepareI18n(): Map<string, string> {
+    return new Map([
+      ["title1", "🤩"]
+    ]);
+  }
+
+  private preparePixelPerUnit(){
+    if (this.pixelPerUnitGroupMap.has(this.unitScaling)) {
+      return this.pixelPerUnitGroupMap.get(this.unitScaling);
+    }
+
+    return Number(this.unitScaling);
   }
 
   chartTemplate(localScenarioString: string) {
-    let localVariances = null;
-    let isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
-
-    if(isValidateVariancesList){
-      localVariances = localScenarioString.split(',');
-    }
-    let data = this.datasourcesData[this.datasource]
-    const groupByKey = (list, key) => list.reduce((hash, obj) => ({...hash, [obj[key]]:( hash[obj[key]] || [] ).concat(obj)}), {})
-    const explode = (map) =>  Object.keys(map).map((k) => ({"setname": k, "data": map[k]}))
-
-    var temp = []
-
-    if(data){
-      temp = explode(groupByKey([...data], 'setname'))
-    }
-
-     return <ibcs-chart-structure
-          dimension = {{width: this.canvasWidthSegmented, height: this.element.clientHeight}}
-          data={temp}
-          scenarios={this.basicScenarios}
-          variances={localVariances}
-          hideCategories={isValidateVariancesList}
-          pixelPerUnit={this.pixelPerUnit}
-          chartTitle = {null}
-          styles = {null}
-          i18n = {null}
-  ></ibcs-chart-structure>
+    return <ibcs-chart-structure
+      dimension={this.prepareDimension()}
+      data={this.prepareData()}
+      scenarios={this.prepareScenarios()}
+      variances={this.prepareVariances(localScenarioString)}
+      hideCategories={this.prepareHideCategories(localScenarioString)}
+      pixelPerUnit={this.preparePixelPerUnit()}
+      chartTitle={null}
+      styles={null}
+      i18n={this.prepareI18n()}
+    ></ibcs-chart-structure>
   }
 
   render() {
-    this.canvasWidthSegmented = this.width ; // this.scenariosArray.length;
-
     return <Host>
-    <div class="container">
-      {this.scenariosArray.map(this.chartTemplate)}
-    </div>
+      <div class="container">
+        {this.scenariosArray.map(this.chartTemplate)}
+      </div>
     </Host>
   }
 }
 
 styled(Chart);
-Tunnel.injectProps(Chart, ['datasourcesData'])
+Tunnel.injectProps(Chart, ['datasourcesData']);

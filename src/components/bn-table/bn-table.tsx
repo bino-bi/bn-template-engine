@@ -3,7 +3,7 @@ import {styled} from "../../utils/styled/styled";
 import {
   isValidBoolean,
   isValidDataFormat,
-  isValidDirection,
+  isValidDirection, validateI18nString,
   isValidi18nMode,
   isValidInteger,
   isValidTableType,
@@ -215,6 +215,15 @@ export class Table {
 
   }
 
+  @Prop() i18n?: string;
+
+  @Watch('i18n')
+  validateI18n(newValue: string) {
+    if (!validateI18nString(newValue)) {
+      throw new Error('i18: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
   @Prop() datasource: string
   @Prop() datasourcesData: any
   unsubscribe: () => void
@@ -236,6 +245,7 @@ export class Table {
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
     this.validatei18nMode(this.i18nMode);
+    this.validateI18n(this.i18n);
 
   }
 
@@ -291,7 +301,7 @@ export class Table {
     ]);
   }
 
-  private prepareData() {
+  private prepareData(): { setname: string; data: any }[] {
     const data = this.datasourcesData[this.datasource];
 
     if (data == null) {
