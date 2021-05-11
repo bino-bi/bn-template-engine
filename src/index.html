@@ -89,34 +89,35 @@
           styles          = null
       ></bn-chart>
       <bn-table
-        datasource    ="Kapitalzusagen"
-        grid-column="1"
-        grid-row="2"
-        table-title         ='Kapitalzusagen'
-        scenarios           ='py,pl,ac,fc,dpl_ac_pos,drpl_ac_pos'
-        data-format         ='decimal'
-        data-format-digits-percent = 1
-        data-format-digits-decimal = 0
-        grouped             ='true'
-        show-group-title    ='true'
-        type                ='sum'
-        limit               ='2'
-        thereof             ='[
+          datasource    ="Marktwert"
+
+          grid-column="1 / span 2"
+          grid-row="2"
+
+          grouped             ="false"
+          show-group-title    ='false'
+          table-title         ='Marktwert'
+          scenarios           ='py,pl,ac,fc,dpy_ac,drpy_ac_pos,drpl_ac_pos'
+          type                ='sum'
+          limit               ='0'
+          order               ='subcategory'
+          order-direction     ='asc'
+          thereof             ='[
           {
             "rowgroup":     "Immobilien",
-            "category":     "Einanleger Dachfonds",
+            "category":     "Beratungsmandate",
             "subcategory":  "",
             "partof":       ""
           },
           {
             "rowgroup":     "Alternative Investments",
             "category":     "Beratungsmandate",
-            "subcategory":  "Beratungsmandate 1",
-            "partof":       "Alternative Investments"
+            "subcategory":  "",
+            "partof":       ""
           }]'
-        order               ='subcategory'
-        order-direction     ='asc'
       ></bn-table>
+
+
       </bn-grid>
     </bn-body>
   </bn-page>
