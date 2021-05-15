@@ -88,7 +88,7 @@
           unit-scaling    ='0.03'
           styles          = null
       ></bn-chart>
-      <bn-table
+        <bn-table
           datasource    ="Marktwert"
 
           grid-column="1 / span 2"
@@ -99,23 +99,35 @@
           table-title         ='Marktwert'
           scenarios           ='py,pl,ac,fc,dpy_ac,drpy_ac_pos,drpl_ac_pos'
           type                ='sum'
-          limit               ='0'
+          limit               =''
           order               ='subcategory'
           order-direction     ='asc'
           thereof             ='[
           {
-            "rowgroup":     "Immobilien",
-            "category":     "Beratungsmandate",
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Immobilien",
             "subcategory":  "",
             "partof":       ""
           },
           {
-            "rowgroup":     "Alternative Investments",
-            "category":     "Beratungsmandate",
+            "rowgroup":     "Geschäftsfeld AM Illiquide",
+            "category":     "Alternative Investments",
             "subcategory":  "",
             "partof":       ""
           }]'
-      ></bn-table>
+        ></bn-table>
+
+        <bn-chart
+          datasource      ="Marktwert"
+          grid-column="1/2"
+          grid-row="3"
+          width           ='1000px'
+          height          ='400px'
+          scenarios       ='ac,py'
+          unit-scaling    ='0.1'
+          chart-title     ='Marktwert'
+          styles          =''
+        >       </bn-chart>
 
 
       </bn-grid>
