@@ -84,6 +84,25 @@ export class Chart {
     }
   }
 
+  /**
+   * Determines level on which the chart is aggregated on.
+   * valid values are
+   *
+   * rowcategory, catgeory, subcategory
+   * default: category
+   *
+   */
+  @Prop() level!: string;
+
+  @Watch('unitScaling')
+  validateLevel(newValue: string) {
+    if (!isValidLevel(newValue) && !this.pixelPerUnitGroupMap.has(newValue)) {
+      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
+
+
   @Prop() i18n?: string;
 
   @Watch('i18n')
@@ -120,6 +139,7 @@ export class Chart {
     this.validateUnitScaling(this.unitScaling);
     this.validateStles(this.styles);
     this.validateI18n(this.i18n);
+    this.validateLevel(this.level);
   }
 
   prepareDimension(): {height: number , width: number} {
@@ -168,13 +188,22 @@ export class Chart {
     ]);
   }
 
-  private preparePixelPerUnit(){
+  private preparePixelPerUnit(): Number{
     if (this.pixelPerUnitGroupMap.has(this.unitScaling)) {
       return this.pixelPerUnitGroupMap.get(this.unitScaling);
     }
 
     return Number(this.unitScaling);
   }
+
+  private prepareLevel(): string{
+    if (this.pixelPerUnitGroupMap.has(this.unitScaling)) {
+      return this.pixelPerUnitGroupMap.get(this.unitScaling);
+    }
+
+    return "category";
+  }
+
 
   chartTemplate(localScenarioString: string) {
     return <ibcs-chart-structure
@@ -187,6 +216,8 @@ export class Chart {
       chartTitle={null}
       styles={null}
       i18n={this.prepareI18n()}
+      level={this.prepareLevel()}
+      order={this.prepareSortOrder()}
     ></ibcs-chart-structure>
   }
 
