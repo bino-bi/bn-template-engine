@@ -17,9 +17,9 @@ import {
   DataFormat, DataFormatDigits,
   I18nMode,
   OrderDirection,
-  TableComponentOrder,
+  Order,
   TableDrillGroup,
-  TableType
+  TableType, OrderColumn
 } from "@bino-bi/ibcs-component-interface";
 
 
@@ -300,9 +300,9 @@ export class Table {
 
   }
 
-  private prepareTableOrder(): TableComponentOrder {
-    const tableOrder: TableComponentOrder = {
-      columnshierachy: this.order.split(","),
+  private prepareOrder(): Order {
+    const tableOrder: Order = {
+      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
 
@@ -354,7 +354,7 @@ export class Table {
         type={this.prepareTableType()}
         limit={this.prepareLimit()}
         thereof={this.prepareThereOf()}
-        order={this.prepareTableOrder()}
+        order={this.prepareOrder()}
         i18n-mode={this.prepareI18nMode()}
         i18n={this.prepareI18n()}
         data={this.prepareData()}

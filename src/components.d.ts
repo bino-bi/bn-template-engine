@@ -13,6 +13,18 @@ export namespace Components {
         "datasourcesData": any;
         "i18n"?: string;
         /**
+          * Determines level on which the chart is aggregated on. valid values are  rowcategory, catgeory, subcategory default: category
+         */
+        "level": string;
+        /**
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+         */
+        "order": string;
+        /**
+          * set sorting order directon  values: asc | desc
+         */
+        "orderDirection": string;
+        /**
           * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*   a negative or a positive value.    if empty variance charts are hidden    each variance creates a chart    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */
         "scenarios": string;
@@ -231,6 +243,18 @@ declare namespace LocalJSX {
         "datasource"?: string;
         "datasourcesData"?: any;
         "i18n"?: string;
+        /**
+          * Determines level on which the chart is aggregated on. valid values are  rowcategory, catgeory, subcategory default: category
+         */
+        "level": string;
+        /**
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+         */
+        "order": string;
+        /**
+          * set sorting order directon  values: asc | desc
+         */
+        "orderDirection": string;
         /**
           * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*   a negative or a positive value.    if empty variance charts are hidden    each variance creates a chart    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
          */

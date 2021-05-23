@@ -1,12 +1,17 @@
 import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
-  validateScenarioList,
-  validateVariancesList,
+  isValidDirection,
+  isValidLevel,
+  isValidNumber,
   validateI18nString,
-  validateStylesString, isValidNumber
+  validateOrderList,
+  validateScenarioList,
+  validateStylesString,
+  validateVariancesList
 } from "../../utils/validate";
 import Tunnel from "../bn-context/tunnel";
+import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
 
 @Component({
   tag: 'bn-chart',
@@ -94,13 +99,47 @@ export class Chart {
    */
   @Prop() level!: string;
 
-  @Watch('unitScaling')
+  @Watch('level')
   validateLevel(newValue: string) {
-    if (!isValidLevel(newValue) && !this.pixelPerUnitGroupMap.has(newValue)) {
-      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+    if (!isValidLevel(newValue)) {
+      throw new Error('level: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
 
+  /** List of the primary scenarios on which the order direction are applied  valid scenarios are
+   *  If order is set to a scenario it has also exists in scenariolist
+   *
+   *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+   */
+  @Prop() order!: string;
+
+  @Watch('order')
+  validateOrderList(newValue: string) {
+    const invalidElements: string[] = validateOrderList(newValue);
+    if (invalidElements.length > 0) {
+      throw new Error('order: invalid value(s) \'' + invalidElements.toString() + '\' are not supported.');
+    }
+  }
+
+
+  /** set sorting order directon
+   *
+   * values: asc | desc
+   */
+  @Prop() orderDirection!: string;
+
+  /** set translaton mode.
+   *
+   * values:   all | none | meta
+   */
+
+  @Watch('orderDirection')
+  validateOrderDirection(newValue: string) {
+    if (!isValidDirection(newValue)) {
+      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.');
+    }
+
+  }
 
 
   @Prop() i18n?: string;
@@ -140,6 +179,8 @@ export class Chart {
     this.validateStles(this.styles);
     this.validateI18n(this.i18n);
     this.validateLevel(this.level);
+    this.validateOrderDirection(this.orderDirection);
+    this.validateOrderList(this.order);
   }
 
   prepareDimension(): {height: number , width: number} {
@@ -196,12 +237,17 @@ export class Chart {
     return Number(this.unitScaling);
   }
 
-  private prepareLevel(): string{
-    if (this.pixelPerUnitGroupMap.has(this.unitScaling)) {
-      return this.pixelPerUnitGroupMap.get(this.unitScaling);
-    }
+  private prepareLevel(): AggregationLevel{
+    return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
+  }
 
-    return "category";
+  private prepareOrder(): Order {
+    const tableOrder: Order = {
+      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
+    };
+
+    return tableOrder;
   }
 
 
@@ -217,7 +263,7 @@ export class Chart {
       styles={null}
       i18n={this.prepareI18n()}
       level={this.prepareLevel()}
-      order={this.prepareSortOrder()}
+      order={this.prepareOrder()}
     ></ibcs-chart-structure>
   }
 

@@ -1,4 +1,5 @@
 import {
+  AggregationLevel,
   DataFormat,
   DateDistance,
   DateLink, I18nMode,
@@ -75,12 +76,13 @@ export function isValidNumber(value: number | string): boolean {
   return !Number.isNaN(Number(value));
 }
 
-
-
 export function isValidDirection(value: string): boolean {
   return value?.toUpperCase() in OrderDirection;
 }
 
+export function isValidLevel(value: string): boolean {
+  return value?.toUpperCase() in AggregationLevel;
+}
 
 export function validateMeasureList(value: string): string[] {
   if (isBlankInput(value)) {

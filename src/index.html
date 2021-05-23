@@ -87,7 +87,10 @@
           scenarios       ='ac,py,pl,fc;dpy_ac_pos;drpy_ac_pos'
           unit-scaling    ='0.03'
           styles          = null
-      ></bn-chart>
+          level           ='category'
+          order           ='category'
+          order-direction ='asc'>
+      </bn-chart>
         <bn-table
           datasource    ="Marktwert"
 
@@ -116,7 +119,6 @@
             "partof":       ""
           }]'
         ></bn-table>
-
         <bn-chart
           datasource      ="Marktwert"
           grid-column="1/2"
@@ -127,8 +129,10 @@
           unit-scaling    ='0.1'
           chart-title     ='Marktwert'
           styles          =''
-        >       </bn-chart>
-
+          level           ='category'
+          order           ='category'
+          order-direction ='asc'>
+        </bn-chart>
 
       </bn-grid>
     </bn-body>

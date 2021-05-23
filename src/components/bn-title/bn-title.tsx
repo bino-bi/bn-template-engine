@@ -200,8 +200,8 @@ export class Title {
 
   private prepareTitleOrder(): Order {
     return {
-      columnshierachy: this.order?.split(",") as OrderColumn[],
-      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof DateDistance]
+      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
   }
 
