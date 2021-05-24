@@ -9,7 +9,7 @@ import {
   isValidTableType,
   validateOrderList,
   validateScenarioList,
-  validateThereOfJsonStr
+  validateThereOfJsonStr, isBlankInput
 } from "../../utils/validate";
 
 import Tunnel from "../bn-context/tunnel";
@@ -339,15 +339,22 @@ export class Table {
   private prepareDataFormatDigits(): DataFormatDigits{
     const formatDigits: DataFormatDigits  = { percent: this.dataFormatDigitsPercent,
                                               decimal: this.dataFormatDigitsDecimal };
-    console.log('format', formatDigits);
+
     return formatDigits;
+  }
+
+  private prepareScenarios(): string[] {
+    if (isBlankInput(this.scenarios)) {
+      return [];
+    }
+    return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
   render() {
     return <Host>
       <ibcs-table
         table-title={this.tableTitle}
-        scenarios={this.scenarios?.split(",")}
+        scenarios={this.prepareScenarios()}
         scenarios-data-format={this.prepareDataFormat()}
         grouped={this.prepareGrouped()}
         show-group-title={this.prepareShowGroupTitle()}

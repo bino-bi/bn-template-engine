@@ -68,35 +68,51 @@
 
   <bn-page format     ="a3" orienation="portrait">
     <bn-title
-      business-unit   = 'Geschäftsfeld AM Illiquide'
-      scenarios       = 'ac,fc'
-      order           = 'ac,fc'
-      order-direction = 'desc'
-      measures        = '[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
+      business-unit   = 'Test'
+      scenarios       = 'ac, fc'
       date-start      = '2019-12-31'
       date-end        = '2020-12-31'
       date-format     = 'quarter'
-      date-link       = 'interval'>
+      date-link       = 'interval'
+      measures        = '[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
+       >
     </bn-title>
     <bn-body>
-      <bn-grid rows="3" columns="2" top="0" left="0" height="100%">
-        <bn-chart
-          datasource      ="Kapitalzusagen"
-          grid-column="1"
-          grid-row="1"
-          scenarios       ='ac,py,pl,fc;dpy_ac_pos;drpy_ac_pos'
-          unit-scaling    ='0.03'
-          styles          = null
-          level           ='category'
-          order           ='category'
-          order-direction ='asc'>
-      </bn-chart>
+      <bn-card
+        measures        = '[{"name": "Marktwert2", "unit": "mEUR"}]'
+        scenarios       = ''
+        date-start      = '2019-12-31'
+        date-end        = '2020-12-31'
+        date-format     = 'quarter'
+        date-link       = ''
+        image = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Nintendo_red_logo.svg/1280px-Nintendo_red_logo.svg.png"
+        show-border = "true"
+      >
+      <bn-chart
+        datasource      ="Marktwert"
+        scenarios       ='ac,py'
+        unit-scaling    ='0.1'
+        chart-title     ='Marktwert'
+        styles          =''
+        level           ='category'
+        order           ='category'
+        order-direction ='asc'>
+        </bn-chart>
+      </bn-card>
+      <bn-card
+        business-unit = "Eintracht Frankfurt"
+        scenarios       = 'ac'
+        order           = 'ac'
+        order-direction = 'desc'
+        date-start      = ''
+        date-end        = ''
+        date-format     = ''
+        date-link       = ''
+        measures        = ''
+        image = "debug/concordia.png"
+        show-border = "true">
         <bn-table
           datasource    ="Marktwert"
-
-          grid-column="1 / span 2"
-          grid-row="2"
-
           grouped             ="false"
           show-group-title    ='false'
           table-title         ='Marktwert'
@@ -104,7 +120,7 @@
           type                ='sum'
           limit               =''
           order               ='subcategory'
-          order-direction     ='asc'
+          order-direction     =''
           thereof             ='[
           {
             "rowgroup":     "Geschäftsfeld AM Illiquide",
@@ -126,10 +142,10 @@
           chart-title     ='Marktwert'
           styles          =''
           level           ='category'
-          order           ='category'
-          order-direction ='asc'>
+          order           ='ac'
+          order-direction ='desc'>
         </bn-chart>
-
+      </bn-card>
       </bn-grid>
     </bn-body>
   </bn-page>

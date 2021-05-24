@@ -8,6 +8,52 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface BnBody {
     }
+    interface BnCard {
+        /**
+          * (optional) Name of business unit. If empty buisnes unit row is omitted
+         */
+        "businessUnit": string;
+        /**
+          * (optional) String of end date  format: yyyy-MM-dd
+         */
+        "dateEnd": string;
+        /**
+          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+         */
+        "dateFormat": string;
+        /**
+          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+         */
+        "dateLink": string;
+        /**
+          * (optional) String of start date  format: yyyy-MM-dd
+         */
+        "dateStart": string;
+        /**
+          * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
+         */
+        "image": string;
+        /**
+          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+         */
+        "measures": string;
+        /**
+          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+         */
+        "order": string;
+        /**
+          * (optional) set sorting order directon  values: asc | desc
+         */
+        "orderDirection": string;
+        /**
+          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
+         */
+        "scenarios": string;
+        /**
+          * show or hides the cards border  alues: true | false
+         */
+        "showBorder": string;
+    }
     interface BnChart {
         "datasource": string;
         "datasourcesData": any;
@@ -55,11 +101,11 @@ export namespace Components {
         /**
           * Define the size of the page  values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal default: xga
          */
-        "format": String;
+        "format": string;
         /**
           * values: landscape | portrait default: based on the given format
          */
-        "orientation": String;
+        "orientation": string;
     }
     interface BnTable {
         /**
@@ -162,6 +208,12 @@ declare global {
         prototype: HTMLBnBodyElement;
         new (): HTMLBnBodyElement;
     };
+    interface HTMLBnCardElement extends Components.BnCard, HTMLStencilElement {
+    }
+    var HTMLBnCardElement: {
+        prototype: HTMLBnCardElement;
+        new (): HTMLBnCardElement;
+    };
     interface HTMLBnChartElement extends Components.BnChart, HTMLStencilElement {
     }
     var HTMLBnChartElement: {
@@ -224,6 +276,7 @@ declare global {
     };
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
+        "bn-card": HTMLBnCardElement;
         "bn-chart": HTMLBnChartElement;
         "bn-context": HTMLBnContextElement;
         "bn-datasource": HTMLBnDatasourceElement;
@@ -238,6 +291,52 @@ declare global {
 }
 declare namespace LocalJSX {
     interface BnBody {
+    }
+    interface BnCard {
+        /**
+          * (optional) Name of business unit. If empty buisnes unit row is omitted
+         */
+        "businessUnit"?: string;
+        /**
+          * (optional) String of end date  format: yyyy-MM-dd
+         */
+        "dateEnd"?: string;
+        /**
+          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+         */
+        "dateFormat"?: string;
+        /**
+          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+         */
+        "dateLink"?: string;
+        /**
+          * (optional) String of start date  format: yyyy-MM-dd
+         */
+        "dateStart"?: string;
+        /**
+          * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
+         */
+        "image"?: string;
+        /**
+          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+         */
+        "measures"?: string;
+        /**
+          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+         */
+        "order"?: string;
+        /**
+          * (optional) set sorting order directon  values: asc | desc
+         */
+        "orderDirection"?: string;
+        /**
+          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
+         */
+        "scenarios"?: string;
+        /**
+          * show or hides the cards border  alues: true | false
+         */
+        "showBorder": string;
     }
     interface BnChart {
         "datasource"?: string;
@@ -286,11 +385,11 @@ declare namespace LocalJSX {
         /**
           * Define the size of the page  values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal default: xga
          */
-        "format"?: String;
+        "format"?: string;
         /**
           * values: landscape | portrait default: based on the given format
          */
-        "orientation"?: String;
+        "orientation"?: string;
     }
     interface BnTable {
         /**
@@ -387,6 +486,7 @@ declare namespace LocalJSX {
     }
     interface IntrinsicElements {
         "bn-body": BnBody;
+        "bn-card": BnCard;
         "bn-chart": BnChart;
         "bn-context": BnContext;
         "bn-datasource": BnDatasource;
@@ -404,6 +504,7 @@ declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
+            "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
             "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;

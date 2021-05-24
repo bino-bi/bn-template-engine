@@ -1,6 +1,7 @@
 import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
+  isBlankInput,
   isValidDirection,
   isValidLevel,
   isValidNumber,
@@ -205,7 +206,10 @@ export class Chart {
   }
 
   private prepareScenarios(): string[] {
-    return this.scenariosArray[0].split(',');
+    if (isBlankInput(this.scenarios)) {
+      return [];
+    }
+    return this.scenariosArray[0]?.split(",").map(entry => entry.trim());
   }
 
   private prepareVariances(localScenarioString: string):string[] {

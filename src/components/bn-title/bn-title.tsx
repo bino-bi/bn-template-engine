@@ -199,13 +199,24 @@ export class Title {
   }
 
   private prepareTitleOrder(): Order {
+    if(isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
+      return null;
+    }
+
     return {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
   }
 
-  private prepareTitleTimePeriod(): TimePeriod {
+  private prepareTitleTimePeriod(): TimePeriod | null {
+    if ( isBlankInput(this.dateStart) && isBlankInput(this.dateEnd) ) {
+      return null;
+    }
+    if (isBlankInput(this.dateLink)) {
+      return null;
+    }
+
     return {
       start: new Date(this.dateStart),
       end: new Date(this.dateEnd),
@@ -221,11 +232,18 @@ export class Title {
     return JSON.parse(this.measures) as MeasureEntry[];
   }
 
+  private prepareScenarios(): string[] {
+    if (isBlankInput(this.scenarios)) {
+      return [];
+    }
+    return this.scenarios?.split(",").map(entry => entry.trim());
+  }
+
   render() {
     return <Host>
        <ibcs-title
         businessUnit={this.businessUnit}
-        scenarios={this.scenarios?.split(",")}
+        scenarios={this.prepareScenarios()}
         measures={this.prepareMeasures()}
         timeperiod={this.prepareTitleTimePeriod()}
         order={this.prepareTitleOrder()}

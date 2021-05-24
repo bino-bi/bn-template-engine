@@ -12,23 +12,23 @@ export class Template {
    * values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal
    * default: xga
    */
-  @Prop() format: String;
+  @Prop() format: string;
 
   /**
    * values: landscape | portrait
    * default: based on the given format
    */
-  @Prop() orientation: String;
+  @Prop() orientation: string;
 
   @Watch('format')
   // @ts-ignore
-  validateFormat(newValue: String, oldValue: String) {
+  validateFormat(newValue: string, oldValue: string) {
     //TODO: add validation
   }
 
   @Watch('format')
   // @ts-ignore
-  validateOrientation(newValue: String, oldValue: String) {
+  validateOrientation(newValue: string, oldValue: string) {
     //TODO: add validation
   }
 
