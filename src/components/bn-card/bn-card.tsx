@@ -53,7 +53,7 @@ export class Card {
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
     if (invalidScenarios?.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
+      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
     }
   }
 
@@ -69,7 +69,7 @@ export class Card {
   validateOrder(newValue: string) {
     const invalidScenarios: string[] = validateOrderList(newValue);
     if (invalidScenarios?.length > 0) {
-      throw new Error('order: invalid value \'' + invalidScenarios.toString() + '\' is not supported.')
+      throw new Error('order: invalid value \'' + invalidScenarios?.toString() + '\' is not supported.')
     }
   }
 
@@ -83,7 +83,7 @@ export class Card {
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
     if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.')
+      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -113,8 +113,8 @@ export class Card {
 
   @Watch('dateStart')
   validateDateStart(newValue: string) {
-    if (!isValidDate(newValue)) {
-      throw new Error('dateStart: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidDate(newValue) && !isBlankInput(newValue)) {
+      throw new Error('dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -127,8 +127,8 @@ export class Card {
 
   @Watch('dateEnd')
   validateDateEnd(newValue: string) {
-    if (!isValidDate(newValue)) {
-      throw new Error('dateEnd: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidDate(newValue) && !isBlankInput(newValue)) {
+      throw new Error('dateEnd: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -149,8 +149,8 @@ export class Card {
 
   @Watch('dateFormat')
   validateDateFormat(newValue: string) {
-    if (!isValidDateFormat(newValue)) {
-      throw new Error('dateFormat: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
+      throw new Error('dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -174,8 +174,8 @@ export class Card {
 
   @Watch('dateLink')
   validateDateLink(newValue: string) {
-    if (!isValidDateLink(newValue)) {
-      throw new Error('dateLink: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidDateLink(newValue) && !isBlankInput(newValue) ) {
+      throw new Error('dateLink: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -199,7 +199,7 @@ export class Card {
   validateShowBorder(newValue: string | boolean) {
     console.log('value', newValue)
     if (!isValidBoolean(newValue)) {
-      throw new Error('showBorder: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
+      throw new Error('showBorder: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
   }
 
@@ -244,6 +244,7 @@ export class Card {
       return null;
     }
 
+
     return {
       start: new Date(this.dateStart),
       end: new Date(this.dateEnd),
@@ -259,14 +260,10 @@ export class Card {
     return JSON.parse(this.measures) as MeasureEntry[];
   }
 
-
   setCardClass(): string {
-    console.log("my Bode", this.showBorder);
-
     if (this.showBorder == "true") {
       return "card_box border";
     }
-
     return "card_box"
   }
 

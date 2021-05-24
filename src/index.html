@@ -72,7 +72,7 @@
       scenarios       = 'ac, fc'
       date-start      = '2019-12-31'
       date-end        = '2020-12-31'
-      date-format     = 'quarter'
+      date-format     = ''
       date-link       = 'interval'
       measures        = '[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
        >
@@ -90,7 +90,7 @@
       >
       <bn-chart
         datasource      ="Marktwert"
-        scenarios       ='ac,py'
+        scenarios       ='ac,py,fc,pl'
         unit-scaling    ='0.1'
         chart-title     ='Marktwert'
         styles          =''
@@ -116,7 +116,7 @@
           grouped             ="false"
           show-group-title    ='false'
           table-title         ='Marktwert'
-          scenarios           ='py,pl,ac,fc,dpy_ac,drpy_ac_pos,drpl_ac_pos'
+          scenarios           ='py,pl,ac,fc,dpy_ac_neg,drpy_ac_pos,drpl_ac_pos'
           type                ='sum'
           limit               =''
           order               ='subcategory'
@@ -135,16 +135,6 @@
             "partof":       ""
           }]'
         ></bn-table>
-        <bn-chart
-          datasource      ="Marktwert"
-          scenarios       ='ac,py'
-          unit-scaling    ='0.1'
-          chart-title     ='Marktwert'
-          styles          =''
-          level           ='category'
-          order           ='ac'
-          order-direction ='desc'>
-        </bn-chart>
       </bn-card>
       </bn-grid>
     </bn-body>

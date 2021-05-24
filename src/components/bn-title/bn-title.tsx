@@ -51,7 +51,7 @@ export class Title {
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
     if (invalidScenarios?.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
+      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
     }
   }
 
@@ -67,7 +67,7 @@ export class Title {
   validateOrder(newValue: string) {
     const invalidScenarios: string[] = validateOrderList(newValue);
     if (invalidScenarios?.length > 0) {
-      throw new Error('order: invalid value \'' + invalidScenarios.toString() + '\' is not supported.')
+      throw new Error('order: invalid value \'' + invalidScenarios?.toString() + '\' is not supported.')
     }
   }
 
@@ -81,7 +81,7 @@ export class Title {
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
     if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.')
+      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -111,8 +111,8 @@ export class Title {
 
   @Watch('dateStart')
   validateDateStart(newValue: string) {
-    if (!isValidDate(newValue)) {
-      throw new Error('dateStart: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidDate(newValue) && !isBlankInput(newValue)) {
+      throw new Error('dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -125,8 +125,8 @@ export class Title {
 
   @Watch('dateEnd')
   validateDateEnd(newValue: string) {
-    if (!isValidDate(newValue)) {
-      throw new Error('dateEnd: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidDate(newValue) && !isBlankInput(newValue)) {
+      throw new Error('dateEnd: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -147,8 +147,8 @@ export class Title {
 
   @Watch('dateFormat')
   validateDateFormat(newValue: string) {
-    if (!isValidDateFormat(newValue)) {
-      throw new Error('dateFormat: invalid value \'' + newValue.toString() + '\' is not supported.')
+    if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
+      throw new Error('dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -172,7 +172,7 @@ export class Title {
 
   @Watch('dateLink')
   validateDateLink(newValue: string) {
-    if (!isValidDateLink(newValue)) {
+    if (!isValidDateLink(newValue) && !isBlankInput(newValue)) {
       throw new Error('dateLink: invalid value \'' + newValue.toString() + '\' is not supported.')
     }
   }

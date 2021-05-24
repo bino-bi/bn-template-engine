@@ -49,7 +49,7 @@ export class Table {
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
     if (invalidScenarios.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.');
+      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.');
     }
   }
 
@@ -68,7 +68,7 @@ export class Table {
   @Watch('dataFormat')
   validateDataFormat(newValue: string) {
     if (!isValidDataFormat(newValue)) {
-      throw new Error('dataFormat: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
+      throw new Error('dataFormat: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
   }
 
@@ -85,7 +85,7 @@ export class Table {
   @Watch('grouped')
   validateGrouped(newValue: string | boolean) {
     if (!isValidBoolean(newValue)) {
-      throw new Error('grouped: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
+      throw new Error('grouped: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
   }
 
@@ -103,7 +103,7 @@ export class Table {
   @Watch('showGroupTitle')
   validateShowGroupTitle(newValue: string | boolean) {
     if (!isValidBoolean(newValue)) {
-      throw new Error('showGroupTitle: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
+      throw new Error('showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
   }
 
@@ -119,7 +119,7 @@ export class Table {
   @Watch('type')
   validateType(newValue: string | boolean) {
     if (!isValidTableType(newValue)) {
-      throw new Error('type: invalid value(s) \'' + newValue.toString() + '\' are not supported.');
+      throw new Error('type: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
   }
 
@@ -136,7 +136,7 @@ export class Table {
   @Watch('limit')
   validateLimit(newValue: number) {
     if (!isValidInteger(newValue)) {
-      throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.');
+      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
   }
 
@@ -164,7 +164,7 @@ export class Table {
   validateThereOf(newValue: string) {
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
     if (invalidElements.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidElements.toString() + '\' are not supported.');
+      throw new Error('scenarios: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
   }
 
@@ -180,7 +180,7 @@ export class Table {
   validateOrderList(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
     if (invalidElements.length > 0) {
-      throw new Error('order: invalid value(s) \'' + invalidElements.toString() + '\' are not supported.');
+      throw new Error('order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
   }
 
@@ -199,7 +199,7 @@ export class Table {
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
     if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.');
+      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
 
   }
@@ -210,7 +210,7 @@ export class Table {
   @Watch('i18nMode')
   validatei18nMode(newValue: string) {
     if (!isValidi18nMode(newValue)) {
-      throw new Error('order: invalid value \'' + newValue.toString() + '\' is not supported.');
+      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
   }
 

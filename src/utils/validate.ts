@@ -22,7 +22,7 @@ export function validateScenarioList(value: string): string[] {
   }
 
   const invalidScenarios: string[] = value?.split(',')
-    .filter(element => !(element.toUpperCase() in Scenarios));
+    .filter(element => !(element.toUpperCase().trim() in Scenarios));
 
   return validateVariancesList(invalidScenarios.toString());
 }
@@ -32,6 +32,16 @@ export function validateVariancesList(value: string): string[] {
   if (isBlankInput(value)) {
     return [];
   }
+
+  /*
+      let scenarioTestRegex = /(dr|d)(\w+)_(\w+)_(pos|neg)/;
+      // regexMatch is scenario a variance
+      if (scenarioTestRegex.test(element)) {
+        let tokens = scenarioTestRegex.exec(element);
+        console.log('Tokens', tokens)
+        return [String(tokens[2]), String(tokens[4]), String(tokens[5]), String(tokens[1])];
+      }
+*/
 
   let invalidScenarios: string[] = value.split(',')
     .filter(element => {

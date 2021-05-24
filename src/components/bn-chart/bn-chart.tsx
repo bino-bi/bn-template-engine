@@ -60,7 +60,7 @@ export class Chart {
     const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
 
     if (invalidScenarios.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios.toString() + '\' are not supported.')
+      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
     }
 
     let invalidVariances: string[] = [];
@@ -70,7 +70,7 @@ export class Chart {
     }
 
     if (invalidVariances.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidVariances.toString() + '\' are not supported.')
+      throw new Error('scenarios: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.')
     }
   }
 
@@ -118,7 +118,7 @@ export class Chart {
   validateOrderList(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
     if (invalidElements.length > 0) {
-      throw new Error('order: invalid value(s) \'' + invalidElements.toString() + '\' are not supported.');
+      throw new Error('order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
   }
 
@@ -137,7 +137,7 @@ export class Chart {
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
     if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue.toString() + '\' is not supported.');
+      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
 
   }
