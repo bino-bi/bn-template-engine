@@ -3,12 +3,6 @@ import { sass } from '@stencil/sass';
 
 export const config: Config = {
   namespace: 'bn-template-engine',
-  commonjs: {
-    namedExports: {
-      '@bino-bi/ibcs-component/dist/types/components/ibcs-title/utils/model,': ['DateDistance','DateLink'],
-      './node_modules/@bino-bi/ibcs-component/dist/types/components/ibcs-title/utils/model.d.ts,': ['DateDistanceType','DateLinkType','DateDistance','DateLink']
-    }
-  },
   plugins: [
     sass()
   ],
