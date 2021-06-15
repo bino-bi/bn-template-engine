@@ -1,10 +1,15 @@
-import {Component, h, Host} from "@stencil/core";
+import {Component, h, Host, Prop} from "@stencil/core";
 
 @Component({
   tag: 'bn-footer'
 })
 export class Footer {
+  @Prop({mutable: true})
+  pageNumber: number
+
   render() {
-    return <Host/>
+    return <Host>
+      Page: {this.pageNumber}
+    </Host>
   }
 }

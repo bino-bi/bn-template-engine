@@ -1,4 +1,4 @@
-import {Component, h, Host, Prop, Watch, Element} from "@stencil/core";
+import {Component, h, Host, Prop, Watch, Element, Method} from "@stencil/core";
 
 @Component({
   tag: 'bn-page',
@@ -20,6 +20,14 @@ export class Template {
    */
   @Prop() orientation: string;
 
+  @Method()
+  _setCurrentPageIndex(value: number) {
+    const footer = this.el.querySelector('bn-footer')
+    if (footer) {
+      footer.setAttribute("page-number", value.toString());
+    }
+  }
+
   @Watch('format')
   // @ts-ignore
   validateFormat(newValue: string, oldValue: string) {
@@ -33,7 +41,6 @@ export class Template {
   }
 
   render() {
-    console.dir(this.el.parentElement.getAttribute("template-id"))
     return <Host/>
   }
 }

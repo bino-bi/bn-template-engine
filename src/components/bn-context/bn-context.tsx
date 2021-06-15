@@ -1,5 +1,5 @@
-import {Component, h, Host, State} from "@stencil/core";
-import Tunnel, { ContextState} from './tunnel';
+import {Component, h, Host, State, Element} from "@stencil/core";
+import Tunnel, {ContextState} from './tunnel';
 
 @Component({
   tag: 'bn-context',
@@ -11,9 +11,26 @@ export class Context {
     this.updateDatasource = this.updateDatasource.bind(this);
   }
 
-  @State() datasourcesData: {[key: string]: any} = {};
+  @Element() el: HTMLElement;
 
-  updateDatasource = (key: string, value: any) => ( this.datasourcesData = {...this.datasourcesData, [key]: value} )
+  @State() datasourcesData: { [key: string]: any } = {};
+
+  observer = new MutationObserver(() => {
+    this.el.querySelectorAll('bn-page').forEach((el, index) => {
+      // @ts-ignore
+      el._setCurrentPageIndex(index + 1);
+    })
+  });
+
+  updateDatasource = (key: string, value: any) => (this.datasourcesData = {...this.datasourcesData, [key]: value})
+
+  connectedCallback() {
+    this.observer.observe(this.el, {childList: true});
+  }
+
+  disconnectedCallback() {
+    if(this.observer) this.observer.disconnect();
+  }
 
   render() {
     const tunnelState: ContextState = {

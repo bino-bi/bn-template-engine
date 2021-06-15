@@ -90,6 +90,7 @@ export namespace Components {
         "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
+        "pageNumber": number;
     }
     interface BnGrid {
         "align": 'start' | 'end' | 'center' | 'stretch';
@@ -98,6 +99,7 @@ export namespace Components {
         "rows": number;
     }
     interface BnPage {
+        "_setCurrentPageIndex": (value: number) => Promise<void>;
         /**
           * Define the size of the page  values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal default: xga
          */
@@ -374,6 +376,7 @@ declare namespace LocalJSX {
         "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
+        "pageNumber"?: number;
     }
     interface BnGrid {
         "align"?: 'start' | 'end' | 'center' | 'stretch';
