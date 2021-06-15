@@ -1,4 +1,4 @@
-import {Component, Element, Prop, h, Host} from "@stencil/core";
+import {Component, Prop, h, Host} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 
 @Component({
@@ -6,9 +6,6 @@ import {styled} from "../../utils/styled/styled";
   styleUrl: 'bn-grid.scss'
 })
 export class Grid {
-  // @ts-ignore
-  @Element() private element: HTMLElement;
-
   @Prop() rows: number;
   @Prop() columns: number;
   @Prop() align: 'start' | 'end' | 'center' | 'stretch' = "stretch"

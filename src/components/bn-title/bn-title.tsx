@@ -1,5 +1,5 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
-import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
+import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
 
 import {styled} from "../../utils/styled/styled";
 import {
@@ -33,10 +33,6 @@ import Tunnel from "../bn-context/tunnel";
 
 
 export class Title {
-  // @ts-ignore
-  @Element() private readonly element: HTMLElement;
-
-
   /** (optional) Name of business unit. If empty buisnes unit row is omitted */
   @Prop() readonly businessUnit: string;
 

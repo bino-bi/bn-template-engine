@@ -19,7 +19,6 @@ import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibc
   styleUrl: "bn-chart.scss",
 })
 export class Chart {
-  // @ts-ignore
   @Element() private element: HTMLElement;
 
   // @Prop() order?: string;

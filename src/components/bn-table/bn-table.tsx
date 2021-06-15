@@ -1,4 +1,4 @@
-import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
+import {Component, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
   isValidBoolean,
@@ -244,9 +244,6 @@ export class Table {
   @Prop() datasource: string
   @Prop() datasourcesData: any
   unsubscribe: () => void
-  // @ts-ignore
-  @Element() private element: HTMLElement;
-
 
   componentWillLoad() {
     //this.datasouce = get("test");

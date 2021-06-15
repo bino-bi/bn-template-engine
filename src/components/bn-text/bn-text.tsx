@@ -1,4 +1,4 @@
-import {Component, h, Host, Element, Prop} from "@stencil/core";
+import {Component, h, Host, Prop} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import Tunnel from '../bn-context/tunnel';
 
@@ -7,9 +7,6 @@ import Tunnel from '../bn-context/tunnel';
   styleUrl: 'bn-text.scss',
 })
 export class Text {
-  // @ts-ignore
-  @Element() private element: HTMLElement;
-
   @Prop() value?: string;
 
   @Prop() datasourcesData: any

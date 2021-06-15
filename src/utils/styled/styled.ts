@@ -1,5 +1,6 @@
 import {styleSheet} from './style-sheet';
 import {apply, attributesNames} from './attributes';
+import {getElement} from "@stencil/core";
 
 const observer = new MutationObserver((mutations) => {
   for (const mutation of mutations) {
@@ -29,8 +30,9 @@ export const styled = (Cstr: any) => {
   const cstrDisconnectedCallback = CstrPrototype.disconnectedCallback;
 
   CstrPrototype.connectedCallback = function () {
-    if (this.element) {
-      subscribe(this.element);
+    const elm = getElement(this);
+    if (elm) {
+      subscribe(elm);
     } else {
       throw new Error(`Can't find element field in component ${this}`);
     }

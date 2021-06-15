@@ -1,7 +1,7 @@
 export const templateId = (elm: HTMLElement) => {
     if(elm.parentElement) {
         const parent = elm.parentElement;
-        const id = parent.getAttribute("tempalte-id");
+        const id = parent.getAttribute("template-id");
         if(id) {
             return id;
         } else {

@@ -21,7 +21,7 @@ export class Template {
   @Prop() orientation: string;
 
   @Method()
-  _setCurrentPageIndex(value: number) {
+  async _setCurrentPageIndex(value: number) {
     const footer = this.el.querySelector('bn-footer')
     if (footer) {
       footer.setAttribute("page-number", value.toString());
