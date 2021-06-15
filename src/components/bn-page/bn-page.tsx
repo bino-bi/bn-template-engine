@@ -34,7 +34,7 @@ export class Template {
     //TODO: add validation
   }
 
-  @Watch('format')
+  @Watch('orientation')
   // @ts-ignore
   validateOrientation(newValue: string, oldValue: string) {
     //TODO: add validation

@@ -13,6 +13,19 @@
 | `orientation` | `orientation` | values: landscape \| portrait default: based on the given format                                                                      | `string` | `undefined` |
 
 
+## Methods
+
+### `_setCurrentPageIndex(value: number) => Promise<void>`
+
+
+
+#### Returns
+
+Type: `Promise<void>`
+
+
+
+
 ----------------------------------------------
 
 *Built with [StencilJS](https://stenciljs.com/)*
