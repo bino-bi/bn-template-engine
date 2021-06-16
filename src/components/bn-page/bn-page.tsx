@@ -4,7 +4,9 @@ import {Component, h, Host, Prop, Watch, Element, Method} from "@stencil/core";
   tag: 'bn-page',
   styleUrl: 'bn-page.scss',
 })
-export class Template {
+export class Page {
+
+
   @Element() el: HTMLElement
   /**
    * Define the size of the page

@@ -202,6 +202,9 @@ export namespace Components {
          */
         "scenarios": string;
     }
+    interface XStore {
+        "test": (input: string) => Promise<void>;
+    }
 }
 declare global {
     interface HTMLBnBodyElement extends Components.BnBody, HTMLStencilElement {
@@ -276,6 +279,12 @@ declare global {
         prototype: HTMLBnTitleElement;
         new (): HTMLBnTitleElement;
     };
+    interface HTMLXStoreElement extends Components.XStore, HTMLStencilElement {
+    }
+    var HTMLXStoreElement: {
+        prototype: HTMLXStoreElement;
+        new (): HTMLXStoreElement;
+    };
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
@@ -289,6 +298,7 @@ declare global {
         "bn-template": HTMLBnTemplateElement;
         "bn-text": HTMLBnTextElement;
         "bn-title": HTMLBnTitleElement;
+        "x-store": HTMLXStoreElement;
     }
 }
 declare namespace LocalJSX {
@@ -487,6 +497,8 @@ declare namespace LocalJSX {
          */
         "scenarios"?: string;
     }
+    interface XStore {
+    }
     interface IntrinsicElements {
         "bn-body": BnBody;
         "bn-card": BnCard;
@@ -500,6 +512,7 @@ declare namespace LocalJSX {
         "bn-template": BnTemplate;
         "bn-text": BnText;
         "bn-title": BnTitle;
+        "x-store": XStore;
     }
 }
 export { LocalJSX as JSX };
@@ -518,6 +531,7 @@ declare module "@stencil/core" {
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
             "bn-text": LocalJSX.BnText & JSXBase.HTMLAttributes<HTMLBnTextElement>;
             "bn-title": LocalJSX.BnTitle & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
+            "x-store": LocalJSX.XStore & JSXBase.HTMLAttributes<HTMLXStoreElement>;
         }
     }
 }
