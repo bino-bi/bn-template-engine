@@ -181,7 +181,7 @@ export class Card {
    *
    *  detail:  debug/concordia.png
    */
-  @Prop() readonly image: string;
+  @Prop() readonly image: string = '';
 
   /**
    * show or hides the cards border
@@ -193,7 +193,6 @@ export class Card {
 
   @Watch('showBorder')
   validateShowBorder(newValue: string | boolean) {
-    console.log('value', newValue)
     if (!isValidBoolean(newValue)) {
       throw new Error('showBorder: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
@@ -288,6 +287,14 @@ export class Card {
   }
 
   render() {
+    let logo = ''
+
+
+    if(this.image.trim() !== '' && this.image.trim() !== 'null' ) {
+      logo =  <img class="background-image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} height="42"/>
+    }
+
+
     return  <Host class={this.setCardClass()} >
       <div class="content">
       <ibcs-title
@@ -298,7 +305,8 @@ export class Card {
         order={this.prepareTitleOrder()}
         i18n={this.prepareI18n()}
       ></ibcs-title>
-        <img class="background-image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} height="42"/>
+
+        {logo}
       </div>
       <slot />
     </Host>
