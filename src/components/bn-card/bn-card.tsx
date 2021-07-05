@@ -304,7 +304,7 @@ export class Card {
         timeperiod={this.prepareTitleTimePeriod()}
         order={this.prepareTitleOrder()}
         i18n={this.prepareI18n()}
-      ></ibcs-title>
+       ></ibcs-title>
 
         {logo}
       </div>

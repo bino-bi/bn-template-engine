@@ -289,7 +289,7 @@ export class Table {
   }
 
   private prepareThereOf(): TableDrillGroup[] {
-    if (this.thereof == null) {
+    if (this.thereof == null || this.thereof.trim() == ''  ) {
       return [];
     }
 
@@ -316,21 +316,14 @@ export class Table {
     ]);
   }
 
-  private prepareData(): { setname: string; data: any }[] {
+  private prepareData(): { setName: string; data: any }[] {
     const data = this.datasourcesData[this.datasource];
 
     if (data == null) {
       return [];
     }
 
-    const groupByKey = (list, key) => list.reduce((hash, obj) => ({
-      ...hash,
-      [obj[key]]: (hash[obj[key]] || []).concat(obj)
-    }), {});
-    const explode = (map) => Object.keys(map).map((k) => ({"setname": k, "data": map[k]}));
-
-    return explode(groupByKey([...data], 'setname'));
-
+    return data;
   }
 
   private prepareDataFormatDigits(): DataFormatDigits{
