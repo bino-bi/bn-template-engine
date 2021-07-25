@@ -9,7 +9,7 @@ import {
   isValidTableType,
   validateOrderList,
   validateScenarioList,
-  validateThereOfJsonStr, isBlankInput
+  validateThereOfJsonStr, isBlankInput, validatePartOfJsonStr
 } from "../../utils/validate";
 
 import Tunnel from "../bn-context/tunnel";
@@ -21,6 +21,7 @@ import {
   TableDrillGroup,
   TableType, OrderColumn
 } from "@bino-bi/ibcs-component-interface";
+import {TablePartGroup} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
 
 
 @Component({
@@ -41,7 +42,7 @@ export class Table {
    *  variances pattern d<scenario_baseScenario>
    *  relative variance pattern dr<scenario_baseScenario>
    *
-   *  values: ac | fc | py | pl | dfc_ac | drfc_ac
+   *  values: ac | fc | pp | pl | dfc_ac | drfc_ac
    */
   @Prop() readonly scenarios!: string;
 
@@ -146,7 +147,6 @@ export class Table {
             "rowgroup": string,
             "category": string,
             "subcategory": string,
-            "partof": string
           },
    * rowgroup, categroy defines the location of the drill
    * subcategory is the displayed label of the data row
@@ -159,7 +159,6 @@ export class Table {
    */
   @Prop() thereof: string = '[]';
 
-
   @Watch('thereof')
   validateThereOf(newValue: string) {
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
@@ -167,12 +166,35 @@ export class Table {
       throw new Error('scenarios: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
   }
+  /**
+   * (optional) stringified Array of Partof Objects {
+            "rowgroup": string,
+            "category": string
+          },
+   * rowgroup, categroy defines the location of the drill
+   * percentage of category in rowgorup
+   *
+   * example: [{
+            "rowgroup":"Umsatz",
+            "category": "Applications",
+          },]
+   */
+  @Prop() partof: string = '[]';
+
+  @Watch('partof')
+  validatePartOf(newValue: string) {
+    const invalidElements: string[] = validatePartOfJsonStr(newValue);
+    if (invalidElements.length > 0) {
+      throw new Error('scenarios: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+    }
+  }
+
 
 
   /** List of the primary scenarios on which the order direction are applied  valid scenarios are
    *  If order is set to a scenario it has also exists in scenariolist
    *
-   *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+   *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
    */
   @Prop() order!: string;
 
@@ -297,6 +319,16 @@ export class Table {
 
   }
 
+  private preparePartOf(): TablePartGroup[] {
+    if (this.partof == null || this.partof.trim() == ''  ) {
+      return [];
+    }
+
+    return JSON.parse(this.partof!) as TablePartGroup[];
+
+  }
+
+
   private prepareOrder(): Order {
     const tableOrder: Order = {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
@@ -351,6 +383,7 @@ export class Table {
         type={this.prepareTableType()}
         limit={this.prepareLimit()}
         thereof={this.prepareThereOf()}
+        partof={this.preparePartOf()}
         order={this.prepareOrder()}
         i18n-mode={this.prepareI18nMode()}
         i18n={this.prepareI18n()}

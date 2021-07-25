@@ -170,6 +170,24 @@ export function validateThereOfJsonStr(value: string): string[] {
   return ["Invalid JSON structure"]
 }
 
+export function validatePartOfJsonStr(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  try {
+    const jsonObject = JSON.parse(value);
+    if (jsonObject instanceof Array) {
+      // return newObj.filter(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))
+      return jsonObject.filter(elem => !(elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category')));
+
+    }
+  } catch {
+  }
+  return ["Invalid JSON structure"]
+}
+
+
 
 export function isValidi18nMode(value: string): boolean {
   return value?.toUpperCase() in I18nMode;

@@ -129,7 +129,7 @@ export namespace Components {
          */
         "limit": number;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
          */
         "order": string;
         /**
@@ -137,7 +137,11 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | py | pl | dfc_ac | drfc_ac
+          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{        "rowgroup":"Umsatz",        "category": "Applications",      },]
+         */
+        "partof": string;
+        /**
+          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | pp | pl | dfc_ac | drfc_ac
          */
         "scenarios": string;
         /**
@@ -149,7 +153,7 @@ export namespace Components {
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,        "partof": string      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
+          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
          */
         "thereof": string;
         /**
@@ -414,7 +418,7 @@ declare namespace LocalJSX {
          */
         "limit"?: number;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
          */
         "order": string;
         /**
@@ -422,7 +426,11 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | py | pl | dfc_ac | drfc_ac
+          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{        "rowgroup":"Umsatz",        "category": "Applications",      },]
+         */
+        "partof"?: string;
+        /**
+          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | pp | pl | dfc_ac | drfc_ac
          */
         "scenarios": string;
         /**
@@ -434,7 +442,7 @@ declare namespace LocalJSX {
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,        "partof": string      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
+          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
          */
         "thereof"?: string;
         /**

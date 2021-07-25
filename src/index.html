@@ -372,12 +372,21 @@
           grouped             ="false"
           show-group-title    ='false'
           table-title         ='Marktwert'
-          scenarios           ='pp1,pl1,ac1,fc1,dpp1_ac1_neg,drpp1_ac1_pos,drpl1_ac1_pos'
+          scenarios           ='pp1,ac1, dpp1_ac1_neg'
           type                ='sum'
-          limit               =''
-          order               ='subCategory'
-          order-direction     =''
-          thereof             =''
+          limit               ='3'
+          order               ='Category'
+          order-direction     ='asc'
+          thereof             ='[{
+                                  "rowGroup":     "Umsatz",
+                                  "category":     "Applications",
+                                  "subCategory":  "Applications-A"
+                                }]'
+         partof               = '[{
+                                  "rowGroup":     "Umsatz",
+                                  "category":     "Applications",
+                                  "subCategory":  ""
+                                  }]'
         ></bn-table>
       </bn-card>
       </bn-grid>
