@@ -228,7 +228,10 @@ export function validateStylesString(value: string): string[] {
 }
 
 export function isTableCategoryWidth(value: string): boolean {
-  return value?.toUpperCase() in TableCategoryWidth;
+  return value?.toUpperCase().trim() in TableCategoryWidth;
 }
 
+export function isValidOrder(value: string): boolean {
+  return value?.toUpperCase().trim() in Scenarios;
+}
 

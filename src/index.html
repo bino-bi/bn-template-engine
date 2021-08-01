@@ -326,6 +326,7 @@
     <bn-title
       business-unit   = 'Beispiel Report'
       scenarios       = 'ac, fc'
+      order           = 'fc'
       date-start      = '2019-12-31'
       date-end        = '2020-12-31'
       date-format     = ''
@@ -367,7 +368,28 @@
         measures        = ''
         image           = null
         show-border     = "true">
-        category-width        ='W5'
+        <bn-table
+          datasource    ="Marktwert"
+          grouped             ="false"
+          show-group-title    ='false'
+          table-title         ='Marktwert'
+          scenarios           ='pp1,ac1, dpp1_ac1_neg'
+          type                ='sum'
+          limit               ='30'
+          order               ='Category'
+          order-direction     ='asc'
+          category-width        ='W5'
+          thereof             ='[{
+                                  "rowGroup":     "Umsatz",
+                                  "category":     "Applications",
+                                  "subCategory":  "Applications-A"
+                                }]'
+         partof               = '[{
+                                  "rowGroup":     "",
+                                  "category":     "lime",
+                                  "subCategory":  ""
+                                  }]'
+        ></bn-table>
       </bn-card>
       </bn-grid>
     </bn-body>

@@ -7,9 +7,8 @@ import {
   isValidDate,
   isValidDateFormat,
   isValidDateLink,
-  isValidDirection,
+  isValidDirection, isValidOrder,
   validateMeasureList,
-  validateOrderList,
   validateScenarioList,
 } from "../../utils/validate";
 
@@ -61,9 +60,8 @@ export class Title {
 
   @Watch('order')
   validateOrder(newValue: string) {
-    const invalidScenarios: string[] = validateOrderList(newValue);
-    if (invalidScenarios?.length > 0) {
-      throw new Error('order: invalid value \'' + invalidScenarios?.toString() + '\' is not supported.')
+    if (!isValidOrder(newValue)) {
+      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.')
     }
   }
 
@@ -199,8 +197,10 @@ export class Title {
       return null;
     }
 
+    //hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase().trim() as keyof typeof OrderColumn]),
+
     return {
-      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      hierarchy: [OrderColumn[this.order.toUpperCase().trim() as keyof typeof OrderColumn]],
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
   }
