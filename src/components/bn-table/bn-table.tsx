@@ -1,25 +1,32 @@
 import {Component, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
+  isBlankInput,
+  isTableCategoryWidth,
   isValidBoolean,
   isValidDataFormat,
-  isValidDirection, validateI18nString,
+  isValidDirection,
   isValidi18nMode,
   isValidInteger,
   isValidTableType,
+  validateI18nString,
   validateOrderList,
+  validatePartOfJsonStr,
   validateScenarioList,
-  validateThereOfJsonStr, isBlankInput, validatePartOfJsonStr
+  validateThereOfJsonStr
 } from "../../utils/validate";
 
 import Tunnel from "../bn-context/tunnel";
 import {
-  DataFormat, DataFormatDigits,
+  DataFormat,
+  DataFormatDigits,
   I18nMode,
-  OrderDirection,
   Order,
+  OrderColumn,
+  OrderDirection,
+  TableCategoryWidth,
   TableDrillGroup,
-  TableType, OrderColumn
+  TableType
 } from "@bino-bi/ibcs-component-interface";
 import {TablePartGroup} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
 
@@ -263,6 +270,20 @@ export class Table {
       throw new Error('dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
+  /** set width of category columns
+   *
+   * values: W5 | W10 | W15 | W20 | W25 | W50 | INF
+   * default: W15
+   */
+  @Prop() categoryWidth?: string;
+
+  @Watch('categoryWidth')
+  validateCategoryWidth(newValue: string) {
+    if (!isTableCategoryWidth(newValue)) {
+      throw new Error('categoryWidth: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
   @Prop() datasource: string
   @Prop() datasourcesData: any
   unsubscribe: () => void
@@ -284,6 +305,7 @@ export class Table {
     this.validateI18n(this.i18n);
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDateFormatDigitsPercent(this.dataFormatDigitsPercent);
+    this.validateCategoryWidth(this.categoryWidth);
   }
 
   disconnectedCallback() {
@@ -372,6 +394,13 @@ export class Table {
     return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
+  private prepareCategoryWidth(): TableCategoryWidth {
+    if (isBlankInput(this.categoryWidth)) {
+      return TableCategoryWidth.INF;
+    }
+    return TableCategoryWidth[this.categoryWidth?.toUpperCase() as keyof typeof TableCategoryWidth];
+  }
+
   render() {
     return <Host>
       <ibcs-table
@@ -389,6 +418,7 @@ export class Table {
         i18n={this.prepareI18n()}
         data={this.prepareData()}
         dataFormatDigits= {this.prepareDataFormatDigits()}
+        category-width = {this.prepareCategoryWidth()}
       ></ibcs-table>
     </Host>
   }

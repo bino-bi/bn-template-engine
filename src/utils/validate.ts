@@ -6,7 +6,7 @@ import {
   OrderColumn,
   OrderDirection,
   Scenarios,
-  Sentiments,
+  Sentiments, TableCategoryWidth,
   TableType,
 
 } from "@bino-bi/ibcs-component-interface";
@@ -227,6 +227,8 @@ export function validateStylesString(value: string): string[] {
   return ["Invalid JSON structure"];
 }
 
-
+export function isTableCategoryWidth(value: string): boolean {
+  return value?.toUpperCase() in TableCategoryWidth;
+}
 
 

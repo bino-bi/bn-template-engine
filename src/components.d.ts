@@ -111,6 +111,10 @@ export namespace Components {
     }
     interface BnTable {
         /**
+          * set width of category columns  values: W5 | W10 | W15 | W20 | W25 | W50 | INF default: W15
+         */
+        "categoryWidth"?: string;
+        /**
           * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
          */
         "dataFormat": string;
@@ -399,6 +403,10 @@ declare namespace LocalJSX {
         "orientation"?: string;
     }
     interface BnTable {
+        /**
+          * set width of category columns  values: W5 | W10 | W15 | W20 | W25 | W50 | INF default: W15
+         */
+        "categoryWidth"?: string;
         /**
           * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
          */
