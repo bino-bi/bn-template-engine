@@ -367,28 +367,7 @@
         measures        = ''
         image           = null
         show-border     = "true">
-        <bn-table
-          datasource    ="Marktwert"
-          grouped             ="false"
-          show-group-title    ='false'
-          table-title         ='Marktwert'
-          scenarios           ='pp1,ac1, dpp1_ac1_neg'
-          type                ='sum'
-          limit               ='30'
-          order               ='Category'
-          order-direction     ='asc'
-          category-width        ='W5'
-          thereof             ='[{
-                                  "rowGroup":     "Umsatz",
-                                  "category":     "Applications",
-                                  "subCategory":  "Applications-A"
-                                }]'
-         partof               = '[{
-                                  "rowGroup":     "",
-                                  "category":     "lime",
-                                  "subCategory":  ""
-                                  }]'
-        ></bn-table>
+        category-width        ='W5'
       </bn-card>
       </bn-grid>
     </bn-body>
