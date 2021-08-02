@@ -13,6 +13,7 @@ import {
 } from "../../utils/validate";
 import Tunnel from "../bn-context/tunnel";
 import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
+import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 
 @Component({
   tag: 'bn-chart',
@@ -188,21 +189,16 @@ export class Chart {
     return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
   }
 
-  private prepareData(): { setname: string; data: any }[]{
-    const data = this.datasourcesData[this.datasource];
+  private prepareData(): DataRow[]{
+      const data = this.datasourcesData[this.datasource];
 
-    if (data == null) {
-      return [];
-    }
+      if (data == null) {
+        return [];
+      }
 
-    const groupByKey = (list, key) => list.reduce((hash, obj) => ({
-      ...hash,
-      [obj[key]]: (hash[obj[key]] || []).concat(obj)
-    }), {});
-    const explode = (map) => Object.keys(map).map((k) => ({"setname": k, "data": map[k]}));
-
-    return explode(groupByKey([...data], 'setname'));
+      return data;
   }
+
 
   private prepareScenarios(): string[] {
     if (isBlankInput(this.scenarios)) {

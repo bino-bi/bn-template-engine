@@ -29,6 +29,7 @@ import {
   TableType
 } from "@bino-bi/ibcs-component-interface";
 import {TablePartGroup} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
+import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 
 
 @Component({
@@ -370,15 +371,16 @@ export class Table {
     ]);
   }
 
-  private prepareData(): { setName: string; data: any }[] {
-    const data = this.datasourcesData[this.datasource];
+  private prepareData(): DataRow[]{
+      const data = this.datasourcesData[this.datasource];
 
-    if (data == null) {
-      return [];
+      if (data == null) {
+        return [];
+      }
+
+      return data;
     }
 
-    return data;
-  }
 
   private prepareDataFormatDigits(): DataFormatDigits{
     const formatDigits: DataFormatDigits  = { percent: this.dataFormatDigitsPercent,
