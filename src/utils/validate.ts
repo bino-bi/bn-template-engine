@@ -231,7 +231,4 @@ export function isTableCategoryWidth(value: string): boolean {
   return value?.toUpperCase().trim() in TableCategoryWidth;
 }
 
-export function isValidOrder(value: string): boolean {
-  return value?.toUpperCase().trim() in Scenarios;
-}
 

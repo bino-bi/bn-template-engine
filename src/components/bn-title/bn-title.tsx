@@ -7,7 +7,7 @@ import {
   isValidDate,
   isValidDateFormat,
   isValidDateLink,
-  isValidDirection, isValidOrder,
+  isValidDirection,
   validateMeasureList,
   validateScenarioList,
 } from "../../utils/validate";
@@ -18,7 +18,6 @@ import {
   DateLink,
   MeasureEntry,
   Order,
-  OrderColumn,
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
@@ -60,8 +59,9 @@ export class Title {
 
   @Watch('order')
   validateOrder(newValue: string) {
-    if (!isValidOrder(newValue)) {
-      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.')
+    const invalidScenarios: string[] = validateScenarioList(newValue);
+    if (invalidScenarios?.length > 0) {
+      throw new Error('order: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
     }
   }
 
@@ -197,10 +197,8 @@ export class Title {
       return null;
     }
 
-    //hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase().trim() as keyof typeof OrderColumn]),
-
     return {
-      hierarchy: [OrderColumn[this.order.toUpperCase().trim() as keyof typeof OrderColumn]],
+      hierarchy: this.order.split(",").map(entry => entry.trim()),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
   }
@@ -236,6 +234,7 @@ export class Title {
   }
 
   render() {
+
     return <Host>
        <ibcs-title
         businessUnit={this.businessUnit}
