@@ -12,7 +12,7 @@ import {
 } from "@bino-bi/ibcs-component-interface";
 
 export function isBlankInput(value: any): boolean {
-  return value === null || value === undefined || value === '';
+  return value === null || value === undefined || value === '' || value =='null';
 }
 
 

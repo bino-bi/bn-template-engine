@@ -45,6 +45,7 @@ export class Card {
    */
   @Prop() readonly scenarios: string;
 
+
   @Watch('scenarios')
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
@@ -199,6 +200,16 @@ export class Card {
   }
 
 
+  /**
+   * Custom Text for Footer
+   *
+   * alues: generic string
+   *
+   */
+  @Prop() readonly footerText: string;
+
+
+
   @State() readonly datasource: any
 
   componentWillLoad() {
@@ -286,6 +297,13 @@ export class Card {
     return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
+  private prepareFooterText(): string {
+    if (isBlankInput(this.footerText) || this.footerText == "null" ) {
+      return null;
+    }
+    return this.footerText;
+  }
+
   render() {
     let logo = ''
 
@@ -293,7 +311,6 @@ export class Card {
     if(this.image.trim() !== '' && this.image.trim() !== 'null' ) {
       logo =  <img class="background-image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} height="42"/>
     }
-
 
     return  <Host class={this.setCardClass()} >
       <div class="content">
@@ -308,7 +325,8 @@ export class Card {
 
         {logo}
       </div>
-      <slot />
+      <slot/>
+      <bn-footer text={this.prepareFooterText()} displayPageNumber={false} ></bn-footer>
     </Host>
   }
 }

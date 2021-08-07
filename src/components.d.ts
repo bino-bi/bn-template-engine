@@ -30,6 +30,10 @@ export namespace Components {
          */
         "dateStart": string;
         /**
+          * Custom Text for Footer  alues: generic string
+         */
+        "footerText": string;
+        /**
           * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
          */
         "image": string;
@@ -90,7 +94,9 @@ export namespace Components {
         "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
-        "pageNumber": number;
+        "displayPageNumber": boolean;
+        "pageNumber": number | null;
+        "text": string;
     }
     interface BnGrid {
         "align": 'start' | 'end' | 'center' | 'stretch';
@@ -324,6 +330,10 @@ declare namespace LocalJSX {
          */
         "dateStart"?: string;
         /**
+          * Custom Text for Footer  alues: generic string
+         */
+        "footerText"?: string;
+        /**
           * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
          */
         "image"?: string;
@@ -384,7 +394,9 @@ declare namespace LocalJSX {
         "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
-        "pageNumber"?: number;
+        "displayPageNumber"?: boolean;
+        "pageNumber"?: number | null;
+        "text"?: string;
     }
     interface BnGrid {
         "align"?: 'start' | 'end' | 'center' | 'stretch';
