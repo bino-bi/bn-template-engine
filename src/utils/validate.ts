@@ -2,7 +2,7 @@ import {
   AggregationLevel,
   DataFormat,
   DateDistance,
-  DateLink, I18nMode,
+  DateLink, I18nMode, MeasureType,
   OrderColumn,
   OrderDirection,
   Scenarios,
@@ -190,7 +190,16 @@ export function validatePartOfJsonStr(value: string): string[] {
 
 
 export function isValidi18nMode(value: string): boolean {
-  return value?.toUpperCase() in I18nMode;
+  return value?.trim().toUpperCase() in I18nMode;
+}
+
+export function isValidMeasureType(value: string): boolean {
+  return value?.trim().toUpperCase() in MeasureType;
+}
+
+export function isValidMeasureScale(value: string): boolean {
+  return  ['_','k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y','m', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(value?.trim()) ||
+          ['GREATEST', 'LEAST'].includes(value?.trim().toUpperCase());
 }
 
 export function validateI18nString(value: string): string[]  {

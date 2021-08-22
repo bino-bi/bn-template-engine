@@ -6,21 +6,21 @@ import {
   isValidBoolean,
   isValidDataFormat,
   isValidDirection,
-  isValidi18nMode,
+  isValidi18nMode, isValidMeasureType,
   isValidInteger,
   isValidTableType,
   validateI18nString,
   validateOrderList,
   validatePartOfJsonStr,
   validateScenarioList,
-  validateThereOfJsonStr
+  validateThereOfJsonStr, isValidMeasureScale
 } from "../../utils/validate";
 
 import Tunnel from "../bn-context/tunnel";
 import {
   DataFormat,
   DataFormatDigits,
-  I18nMode,
+  I18nMode, MeasureType,
   Order,
   OrderColumn,
   OrderDirection,
@@ -234,6 +234,69 @@ export class Table {
 
   }
 
+  /** Sets the Measure Type of the Table
+   *  volume is different displayed and interpreted as currency
+   *  names of siprefix are adapted.
+   *
+   *  values: volume |currency
+   *  default: currency
+   */
+  @Prop() measureType: string = "VOLUME";
+
+  @Watch('measureType')
+  validateMeasureType(newValue: string) {
+    if (!isValidMeasureType(newValue)) {
+      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
+
+  /**
+   * Sets the SiPrefix of the Mesaurements and converts the
+   * original value.
+   *
+   *  values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST
+   *  default: GREATEST
+   *
+   *  SiPrefix overview:
+   *      "Y":	1E+24,
+   *       "Z":	1E+21,
+   *       "E":	1E+18,
+   *       "P":	1E+15,
+   *       "T":	1E+12,
+   *       "G":	1000000000,
+   *       "M":	1000000,
+   *       "k":	1000,
+   *       "h":	100,
+   *       "da":	10,
+   *       "d":	0.1,
+   *       "c":	0.01,
+   *       "m":	0.001,
+   *       "μ":	0.000001,
+   *       "n":	0.000000001,
+   *       "p":	0.000000000001,
+   *       "f":	0.000000000000001,
+   *       "a":	0.000000000000000001,
+   *       "z": 	0.000000000000000000001,
+   *       "y":	0.000000000000000000000001,
+   *
+   * Special modes:
+   * GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix
+   * LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix
+   *
+   * _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+   *
+   *
+   */
+  @Prop() measureScale: string = "GREATEST";
+
+  @Watch('measureType')
+  validateMeasureScale(newValue: string) {
+    if (!isValidMeasureScale(newValue)) {
+      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
+
+
 
   @Prop() i18nMode: string = "none";
 
@@ -307,6 +370,8 @@ export class Table {
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDateFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateCategoryWidth(this.categoryWidth);
+    this.validateMeasureType(this.measureType);
+    this.validateMeasureScale(this.measureScale);
   }
 
   disconnectedCallback() {
@@ -362,7 +427,7 @@ export class Table {
   }
 
   private prepareI18nMode(): I18nMode {
-    return I18nMode[this.i18nMode?.toUpperCase() as keyof typeof I18nMode];
+    return I18nMode[this.i18nMode?.trim().toUpperCase() as keyof typeof I18nMode];
   }
 
   private prepareI18n(): Map<string, string> {
@@ -403,6 +468,29 @@ export class Table {
     return TableCategoryWidth[this.categoryWidth?.toUpperCase() as keyof typeof TableCategoryWidth];
   }
 
+  private prepareMeasureScale(): string {
+    if (isBlankInput(this.measureScale)) {
+      return "GREATEST";
+    }
+
+    if( ['_','k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y','m', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(this.measureScale.trim())) {
+      return this.measureScale.trim();
+    }
+
+    if(this.measureScale.trim().toUpperCase() === 'LEAST') {
+      return this.measureScale.trim();
+    }
+
+    return "GREATEST";
+  }
+
+  private prepareMeasureType(): string {
+    if (isBlankInput(this.measureType)) {
+      return MeasureType.VOLUME;
+    }
+    return MeasureType[this.measureType?.toUpperCase() as keyof typeof MeasureType];
+  }
+
   render() {
     return <Host>
       <ibcs-table
@@ -419,10 +507,12 @@ export class Table {
         i18n-mode={this.prepareI18nMode()}
         i18n={this.prepareI18n()}
         data={this.prepareData()}
-        dataFormatDigits= {this.prepareDataFormatDigits()}
-        category-width = {this.prepareCategoryWidth()}
+        dataFormatDigits={this.prepareDataFormatDigits()}
+        category-width={this.prepareCategoryWidth()}
+        measure-scale={this.prepareMeasureScale()}
+        measure-type={this.prepareMeasureType()}
       ></ibcs-table>
-    </Host>
+    </Host>;
   }
 }
 

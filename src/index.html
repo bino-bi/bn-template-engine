@@ -381,16 +381,22 @@
           limit               ='30'
           order               ='Category'
           order-direction     ='asc'
-          category-width        ='W20'
+          category-width      ='W20'
+          measure-type        ='volume'
+          measure-scale       ='_'
           thereof             ='[{
                                   "rowGroup":     "Umsatz",
                                   "category":     "Applications",
                                   "subCategory":  "Applications-A"
                                 }]'
-          partof               = '[{
-                                  "rowGroup":     "",
-                                  "category":     "lime"
-                                  }]'
+            partof               = '[{
+        "rowGroup":     "Kosten",
+        "category":     "lime"
+        },
+        {
+        "rowGroup":     "Umsatz",
+        "category":     "lime"
+        }]'
         ></bn-table>
       </bn-card>
       </bn-grid>

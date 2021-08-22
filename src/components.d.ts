@@ -139,6 +139,14 @@ export namespace Components {
          */
         "limit": number;
         /**
+          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":	1E+24,       "Z":	1E+21,       "E":	1E+18,       "P":	1E+15,       "T":	1E+12,       "G":	1000000000,       "M":	1000000,       "k":	1000,       "h":	100,       "da":	10,       "d":	0.1,       "c":	0.01,       "m":	0.001,       "μ":	0.000001,       "n":	0.000000001,       "p":	0.000000000001,       "f":	0.000000000000001,       "a":	0.000000000000000001,       "z": 	0.000000000000000000001,       "y":	0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+         */
+        "measureScale": string;
+        /**
+          * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted.  values: volume |currency default: currency
+         */
+        "measureType": string;
+        /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
          */
         "order": string;
@@ -437,6 +445,14 @@ declare namespace LocalJSX {
           * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
          */
         "limit"?: number;
+        /**
+          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":	1E+24,       "Z":	1E+21,       "E":	1E+18,       "P":	1E+15,       "T":	1E+12,       "G":	1000000000,       "M":	1000000,       "k":	1000,       "h":	100,       "da":	10,       "d":	0.1,       "c":	0.01,       "m":	0.001,       "μ":	0.000001,       "n":	0.000000001,       "p":	0.000000000001,       "f":	0.000000000000001,       "a":	0.000000000000000001,       "z": 	0.000000000000000000001,       "y":	0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+         */
+        "measureScale"?: string;
+        /**
+          * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted.  values: volume |currency default: currency
+         */
+        "measureType"?: string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
          */
