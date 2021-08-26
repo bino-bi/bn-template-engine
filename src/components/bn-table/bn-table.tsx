@@ -295,12 +295,12 @@ export class Table {
 
 
 
-  @Prop() i18nMode: string = "none";
+  @Prop() i18nmode: string = "none";
 
-  @Watch('i18nMode')
+  @Watch('i18nmode')
   validatei18nMode(newValue: string) {
     if (!isValidi18nMode(newValue)) {
-      throw new Error('i18nMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      throw new Error('i18nmode: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
   }
 
@@ -362,7 +362,7 @@ export class Table {
     this.validateThereOf(this.thereof);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
-    this.validatei18nMode(this.i18nMode);
+    this.validatei18nMode(this.i18nmode);
     this.validateI18n(this.i18n);
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDateFormatDigitsPercent(this.dataFormatDigitsPercent);
@@ -424,7 +424,7 @@ export class Table {
   }
 
   private prepareI18nMode(): I18nMode {
-    return I18nMode[this.i18nMode?.trim().toUpperCase() as keyof typeof I18nMode];
+    return I18nMode[this.i18nmode?.trim().toUpperCase() as keyof typeof I18nMode];
   }
 
   private prepareI18n(): Map<string, string> {
