@@ -266,10 +266,7 @@ export class Table {
    *       "G":	1000000000,
    *       "M":	1000000,
    *       "k":	1000,
-   *       "h":	100,
-   *       "da":	10,
-   *       "d":	0.1,
-   *       "c":	0.01,
+   *
    *       "m":	0.001,
    *       "μ":	0.000001,
    *       "n":	0.000000001,
@@ -303,7 +300,7 @@ export class Table {
   @Watch('i18nMode')
   validatei18nMode(newValue: string) {
     if (!isValidi18nMode(newValue)) {
-      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      throw new Error('i18nMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
   }
 
@@ -312,7 +309,7 @@ export class Table {
   @Watch('i18n')
   validateI18n(newValue: string) {
     if (!validateI18nString(newValue)) {
-      throw new Error('i18: invalid value(s) \'' + newValue + '\' are not supported.')
+      throw new Error('i18n: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
 
@@ -432,7 +429,7 @@ export class Table {
 
   private prepareI18n(): Map<string, string> {
     return new Map([
-      ["title1", "🤩"]
+      ["SUM_TOTAL","HHH"]
     ]);
   }
 
