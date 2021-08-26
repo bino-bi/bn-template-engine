@@ -2,7 +2,7 @@ import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
-  isValidDirection,
+  isValidDirection, isValidi18nMode,
   isValidLevel,
   isValidNumber,
   validateI18nString,
@@ -142,13 +142,27 @@ export class Chart {
 
   }
 
+  /**
+   *  Mode of Translation,
+   *
+   *  values: none| meta| all
+   *
+   *  default: meta
+   */
+  @Prop() internationalisationMode: string = "meta";
 
-  @Prop() i18n?: string;
+  @Watch('internationalisationMode')
+  validatei18nMode(newValue: string) {
+    if (!isValidi18nMode(newValue)) {
+      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
 
-  @Watch('i18n')
+  @Prop() internationalisation?: string;
+  @Watch('internationalisation')
   validateI18n(newValue: string) {
     if (!validateI18nString(newValue)) {
-      throw new Error('i18: invalid value(s) \'' + newValue + '\' are not supported.')
+      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
 
@@ -178,10 +192,11 @@ export class Chart {
     this.validateScenario(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
     this.validateStles(this.styles);
-    this.validateI18n(this.i18n);
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
+    this.validatei18nMode(this.internationalisationMode);
+    this.validateI18n(this.internationalisation);
   }
 
   prepareDimension(): {height: number , width: number} {

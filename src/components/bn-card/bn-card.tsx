@@ -11,7 +11,7 @@ import {
   validateMeasureList,
   validateOrderList,
   validateScenarioList,
-  isValidBoolean
+  isValidBoolean, isValidi18nMode, validateI18nString
 } from "../../utils/validate";
 
 
@@ -208,6 +208,30 @@ export class Card {
    */
   @Prop() readonly footerText: string;
 
+  /**
+   *  Mode of Translation,
+   *
+   *  values: none| meta| all
+   *
+   *  default: meta
+   */
+  @Prop() internationalisationMode: string = "meta";
+
+  @Watch('internationalisationMode')
+  validatei18nMode(newValue: string) {
+    if (!isValidi18nMode(newValue)) {
+      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
+
+
+  @Prop() internationalisation?: string;
+  @Watch('internationalisation')
+  validateI18n(newValue: string) {
+    if (!validateI18nString(newValue)) {
+      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
 
 
   @State() readonly datasource: any
@@ -222,6 +246,8 @@ export class Card {
     this.validateOrderDirection(this.orderDirection);
     this.validateOrder(this.order);
     this.validateShowBorder(this.showBorder);
+    this.validatei18nMode(this.internationalisationMode);
+    this.validateI18n(this.internationalisation);
   }
 
 

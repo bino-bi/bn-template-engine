@@ -37,6 +37,11 @@ export namespace Components {
           * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
          */
         "image": string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode": string;
         /**
           * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
          */
@@ -61,7 +66,11 @@ export namespace Components {
     interface BnChart {
         "datasource": string;
         "datasourcesData": any;
-        "i18n"?: string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode": string;
         /**
           * Determines level on which the chart is aggregated on. valid values are  rowcategory, catgeory, subcategory default: category
          */
@@ -132,8 +141,11 @@ export namespace Components {
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean | string;
-        "i18n"?: string;
-        "i18nMode": string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode": string;
         /**
           * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
          */
@@ -207,6 +219,11 @@ export namespace Components {
           * (optional) String of start date  format: yyyy-MM-dd
          */
         "dateStart": string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode": string;
         /**
           * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
          */
@@ -345,6 +362,11 @@ declare namespace LocalJSX {
           * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
          */
         "image"?: string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode"?: string;
         /**
           * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
          */
@@ -369,7 +391,11 @@ declare namespace LocalJSX {
     interface BnChart {
         "datasource"?: string;
         "datasourcesData"?: any;
-        "i18n"?: string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode"?: string;
         /**
           * Determines level on which the chart is aggregated on. valid values are  rowcategory, catgeory, subcategory default: category
          */
@@ -439,8 +465,11 @@ declare namespace LocalJSX {
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
         "grouped": boolean | string;
-        "i18n"?: string;
-        "i18nMode"?: string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode"?: string;
         /**
           * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
          */
@@ -514,6 +543,11 @@ declare namespace LocalJSX {
           * (optional) String of start date  format: yyyy-MM-dd
          */
         "dateStart"?: string;
+        "internationalisation"?: string;
+        /**
+          * Mode of Translation,  values: none| meta| all  default: meta
+         */
+        "internationalisationMode"?: string;
         /**
           * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
          */

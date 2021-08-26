@@ -7,7 +7,7 @@ import {
   isValidDate,
   isValidDateFormat,
   isValidDateLink,
-  isValidDirection,
+  isValidDirection, isValidi18nMode, validateI18nString,
   validateMeasureList,
   validateScenarioList,
 } from "../../utils/validate";
@@ -172,6 +172,31 @@ export class Title {
   }
 
 
+  /**
+   *  Mode of Translation,
+   *
+   *  values: none| meta| all
+   *
+   *  default: meta
+   */
+  @Prop() internationalisationMode: string = "meta";
+
+  @Watch('internationalisationMode')
+  validatei18nMode(newValue: string) {
+    if (!isValidi18nMode(newValue)) {
+      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
+
+
+  @Prop() internationalisation?: string;
+  @Watch('internationalisation')
+  validateI18n(newValue: string) {
+    if (!validateI18nString(newValue)) {
+      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
   @State() readonly datasource: any
 
   componentWillLoad() {
@@ -183,6 +208,8 @@ export class Title {
     this.validateDateLink(this.dateLink);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrder(this.order);
+    this.validatei18nMode(this.internationalisationMode);
+    this.validateI18n(this.internationalisation);
   }
 
 

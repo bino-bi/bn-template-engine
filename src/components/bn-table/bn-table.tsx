@@ -293,23 +293,28 @@ export class Table {
     }
   }
 
+  /**
+   *  Mode of Translation,
+   *
+   *  values: none| meta| all
+   *
+   *  default: meta
+   */
+  @Prop() internationalisationMode: string = "meta";
 
-
-  @Prop() i18nmode: string = "none";
-
-  @Watch('i18nmode')
+  @Watch('internationalisationMode')
   validatei18nMode(newValue: string) {
     if (!isValidi18nMode(newValue)) {
-      throw new Error('i18nmode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
   }
 
-  @Prop() i18n?: string;
 
-  @Watch('i18n')
+  @Prop() internationalisation?: string;
+  @Watch('internationalisation')
   validateI18n(newValue: string) {
     if (!validateI18nString(newValue)) {
-      throw new Error('i18n: invalid value(s) \'' + newValue + '\' are not supported.')
+      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
 
@@ -362,8 +367,8 @@ export class Table {
     this.validateThereOf(this.thereof);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
-    this.validatei18nMode(this.i18nmode);
-    this.validateI18n(this.i18n);
+    this.validatei18nMode(this.internationalisationMode);
+    this.validateI18n(this.internationalisation);
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDateFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateCategoryWidth(this.categoryWidth);
@@ -424,13 +429,12 @@ export class Table {
   }
 
   private prepareI18nMode(): I18nMode {
-    return I18nMode[this.i18nmode?.trim().toUpperCase() as keyof typeof I18nMode];
+    console.log("prepaer", this.internationalisationMode);
+    return I18nMode[this.internationalisationMode?.trim().toUpperCase() as keyof typeof I18nMode];
   }
 
   private prepareI18n(): Map<string, string> {
-    return new Map([
-      ["SUM_TOTAL","HHH"]
-    ]);
+    return new Map([]);
   }
 
   private prepareData(): DataRow[]{
