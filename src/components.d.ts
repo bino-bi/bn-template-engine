@@ -95,6 +95,19 @@ export namespace Components {
     }
     interface BnContext {
     }
+    interface BnData {
+        /**
+          * Unique (template scope) name of the datasource
+         */
+        "name": string;
+    }
+    interface BnDataset {
+        "datasources": string;
+        /**
+          * Unique (template scope) name of the datasource
+         */
+        "name": string;
+    }
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
@@ -195,7 +208,6 @@ export namespace Components {
         "templateId": string;
     }
     interface BnText {
-        "datasourcesData": any;
         "value"?: string;
     }
     interface BnTitle {
@@ -267,6 +279,18 @@ declare global {
         prototype: HTMLBnContextElement;
         new (): HTMLBnContextElement;
     };
+    interface HTMLBnDataElement extends Components.BnData, HTMLStencilElement {
+    }
+    var HTMLBnDataElement: {
+        prototype: HTMLBnDataElement;
+        new (): HTMLBnDataElement;
+    };
+    interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
+    }
+    var HTMLBnDatasetElement: {
+        prototype: HTMLBnDatasetElement;
+        new (): HTMLBnDatasetElement;
+    };
     interface HTMLBnDatasourceElement extends Components.BnDatasource, HTMLStencilElement {
     }
     var HTMLBnDatasourceElement: {
@@ -320,6 +344,8 @@ declare global {
         "bn-card": HTMLBnCardElement;
         "bn-chart": HTMLBnChartElement;
         "bn-context": HTMLBnContextElement;
+        "bn-data": HTMLBnDataElement;
+        "bn-dataset": HTMLBnDatasetElement;
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
         "bn-grid": HTMLBnGridElement;
@@ -420,6 +446,19 @@ declare namespace LocalJSX {
     }
     interface BnContext {
     }
+    interface BnData {
+        /**
+          * Unique (template scope) name of the datasource
+         */
+        "name": string;
+    }
+    interface BnDataset {
+        "datasources"?: string;
+        /**
+          * Unique (template scope) name of the datasource
+         */
+        "name": string;
+    }
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
@@ -519,7 +558,6 @@ declare namespace LocalJSX {
         "templateId"?: string;
     }
     interface BnText {
-        "datasourcesData"?: any;
         "value"?: string;
     }
     interface BnTitle {
@@ -570,6 +608,8 @@ declare namespace LocalJSX {
         "bn-card": BnCard;
         "bn-chart": BnChart;
         "bn-context": BnContext;
+        "bn-data": BnData;
+        "bn-dataset": BnDataset;
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
         "bn-grid": BnGrid;
@@ -588,6 +628,8 @@ declare module "@stencil/core" {
             "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
             "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
+            "bn-data": LocalJSX.BnData & JSXBase.HTMLAttributes<HTMLBnDataElement>;
+            "bn-dataset": LocalJSX.BnDataset & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;

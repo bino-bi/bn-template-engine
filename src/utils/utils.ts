@@ -7,3 +7,8 @@ export function format(first: string, middle: string, last: string): string {
   );
 }
 
+export const runIfExisits = (fn: unknown) => {
+  if (typeof fn === 'function') {
+    fn();
+  }
+}

@@ -1,6 +1,6 @@
-import {Component, h, Host, Prop} from "@stencil/core";
+import {Component, h, Host, Prop, State} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
-import Tunnel from '../bn-context/tunnel';
+import withDataset from "../../utils/withDataset";
 
 @Component({
   tag: 'bn-text',
@@ -9,18 +9,23 @@ import Tunnel from '../bn-context/tunnel';
 export class Text {
   @Prop() value?: string;
 
-  @Prop() datasourcesData: any
+  @State() data: any = {}
+
+  constructor() {
+    withDataset(this, (name, data) => {
+      this.data = {...this.data, [name]: data};
+    });
+  }
 
   scopedEval = (scope, script) => Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
 
   render() {
-try { } catch {}
+    console.dir(['data', this.data]);
     return <Host>
-      {this.scopedEval(this.datasourcesData, "`" + this.value + "`")}
+      {this.scopedEval(this.data, "`" + this.value + "`")}
     </Host>
   }
 }
 
-Tunnel.injectProps(Text, ['datasourcesData'])
 styled(Text);
 
