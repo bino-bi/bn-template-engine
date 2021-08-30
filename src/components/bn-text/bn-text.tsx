@@ -20,7 +20,6 @@ export class Text {
   scopedEval = (scope, script) => Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
 
   render() {
-    console.dir(['data', this.data]);
     return <Host>
       {this.scopedEval(this.data, "`" + this.value + "`")}
     </Host>
