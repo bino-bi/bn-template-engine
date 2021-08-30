@@ -7,24 +7,10 @@
 
 ## Properties
 
-| Property          | Attribute          | Description | Type     | Default     |
-| ----------------- | ------------------ | ----------- | -------- | ----------- |
-| `datasourcesData` | `datasources-data` |             | `any`    | `undefined` |
-| `value`           | `value`            |             | `string` | `undefined` |
+| Property | Attribute | Description | Type     | Default     |
+| -------- | --------- | ----------- | -------- | ----------- |
+| `value`  | `value`   |             | `string` | `undefined` |
 
-
-## Dependencies
-
-### Depends on
-
-- context-consumer
-
-### Graph
-```mermaid
-graph TD;
-  bn-text --> context-consumer
-  style bn-text fill:#f9f,stroke:#333,stroke-width:4px
-```
 
 ----------------------------------------------
 

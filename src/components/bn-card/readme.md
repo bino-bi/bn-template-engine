@@ -31,14 +31,12 @@
 
 - ibcs-title
 - [bn-footer](../bn-footer)
-- context-consumer
 
 ### Graph
 ```mermaid
 graph TD;
   bn-card --> ibcs-title
   bn-card --> bn-footer
-  bn-card --> context-consumer
   style bn-card fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

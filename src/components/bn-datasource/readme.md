@@ -7,24 +7,10 @@
 
 ## Properties
 
-| Property            | Attribute | Description                                    | Type                               | Default     |
-| ------------------- | --------- | ---------------------------------------------- | ---------------------------------- | ----------- |
-| `name` _(required)_ | `name`    | Unique (template scope) name of the datasource | `string`                           | `undefined` |
-| `updateDatasource`  | --        |                                                | `(key: string, data: any) => void` | `undefined` |
+| Property            | Attribute | Description                                    | Type     | Default     |
+| ------------------- | --------- | ---------------------------------------------- | -------- | ----------- |
+| `name` _(required)_ | `name`    | Unique (template scope) name of the datasource | `string` | `undefined` |
 
-
-## Dependencies
-
-### Depends on
-
-- context-consumer
-
-### Graph
-```mermaid
-graph TD;
-  bn-datasource --> context-consumer
-  style bn-datasource fill:#f9f,stroke:#333,stroke-width:4px
-```
 
 ----------------------------------------------
 
