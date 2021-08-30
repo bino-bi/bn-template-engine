@@ -45,7 +45,6 @@
     "@bino-bi/ibcs-component": "0.27.4",
     "@bino-bi/ibcs-component-interface": "0.6.6",
     "@emotion/hash": "^0.7.4",
-    "@stencil/state-tunnel": "^1.0.1",
     "faker": "^4.1.0"
   }
 }
