@@ -438,7 +438,6 @@ export class Table {
   }
 
   private prepareI18nMode(): I18nMode {
-    console.log("prepaer", this.internationalisationMode);
     return I18nMode[this.internationalisationMode?.trim().toUpperCase() as keyof typeof I18nMode];
   }
 

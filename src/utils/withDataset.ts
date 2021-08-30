@@ -11,8 +11,6 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
   const element: HTMLStencilElement = getElement(component);
   const connectedCallback = component['connectedCallback'];
 
-  console.dir([element, connectedCallback])
-
   datasets = element.getAttribute('datasets').split(",");
   datasets.forEach(name => {
     // @ts-ignore
