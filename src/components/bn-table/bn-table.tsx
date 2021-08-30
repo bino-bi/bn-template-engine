@@ -1,4 +1,4 @@
-import {Component, h, Host, Prop, Watch} from "@stencil/core";
+import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
@@ -16,7 +16,6 @@ import {
   validateThereOfJsonStr, isValidMeasureScale
 } from "../../utils/validate";
 
-import Tunnel from "../bn-context/tunnel";
 import {
   DataFormat,
   DataFormatDigits,
@@ -30,6 +29,7 @@ import {
 } from "@bino-bi/ibcs-component-interface";
 import {TablePartGroup} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
 import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import withDataset from "../../utils/withDataset";
 
 
 @Component({
@@ -37,6 +37,15 @@ import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-
   styleUrl: 'bn-table.css'
 })
 export class Table {
+
+  @State() data: DataRow[] = []
+
+  constructor() {
+    withDataset(this, (_name, data) => {
+      this.data = data || [];
+    });
+  }
+
   /**
    * A not mundane tile for the shard,
    * which describes the shown data.
@@ -160,10 +169,10 @@ export class Table {
    * subcategory is the displayed label of the data row
    *
    * example: [{
-            "rowgroup":"Umsatz",
-            "category": "Applications",
-            "subcategory": "Applications-A",
-          },]
+   "rowgroup":"Umsatz",
+   "category": "Applications",
+   "subcategory": "Applications-A",
+   },]
    */
   @Prop() thereof: string = '[]';
 
@@ -174,6 +183,7 @@ export class Table {
       throw new Error('scenarios: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
   }
+
   /**
    * (optional) stringified Array of Partof Objects {
             "rowgroup": string,
@@ -183,9 +193,9 @@ export class Table {
    * percentage of category in rowgorup
    *
    * example: [{
-            "rowgroup":"Umsatz",
-            "category": "Applications",
-          },]
+   "rowgroup":"Umsatz",
+   "category": "Applications",
+   },]
    */
   @Prop() partof: string = '[]';
 
@@ -196,7 +206,6 @@ export class Table {
       throw new Error('scenarios: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
   }
-
 
 
   /** List of the primary scenarios on which the order direction are applied  valid scenarios are
@@ -258,23 +267,23 @@ export class Table {
    *  default: GREATEST
    *
    *  SiPrefix overview:
-   *      "Y":	1E+24,
-   *       "Z":	1E+21,
-   *       "E":	1E+18,
-   *       "P":	1E+15,
-   *       "T":	1E+12,
-   *       "G":	1000000000,
-   *       "M":	1000000,
-   *       "k":	1000,
+   *      "Y":  1E+24,
+   *       "Z":  1E+21,
+   *       "E":  1E+18,
+   *       "P":  1E+15,
+   *       "T":  1E+12,
+   *       "G":  1000000000,
+   *       "M":  1000000,
+   *       "k":  1000,
    *
-   *       "m":	0.001,
-   *       "μ":	0.000001,
-   *       "n":	0.000000001,
-   *       "p":	0.000000000001,
-   *       "f":	0.000000000000001,
-   *       "a":	0.000000000000000001,
-   *       "z": 	0.000000000000000000001,
-   *       "y":	0.000000000000000000000001,
+   *       "m":  0.001,
+   *       "μ":  0.000001,
+   *       "n":  0.000000001,
+   *       "p":  0.000000000001,
+   *       "f":  0.000000000000001,
+   *       "a":  0.000000000000000001,
+   *       "z":  0.000000000000000000001,
+   *       "y":  0.000000000000000000000001,
    *
    * Special modes:
    * GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix
@@ -311,6 +320,7 @@ export class Table {
 
 
   @Prop() internationalisation?: string;
+
   @Watch('internationalisation')
   validateI18n(newValue: string) {
     if (!validateI18nString(newValue)) {
@@ -336,6 +346,7 @@ export class Table {
       throw new Error('dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
+
   /** set width of category columns
    *
    * values: W5 | W10 | W15 | W20 | W25 | W50 | INF
@@ -350,8 +361,6 @@ export class Table {
     }
   }
 
-  @Prop() datasource: string
-  @Prop() datasourcesData: any
   unsubscribe: () => void
 
   componentWillLoad() {
@@ -401,7 +410,7 @@ export class Table {
   }
 
   private prepareThereOf(): TableDrillGroup[] {
-    if (this.thereof == null || this.thereof.trim() == ''  ) {
+    if (this.thereof == null || this.thereof.trim() == '') {
       return [];
     }
 
@@ -410,7 +419,7 @@ export class Table {
   }
 
   private preparePartOf(): TablePartGroup[] {
-    if (this.partof == null || this.partof.trim() == ''  ) {
+    if (this.partof == null || this.partof.trim() == '') {
       return [];
     }
 
@@ -437,20 +446,11 @@ export class Table {
     return new Map([]);
   }
 
-  private prepareData(): DataRow[]{
-      const data = this.datasourcesData[this.datasource];
-
-      if (data == null) {
-        return [];
-      }
-
-      return data;
-    }
-
-
-  private prepareDataFormatDigits(): DataFormatDigits{
-    const formatDigits: DataFormatDigits  = { percent: this.dataFormatDigitsPercent,
-                                              decimal: this.dataFormatDigitsDecimal };
+  private prepareDataFormatDigits(): DataFormatDigits {
+    const formatDigits: DataFormatDigits = {
+      percent: this.dataFormatDigitsPercent,
+      decimal: this.dataFormatDigitsDecimal
+    };
 
     return formatDigits;
   }
@@ -474,11 +474,11 @@ export class Table {
       return "GREATEST";
     }
 
-    if( ['_','k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y','m', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(this.measureScale.trim())) {
+    if (['_', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'm', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(this.measureScale.trim())) {
       return this.measureScale.trim();
     }
 
-    if(this.measureScale.trim().toUpperCase() === 'LEAST') {
+    if (this.measureScale.trim().toUpperCase() === 'LEAST') {
       return this.measureScale.trim();
     }
 
@@ -507,7 +507,7 @@ export class Table {
         order={this.prepareOrder()}
         i18n-mode={this.prepareI18nMode()}
         i18n={this.prepareI18n()}
-        data={this.prepareData()}
+        data={this.data}
         dataFormatDigits={this.prepareDataFormatDigits()}
         category-width={this.prepareCategoryWidth()}
         measure-scale={this.prepareMeasureScale()}
@@ -518,6 +518,3 @@ export class Table {
 }
 
 styled(Table);
-Tunnel.injectProps(Table, ['datasourcesData']);
-
-

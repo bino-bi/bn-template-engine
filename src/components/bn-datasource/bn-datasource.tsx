@@ -1,6 +1,6 @@
-import {Component, Prop, h, Host, Listen} from "@stencil/core";
-import Tunnel from "../bn-context/tunnel";
-
+import {Component, Prop, h, Host} from "@stencil/core";
+import withBodyObserver from "../../utils/withBodyObserver";
+import {set} from "../../stores/datasources";
 @Component({
   tag: 'bn-datasource',
   styleUrl: 'bn-datasource.css',
@@ -11,19 +11,14 @@ export class Datasource {
    */
   @Prop() name!: string;
 
-  @Prop() updateDatasource?: (key: string, data: any) => void;
-
-  @Listen('DOMNodeInserted')
-  getChangedValue(event) {
-    const data = JSON.parse(event.target.textContent);
-    // console.dir(['data:', this.name, data]);
-    this.updateDatasource?.(this.name, data);
+  constructor() {
+    withBodyObserver(this, (data => {
+      // @ts-ignore
+      set(this.name, JSON.parse(data));
+    }));
   }
-
 
   render() {
     return <Host/>
   }
 }
-
-Tunnel.injectProps(Datasource, ['updateDatasource'])

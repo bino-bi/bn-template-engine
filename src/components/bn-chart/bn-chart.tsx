@@ -1,4 +1,4 @@
-import {Component, Element, h, Host, Prop, Watch} from "@stencil/core";
+import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
@@ -11,9 +11,9 @@ import {
   validateStylesString,
   validateVariancesList
 } from "../../utils/validate";
-import Tunnel from "../bn-context/tunnel";
 import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
 import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import withDataset from "../../utils/withDataset";
 
 @Component({
   tag: 'bn-chart',
@@ -21,6 +21,8 @@ import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-
 })
 export class Chart {
   @Element() private element: HTMLElement;
+
+  @State() data: DataRow[] = []
 
   // @Prop() order?: string;
   // @Prop() orderDirection?: string;
@@ -175,15 +177,14 @@ export class Chart {
     }
   }
 
-
-  @Prop() datasource: string
-  @Prop() datasourcesData: any
-
   private scenariosArray: string[];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
   constructor() {
+    withDataset(this, (_name, data) => {
+      this.data = data || [];
+    });
     this.chartTemplate = this.chartTemplate.bind(this);
   }
 
@@ -203,17 +204,6 @@ export class Chart {
     this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
     return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
   }
-
-  private prepareData(): DataRow[]{
-      const data = this.datasourcesData[this.datasource];
-
-      if (data == null) {
-        return [];
-      }
-
-      return data;
-  }
-
 
   private prepareScenarios(): string[] {
     if (isBlankInput(this.scenarios)) {
@@ -268,7 +258,7 @@ export class Chart {
   chartTemplate(localScenarioString: string) {
     return <ibcs-chart-structure
       dimension={this.prepareDimension()}
-      data={this.prepareData()}
+      data={this.data}
       scenarios={this.prepareScenarios()}
       variances={this.prepareVariances(localScenarioString)}
       hideCategories={this.prepareHideCategories(localScenarioString)}
@@ -291,4 +281,3 @@ export class Chart {
 }
 
 styled(Chart);
-Tunnel.injectProps(Chart, ['datasourcesData']);

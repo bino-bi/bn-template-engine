@@ -1,5 +1,5 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
-import {Component, h, Host, Prop, State, Watch, getAssetPath} from "@stencil/core";
+import {Component, h, Host, Prop, Watch, getAssetPath} from "@stencil/core";
 
 import {styled} from "../../utils/styled/styled";
 import {
@@ -24,8 +24,6 @@ import {
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
-import Tunnel from "../bn-context/tunnel";
-
 
 @Component({
   tag: 'bn-card',
@@ -233,9 +231,6 @@ export class Card {
     }
   }
 
-
-  @State() readonly datasource: any
-
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateMeasures(this.measures);
@@ -358,7 +353,6 @@ export class Card {
 }
 
 styled(Card);
-Tunnel.injectProps(Card, ['datasourcesData']);
 
 
 

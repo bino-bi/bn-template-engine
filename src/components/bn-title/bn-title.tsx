@@ -21,8 +21,6 @@ import {
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
-import Tunnel from "../bn-context/tunnel";
-
 
 @Component({
   tag: 'bn-title',
@@ -276,5 +274,3 @@ export class Title {
 }
 
 styled(Title);
-Tunnel.injectProps(Title, ['datasourcesData']);
-

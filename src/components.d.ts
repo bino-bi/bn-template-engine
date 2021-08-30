@@ -64,8 +64,6 @@ export namespace Components {
         "showBorder": string;
     }
     interface BnChart {
-        "datasource": string;
-        "datasourcesData": any;
         "internationalisation"?: string;
         /**
           * Mode of Translation,  values: none| meta| all  default: meta
@@ -95,12 +93,6 @@ export namespace Components {
     }
     interface BnContext {
     }
-    interface BnData {
-        /**
-          * Unique (template scope) name of the datasource
-         */
-        "name": string;
-    }
     interface BnDataset {
         "datasources": string;
         /**
@@ -113,7 +105,6 @@ export namespace Components {
           * Unique (template scope) name of the datasource
          */
         "name": string;
-        "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
         "displayPageNumber": boolean;
@@ -148,8 +139,6 @@ export namespace Components {
         "dataFormat": string;
         "dataFormatDigitsDecimal"?: number;
         "dataFormatDigitsPercent"?: number;
-        "datasource": string;
-        "datasourcesData": any;
         /**
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
@@ -164,7 +153,7 @@ export namespace Components {
          */
         "limit": number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":	1E+24,       "Z":	1E+21,       "E":	1E+18,       "P":	1E+15,       "T":	1E+12,       "G":	1000000000,       "M":	1000000,       "k":	1000,        "m":	0.001,       "μ":	0.000001,       "n":	0.000000001,       "p":	0.000000000001,       "f":	0.000000000000001,       "a":	0.000000000000000001,       "z": 	0.000000000000000000001,       "y":	0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":  1E+24,       "Z":  1E+21,       "E":  1E+18,       "P":  1E+15,       "T":  1E+12,       "G":  1000000000,       "M":  1000000,       "k":  1000,        "m":  0.001,       "μ":  0.000001,       "n":  0.000000001,       "p":  0.000000000001,       "f":  0.000000000000001,       "a":  0.000000000000000001,       "z":  0.000000000000000000001,       "y":  0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
          */
         "measureScale": string;
         /**
@@ -180,7 +169,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{        "rowgroup":"Umsatz",        "category": "Applications",      },]
+          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{ "rowgroup":"Umsatz", "category": "Applications", },]
          */
         "partof": string;
         /**
@@ -196,7 +185,7 @@ export namespace Components {
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
+          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]
          */
         "thereof": string;
         /**
@@ -279,12 +268,6 @@ declare global {
         prototype: HTMLBnContextElement;
         new (): HTMLBnContextElement;
     };
-    interface HTMLBnDataElement extends Components.BnData, HTMLStencilElement {
-    }
-    var HTMLBnDataElement: {
-        prototype: HTMLBnDataElement;
-        new (): HTMLBnDataElement;
-    };
     interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
     }
     var HTMLBnDatasetElement: {
@@ -344,7 +327,6 @@ declare global {
         "bn-card": HTMLBnCardElement;
         "bn-chart": HTMLBnChartElement;
         "bn-context": HTMLBnContextElement;
-        "bn-data": HTMLBnDataElement;
         "bn-dataset": HTMLBnDatasetElement;
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
@@ -415,8 +397,6 @@ declare namespace LocalJSX {
         "showBorder": string;
     }
     interface BnChart {
-        "datasource"?: string;
-        "datasourcesData"?: any;
         "internationalisation"?: string;
         /**
           * Mode of Translation,  values: none| meta| all  default: meta
@@ -446,12 +426,6 @@ declare namespace LocalJSX {
     }
     interface BnContext {
     }
-    interface BnData {
-        /**
-          * Unique (template scope) name of the datasource
-         */
-        "name": string;
-    }
     interface BnDataset {
         "datasources"?: string;
         /**
@@ -464,7 +438,6 @@ declare namespace LocalJSX {
           * Unique (template scope) name of the datasource
          */
         "name": string;
-        "updateDatasource"?: (key: string, data: any) => void;
     }
     interface BnFooter {
         "displayPageNumber"?: boolean;
@@ -498,8 +471,6 @@ declare namespace LocalJSX {
         "dataFormat": string;
         "dataFormatDigitsDecimal"?: number;
         "dataFormatDigitsPercent"?: number;
-        "datasource"?: string;
-        "datasourcesData"?: any;
         /**
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
@@ -514,7 +485,7 @@ declare namespace LocalJSX {
          */
         "limit"?: number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":	1E+24,       "Z":	1E+21,       "E":	1E+18,       "P":	1E+15,       "T":	1E+12,       "G":	1000000000,       "M":	1000000,       "k":	1000,        "m":	0.001,       "μ":	0.000001,       "n":	0.000000001,       "p":	0.000000000001,       "f":	0.000000000000001,       "a":	0.000000000000000001,       "z": 	0.000000000000000000001,       "y":	0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":  1E+24,       "Z":  1E+21,       "E":  1E+18,       "P":  1E+15,       "T":  1E+12,       "G":  1000000000,       "M":  1000000,       "k":  1000,        "m":  0.001,       "μ":  0.000001,       "n":  0.000000001,       "p":  0.000000000001,       "f":  0.000000000000001,       "a":  0.000000000000000001,       "z":  0.000000000000000000001,       "y":  0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
          */
         "measureScale"?: string;
         /**
@@ -530,7 +501,7 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{        "rowgroup":"Umsatz",        "category": "Applications",      },]
+          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{ "rowgroup":"Umsatz", "category": "Applications", },]
          */
         "partof"?: string;
         /**
@@ -546,7 +517,7 @@ declare namespace LocalJSX {
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{        "rowgroup":"Umsatz",        "category": "Applications",        "subcategory": "Applications-A",      },]
+          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]
          */
         "thereof"?: string;
         /**
@@ -608,7 +579,6 @@ declare namespace LocalJSX {
         "bn-card": BnCard;
         "bn-chart": BnChart;
         "bn-context": BnContext;
-        "bn-data": BnData;
         "bn-dataset": BnDataset;
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
@@ -628,7 +598,6 @@ declare module "@stencil/core" {
             "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
             "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
-            "bn-data": LocalJSX.BnData & JSXBase.HTMLAttributes<HTMLBnDataElement>;
             "bn-dataset": LocalJSX.BnDataset & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
