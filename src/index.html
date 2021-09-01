@@ -193,7 +193,8 @@
     },
     {
     "setName": "de",
-    "operation": "+", "rowGroup": "Umsatz",   "rowGroupIndex": 1,"category": "Frozen",  "categoryIndex": 4,"subCategory": "Frozen",
+    "operation": "+", "rowGroup": "Umsatz", "rowGroupIndex": 1,"category": "Frozen", "categoryIndex": 4,"subCategory":
+    "Frozen",
     "columnGroup": null,
     "columnGroupIndex": null,
     "columnSubGroup": null,
@@ -302,7 +303,8 @@
     },
     {
     "setName": "de",
-    "operation": "-", "rowGroup": "Kosten",   "rowGroupIndex": 2, "category": "lime",  "categoryIndex": 8, "subCategory": "lime",    "subCategoryIndex":1,
+    "operation": "-", "rowGroup": "Kosten", "rowGroupIndex": 2, "category": "lime", "categoryIndex": 8, "subCategory":
+    "lime", "subCategoryIndex":1,
     "columnGroup": null,
     "columnGroupIndex": null,
     "columnSubGroup": null,
@@ -321,78 +323,76 @@
     "pl4": 4}
     ]
   </bn-datasource>
-  <bn-dataset name="marktwert_set" datasources="marktwert">
-    SELECT * FROM marktwert;
-  </bn-dataset>
-  <bn-page format     ="a3" orienation="portrait">
+
+  <bn-page format="a3" orienation="portrait">
     <bn-title
-      business-unit   = 'Beispiel Report'
-      scenarios       = 'ac1, fc1, pp1,dac1_pp1_neg'
-      order           = 'dac1_pp1_neg'
-      date-start      = '2019-12-31'
-      date-end        = '2020-12-31'
-      date-format     = ''
-      date-link       = 'interval'
-      measures        = '[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
-       >
+      business-unit='Beispiel Report'
+      scenarios='ac1, fc1, pp1,dac1_pp1_neg'
+      order='dac1_pp1_neg'
+      date-start='2019-12-31'
+      date-end='2020-12-31'
+      date-format=''
+      date-link='interval'
+      measures='[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
+    >
     </bn-title>
     <bn-body>
       <bn-card
-        measures        = '[{"name": "Marktwert", "unit": "mEUR"}]'
-        scenarios       = ''
-        date-start      = '2019-12-31'
-        date-end        = '2020-12-31'
-        date-format     = 'quarter'
-        date-link       = ''
-        image = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Nintendo_red_logo.svg/1280px-Nintendo_red_logo.svg.png"
-        show-border = "true"
-        footer-text     = "*Pe"
+        measures='[{"name": "Marktwert", "unit": "mEUR"}]'
+        scenarios=''
+        date-start='2019-12-31'
+        date-end='2020-12-31'
+        date-format='quarter'
+        date-link=''
+        image="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Nintendo_red_logo.svg/1280px-Nintendo_red_logo.svg.png"
+        show-border="true"
+        footer-text="*Pe"
       >
-      <bn-chart
-        datasets        ="marktwert_set"
-        scenarios       ='pp1,pp2,fc2,pl2'
-        unit-scaling    ='10'
-        chart-title     ='Marktwert'
-        styles          =''
-        level           ='category'
-        order           ='category'
-        order-direction ='asc'
+        <bn-chart
+          datasets="$marktwert"
+          scenarios='pp1,pp2,fc2,pl2'
+          unit-scaling='10'
+          chart-title='Marktwert'
+          styles=''
+          level='category'
+          order='category'
+          order-direction='asc'
         >
         </bn-chart>
       </bn-card>
       <bn-card
-        business-unit = "Eintracht Frankfurt"
-        scenarios       = 'ac1'
-        order           = 'ac1'
-        order-direction = 'desc'
-        date-start      = ''
-        date-end        = ''
-        date-format     = ''
-        date-link       = ''
-        measures        = ''
-        image           = null
-        show-border     = "true"
-        footer-text     = null>
+        business-unit="Eintracht Frankfurt"
+        scenarios='ac1'
+        order='ac1'
+        order-direction='desc'
+        date-start=''
+        date-end=''
+        date-format=''
+        date-link=''
+        measures=''
+        image=null
+        show-border="true"
+        footer-text=null>
         <bn-table
-          datasets        ="marktwert_set"
-          grouped             ="false"
-          show-group-title    ='false'
-          table-title         ='Marktwer2t'
-          scenarios           ='pp1,ac1, dpp1_ac1_neg'
-          type                ='sum'
-          limit               ='30'
-          order               ='Category'
-          order-direction     ='asc'
-          category-width      ='W20'
-          measure-type        ='volume'
-          measure-scale       ='_'
-          internationalisation-mode   ='none'
-          thereof             ='[{
+          datasets="$marktwert"
+          grouped="false"
+          show-group-title='false'
+          table-title='Marktwer2t'
+          scenarios='pp1,ac1, dpp1_ac1_neg'
+          type='sum'
+          limit='30'
+          order='Category'
+          order-direction='asc'
+          category-width='W20'
+          measure-type='volume'
+          measure-scale='_'
+          internationalisation-mode='none'
+          thereof='[{
                                   "rowGroup":     "Umsatz",
                                   "category":     "Applications",
                                   "subCategory":  "Applications-A"
                                 }]'
-            partof               = '[{
+          partof='[{
         "rowGroup":     "Kosten",
         "category":     "lime"
         },
@@ -406,11 +406,11 @@
     </bn-body>
     <bn-footer></bn-footer>
   </bn-page>
-  <bn-page format     ="a3" orienation="portrait">
+  <bn-page format="a3" orienation="portrait">
     Seite 2
     <bn-footer></bn-footer>
   </bn-page>
-  <bn-page format     ="a3" orienation="portrait">
+  <bn-page format="a3" orienation="portrait">
     Seite 3
     <bn-footer></bn-footer>
   </bn-page>

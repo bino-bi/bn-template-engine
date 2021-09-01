@@ -4,8 +4,6 @@ import {runIfExisits} from "./utils";
 
 const withBodyObserver = (component: any, onUpdate: (data: string) => void) => {
 
-  const element: HTMLStencilElement = getElement(component);
-
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       onUpdate(mutation.target.textContent);
@@ -14,6 +12,7 @@ const withBodyObserver = (component: any, onUpdate: (data: string) => void) => {
 
   const connectedCallback = component['connectedCallback'];
   component['connectedCallback'] = () => {
+    const element = getElement(component);
     observer.observe(element, {childList: true, subtree: true, characterData: true});
     onUpdate(element.textContent);
     runIfExisits(connectedCallback);

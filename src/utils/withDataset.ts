@@ -1,45 +1,69 @@
-import {on, get} from '../stores/datasets';
+import {on as onSet, get as getSet} from '../stores/datasets';
+import {on as onSource, get as getSource} from '../stores/datasources';
+import {startsWith,partition} from 'ramda';
 
 import {runIfExisits} from "./utils";
-import {HTMLStencilElement} from "@stencil/core/internal";
 import {getElement} from "@stencil/core";
 
 const withDataset = (component: any, onUpdate: (name: string, data: any) => void) => {
-  let subscription: () => void;
+  let subscriptionSet: () => void;
+  let subscriptionSource: () => void;
   let datasets: string[] = [];
+  let datasources: string[] = [];
 
-  const element: HTMLStencilElement = getElement(component);
   const connectedCallback = component['connectedCallback'];
-
-  datasets = element.getAttribute('datasets').split(",");
-  datasets.forEach(name => {
-    // @ts-ignore
-    onUpdate(name, get(name));
-  })
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.attributeName === 'datasets') {
-        datasets = element.getAttribute('datasets').split(",");
+        [datasources, datasets] = (partition(startsWith("$"), getElement(component).getAttribute('datasets').split(",")));
+        datasets.forEach(name => {
+          // @ts-ignore
+          onUpdate(name, getSet(name));
+        })
+        datasources.forEach(name => {
+          // @ts-ignore
+          onUpdate(name, getSource(name.substring(1)));
+        })
       }
     });
   });
 
   component['connectedCallback'] = () => {
+    const element = getElement(component);
+    [datasources, datasets] = (partition(startsWith("$"), element.getAttribute('datasets').split(",")));
+    datasets.forEach(name => {
+      // @ts-ignore
+      onUpdate(name, getSet(name));
+    })
+    datasources.forEach(name => {
+      // @ts-ignore
+      onUpdate(name, getSource(name.substring(1)));
+    })
+
     observer.observe(element, {attributes: true, attributeFilter: ['datasets']});
 
-    subscription = on("set", (key, newVlaue) => {
+    subscriptionSet = onSet("set", (key, newVlaue) => {
       if (datasets.includes(key)) {
         onUpdate(key, newVlaue);
       }
     })
+
+    subscriptionSource = onSource("set", (key, newVlaue) => {
+      if (datasources.includes("$" + key)) {
+        onUpdate("$" + key, newVlaue);
+      }
+    })
+
+
     runIfExisits(connectedCallback);
   };
 
   const disconnectedCallback = component['disconnectedCallback'];
   component['disconnectedCallback'] = () => {
     observer.disconnect();
-    runIfExisits(subscription);
+    runIfExisits(subscriptionSet);
+    runIfExisits(subscriptionSource);
     runIfExisits(disconnectedCallback);
   };
 
@@ -47,7 +71,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     datasets = names;
     names.forEach(name => {
       // @ts-ignore
-      onUpdate(name, get(name));
+      onUpdate(name, getSet(name));
     })
   }
 }
