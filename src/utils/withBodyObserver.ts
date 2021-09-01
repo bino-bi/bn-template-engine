@@ -1,5 +1,4 @@
 import {getElement} from "@stencil/core";
-import {HTMLStencilElement} from "@stencil/core/internal";
 import {runIfExisits} from "./utils";
 
 const withBodyObserver = (component: any, onUpdate: (data: string) => void) => {
