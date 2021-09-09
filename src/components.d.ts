@@ -139,6 +139,8 @@ export namespace Components {
         "justify": 'start' | 'end' | 'center' | 'stretch';
         "rows": number;
     }
+    interface BnInternationalization {
+    }
     interface BnPage {
         "_setCurrentPageIndex": (value: number) => Promise<void>;
         /**
@@ -333,6 +335,12 @@ declare global {
         prototype: HTMLBnGridElement;
         new (): HTMLBnGridElement;
     };
+    interface HTMLBnInternationalizationElement extends Components.BnInternationalization, HTMLStencilElement {
+    }
+    var HTMLBnInternationalizationElement: {
+        prototype: HTMLBnInternationalizationElement;
+        new (): HTMLBnInternationalizationElement;
+    };
     interface HTMLBnPageElement extends Components.BnPage, HTMLStencilElement {
     }
     var HTMLBnPageElement: {
@@ -372,6 +380,7 @@ declare global {
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
         "bn-grid": HTMLBnGridElement;
+        "bn-internationalization": HTMLBnInternationalizationElement;
         "bn-page": HTMLBnPageElement;
         "bn-table": HTMLBnTableElement;
         "bn-template": HTMLBnTemplateElement;
@@ -512,6 +521,8 @@ declare namespace LocalJSX {
         "columns"?: number;
         "justify"?: 'start' | 'end' | 'center' | 'stretch';
         "rows"?: number;
+    }
+    interface BnInternationalization {
     }
     interface BnPage {
         /**
@@ -665,6 +676,7 @@ declare namespace LocalJSX {
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
         "bn-grid": BnGrid;
+        "bn-internationalization": BnInternationalization;
         "bn-page": BnPage;
         "bn-table": BnTable;
         "bn-template": BnTemplate;
@@ -684,6 +696,7 @@ declare module "@stencil/core" {
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
+            "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
