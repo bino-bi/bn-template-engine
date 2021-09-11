@@ -24,9 +24,9 @@
     "categoryIndex": 1,
     "subCategory": "matrices",
     "subCategoryIndex":1 ,
-    "columnGroup": null,
+    "columnGroup": "test",
     "columnGroupIndex": null,
-    "columnSubGroup": null,
+    "columnSubGroup": "test",
     "columnSubGroupIndex": null,
     "ac1": 1,
     "pp1": 7,
@@ -54,9 +54,9 @@
     "categoryIndex": 2,
     "subCategory": "Applications-A",
     "subCategoryIndex":1 ,
-    "columnGroup": null,
+    "columnGroup": "test",
     "columnGroupIndex": null,
-    "columnSubGroup": null,
+    "columnSubGroup": "test2",
     "columnSubGroupIndex": null,
     "ac1": 1,
     "pp1": 7,
@@ -378,7 +378,7 @@
           grouped="false"
           show-group-title='false'
           table-title='Marktwer2t'
-          scenarios='pp1,ac1, dpp1_ac1_neg'
+          scenarios='pp1,ac1,dpp1_ac1_neg'
           type='sum'
           limit='30'
           order='Category'
@@ -386,7 +386,10 @@
           category-width='W20'
           measure-type='volume'
           measure-scale='_'
+          data-format='decimal'
           internationalisation-mode='none'
+          categorythereof='{"pp1": [{"name": "test", "subGroups": []}],
+                            "ac1": [{"name": "test", "subGroups": ["test"]}]}'
           thereof='[{
                                   "rowGroup":     "Umsatz",
                                   "category":     "Applications",

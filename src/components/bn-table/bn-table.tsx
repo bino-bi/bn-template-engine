@@ -13,7 +13,7 @@ import {
   validateOrderList,
   validatePartOfJsonStr,
   validateScenarioList,
-  validateThereOfJsonStr, isValidMeasureScale
+  validateThereOfJsonStr, isValidMeasureScale, validateCategoryThereOfJsonStr
 } from "../../utils/validate";
 
 import {
@@ -59,7 +59,7 @@ export class Table {
    *  variances pattern d<scenario_baseScenario>
    *  relative variance pattern dr<scenario_baseScenario>
    *
-   *  values: ac | fc | pp | pl | dfc_ac | drfc_ac
+   *  values: ac1 | fc1 | pp1 | pl1 | dfc1_ac1 | drfc1_ac1
    */
   @Prop() readonly scenarios!: string;
 
@@ -78,7 +78,6 @@ export class Table {
    *  percent all data values are converted into percent
    *  (0.02 ->  2%)
    *
-   *  default volume
    *  values: percent | decimal
    */
   @Prop() dataFormat!: string;
@@ -328,7 +327,7 @@ export class Table {
     }
   }
 
-  @Prop() dataFormatDigitsDecimal?: number;
+  @Prop() dataFormatDigitsDecimal?: number = 1;
 
   @Watch('dataFormatDigitsDecimal')
   validateDataFormatDigitsDecimal(newValue: number) {
@@ -338,7 +337,7 @@ export class Table {
   }
 
 
-  @Prop() dataFormatDigitsPercent?: number;
+  @Prop() dataFormatDigitsPercent?: number = 2;
 
   @Watch('dataFormatDigitsPercent')
   validateDateFormatDigitsPercent(newValue: number) {
@@ -360,6 +359,24 @@ export class Table {
       throw new Error('categoryWidth: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
+
+  /** column drill
+   *
+   * example:
+   * {"ac1": [{"name": "DE", "subGroups": ["Berlin"]},
+   *          {"name": "UK", "subGroups": []}]                                         ],
+   * }
+   */
+  @Prop() categorythereof?: string;
+
+  @Watch('categorythereof')
+  validateCategoryThereOf(newValue: string) {
+      const invalidElements: string[] = validateCategoryThereOfJsonStr(newValue);
+    if (invalidElements.length > 0) {
+      throw new Error('categorythereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+    }
+  }
+
 
   unsubscribe: () => void
 
@@ -383,6 +400,7 @@ export class Table {
     this.validateCategoryWidth(this.categoryWidth);
     this.validateMeasureType(this.measureType);
     this.validateMeasureScale(this.measureScale);
+    this.validateCategoryThereOf(this.categorythereof)
   }
 
   disconnectedCallback() {
@@ -491,6 +509,21 @@ export class Table {
     return MeasureType[this.measureType?.toUpperCase() as keyof typeof MeasureType];
   }
 
+  private prepareCategoryThereOf(): Map<string, any> {
+    if (this.categorythereof == null || this.categorythereof.trim() == '') {
+      return new Map();
+    }
+    let parsedString =  JSON.parse(this.categorythereof);
+    let map = new Map();
+
+    for (const [key, value] of Object.entries(parsedString)) {
+      map.set(key, value as any);
+
+    }
+
+    return map;
+  }
+
   render() {
     return <Host>
       <ibcs-table
@@ -503,6 +536,7 @@ export class Table {
         limit={this.prepareLimit()}
         thereof={this.prepareThereOf()}
         partof={this.preparePartOf()}
+        categorythereof = {this.prepareCategoryThereOf()}
         order={this.prepareOrder()}
         i18n-mode={this.prepareI18nMode()}
         i18n={this.prepareI18n()}

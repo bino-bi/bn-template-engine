@@ -33,23 +33,12 @@ export function validateVariancesList(value: string): string[] {
     return [];
   }
 
-  /*
-      let scenarioTestRegex = /(dr|d)(\w+)_(\w+)_(pos|neg)/;
-      // regexMatch is scenario a variance
-      if (scenarioTestRegex.test(element)) {
-        let tokens = scenarioTestRegex.exec(element);
-        console.log('Tokens', tokens)
-        return [String(tokens[2]), String(tokens[4]), String(tokens[5]), String(tokens[1])];
-      }
-*/
-
-  let invalidScenarios: string[] = value.split(',')
-    .filter(element => {
+  let invalidScenarios: string[] = value.split(',').filter(element => {
       const splittedElement = element.split('_');
 
-      const scenarioSubtrahend = splittedElement[0]?.replace(/^dr|^d/, "").toUpperCase()
-      const scenarioMinuend = splittedElement[1]?.toUpperCase();
-      const scenarioSentiment = splittedElement[2]?.toUpperCase();
+      const scenarioSubtrahend = splittedElement[0]?.replace(/^dr|^d/, "").toUpperCase().trim();
+      const scenarioMinuend = splittedElement[1]?.toUpperCase().trim();
+      const scenarioSentiment = splittedElement[2]?.toUpperCase().trim();
 
       return splittedElement.length != 3 || !(scenarioSubtrahend in Scenarios) || !(scenarioMinuend in Scenarios) || !(scenarioSentiment in Sentiments)
     });
@@ -162,10 +151,10 @@ export function validateThereOfJsonStr(value: string): string[] {
     const jsonObject = JSON.parse(value);
     if (jsonObject instanceof Array) {
       // return newObj.filter(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))
-      return jsonObject.filter(elem => !(elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory')));
+      return jsonObject.filter(elem => !(elem.hasOwnProperty('rowGroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subCategory')));
 
     }
-  } catch {
+  } catch (err) {
   }
   return ["Invalid JSON structure"]
 }
@@ -240,4 +229,36 @@ export function isTableCategoryWidth(value: string): boolean {
   return value?.toUpperCase().trim() in TableCategoryWidth;
 }
 
+export function validateCategoryThereOfJsonStr(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  try {
+    const jsonObject = JSON.parse(value);
+    let errList = [];
+
+    for (var value in jsonObject) {
+
+      if (!(value.toUpperCase().trim() in Scenarios)){
+        errList.push(value + ":" + jsonObject[value] + " invalid scenario");
+        continue;
+      }
+
+      if (typeof jsonObject[value] === 'object') {
+        jsonObject[value]?.forEach((elem) => {
+          if(typeof elem?.name !== 'string' || typeof elem?.  subGroups !== 'object'){
+            errList.push(value + ":" + elem);
+          }
+        });
+
+      }
+    }
+    return errList;
+
+    } catch {
+  }
+
+  return ["Invalid JSON structure"];
+}
 

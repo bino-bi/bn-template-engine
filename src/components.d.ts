@@ -134,7 +134,11 @@ export namespace Components {
          */
         "categoryWidth"?: string;
         /**
-          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
+          * column drill  example: {"ac1": [{"name": "DE", "subGroups": ["Berlin"]},         {"name": "UK", "subGroups": []}]                                         ], }
+         */
+        "categorythereof"?: string;
+        /**
+          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   values: percent | decimal
          */
         "dataFormat": string;
         "dataFormatDigitsDecimal"?: number;
@@ -173,7 +177,7 @@ export namespace Components {
          */
         "partof": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | pp | pl | dfc_ac | drfc_ac
+          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac1 | fc1 | pp1 | pl1 | dfc1_ac1 | drfc1_ac1
          */
         "scenarios": string;
         /**
@@ -466,7 +470,11 @@ declare namespace LocalJSX {
          */
         "categoryWidth"?: string;
         /**
-          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   default volume  values: percent | decimal
+          * column drill  example: {"ac1": [{"name": "DE", "subGroups": ["Berlin"]},         {"name": "UK", "subGroups": []}]                                         ], }
+         */
+        "categorythereof"?: string;
+        /**
+          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   values: percent | decimal
          */
         "dataFormat": string;
         "dataFormatDigitsDecimal"?: number;
@@ -505,7 +513,7 @@ declare namespace LocalJSX {
          */
         "partof"?: string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac | fc | pp | pl | dfc_ac | drfc_ac
+          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac1 | fc1 | pp1 | pl1 | dfc1_ac1 | drfc1_ac1
          */
         "scenarios": string;
         /**
