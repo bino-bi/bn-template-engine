@@ -15,7 +15,7 @@ import {
 
 import {
   DateDistance,
-  DateLink,
+  DateLink, I18nMode,
   MeasureEntry,
   Order,
   OrderDirection,
@@ -212,10 +212,13 @@ export class Title {
 
 
   private prepareI18n(): Map<string, string> {
-    return new Map([
-      ["title1", "🤩"]
-    ]);
+    return new Map([]);
   }
+
+  private prepareI18nMode(): I18nMode {
+    return I18nMode[this.internationalisationMode?.trim().toUpperCase() as keyof typeof I18nMode];
+  }
+
 
   private prepareTitleOrder(): Order {
     if(isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
@@ -262,12 +265,13 @@ export class Title {
 
     return <Host>
        <ibcs-title
-        businessUnit={this.businessUnit}
+        business-unit={this.businessUnit}
         scenarios={this.prepareScenarios()}
         measures={this.prepareMeasures()}
         timeperiod={this.prepareTitleTimePeriod()}
         order={this.prepareTitleOrder()}
         i18n={this.prepareI18n()}
+        i18n-mode={this.prepareI18nMode()}
       ></ibcs-title>
     </Host>
   }
