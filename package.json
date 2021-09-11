@@ -42,7 +42,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@bino-bi/ibcs-component": "0.28.0",
+    "@bino-bi/ibcs-component": "0.28.1",
     "@bino-bi/ibcs-component-interface": "0.6.6",
     "@emotion/hash": "^0.7.4",
     "faker": "^4.1.0",
