@@ -140,6 +140,7 @@ export namespace Components {
         "rows": number;
     }
     interface BnInternationalization {
+        "code": string;
     }
     interface BnPage {
         "_setCurrentPageIndex": (value: number) => Promise<void>;
@@ -523,6 +524,7 @@ declare namespace LocalJSX {
         "rows"?: number;
     }
     interface BnInternationalization {
+        "code"?: string;
     }
     interface BnPage {
         /**
