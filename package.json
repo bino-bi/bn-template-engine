@@ -26,8 +26,7 @@
     "dependencies.update": "npm-upgrade check",
     "publish:patch": "npm version patch && npm run-script build && npm publish",
     "publish:minor": "npm version minor && npm run-script build && npm publish",
-    "publish:major": "npm version major && npm run-script build && npm publish",
-    "tsc": "tsc"
+    "publish:major": "npm version major && npm run-script build && npm publish"
   },
   "devDependencies": {
     "@stencil/core": "^2.7.1",
