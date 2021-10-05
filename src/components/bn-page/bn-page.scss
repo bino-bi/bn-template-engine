@@ -46,7 +46,8 @@ bn-page {
 
   @include landscape("xga", 1024px, 768px);
   @include landscape("hd", 1280px, 720px);
-  @include landscape("full-hd", 1920px, 1080px);
+  @include landscape("full-hd", 1920px, 1080px); //DEPRECATED 1.0
+  @include landscape("full_hd", 1920px, 1080px);
   @include landscape("4k", 3840px, 2160px);
   @include landscape("4k2k", 4096px, 2160px);
 
