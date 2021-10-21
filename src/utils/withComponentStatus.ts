@@ -7,11 +7,21 @@ const withComponentStatus = (component: any) => {
     runIfExisits(connectedCallback);
   }
 
+  const componentWillRender = component['componentWillRender'];
+  component['componentWillRender'] = () => {
+    // TODO: code
+    runIfExisits(componentWillRender);
+  }
+
   const componentDidRender = component['componentDidRender'];
   component['componentDidRender'] = () => {
     // TODO: code
     runIfExisits(componentDidRender);
   }
+
+
+
+
 };
 
 export default withComponentStatus;
