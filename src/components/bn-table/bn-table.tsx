@@ -30,6 +30,7 @@ import {
 import {TablePartGroup} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
 import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
+import withComponentStatus from "../../utils/withComponentStatus";
 
 
 @Component({
@@ -40,10 +41,13 @@ export class Table {
 
   @State() data: DataRow[] = []
 
+
   constructor() {
     withDataset(this, (_name, data) => {
       this.data = data || [];
     });
+
+    withComponentStatus(this);
   }
 
   /**

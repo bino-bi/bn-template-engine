@@ -22,6 +22,8 @@ import {
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
 
+import withComponentStatus from "../../utils/withComponentStatus";
+
 @Component({
   tag: 'bn-title',
   styleUrl: 'bn-title.scss',
@@ -196,6 +198,10 @@ export class Title {
   }
 
   @State() readonly datasource: any
+
+  constructor() {
+    withComponentStatus(this);
+  }
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);

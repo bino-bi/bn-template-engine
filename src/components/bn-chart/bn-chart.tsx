@@ -14,6 +14,7 @@ import {
 import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
 import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
+import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
   tag: 'bn-chart',
@@ -186,6 +187,8 @@ export class Chart {
       this.data = data || [];
     });
     this.chartTemplate = this.chartTemplate.bind(this);
+
+    withComponentStatus(this);
   }
 
 
