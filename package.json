@@ -26,7 +26,8 @@
     "dependencies.update": "npm-upgrade check",
     "publish:patch": "npm version patch && npm run-script build && npm publish",
     "publish:minor": "npm version minor && npm run-script build && npm publish",
-    "publish:major": "npm version major && npm run-script build && npm publish"
+    "publish:major": "npm version major && npm run-script build && npm publish",
+    "exportdoc": "node scripts/docExporter.js ../www/docs/components/"
   },
   "devDependencies": {
     "@stencil/core": "^2.7.1",
@@ -39,7 +40,8 @@
     "npm-run-all": "^4.1.5",
     "puppeteer": "1.19.0",
     "standard-version": "^9.3.0",
-    "typescript": "4.2.3"
+    "typescript": "4.2.3",
+    "fdir": "^5.1.0"
   },
   "license": "MIT",
   "dependencies": {
