@@ -21,7 +21,7 @@ export class Text {
 
   render() {
     return <Host>
-      {this.scopedEval(this.data, "`" + this.value + "`")}
+      {this.scopedEval({data: this.data, test: 1}, "`" + this.value + "`")}
     </Host>
   }
 }
