@@ -51,12 +51,12 @@ bn-page {
   @include landscape("4k", 3840px, 2160px);
   @include landscape("4k2k", 4096px, 2160px);
 
-  @include portrait("a4", 29.7cm, 21cm);
-  @include portrait("a3", 42.0cm, 29.7cm);
-  @include portrait("a2", 59.4cm, 42.0cm);
-  @include portrait("a1", 84.1cm, 59.4cm);
-  @include portrait("a0", 118.9cm, 84.1cm);
+  @include portrait("a4", 11.7in, 8.27in);
+  @include portrait("a3", 16.54in, 11.7in);
+  @include portrait("a2", 23.4in, 16.54in);
+  @include portrait("a1", 33.1in, 23.4in);
+  @include portrait("a0", 46.8in, 33.1in);
 
-  @include portrait("letter", 27.9cm, 21.6cm);
-  @include portrait("legal", 36.6cm, 21.6cm);
+  @include portrait("letter", 11in, 8.5in);
+  @include portrait("legal", 14in, 8.5in);
 }

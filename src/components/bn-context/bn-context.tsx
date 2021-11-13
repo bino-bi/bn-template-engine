@@ -1,4 +1,5 @@
-import {Component, h, Host, State, Element} from "@stencil/core";
+import {Component, h, Host, Element, Prop, Watch} from "@stencil/core";
+import state from '../../stores/context';
 
 @Component({
   tag: 'bn-context',
@@ -7,12 +8,17 @@ import {Component, h, Host, State, Element} from "@stencil/core";
 export class Context {
   @Element() el: HTMLElement;
 
-  @State() datasourcesData: { [key: string]: any } = {};
+  @Prop() locale: string;
+
+  @Watch('locale')
+  setLocale(newValue: string) {
+    state.locale = newValue;
+  }
 
   observer = new MutationObserver(() => {
-    this.el.querySelectorAll('bn-page').forEach((el, index) => {
+    this.el.querySelectorAll('bn-page').forEach((page, index) => {
       // @ts-ignore
-      el._setCurrentPageIndex(index + 1);
+      page._setCurrentPageIndex(index + 1);
     })
   });
 

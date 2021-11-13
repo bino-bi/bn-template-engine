@@ -1,12 +1,9 @@
 import {Component, h, Host, Prop, Watch, Element, Method} from "@stencil/core";
-
 @Component({
   tag: 'bn-page',
   styleUrl: 'bn-page.scss',
 })
 export class Page {
-
-
   @Element() el: HTMLElement
   /**
    * Define the size of the page
@@ -22,6 +19,7 @@ export class Page {
    */
   @Prop() orientation: string;
 
+  //TODO: add observer and append to connected footer
   @Method()
   async _setCurrentPageIndex(value: number) {
     const footer = this.el.querySelector('bn-footer')
@@ -43,6 +41,8 @@ export class Page {
   }
 
   render() {
-    return <Host/>
+    return <Host>
+      <slot />
+    </Host>
   }
 }

@@ -92,6 +92,7 @@ export namespace Components {
         "unitScaling": string;
     }
     interface BnContext {
+        "locale": string;
     }
     interface BnDataset {
         "datasources": string;
@@ -429,6 +430,7 @@ declare namespace LocalJSX {
         "unitScaling": string;
     }
     interface BnContext {
+        "locale"?: string;
     }
     interface BnDataset {
         "datasources"?: string;
