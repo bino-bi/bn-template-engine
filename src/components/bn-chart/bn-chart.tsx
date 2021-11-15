@@ -25,35 +25,36 @@ export class Chart {
 
   @State() data: DataRow[] = []
 
-  // @Prop() order?: string;
-  // @Prop() orderDirection?: string;
 
   /**
-   * (mandatory) List of Scenarios Map.
-   * the position of the scenario is maped to the datasource
-   * column scenario1 - scenario4
+   * List of Scenarios Map.
+   *<br /> <br />
+   * per chart there are up to 4 different scenarios supported.
+   * The first 4 scenarios in the list are used, the rest ignored.
    *
-   * if empty the main chart is hidden
+   *<br /> <br />
+   *  values:<br /> ```ac // fc // pp // pl  [1-4]```
+   *  example:<br /> ```ac1,ac2,ac3,ac4```
    *
-   * Valid scenarios are
-   *
-   *  values: ac | fc | py | pl  (1-4)
-   *  example: ac, ac2, ac3, ac4
-   *
-   *  list of additonal variances which
+   *<br /> <br />
+   *   Variance chart can be added by seperating the scenarios
+   *   of each chart with ```;```<br />
+   *   The additonal variances which
    *   are calculated form the given scenarios.
    *   the scenarios used in the variances have also
    *   be defined in the *scenarios* property.
-   *
-   *   the variance is defiend as  (Scenario A -  SvenarioB)
-   *   neg and pos post fix defines which value is *good*
+   *<br /> <br />
+   *   the variance is defiend as  (Scenario A -  ScenarioB)
+   *   neu. neg and pos post fix defines which value is *good*
    *   a negative or a positive value.
-   *
+   *<br /> <br />
    *   if empty variance charts are hidden
-   *
+   *<br /> <br />
    *   each variance creates a chart
+   *<br /> <br />
+   *   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
    *
-   *   pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+   *    example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
    */
   @Prop() scenarios!: string;
 
@@ -80,25 +81,26 @@ export class Chart {
   /**
    * Name of the 'scaling-group' which the chart uses
    * scalig groups are maintained globaly
-   *
+   * <br /> <br />
    * alternativly a number which represent the
-   * pixel per measure unit directy. the
+   * pixel per measure unit.
    */
-  @Prop() unitScaling!: string;
+  @Prop() unitScaling!: string | number;
 
   @Watch('unitScaling')
-  validateUnitScaling(newValue: string) {
-    if (!isValidNumber(newValue) && !this.pixelPerUnitGroupMap.has(newValue)) {
+  validateUnitScaling(newValue: string | number) {
+    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
 
   /**
    * Determines level on which the chart is aggregated on.
-   * valid values are
+   * <br /> <br />
    *
-   * rowcategory, catgeory, subcategory
-   * default: category
+   * values:<br/>
+   * ``` rowcategory // category // subcategory ```
+   * <br /> <br />
    *
    */
   @Prop() level!: string;
@@ -112,8 +114,9 @@ export class Chart {
 
   /** List of the primary scenarios on which the order direction are applied  valid scenarios are
    *  If order is set to a scenario it has also exists in scenariolist
-   *
-   *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+   *  <br /><br />
+   *  values:<br />
+   *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
    */
   @Prop() order!: string;
 
@@ -126,15 +129,17 @@ export class Chart {
   }
 
 
-  /** set sorting order directon
-   *
-   * values: asc | desc
+  /** set sorting order direction
+   *  <br /><br />
+   *  values:<br />
+   *  ```asc // desc```
    */
   @Prop() orderDirection!: string;
 
   /** set translaton mode.
-   *
-   * values:   all | none | meta
+   *  <br /><br />
+   *  values:<br />
+   *  ``` all // none // meta ```
    */
 
   @Watch('orderDirection')
@@ -146,11 +151,11 @@ export class Chart {
   }
 
   /**
-   *  Mode of Translation,
-   *
-   *  values: none| meta| all
-   *
-   *  default: meta
+   *  Mode of Translation
+   *  <br /><br />
+   *  values:<br /> ``` none // meta // all ```
+   *  <br /><br />
+   *  default:<br /> ``` meta ```
    */
   @Prop() internationalisationMode: string = "meta";
 
@@ -161,6 +166,10 @@ export class Chart {
     }
   }
 
+  /**
+   * Lookup Map of translation tokens. (TODO: SHE)
+   *
+   */
   @Prop() internationalisation?: string;
   @Watch('internationalisation')
   validateI18n(newValue: string) {
@@ -169,7 +178,15 @@ export class Chart {
     }
   }
 
-  @Prop() styles?: 'String';
+  /**
+   *  Custom Styles for chart scnearios.
+   *  <br /> <br />
+   *  feature is not yet activated
+   *  <br /> <br />
+   *  interface for format is *BinoChartSyles*
+   *
+   */
+  @Prop() styles: string = null;
 
   @Watch('styles')
   validateStles(newValue: string) {
@@ -237,8 +254,8 @@ export class Chart {
   }
 
   private preparePixelPerUnit(): Number{
-    if (this.pixelPerUnitGroupMap.has(this.unitScaling)) {
-      return this.pixelPerUnitGroupMap.get(this.unitScaling);
+    if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
+      return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
 
     return Number(this.unitScaling);

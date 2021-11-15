@@ -1,6 +1,6 @@
 # bn-dataset
 
-
+TODO: SHE Was genau macht bn-dataset?
 
 <!-- Auto Generated Below -->
 
@@ -15,4 +15,4 @@
 
 ----------------------------------------------
 
-*Built with [StencilJS](https://stenciljs.com/)*
+developed by Bino Bi

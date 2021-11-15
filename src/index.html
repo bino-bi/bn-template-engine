@@ -325,18 +325,34 @@
   </bn-datasource>
 
   <bn-page format="a3" orienation="portrait">
-    <bn-title
-      business-unit='Beispiel Report'
-      scenarios='ac1, fc1, pp1,dac1_pp1_neg'
-      order='dac1_pp1_neg'
-      date-start='2019-12-31'
-      date-end='2020-12-31'
-      date-format=''
-      date-link='interval'
-      measures='[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
-    >
-    </bn-title>
+      <bn-title
+        business-unit= 'null'
+        scenarios='ac1, fc1, pp1,dac1_pp1_neg'
+        order='dac1_pp1_neg'
+        date-start='2019-12-31'
+        date-end='2020-12-31'
+        date-format=''
+        date-link='interval'
+        measures='[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
+      >
+      </bn-title>
+
+
     <bn-body>
+      <bn-chart
+        internationalisation = null
+        internationalisationMode = 'meta'
+        level= 'category'
+        order='ac1'
+        order-direction='desc'
+        scenarios='ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'
+        styles=null
+        unit-scaling= '2'
+        datasets="$marktwert"
+      >
+      </bn-chart>
+
+<!--
       <bn-text datasets="$marktwert" value="Das ist ein test ${test} ${new Date()}" />
       <bn-card
         measures='[{"name": "Marktwert", "unit": "mEUR"}]'
@@ -407,8 +423,14 @@
         ></bn-table>
       </bn-card>
       </bn-grid>
+       -->
     </bn-body>
-    <bn-footer></bn-footer>
+    <bn-footer
+       displayPageNumber = 'true'
+       pageNumber = null
+       text = 'Hello, Word'></bn-footer>
+
+    <!--<bn-footer></bn-footer>
   </bn-page>
   <bn-page format="a3" orienation="portrait">
     Seite 2
@@ -417,6 +439,7 @@
   <bn-page format="a3" orienation="portrait">
     Seite 3
     <bn-footer></bn-footer>
+-->
   </bn-page>
 </bn-context>
 </body>

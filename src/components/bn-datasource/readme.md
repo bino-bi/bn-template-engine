@@ -1,6 +1,6 @@
 # bn-datasource
 
-
+TODO: SHE Was genau macht bn-datasource?
 
 <!-- Auto Generated Below -->
 
@@ -14,4 +14,4 @@
 
 ----------------------------------------------
 
-*Built with [StencilJS](https://stenciljs.com/)*
+developed by Bino Bi

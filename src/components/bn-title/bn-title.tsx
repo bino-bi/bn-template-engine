@@ -31,13 +31,15 @@ import withComponentStatus from "../../utils/withComponentStatus";
 
 
 export class Title {
-  /** (optional) Name of business unit. If empty buisnes unit row is omitted */
-  @Prop() readonly businessUnit: string;
+  /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
+  @Prop() readonly businessUnit: string = '';
 
 
-  /** (optional) List of scenarios. Valid scenarios are
-   *
-   *  values: ac | fc | py | pl | null
+  /** List of scenarios displayed in card header.
+   *  <br /><br />
+   *  If scenarios is empty string (`''` or `null`) the scenarios are omitted
+   *  <br /><br />
+   *  values:<br /> ```ac // fc // py // pl // null```
    */
   @Prop() readonly scenarios: string;
 
@@ -50,12 +52,14 @@ export class Title {
   }
 
 
-  /** (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are
-   *  If order is set to a scenario it has also exists in scenariolist
-   *
-   *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+  /** List of the primary scenarios on which the order direction are applied.
+   *  <br /><br />
+   *  If order is set to a scenario it has also exists in scenariolist.<br />
+   *  If order is empty string (`''` or `null`) the order arrow is omitted
+   *  <br /><br />
+   *  values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
    */
-  @Prop() readonly order: string;
+  @Prop() readonly order: string = 'category';
 
   @Watch('order')
   validateOrder(newValue: string) {
@@ -66,9 +70,9 @@ export class Title {
   }
 
 
-  /** (optional) set sorting order directon
-   *
-   * values: asc | desc
+  /** Sets sorting order directon
+   *  <br /><br />
+   *  values:<br /> ``` asc // desc ```
    */
   @Prop() readonly orderDirection: string = 'asc';
 
@@ -80,12 +84,12 @@ export class Title {
   }
 
 
-  /**(optional) stringified Array of measure Objects {name: string, unit: string}
-   *
-   * IF all units are the same the redundant units will be reduced and names concatenated
-   * IF unit is null  the 'in' label is omitted
-   *
-   * example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+  /** Stringified Array of measure objects {name: string, unit: string}
+   *  <br /><br />
+   *  If all units are the same the redundant units will be reduced and names concatenated.<br />
+   *  If unit is empty string (`''` or `null`) the row is omitted
+   *  <br /><br />
+   *  example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
    */
   @Prop() readonly measures: string;
 
@@ -97,9 +101,9 @@ export class Title {
     }
   }
 
-  /**(optional) String of start date
-   *
-   * format: yyyy-MM-dd
+  /** String of start date
+   *  <br /><br />
+   *  format:<br /> ``` yyyy-MM-dd ```
    */
   @Prop() readonly dateStart: string;
 
@@ -111,9 +115,9 @@ export class Title {
   }
 
 
-  /**(optional) String of end date
-   *
-   * format: yyyy-MM-dd
+  /** String of end date
+   *  <br /><br />
+   *  format:<br /> ``` yyyy-MM-dd ```
    */
   @Prop() readonly dateEnd: string;
 
@@ -124,20 +128,22 @@ export class Title {
     }
   }
 
-  /**(optional) String of end date (format: yyyy-MM-dd)
+  /** Date format
+   *  <br /><br />
+   *  values:<br /> ``` year // quarter // month // week // day // hour // auto // none ```
+   *  <br /><br />
    *
-   * values: year | quarter | month | week | day | hour | auto | fallback
+   *  detail:<br />
+   *  ```year: "YYYY"```<br />
+   *  ```quarter:  "Q[Q] YYYY"```<br />
+   *  ```month: "MMM YYYY"```<br />
+   *  ```week: "[KW]WW YYYY"```<br />
+   *  ```day: "DD.MM.YYYY"```<br />
+   *  ```time: "DD.MM.YYYY HH:mm:ss"```<br />
+   *  ```none: "DD.MM.YYYY"```<br />
    *
-   *  detail:
-   *  year: "YYYY",
-   *  quarter:  "Q[Q] YYYY",
-   *  month: "MMM YYYY",
-   *  week: "[KW]WW YYYY",
-   *  day: "DD.MM.YYYY",
-   *  time: "DD.MM.YYYY HH:mm:ss",
-   *  fallback: "DD.MM.YYYY",
    */
-  @Prop() readonly dateFormat: string = 'fallback';
+  @Prop() readonly dateFormat: string = 'none';
 
   @Watch('dateFormat')
   validateDateFormat(newValue: string) {
@@ -147,20 +153,24 @@ export class Title {
   }
 
 
-  /**(optional) String of end date (format: yyyy-MM-dd)
+  /** Format in which the start and end date are linked.
+   *  <br /><br />
+   * If empty string (`''` or `null`) the date row is omitted
+   * <br /><br />
+   *  values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null```
+   *  <br /><br />
    *
-   * values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |
+   *  detail:<br />
+   *  ```avg: "Ø[DATE]"```<br />
+   *  ```interval: "[DATE]..[DATE2]"```<br />
+   *  ```start: ".[DATE]"```<br />
+   *  ```end: "[DATE]."```<br />
+   *  ```ytd: "_[DATE]"```<br />
+   *  ```ytg: "[DATE]_"```<br />
+   *  ```cum: "[DATE]_[DATE2]"```<br />
+   *  ```mat: "~[DATE]"```<br />
+   *  ```none: "[DATE]"```<br />
    *
-   * detail:
-   *   avg: "Ø[DATE]",
-   *   interval:  "[DATE]..[DATE2]",
-   *   start: ".[DATE]",
-   *   end: "[DATE].",
-   *   ytd: "_[DATE]",
-   *   ytg: "[DATE]_",
-   *   cum: "[DATE]_[DATE2]",
-   *   mat: "~[DATE]",
-   *   none: "[DATE]",
    */
   @Prop() readonly dateLink: string = 'none';
 
@@ -173,11 +183,9 @@ export class Title {
 
 
   /**
-   *  Mode of Translation,
-   *
-   *  values: none| meta| all
-   *
-   *  default: meta
+   *  Mode of Translation
+   *  <br /><br />
+   *  values:<br /> ``` none // meta // all ```
    */
   @Prop() internationalisationMode: string = "meta";
 
@@ -188,7 +196,10 @@ export class Title {
     }
   }
 
-
+  /**
+   * Lookup Map of translation tokens. (TODO: SHE)
+   *
+   */
   @Prop() internationalisation?: string;
   @Watch('internationalisation')
   validateI18n(newValue: string) {
@@ -267,11 +278,18 @@ export class Title {
     return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
+  private prepareBusinessUnit(): string {
+    if (isBlankInput(this.businessUnit) || this.businessUnit == "null" ) {
+      return null;
+    }
+    return this.businessUnit;
+  }
+
   render() {
 
     return <Host>
        <ibcs-title
-        business-unit={this.businessUnit}
+        businessUnit={this.prepareBusinessUnit()}
         scenarios={this.prepareScenarios()}
         measures={this.prepareMeasures()}
         timeperiod={this.prepareTitleTimePeriod()}

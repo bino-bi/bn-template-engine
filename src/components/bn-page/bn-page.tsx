@@ -6,16 +6,23 @@ import {Component, h, Host, Prop, Watch, Element, Method} from "@stencil/core";
 export class Page {
   @Element() el: HTMLElement
   /**
-   * Define the size of the page
-   *
-   * values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal
-   * default: xga
+   * Defines the size of the page
+   * <br /><br />
+   * values:
+   * <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ```
+   * <br /><br />
+   * default: <br /> ```xga```
    */
   @Prop() format: string;
 
   /**
-   * values: landscape | portrait
-   * default: based on the given format
+   * Defines page orientation
+   * <br /><br />
+   * values:
+   * <br /> ``` landscape // portrait ```
+   * <br /><br />
+   * default:
+   * <br /> based on the given format
    */
   @Prop() orientation: string;
 

@@ -1,6 +1,6 @@
 # bn-template
 
-
+TODO: SHE Was genau macht bn-template?
 
 <!-- Auto Generated Below -->
 
@@ -14,4 +14,4 @@
 
 ----------------------------------------------
 
-*Built with [StencilJS](https://stenciljs.com/)*
+developed by Bino Bi

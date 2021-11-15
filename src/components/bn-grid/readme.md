@@ -1,5 +1,6 @@
 # bn-grid
 
+TODO: SHE Was genau macht bn-grid?
 
 
 <!-- Auto Generated Below -->
@@ -17,4 +18,4 @@
 
 ----------------------------------------------
 
-*Built with [StencilJS](https://stenciljs.com/)*
+developed by Bino Bi

@@ -1,17 +1,18 @@
 # bn-footer
 
-
+**bn-footer** determines the area in which the footer-content of the report is placed.
+The **bn-body** is a child element of bn-page and mandatory for a valid report template.
 
 <!-- Auto Generated Below -->
 
 
 ## Properties
 
-| Property            | Attribute             | Description | Type      | Default     |
-| ------------------- | --------------------- | ----------- | --------- | ----------- |
-| `displayPageNumber` | `display-page-number` |             | `boolean` | `true`      |
-| `pageNumber`        | `page-number`         |             | `number`  | `null`      |
-| `text`              | `text`                |             | `string`  | `undefined` |
+| Property            | Attribute             | Description                                                                   | Type      | Default     |
+| ------------------- | --------------------- | ----------------------------------------------------------------------------- | --------- | ----------- |
+| `displayPageNumber` | `display-page-number` | Toggle if pagenumer label is displayed                                        | `boolean` | `true`      |
+| `pageNumber`        | `page-number`         | Pagenumber value. Is displayed if displayPageNumber == true                   | `number`  | `null`      |
+| `text`              | `text`                | Footer text. <br />If empty string (`''` or `null`) the footer row is omitted | `string`  | `undefined` |
 
 
 ## Dependencies
@@ -29,4 +30,4 @@ graph TD;
 
 ----------------------------------------------
 
-*Built with [StencilJS](https://stenciljs.com/)*
+developed by Bino Bi

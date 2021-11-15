@@ -16,6 +16,7 @@ export const config: Config = {
     },
     {
       type: 'docs-readme',
+      footer: 'developed by Bino Bi',
     },
     {
       type: 'www',

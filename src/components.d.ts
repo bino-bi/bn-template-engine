@@ -10,86 +10,95 @@ export namespace Components {
     }
     interface BnCard {
         /**
-          * (optional) Name of business unit. If empty buisnes unit row is omitted
+          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
          */
         "businessUnit": string;
         /**
-          * (optional) String of end date  format: yyyy-MM-dd
+          * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateEnd": string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+          * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
          */
         "dateFormat": string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+          * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
          */
         "dateLink": string;
         /**
-          * (optional) String of start date  format: yyyy-MM-dd
+          * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateStart": string;
         /**
-          * Custom Text for Footer  alues: generic string
+          * Custom text for footer which is displayed in the bottom-left of the card element<br /> If empty string (`''` or `null`) the footer row is omitted <br /><br /> example:<br /> ``` Hello, Footer!```
          */
         "footerText": string;
         /**
-          * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
+          * Url of the cards logo/ pictogram. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
          */
         "image": string;
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
          */
         "internationalisationMode": string;
         /**
-          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+          * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
          */
         "measures": string;
         /**
-          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
          */
         "order": string;
         /**
-          * (optional) set sorting order directon  values: asc | desc
+          * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
+          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios": string;
         /**
-          * show or hides the cards border  alues: true | false
+          * show or hides the cards border <br /><br /> values:<br /> ``` true // false ```
          */
         "showBorder": string;
     }
     interface BnChart {
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ``` <br /><br /> default:<br /> ``` meta ```
          */
         "internationalisationMode": string;
         /**
-          * Determines level on which the chart is aggregated on. valid values are  rowcategory, catgeory, subcategory default: category
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
         "level": string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
         "order": string;
         /**
-          * set sorting order directon  values: asc | desc
+          * set sorting order direction <br /><br /> values:<br /> ```asc // desc```
          */
         "orderDirection": string;
         /**
-          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*   a negative or a positive value.    if empty variance charts are hidden    each variance creates a chart    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
          */
         "scenarios": string;
-        "styles"?: 'String';
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly  alternativly a number which represent the pixel per measure unit directy. the
+          * Custom Styles for chart scnearios. <br /> <br /> feature is not yet activated <br /> <br /> interface for format is *BinoChartSyles*
          */
-        "unitScaling": string;
+        "styles": string;
+        /**
+          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+         */
+        "unitScaling": string | number;
     }
     interface BnContext {
         "locale": string;
@@ -108,8 +117,17 @@ export namespace Components {
         "name": string;
     }
     interface BnFooter {
+        /**
+          * Toggle if pagenumer label is displayed
+         */
         "displayPageNumber": boolean;
+        /**
+          * Pagenumber value. Is displayed if displayPageNumber == true
+         */
         "pageNumber": number | null;
+        /**
+          * Footer text. <br />If empty string (`''` or `null`) the footer row is omitted
+         */
         "text": string;
     }
     interface BnGrid {
@@ -121,11 +139,11 @@ export namespace Components {
     interface BnPage {
         "_setCurrentPageIndex": (value: number) => Promise<void>;
         /**
-          * Define the size of the page  values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal default: xga
+          * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga```
          */
         "format": string;
         /**
-          * values: landscape | portrait default: based on the given format
+          * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
          */
         "orientation": string;
     }
@@ -206,44 +224,47 @@ export namespace Components {
     }
     interface BnTitle {
         /**
-          * (optional) Name of business unit. If empty buisnes unit row is omitted
+          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
          */
         "businessUnit": string;
         /**
-          * (optional) String of end date  format: yyyy-MM-dd
+          * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateEnd": string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+          * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
          */
         "dateFormat": string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+          * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
          */
         "dateLink": string;
         /**
-          * (optional) String of start date  format: yyyy-MM-dd
+          * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateStart": string;
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
          */
         "internationalisationMode": string;
         /**
-          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+          * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
          */
         "measures": string;
         /**
-          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
          */
         "order": string;
         /**
-          * (optional) set sorting order directon  values: asc | desc
+          * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
          */
         "orderDirection": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
+          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios": string;
     }
@@ -348,86 +369,95 @@ declare namespace LocalJSX {
     }
     interface BnCard {
         /**
-          * (optional) Name of business unit. If empty buisnes unit row is omitted
+          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
          */
         "businessUnit"?: string;
         /**
-          * (optional) String of end date  format: yyyy-MM-dd
+          * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateEnd"?: string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+          * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
          */
         "dateFormat"?: string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+          * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
          */
         "dateLink"?: string;
         /**
-          * (optional) String of start date  format: yyyy-MM-dd
+          * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateStart"?: string;
         /**
-          * Custom Text for Footer  alues: generic string
+          * Custom text for footer which is displayed in the bottom-left of the card element<br /> If empty string (`''` or `null`) the footer row is omitted <br /><br /> example:<br /> ``` Hello, Footer!```
          */
         "footerText"?: string;
         /**
-          * Url of the cards logo/ pictogram. if not http it looks up the url in the components asset folder  detail:  debug/concordia.png
+          * Url of the cards logo/ pictogram. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
          */
         "image"?: string;
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
          */
         "internationalisationMode"?: string;
         /**
-          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+          * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
          */
         "measures"?: string;
         /**
-          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
          */
         "order"?: string;
         /**
-          * (optional) set sorting order directon  values: asc | desc
+          * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
          */
         "orderDirection"?: string;
         /**
-          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
+          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios"?: string;
         /**
-          * show or hides the cards border  alues: true | false
+          * show or hides the cards border <br /><br /> values:<br /> ``` true // false ```
          */
-        "showBorder": string;
+        "showBorder"?: string;
     }
     interface BnChart {
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ``` <br /><br /> default:<br /> ``` meta ```
          */
         "internationalisationMode"?: string;
         /**
-          * Determines level on which the chart is aggregated on. valid values are  rowcategory, catgeory, subcategory default: category
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
         "level": string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
         "order": string;
         /**
-          * set sorting order directon  values: asc | desc
+          * set sorting order direction <br /><br /> values:<br /> ```asc // desc```
          */
         "orderDirection": string;
         /**
-          * (mandatory) List of Scenarios Map. the position of the scenario is maped to the datasource column scenario1 - scenario4  if empty the main chart is hidden  Valid scenarios are   values: ac | fc | py | pl  (1-4)  example: ac, ac2, ac3, ac4   list of additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property.    the variance is defiend as  (Scenario A -  SvenarioB)   neg and pos post fix defines which value is *good*   a negative or a positive value.    if empty variance charts are hidden    each variance creates a chart    pattern:  d<scenarioB>_<scenarioA>_[pos|neg]
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
          */
         "scenarios": string;
-        "styles"?: 'String';
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly  alternativly a number which represent the pixel per measure unit directy. the
+          * Custom Styles for chart scnearios. <br /> <br /> feature is not yet activated <br /> <br /> interface for format is *BinoChartSyles*
          */
-        "unitScaling": string;
+        "styles"?: string;
+        /**
+          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+         */
+        "unitScaling": string | number;
     }
     interface BnContext {
         "locale"?: string;
@@ -446,8 +476,17 @@ declare namespace LocalJSX {
         "name": string;
     }
     interface BnFooter {
+        /**
+          * Toggle if pagenumer label is displayed
+         */
         "displayPageNumber"?: boolean;
+        /**
+          * Pagenumber value. Is displayed if displayPageNumber == true
+         */
         "pageNumber"?: number | null;
+        /**
+          * Footer text. <br />If empty string (`''` or `null`) the footer row is omitted
+         */
         "text"?: string;
     }
     interface BnGrid {
@@ -458,11 +497,11 @@ declare namespace LocalJSX {
     }
     interface BnPage {
         /**
-          * Define the size of the page  values: xga | hd | full-hd | 4k | 4k2k | a4 | a3 | a2 | a1 | a0 | letter | legal default: xga
+          * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga```
          */
         "format"?: string;
         /**
-          * values: landscape | portrait default: based on the given format
+          * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
          */
         "orientation"?: string;
     }
@@ -543,44 +582,47 @@ declare namespace LocalJSX {
     }
     interface BnTitle {
         /**
-          * (optional) Name of business unit. If empty buisnes unit row is omitted
+          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
          */
         "businessUnit"?: string;
         /**
-          * (optional) String of end date  format: yyyy-MM-dd
+          * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateEnd"?: string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: year | quarter | month | week | day | hour | auto | fallback  detail: year: "YYYY", quarter:  "Q[Q] YYYY", month: "MMM YYYY", week: "[KW]WW YYYY", day: "DD.MM.YYYY", time: "DD.MM.YYYY HH:mm:ss", fallback: "DD.MM.YYYY",
+          * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
          */
         "dateFormat"?: string;
         /**
-          * (optional) String of end date (format: yyyy-MM-dd)  values: avg | interval | cum | start | end | ytd | ytg | cum | mat | none |  detail:  avg: "Ø[DATE]",  interval:  "[DATE]..[DATE2]",  start: ".[DATE]",  end: "[DATE].",  ytd: "_[DATE]",  ytg: "[DATE]_",  cum: "[DATE]_[DATE2]",  mat: "~[DATE]",  none: "[DATE]",
+          * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
          */
         "dateLink"?: string;
         /**
-          * (optional) String of start date  format: yyyy-MM-dd
+          * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateStart"?: string;
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
          */
         "internationalisationMode"?: string;
         /**
-          * (optional) stringified Array of measure Objects {name: string, unit: string}  IF all units are the same the redundant units will be reduced and names concatenated IF unit is null  the 'in' label is omitted  example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]
+          * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
          */
         "measures"?: string;
         /**
-          * (optional) List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | py | pl
+          * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
          */
         "order"?: string;
         /**
-          * (optional) set sorting order directon  values: asc | desc
+          * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
          */
         "orderDirection"?: string;
         /**
-          * (optional) List of scenarios. Valid scenarios are  values: ac | fc | py | pl | null
+          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios"?: string;
     }
