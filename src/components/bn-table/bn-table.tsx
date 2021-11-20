@@ -51,8 +51,7 @@ export class Table {
   }
 
   /**
-   * A not mundane tile for the shard,
-   * which describes the shown data.
+   * A not mundane tile which should describes the shown data.
    */
   @Prop() tableTitle!: string;
 
@@ -77,12 +76,13 @@ export class Table {
 
 
   /**
-   * (optional) Scenario Unit Type
-   *
-   *  percent all data values are converted into percent
+   *  Defines the data unit type of the tables data.
+   *  <br /><br />
+   *  If percent is chosen all data values are converted into percent
    *  (0.02 ->  2%)
-   *
-   *  values: percent | decimal
+   *  <br /><br />
+   *  values: <br />
+   *    ```percent  // decimal```
    */
   @Prop() dataFormat!: string;
 
@@ -331,7 +331,10 @@ export class Table {
     }
   }
 
-  @Prop() dataFormatDigitsDecimal?: number = 1;
+  /**
+   * Number of decimal digits in a table cell
+   */
+  @Prop() dataFormatDigitsDecimal: number = 1;
 
   @Watch('dataFormatDigitsDecimal')
   validateDataFormatDigitsDecimal(newValue: number) {
@@ -340,8 +343,10 @@ export class Table {
     }
   }
 
-
-  @Prop() dataFormatDigitsPercent?: number = 2;
+  /**
+   * Number of percent digits in a table cell
+   */
+  @Prop() dataFormatDigitsPercent: number = 2;
 
   @Watch('dataFormatDigitsPercent')
   validateDateFormatDigitsPercent(newValue: number) {
@@ -350,12 +355,15 @@ export class Table {
     }
   }
 
-  /** set width of category columns
-   *
-   * values: W5 | W10 | W15 | W20 | W25 | W50 | INF
-   * default: W15
+  /**
+   *  Set width of category columns. <br />
+   *  If INF is selected the columns scaling to the min space they need
+   *  seperatly.
+   *  <br /><br />
+   *  values:<br />
+   *  ``` W5 // W10 // W15 // W20 // W25 // W50 // INF ```
    */
-  @Prop() categoryWidth?: string;
+  @Prop() categoryWidth: string = 'W15';
 
   @Watch('categoryWidth')
   validateCategoryWidth(newValue: string) {
@@ -364,17 +372,20 @@ export class Table {
     }
   }
 
-  /** column drill
-   *
-   * example:
-   * {"ac1": [{"name": "DE", "subGroups": ["Berlin"]},
-   *          {"name": "UK", "subGroups": []}]                                         ],
-   * }
+  /**
+   * Defines which drill-column is displayed. <br />
+   * <br /><br />
+   * ```name``` is the name of the parent column of the drill <br/>
+   * ```subGroups``` is a list of child columns of the parent <br/><br/>
+   * example:<br />
+   * ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},
+   *          {"name": "UK", "subGroups": []}],
+   *    }```
    */
-  @Prop() categorythereof?: string;
+  @Prop() categorythereof: string | null = null;
 
   @Watch('categorythereof')
-  validateCategoryThereOf(newValue: string) {
+  validateCategoryThereOf(newValue: string | null) {
       const invalidElements: string[] = validateCategoryThereOfJsonStr(newValue);
     if (invalidElements.length > 0) {
       throw new Error('categorythereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');

@@ -339,7 +339,42 @@
 
 
     <bn-body>
-      <bn-chart
+
+      <bn-table
+        datasets        ="$marktwert"
+        category-width      ='inf'
+        categorythereof = ''
+        data-format         ="decimal"
+        data-format-digits-decimal = "0"
+        data-format-digits-percent = "0"
+        grouped             ="true"
+        internationalisation = ''
+        internationalisation-mode = ''
+        limit               ='0'
+        measure-scale       ='_'
+        measure-type        ='volume'
+        order               ='subCategory'
+        order-direction     ='asc'
+        partof              ='[]'
+        scenarios           ='ac1,pp1,dpp1_ac1_pos'
+        show-group-title    ='false'
+        table-title         ='Example Table'
+        thereof             ='[
+          {
+            "rowgroup":     "",
+            "category":     "",
+            "subcategory":  "",
+            "partof":       ""
+          }
+          ]'
+        type                ='list' >
+      </bn-table>
+
+
+
+<!--
+
+ <bn-chart
         internationalisation = null
         internationalisationMode = 'meta'
         level= 'category'
@@ -351,8 +386,6 @@
         datasets="$marktwert"
       >
       </bn-chart>
-
-<!--
       <bn-text datasets="$marktwert" value="Das ist ein test ${test} ${new Date()}" />
       <bn-card
         measures='[{"name": "Marktwert", "unit": "mEUR"}]'

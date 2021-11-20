@@ -149,19 +149,25 @@ export namespace Components {
     }
     interface BnTable {
         /**
-          * set width of category columns  values: W5 | W10 | W15 | W20 | W25 | W50 | INF default: W15
+          * Set width of category columns. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` W5 // W10 // W15 // W20 // W25 // W50 // INF ```
          */
-        "categoryWidth"?: string;
+        "categoryWidth": string;
         /**
-          * column drill  example: {"ac1": [{"name": "DE", "subGroups": ["Berlin"]},         {"name": "UK", "subGroups": []}]                                         ], }
+          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},          {"name": "UK", "subGroups": []}],    }```
          */
-        "categorythereof"?: string;
+        "categorythereof": string | null;
         /**
-          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   values: percent | decimal
+          * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br />   ```percent  // decimal```
          */
         "dataFormat": string;
-        "dataFormatDigitsDecimal"?: number;
-        "dataFormatDigitsPercent"?: number;
+        /**
+          * Number of decimal digits in a table cell
+         */
+        "dataFormatDigitsDecimal": number;
+        /**
+          * Number of percent digits in a table cell
+         */
+        "dataFormatDigitsPercent": number;
         /**
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
          */
@@ -204,7 +210,7 @@ export namespace Components {
          */
         "showGroupTitle": boolean | string;
         /**
-          * A not mundane tile for the shard, which describes the shown data.
+          * A not mundane tile which should describes the shown data.
          */
         "tableTitle": string;
         /**
@@ -507,18 +513,24 @@ declare namespace LocalJSX {
     }
     interface BnTable {
         /**
-          * set width of category columns  values: W5 | W10 | W15 | W20 | W25 | W50 | INF default: W15
+          * Set width of category columns. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` W5 // W10 // W15 // W20 // W25 // W50 // INF ```
          */
         "categoryWidth"?: string;
         /**
-          * column drill  example: {"ac1": [{"name": "DE", "subGroups": ["Berlin"]},         {"name": "UK", "subGroups": []}]                                         ], }
+          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},          {"name": "UK", "subGroups": []}],    }```
          */
-        "categorythereof"?: string;
+        "categorythereof"?: string | null;
         /**
-          * (optional) Scenario Unit Type   percent all data values are converted into percent  (0.02 ->  2%)   values: percent | decimal
+          * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br />   ```percent  // decimal```
          */
         "dataFormat": string;
+        /**
+          * Number of decimal digits in a table cell
+         */
         "dataFormatDigitsDecimal"?: number;
+        /**
+          * Number of percent digits in a table cell
+         */
         "dataFormatDigitsPercent"?: number;
         /**
           * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
@@ -562,7 +574,7 @@ declare namespace LocalJSX {
          */
         "showGroupTitle": boolean | string;
         /**
-          * A not mundane tile for the shard, which describes the shown data.
+          * A not mundane tile which should describes the shown data.
          */
         "tableTitle": string;
         /**
