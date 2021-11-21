@@ -4,6 +4,13 @@
 It supports the main chart with up to 4 scenarios and additonal variance charts (unlimited)
 
 The **bn-chart** can be used within the bn-content element
+
+## Mixins
+@withStyle
+@withComponentStatus
+@withDataset
+
+
 **Example**
 ```html
  <bn-body>

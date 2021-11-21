@@ -8,7 +8,7 @@ import state from '../../stores/context';
 export class Context {
   @Element() el: HTMLElement;
 
-  @Prop() locale: string;
+  @Prop() locale!: string;
 
   @Watch('locale')
   setLocale(newValue: string) {

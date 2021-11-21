@@ -7,6 +7,8 @@ In addition it prides space for a logo/pictogram which can be displayed in the t
 
 The **bn-card** can be used within the bn-content element
 
+## Mixins
+@withStyle
 
 **Example**<br />
 

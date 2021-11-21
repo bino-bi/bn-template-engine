@@ -54,9 +54,9 @@
     "categoryIndex": 2,
     "subCategory": "Applications-A",
     "subCategoryIndex":1 ,
-    "columnGroup": "test",
+    "columnGroup": "DE",
     "columnGroupIndex": null,
-    "columnSubGroup": "test2",
+    "columnSubGroup": "Frankfurt",
     "columnSubGroupIndex": null,
     "ac1": 1,
     "pp1": 7,
@@ -84,9 +84,9 @@
     "categoryIndex": 2,
     "subCategory": "Applications-B",
     "subCategoryIndex":2 ,
-    "columnGroup": null,
+    "columnGroup": "DE",
     "columnGroupIndex": null,
-    "columnSubGroup": null,
+    "columnSubGroup": "Frankfurt",
     "columnSubGroupIndex": null,
     "ac1": 5,
     "pp1": 7,
@@ -308,7 +308,7 @@
     "columnGroup": null,
     "columnGroupIndex": null,
     "columnSubGroup": null,
-    "columnSubGroupIndex": null,"ac1": 1.556, "pp1": 7, "fc1": 6, "pl1": 13,
+    "columnSubGroupIndex": null,"ac1": 1551, "pp1": 7, "fc1": 6, "pl1": 13,
     "ac2": 1,
     "pp2": 7,
     "fc2": 7,
@@ -340,36 +340,35 @@
 
     <bn-body>
 
+
       <bn-table
-        datasets        ="$marktwert"
+        datasets            ="$marktwert"
         category-width      ='inf'
-        categorythereof = ''
+        categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'
         data-format         ="decimal"
-        data-format-digits-decimal = "0"
-        data-format-digits-percent = "0"
+        data-format-digits-decimal = "2"
+        data-format-digits-percent = "2"
         grouped             ="true"
         internationalisation = ''
         internationalisation-mode = ''
         limit               ='0'
-        measure-scale       ='_'
-        measure-type        ='volume'
-        order               ='subCategory'
-        order-direction     ='asc'
+        measure-scale       ='least'
+        measure-type        ='currency'
+        order               ='ac1'
+        order-direction     ='desc'
         partof              ='[]'
-        scenarios           ='ac1,pp1,dpp1_ac1_pos'
-        show-group-title    ='false'
+        scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'
+        show-group-title    ='true'
         table-title         ='Example Table'
         thereof             ='[
           {
-            "rowgroup":     "",
-            "category":     "",
-            "subcategory":  "",
-            "partof":       ""
+            "rowgroup":     "Kosten",
+            "category":     "lime",
+            "subcategory":  ""
           }
           ]'
-        type                ='list' >
+        type                ='opt' >
       </bn-table>
-
 
 
 <!--

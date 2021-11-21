@@ -6,7 +6,10 @@ import withDataset from "../../utils/withDataset";
   tag: 'bn-text',
   styleUrl: 'bn-text.scss',
 })
+
+
 export class Text {
+
   @Prop() value?: string;
 
   @State() data: any = {}

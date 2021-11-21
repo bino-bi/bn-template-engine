@@ -57,12 +57,13 @@ export class Table {
 
 
   /**
-   * (optional) List of scenarios. Valid scenarios are
-   *
+   *  List of scenarios. Valid scenarios are
+   *  <br /><br />
    *  variances pattern d<scenario_baseScenario>
    *  relative variance pattern dr<scenario_baseScenario>
-   *
-   *  values: ac1 | fc1 | pp1 | pl1 | dfc1_ac1 | drfc1_ac1
+   * <br /><br />
+   *  values: <br />
+   *  ```ac[1-4] | fc[1-4] | pp[1-4] | pl[1-4] | dfc[1-4]_ac[1-4] | drfc[1-4]_ac[1-4]```
    */
   @Prop() readonly scenarios!: string;
 
@@ -82,9 +83,9 @@ export class Table {
    *  (0.02 ->  2%)
    *  <br /><br />
    *  values: <br />
-   *    ```percent  // decimal```
+   *  ```percent  // decimal```
    */
-  @Prop() dataFormat!: string;
+  @Prop() dataFormat: string = 'decimal';
 
   @Watch('dataFormat')
   validateDataFormat(newValue: string) {
@@ -97,14 +98,14 @@ export class Table {
   /**
    *  Toggles of data should be grouped by
    *  'rowgroup'.
-   *
-   *  values: true | false
-   *  default: true
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
    */
-  @Prop() grouped!: boolean | string;
+  @Prop() grouped:  string = 'false';
 
   @Watch('grouped')
-  validateGrouped(newValue: string | boolean) {
+  validateGrouped(newValue: string) {
     if (!isValidBoolean(newValue)) {
       throw new Error('grouped: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
@@ -114,15 +115,15 @@ export class Table {
   /**
    *  Toggles a title header for each (row-)group
    *  the title header value is found set by 'rowgroup'
-   *
-   *  values: true | false
-   *  default: true
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
    *
    */
-  @Prop() showGroupTitle!: boolean | string;
+  @Prop() showGroupTitle: string = 'true';
 
   @Watch('showGroupTitle')
-  validateShowGroupTitle(newValue: string | boolean) {
+  validateShowGroupTitle(newValue: string ) {
     if (!isValidBoolean(newValue)) {
       throw new Error('showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
@@ -131,11 +132,12 @@ export class Table {
 
   /**
    *  Set the table type
-   *
-   *  list | sum | opt | sumnototal | optnototal
+   *  <br /><br />
+   *  values: <br />
+   *  ```list // sum // opt // sumnototal // optnototal```
    *
    */
-  @Prop() type!: string;
+  @Prop() type: string = 'list';
 
   @Watch('type')
   validateType(newValue: string | boolean) {
@@ -146,9 +148,9 @@ export class Table {
 
 
   /**
-   * (optional) Set the maximum number of rows for each
+   * Set the maximum number of rows for each
    * group. The value 0 means *no limit*
-   *
+   * <br /><br />
    * rows wich where cut by the limit are cumulated as REST
    *
    */
@@ -163,19 +165,20 @@ export class Table {
 
 
   /**
-   * (optional) stringified Array of drilldown Objects {
-            "rowgroup": string,
-            "category": string,
-            "subcategory": string,
-          },
+   * Stringified Array of drilldown Objects {
+            "rowgroup": string,<br />
+            "category": string,<br />
+            "subcategory": string,<br />
+          },<br /><br />
    * rowgroup, categroy defines the location of the drill
    * subcategory is the displayed label of the data row
-   *
-   * example: [{
+   *<br /><br />
+   * example:<br />
+   * ```[{
    "rowgroup":"Umsatz",
    "category": "Applications",
    "subcategory": "Applications-A",
-   },]
+   },]```
    */
   @Prop() thereof: string = '[]';
 
@@ -188,17 +191,18 @@ export class Table {
   }
 
   /**
-   * (optional) stringified Array of Partof Objects {
-            "rowgroup": string,
-            "category": string
-          },
+   * Stringified Array of Partof Objects <br />{<br />
+            "rowgroup": string,<br />
+            "category": string<br />
+          },<br /><br />
    * rowgroup, categroy defines the location of the drill
    * percentage of category in rowgorup
-   *
-   * example: [{
+   *<br /><br />
+   * example:<br />
+   * ```[{
    "rowgroup":"Umsatz",
    "category": "Applications",
-   },]
+   },]```
    */
   @Prop() partof: string = '[]';
 
@@ -213,10 +217,11 @@ export class Table {
 
   /** List of the primary scenarios on which the order direction are applied  valid scenarios are
    *  If order is set to a scenario it has also exists in scenariolist
-   *
-   *  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
+   *  <br /><br />
+   *  values: <br />
+   *  ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
    */
-  @Prop() order!: string;
+  @Prop() order: string = 'category';
 
   @Watch('order')
   validateOrderList(newValue: string) {
@@ -227,16 +232,12 @@ export class Table {
   }
 
 
-  /** set sorting order directon
-   *
-   * values: asc | desc
+  /** Set sorting order direction
+   *  <br /><br />
+   *  values: <br />
+   * ```asc  // desc```
    */
-  @Prop() orderDirection!: string;
-
-  /** set translaton mode.
-   *
-   * values:   all | none | meta
-   */
+  @Prop() orderDirection: string = 'asc';
 
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
@@ -249,11 +250,12 @@ export class Table {
   /** Sets the Measure Type of the Table
    *  volume is different displayed and interpreted as currency
    *  names of siprefix are adapted.
-   *
-   *  values: volume |currency
-   *  default: currency
+   *  <br /><br />
+   *  values: <br />
+   *  ```volume // currency```
+
    */
-  @Prop() measureType: string = "VOLUME";
+  @Prop() measureType: string = "volume";
 
   @Watch('measureType')
   validateMeasureType(newValue: string) {
@@ -263,40 +265,40 @@ export class Table {
   }
 
   /**
-   * Sets the SiPrefix of the Mesaurements and converts the
-   * original value.
-   *
-   *  values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST
-   *  default: GREATEST
-   *
+   *  Sets the SiPrefix of the Mesaurements and converts the
+   *  original value.
+   *  <br /><br />
+   *  values:  <br />
+   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
+   *  <br /><br />
    *  SiPrefix overview:
-   *      "Y":  1E+24,
-   *       "Z":  1E+21,
-   *       "E":  1E+18,
-   *       "P":  1E+15,
-   *       "T":  1E+12,
-   *       "G":  1000000000,
-   *       "M":  1000000,
-   *       "k":  1000,
-   *
-   *       "m":  0.001,
-   *       "μ":  0.000001,
-   *       "n":  0.000000001,
-   *       "p":  0.000000000001,
-   *       "f":  0.000000000000001,
-   *       "a":  0.000000000000000001,
-   *       "z":  0.000000000000000000001,
-   *       "y":  0.000000000000000000000001,
-   *
+   *  ```     "Y":  1E+24,```<br />
+   *  ```    "Z":  1E+21,```<br />
+   *  ```   "E":  1E+18,```<br />
+   *  ```     "P":  1E+15,```<br />
+   *  ```     "T":  1E+12,```<br />
+   *  ```     "G":  1000000000,```<br />
+   *  ```     "M":  1000000,```<br />
+   *  ```     "k":  1000,```<br />
+   *  <br />
+   *  ```     "m":  0.001,```<br />
+   *  ```    "μ":  0.000001,```<br />
+   *  ```     "n":  0.000000001,```<br />
+   *  ```     "p":  0.000000000001,```<br />
+   *  ```     "f":  0.000000000000001,```<br />
+   *  ```     "a":  0.000000000000000001,```<br />
+   *  ```     "z":  0.000000000000000000001,```<br />
+   *  ```     "y":  0.000000000000000000000001,```<br />
+   *  <br /><br />
    * Special modes:
-   * GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix
-   * LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix
-   *
-   * _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+   * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   *<br /><br />
+   * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
    *
    *
    */
-  @Prop() measureScale: string = "GREATEST";
+  @Prop() measureScale: string = "greatest";
 
   @Watch('measureType')
   validateMeasureScale(newValue: string) {
@@ -305,12 +307,10 @@ export class Table {
     }
   }
 
-  /**
-   *  Mode of Translation,
-   *
-   *  values: none| meta| all
-   *
-   *  default: meta
+  /** set translaton mode.
+   * <br /><br />
+   * values:<br />
+   * ```all // none // meta```
    */
   @Prop() internationalisationMode: string = "meta";
 
@@ -321,7 +321,10 @@ export class Table {
     }
   }
 
-
+  /**
+   * Lookup Map of translation tokens. (TODO: SHE)
+   *
+   */
   @Prop() internationalisation?: string;
 
   @Watch('internationalisation')
@@ -379,7 +382,7 @@ export class Table {
    * ```subGroups``` is a list of child columns of the parent <br/><br/>
    * example:<br />
    * ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},
-   *          {"name": "UK", "subGroups": []}],
+   *             {"name": "UK", "subGroups": []}],
    *    }```
    */
   @Prop() categorythereof: string | null = null;
@@ -427,11 +430,11 @@ export class Table {
   }
 
   private prepareGrouped(): boolean {
-    return (this.grouped == true || this.grouped == "true");
+    return (this.grouped == "true");
   }
 
   private prepareShowGroupTitle(): boolean {
-    return (this.showGroupTitle == true || this.showGroupTitle == "true");
+    return ( this.showGroupTitle == "true");
   }
 
   private prepareTableType(): TableType {

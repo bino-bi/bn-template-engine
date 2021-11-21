@@ -1,6 +1,12 @@
 # bn-text
 
-TODO: SHE Was genau macht bn-text?
+Component to place Text
+
+## Mixins
+@withStyle
+@withDataset
+
+**Example**
 
 <!-- Auto Generated Below -->
 

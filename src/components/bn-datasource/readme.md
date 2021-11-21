@@ -1,6 +1,7 @@
 # bn-datasource
 
-TODO: SHE Was genau macht bn-datasource?
+@Internal 
+In bn-datasource body a json array object stores the data 
 
 <!-- Auto Generated Below -->
 

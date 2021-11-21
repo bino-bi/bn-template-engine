@@ -104,6 +104,9 @@ export namespace Components {
         "locale": string;
     }
     interface BnDataset {
+        /**
+          * Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```
+         */
         "datasources": string;
         /**
           * Unique (template scope) name of the datasource
@@ -153,11 +156,11 @@ export namespace Components {
          */
         "categoryWidth": string;
         /**
-          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},          {"name": "UK", "subGroups": []}],    }```
+          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},             {"name": "UK", "subGroups": []}],    }```
          */
         "categorythereof": string | null;
         /**
-          * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br />   ```percent  // decimal```
+          * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
          */
         "dataFormat": string;
         /**
@@ -169,60 +172,66 @@ export namespace Components {
          */
         "dataFormatDigitsPercent": number;
         /**
-          * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
+          * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
          */
-        "grouped": boolean | string;
+        "grouped": string;
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * set translaton mode. <br /><br /> values:<br /> ```all // none // meta```
          */
         "internationalisationMode": string;
         /**
-          * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
+          * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
          */
         "limit": number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":  1E+24,       "Z":  1E+21,       "E":  1E+18,       "P":  1E+15,       "T":  1E+12,       "G":  1000000000,       "M":  1000000,       "k":  1000,        "m":  0.001,       "μ":  0.000001,       "n":  0.000000001,       "p":  0.000000000001,       "f":  0.000000000000001,       "a":  0.000000000000000001,       "z":  0.000000000000000000001,       "y":  0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
          */
         "measureScale": string;
         /**
-          * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted.  values: volume |currency default: currency
+          * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted. <br /><br /> values: <br /> ```volume // currency```
          */
         "measureType": string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
          */
         "order": string;
         /**
-          * set sorting order directon  values: asc | desc
+          * Set sorting order direction <br /><br /> values: <br /> ```asc  // desc```
          */
         "orderDirection": string;
         /**
-          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{ "rowgroup":"Umsatz", "category": "Applications", },]
+          * Stringified Array of Partof Objects <br />{<br />        "rowgroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", },]```
          */
         "partof": string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac1 | fc1 | pp1 | pl1 | dfc1_ac1 | drfc1_ac1
+          * List of scenarios. Valid scenarios are <br /><br /> variances pattern d<scenario_baseScenario> relative variance pattern dr<scenario_baseScenario> <br /><br /> values: <br /> ```ac[1-4] | fc[1-4] | pp[1-4] | pl[1-4] | dfc[1-4]_ac[1-4] | drfc[1-4]_ac[1-4]```
          */
         "scenarios": string;
         /**
-          * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
+          * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
          */
-        "showGroupTitle": boolean | string;
+        "showGroupTitle": string;
         /**
           * A not mundane tile which should describes the shown data.
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]
+          * Stringified Array of drilldown Objects {        "rowgroup": string,<br />        "category": string,<br />        "subcategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]```
          */
         "thereof": string;
         /**
-          * Set the table type  list | sum | opt | sumnototal | optnototal
+          * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
          */
         "type": string;
     }
     interface BnTemplate {
+        /**
+          * Worldwide unique id generated by BinoBI
+         */
         "templateId": string;
     }
     interface BnText {
@@ -466,9 +475,12 @@ declare namespace LocalJSX {
         "unitScaling": string | number;
     }
     interface BnContext {
-        "locale"?: string;
+        "locale": string;
     }
     interface BnDataset {
+        /**
+          * Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```
+         */
         "datasources"?: string;
         /**
           * Unique (template scope) name of the datasource
@@ -517,13 +529,13 @@ declare namespace LocalJSX {
          */
         "categoryWidth"?: string;
         /**
-          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},          {"name": "UK", "subGroups": []}],    }```
+          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},             {"name": "UK", "subGroups": []}],    }```
          */
         "categorythereof"?: string | null;
         /**
-          * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br />   ```percent  // decimal```
+          * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
          */
-        "dataFormat": string;
+        "dataFormat"?: string;
         /**
           * Number of decimal digits in a table cell
          */
@@ -533,60 +545,66 @@ declare namespace LocalJSX {
          */
         "dataFormatDigitsPercent"?: number;
         /**
-          * Toggles of data should be grouped by 'rowgroup'.  values: true | false default: true
+          * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
          */
-        "grouped": boolean | string;
+        "grouped"?: string;
+        /**
+          * Lookup Map of translation tokens. (TODO: SHE)
+         */
         "internationalisation"?: string;
         /**
-          * Mode of Translation,  values: none| meta| all  default: meta
+          * set translaton mode. <br /><br /> values:<br /> ```all // none // meta```
          */
         "internationalisationMode"?: string;
         /**
-          * (optional) Set the maximum number of rows for each group. The value 0 means *no limit*  rows wich where cut by the limit are cumulated as REST
+          * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
          */
         "limit"?: number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value.   values:  _ | k | M | G | T | P | E |Z |Y |m |μ | n | p |P | f | a |z |y | GREATEST |LEAST  default: GREATEST   SiPrefix overview:      "Y":  1E+24,       "Z":  1E+21,       "E":  1E+18,       "P":  1E+15,       "T":  1E+12,       "G":  1000000000,       "M":  1000000,       "k":  1000,        "m":  0.001,       "μ":  0.000001,       "n":  0.000000001,       "p":  0.000000000001,       "f":  0.000000000000001,       "a":  0.000000000000000001,       "z":  0.000000000000000000001,       "y":  0.000000000000000000000001,  Special modes: GREATEST seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix LEAST    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix  _        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
          */
         "measureScale"?: string;
         /**
-          * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted.  values: volume |currency default: currency
+          * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted. <br /><br /> values: <br /> ```volume // currency```
          */
         "measureType"?: string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist  values: category | categoryindex | rowgroup | rowgroup | rowgroupindex | ac | fc | pp | pl
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
          */
-        "order": string;
+        "order"?: string;
         /**
-          * set sorting order directon  values: asc | desc
+          * Set sorting order direction <br /><br /> values: <br /> ```asc  // desc```
          */
-        "orderDirection": string;
+        "orderDirection"?: string;
         /**
-          * (optional) stringified Array of Partof Objects {        "rowgroup": string,        "category": string      }, rowgroup, categroy defines the location of the drill percentage of category in rowgorup  example: [{ "rowgroup":"Umsatz", "category": "Applications", },]
+          * Stringified Array of Partof Objects <br />{<br />        "rowgroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", },]```
          */
         "partof"?: string;
         /**
-          * (optional) List of scenarios. Valid scenarios are   variances pattern d<scenario_baseScenario>  relative variance pattern dr<scenario_baseScenario>   values: ac1 | fc1 | pp1 | pl1 | dfc1_ac1 | drfc1_ac1
+          * List of scenarios. Valid scenarios are <br /><br /> variances pattern d<scenario_baseScenario> relative variance pattern dr<scenario_baseScenario> <br /><br /> values: <br /> ```ac[1-4] | fc[1-4] | pp[1-4] | pl[1-4] | dfc[1-4]_ac[1-4] | drfc[1-4]_ac[1-4]```
          */
         "scenarios": string;
         /**
-          * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup'  values: true | false default: true
+          * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
          */
-        "showGroupTitle": boolean | string;
+        "showGroupTitle"?: string;
         /**
           * A not mundane tile which should describes the shown data.
          */
         "tableTitle": string;
         /**
-          * (optional) stringified Array of drilldown Objects {        "rowgroup": string,        "category": string,        "subcategory": string,      }, rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row  example: [{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]
+          * Stringified Array of drilldown Objects {        "rowgroup": string,<br />        "category": string,<br />        "subcategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]```
          */
         "thereof"?: string;
         /**
-          * Set the table type  list | sum | opt | sumnototal | optnototal
+          * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
          */
-        "type": string;
+        "type"?: string;
     }
     interface BnTemplate {
+        /**
+          * Worldwide unique id generated by BinoBI
+         */
         "templateId"?: string;
     }
     interface BnText {

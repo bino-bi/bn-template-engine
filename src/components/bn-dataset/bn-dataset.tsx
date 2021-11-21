@@ -14,6 +14,13 @@ export class Dataset {
    */
   @Prop() name!: string;
 
+  /**
+   * Commaseperated list of datasourcees
+   * <br /><br />
+   *  example: <br />
+   *  ```source1,source2```
+   *
+   */
   @Prop() datasources: string = "";
 
   private query: string;
