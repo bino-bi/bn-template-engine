@@ -8,7 +8,7 @@ Layouelment to latout child componets in a static grid defined by columns and ro
 **Example**
 ```html
  <bn-body>
-  <bn-grid rows="1" columns="1" top="0" left="0" height="100%">
+  <bn-grid rows="1" columns="1" align="stretch" justify="stretch">
     ...
   </bn-grid>
 </bn-body>

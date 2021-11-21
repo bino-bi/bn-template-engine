@@ -166,18 +166,18 @@ export class Table {
 
   /**
    * Stringified Array of drilldown Objects {
-            "rowgroup": string,<br />
+            "rowGroup": string,<br />
             "category": string,<br />
-            "subcategory": string,<br />
+            "subCategory": string,<br />
           },<br /><br />
    * rowgroup, categroy defines the location of the drill
    * subcategory is the displayed label of the data row
    *<br /><br />
    * example:<br />
    * ```[{
-   "rowgroup":"Umsatz",
+   "rowGroup":"Umsatz",
    "category": "Applications",
-   "subcategory": "Applications-A",
+   "subCategory": "Applications-A",
    },]```
    */
   @Prop() thereof: string = '[]';
@@ -192,7 +192,7 @@ export class Table {
 
   /**
    * Stringified Array of Partof Objects <br />{<br />
-            "rowgroup": string,<br />
+            "rowGroup": string,<br />
             "category": string<br />
           },<br /><br />
    * rowgroup, categroy defines the location of the drill
@@ -200,7 +200,7 @@ export class Table {
    *<br /><br />
    * example:<br />
    * ```[{
-   "rowgroup":"Umsatz",
+   "rowGroups":"Umsatz",
    "category": "Applications",
    },]```
    */
@@ -359,14 +359,14 @@ export class Table {
   }
 
   /**
-   *  Set width of category columns. <br />
+   *  Set width of category column. <br />
    *  If INF is selected the columns scaling to the min space they need
    *  seperatly.
    *  <br /><br />
    *  values:<br />
-   *  ``` W5 // W10 // W15 // W20 // W25 // W50 // INF ```
+   *  ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
    */
-  @Prop() categoryWidth: string = 'W15';
+  @Prop() categoryWidth: string = 'w15';
 
   @Watch('categoryWidth')
   validateCategoryWidth(newValue: string) {

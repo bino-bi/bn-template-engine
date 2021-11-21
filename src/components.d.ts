@@ -152,7 +152,7 @@ export namespace Components {
     }
     interface BnTable {
         /**
-          * Set width of category columns. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` W5 // W10 // W15 // W20 // W25 // W50 // INF ```
+          * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
          */
         "categoryWidth": string;
         /**
@@ -204,7 +204,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Stringified Array of Partof Objects <br />{<br />        "rowgroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", },]```
+          * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
          */
         "partof": string;
         /**
@@ -220,7 +220,7 @@ export namespace Components {
          */
         "tableTitle": string;
         /**
-          * Stringified Array of drilldown Objects {        "rowgroup": string,<br />        "category": string,<br />        "subcategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]```
+          * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
          */
         "thereof": string;
         /**
@@ -525,7 +525,7 @@ declare namespace LocalJSX {
     }
     interface BnTable {
         /**
-          * Set width of category columns. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` W5 // W10 // W15 // W20 // W25 // W50 // INF ```
+          * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
          */
         "categoryWidth"?: string;
         /**
@@ -577,7 +577,7 @@ declare namespace LocalJSX {
          */
         "orderDirection"?: string;
         /**
-          * Stringified Array of Partof Objects <br />{<br />        "rowgroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", },]```
+          * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
          */
         "partof"?: string;
         /**
@@ -593,7 +593,7 @@ declare namespace LocalJSX {
          */
         "tableTitle": string;
         /**
-          * Stringified Array of drilldown Objects {        "rowgroup": string,<br />        "category": string,<br />        "subcategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowgroup":"Umsatz", "category": "Applications", "subcategory": "Applications-A", },]```
+          * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
          */
         "thereof"?: string;
         /**
