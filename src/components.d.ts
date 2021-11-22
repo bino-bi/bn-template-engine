@@ -100,6 +100,10 @@ export namespace Components {
          */
         "unitScaling": string | number;
     }
+    interface BnComponentStyle {
+        "component": string;
+        "name": string;
+    }
     interface BnContext {
         "locale": string;
     }
@@ -306,6 +310,12 @@ declare global {
         prototype: HTMLBnChartElement;
         new (): HTMLBnChartElement;
     };
+    interface HTMLBnComponentStyleElement extends Components.BnComponentStyle, HTMLStencilElement {
+    }
+    var HTMLBnComponentStyleElement: {
+        prototype: HTMLBnComponentStyleElement;
+        new (): HTMLBnComponentStyleElement;
+    };
     interface HTMLBnContextElement extends Components.BnContext, HTMLStencilElement {
     }
     var HTMLBnContextElement: {
@@ -376,6 +386,7 @@ declare global {
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
         "bn-chart": HTMLBnChartElement;
+        "bn-component-style": HTMLBnComponentStyleElement;
         "bn-context": HTMLBnContextElement;
         "bn-dataset": HTMLBnDatasetElement;
         "bn-datasource": HTMLBnDatasourceElement;
@@ -483,6 +494,10 @@ declare namespace LocalJSX {
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
         "unitScaling": string | number;
+    }
+    interface BnComponentStyle {
+        "component"?: string;
+        "name"?: string;
     }
     interface BnContext {
         "locale": string;
@@ -673,6 +688,7 @@ declare namespace LocalJSX {
         "bn-body": BnBody;
         "bn-card": BnCard;
         "bn-chart": BnChart;
+        "bn-component-style": BnComponentStyle;
         "bn-context": BnContext;
         "bn-dataset": BnDataset;
         "bn-datasource": BnDatasource;
@@ -693,6 +709,7 @@ declare module "@stencil/core" {
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
             "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
             "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
+            "bn-component-style": LocalJSX.BnComponentStyle & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             "bn-dataset": LocalJSX.BnDataset & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
