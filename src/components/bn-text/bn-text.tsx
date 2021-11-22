@@ -1,6 +1,7 @@
 import {Component, h, Host, Prop, State} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import withDataset from "../../utils/withDataset";
+import withTranslation from "../../utils/withTranslation";
 
 @Component({
   tag: 'bn-text',
@@ -14,7 +15,11 @@ export class Text {
 
   @State() data: any = {}
 
+  private readonly t: (key: string, data?: object) => string;
+
+
   constructor() {
+    this.t = withTranslation().t;
     withDataset(this, (name, data) => {
       this.data = {...this.data, [name]: data};
     });
@@ -24,7 +29,7 @@ export class Text {
 
   render() {
     return <Host>
-      {this.scopedEval({data: this.data, test: 1}, "`" + this.value + "`")}
+      {this.scopedEval({data: this.data, t: this.t}, "`" + this.value + "`")}
     </Host>
   }
 }

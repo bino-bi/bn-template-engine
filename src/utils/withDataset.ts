@@ -31,7 +31,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
 
   component['connectedCallback'] = () => {
     const element = getElement(component);
-    [datasources, datasets] = (partition(startsWith("$"), element.getAttribute('datasets').split(",")));
+    [datasources, datasets] = (partition(startsWith("$"), (element.getAttribute('datasets') || "").split(",")));
     datasets.forEach(name => {
       // @ts-ignore
       onUpdate(name, getSet(name));
