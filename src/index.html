@@ -14,7 +14,47 @@
   </style>
 </head>
 <body>
-<bn-context>
+<bn-context locale="de">
+
+  <bn-component-style name="test" component="bn-chart">
+
+  </bn-component-style>
+  <bn-component-style name="test2" component="bn-chart">
+
+  </bn-component-style>
+  <bn-component-style name="test3" component="bn-chart">
+
+  </bn-component-style>
+  <bn-component-style name="test4" component="bn-chart">
+
+  </bn-component-style>
+
+
+  <bn-internationalization code="de">
+    {
+      "bn-chart": {
+        "title1": 1,
+        "title2": 2
+      }
+    }
+  </bn-internationalization>
+
+  <bn-internationalization code="de">
+    {
+    "hello": "Hallo, {{name}}!",
+    "title2": "new",
+    "title3": { "test": 124 }
+    }
+  </bn-internationalization>
+
+  <bn-internationalization code="en">
+    {
+    "hello": "Hello {{name}}!",
+    "title2": "new",
+    "title3": { "test": 124 }
+    }
+  </bn-internationalization>
+
   <bn-datasource name="marktwert"> [{
     "setName": "de",
     "operation": "+",
@@ -339,123 +379,134 @@
 
 
     <bn-body>
-
-      <bn-grid rows="2" columns="2" >
-        <bn-table
-          datasets            ="$marktwert"
-          category-width      ='w25'
-          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'
-          data-format         ="decimal"
-          data-format-digits-decimal = "2"
-          data-format-digits-percent = "2"
-          grouped             ="true"
-          internationalisation = ''
-          internationalisation-mode = ''
-          limit               ='0'
-          measure-scale       ='least'
-          measure-type        ='currency'
-          order               ='ac1'
-          order-direction     ='desc'
-          partof              ='[]'
-          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'
-          show-group-title    ='true'
-          table-title         ='Example Table'
-          thereof             ='[
-          {
-            "rowGroup":     "Kosten",
-            "category":     "lime",
-            "subcategory":  ""
-          }
-          ]'
-          type                ='opt' >
-        </bn-table>
-        <bn-table
-          datasets            ="$marktwert"
-          category-width      ='w5'
-          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'
-          data-format         ="decimal"
-          data-format-digits-decimal = "2"
-          data-format-digits-percent = "2"
-          grouped             ="true"
-          internationalisation = ''
-          internationalisation-mode = ''
-          limit               ='0'
-          measure-scale       ='least'
-          measure-type        ='currency'
-          order               ='ac1'
-          order-direction     ='desc'
-          partof              ='[]'
-          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'
-          show-group-title    ='true'
-          table-title         ='Example Table'
-          thereof             ='[
-          {
-            "rowGroup":     "Kosten",
-            "category":     "lime",
-            "subcategory":  ""
-          }
-          ]'
-          type                ='opt' >
-        </bn-table>
-        <bn-table
-          datasets            ="$marktwert"
-          category-width      ='w5'
-          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'
-          data-format         ="decimal"
-          data-format-digits-decimal = "2"
-          data-format-digits-percent = "2"
-          grouped             ="true"
-          internationalisation = ''
-          internationalisation-mode = ''
-          limit               ='0'
-          measure-scale       ='least'
-          measure-type        ='currency'
-          order               ='ac1'
-          order-direction     ='desc'
-          partof              ='[]'
-          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'
-          show-group-title    ='true'
-          table-title         ='Example Table'
-          thereof             ='[
-          {
-            "rowGroup":     "Kosten",
-            "category":     "lime",
-            "subcategory":  ""
-          }
-          ]'
-          type                ='opt' >
-        </bn-table>
-        <bn-table
-          datasets            ="$marktwert"
-          category-width      ='w5'
-          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'
-          data-format         ="decimal"
-          data-format-digits-decimal = "2"
-          data-format-digits-percent = "2"
-          grouped             ="true"
-          internationalisation = ''
-          internationalisation-mode = ''
-          limit               ='0'
-          measure-scale       ='least'
-          measure-type        ='currency'
-          order               ='ac1'
-          order-direction     ='desc'
-          partof              ='[]'
-          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'
-          show-group-title    ='true'
-          table-title         ='Example Table'
-          thereof             ='[
-          {
-            "rowGroup":     "Kosten",
-            "category":     "lime",
-            "subcategory":  ""
-          }
-          ]'
-          type                ='opt' >
-        </bn-table>
-      </bn-grid>
-
-
+<!--      <bn-grid rows="2" columns="2" >-->
+<!--        <bn-table-->
+<!--          datasets            ="$marktwert"-->
+<!--          category-width      ='w25'-->
+<!--          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'-->
+<!--          data-format         ="decimal"-->
+<!--          data-format-digits-decimal = "2"-->
+<!--          data-format-digits-percent = "2"-->
+<!--          grouped             ="true"-->
+<!--          internationalisation = ''-->
+<!--          internationalisation-mode = ''-->
+<!--          limit               ='0'-->
+<!--          measure-scale       ='least'-->
+<!--          measure-type        ='currency'-->
+<!--          order               ='ac1'-->
+<!--          order-direction     ='desc'-->
+<!--          partof              ='[]'-->
+<!--          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'-->
+<!--          show-group-title    ='true'-->
+<!--          table-title         ='Example Table'-->
+<!--          thereof             ='[-->
+<!--          {-->
+<!--            "rowGroup":     "Kosten",-->
+<!--            "category":     "lime",-->
+<!--            "subcategory":  ""-->
+<!--          }-->
+<!--          ]'-->
+<!--          type                ='opt' >-->
+<!--        </bn-table>-->
+<!--        <bn-table-->
+<!--          datasets            ="$marktwert"-->
+<!--          category-width      ='w5'-->
+<!--          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'-->
+<!--          data-format         ="decimal"-->
+<!--          data-format-digits-decimal = "2"-->
+<!--          data-format-digits-percent = "2"-->
+<!--          grouped             ="true"-->
+<!--          internationalisation = ''-->
+<!--          internationalisation-mode = ''-->
+<!--          limit               ='0'-->
+<!--          measure-scale       ='least'-->
+<!--          measure-type        ='currency'-->
+<!--          order               ='ac1'-->
+<!--          order-direction     ='desc'-->
+<!--          partof              ='[]'-->
+<!--          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'-->
+<!--          show-group-title    ='true'-->
+<!--          table-title         ='Example Table'-->
+<!--          thereof             ='[-->
+<!--          {-->
+<!--            "rowGroup":     "Kosten",-->
+<!--            "category":     "lime",-->
+<!--            "subcategory":  ""-->
+<!--          }-->
+<!--          ]'-->
+<!--          type                ='opt' >-->
+<!--        </bn-table>-->
+<!--        <bn-table-->
+<!--          datasets            ="$marktwert"-->
+<!--          category-width      ='w5'-->
+<!--          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'-->
+<!--          data-format         ="decimal"-->
+<!--          data-format-digits-decimal = "2"-->
+<!--          data-format-digits-percent = "2"-->
+<!--          grouped             ="true"-->
+<!--          internationalisation = ''-->
+<!--          internationalisation-mode = ''-->
+<!--          limit               ='0'-->
+<!--          measure-scale       ='least'-->
+<!--          measure-type        ='currency'-->
+<!--          order               ='ac1'-->
+<!--          order-direction     ='desc'-->
+<!--          partof              ='[]'-->
+<!--          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'-->
+<!--          show-group-title    ='true'-->
+<!--          table-title         ='Example Table'-->
+<!--          thereof             ='[-->
+<!--          {-->
+<!--            "rowGroup":     "Kosten",-->
+<!--            "category":     "lime",-->
+<!--            "subcategory":  ""-->
+<!--          }-->
+<!--          ]'-->
+<!--          type                ='opt' >-->
+<!--        </bn-table>-->
+<!--        <bn-table-->
+<!--          datasets            ="$marktwert"-->
+<!--          category-width      ='w5'-->
+<!--          categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'-->
+<!--          data-format         ="decimal"-->
+<!--          data-format-digits-decimal = "2"-->
+<!--          data-format-digits-percent = "2"-->
+<!--          grouped             ="true"-->
+<!--          internationalisation = ''-->
+<!--          internationalisation-mode = ''-->
+<!--          limit               ='0'-->
+<!--          measure-scale       ='least'-->
+<!--          measure-type        ='currency'-->
+<!--          order               ='ac1'-->
+<!--          order-direction     ='desc'-->
+<!--          partof              ='[]'-->
+<!--          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'-->
+<!--          show-group-title    ='true'-->
+<!--          table-title         ='Example Table'-->
+<!--          thereof             ='[-->
+<!--          {-->
+<!--            "rowGroup":     "Kosten",-->
+<!--            "category":     "lime",-->
+<!--            "subcategory":  ""-->
+<!--          }-->
+<!--          ]'-->
+<!--          type                ='opt' >-->
+<!--        </bn-table>-->
+<!--      </bn-grid>-->
+      <bn-text value="Lalal: ${this.t('hello', {name: 'Sven'})}" />
+      <bn-chart
+        style=""
+        internationalisation = null
+        internationalisationMode = 'meta'
+        level= 'category'
+        order='ac1'
+        order-direction='desc'
+        scenarios='ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'
+        styles=null
+        unit-scaling= '2'
+        datasets="$marktwert"
+      >
+      </bn-chart>
 
 <!--
 
@@ -545,7 +596,6 @@
     </bn-body>
     <bn-footer
        displayPageNumber = 'true'
-       pageNumber = null
        text = 'Hello, Word'></bn-footer>
 
     <!--<bn-footer></bn-footer>

@@ -15,6 +15,7 @@ import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibc
 import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withTranslation from "../../utils/withTranslation";
 
 @Component({
   tag: 'bn-chart',
@@ -25,6 +26,7 @@ export class Chart {
 
   @State() data: DataRow[] = []
 
+  private readonly t: (key: string, data?: object) => string;
 
   /**
    * List of Scenarios Map.
@@ -171,6 +173,7 @@ export class Chart {
    *
    */
   @Prop() internationalisation?: string;
+
   @Watch('internationalisation')
   validateI18n(newValue: string) {
     if (!validateI18nString(newValue)) {
@@ -206,6 +209,7 @@ export class Chart {
     this.chartTemplate = this.chartTemplate.bind(this);
 
     withComponentStatus(this);
+    this.t = withTranslation().t;
   }
 
 
@@ -220,7 +224,7 @@ export class Chart {
     this.validateI18n(this.internationalisation);
   }
 
-  prepareDimension(): {height: number , width: number} {
+  prepareDimension(): { height: number, width: number } {
     this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
     return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
   }
@@ -232,28 +236,28 @@ export class Chart {
     return this.scenariosArray[0]?.split(",").map(entry => entry.trim());
   }
 
-  private prepareVariances(localScenarioString: string):string[] {
-   const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
+  private prepareVariances(localScenarioString: string): string[] {
+    const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
 
-   if (isValidateVariancesList == false) {
-     return null;
-   }
+    if (isValidateVariancesList == false) {
+      return null;
+    }
 
-   return localScenarioString.split(',');
+    return localScenarioString.split(',');
   }
 
 
-  private prepareHideCategories(localScenarioString: string): boolean{
+  private prepareHideCategories(localScenarioString: string): boolean {
     return validateVariancesList(localScenarioString).length == 0;
   }
 
   private prepareI18n(): Map<string, string> {
-    return new Map([
-      ["title1", "🤩"]
-    ]);
+    const keys = ["bn-chart.title1", "bn-chart.title2"]
+
+    return new Map(keys.map(key => [key, this.t(key)])); //TODO: good idea to clean key? (jens)
   }
 
-  private preparePixelPerUnit(): Number{
+  private preparePixelPerUnit(): Number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
@@ -261,7 +265,7 @@ export class Chart {
     return Number(this.unitScaling);
   }
 
-  private prepareLevel(): AggregationLevel{
+  private prepareLevel(): AggregationLevel {
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 

@@ -23,6 +23,7 @@ export class Context {
   });
 
   connectedCallback() {
+    state.locale = this.locale;
     this.observer.observe(this.el, {childList: true});
   }
 
