@@ -2,6 +2,7 @@ import {Component, h, Host, Prop, State} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import withDataset from "../../utils/withDataset";
 import withTranslation from "../../utils/withTranslation";
+import withComponentStyle from "../../utils/withComponentStyle";
 
 @Component({
   tag: 'bn-text',
@@ -19,13 +20,20 @@ export class Text {
 
 
   constructor() {
+
     this.t = withTranslation().t;
     withDataset(this, (name, data) => {
       this.data = {...this.data, [name]: data};
     });
   }
 
-  scopedEval = (scope, script) => Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
+  scopedEval = (scope, script) => {
+    try {
+      return Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
+    } catch (e) {
+      console.error("bn-text", e)
+    }
+  }
 
   render() {
     return <Host>
