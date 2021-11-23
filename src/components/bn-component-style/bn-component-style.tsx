@@ -1,6 +1,6 @@
 import {Component, Prop, h, Host} from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
-import state, {set} from "../../stores/componentStyles";
+import state from "../../stores/componentStyles";
 
 @Component({
   tag: 'bn-component-style',
