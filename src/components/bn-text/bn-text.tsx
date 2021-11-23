@@ -2,7 +2,6 @@ import {Component, h, Host, Prop, State} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import withDataset from "../../utils/withDataset";
 import withTranslation from "../../utils/withTranslation";
-import withComponentStyle from "../../utils/withComponentStyle";
 
 @Component({
   tag: 'bn-text',
