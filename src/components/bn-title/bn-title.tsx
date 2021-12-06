@@ -31,6 +31,10 @@ import withComponentStatus from "../../utils/withComponentStatus";
 
 
 export class Title {
+  constructor() {
+    withComponentStatus(this);
+  }
+
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
 
@@ -201,6 +205,7 @@ export class Title {
    *
    */
   @Prop() internationalisation?: string;
+
   @Watch('internationalisation')
   validateI18n(newValue: string) {
     if (!validateI18nString(newValue)) {
@@ -209,10 +214,6 @@ export class Title {
   }
 
   @State() readonly datasource: any
-
-  constructor() {
-    withComponentStatus(this);
-  }
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
@@ -238,7 +239,7 @@ export class Title {
 
 
   private prepareTitleOrder(): Order {
-    if(isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
+    if (isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
       return null;
     }
 
@@ -249,7 +250,7 @@ export class Title {
   }
 
   private prepareTitleTimePeriod(): TimePeriod | null {
-    if ( isBlankInput(this.dateStart) && isBlankInput(this.dateEnd) ) {
+    if (isBlankInput(this.dateStart) && isBlankInput(this.dateEnd)) {
       return null;
     }
     if (isBlankInput(this.dateLink)) {
@@ -279,7 +280,7 @@ export class Title {
   }
 
   private prepareBusinessUnit(): string {
-    if (isBlankInput(this.businessUnit) || this.businessUnit == "null" ) {
+    if (isBlankInput(this.businessUnit) || this.businessUnit == "null") {
       return null;
     }
     return this.businessUnit;
@@ -288,7 +289,7 @@ export class Title {
   render() {
 
     return <Host>
-       <ibcs-title
+      <ibcs-title
         businessUnit={this.prepareBusinessUnit()}
         scenarios={this.prepareScenarios()}
         measures={this.prepareMeasures()}

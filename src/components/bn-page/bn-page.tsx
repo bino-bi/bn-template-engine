@@ -1,9 +1,15 @@
 import {Component, h, Host, Prop, Watch, Element, Method} from "@stencil/core";
+import withComponentStatus from "../../utils/withComponentStatus";
+
 @Component({
   tag: 'bn-page',
   styleUrl: 'bn-page.scss',
 })
 export class Page {
+  constructor() {
+    withComponentStatus(this);
+  }
+
   @Element() el: HTMLElement
   /**
    * Defines the size of the page
@@ -49,7 +55,7 @@ export class Page {
 
   render() {
     return <Host>
-      <slot />
+      <slot/>
     </Host>
   }
 }

@@ -1,10 +1,14 @@
 import {Component, h, Host, Prop} from "@stencil/core";
+import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
   tag: 'bn-footer',
   styleUrl: 'bn-footer.scss'
 })
 export class Footer {
+  constructor() {
+    withComponentStatus(this);
+  }
 
   /**
    *  Pagenumber value.
@@ -27,12 +31,12 @@ export class Footer {
   displayPageNumber: boolean = true;
 
   render() {
-   return <Host>
+    return <Host>
       {
-         this.text != null? <span class="note">{this.text}</span> : ""
+        this.text != null ? <span class="note">{this.text}</span> : ""
       }
       {
-         this.displayPageNumber? <span class="page">{this.pageNumber}</span> : ""
+        this.displayPageNumber ? <span class="page">{this.pageNumber}</span> : ""
       }
     </Host>
   }

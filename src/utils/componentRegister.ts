@@ -4,10 +4,20 @@ export enum ComponentStatus {
   ERROR
 }
 export namespace ComponentRegister {
+  var currentTimeOutId: NodeJS.Timeout = undefined;
   let componentRegister = new Map<string, ComponentStatus>();
 
   export const updateStatus = (uuid: string, status: ComponentStatus) => {
+    if(currentTimeOutId) {
+      clearTimeout(currentTimeOutId);
+    }
     componentRegister.set(uuid, status);
+    currentTimeOutId = setTimeout(() => {
+      // @ts-ignore
+      window.componentRegisterIsRenderedResult = componentRegisterIsRendered()
+      // @ts-ignore
+      console.log("componentRegisterIsRendered:", window.componentRegisterIsRenderedResult)
+    }, 500);
   }
 
   export const componentRegisterIsRendered = () => {

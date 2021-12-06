@@ -24,6 +24,7 @@ import {
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
+import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
   tag: 'bn-card',
@@ -33,6 +34,9 @@ import {
 
 
 export class Card {
+  constructor() {
+    withComponentStatus(this);
+  }
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
 
