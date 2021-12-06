@@ -1,11 +1,15 @@
 import {Component, Prop, h, Host} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
+import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
   tag: 'bn-grid',
   styleUrl: 'bn-grid.scss'
 })
 export class Grid {
+  constructor() {
+    withComponentStatus(this);
+  }
   @Prop() rows: number;
   @Prop() columns: number;
   @Prop() align: 'start' | 'end' | 'center' | 'stretch' = "stretch"

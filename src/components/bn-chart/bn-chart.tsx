@@ -203,6 +203,7 @@ export class Chart {
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
   constructor() {
+    withComponentStatus(this);
     withDataset(this, (_name, data) => {
       this.data = data || [];
     });
