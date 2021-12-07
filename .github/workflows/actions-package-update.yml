@@ -4,19 +4,28 @@ on:
   workflow_dispatch:
 name: Update
 jobs:
-  package-update:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: set remote url
-        run: git remote set-url --push origin https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-      - name: package-update
-        uses: taichi/actions-package-update@master
-        env:
-          AUTHOR_EMAIL: sven.herrmann@thatscalaguy.de
-          AUTHOR_NAME: Sven Herrmann
-          EXECUTE: "true"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LOG_LEVEL: info
+      - uses: actions/checkout@v2
+
+      # Read node version from `.nvmrc` file
+      - id: nvmrc
+        uses: browniebroke/read-nvmrc-action@v1
+
+      - uses: actions/setup-node@v1
         with:
-          args: -u --packageFile package.json --loglevel verbose
+          # use the output from the action
+          node-version: '${{ steps.nvmrc.outputs.node_version }}'
+
+      # Run `yarn upgrade`
+      - uses: browniebroke/yarn-upgrade-action@v1
+
+      # Open a pull request if there are any changes
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update/yarn-upgrade
+          title: Run yarn upgrade
+          commit-message: "chore(deps): Run yarn upgrade"
