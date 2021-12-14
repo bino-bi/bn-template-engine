@@ -3,12 +3,27 @@ import withDatasource from "../../utils/withDatasource";
 import withBodyObserver from "../../utils/withBodyObserver";
 import {set} from '../../stores/datasets';
 import alasql from "alasql";
+import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
   tag: 'bn-dataset',
   styleUrl: 'bn-dataset.css',
 })
 export class Dataset {
+  constructor() {
+    withComponentStatus(this);
+    // @ts-ignore
+    this.database = new alasql.Database();
+    withDatasource(this, (name, data) => {
+      this.database.tables[name] = {data};
+      this.executeQuery();
+    });
+
+    withBodyObserver(this, (data => {
+      this.query = data;
+      this.executeQuery();
+    }));
+  }
   /**
    * Unique (template scope) name of the datasource
    */
@@ -26,20 +41,6 @@ export class Dataset {
   private query: string;
   private database: any;
   private latestResult: any;
-
-  constructor() {
-    // @ts-ignore
-    this.database = new alasql.Database();
-    withDatasource(this, (name, data) => {
-      this.database.tables[name] = {data};
-      this.executeQuery();
-    });
-
-    withBodyObserver(this, (data => {
-      this.query = data;
-      this.executeQuery();
-    }));
-  }
 
   executeQuery() {
     if (!!this.query && !!this.name) {

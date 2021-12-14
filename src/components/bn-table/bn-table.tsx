@@ -43,6 +43,7 @@ export class Table {
 
 
   constructor() {
+    withComponentStatus(this);
     withDataset(this, (_name, data) => {
       this.data = data || [];
     });
