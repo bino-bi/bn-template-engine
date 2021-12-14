@@ -1,11 +1,15 @@
 import {Component, h, Host, Element, Prop, Watch} from "@stencil/core";
 import state from '../../stores/context';
+import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
   tag: 'bn-context',
   styleUrl: 'bn-context.scss'
 })
 export class Context {
+  constructor() {
+    withComponentStatus(this);
+  }
   @Element() el: HTMLElement;
 
   @Prop() locale!: string;
