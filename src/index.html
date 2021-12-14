@@ -491,19 +491,23 @@
 <!--        </bn-table>-->
 <!--      </bn-grid>-->
       <bn-text value="Lalal: ${this.t('hello', {name: 'Sven'})}" />
-      <bn-chart
-        style=""
-        internationalisation = null
-        internationalisationMode = 'meta'
-        level= 'category'
-        order='ac1'
-        order-direction='desc'
-        scenarios='ac1, pp1'
-        styles=null
-        unit-scaling= '100'
-        datasets="$marktwert"
-      >
-      </bn-chart>
+      <bn-grid rows="3" columns="1" top="0" left="0" height="100%">
+        <bn-chart
+          grid-column     ="1"
+          grid-row        ="1"
+          style=""
+          internationalisation = null
+          internationalisationMode = 'meta'
+          level= 'category'
+          order='ac1'
+          order-direction='desc'
+          scenarios='ac1,ac2,pp1;dpp1_ac1_pos;drpp1_ac1_pos'
+          styles=null
+          unit-scaling= '20'
+          datasets="$marktwert"
+        >
+        </bn-chart>
+      </bn-grid>
 
 <!--
 
