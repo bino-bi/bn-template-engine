@@ -9,7 +9,7 @@ The **bn-chart** can be used within the bn-content element
 @withStyle
 @withComponentStatus
 @withDataset
-
+@withTranslation
 
 **Example**
 ```html

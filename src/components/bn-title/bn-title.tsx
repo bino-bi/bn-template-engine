@@ -7,7 +7,7 @@ import {
   isValidDate,
   isValidDateFormat,
   isValidDateLink,
-  isValidDirection, isValidi18nMode, validateI18nString,
+  isValidDirection,
   validateMeasureList,
   validateScenarioList,
 } from "../../utils/validate";
@@ -15,7 +15,8 @@ import {
 
 import {
   DateDistance,
-  DateLink, I18nMode,
+  DateLink,
+  I18nMode,
   MeasureEntry,
   Order,
   OrderDirection,
@@ -23,6 +24,9 @@ import {
 } from "@bino-bi/ibcs-component-interface";
 
 import withComponentStatus from "../../utils/withComponentStatus";
+import withTranslation from "../../utils/withTranslation";
+import {globalLabelKeys} from "../../stores/internationalization";
+
 
 @Component({
   tag: 'bn-title',
@@ -31,9 +35,13 @@ import withComponentStatus from "../../utils/withComponentStatus";
 
 
 export class Title {
+  private readonly t: (key: string, data?: object) => string;
+
   constructor() {
     withComponentStatus(this);
-  }
+    this.t = withTranslation(this).t;
+
+    }
 
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
@@ -185,34 +193,6 @@ export class Title {
     }
   }
 
-
-  /**
-   *  Mode of Translation
-   *  <br /><br />
-   *  values:<br /> ``` none // meta // all ```
-   */
-  @Prop() internationalisationMode: string = "meta";
-
-  @Watch('internationalisationMode')
-  validatei18nMode(newValue: string) {
-    if (!isValidi18nMode(newValue)) {
-      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
-    }
-  }
-
-  /**
-   * Lookup Map of translation tokens. (TODO: SHE)
-   *
-   */
-  @Prop() internationalisation?: string;
-
-  @Watch('internationalisation')
-  validateI18n(newValue: string) {
-    if (!validateI18nString(newValue)) {
-      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
-    }
-  }
-
   @State() readonly datasource: any
 
   componentWillLoad() {
@@ -224,19 +204,29 @@ export class Title {
     this.validateDateLink(this.dateLink);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrder(this.order);
-    this.validatei18nMode(this.internationalisationMode);
-    this.validateI18n(this.internationalisation);
   }
 
+  scopedEval = (scope, script) => {
+    try {
+      return Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
+    } catch (e) {
+      console.error("bn-text", e)
+    }
+  }
 
   private prepareI18n(): Map<string, string> {
-    return new Map([]);
+    const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
+    const i18nMetaLabelsGlobal = globalLabelKeys;
+
+    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t(".".concat(key))]));
+    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+
+    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
   }
 
   private prepareI18nMode(): I18nMode {
-    return I18nMode[this.internationalisationMode?.trim().toUpperCase() as keyof typeof I18nMode];
+    return I18nMode.META;
   }
-
 
   private prepareTitleOrder(): Order {
     if (isBlankInput(this.order) || isBlankInput(this.orderDirection)) {

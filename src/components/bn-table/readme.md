@@ -8,6 +8,7 @@ Variances are calculated dynamicly.
 @withStyle
 @withComponentStatus
 @withDataset
+@withTranslation
 
 **Example**
 ```html

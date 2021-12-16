@@ -20,6 +20,13 @@ The header element **bn-title** used in the top of the page is placed in front o
 
 ![bn-title example](./img/bn-title-example.png)
 
+
+## Mixins
+@withStyle
+@withComponentStatus
+@withTranslation
+
+
 <!-- Auto Generated Below -->
 
 

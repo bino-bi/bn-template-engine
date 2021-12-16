@@ -2,10 +2,9 @@ import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
-  isValidDirection, isValidi18nMode,
+  isValidDirection,
   isValidLevel,
   isValidNumber,
-  validateI18nString,
   validateOrderList,
   validateScenarioList,
   validateStylesString,
@@ -16,6 +15,7 @@ import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
+import {globalLabelKeys} from "../../stores/internationalization";
 
 @Component({
   tag: 'bn-chart',
@@ -153,35 +153,6 @@ export class Chart {
   }
 
   /**
-   *  Mode of Translation
-   *  <br /><br />
-   *  values:<br /> ``` none // meta // all ```
-   *  <br /><br />
-   *  default:<br /> ``` meta ```
-   */
-  @Prop() internationalisationMode: string = "meta";
-
-  @Watch('internationalisationMode')
-  validatei18nMode(newValue: string) {
-    if (!isValidi18nMode(newValue)) {
-      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
-    }
-  }
-
-  /**
-   * Lookup Map of translation tokens. (TODO: SHE)
-   *
-   */
-  @Prop() internationalisation?: string;
-
-  @Watch('internationalisation')
-  validateI18n(newValue: string) {
-    if (!validateI18nString(newValue)) {
-      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
-    }
-  }
-
-  /**
    *  Custom Styles for chart scnearios.
    *  <br /> <br />
    *  feature is not yet activated
@@ -210,7 +181,7 @@ export class Chart {
     this.chartTemplate = this.chartTemplate.bind(this);
 
     withComponentStatus(this);
-    this.t = withTranslation().t;
+    this.t = withTranslation(this).t;
   }
 
 
@@ -221,8 +192,6 @@ export class Chart {
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
-    this.validatei18nMode(this.internationalisationMode);
-    this.validateI18n(this.internationalisation);
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -253,10 +222,15 @@ export class Chart {
   }
 
   private prepareI18n(): Map<string, string> {
-    const keys = ["bn-chart.title1", "bn-chart.title2"]
+    const i18nMetaLabelsLocal = [];
+    const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    return new Map(keys.map(key => [key, this.t(key)])); //TODO: good idea to clean key? (jens)
+    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t(".".concat(key))]));
+    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+
+    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
   }
+
 
   private preparePixelPerUnit(): Number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {

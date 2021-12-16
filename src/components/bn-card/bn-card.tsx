@@ -17,7 +17,7 @@ import {
 
 import {
   DateDistance,
-  DateLink,
+  DateLink, I18nMode,
   MeasureEntry,
   Order,
   OrderColumn,
@@ -25,6 +25,8 @@ import {
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
 import withComponentStatus from "../../utils/withComponentStatus";
+import {globalLabelKeys} from "../../stores/internationalization";
+import withTranslation from "../../utils/withTranslation";
 
 @Component({
   tag: 'bn-card',
@@ -34,8 +36,12 @@ import withComponentStatus from "../../utils/withComponentStatus";
 
 
 export class Card {
+  private readonly t: (key: string, data?: object) => string;
+
   constructor() {
     withComponentStatus(this);
+    this.t = withTranslation(this).t;
+
   }
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
@@ -264,11 +270,19 @@ export class Card {
     this.validateI18n(this.internationalisation);
   }
 
+  private prepareI18nMode(): I18nMode {
+    return I18nMode.META;
+  }
+
 
   private prepareI18n(): Map<string, string> {
-    return new Map([
-      ["title1", "🤩"]
-    ]);
+    const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
+    const i18nMetaLabelsGlobal = globalLabelKeys;
+
+    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t("ibcs-title.".concat(key))]));
+    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+
+    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
   }
 
   private prepareTitleOrder(): Order {
@@ -369,6 +383,7 @@ export class Card {
         timeperiod={this.prepareTitleTimePeriod()}
         order={this.prepareTitleOrder()}
         i18n={this.prepareI18n()}
+        i18n-mode={this.prepareI18nMode()}
        ></ibcs-title>
 
         {logo}
