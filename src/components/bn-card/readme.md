@@ -9,6 +9,7 @@ The **bn-card** can be used within the bn-content element
 
 ## Mixins
 @withStyle
+@withTranslation
 
 **Example**<br />
 

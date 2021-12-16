@@ -68,14 +68,6 @@ export namespace Components {
     }
     interface BnChart {
         /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ``` <br /><br /> default:<br /> ``` meta ```
-         */
-        "internationalisationMode": string;
-        /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
         "level": string;
@@ -183,14 +175,6 @@ export namespace Components {
          */
         "grouped": string;
         /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * set translaton mode. <br /><br /> values:<br /> ```all // none // meta```
-         */
-        "internationalisationMode": string;
-        /**
           * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
          */
         "limit": number;
@@ -265,14 +249,6 @@ export namespace Components {
           * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateStart": string;
-        /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
-         */
-        "internationalisationMode": string;
         /**
           * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
          */
@@ -463,14 +439,6 @@ declare namespace LocalJSX {
     }
     interface BnChart {
         /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ``` <br /><br /> default:<br /> ``` meta ```
-         */
-        "internationalisationMode"?: string;
-        /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
         "level": string;
@@ -577,14 +545,6 @@ declare namespace LocalJSX {
          */
         "grouped"?: string;
         /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * set translaton mode. <br /><br /> values:<br /> ```all // none // meta```
-         */
-        "internationalisationMode"?: string;
-        /**
           * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
          */
         "limit"?: number;
@@ -659,14 +619,6 @@ declare namespace LocalJSX {
           * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
          */
         "dateStart"?: string;
-        /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
-         */
-        "internationalisationMode"?: string;
         /**
           * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
          */

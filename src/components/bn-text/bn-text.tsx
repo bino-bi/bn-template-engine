@@ -13,7 +13,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 export class Text {
   constructor() {
     withComponentStatus(this);
-    this.t = withTranslation().t;
+    this.t = withTranslation(this).t;
     withDataset(this, (name, data) => {
       this.data = {...this.data, [name]: data};
     });

@@ -6,10 +6,9 @@ import {
   isValidBoolean,
   isValidDataFormat,
   isValidDirection,
-  isValidi18nMode, isValidMeasureType,
+  isValidMeasureType,
   isValidInteger,
   isValidTableType,
-  validateI18nString,
   validateOrderList,
   validatePartOfJsonStr,
   validateScenarioList,
@@ -31,6 +30,8 @@ import {TablePartGroup} from "@bino-bi/ibcs-component/dist/types/components/ibcs
 import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
+import {globalLabelKeys} from "../../stores/internationalization";
+import withTranslation from "../../utils/withTranslation";
 
 
 @Component({
@@ -38,6 +39,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
   styleUrl: 'bn-table.css'
 })
 export class Table {
+  private readonly t: (key: string, data?: object) => string;
 
   @State() data: DataRow[] = []
 
@@ -48,7 +50,7 @@ export class Table {
       this.data = data || [];
     });
 
-    withComponentStatus(this);
+    this.t = withTranslation(this).t;
   }
 
   /**
@@ -308,33 +310,6 @@ export class Table {
     }
   }
 
-  /** set translaton mode.
-   * <br /><br />
-   * values:<br />
-   * ```all // none // meta```
-   */
-  @Prop() internationalisationMode: string = "meta";
-
-  @Watch('internationalisationMode')
-  validatei18nMode(newValue: string) {
-    if (!isValidi18nMode(newValue)) {
-      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
-    }
-  }
-
-  /**
-   * Lookup Map of translation tokens. (TODO: SHE)
-   *
-   */
-  @Prop() internationalisation?: string;
-
-  @Watch('internationalisation')
-  validateI18n(newValue: string) {
-    if (!validateI18nString(newValue)) {
-      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
-    }
-  }
-
   /**
    * Number of decimal digits in a table cell
    */
@@ -412,8 +387,6 @@ export class Table {
     this.validateThereOf(this.thereof);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
-    this.validatei18nMode(this.internationalisationMode);
-    this.validateI18n(this.internationalisation);
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDateFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateCategoryWidth(this.categoryWidth);
@@ -475,12 +448,19 @@ export class Table {
   }
 
   private prepareI18nMode(): I18nMode {
-    return I18nMode[this.internationalisationMode?.trim().toUpperCase() as keyof typeof I18nMode];
+    return I18nMode.META;
   }
 
   private prepareI18n(): Map<string, string> {
-    return new Map([]);
+    const i18nMetaLabelsLocal = ["in", "category","operation", "there_of", "part_of","SUM_TOTAL" ];
+    const i18nMetaLabelsGlobal = globalLabelKeys;
+
+    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t(".".concat(key))]));
+    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+
+    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
   }
+
 
   private prepareDataFormatDigits(): DataFormatDigits {
     const formatDigits: DataFormatDigits = {
