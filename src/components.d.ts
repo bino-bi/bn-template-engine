@@ -468,7 +468,7 @@ declare namespace LocalJSX {
         "name"?: string;
     }
     interface BnContext {
-        "locale": string;
+        "locale"?: string;
     }
     interface BnDataset {
         /**

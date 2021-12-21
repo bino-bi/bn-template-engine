@@ -1,5 +1,4 @@
 import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
-import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
   isTableCategoryWidth,
@@ -32,6 +31,7 @@ import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import {globalLabelKeys} from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
+import {withStyled} from "../../utils/styled/withStyled";
 
 
 @Component({
@@ -45,6 +45,7 @@ export class Table {
 
 
   constructor() {
+    withStyled(this);
     withComponentStatus(this);
     withDataset(this, (_name, data) => {
       this.data = data || [];
@@ -548,5 +549,3 @@ export class Table {
     </Host>;
   }
 }
-
-styled(Table);

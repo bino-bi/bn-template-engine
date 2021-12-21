@@ -1,8 +1,8 @@
 import {Component, h, Host, Prop, State} from "@stencil/core";
-import {styled} from "../../utils/styled/styled";
 import withDataset from "../../utils/withDataset";
 import withTranslation from "../../utils/withTranslation";
 import withComponentStatus from "../../utils/withComponentStatus";
+import {withStyled} from "../../utils/styled/withStyled";
 
 @Component({
   tag: 'bn-text',
@@ -12,6 +12,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 
 export class Text {
   constructor() {
+    withStyled(this);
     withComponentStatus(this);
     this.t = withTranslation(this).t;
     withDataset(this, (name, data) => {
@@ -39,6 +40,4 @@ export class Text {
     </Host>
   }
 }
-
-styled(Text);
 

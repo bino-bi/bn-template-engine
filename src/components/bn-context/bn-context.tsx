@@ -8,11 +8,12 @@ import withComponentStatus from "../../utils/withComponentStatus";
 })
 export class Context {
   constructor() {
-    withComponentStatus(this);
+   withComponentStatus(this);
   }
+
   @Element() el: HTMLElement;
 
-  @Prop() locale!: string;
+  @Prop() locale: string;
 
   @Watch('locale')
   setLocale(newValue: string) {
@@ -27,7 +28,9 @@ export class Context {
   });
 
   connectedCallback() {
-    state.locale = this.locale;
+    if (this.locale) {
+      state.locale = this.locale;
+    }
     this.observer.observe(this.el, {childList: true});
   }
 

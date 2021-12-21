@@ -1,4 +1,3 @@
-
 export function format(first: string, middle: string, last: string): string {
   return (
     (first || '') +
@@ -7,13 +6,17 @@ export function format(first: string, middle: string, last: string): string {
   );
 }
 
-export const runIfExisits = (fn: unknown) => {
+export const runIfExisits = (fn: unknown, context: any = undefined) => {
   if (typeof fn === 'function') {
-    fn();
+    if (context) {
+      fn.bind(context)();
+    } else {
+      fn();
+    }
   }
 }
 
-export function generateUUID(){
+export function generateUUID() {
   let
     d = new Date().getTime(),
     d2 = (performance && performance.now && (performance.now() * 1000)) || 0;

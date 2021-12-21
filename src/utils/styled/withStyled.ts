@@ -1,6 +1,7 @@
 import {styleSheet} from './style-sheet';
 import {apply, attributesNames} from './attributes';
 import {getElement} from "@stencil/core";
+import {runIfExisits} from "../utils";
 
 const observer = new MutationObserver((mutations) => {
   for (const mutation of mutations) {
@@ -24,27 +25,23 @@ const subscribe = (el: HTMLElement) => {
   );
 };
 
-export const styled = (Cstr: any) => {
-  const CstrPrototype = Cstr.prototype;
-  const cstrConnectedCallback = CstrPrototype.connectedCallback;
-  const cstrDisconnectedCallback = CstrPrototype.disconnectedCallback;
+export const withStyled = (component: any) => {
+  const cstrConnectedCallback = component['connectedCallback'];
+  const cstrDisconnectedCallback = component['disconnectedCallback'];
 
-  CstrPrototype.connectedCallback = function () {
-    const elm = getElement(this);
+  component['connectedCallback'] = () => {
+    const elm = getElement(component);
     if (elm) {
       subscribe(elm);
     } else {
       throw new Error(`Can't find element field in component ${this}`);
     }
 
-    if (cstrConnectedCallback) {
-      return cstrConnectedCallback.call(this);
-    }
+    runIfExisits(cstrConnectedCallback, component)
   };
 
-  CstrPrototype.disconnectedCallback = function () {
-    if (cstrDisconnectedCallback) {
-      cstrDisconnectedCallback.call(this);
-    }
+  component['disconnectedCallback'] = () => {
+    //TODO do we to clear su subscription ? (sven)
+    runIfExisits(cstrDisconnectedCallback, component)
   };
 };

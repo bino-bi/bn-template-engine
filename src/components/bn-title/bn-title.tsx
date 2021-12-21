@@ -1,7 +1,6 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
 import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
 
-import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
   isValidDate,
@@ -26,6 +25,7 @@ import {
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import {globalLabelKeys} from "../../stores/internationalization";
+import {withStyled} from "../../utils/styled/withStyled";
 
 
 @Component({
@@ -38,6 +38,7 @@ export class Title {
   private readonly t: (key: string, data?: object) => string;
 
   constructor() {
+    withStyled(this);
     withComponentStatus(this);
     this.t = withTranslation(this).t;
 
@@ -291,5 +292,3 @@ export class Title {
     </Host>
   }
 }
-
-styled(Title);
