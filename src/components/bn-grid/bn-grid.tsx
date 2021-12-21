@@ -1,6 +1,6 @@
 import {Component, Prop, h, Host} from "@stencil/core";
-import {styled} from "../../utils/styled/styled";
 import withComponentStatus from "../../utils/withComponentStatus";
+import {withStyled} from "../../utils/styled/withStyled";
 
 @Component({
   tag: 'bn-grid',
@@ -8,6 +8,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 })
 export class Grid {
   constructor() {
+    withStyled(this);
     withComponentStatus(this);
   }
   @Prop() rows: number;
@@ -27,4 +28,3 @@ export class Grid {
     return <Host style={style}/>
   }
 }
-styled(Grid);
