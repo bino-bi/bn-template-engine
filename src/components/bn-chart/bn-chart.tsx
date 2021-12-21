@@ -1,5 +1,4 @@
 import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
-import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
   isValidDirection,
@@ -16,6 +15,7 @@ import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import {globalLabelKeys} from "../../stores/internationalization";
+import {withStyled} from "../../utils/styled/withStyled";
 
 @Component({
   tag: 'bn-chart',
@@ -174,6 +174,7 @@ export class Chart {
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
   constructor() {
+    withStyled(this);
     withComponentStatus(this);
     withDataset(this, (_name, data) => {
       this.data = data || [];
@@ -278,5 +279,3 @@ export class Chart {
     </Host>
   }
 }
-
-styled(Chart);

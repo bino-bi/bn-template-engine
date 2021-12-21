@@ -1,7 +1,6 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
 import {Component, h, Host, Prop, Watch, getAssetPath} from "@stencil/core";
 
-import {styled} from "../../utils/styled/styled";
 import {
   isBlankInput,
   isValidDate,
@@ -27,6 +26,7 @@ import {
 import withComponentStatus from "../../utils/withComponentStatus";
 import {globalLabelKeys} from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
+import {withStyled} from "../../utils/styled/withStyled";
 
 @Component({
   tag: 'bn-card',
@@ -39,6 +39,7 @@ export class Card {
   private readonly t: (key: string, data?: object) => string;
 
   constructor() {
+    withStyled(this);
     withComponentStatus(this);
     this.t = withTranslation(this).t;
 
@@ -393,9 +394,6 @@ export class Card {
     </Host>
   }
 }
-
-styled(Card);
-
 
 
 
