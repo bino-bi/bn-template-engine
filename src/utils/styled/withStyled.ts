@@ -1,6 +1,6 @@
 import {styleSheet} from './style-sheet';
 import {apply, attributesNames} from './attributes';
-import {getElement} from "@stencil/core";
+import {forceUpdate, getElement} from "@stencil/core";
 import {runIfExisits} from "../utils";
 
 const observer = new MutationObserver((mutations) => {
@@ -10,6 +10,8 @@ const observer = new MutationObserver((mutations) => {
     styleSheet.apply(map);
     const classes = Array.from(map.values()).map(value => value.className);
     el.className = el.className.split(" ").filter(value => !value.startsWith("bn-c-")).concat(...classes).join(" ");
+
+    forceUpdate(el);
   }
 });
 

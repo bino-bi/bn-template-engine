@@ -15,9 +15,9 @@ It keeps Pagescount, Author, locale etc.
 
 ## Properties
 
-| Property              | Attribute | Description | Type     | Default     |
-| --------------------- | --------- | ----------- | -------- | ----------- |
-| `locale` _(required)_ | `locale`  |             | `string` | `undefined` |
+| Property | Attribute | Description | Type     | Default     |
+| -------- | --------- | ----------- | -------- | ----------- |
+| `locale` | `locale`  |             | `string` | `undefined` |
 
 
 ----------------------------------------------
