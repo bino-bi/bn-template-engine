@@ -1,9 +1,19 @@
 import hash from '@emotion/hash'
+import {isValidNumber} from "../validate";
+
+const transofrmToUnitString = (value) => {
+  if(isValidNumber(value)) {
+    return `${value}px`;
+  } else {
+    return value;
+  }
+}
 
 interface AttributeInfo {
   className: string;
   cssName: string;
   attrName: string;
+  transform?: (string) => string;
 }
 
 export interface ClassStyle {
@@ -14,13 +24,15 @@ export interface ClassStyle {
 const width: AttributeInfo = {
   className: 'w',
   cssName: 'width',
-  attrName: 'width'
+  attrName: 'width',
+  transform: transofrmToUnitString
 };
 
 const height: AttributeInfo = {
   className: 'h',
   cssName: 'height',
-  attrName: 'height'
+  attrName: 'height',
+  transform: transofrmToUnitString
 };
 
 const position: AttributeInfo = {
@@ -33,30 +45,35 @@ const top: AttributeInfo = {
   className: 'top',
   cssName: 'top',
   attrName: 'top',
+  transform: transofrmToUnitString
 };
 
 const right: AttributeInfo = {
   className: 'rgt',
   cssName: 'right',
-  attrName: 'right'
+  attrName: 'right',
+  transform: transofrmToUnitString
 };
 
 const bottom: AttributeInfo = {
   className: 'btm',
   cssName: 'bottom',
-  attrName: 'bottom'
+  attrName: 'bottom',
+  transform: transofrmToUnitString
 };
 
 const left: AttributeInfo = {
   className: 'lft',
   cssName: 'left',
-  attrName: 'left'
+  attrName: 'left',
+  transform: transofrmToUnitString
 };
 
 const fontSize: AttributeInfo = {
   className: 'fts',
   cssName: 'font-size',
-  attrName: 'font-size'
+  attrName: 'font-size',
+  transform: transofrmToUnitString
 };
 
 const gridColumn: AttributeInfo = {
@@ -107,10 +124,13 @@ export const apply = (el: Element): Map<string, ClassStyle> => {
   attributesNames.forEach(name => {
     const value = el.getAttribute(name);
     if (value) {
-      if(['top', 'left', 'right', 'bottom'].includes(name)) {
+      if (['top', 'left', 'right', 'bottom'].includes(name)) {
         map.set("position", getCSS(attributes["position"], "relative"))
       }
-      map.set(name, getCSS(attributes[name], value))
+      const transform: (string) => string = attributes[name].transform || function(v: string): string {
+        return v;
+      }
+      map.set(name, getCSS(attributes[name], transform(value)))
     }
   });
 
