@@ -58,7 +58,7 @@ const de = flattenObject({
 const en = flattenObject({
   "global":{
     "ac1": "AC",
-    "pp1": "PYX",
+    "pp1": "PY",
     "fc1": "FC",
     "pl1": "PL",
     "ac2": "AC2",
