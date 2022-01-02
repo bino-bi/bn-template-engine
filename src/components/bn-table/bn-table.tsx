@@ -190,7 +190,7 @@ export class Table {
   validateThereOf(newValue: string) {
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
     if (invalidElements.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+      throw new Error('ThereOf: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
   }
 
@@ -444,7 +444,6 @@ export class Table {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
-
     return tableOrder;
   }
 
