@@ -398,7 +398,7 @@
           order               ='ac1'
           order-direction     ='desc'
           partof              ='[]'
-          scenarios           ='ac1,pp1,dpp1_ac1_pos,drpp1_ac1_pos'
+          scenarios           ='ac1,pp1, dpp1_ac1_pos, drpp1_ac1_pos'
           show-group-title    ='true'
           table-title         ='Example Table'
           thereof             ='[
@@ -410,6 +410,19 @@
           ]'
          type                ='opt' >
         </bn-table>
+    </bn-body>
+    <bn-chart
+      datasets        ="$marktwert"
+      grid-column     ="1/2"
+      grid-row        ="3"
+      scenarios       ='ac1,pp1; dpp1_ac1_pos'
+      unit-scaling    ='10'
+      chart-title     ='Quartalszahlen'
+      styles          =''
+      level           ="subCategory"
+      order           ="subCategoryIndex"
+      order-direction ="asc"
+    >       </bn-chart>
     </bn-body>
     <bn-footer
        displayPageNumber = 'true'
