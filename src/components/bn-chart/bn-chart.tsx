@@ -62,7 +62,7 @@ export class Chart {
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
-    this.scenariosArray = newValue.split(";");
+    this.scenariosArray = newValue.split(";").map(value => value.trim());
     const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
 
     if (invalidScenarios.length > 0) {
