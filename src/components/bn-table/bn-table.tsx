@@ -444,6 +444,7 @@ export class Table {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
+    console.log('TableOrder', tableOrder);
     return tableOrder;
   }
 
