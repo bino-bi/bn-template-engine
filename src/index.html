@@ -385,6 +385,26 @@
 
     <bn-body>
         <bn-table
+        datasets            ="$marktwert"
+        category-width      ='w25'
+        categorythereof     = ''
+        data-format         ="decimal"
+        data-format-digits-decimal = "2"
+        data-format-digits-percent = "2"
+        grouped             ="false"
+        limit               ='0'
+        measure-scale       ='least'
+        measure-type        ='currency'
+        order               ='pp1'
+        order-direction     ='asc'
+        partof              ='[]'
+        scenarios           ='ac1,pp1'
+        show-group-title    ='true'
+        table-title         ='Example Table'
+        thereof             ='[]'
+        type                ='list' >
+        </bn-table>
+        <bn-table
           datasets            ="$marktwert"
           category-width      ='w25'
           categorythereof     = '{"ac1": [{"name": "DE", "subGroups": ["Frankfurt"]}]}'
