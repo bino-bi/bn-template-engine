@@ -2,6 +2,8 @@
 
 Layouelment to latout child componets in a static grid defined by columns and rows.
 
+Check: https://developer.mozilla.org/en-US/docs/Web/CSS/grid-column
+
 ## Mixins
 @withStyle
 

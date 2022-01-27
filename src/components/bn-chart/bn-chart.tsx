@@ -257,7 +257,6 @@ export class Chart {
 
   chartTemplate(localScenarioString: string) {
     return <ibcs-chart-structure
-      dimension={this.prepareDimension()}
       data={this.data}
       scenarios={this.prepareScenarios()}
       variances={this.prepareVariances(localScenarioString)}
