@@ -170,19 +170,33 @@
     ></bn-title>
 
     <bn-body>
-          <bn-chart
-            datasets			        ='$Charts_I'
-            level				        ='subCategory'
-            order				        ='subCategory'
-            order-direction			    ='asc'
-            scenarios			        ='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos'
-            styles				        =''
-            unit-scaling			    ='0.2'
-         ></bn-chart>
+      <bn-grid
+        columns	="4"
+        height	="80%"
+        left	="0"
+        rows	="2"
+        top		="0">
+
+      <bn-card
+                grid-column = "1 / span 2"
+                grid-row	= "1 "
+                image	='debug/Zielvolumen.png'>
+        <bn-chart
+          datasets			        ='$Charts_I'
+          level				        ='subCategory'
+          order				        ='subCategory'
+          order-direction			    ='asc'
+          scenarios			        ='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos'
+          styles				        =''
+          unit-scaling			    ='0.2'
+        ></bn-chart>
+      </bn-card>
+
+      </bn-grid>
     </bn-body>
 
     <bn-footer text = "© 2022 - BinoBI GmbH"></bn-footer>
-
+    </bn-grid>
   </bn-page>
 </bn-context>
 </body>

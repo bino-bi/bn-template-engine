@@ -22,7 +22,25 @@ bn-card {
   outline: 1px solid #CCC;
 }
 
+
 .content {
-  display: flex;
-  justify-content: space-between;
+  display: flex; /* or inline-flex */
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.image {
+  position: absolute;
+  z-index: 2;
+  background-color: transparent;
+  border: transparent;
+}
+
+.overlay {
+  width: 93%;
+  position: absolute;
+  text-align: right;
+  border-radius: 10rem;
+  font-size: 25px;
 }

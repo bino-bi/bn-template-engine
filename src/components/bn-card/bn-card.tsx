@@ -372,25 +372,24 @@ export class Card {
 
 
     if(this.image.trim() !== '' && this.image.trim() !== 'null' ) {
-      logo =  <img class="background-image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} height="42"/>
+      logo =  <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} height="42"/>
     }
 
     return  <Host class={this.setCardClass()} >
       <div class="content">
-      <ibcs-title
-        businessUnit={this.prepareBusinessUnit()}
-        scenarios={this.prepareScenarios()}
-        measures={this.prepareMeasures()}
-        timeperiod={this.prepareTitleTimePeriod()}
-        order={this.prepareTitleOrder()}
-        i18n={this.prepareI18n()}
-        i18n-mode={this.prepareI18nMode()}
-       ></ibcs-title>
-
-        {logo}
-      </div>
-      <slot/>
+        <ibcs-title
+          businessUnit={this.prepareBusinessUnit()}
+          scenarios={this.prepareScenarios()}
+          measures={this.prepareMeasures()}
+          timeperiod={this.prepareTitleTimePeriod()}
+          order={this.prepareTitleOrder()}
+          i18n={this.prepareI18n()}
+          i18n-mode={this.prepareI18nMode()}
+        ></ibcs-title>
+        <div class="overlay">{logo}</div>
+        <slot/>
       <bn-footer text={this.prepareFooterText()} displayPageNumber={false} ></bn-footer>
+      </div>
     </Host>
   }
 }
