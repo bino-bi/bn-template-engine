@@ -372,7 +372,7 @@ export class Card {
 
 
     if(this.image.trim() !== '' && this.image.trim() !== 'null' ) {
-      logo =  <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} height="42"/>
+      logo =  <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)}/>
     }
 
     return  <Host class={this.setCardClass()} >

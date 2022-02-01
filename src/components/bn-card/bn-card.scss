@@ -31,14 +31,18 @@ bn-card {
 }
 
 .image {
-  position: absolute;
   z-index: 2;
   background-color: transparent;
   border: transparent;
+  height: auto;
+  width:  42px;
 }
 
 .overlay {
-  width: 88%;
+  width: 100%;
+  padding-right: 100px;
   position: absolute;
   text-align: right;
+  background-color: transparent;
+  border: transparent;
 }
