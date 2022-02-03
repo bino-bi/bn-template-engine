@@ -6,7 +6,6 @@ bn-card {
   div {
     background-color: white;
     color: black;
-    font-family: sans-serif;
   }
 }
 
@@ -19,9 +18,8 @@ bn-card {
 }
 
 .border {
-  outline: 1px solid #CCC;
+  outline: 0.1em solid #CCC;
 }
-
 
 .content {
   display: flex; /* or inline-flex */

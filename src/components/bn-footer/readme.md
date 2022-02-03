@@ -10,6 +10,7 @@ The **bn-body** is a child element of bn-page and mandatory for a valid report t
 
 | Property            | Attribute             | Description                                                                   | Type      | Default     |
 | ------------------- | --------------------- | ----------------------------------------------------------------------------- | --------- | ----------- |
+| `code`              | `code`                | code . <br />If empty string (`''` or `null`) the footer row is omitted       | `string`  | `undefined` |
 | `displayPageNumber` | `display-page-number` | Toggle if pagenumer label is displayed                                        | `boolean` | `true`      |
 | `pageNumber`        | `page-number`         | Pagenumber value. Is displayed if displayPageNumber == true                   | `number`  | `null`      |
 | `text`              | `text`                | Footer text. <br />If empty string (`''` or `null`) the footer row is omitted | `string`  | `undefined` |
