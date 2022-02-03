@@ -154,9 +154,7 @@
     }
     ]
   </bn-datasource>
-
   <bn-page name="Charts_2x2" format="a4" orientation="landscape">
-
     <bn-title
       business-unit		        ='Top 5 Charts'
       date-end			        ='2020-12-31'
@@ -172,7 +170,7 @@
     <bn-body>
       <bn-grid
         columns	="4"
-        height	="80%"
+        height	="100%"
         left	="0"
         rows	="2"
         top		="0">
@@ -183,9 +181,9 @@
                 image	='debug/Zielvolumen.png'>
         <bn-chart
           datasets			        ='$Charts_I'
-          level				        ='subCategory'
-          order				        ='subCategory'
-          order-direction			    ='asc'
+          level				          ='subCategory'
+          order				          ='subCategory'
+          order-direction			  ='asc'
           scenarios			        ='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos'
           styles				        =''
           unit-scaling			    ='0.2'
@@ -194,9 +192,8 @@
 
       </bn-grid>
     </bn-body>
+    <bn-footer text = "© 2022 - BinoBI GmbH" code="bar" page-number="42"></bn-footer>
 
-    <bn-footer text = "© 2022 - BinoBI GmbH"></bn-footer>
-    </bn-grid>
   </bn-page>
 </bn-context>
 </body>

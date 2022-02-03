@@ -117,6 +117,10 @@ export namespace Components {
     }
     interface BnFooter {
         /**
+          * code . <br />If empty string (`''` or `null`) the footer row is omitted
+         */
+        "code": string;
+        /**
           * Toggle if pagenumer label is displayed
          */
         "displayPageNumber": boolean;
@@ -487,6 +491,10 @@ declare namespace LocalJSX {
         "name": string;
     }
     interface BnFooter {
+        /**
+          * code . <br />If empty string (`''` or `null`) the footer row is omitted
+         */
+        "code"?: string;
         /**
           * Toggle if pagenumer label is displayed
          */
