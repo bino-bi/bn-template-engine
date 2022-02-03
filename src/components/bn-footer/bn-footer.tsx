@@ -33,7 +33,6 @@ export class Footer {
   @Prop({mutable: true})
   code: string;
 
-
   /**
    *  Toggle if pagenumer label is displayed
    */
@@ -59,7 +58,8 @@ export class Footer {
 
   render() {
     return <Host>
-      <div id="container">
+
+      <div id={this.displayPageNumber? "container-page-footer": "container"}>
        <div id="footer-text">
         {
          this.text != null ? <span class="note">{this.text}</span> : ""

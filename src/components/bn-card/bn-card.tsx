@@ -388,7 +388,7 @@ export class Card {
         ></ibcs-title>
         <div class="overlay">{logo}</div>
         <slot/>
-      <bn-footer text={this.prepareFooterText()} displayPageNumber={false} ></bn-footer>
+      <bn-footer text={this.prepareFooterText()}  displayPageNumber={false} ></bn-footer>
       </div>
     </Host>
   }
