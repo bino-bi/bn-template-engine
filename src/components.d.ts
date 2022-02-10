@@ -143,7 +143,6 @@ export namespace Components {
         "code": string;
     }
     interface BnPage {
-        "_setCurrentPageIndex": (value: number) => Promise<void>;
         /**
           * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga```
          */
