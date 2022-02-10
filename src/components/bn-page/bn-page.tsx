@@ -1,4 +1,4 @@
-import {Component, h, Host, Prop, Watch, Element, Method} from "@stencil/core";
+import { Component, h, Host, Prop, Watch, Element, Method } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
@@ -32,15 +32,6 @@ export class Page {
    */
   @Prop() orientation: string;
 
-  //TODO: add observer and append to connected footer
-  @Method()
-  async _setCurrentPageIndex(value: number) {
-    const footer = this.el.querySelector('bn-footer')
-    if (footer) {
-      footer.setAttribute("page-number", value.toString());
-    }
-  }
-
   @Watch('format')
   // @ts-ignore
   validateFormat(newValue: string, oldValue: string) {
@@ -55,7 +46,7 @@ export class Page {
 
   render() {
     return <Host>
-      <slot/>
+      <slot />
     </Host>
   }
 }

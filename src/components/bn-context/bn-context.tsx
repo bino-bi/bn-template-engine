@@ -1,4 +1,4 @@
-import {Component, h, Host, Element, Prop, Watch} from "@stencil/core";
+import { Component, h, Host, Element, Prop, Watch } from "@stencil/core";
 import state from '../../stores/context';
 import withComponentStatus from "../../utils/withComponentStatus";
 
@@ -8,7 +8,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 })
 export class Context {
   constructor() {
-   withComponentStatus(this);
+    withComponentStatus(this);
   }
 
   @Element() el: HTMLElement;
@@ -20,10 +20,14 @@ export class Context {
     state.locale = newValue;
   }
 
-  observer = new MutationObserver(() => {
+  observer = new MutationObserver((m: MutationRecord[]) => {
+    console.dir(m)
     this.el.querySelectorAll('bn-page').forEach((page, index) => {
-      // @ts-ignore
-      page._setCurrentPageIndex(index + 1);
+      const footer = page.querySelector("bn-footer");
+      if (footer) {
+        // @ts-ignore
+        footer.setAttribute("page-number", (index + 1).toString());
+      }
     })
   });
 
@@ -31,7 +35,7 @@ export class Context {
     if (this.locale) {
       state.locale = this.locale;
     }
-    this.observer.observe(this.el, {childList: true});
+    this.observer.observe(this.el, { childList: true });
   }
 
   disconnectedCallback() {
@@ -40,7 +44,7 @@ export class Context {
 
   render() {
     return (<Host>
-      <slot/>
+      <slot />
     </Host>);
   }
 }
