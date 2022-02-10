@@ -18,19 +18,6 @@ Each Child-element must be used only once.
 | `orientation` | `orientation` | Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format                                                   | `string` | `undefined` |
 
 
-## Methods
-
-### `_setCurrentPageIndex(value: number) => Promise<void>`
-
-
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-
 ----------------------------------------------
 
 developed by Bino Bi
