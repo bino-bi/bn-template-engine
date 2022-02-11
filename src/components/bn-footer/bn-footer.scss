@@ -1,57 +1,21 @@
 bn-footer {
-
-  %footer {
-    position: absolute;
-    font-size: 0.5em;
-    padding: 0.5em;
-    botton: 0px;
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-columns: 1.4fr 0.3fr 1.4fr;
-    grid-template-rows: 1fr;
-    gap: 0px 0px;
-    grid-template-areas:
-    "footer-text code page-number";
-    width: 100%;
-    height: 1.3em;
-    text-align:  center;
-  }
-
-  span.note {
-    color: #696969;
-  }
-
-  div#container {
-    @extend %footer;
-  }
-
-  div#container-page-footer {
-    @extend %footer;
+    padding: 8px;
     border-top: 0.1em solid #CCC;
-  }
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 
-  div#footer-text {
-    justify-self: start;
-    grid-area: footer-text;
-    text-align:  center;
-  }
-
-  div#code {
-    justify-self: center;
-    grid-area: code;
-    align-self: center;
-  }
-
-  div#page-number {
-    justify-self: end;
-    grid-area: page-number;
-
-  }
+    div#footer-text {
+        display: inline;
+    }
+    
+    div#code {
+        flex: 1;
+        display: inline;
+        text-align: right;
+    }
+    
+    div#page-number {
+    display: inline;
+    }
 }
-
-
-
-
-
-
-
