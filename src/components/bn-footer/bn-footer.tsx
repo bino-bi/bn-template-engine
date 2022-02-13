@@ -1,4 +1,4 @@
-import { Component, getAssetPath, getElement, h, Host, Prop } from "@stencil/core";
+import { Component, getAssetPath,  h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
@@ -56,11 +56,7 @@ export class Footer {
   }
 
   render() {
-
-    { console.dir(getElement(this).parentElement.getAttribute("page-number")) }
-
-    return <Host>
-      {/* <div id={this.displayPageNumber ? "container-page-footer" : "container"}> */}
+    return <Host id={this.displayPageNumber? "container-page-footer": "container"}>
       <div id="footer-text">
         {
           this.text != null ? <span class="note">{this.text}</span> : ""
@@ -79,4 +75,5 @@ export class Footer {
       {/* </div> */}
     </Host>
   }
+
 }
