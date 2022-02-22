@@ -6,16 +6,16 @@ import {
   isValidNumber,
   validateOrderList,
   validateScenarioList,
-  validateStylesString,
   validateVariancesList
 } from "../../utils/validate";
 import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
-import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import {BinoChartSyles, DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import {globalLabelKeys} from "../../stores/internationalization";
 import {withStyled} from "../../utils/styled/withStyled";
+import withComponentStyle from "../../utils/withComponentStyle";
 
 @Component({
   tag: 'bn-chart',
@@ -27,7 +27,7 @@ export class Chart {
   @State() data: DataRow[] = []
 
   private readonly t: (key: string, data?: object) => string;
-
+  private readonly componentStyle: (name: string) => any;
   /**
    * List of Scenarios Map.
    *<br /> <br />
@@ -160,18 +160,20 @@ export class Chart {
    *  interface for format is *BinoChartSyles*
    *
    */
-  @Prop() styles: string = null;
+  @Prop() styles: string = 'default';
 
   @Watch('styles')
-  validateStles(newValue: string) {
-    if (!validateStylesString(newValue)) {
-      throw new Error('i18: invalid value(s) \'' + newValue + '\' are not supported.')
+  validateStyles(newValue: string) {
+    if (newValue == null || newValue == 'null' || newValue.trim().length == 0){
+      newValue = 'default';
     }
+    this.componentStyleName = newValue;
   }
 
   private scenariosArray: string[];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
+  private componentStyleName: string;
 
   constructor() {
     withStyled(this);
@@ -181,15 +183,16 @@ export class Chart {
     });
     this.chartTemplate = this.chartTemplate.bind(this);
 
-    withComponentStatus(this);
+    this.componentStyle =withComponentStyle(this).componentStyle;
     this.t = withTranslation(this).t;
+
   }
 
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
-    this.validateStles(this.styles);
+    this.validateStyles(this.styles);
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
@@ -254,6 +257,13 @@ export class Chart {
     return tableOrder;
   }
 
+  private prepareStyle(): BinoChartSyles {
+    let chartStyle = this.componentStyle(this.componentStyleName);
+    console.log("Chart", chartStyle);
+    return chartStyle
+
+  }
+
 
   chartTemplate(localScenarioString: string) {
     return <ibcs-chart-structure
@@ -263,7 +273,7 @@ export class Chart {
       hideCategories={this.prepareHideCategories(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
       chartTitle={null}
-      styles={null}
+      styles={this.prepareStyle()}
       i18n={this.prepareI18n()}
       level={this.prepareLevel()}
       order={this.prepareOrder()}

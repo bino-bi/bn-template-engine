@@ -1,13 +1,18 @@
 import { Component, h, Host, Prop, Watch, Element } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withComponentStyle from "../../utils/withComponentStyle";
 
 @Component({
   tag: 'bn-page',
   styleUrl: 'bn-page.scss',
 })
 export class Page {
+  private componentStyleName: string;
+  private readonly componentStyle: (name: string) => any;
+
   constructor() {
     withComponentStatus(this);
+    this.componentStyle =withComponentStyle(this).componentStyle;
   }
 
   @Element() el: HTMLElement
@@ -43,10 +48,31 @@ export class Page {
   validateOrientation(newValue: string, oldValue: string) {
     //TODO: add validation
   }
+  /**
+   *  Custom Styles for chart scnearios.
+   *  <br /> <br />
+   *  feature is not yet activated
+   *  <br /> <br />
+   *  interface for format is *BinoChartSyles*
+   *
+   */
+  @Prop() styles: string = 'default';
 
+  @Watch('styles')
+  validateStyles(newValue: string) {
+    if (newValue == null || newValue == 'null' || newValue.trim().length == 0){
+      newValue = 'default';
+    }
+    this.componentStyleName = newValue;
+  }
   render() {
-    return <Host>
+    return <Host style={this.prepareStyle()}>
       <slot />
     </Host>
   }
+
+  private prepareStyle() {
+    return this.componentStyle(this.componentStyleName)
+  }
+
 }

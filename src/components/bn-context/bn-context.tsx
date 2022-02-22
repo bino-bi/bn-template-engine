@@ -31,6 +31,10 @@ export class Context {
     })
   });
 
+  componentWillLoad() {
+
+  }
+
   connectedCallback() {
     if (this.locale) {
       state.locale = this.locale;
@@ -42,8 +46,10 @@ export class Context {
     if (this.observer) this.observer.disconnect();
   }
 
+
   render() {
-    return (<Host>
+    return (
+      <Host >
       <slot />
     </Host>);
   }

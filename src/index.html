@@ -15,15 +15,22 @@
 </head>
 <body>
 <bn-context locale="de">
-
-  <bn-component-style name="test" component="bn-text">
-  {
-    "ahh": "test"
+  <bn-component-style name="bn-chart"  component="bn-chart">
+    {
+       "fontFamily": "NotoSans",
+       "fontSize":   "13pt"
     }
   </bn-component-style>
-  <bn-component-style component="bn-text">
+  <bn-component-style  component="bn-chart">
     {
-    "ahh": "default"
+
+    }
+  </bn-component-style>
+
+  <bn-component-style component="bn-page">
+    {
+       "fontFamily": "'NotoSans', sans-serif",
+       "fontSize":   "13.3333px"
     }
   </bn-component-style>
 
@@ -185,7 +192,7 @@
           order				          ='subCategory'
           order-direction			  ='asc'
           scenarios			        ='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos'
-          styles				        =''
+          styles				        = ''
           unit-scaling			    ='0.2'
         ></bn-chart>
       </bn-card>
@@ -199,7 +206,7 @@
             order				          ='subCategory'
             order-direction			  ='asc'
             scenarios			        ='ac1,pp1,fc1'
-            styles				        =''
+            styles				        = null
             unit-scaling			    ='0.2'
           ></bn-chart>
         </bn-card>

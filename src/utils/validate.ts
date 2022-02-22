@@ -262,3 +262,12 @@ export function validateCategoryThereOfJsonStr(value: string): string[] {
   return ["Invalid JSON structure"];
 }
 
+export function isValidFontSize(value: string): boolean {
+  console.log("FontSize not yet validated", value);
+  return true;
+}
+
+export function isValidFontFamily(value: string): boolean {
+  console.log("isValidFontFamily not yet validated", value);
+  return true;
+}
