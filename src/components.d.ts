@@ -151,6 +151,10 @@ export namespace Components {
           * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
          */
         "orientation": string;
+        /**
+          * Custom Styles for chart scnearios. <br /> <br /> feature is not yet activated <br /> <br /> interface for format is *BinoChartSyles*
+         */
+        "styles": string;
     }
     interface BnTable {
         /**
@@ -525,6 +529,10 @@ declare namespace LocalJSX {
           * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
          */
         "orientation"?: string;
+        /**
+          * Custom Styles for chart scnearios. <br /> <br /> feature is not yet activated <br /> <br /> interface for format is *BinoChartSyles*
+         */
+        "styles"?: string;
     }
     interface BnTable {
         /**
