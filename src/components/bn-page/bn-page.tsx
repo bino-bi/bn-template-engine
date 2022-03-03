@@ -7,12 +7,11 @@ import withComponentStyle from "../../utils/withComponentStyle";
   styleUrl: 'bn-page.scss',
 })
 export class Page {
-  private componentStyleName: string;
-  private readonly componentStyle: (name: string) => any;
+  private readonly componentStyle: <T, >(q: (Style) => T) => T;
 
   constructor() {
     withComponentStatus(this);
-    this.componentStyle =withComponentStyle(this).componentStyle;
+    this.componentStyle = withComponentStyle(this);
   }
 
   @Element() el: HTMLElement
@@ -48,23 +47,7 @@ export class Page {
   validateOrientation(newValue: string, oldValue: string) {
     //TODO: add validation
   }
-  /**
-   *  Custom Styles for chart scnearios.
-   *  <br /> <br />
-   *  feature is not yet activated
-   *  <br /> <br />
-   *  interface for format is *BinoChartSyles*
-   *
-   */
-  @Prop() styles: string = 'default';
 
-  @Watch('styles')
-  validateStyles(newValue: string) {
-    if (newValue == null || newValue == 'null' || newValue.trim().length == 0){
-      newValue = 'default';
-    }
-    this.componentStyleName = newValue;
-  }
   render() {
     return <Host style={this.prepareStyle()}>
       <slot />
@@ -72,7 +55,7 @@ export class Page {
   }
 
   private prepareStyle() {
-    return this.componentStyle(this.componentStyleName)
+    return undefined;
   }
 
 }

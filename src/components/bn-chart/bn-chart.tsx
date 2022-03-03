@@ -1,4 +1,4 @@
-import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isValidDirection,
@@ -8,13 +8,13 @@ import {
   validateScenarioList,
   validateVariancesList
 } from "../../utils/validate";
-import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
-import {BinoChartSyles, DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import { AggregationLevel, Order, OrderColumn, OrderDirection } from "@bino-bi/ibcs-component-interface";
+import { BinoChartSyles, DataRow } from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
-import {globalLabelKeys} from "../../stores/internationalization";
-import {withStyled} from "../../utils/styled/withStyled";
+import { globalLabelKeys } from "../../stores/internationalization";
+import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 
 @Component({
@@ -27,7 +27,7 @@ export class Chart {
   @State() data: DataRow[] = []
 
   private readonly t: (key: string, data?: object) => string;
-  private readonly componentStyle: (name: string) => any;
+  private readonly componentStyle: <T, >(q: (Style) => T) => T;
   /**
    * List of Scenarios Map.
    *<br /> <br />
@@ -152,28 +152,9 @@ export class Chart {
 
   }
 
-  /**
-   *  Custom Styles for chart scnearios.
-   *  <br /> <br />
-   *  feature is not yet activated
-   *  <br /> <br />
-   *  interface for format is *BinoChartSyles*
-   *
-   */
-  @Prop() styles: string = 'default';
-
-  @Watch('styles')
-  validateStyles(newValue: string) {
-    if (newValue == null || newValue == 'null' || newValue.trim().length == 0){
-      newValue = 'default';
-    }
-    this.componentStyleName = newValue;
-  }
-
   private scenariosArray: string[];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
-  private componentStyleName: string;
 
   constructor() {
     withStyled(this);
@@ -183,7 +164,7 @@ export class Chart {
     });
     this.chartTemplate = this.chartTemplate.bind(this);
 
-    this.componentStyle =withComponentStyle(this).componentStyle;
+    this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
 
   }
@@ -192,7 +173,7 @@ export class Chart {
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
-    this.validateStyles(this.styles);
+    //this.validateStyles(this.styles);
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
@@ -200,7 +181,7 @@ export class Chart {
 
   prepareDimension(): { height: number, width: number } {
     this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
-    return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
+    return { width: this.canvasWidthSegmented, height: this.element.clientHeight };
   }
 
   private prepareScenarios(): string[] {
@@ -229,10 +210,10 @@ export class Chart {
     const i18nMetaLabelsLocal = [];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t(".".concat(key))]));
+    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
 
@@ -258,10 +239,10 @@ export class Chart {
   }
 
   private prepareStyle(): BinoChartSyles {
-    let chartStyle = this.componentStyle(this.componentStyleName);
-    console.log("Chart", chartStyle);
-    return chartStyle
-
+    //let chartStyle = this.componentStyle(this.componentStyleName);
+    //console.log("Chart", chartStyle);
+    //return chartStyle 
+    return undefined;
   }
 
 
