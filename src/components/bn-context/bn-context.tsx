@@ -21,7 +21,6 @@ export class Context {
   }
 
   observer = new MutationObserver((m: MutationRecord[]) => {
-    console.dir(m)
     this.el.querySelectorAll('bn-page').forEach((page, index) => {
       const footer = page.querySelector("bn-footer");
       if (footer) {

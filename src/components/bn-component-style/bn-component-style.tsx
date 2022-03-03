@@ -1,6 +1,6 @@
-import {Component, Prop, h, Host} from "@stencil/core";
+import { Component, Prop, h, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
-import state from "../../stores/componentStyles";
+import state, { set, Style } from "../../stores/componentStyles";
 import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
@@ -8,7 +8,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
   styleUrl: 'bn-component-style.scss'
 })
 export class ComponentStyle {
-  @Prop() name: string = "default";
+  @Prop() name: string = "_default";
   @Prop() component: string;
 
   constructor() {
@@ -16,24 +16,16 @@ export class ComponentStyle {
     withBodyObserver(this, (data) => {
       try {
         const parsedData = JSON.parse(data);
-        //console.dir(["Hint: ",this.component, this.name, parsedData, state, state[this.component] && state[this.component][this.name]])
-        //TODO: throw exception if no default is defind in state
-        //TODO: need manual tests
-        var current = current;
-
-        if(state[this.component] && state[this.component][this.name]) {
-          current = state[this.component][this.name];
-        }
-
-        state[this.component][this.name] = {...current, ...parsedData}
+        set(this.name, parsedData as Style)
       } catch (e) {
+        //TODO: add error chanel for JSON parsing errors
         console.error(e)
       }
     });
   }
 
   render() {
-    return <Host/>
+    return <Host />
   }
 }
 
