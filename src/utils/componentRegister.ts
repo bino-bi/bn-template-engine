@@ -6,9 +6,13 @@ export enum ComponentStatus {
 export namespace ComponentRegister {
   var currentTimeOutId: NodeJS.Timeout = undefined;
   let componentRegister = new Map<string, ComponentStatus>();
+  let statusIntervall = setInterval(() => {
+    console.log("Component status rdy: " + componentRegisterIsRendered())
+  }, 100)
+
 
   export const updateStatus = (uuid: string, status: ComponentStatus) => {
-    if(currentTimeOutId) {
+    if (currentTimeOutId) {
       clearTimeout(currentTimeOutId);
     }
     componentRegister.set(uuid, status);
@@ -17,6 +21,7 @@ export namespace ComponentRegister {
       window.componentRegisterIsRenderedResult = componentRegisterIsRendered()
       // @ts-ignore
       console.log("componentRegisterIsRendered:", window.componentRegisterIsRenderedResult)
+      clearInterval(statusIntervall);
     }, 500);
   }
 
@@ -44,7 +49,7 @@ export namespace ComponentRegister {
         }
         default: {
           result.error++;
-          console.log("Component failed ",key)
+          console.log("Component failed ", key)
           break;
         }
       }

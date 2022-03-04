@@ -1,5 +1,5 @@
-import {generateUUID, runIfExisits} from "./utils";
-import {ComponentRegister, ComponentStatus} from "./componentRegister";
+import { generateUUID, runIfExisits } from "./utils";
+import { ComponentRegister, ComponentStatus } from "./componentRegister";
 
 const withComponentStatus = (component: any) => {
   let uuid: string = generateUUID();

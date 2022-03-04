@@ -11,7 +11,7 @@ const withComponentStyle = (component: any) => {
   let style: Style = state["_system"]
 
   const updateStyle = () => {
-    style = merge([state["_system"], state["_default"], ...styles.map(key => state[key] || ({} as Style))]);
+    style = merge([state["_system"] || ({} as Style), state["_default"] || ({} as Style), ...styles.map(key => state[key] || ({} as Style))]);
   };
 
   const observer = new MutationObserver((mutations) => {
@@ -31,7 +31,7 @@ const withComponentStyle = (component: any) => {
     observer.observe(elm, { attributes: true, attributeFilter: ['styles'] });
     styles = (elm.getAttribute('styles') || "").split(",");
     updateStyle();
-    runIfExisits(connectedCallback);
+    runIfExisits(connectedCallback, component);
   }
 
   subscription = on("set", key => {
@@ -45,7 +45,7 @@ const withComponentStyle = (component: any) => {
   component['disconnectedCallback'] = () => {
     observer.disconnect();
     runIfExisits(subscription);
-    runIfExisits(disconnectedCallback);
+    runIfExisits(disconnectedCallback, component);
   };
 
   const componentStyle = <T,>(q: ($style: Style) => T): T => {

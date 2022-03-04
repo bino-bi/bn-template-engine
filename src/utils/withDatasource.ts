@@ -5,7 +5,6 @@ import { getElement } from "@stencil/core";
 const withDatasource = (component: any, onUpdate: (name: string, data: any) => void) => {
   let subscription: () => void;
   let datasources: string[] = [];
-  const connectedCallback = component['connectedCallback'];
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -19,6 +18,7 @@ const withDatasource = (component: any, onUpdate: (name: string, data: any) => v
     });
   });
 
+  const connectedCallback = component['connectedCallback'];
   component['connectedCallback'] = () => {
     const element = getElement(component);
     datasources = (element.getAttribute('datasources') || "").split(",");
@@ -34,14 +34,14 @@ const withDatasource = (component: any, onUpdate: (name: string, data: any) => v
       }
     })
 
-    runIfExisits(connectedCallback);
+    runIfExisits(connectedCallback, component);
   };
 
   const disconnectedCallback = component['disconnectedCallback'];
   component['disconnectedCallback'] = () => {
     observer.disconnect();
     runIfExisits(subscription);
-    runIfExisits(disconnectedCallback);
+    runIfExisits(disconnectedCallback, component);
   };
 }
 
