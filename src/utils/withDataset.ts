@@ -1,17 +1,15 @@
-import {on as onSet, get as getSet} from '../stores/datasets';
-import {on as onSource, get as getSource} from '../stores/datasources';
-import {startsWith,partition} from 'ramda';
+import { on as onSet, get as getSet } from '../stores/datasets';
+import { on as onSource, get as getSource } from '../stores/datasources';
+import { startsWith, partition } from 'ramda';
 
-import {runIfExisits} from "./utils";
-import {getElement} from "@stencil/core";
+import { runIfExisits } from "./utils";
+import { getElement } from "@stencil/core";
 
 const withDataset = (component: any, onUpdate: (name: string, data: any) => void) => {
   let subscriptionSet: () => void;
   let subscriptionSource: () => void;
   let datasets: string[] = [];
   let datasources: string[] = [];
-
-  const connectedCallback = component['connectedCallback'];
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -29,6 +27,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     });
   });
 
+  const connectedCallback = component['connectedCallback'];
   component['connectedCallback'] = () => {
     const element = getElement(component);
     [datasources, datasets] = (partition(startsWith("$"), (element.getAttribute('datasets') || "").split(",")));
@@ -41,7 +40,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
       onUpdate(name, getSource(name.substring(1)));
     })
 
-    observer.observe(element, {attributes: true, attributeFilter: ['datasets']});
+    observer.observe(element, { attributes: true, attributeFilter: ['datasets'] });
 
     subscriptionSet = onSet("set", (key, newVlaue) => {
       if (datasets.includes(key)) {
@@ -56,7 +55,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     })
 
 
-    runIfExisits(connectedCallback);
+    runIfExisits(connectedCallback, component);
   };
 
   const disconnectedCallback = component['disconnectedCallback'];
@@ -64,7 +63,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     observer.disconnect();
     runIfExisits(subscriptionSet);
     runIfExisits(subscriptionSource);
-    runIfExisits(disconnectedCallback);
+    runIfExisits(disconnectedCallback, component);
   };
 
   return (names: string[]) => {

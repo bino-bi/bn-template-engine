@@ -30,9 +30,7 @@ export class Context {
     })
   });
 
-  componentWillLoad() {
 
-  }
 
   connectedCallback() {
     if (this.locale) {
@@ -45,11 +43,26 @@ export class Context {
     if (this.observer) this.observer.disconnect();
   }
 
+  componentWillLoad() {
+    // stencil needs one componenet implementing all lifecycle steps to get mixing working 
+  }
+
+  componentDidLoad() { }
+
+  componentShouldUpdate() { }
+
+  componentWillRender() { }
+
+  componentDidRender() { }
+
+  componentWillUpdate() { }
+
+  componentDidUpdate() { }
 
   render() {
     return (
       <Host >
-      <slot />
-    </Host>);
+        <slot />
+      </Host>);
   }
 }

@@ -1,5 +1,5 @@
-import {getElement} from "@stencil/core";
-import {runIfExisits} from "./utils";
+import { getElement } from "@stencil/core";
+import { runIfExisits } from "./utils";
 
 const withBodyObserver = (component: any, onUpdate: (data: string) => void) => {
 
@@ -12,15 +12,15 @@ const withBodyObserver = (component: any, onUpdate: (data: string) => void) => {
   const connectedCallback = component['connectedCallback'];
   component['connectedCallback'] = () => {
     const element = getElement(component);
-    observer.observe(element, {childList: true, subtree: true, characterData: true});
+    observer.observe(element, { childList: true, subtree: true, characterData: true });
     onUpdate(element.textContent);
-    runIfExisits(connectedCallback);
+    runIfExisits(connectedCallback, component);
   };
 
   const disconnectedCallback = component['disconnectedCallback'];
   component['disconnectedCallback'] = () => {
     observer.disconnect();
-    runIfExisits(disconnectedCallback);
+    runIfExisits(disconnectedCallback, component);
   };
 }
 
