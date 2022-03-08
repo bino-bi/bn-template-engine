@@ -1,5 +1,6 @@
 import { Component, Prop, h, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
+// @ts-ignore
 import state, { set, Style } from "../../stores/componentStyles";
 import withComponentStatus from "../../utils/withComponentStatus";
 
