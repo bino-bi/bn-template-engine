@@ -7,10 +7,10 @@
 
 ## Properties
 
-| Property    | Attribute   | Description | Type     | Default     |
-| ----------- | ----------- | ----------- | -------- | ----------- |
-| `component` | `component` |             | `string` | `undefined` |
-| `name`      | `name`      |             | `string` | `"default"` |
+| Property    | Attribute   | Description | Type     | Default      |
+| ----------- | ----------- | ----------- | -------- | ------------ |
+| `component` | `component` |             | `string` | `undefined`  |
+| `name`      | `name`      |             | `string` | `"_default"` |
 
 
 ----------------------------------------------

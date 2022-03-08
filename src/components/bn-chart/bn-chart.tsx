@@ -239,10 +239,7 @@ export class Chart {
   }
 
   private prepareStyle(): BinoChartSyles {
-    //let chartStyle = this.componentStyle(this.componentStyleName);
-    //console.log("Chart", chartStyle);
-    //return chartStyle 
-    return undefined;
+    return  this.componentStyle($ => $.chart);
   }
 
 

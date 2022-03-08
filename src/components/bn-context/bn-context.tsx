@@ -19,7 +19,7 @@ export class Context {
   setLocale(newValue: string) {
     state.locale = newValue;
   }
-
+  // @ts-ignores
   observer = new MutationObserver((m: MutationRecord[]) => {
     this.el.querySelectorAll('bn-page').forEach((page, index) => {
       const footer = page.querySelector("bn-footer");
@@ -44,7 +44,7 @@ export class Context {
   }
 
   componentWillLoad() {
-    // stencil needs one componenet implementing all lifecycle steps to get mixing working 
+    // stencil needs one componenet implementing all lifecycle steps to get mixing working
   }
 
   componentDidLoad() { }

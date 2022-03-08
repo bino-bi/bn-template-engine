@@ -5,6 +5,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
+import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 
 @Component({
   tag: 'bn-text',
@@ -13,6 +14,7 @@ import { Style } from "../../stores/componentStyles";
 
 
 export class Text {
+
   constructor() {
     withStyled(this);
     withComponentStatus(this);
@@ -20,14 +22,14 @@ export class Text {
     withDataset(this, (name, data) => {
       this.data = { ...this.data, [name]: data };
     });
-    this.style = withComponentStyle(this);
+    this.componentStyle = withComponentStyle(this);
   }
 
   @Prop() value?: string;
 
   @State() data: any = {}
 
-  private readonly style: <T, >(q: (Style) => T) => T;
+  private readonly componentStyle: <T, >(q: (Style) => T) => T;
   private readonly t: (key: string, data?: object) => string;
 
   scopedEval = (scope, script) => {
@@ -38,7 +40,15 @@ export class Text {
     }
   }
 
+
+  private prepareStyle(): BinoChartSyles {
+    return  this.componentStyle($ => $.chart);
+  }
+
   render() {
+    // TODO Stlye fuer etxgt noch setzen
+    this.prepareStyle();
+
     return <Host>
       {this.scopedEval({ data: this.data, t: this.t }, "`" + this.value + "`")}
     </Host>
