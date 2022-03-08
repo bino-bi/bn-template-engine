@@ -3,22 +3,24 @@ import { createStore } from "@stencil/store";
 export interface Style {
   global: GlobalStyle;
   "bn-text": TextStyle
+  "bn-chart": ChartStyle
 }
 
 export interface GlobalStyle {
-  baseFontSize: number;
-  baseFontFamily: string
+  fontSize: string;
+  fontFamily: string
 }
 export interface TextStyle { }
-
+export interface ChartStyle { }
 const { state, on, get, set } = createStore<{ [key: string]: Style }>(
   {
     "_system": {
       global: {
-        baseFontSize: 13.3333,
-        baseFontFamily: "'NotoSans', sans-serif"
+        "fontFamily": "'NotoSans', sans-serif",
+        "fontSize":   "13.3333px"
       },
-      "bn-text": {}
+      "bn-text": {},
+      "bn-chart":{}
     }
   }
 );

@@ -55,7 +55,7 @@ export class Page {
   }
 
   private prepareStyle() {
-    return undefined;
+    return this.componentStyle($ => $.global);
   }
 
 }
