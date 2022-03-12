@@ -9,7 +9,10 @@ import {
   validateVariancesList
 } from "../../utils/validate";
 import { AggregationLevel, Order, OrderColumn, OrderDirection } from "@bino-bi/ibcs-component-interface";
-import { BinoChartSyles, DataRow } from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import {
+  BinoChartSyles,
+  DataRow
+} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
@@ -239,9 +242,34 @@ export class Chart {
   }
 
   private prepareStyle(): BinoChartSyles {
-    return  this.componentStyle($ => $.chart);
+    // TODO ScaleFactors in global Constant schiben
+     return {
+        scaleFactors: {
+                barWidthYOffset: 0.95,
+                fontNetHeight: 0.7,
+                needleWidthOffset: 0.7,
+                barHeightOffset: 0.4,
+                barWidthOffset: 0.3,
+                pt2Px: 1.2,
+                axisWidth: 0.1,
+                rowHeight: 1.8,
+                barWidth: 1.2,
+                needleWidth: 0.3,
+        },
+        fontStyles: {
+                font: `${this.componentStyle($ =>$["global"]['fontSizePx'])}px ${this.componentStyle($ =>$["global"]['fontFamily'])}`,
+                size: this.componentStyle($ =>$["global"]['fontSizePx']),
+                color: "#000000",
+                background: "#ffffff",
+                leading: 1.8,
+        },
+        axisStyles:     this.componentStyle($ =>$["bn-chart"]['axisStyles']),
+        barStyles:      this.componentStyle($ =>$["bn-chart"]['barStyles']),
+        varianceStyles: this.componentStyle($ =>$["bn-chart"]['varianceStyles']),
+        padding:        this.componentStyle($ =>$["bn-chart"]['padding']),
+        pattern:        null
+    }
   }
-
 
   chartTemplate(localScenarioString: string) {
     return <ibcs-chart-structure
