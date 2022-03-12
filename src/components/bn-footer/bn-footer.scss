@@ -7,7 +7,10 @@ bn-footer {
 
     &#container-page-footer {
      /* border-top: 0.05em solid #CCC; */
-      border-top: 1px solid #CCC;
+
+      box-sizing:border-box;
+      -webkit-box-sizing:border-box;
+      border-top: 0.5pt solid #CCC;
     }
 
     div#footer-text {

@@ -27,6 +27,8 @@ bn-footer {
 
   div#container-page-footer {
     @extend %footer;
+    box-sizing:border-box;
+    -webkit-box-sizing:border-box;
     border-top: 0.05em solid #CCC;
   }
 
