@@ -5,7 +5,8 @@ bn-card {
   background-origin: content-box;
 
   &.border{
-    outline: 0.05em solid #CCC;
+    /*outline: 0.05em solid #CCC;*/
+    outline: 1px solid #CCC;
   }
 
   .measure {
