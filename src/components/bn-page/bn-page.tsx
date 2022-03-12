@@ -55,7 +55,12 @@ export class Page {
   }
 
   private prepareStyle() {
-    return this.componentStyle($ => $.global);
+    let pageStyle = {
+      "font-family":  this.componentStyle($ => $.global["fontFamily"]),
+      "font-size":    `${this.componentStyle($ => $.global["fontSizePx"])}px`,
+    };
+
+    return pageStyle;
   }
 
 }
