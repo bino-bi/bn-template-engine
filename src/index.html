@@ -80,6 +80,82 @@
       }
       }
     </bn-internationalization>
+    <bn-datasource name="Charts_II">
+      [
+      {
+      "setname": "de",
+      "operation": "+",
+      "rowGroup": "Amerika",
+      "rowGroupIndex": 1,
+      "category": "Geschäftsbereich I",
+      "categoryIndex": 1,
+      "subCategory": "Question Mark",
+      "subCategoryIndex": 1,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 1286,
+      "ac1": 1267,
+      "pl1": 1167,
+      "fc1": 1367
+      },
+      {
+      "setname": "de",
+      "operation": "+",
+      "rowGroup": "Asien",
+      "rowGroupIndex": 1,
+      "category": "Geschäftsbereich II",
+      "categoryIndex": 2,
+      "subCategory": "Stars",
+      "subCategoryIndex": 2,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 1201,
+      "ac1": 1209,
+      "pl1": 1209,
+      "fc1": 1009
+      },
+      {
+      "setname": "de",
+      "operation": "+",
+      "rowGroup": "Europa",
+      "rowGroupIndex": 1,
+      "category": "Geschäftsbereich III",
+      "categoryIndex": 3,
+      "subCategory": "Cash Cows",
+      "subCategoryIndex": 3,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 835,
+      "ac1": 965,
+      "pl1": 955,
+      "fc1": 975
+      },
+      {
+      "setname": "de",
+      "operation": "+",
+      "rowGroup": "Rest",
+      "rowGroupIndex": 1,
+      "category": "GRest",
+      "categoryindex": 4,
+      "subCategory": "Rest",
+      "subCategoryIndex": 4,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 423,
+      "ac1": 741,
+      "pl1": 641,
+      "fc1": 841
+      }
+      ]
+    </bn-datasource>
     <bn-datasource name="Bundesanzeiger">
       [
       {
@@ -638,6 +714,298 @@
           ></bn-table>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
+    <bn-page name="Charts_3x3_mit_Card" format="a4" orientation="landscape">
+
+      <bn-title
+        business-unit		        ='Top 5 Charts'
+        date-end			        ='2020-12-31'
+        date-format			        ='quarter'
+        date-link			        ='interval'
+        date-start			        ='2019-12-31'
+        measures			        ='[{"name": "Regionen", "unit": "mEUR"}, {"name": "Geschäftsbereiche", "unit": "mEUR"}, {"name": "Produkte", "unit": "mEUR"},{"name": "Forecast", "unit": "mEUR"}]'
+        order				        ='ac1'
+        order-direction			    ='desc'
+        scenarios			        ='ac1, fc1'
+      ></bn-title>
+
+      <bn-body>
+
+        <bn-grid
+          columns	="3"
+          height	="100%"
+          left	="0"
+          rows	="3"
+          top		="0"
+        >
+
+          <bn-card
+            grid-column = "1 "
+            grid-row	= "1 "
+            business-unit		        ='Test'
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Zielvolumen.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+          <bn-card
+            grid-column = "2 "
+            grid-row	= "1 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Kapitalzusage.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+          <bn-card
+            grid-column = "3 "
+            grid-row	= "1 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Value.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+          <bn-card
+            grid-column = "1 "
+            grid-row	= "2 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Zielvolumen.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+          <bn-card
+            grid-column = "2 "
+            grid-row	= "2 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Kapitalzusage.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+
+          <bn-card
+            grid-column = "3 "
+            grid-row	= "2 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Value.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+          <bn-card
+            grid-column = "1 "
+            grid-row	= "3 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Zielvolumen.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+          <bn-card
+            grid-column = "2 "
+            grid-row	= "3 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Kapitalzusage.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+          <bn-card
+            grid-column = "3 "
+            grid-row	= "3 "
+            business-unit		        =''
+            date-end			        =''
+            date-format			        =''
+            date-link			        =''
+            date-start			        =''
+            footer-text			        =''
+            image				        ='debug/Value.png'
+            measures			        =''
+            order				        =''
+            order-direction			    ='asc'
+            scenarios			        =''
+            show-border			        ='true'
+          >
+
+            <bn-chart
+              datasets			        ='$Charts_II'
+              level				        ='rowGroup'
+              order				        ='rowGroup'
+              order-direction			    ='asc'
+              scenarios			        ='ac1,pp1'
+              styles				        =''
+              unit-scaling			    ='0.1'
+            ></bn-chart>
+
+          </bn-card>
+
+        </bn-grid>
+
+      </bn-body>
+      <bn-footer text = "© 2022 - BinoBI GmbH" code="bar" page-number ="1"></bn-footer>
+
     </bn-page>
   </bn-context>
 

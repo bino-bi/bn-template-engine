@@ -1,6 +1,7 @@
 bn-card {
-  float:left;
-  /*outline-offset: -0em;*/
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   padding: 0.25em;
   margin: 0.5em;
   background-origin: content-box;
