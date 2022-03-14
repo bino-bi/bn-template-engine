@@ -4,7 +4,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
   tag: 'bn-context',
-  styleUrl: 'bn-context.scss'
+  styleUrl: 'bn-context.css'
 })
 export class Context {
   constructor() {

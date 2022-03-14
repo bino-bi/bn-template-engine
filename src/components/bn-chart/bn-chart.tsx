@@ -243,31 +243,31 @@ export class Chart {
 
   private prepareStyle(): BinoChartSyles {
     // TODO ScaleFactors in global Constant schiben
-     return {
-        scaleFactors: {
-                barWidthYOffset: 0.95,
-                fontNetHeight: 0.7,
-                needleWidthOffset: 0.7,
-                barHeightOffset: 0.4,
-                barWidthOffset: 0.3,
-                pt2Px: 1.2,
-                axisWidth: 0.1,
-                rowHeight: 1.8,
-                barWidth: 1.2,
-                needleWidth: 0.3,
-        },
-        fontStyles: {
-                font: `${this.componentStyle($ =>$["global"]['fontSizePx'])}px ${this.componentStyle($ =>$["global"]['fontFamily'])}`,
-                size: this.componentStyle($ =>$["global"]['fontSizePx']),
-                color: "#000000",
-                background: "#ffffff",
-                leading: 1.8,
-        },
-        axisStyles:     this.componentStyle($ =>$["bn-chart"]['axisStyles']),
-        barStyles:      this.componentStyle($ =>$["bn-chart"]['barStyles']),
-        varianceStyles: this.componentStyle($ =>$["bn-chart"]['varianceStyles']),
-        padding:        this.componentStyle($ =>$["bn-chart"]['padding']),
-        pattern:        null
+    return {
+      scaleFactors: {
+        barWidthYOffset: 0.95,
+        fontNettoHeight: 0.7,
+        needleWidthOffset: 0.7,
+        barHeightOffset: 0.4,
+        barWidthOffset: 0.3,
+        pt2Px: 1.2,
+        axisWidth: 0.1,
+        rowHeight: 1.8,
+        barWidth: 1.2,
+        needleWidth: 0.3,
+      },
+      fontStyles: {
+        font: `${this.componentStyle($ => $["global"]['fontSizePx'])}px ${this.componentStyle($ => $["global"]['fontFamily'])}`,
+        size: this.componentStyle($ => $["global"]['fontSizePx']),
+        color: "#000000",
+        background: "#ffffff",
+        leading: 1.8,
+      },
+      axisStyles: this.componentStyle($ => $["bn-chart"]['axisStyles']),
+      barStyles: this.componentStyle($ => $["bn-chart"]['barStyles']),
+      varianceStyles: this.componentStyle($ => $["bn-chart"]['varianceStyles']),
+      padding: this.componentStyle($ => $["bn-chart"]['padding']),
+      pattern: null
     }
   }
 
