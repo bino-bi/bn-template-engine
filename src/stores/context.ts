@@ -1,4 +1,4 @@
-import {createStore} from "@stencil/store";
+import { createStore } from "@stencil/store";
 
 export interface ContextStore {
   locale: string
@@ -6,11 +6,11 @@ export interface ContextStore {
   baseFontFamily: string;
 }
 
-const {state, on, get, set} = createStore<ContextStore>({
+const { state, on, get, set } = createStore<ContextStore>({
   locale: 'en',
   baseFontSize: 13.3333,
-  baseFontFamily: "'NotoSans', sans-serif"
+  baseFontFamily: "'Noto Sans', sans-serif"
 });
 
-export {on, get, set};
+export { on, get, set };
 export default state;
