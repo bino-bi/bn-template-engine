@@ -246,7 +246,7 @@ export class Chart {
     return {
       scaleFactors: {
         barWidthYOffset: 0.95,
-        fontNettoHeight: 0.7,
+        fontNetHeight: 0.7,
         needleWidthOffset: 0.7,
         barHeightOffset: 0.4,
         barWidthOffset: 0.3,
