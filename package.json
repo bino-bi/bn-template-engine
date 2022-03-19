@@ -45,7 +45,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@bino-bi/ibcs-component": "0.31.8",
+    "@bino-bi/ibcs-component": "0.31.12",
     "@bino-bi/ibcs-component-interface": "0.6.7",
     "@corex/deepmerge": "^3.0.340",
     "@emotion/hash": "^0.8.0",
