@@ -378,6 +378,7 @@ export class Card {
     return  <Host class={this.setCardClass()} >
       <div class="content">
         <ibcs-title
+          class="titelgreen"
           businessUnit={this.prepareBusinessUnit()}
           scenarios={this.prepareScenarios()}
           measures={this.prepareMeasures()}
@@ -388,7 +389,7 @@ export class Card {
         ></ibcs-title>
         <div class="overlay">{logo}</div>
         <slot/>
-        <bn-footer text={this.prepareFooterText()}  displayPageNumber={false} ></bn-footer>
+        <bn-footer   class="footergreen" text={this.prepareFooterText()}  displayPageNumber={false} ></bn-footer>
       </div>
     </Host>
   }

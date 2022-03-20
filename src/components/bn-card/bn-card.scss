@@ -35,7 +35,7 @@ bn-card {
     padding-right: 100px;
     position: absolute;
     text-align: right;
-    background-color: transparent;
+    background-color: yellow;
     border: transparent;
   }
 
@@ -44,6 +44,14 @@ bn-card {
     flex-direction: column;
     position: relative;
     width: 100%;
+    background: red;
+  }
+  .titelgreen {
+    background: greenyellow;
+  }
+
+  .footergreen {
+    background: deepskyblue;
   }
 
 }
