@@ -131,8 +131,12 @@ export namespace Components {
     }
     interface BnGrid {
         "align": 'start' | 'end' | 'center' | 'stretch';
+        "alignContent": 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
+        "columnGap": string;
         "columns": number;
         "justify": 'start' | 'end' | 'center' | 'stretch';
+        "justifyContent": 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
+        "rowGap": string;
         "rows": number;
     }
     interface BnInternationalization {
@@ -501,8 +505,12 @@ declare namespace LocalJSX {
     }
     interface BnGrid {
         "align"?: 'start' | 'end' | 'center' | 'stretch';
+        "alignContent"?: 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
+        "columnGap"?: string;
         "columns"?: number;
         "justify"?: 'start' | 'end' | 'center' | 'stretch';
+        "justifyContent"?: 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
+        "rowGap"?: string;
         "rows"?: number;
     }
     interface BnInternationalization {
