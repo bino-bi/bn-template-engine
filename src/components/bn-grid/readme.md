@@ -21,12 +21,16 @@ Check: https://developer.mozilla.org/en-US/docs/Web/CSS/grid-column
 
 ## Properties
 
-| Property  | Attribute | Description | Type                                        | Default     |
-| --------- | --------- | ----------- | ------------------------------------------- | ----------- |
-| `align`   | `align`   |             | `"center" \| "end" \| "start" \| "stretch"` | `"stretch"` |
-| `columns` | `columns` |             | `number`                                    | `undefined` |
-| `justify` | `justify` |             | `"center" \| "end" \| "start" \| "stretch"` | `"stretch"` |
-| `rows`    | `rows`    |             | `number`                                    | `undefined` |
+| Property         | Attribute         | Description | Type                                                                                               | Default           |
+| ---------------- | ----------------- | ----------- | -------------------------------------------------------------------------------------------------- | ----------------- |
+| `align`          | `align`           |             | `"center" \| "end" \| "start" \| "stretch"`                                                        | `"start"`         |
+| `alignContent`   | `align-content`   |             | `"center" \| "end" \| "space-around" \| "space-between" \| "space-evenly" \| "start" \| "stretch"` | `"space-between"` |
+| `columnGap`      | `column-gap`      |             | `string`                                                                                           | `undefined`       |
+| `columns`        | `columns`         |             | `number`                                                                                           | `undefined`       |
+| `justify`        | `justify`         |             | `"center" \| "end" \| "start" \| "stretch"`                                                        | `"start"`         |
+| `justifyContent` | `justify-content` |             | `"center" \| "end" \| "space-around" \| "space-between" \| "space-evenly" \| "start" \| "stretch"` | `"space-between"` |
+| `rowGap`         | `row-gap`         |             | `string`                                                                                           | `undefined`       |
+| `rows`           | `rows`            |             | `number`                                                                                           | `undefined`       |
 
 
 ----------------------------------------------
