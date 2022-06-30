@@ -4,8 +4,7 @@ import withTranslation from "../../utils/withTranslation";
 import withComponentStatus from "../../utils/withComponentStatus";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-import { Style } from "../../stores/componentStyles";
-import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
 
 @Component({
   tag: 'bn-text',

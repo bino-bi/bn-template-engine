@@ -10,19 +10,20 @@ import {
 } from "../../utils/validate";
 import { AggregationLevel, Order, OrderColumn, OrderDirection } from "@bino-bi/ibcs-component-interface";
 import {
-  BinoChartSyles,
   DataRow
-} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-time/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
+
 
 @Component({
-  tag: 'bn-chart',
-  styleUrl: "bn-chart.scss",
+  tag: 'bn-chart-time',
+  styleUrl: "bn-chart-time.scss",
 })
 export class Chart {
   @Element() private element: HTMLElement;
@@ -63,6 +64,7 @@ export class Chart {
    */
   @Prop() scenarios!: string;
 
+
   @Watch('scenarios')
   validateScenario(newValue: string) {
     this.scenariosArray = newValue.split(";").map(value => value.trim());
@@ -80,6 +82,15 @@ export class Chart {
 
     if (invalidVariances.length > 0) {
       throw new Error('scenarios: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.')
+    }
+  }
+
+  @Prop() syncSpaceLeft: number = -1;
+
+  @Watch('syncSpaceLeft')
+  validateLeftSync(newValue: string | number) {
+    if (!isValidNumber(newValue as number)){
+      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
     }
   }
 
@@ -176,10 +187,11 @@ export class Chart {
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
-    //this.validateStyles(this.styles);
+    // this.validateStyles(this.styles);
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
+    this.validateLeftSync(this.syncSpaceLeft);
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -242,19 +254,23 @@ export class Chart {
   }
 
   private prepareStyle(): BinoChartSyles {
-    // TODO ScaleFactors in global Constant schiben
     return {
       scaleFactors: {
-        barWidthYOffset: 0.95,
-        fontNetHeight: 0.7,
-        needleWidthOffset: 0.7,
-        barHeightOffset: 0.4,
-        barWidthOffset: 0.3,
-        pt2Px: 1.2,
-        axisWidth: 0.1,
-        rowHeight: 1.8,
-        barWidth: 1.2,
-        needleWidth: 0.3,
+        scenarioOffset:        0.3,
+        scenarioLabelToColumn: 0.3,
+        labelToColum:          0.3,
+        labelToAxis:           0.3,
+        needleWidth:           0.3,
+        needleHeadWidth:       0.6,
+        columnWidth:           2.0,
+        varianceAxisLineWidth: 0.3,
+        axisLineWidth:         0.1,
+        auxiliaryLineWidth:    0.1,
+        scenarioLineWidth:     0.2,
+        markerWidth:           0.7,
+        markerOffset:          0.0,
+        categoryWidth:         3.0,
+        axisTickLength:        0.3,
       },
       fontStyles: {
         font: `${this.componentStyle($ => $["global"]['fontSizePx'])}px ${this.componentStyle($ => $["global"]['fontFamily'])}`,
@@ -271,8 +287,21 @@ export class Chart {
     }
   }
 
+  private prepareLeftSideOffset(){
+    let leftSideOffset = 0;
+
+    if( this.syncSpaceLeft >= 0 ) {
+      return this.syncSpaceLeft;
+    }
+
+    return leftSideOffset;
+  }
+
   chartTemplate(localScenarioString: string) {
-    return <ibcs-chart-structure
+
+    console.log("this.prepareScenarios()", this.prepareScenarios(), "this.prepareVariances(localScenarioString)",this.prepareVariances(localScenarioString) )
+
+    return  <ibcs-chart-time
       data={this.data}
       scenarios={this.prepareScenarios()}
       variances={this.prepareVariances(localScenarioString)}
@@ -280,17 +309,24 @@ export class Chart {
       pixelPerUnit={this.preparePixelPerUnit()}
       chartTitle={null}
       styles={this.prepareStyle()}
+      leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset()}
       i18n={this.prepareI18n()}
       level={this.prepareLevel()}
       order={this.prepareOrder()}
-    ></ibcs-chart-structure>
+    ></ibcs-chart-time>
   }
 
   render() {
+    console.log('scenariosArray', this.scenariosArray);
+
     return <Host>
       <div class="container">
         {this.scenariosArray.map(this.chartTemplate)}
       </div>
     </Host>
   }
+
+
+
+
 }

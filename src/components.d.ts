@@ -66,7 +66,7 @@ export namespace Components {
          */
         "showBorder": string;
     }
-    interface BnChart {
+    interface BnChartStructure {
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
@@ -83,6 +83,29 @@ export namespace Components {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
          */
         "scenarios": string;
+        /**
+          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+         */
+        "unitScaling": string | number;
+    }
+    interface BnChartTime {
+        /**
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
+         */
+        "level": string;
+        /**
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
+         */
+        "order": string;
+        /**
+          * set sorting order direction <br /><br /> values:<br /> ```asc // desc```
+         */
+        "orderDirection": string;
+        /**
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
+         */
+        "scenarios": string;
+        "syncSpaceLeft": number;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
@@ -283,11 +306,17 @@ declare global {
         prototype: HTMLBnCardElement;
         new (): HTMLBnCardElement;
     };
-    interface HTMLBnChartElement extends Components.BnChart, HTMLStencilElement {
+    interface HTMLBnChartStructureElement extends Components.BnChartStructure, HTMLStencilElement {
     }
-    var HTMLBnChartElement: {
-        prototype: HTMLBnChartElement;
-        new (): HTMLBnChartElement;
+    var HTMLBnChartStructureElement: {
+        prototype: HTMLBnChartStructureElement;
+        new (): HTMLBnChartStructureElement;
+    };
+    interface HTMLBnChartTimeElement extends Components.BnChartTime, HTMLStencilElement {
+    }
+    var HTMLBnChartTimeElement: {
+        prototype: HTMLBnChartTimeElement;
+        new (): HTMLBnChartTimeElement;
     };
     interface HTMLBnComponentStyleElement extends Components.BnComponentStyle, HTMLStencilElement {
     }
@@ -364,7 +393,8 @@ declare global {
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
-        "bn-chart": HTMLBnChartElement;
+        "bn-chart-structure": HTMLBnChartStructureElement;
+        "bn-chart-time": HTMLBnChartTimeElement;
         "bn-component-style": HTMLBnComponentStyleElement;
         "bn-context": HTMLBnContextElement;
         "bn-dataset": HTMLBnDatasetElement;
@@ -440,7 +470,7 @@ declare namespace LocalJSX {
          */
         "showBorder"?: string;
     }
-    interface BnChart {
+    interface BnChartStructure {
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
@@ -457,6 +487,29 @@ declare namespace LocalJSX {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
          */
         "scenarios": string;
+        /**
+          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+         */
+        "unitScaling": string | number;
+    }
+    interface BnChartTime {
+        /**
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
+         */
+        "level": string;
+        /**
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
+         */
+        "order": string;
+        /**
+          * set sorting order direction <br /><br /> values:<br /> ```asc // desc```
+         */
+        "orderDirection": string;
+        /**
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
+         */
+        "scenarios": string;
+        "syncSpaceLeft"?: number;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
@@ -646,7 +699,8 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "bn-body": BnBody;
         "bn-card": BnCard;
-        "bn-chart": BnChart;
+        "bn-chart-structure": BnChartStructure;
+        "bn-chart-time": BnChartTime;
         "bn-component-style": BnComponentStyle;
         "bn-context": BnContext;
         "bn-dataset": BnDataset;
@@ -667,7 +721,8 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
             "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
-            "bn-chart": LocalJSX.BnChart & JSXBase.HTMLAttributes<HTMLBnChartElement>;
+            "bn-chart-structure": LocalJSX.BnChartStructure & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;
+            "bn-chart-time": LocalJSX.BnChartTime & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
             "bn-component-style": LocalJSX.BnComponentStyle & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             "bn-dataset": LocalJSX.BnDataset & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;

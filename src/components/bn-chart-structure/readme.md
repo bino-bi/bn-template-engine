@@ -101,8 +101,8 @@ The **bn-chart** can be used within the bn-content element
 ### Graph
 ```mermaid
 graph TD;
-  bn-chart --> ibcs-chart-structure
-  style bn-chart fill:#f9f,stroke:#333,stroke-width:4px
+  bn-chart-structure --> ibcs-chart-structure
+  style bn-chart-structure fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------
