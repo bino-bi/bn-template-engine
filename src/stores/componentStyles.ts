@@ -1,8 +1,5 @@
 import { createStore } from "@stencil/store";
-import {
-  SVGStyleGroup,
-  SVGVariancesStyleGroup
-} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import {SVGStyleGroup, SVGVariancesStyleGroup} from "@bino-bi/ibcs-component/dist/types/utils/model";
 
 export interface Style {
   global: GlobalStyle;

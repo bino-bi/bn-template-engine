@@ -30,7 +30,7 @@
     "exportdoc": "node scripts/docExporter.js ../www/docs/components/"
   },
   "devDependencies": {
-    "@stencil/core": "^2.14.0",
+    "@stencil/core": "^2.17.0",
     "@stencil/sass": "^1.5.2",
     "@stencil/store": "^1.5.0",
     "@types/jest": "27.4.0",
@@ -40,16 +40,16 @@
     "jest-cli": "27.5.1",
     "npm-run-all": "^4.1.5",
     "puppeteer": "13.3.2",
-    "standard-version": "^9.3.2",
+    "standard-version": "^9.5.0",
     "typescript": "4.5.5"
   },
   "license": "MIT",
   "dependencies": {
-    "@bino-bi/ibcs-component": "0.31.12",
+    "@bino-bi/ibcs-component": "0.33.5",
     "@bino-bi/ibcs-component-interface": "0.6.7",
-    "@corex/deepmerge": "^3.0.340",
+    "@corex/deepmerge": "^3.0.611",
     "@emotion/hash": "^0.8.0",
-    "@types/lodash": "^4.14.178",
+    "@types/lodash": "^4.14.182",
     "faker": "^5.5.3",
     "lodash": "^4.17.21",
     "ramda": "^0.28.0",
