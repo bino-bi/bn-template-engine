@@ -111,6 +111,22 @@ export class Chart {
   }
 
   /**
+   * Name of the 'scaling-group' which the chart uses
+   * scalig groups are maintained globaly
+   * <br /> <br />
+   * alternativly a number which represent the
+   * pixel per percentage.
+   */
+  @Prop() percentageScaling!: string | number;
+
+  @Watch('unitScaling')
+  validatePercentageScaling(newValue: string | number) {
+    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
+  /**
    * Determines level on which the chart is aggregated on.
    * <br /> <br />
    *
@@ -232,12 +248,20 @@ export class Chart {
   }
 
 
-  private preparePixelPerUnit(): Number {
+  private preparePixelPerUnit(): number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
 
     return Number(this.unitScaling);
+  }
+
+  private preparePixelPerPercentage(): number {
+    if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
+      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
+    }
+
+    return Number(this.percentageScaling);
   }
 
   private prepareLevel(): AggregationLevel {
@@ -254,52 +278,56 @@ export class Chart {
   }
 
   private prepareStyle(): BinoChartSyles {
-    return {
-      scaleFactors: {
-        scenarioOffset:        0.3,
-        scenarioLabelToColumn: 0.3,
-        labelToColum:          0.3,
-        labelToAxis:           0.3,
-        needleWidth:           0.3,
-        needleHeadWidth:       0.6,
-        columnWidth:           2.0,
-        varianceAxisLineWidth: 0.3,
-        axisLineWidth:         0.1,
-        auxiliaryLineWidth:    0.1,
-        scenarioLineWidth:     0.2,
-        markerWidth:           0.7,
-        markerOffset:          0.0,
-        categoryWidth:         3.0,
-        axisTickLength:        0.3,
-      },
-      fontStyles: {
-        font: `${this.componentStyle($ => $["global"]['fontSizePx'])}px ${this.componentStyle($ => $["global"]['fontFamily'])}`,
-        size: this.componentStyle($ => $["global"]['fontSizePx']),
-        color: "#000000",
-        background: "#ffffff",
-        leading: 1.8,
-      },
-      axisStyles: this.componentStyle($ => $["bn-chart"]['axisStyles']),
-      barStyles: this.componentStyle($ => $["bn-chart"]['barStyles']),
-      varianceStyles: this.componentStyle($ => $["bn-chart"]['varianceStyles']),
-      padding: this.componentStyle($ => $["bn-chart"]['padding']),
-      pattern: null
-    }
+    return this.componentStyle($ => {
+      return {
+        scaleFactors:{
+          scenarioOffset:        $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
+          scenarioLabelToColumn:    $["bn-chart-time"]['scaleFactors']['scenarioLabelToColumn'],
+          labelToColum:            $["bn-chart-time"]['scaleFactors']['labelToColum'],
+          labelToAxis:           $["bn-chart-time"]['scaleFactors']['labelToAxis'],
+          needleWidth:           $["bn-chart-time"]['scaleFactors']['needleWidth'],
+          needleHeadWidth:       $["bn-chart-time"]['scaleFactors']['needleHeadWidth'],
+          columnWidth:              $["bn-chart-time"]['scaleFactors']['columnWidth'],
+          varianceAxisLineWidth: $["bn-chart-time"]['scaleFactors']['varianceAxisLineWidth'],
+          axisLineWidth:         $["bn-chart-time"]['scaleFactors']['axisLineWidth'],
+          auxiliaryLineWidth:    $["bn-chart-time"]['scaleFactors']['auxiliaryLineWidth'],
+          scenarioLineWidth:     $["bn-chart-time"]['scaleFactors']['scenarioLineWidth'],
+          markerWidth:           $["bn-chart-time"]['scaleFactors']['markerWidth'],
+          markerOffset:          $["bn-chart-time"]['scaleFactors']['markerOffset'],
+          categoryWidth:         $["bn-chart-time"]['scaleFactors']['categoryWidth'],
+          axisTickLength:        $["bn-chart-time"]['scaleFactors']['axisTickLength'],},
+        fontStyles: {
+          font: `${$["global"]['fontSizePx']}px ${$["global"]['fontFamily']}`,
+          size: $["global"]['fontSizePx'],
+          color: $["global"]['fontColor'],
+          background: $["global"]['fontBackgroundColor'],
+          leading: 1.8,
+        },
+        axisStyles: $["bn-chart-time"]['axisStyles'],
+        barStyles:  $["bn-chart-time"]['barStyles'],
+        varianceStyles:  $["bn-chart-time"]['varianceStyles'],
+        padding: $["bn-chart-time"]['padding'],
+        pattern: null
+      }
+    });
   }
 
   private prepareLeftSideOffset(){
-    let leftSideOffset = 0;
-
     if( this.syncSpaceLeft >= 0 ) {
       return this.syncSpaceLeft;
     }
+
+    let leftSideOffset = 0;
+
+
+    console.log("this.prepareScenarios()", this.scenariosArray);
+
 
     return leftSideOffset;
   }
 
   chartTemplate(localScenarioString: string) {
-
-    console.log("this.prepareScenarios()", this.prepareScenarios(), "this.prepareVariances(localScenarioString)",this.prepareVariances(localScenarioString) )
+    //console.log("goog", this.prepareStyle())
 
     return  <ibcs-chart-time
       data={this.data}
@@ -307,6 +335,7 @@ export class Chart {
       variances={this.prepareVariances(localScenarioString)}
       hideCategories={this.prepareHideCategories(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
+      pixelPerPercentage={this.preparePixelPerPercentage()}
       chartTitle={null}
       styles={this.prepareStyle()}
       leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset()}
@@ -316,16 +345,12 @@ export class Chart {
     ></ibcs-chart-time>
   }
 
-  render() {
-    console.log('scenariosArray', this.scenariosArray);
-
-    return <Host>
+  render() {  return <Host>
       <div class="container">
         {this.scenariosArray.map(this.chartTemplate)}
       </div>
     </Host>
   }
-
 
 
 

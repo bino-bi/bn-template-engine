@@ -32,10 +32,16 @@
     </bn-component-style>
     <bn-component-style>
       {
-      "global": {
-      "fontFamily": "'Noto Sans', sans-serif, Arial",
-      "fontSizePx": 13.3333
-      }
+        "global": {
+          "fontFamily": "'Noto Sans', sans-serif, Arial",
+          "fontSizePx": 13.3333
+        },
+        "bn-chart-time":{
+          "scaleFactors": {
+             "labelToColum": 2,
+             "columnWidth":  5
+          }
+        }
       }
     </bn-component-style>
 
@@ -43,6 +49,14 @@
     <bn-component-style name="test" component="bn-text">
       {
       "ahh": "test"
+      }
+    </bn-component-style>
+    <bn-component-style component="bn-chart-time">
+      {
+          "scaleFactors": {
+            "labelToColum": 2,
+            "columnWidth":  5
+          }
       }
     </bn-component-style>
     <bn-component-style component="bn-text">
@@ -84,349 +98,6 @@
       }
       }
     </bn-internationalization>
-    <bn-datasource name="Charts_II">
-      [
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Amerika",
-      "rowGroupIndex": 1,
-      "category": "Geschäftsbereich I",
-      "categoryIndex": 1,
-      "subCategory": "Question Mark",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1286,
-      "ac1": 1267,
-      "pl1": 1167,
-      "fc1": 1367
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Asien",
-      "rowGroupIndex": 1,
-      "category": "Geschäftsbereich II",
-      "categoryIndex": 2,
-      "subCategory": "Stars",
-      "subCategoryIndex": 2,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1201,
-      "ac1": 1209,
-      "pl1": 1209,
-      "fc1": 1009
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Europa",
-      "rowGroupIndex": 1,
-      "category": "Geschäftsbereich III",
-      "categoryIndex": 3,
-      "subCategory": "Cash Cows",
-      "subCategoryIndex": 3,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 835,
-      "ac1": 965,
-      "pl1": 955,
-      "fc1": 975
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Rest",
-      "rowGroupIndex": 1,
-      "category": "GRest",
-      "categoryindex": 4,
-      "subCategory": "Rest",
-      "subCategoryIndex": 4,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 423,
-      "ac1": 741,
-      "pl1": 641,
-      "fc1": 841
-      }
-      ]
-    </bn-datasource>
-    <bn-datasource name="Bundesanzeiger">
-      [
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "1. Barreserve",
-      "categoryIndex": 1,
-      "subCategory": "a) Kassenbestand",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 500,
-      "ac1": 1186.6
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "2. Forderungen an Kreditinstitute",
-      "categoryIndex": 2,
-      "subCategory": "a) täglich fällig",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 31190100,
-      "ac1": 36389391.56
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "3. Aktien und andere nicht festverzinsliche Wertpapiere",
-      "categoryIndex": 2,
-      "subCategory": "",
-      "pp1": 34813400,
-      "ac1": 34813376.88
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "4. Immaterielle Anlagewerte",
-      "categoryIndex": 4,
-      "subCategory": "a) entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte
-      sowie Lizenzen an solchen Rechten und Werten",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 585600,
-      "ac1": 447925
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "5. Sachanlagen",
-      "categoryIndex": 5,
-      "subCategory": "",
-      "pp1": 1605000,
-      "ac1": 1535171.06
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "6. Sonstige Vermögensgegenstände",
-      "categoryIndex": 6,
-      "subCategory": "",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 12339600,
-      "ac1": 13086138.42
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "7. Rechnungsabgrenzungsposten",
-      "categoryIndex": 7,
-      "subCategory": "",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1377200,
-      "ac1": 1035606.83
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Aktivseite",
-      "rowGroupIndex": 1,
-      "category": "8. Aktiver Unterschiedsbetrag aus der Vermögensverrechnung",
-      "categoryIndex": 8,
-      "subCategory": "",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 0,
-      "ac1": 17012.72
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "1. Sonstige Verbindlichkeiten",
-      "categoryIndex": 1,
-      "subCategory": "",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 27792200,
-      "ac1": 28634494.77
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "2. Rechnungsabgrenzungsposten",
-      "categoryIndex": 2,
-      "subCategory": "",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1089600,
-      "ac1": 1017112.88
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "3. Rückstellungen",
-      "categoryIndex": 3,
-      "subCategory": "a) Rückstellungen für Pensionen und ähnliche Verpflichtungen",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 8650000,
-      "ac1": 10094549.22
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "3. Rückstellungen",
-      "categoryIndex": 3,
-      "subCategory": "b) Steuerrückstellungen",
-      "subCategoryIndex": 2,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 0,
-      "ac1": 0
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "3. Rückstellungen",
-      "categoryIndex": 3,
-      "subCategory": "c) andere Rückstellungen",
-      "subCategoryIndex": 3,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 14379600,
-      "ac1": 16079652.2
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "4. Fonds für allgemeine Bankrisiken",
-      "categoryIndex": 4,
-      "subCategory": "",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 17000000,
-      "ac1": 18500000
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "5. Eigenkapital",
-      "categoryIndex": 5,
-      "subCategory": "a) gezeichnetes Kapital",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 5700000,
-      "ac1": 5700000
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "5. Eigenkapital",
-      "categoryIndex": 5,
-      "subCategory": "b) Kapitalrücklage",
-      "subCategoryIndex": 2,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 7300000,
-      "ac1": 7300000
-      },
-      {
-      "setname": "de",
-      "operation": "-",
-      "rowGroup": "Passivseite",
-      "rowGroupIndex": 2,
-      "category": "5. Eigenkapital",
-      "categoryIndex": 5,
-      "subCategory": "c) Jahresüberschuss",
-      "subCategoryIndex": 3,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 0,
-      "ac1": 0
-      }
-      ]
-    </bn-datasource>
 
     <bn-datasource name="Charts_Time">
      [
@@ -588,99 +259,7 @@
       ]
     </bn-datasource>
 
-    <bn-datasource name="Charts_I"> [
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Afrika",
-      "rowGroupIndex": 1,
-      "category": "Geschäftsbereich I",
-      "categoryIndex": 1,
-      "subCategory": "Question Mark",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1286,
-      "ac1": 1267,
-      "pl1": 1167,
-      "fc1": 1367
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Amerika",
-      "rowGroupIndex": 1,
-      "category": "Geschäftsbereich II",
-      "categoryIndex": 2,
-      "subCategory": "Stars",
-      "subCategoryIndex": 2,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1201,
-      "ac1": 1209,
-      "pl1": 1209,
-      "fc1": 1009
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Asien",
-      "rowGroupIndex": 1,
-      "category": "Geschäftsbereich III",
-      "categoryIndex": 3,
-      "subCategory": "Cash Cows",
-      "subCategoryIndex": 3,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 835,
-      "ac1": 965,
-      "pl1": 955,
-      "fc1": 975
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Europa",
-      "rowGroupIndex": 1,
-      "category": "Geschäftsbereich IV",
-      "categoryindex": 4,
-      "subCategory": "Poor Dogs",
-      "subCategoryIndex": 4,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 423,
-      "ac1": 741,
-      "pl1": 641,
-      "fc1": 841
-      },
-      {
-      "setname": "de",
-      "operation": "+",
-      "rowGroup": "Rest",
-      "rowGroupIndex": 1,
-      "category": "Rest",
-      "categoryIndex": 5,
-      "subCategory": "Rest",
-      "subCategoryIndex": 5,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 88,
-      "ac1": 103,
-      "pl1": 110,
-      "fc1": 130
-      }
-      ]
-    </bn-datasource>
+
     <bn-page name="Charts_2x2" format="a4" orientation="landscape">
       <bn-title business-unit='Top 5 Charts' date-end='2020-12-31' date-format='quarter' date-link='interval'
         date-start='2019-12-31'
@@ -690,11 +269,11 @@
       <bn-body>
         <bn-grid columns="4" height="100%" left="0" rows="2" top="0">
 
-          <bn-card grid-column="1 / span 2" grid-row="1 " image='debug/Zielvolumen.png'>
+          <bn-card grid-column="1/ span 2" grid-row="1 " image='debug/Zielvolumen.png'>
             <bn-chart-time datasets='$Charts_Time' level='subCategory' order='subCategory' order-direction='asc'
-              scenarios='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos' styles='' unit-scaling='0.2'></bn-chart-time>
+              scenarios='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos' styles='' unit-scaling='0.04' percentage-scaling='50'></bn-chart-time>
           </bn-card>
-        </bn-grid>
+         </bn-grid>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
