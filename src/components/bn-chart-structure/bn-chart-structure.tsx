@@ -234,7 +234,7 @@ export class Chart {
   }
 
 
-  private preparePixelPerUnit(): Number {
+  private preparePixelPerUnit(): number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }

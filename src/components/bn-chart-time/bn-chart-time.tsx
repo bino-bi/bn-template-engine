@@ -19,6 +19,7 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
+import {Formatter} from "@bino-bi/ibcs-component/dist/collection/utils";
 
 
 @Component({
@@ -282,12 +283,12 @@ export class Chart {
       return {
         scaleFactors:{
           scenarioOffset:        $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
-          scenarioLabelToColumn:    $["bn-chart-time"]['scaleFactors']['scenarioLabelToColumn'],
-          labelToColum:            $["bn-chart-time"]['scaleFactors']['labelToColum'],
+          scenarioLabelToColumn: $["bn-chart-time"]['scaleFactors']['scenarioLabelToColumn'],
+          labelToColum:          $["bn-chart-time"]['scaleFactors']['labelToColum'],
           labelToAxis:           $["bn-chart-time"]['scaleFactors']['labelToAxis'],
           needleWidth:           $["bn-chart-time"]['scaleFactors']['needleWidth'],
           needleHeadWidth:       $["bn-chart-time"]['scaleFactors']['needleHeadWidth'],
-          columnWidth:              $["bn-chart-time"]['scaleFactors']['columnWidth'],
+          columnWidth:           $["bn-chart-time"]['scaleFactors']['columnWidth'],
           varianceAxisLineWidth: $["bn-chart-time"]['scaleFactors']['varianceAxisLineWidth'],
           axisLineWidth:         $["bn-chart-time"]['scaleFactors']['axisLineWidth'],
           auxiliaryLineWidth:    $["bn-chart-time"]['scaleFactors']['auxiliaryLineWidth'],
@@ -312,34 +313,31 @@ export class Chart {
     });
   }
 
-  private prepareLeftSideOffset(){
+  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: BinoChartSyles){
     if( this.syncSpaceLeft >= 0 ) {
       return this.syncSpaceLeft;
     }
 
-    let leftSideOffset = 0;
-
-
-    console.log("this.prepareScenarios()", this.scenariosArray);
-
-
+    let leftSideOffset =  Formatter.getMaxWidthOfArrayItems(this.scenariosArray, preparedI18n, preparedStyle);
     return leftSideOffset;
   }
 
   chartTemplate(localScenarioString: string) {
-    //console.log("goog", this.prepareStyle())
+
+    let preparedI18n: Map<string, string> =  this.prepareI18n();
+    let preparedStyle: BinoChartSyles =  this.prepareStyle();
 
     return  <ibcs-chart-time
       data={this.data}
       scenarios={this.prepareScenarios()}
       variances={this.prepareVariances(localScenarioString)}
-      hideCategories={this.prepareHideCategories(localScenarioString)}
+      hideAxisLabels={this.prepareHideCategories(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       chartTitle={null}
-      styles={this.prepareStyle()}
-      leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset()}
-      i18n={this.prepareI18n()}
+      styles={preparedStyle}
+      leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n,preparedStyle )}
+      i18n={preparedI18n}
       level={this.prepareLevel()}
       order={this.prepareOrder()}
     ></ibcs-chart-time>
