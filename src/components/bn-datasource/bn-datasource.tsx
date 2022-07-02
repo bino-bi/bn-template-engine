@@ -17,6 +17,7 @@ export class Datasource {
     withBodyObserver(this, (data => {
       // @ts-ignore
       set(this.name, JSON.parse(data));
+
     }));
   }
 
