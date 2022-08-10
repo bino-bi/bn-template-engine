@@ -1,7 +1,8 @@
 .container {
-    display: flex; /* or inline-flex */
-    flex-direction: row;
-  }
+  display: flex;
+  /* or inline-flex */
+  flex-direction: column;
+}
 
 .background-image {
   display: flex;

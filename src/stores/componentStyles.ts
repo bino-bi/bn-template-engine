@@ -1,5 +1,5 @@
 import { createStore } from "@stencil/store";
-import {SVGStyleGroup, SVGVariancesStyleGroup} from "@bino-bi/ibcs-component/dist/types/utils/model";
+import { SVGStyleGroup, SVGVariancesStyleGroup } from "@bino-bi/ibcs-component/dist/types/utils/model";
 
 export interface Style {
   global: GlobalStyle;
@@ -35,6 +35,7 @@ const { state, on, get, set } = createStore<{ [key: string]: Style }>(
         "fontSizePx": 13.3333,
       },
       "bn-text": {},
+      //TODO: jens fix renaming 
       "bn-chart": {
         "axisStyles": {
           ac: { stroke: "#121212", fill: "#121212", width: 0.1 },
