@@ -23,9 +23,9 @@ import {
   OrderDirection,
   TableCategoryWidth,
   TableDrillGroup,
-  TableType
+  TableType,
 } from "@bino-bi/ibcs-component-interface";
-import {TablePartGroup} from "@bino-bi/ibcs-component/dist/types/components/ibcs-table/utils/model";
+
 import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -429,12 +429,12 @@ export class Table {
 
   }
 
-  private preparePartOf(): TablePartGroup[] {
+  private preparePartOf(): TableDrillGroup[] {
     if (this.partof == null || this.partof.trim() == '') {
       return [];
     }
 
-    return JSON.parse(this.partof!) as TablePartGroup[];
+    return JSON.parse(this.partof!) as TableDrillGroup[];
 
   }
 

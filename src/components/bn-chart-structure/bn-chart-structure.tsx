@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {
   isBlankInput,
   isValidDirection,
@@ -8,15 +8,13 @@ import {
   validateScenarioList,
   validateVariancesList
 } from "../../utils/validate";
-import { AggregationLevel, Order, OrderColumn, OrderDirection } from "@bino-bi/ibcs-component-interface";
-import {
-  DataRow
-} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
+import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
-import { globalLabelKeys } from "../../stores/internationalization";
-import { withStyled } from "../../utils/styled/withStyled";
+import {globalLabelKeys} from "../../stores/internationalization";
+import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
 
@@ -94,6 +92,22 @@ export class Chart {
 
   @Watch('unitScaling')
   validateUnitScaling(newValue: string | number) {
+    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
+  /**
+   * Name of the 'scaling-group' which the chart uses
+   * scalig groups are maintained globaly
+   * <br /> <br />
+   * alternativly a number which represent the
+   * pixel per percentage.
+   */
+  @Prop() percentageScaling!: string | number;
+
+  @Watch('unitScaling')
+  validatePercentageScaling(newValue: string | number) {
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
     }
@@ -184,7 +198,7 @@ export class Chart {
 
   prepareDimension(): { height: number, width: number } {
     this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
-    return { width: this.canvasWidthSegmented, height: this.element.clientHeight };
+    return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
   }
 
   private prepareScenarios(): string[] {
@@ -220,12 +234,20 @@ export class Chart {
   }
 
 
-  private preparePixelPerUnit(): Number {
+  private preparePixelPerUnit(): number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
 
     return Number(this.unitScaling);
+  }
+
+  private preparePixelPerPercentage(): number {
+    if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
+      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
+    }
+
+    return Number(this.percentageScaling);
   }
 
   private prepareLevel(): AggregationLevel {
@@ -242,59 +264,61 @@ export class Chart {
   }
 
   private prepareStyle(): BinoChartSyles {
-    return {
-      scaleFactors: {
-        scenarioOffset:        0.3,
-        scenarioLabelToBar:    0.1,
-        labelToBar:            0.3,
-        labelToAxis:           0.3,
-        needleWidth:           0.3,
-        needleHeadWidth:       0.6,
-        barWidth:              1.2,
-        varianceAxisLineWidth: 0.3,
-        axisLineWidth:         0.1,
-        auxiliaryLineWidth:    0.1,
-        scenarioLineWidth:     0.2,
-        markerWidth:           0.7,
-        markerOffset:          0.0,
-        categoryWidth:         1.9,
-        axisTickLength:        0.3,
-      },
-      fontStyles: {
-        font: `${this.componentStyle($ => $["global"]['fontSizePx'])}px ${this.componentStyle($ => $["global"]['fontFamily'])}`,
-        size: this.componentStyle($ => $["global"]['fontSizePx']),
-        color: "#000000",
-        background: "#ffffff",
-        leading: 1.8,
-      },
-      axisStyles: this.componentStyle($ => $["bn-chart"]['axisStyles']),
-      barStyles: this.componentStyle($ => $["bn-chart"]['barStyles']),
-      varianceStyles: this.componentStyle($ => $["bn-chart"]['varianceStyles']),
-      padding: this.componentStyle($ => $["bn-chart"]['padding']),
-      pattern: null
-    }
+    return this.componentStyle($ => {
+      return {
+        scaleFactors:{
+          scenarioOffset:        $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
+          scenarioLabelToBar:    $["bn-chart-structure"]['scaleFactors']['scenarioLabelToBar'],
+          labelToBar:            $["bn-chart-structure"]['scaleFactors']['labelToBar'],
+          labelToAxis:           $["bn-chart-structure"]['scaleFactors']['labelToAxis'],
+          needleWidth:           $["bn-chart-structure"]['scaleFactors']['needleWidth'],
+          needleHeadWidth:       $["bn-chart-structure"]['scaleFactors']['needleHeadWidth'],
+          barWidth:              $["bn-chart-structure"]['scaleFactors']['barWidth'],
+          varianceAxisLineWidth: $["bn-chart-structure"]['scaleFactors']['varianceAxisLineWidth'],
+          axisLineWidth:         $["bn-chart-structure"]['scaleFactors']['axisLineWidth'],
+          auxiliaryLineWidth:    $["bn-chart-structure"]['scaleFactors']['auxiliaryLineWidth'],
+          scenarioLineWidth:     $["bn-chart-structure"]['scaleFactors']['scenarioLineWidth'],
+          markerWidth:           $["bn-chart-structure"]['scaleFactors']['markerWidth'],
+          markerOffset:          $["bn-chart-structure"]['scaleFactors']['markerOffset'],
+          categoryWidth:         $["bn-chart-structure"]['scaleFactors']['categoryWidth'],
+          axisTickLength:        $["bn-chart-structure"]['scaleFactors']['axisTickLength'],},
+        fontStyles: {
+          font: `${$["global"]['fontSizePx']}px ${$["global"]['fontFamily']}`,
+          size: $["global"]['fontSizePx'],
+          color: $["global"]['fontColor'],
+          background: $["global"]['fontBackgroundColor'],
+          leading: 1.8,
+        },
+        axisStyles: $["bn-chart-structure"]['axisStyles'],
+        barStyles:  $["bn-chart-structure"]['barStyles'],
+        varianceStyles:  $["bn-chart-structure"]['varianceStyles'],
+        padding: $["bn-chart-structure"]['padding'],
+        pattern: null
+      }
+    });
   }
+chartTemplate(localScenarioString :string) {
+  return <ibcs-chart-structure
+    data={this.data}
+    scenarios={this.prepareScenarios()}
+    variances={this.prepareVariances(localScenarioString)}
+    hideCategories={this.prepareHideCategories(localScenarioString)}
+    pixelPerUnit={this.preparePixelPerUnit()}
+    pixelPerPercentage={this.preparePixelPerPercentage()}
+    chartTitle={null}
+    styles={this.prepareStyle()}
+    i18n={this.prepareI18n()}
+    level={this.prepareLevel()}
+    order={this.prepareOrder()}
+  ></ibcs-chart-structure>
+}
 
-  chartTemplate(localScenarioString: string) {
-    return <ibcs-chart-structure
-      data={this.data}
-      scenarios={this.prepareScenarios()}
-      variances={this.prepareVariances(localScenarioString)}
-      hideCategories={this.prepareHideCategories(localScenarioString)}
-      pixelPerUnit={this.preparePixelPerUnit()}
-      chartTitle={null}
-      styles={this.prepareStyle()}
-      i18n={this.prepareI18n()}
-      level={this.prepareLevel()}
-      order={this.prepareOrder()}
-    ></ibcs-chart-structure>
-  }
-
-  render() {
-    return <Host>
-      <div class="container">
-        {this.scenariosArray.map(this.chartTemplate)}
-      </div>
-    </Host>
-  }
+render()
+{
+  return <Host>
+    <div class="container">
+      {this.scenariosArray.map(this.chartTemplate)}
+    </div>
+  </Host>
+}
 }
