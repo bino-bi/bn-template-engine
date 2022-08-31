@@ -18,15 +18,15 @@ import {
   DataFormat,
   DataFormatDigits,
   I18nMode, MeasureType,
-  Order,
+  IOrder,
   OrderColumn,
   OrderDirection,
   TableCategoryWidth,
   TableDrillGroup,
-  TableType,
+  TableType, ITableDataRow,
 } from "@bino-bi/ibcs-component-interface";
 
-import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import {globalLabelKeys} from "../../stores/internationalization";
@@ -41,7 +41,7 @@ import {withStyled} from "../../utils/styled/withStyled";
 export class Table {
   private readonly t: (key: string, data?: object) => string;
 
-  @State() data: DataRow[] = []
+  @State() data: ITableDataRow[] = []
 
 
   constructor() {
@@ -439,8 +439,8 @@ export class Table {
   }
 
 
-  private prepareOrder(): Order {
-    const tableOrder: Order = {
+  private prepareOrder(): IOrder {
+    const tableOrder: IOrder = {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };

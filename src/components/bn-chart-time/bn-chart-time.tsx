@@ -8,17 +8,20 @@ import {
   validateScenarioList,
   validateVariancesList
 } from "../../utils/validate";
-import { AggregationLevel, Order, OrderColumn, OrderDirection } from "@bino-bi/ibcs-component-interface";
 import {
-  DataRow
-} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-time/utils/model";
+  AggregationLevel,
+  IOrder,
+  ITimeChartDataRow, ITimeChartStyles,
+  OrderColumn,
+  OrderDirection
+} from "@bino-bi/ibcs-component-interface";
+
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
 import {Formatter} from "@bino-bi/ibcs-component/dist/collection/utils";
 
 
@@ -29,7 +32,7 @@ import {Formatter} from "@bino-bi/ibcs-component/dist/collection/utils";
 export class Chart {
   @Element() private element: HTMLElement;
 
-  @State() data: DataRow[] = []
+  @State() data: ITimeChartDataRow[] = []
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
@@ -269,8 +272,8 @@ export class Chart {
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
-  private prepareOrder(): Order {
-    const tableOrder: Order = {
+  private prepareOrder(): IOrder {
+    const tableOrder: IOrder = {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
@@ -278,10 +281,10 @@ export class Chart {
     return tableOrder;
   }
 
-  private prepareStyle(): BinoChartSyles {
+  private prepareStyle(): ITimeChartStyles {
     return this.componentStyle($ => {
       return {
-        scaleFactors:{
+        scaleFactors: {
           scenarioOffset:        $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
           scenarioLabelToColumn: $["bn-chart-time"]['scaleFactors']['scenarioLabelToColumn'],
           labelToColum:          $["bn-chart-time"]['scaleFactors']['labelToColum'],
@@ -296,7 +299,7 @@ export class Chart {
           markerWidth:           $["bn-chart-time"]['scaleFactors']['markerWidth'],
           markerOffset:          $["bn-chart-time"]['scaleFactors']['markerOffset'],
           categoryWidth:         $["bn-chart-time"]['scaleFactors']['categoryWidth'],
-          axisTickLength:        $["bn-chart-time"]['scaleFactors']['axisTickLength'],},
+          axisTickLength:        $["bn-chart-time"]['scaleFactors']['axisTickLength'],} ,
         fontStyles: {
           font: `${$["global"]['fontSizePx']}px ${$["global"]['fontFamily']}`,
           size: $["global"]['fontSizePx'],
@@ -313,7 +316,7 @@ export class Chart {
     });
   }
 
-  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: BinoChartSyles){
+  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles){
     if( this.syncSpaceLeft >= 0 ) {
       return this.syncSpaceLeft;
     }
@@ -325,7 +328,7 @@ export class Chart {
   chartTemplate(localScenarioString: string) {
 
     let preparedI18n: Map<string, string> =  this.prepareI18n();
-    let preparedStyle: BinoChartSyles =  this.prepareStyle();
+    let preparedStyle: ITimeChartStyles =  this.prepareStyle();
 
     return  <ibcs-chart-time
       data={this.data}

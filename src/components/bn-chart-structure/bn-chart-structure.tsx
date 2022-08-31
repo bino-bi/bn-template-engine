@@ -8,15 +8,20 @@ import {
   validateScenarioList,
   validateVariancesList
 } from "../../utils/validate";
-import {AggregationLevel, Order, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
-import {DataRow} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+import {
+  AggregationLevel,
+  IOrder, IStructureChartDataRow, IStructureChartStyles,
+  OrderColumn,
+  OrderDirection
+} from "@bino-bi/ibcs-component-interface";
+
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import {globalLabelKeys} from "../../stores/internationalization";
 import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
+
 
 @Component({
   tag: 'bn-chart-structure',
@@ -25,7 +30,7 @@ import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
 export class Chart {
   @Element() private element: HTMLElement;
 
-  @State() data: DataRow[] = []
+  @State() data: IStructureChartDataRow[] = []
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
@@ -254,8 +259,8 @@ export class Chart {
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
-  private prepareOrder(): Order {
-    const tableOrder: Order = {
+  private prepareOrder(): IOrder {
+    const tableOrder: IOrder = {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
@@ -263,7 +268,7 @@ export class Chart {
     return tableOrder;
   }
 
-  private prepareStyle(): BinoChartSyles {
+  private prepareStyle(): IStructureChartStyles {
     return this.componentStyle($ => {
       return {
         scaleFactors:{
