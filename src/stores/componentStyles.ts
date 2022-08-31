@@ -1,9 +1,7 @@
 import { createStore } from "@stencil/store";
 import {SVGStyleGroup, SVGVariancesStyleGroup} from "@bino-bi/ibcs-component/dist/types/utils/model";
-import {ScaleFactorsTimeChart} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-time/utils/model";
-import {
-  ScaleFactorsStructureChart
-} from "@bino-bi/ibcs-component/dist/types/components/ibcs-chart-structure/utils/model";
+
+import {IScaleFactorsStructureChart, IScaleFactorsTimeChart} from "@bino-bi/ibcs-component-interface";
 
 export interface Style {
   global: GlobalStyle;
@@ -23,7 +21,7 @@ export interface TextStyle {
 }
 
 export interface TimeChartStyle {
-  scaleFactors: ScaleFactorsTimeChart;
+  scaleFactors: IScaleFactorsTimeChart;
   axisStyles: SVGStyleGroup;
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
@@ -36,7 +34,7 @@ export interface TimeChartStyle {
 }
 
 export interface StructureChartStyle {
-  scaleFactors: ScaleFactorsStructureChart;
+  scaleFactors: IScaleFactorsStructureChart;
   axisStyles: SVGStyleGroup;
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
@@ -62,7 +60,7 @@ const { state, on, get, set } = createStore<{ [key: string]: Style }>(
         "scaleFactors": {
           scenarioOffset:        0.3,
           scenarioLabelToColumn: 0.3,
-          labelToColum:          0.3,
+          labelToColumn:          0.3,
           labelToAxis:           0.3,
           needleWidth:           0.3,
           needleHeadWidth:       0.6,

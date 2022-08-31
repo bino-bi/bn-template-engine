@@ -17,7 +17,7 @@ import {
   DateLink,
   I18nMode,
   MeasureEntry,
-  Order,
+  IOrder,
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
@@ -229,7 +229,7 @@ export class Title {
     return I18nMode.META;
   }
 
-  private prepareTitleOrder(): Order {
+  private prepareTitleOrder(): IOrder {
     if (isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
       return null;
     }

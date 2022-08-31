@@ -544,8 +544,8 @@ describe('validateOrderList', () => {
 
 
 describe('isValidi18nMode', () => {
-  it('returns true for none', () => {
-    expect(isValidi18nMode("none")).toEqual(true);
+  it('returns false for none', () => {
+    expect(isValidi18nMode("none")).toEqual(false);
   });
 
   it('returns true for all', () => {

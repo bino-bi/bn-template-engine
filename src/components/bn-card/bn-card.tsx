@@ -18,7 +18,7 @@ import {
   DateDistance,
   DateLink, I18nMode,
   MeasureEntry,
-  Order,
+  IOrder,
   OrderColumn,
   OrderDirection,
   TimePeriod
@@ -286,7 +286,7 @@ export class Card {
     return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
   }
 
-  private prepareTitleOrder(): Order {
+  private prepareTitleOrder(): IOrder {
     if(isBlankInput(this.order)) {
       return null;
     }
