@@ -1,9 +1,9 @@
-# bn-chart
+# bn-chart-structure
 
-**bn-chart**  is a report element and renderes data as structure-chart.
+**bn-structure**  is a report element and renderes data as structure-chart.
 It supports the main chart with up to 4 scenarios and additonal variance charts (unlimited)
 
-The **bn-chart** can be used within the bn-content element
+The **bn-chart-structure** can be used within the bn-content element
 
 ## Mixins
 @withStyle
@@ -14,7 +14,7 @@ The **bn-chart** can be used within the bn-content element
 **Example**
 ```html
  <bn-body>
-      <bn-chart
+      <bn-chart-structure
         internationalisation = null
         internationalisationMode = 'meta'
         level='category'
@@ -25,7 +25,7 @@ The **bn-chart** can be used within the bn-content element
         unit-scaling='10'
         datasets="$marktwert"
       >
-      </bn-chart>
+      </bn-chart-structure>
 </bn-body>
 ```
 **Output**

@@ -1,9 +1,9 @@
-# bn-chart
+# bn-chart-time
 
-**bn-chart**  is a report element and renderes data as structure-chart.
+**bn-chart-time**  is a report element and renderes data as time-chart.
 It supports the main chart with up to 4 scenarios and additonal variance charts (unlimited)
 
-The **bn-chart** can be used within the bn-content element
+The **bn-chart-time** can be used within the bn-content element
 
 ## Mixins
 @withStyle
@@ -14,7 +14,7 @@ The **bn-chart** can be used within the bn-content element
 **Example**
 ```html
  <bn-body>
-      <bn-chart
+      <bn-chart-time
         internationalisation = null
         internationalisationMode = 'meta'
         level='category'
@@ -25,7 +25,7 @@ The **bn-chart** can be used within the bn-content element
         unit-scaling='10'
         datasets="$marktwert"
       >
-      </bn-chart>
+      </bn-chart-time>
 </bn-body>
 ```
 **Output**
