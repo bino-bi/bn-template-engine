@@ -72,6 +72,10 @@ export namespace Components {
          */
         "level": string;
         /**
+          * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
+         */
+        "limit": number;
+        /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
         "order": string;
@@ -87,6 +91,7 @@ export namespace Components {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
          */
         "scenarios": string;
+        "title": string;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
@@ -241,13 +246,13 @@ export namespace Components {
          */
         "showGroupTitle": string;
         /**
-          * A not mundane tile which should describes the shown data.
-         */
-        "tableTitle": string;
-        /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
          */
         "thereof": string;
+        /**
+          * A not mundane tile which should describes the shown data.
+         */
+        "title": string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
          */
@@ -484,6 +489,10 @@ declare namespace LocalJSX {
          */
         "level": string;
         /**
+          * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
+         */
+        "limit"?: number;
+        /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
         "order": string;
@@ -499,6 +508,7 @@ declare namespace LocalJSX {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```  <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
          */
         "scenarios": string;
+        "title"?: string;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
@@ -653,13 +663,13 @@ declare namespace LocalJSX {
          */
         "showGroupTitle"?: string;
         /**
-          * A not mundane tile which should describes the shown data.
-         */
-        "tableTitle": string;
-        /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
          */
         "thereof"?: string;
+        /**
+          * A not mundane tile which should describes the shown data.
+         */
+        "title": string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
          */

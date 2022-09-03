@@ -237,11 +237,21 @@
 
   <bn-page name="Charts_2x2" format="a4" orientation="landscape">
     <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
-              measures='[{"name": "0.33.x"}]'
+              measures='[{"name": "0.33.x", "unit": ""}]'
     ></bn-title>
     <bn-body>
+      <bn-chart-structure datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+                          scenarios='ac1,pp1,fc1;dac1_pp1_pos;drac1_pp1_pos' styles='' unit-scaling='0.04'
+                          percentage-scaling='25'></bn-chart-structure>
+      </bn-card>
+      <bn-chart-structure title = "Test Titel"
+                          limit = '4'
+                          datasets='$Charts_Time' level='category' order='ac1' order-direction='desc'
+                          scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1
+'
+                          percentage-scaling='25'></bn-chart-structure>
+      </bn-card>
     </bn-body>
-
     <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
   </bn-page>
 

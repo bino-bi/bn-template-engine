@@ -57,7 +57,7 @@ export class Table {
   /**
    * A not mundane tile which should describes the shown data.
    */
-  @Prop() tableTitle!: string;
+  @Prop() title!: string;
 
 
   /**
@@ -527,7 +527,7 @@ export class Table {
   render() {
     return <Host>
       <ibcs-table
-        table-title={this.tableTitle}
+        table-title={this.title}
         scenarios={this.prepareScenarios()}
         scenarios-data-format={this.prepareDataFormat()}
         grouped={this.prepareGrouped()}
