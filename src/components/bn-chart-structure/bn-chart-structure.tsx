@@ -1,7 +1,7 @@
 import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {
   isBlankInput,
-  isValidDirection,
+  isValidDirection, isValidInteger,
   isValidLevel,
   isValidNumber,
   validateOrderList,
@@ -10,7 +10,9 @@ import {
 } from "../../utils/validate";
 import {
   AggregationLevel,
-  IOrder, IStructureChartDataRow, IStructureChartStyles,
+  IOrder,
+  IStructureChartDataRow,
+  IStructureChartStyles,
   OrderColumn,
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
@@ -34,6 +36,13 @@ export class Chart {
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
+
+  /*
+   * Custom chart title
+   */
+  @Prop()
+  title: string = "";
+
   /**
    * List of Scenarios Map.
    *<br /> <br />
@@ -65,7 +74,6 @@ export class Chart {
    *    example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
    */
   @Prop() scenarios!: string;
-
   @Watch('scenarios')
   validateScenario(newValue: string) {
     this.scenariosArray = newValue.split(";").map(value => value.trim());
@@ -165,6 +173,22 @@ export class Chart {
    *  values:<br />
    *  ``` all // none // meta ```
    */
+
+  /**
+   * Set the maximum number of rows for each
+   * group. The value 0 means *no limit*
+   * <br /><br />
+   * rows wich where cut by the limit are cumulated as REST
+   *
+   */
+  @Prop() limit: number = 0;
+
+  @Watch('limit')
+  validateLimit(newValue: number) {
+    if (!isValidInteger(newValue)) {
+      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
 
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
@@ -271,22 +295,23 @@ export class Chart {
   private prepareStyle(): IStructureChartStyles {
     return this.componentStyle($ => {
       return {
-        scaleFactors:{
-          scenarioOffset:        $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
-          scenarioLabelToBar:    $["bn-chart-structure"]['scaleFactors']['scenarioLabelToBar'],
-          labelToBar:            $["bn-chart-structure"]['scaleFactors']['labelToBar'],
-          labelToAxis:           $["bn-chart-structure"]['scaleFactors']['labelToAxis'],
-          needleWidth:           $["bn-chart-structure"]['scaleFactors']['needleWidth'],
-          needleHeadWidth:       $["bn-chart-structure"]['scaleFactors']['needleHeadWidth'],
-          barWidth:              $["bn-chart-structure"]['scaleFactors']['barWidth'],
+        scaleFactors: {
+          scenarioOffset: $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
+          scenarioLabelToBar: $["bn-chart-structure"]['scaleFactors']['scenarioLabelToBar'],
+          labelToBar: $["bn-chart-structure"]['scaleFactors']['labelToBar'],
+          labelToAxis: $["bn-chart-structure"]['scaleFactors']['labelToAxis'],
+          needleWidth: $["bn-chart-structure"]['scaleFactors']['needleWidth'],
+          needleHeadWidth: $["bn-chart-structure"]['scaleFactors']['needleHeadWidth'],
+          barWidth: $["bn-chart-structure"]['scaleFactors']['barWidth'],
           varianceAxisLineWidth: $["bn-chart-structure"]['scaleFactors']['varianceAxisLineWidth'],
-          axisLineWidth:         $["bn-chart-structure"]['scaleFactors']['axisLineWidth'],
-          auxiliaryLineWidth:    $["bn-chart-structure"]['scaleFactors']['auxiliaryLineWidth'],
-          scenarioLineWidth:     $["bn-chart-structure"]['scaleFactors']['scenarioLineWidth'],
-          markerWidth:           $["bn-chart-structure"]['scaleFactors']['markerWidth'],
-          markerOffset:          $["bn-chart-structure"]['scaleFactors']['markerOffset'],
-          categoryWidth:         $["bn-chart-structure"]['scaleFactors']['categoryWidth'],
-          axisTickLength:        $["bn-chart-structure"]['scaleFactors']['axisTickLength'],},
+          axisLineWidth: $["bn-chart-structure"]['scaleFactors']['axisLineWidth'],
+          auxiliaryLineWidth: $["bn-chart-structure"]['scaleFactors']['auxiliaryLineWidth'],
+          scenarioLineWidth: $["bn-chart-structure"]['scaleFactors']['scenarioLineWidth'],
+          markerWidth: $["bn-chart-structure"]['scaleFactors']['markerWidth'],
+          markerOffset: $["bn-chart-structure"]['scaleFactors']['markerOffset'],
+          categoryWidth: $["bn-chart-structure"]['scaleFactors']['categoryWidth'],
+          axisTickLength: $["bn-chart-structure"]['scaleFactors']['axisTickLength'],
+        },
         fontStyles: {
           font: `${$["global"]['fontSizePx']}px ${$["global"]['fontFamily']}`,
           size: $["global"]['fontSizePx'],
@@ -295,35 +320,45 @@ export class Chart {
           leading: 1.8,
         },
         axisStyles: $["bn-chart-structure"]['axisStyles'],
-        barStyles:  $["bn-chart-structure"]['barStyles'],
-        varianceStyles:  $["bn-chart-structure"]['varianceStyles'],
+        barStyles: $["bn-chart-structure"]['barStyles'],
+        varianceStyles: $["bn-chart-structure"]['varianceStyles'],
         padding: $["bn-chart-structure"]['padding'],
         pattern: null
       }
     });
   }
-chartTemplate(localScenarioString :string) {
-  return <ibcs-chart-structure
-    data={this.data}
-    scenarios={this.prepareScenarios()}
-    variances={this.prepareVariances(localScenarioString)}
-    hideCategories={this.prepareHideCategories(localScenarioString)}
-    pixelPerUnit={this.preparePixelPerUnit()}
-    pixelPerPercentage={this.preparePixelPerPercentage()}
-    chartTitle={null}
-    styles={this.prepareStyle()}
-    i18n={this.prepareI18n()}
-    level={this.prepareLevel()}
-    order={this.prepareOrder()}
-  ></ibcs-chart-structure>
-}
 
-render()
-{
-  return <Host>
-    <div class="container">
-      {this.scenariosArray.map(this.chartTemplate)}
-    </div>
-  </Host>
-}
+  prepareChartTitle(): string {
+
+    return this.title;
+  }
+
+  private prepareLimit(): number {
+    return Math.floor(Number(this.limit) || 0);
+  }
+
+  chartTemplate(localScenarioString: string) {
+    return <ibcs-chart-structure
+      data={this.data}
+      chartTitle={this.prepareChartTitle()}
+      scenarios={this.prepareScenarios()}
+      variances={this.prepareVariances(localScenarioString)}
+      hideCategories={this.prepareHideCategories(localScenarioString)}
+      pixelPerUnit={this.preparePixelPerUnit()}
+      pixelPerPercentage={this.preparePixelPerPercentage()}
+      limit={this.prepareLimit()}
+      styles={this.prepareStyle()}
+      i18n={this.prepareI18n()}
+      order={this.prepareOrder()}
+      level={this.prepareLevel()}
+    ></ibcs-chart-structure>
+  }
+
+  render() {
+    return <Host>
+      <div class="container">
+        {this.scenariosArray.map(this.chartTemplate)}
+      </div>
+    </Host>
+  }
 }

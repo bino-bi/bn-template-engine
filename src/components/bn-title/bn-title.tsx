@@ -7,7 +7,7 @@ import {
   isValidDateFormat,
   isValidDateLink,
   isValidDirection,
-  validateMeasureList,
+  validateMeasureList, validateOrderList,
   validateScenarioList,
 } from "../../utils/validate";
 
@@ -16,9 +16,10 @@ import {
   DateDistance,
   DateLink,
   I18nMode,
+  IMeasureEntry,
   IOrder,
-  OrderDirection,
-  IMeasureEntry, ITimePeriod
+  ITimePeriod,
+  OrderDirection
 } from "@bino-bi/ibcs-component-interface";
 
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -41,7 +42,7 @@ export class Title {
     withComponentStatus(this);
     this.t = withTranslation(this).t;
 
-    }
+  }
 
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
@@ -75,7 +76,7 @@ export class Title {
 
   @Watch('order')
   validateOrder(newValue: string) {
-    const invalidScenarios: string[] = validateScenarioList(newValue);
+    const invalidScenarios: string[] = validateOrderList(newValue);
     if (invalidScenarios?.length > 0) {
       throw new Error('order: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
     }
@@ -218,10 +219,10 @@ export class Title {
     const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t(".".concat(key))]));
+    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
   private prepareI18nMode(): I18nMode {
