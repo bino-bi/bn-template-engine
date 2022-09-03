@@ -8,14 +8,6 @@ import {
   validateScenarioList,
   validateVariancesList
 } from "../../utils/validate";
-import {
-  AggregationLevel,
-  IOrder,
-  IStructureChartDataRow,
-  IStructureChartStyles,
-  OrderColumn,
-  OrderDirection
-} from "@bino-bi/ibcs-component-interface";
 
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -23,6 +15,13 @@ import withTranslation from "../../utils/withTranslation";
 import {globalLabelKeys} from "../../stores/internationalization";
 import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import {
+  AggregationLevel,
+  IOrder,
+  IStructureChartDataRow, IStructureChartStyles,
+  OrderColumn,
+  OrderDirection
+} from "@bino-bi/ibcs-component-interface";
 
 
 @Component({
@@ -37,11 +36,11 @@ export class Chart {
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
 
-  /*
+  /**
    * Custom chart title
    */
   @Prop()
-  title: string = "";
+  chartTitle: string = "";
 
   /**
    * List of Scenarios Map.
@@ -175,7 +174,7 @@ export class Chart {
    */
 
   /**
-   * Set the maximum number of rows for each
+   * Set the maximum number of bars for each
    * group. The value 0 means *no limit*
    * <br /><br />
    * rows wich where cut by the limit are cumulated as REST
@@ -328,9 +327,9 @@ export class Chart {
     });
   }
 
-  prepareChartTitle(): string {
+  private prepareChartTitle(): string {
 
-    return this.title;
+    return this.chartTitle;
   }
 
   private prepareLimit(): number {

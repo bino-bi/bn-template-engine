@@ -11,7 +11,10 @@ import {
   validateScenarioList,
 } from "../../utils/validate";
 
-
+import withComponentStatus from "../../utils/withComponentStatus";
+import withTranslation from "../../utils/withTranslation";
+import {globalLabelKeys} from "../../stores/internationalization";
+import {withStyled} from "../../utils/styled/withStyled";
 import {
   DateDistance,
   DateLink,
@@ -21,11 +24,6 @@ import {
   ITimePeriod,
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
-
-import withComponentStatus from "../../utils/withComponentStatus";
-import withTranslation from "../../utils/withTranslation";
-import {globalLabelKeys} from "../../stores/internationalization";
-import {withStyled} from "../../utils/styled/withStyled";
 
 
 @Component({
