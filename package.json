@@ -27,7 +27,7 @@
     "publish:patch": "npm version patch && npm run-script build && npm publish",
     "publish:minor": "npm version minor && npm run-script build && npm publish",
     "publish:major": "npm version major && npm run-script build && npm publish",
-    "exportdoc": "node scripts/docExporter.js ../www/docs/components/"
+    "exportdoc": "node scripts/docExporter.js ../www/docs/product/components/"
   },
   "devDependencies": {
     "@stencil/core": "^2.17.0",
