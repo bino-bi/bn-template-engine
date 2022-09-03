@@ -16,10 +16,9 @@ import {
   DateDistance,
   DateLink,
   I18nMode,
-  MeasureEntry,
   IOrder,
   OrderDirection,
-  TimePeriod
+  IMeasureEntry, ITimePeriod
 } from "@bino-bi/ibcs-component-interface";
 
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -240,7 +239,7 @@ export class Title {
     };
   }
 
-  private prepareTitleTimePeriod(): TimePeriod | null {
+  private prepareTitleTimePeriod(): ITimePeriod | null {
     if (isBlankInput(this.dateStart) && isBlankInput(this.dateEnd)) {
       return null;
     }
@@ -256,11 +255,11 @@ export class Title {
     };
   }
 
-  private prepareMeasures(): MeasureEntry[] {
+  private prepareMeasures(): IMeasureEntry[] {
     if (isBlankInput(this.measures)) {
       return [];
     }
-    return JSON.parse(this.measures) as MeasureEntry[];
+    return JSON.parse(this.measures) as IMeasureEntry[];
   }
 
   private prepareScenarios(): string[] {
@@ -278,7 +277,6 @@ export class Title {
   }
 
   render() {
-
     return <Host>
       <ibcs-title
         businessUnit={this.prepareBusinessUnit()}

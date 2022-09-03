@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="de">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+  <title>Stencil Component Starter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet">
+  <script type="module" src="/build/bn-template-engine.esm.js"></script>
+  <script nomodule src="/build/bn-template-engine.js"></script>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <bn-context locale="de">
+
+    <bn-component-style name="big">
+      {
+      "global": {
+      "fontSizePx": 10
+      }
+      }
+    </bn-component-style>
+    <bn-component-style>
+      {
+        "global": {
+          "fontFamily": "'Noto Sans', sans-serif, Arial",
+          "fontSizePx": 13.3333
+        }
+      }
+    </bn-component-style>
+
+
+    <bn-internationalization code="de">
+      {
+      "bn-chart": {
+      "title1": 1,
+      "title2": 2
+      },
+      "global": {
+      "fc1": "FC",
+      "title2": 2
+      }
+      }
+    </bn-internationalization>
+
+    <bn-internationalization code="de">
+      {
+      "hello": "Hallo, {{name}}!",
+      "title2": "new",
+      "title3": { "test": 124 }
+      }
+    </bn-internationalization>
+
+    <bn-internationalization code="en">
+      {
+      "bn-chart": {
+      "title1": 1,
+      "title2": 2
+      },
+      "global": {
+      "ac1": 1,
+      "pp1": 2
+      }
+      }
+    </bn-internationalization>
+
+    <bn-datasource name="Charts_Time">
+     [
+      {
+      "setName": "de",
+      "date": "2022-04-01",
+      "operation": "+",
+      "rowGroup": "Afrika",
+      "rowGroupIndex": 1,
+      "category": "I",
+      "categoryIndex": 1,
+      "subCategory": "Question Mark",
+      "subCategoryIndex": 1,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 100,
+      "ac1": -100,
+      "pl1": 100,
+      "fc1": 100,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-03-01",
+      "operation": "+",
+      "rowGroup": "Amerika",
+      "rowGroupIndex": 1,
+      "category": "II",
+      "categoryIndex": 2,
+      "subCategory": "Stars",
+      "subCategoryIndex": 2,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 1201,
+      "ac1": 300,
+      "pl1": 1209,
+      "fc1": 1009,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-02-01",
+      "operation": "+",
+      "rowGroup": "Asien",
+      "rowGroupIndex": 1,
+      "category": "III",
+      "categoryIndex": 3,
+      "subCategory": "Cash Cows",
+      "subCategoryIndex": 3,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": -835,
+      "ac1": -880,
+      "pl1": -955,
+      "fc1": -975,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-01-01",
+      "operation": "+",
+      "rowGroup": "Europa",
+      "rowGroupIndex": 1,
+      "category": "Produktgrupppe IV",
+      "categoryIndex": 4,
+      "subCategory": "Poor Dogs",
+      "subCategoryIndex": 4,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 423,
+      "ac1": 741,
+      "pl1": 641,
+      "fc1": 841,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-04-01",
+      "operation": "+",
+      "rowGroup": "Rest",
+      "rowGroupIndex": 1,
+      "category": "Rest",
+      "categoryIndex": 5,
+      "subCategory": "Rest",
+      "subCategoryIndex": 5,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 1,
+      "ac1": 400,
+      "pl1": 1,
+      "fc1": 100,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      }
+      ]
+    </bn-datasource>
+
+
+    <bn-page name="Charts_2x2" format="a4" orientation="landscape">
+      <bn-title business-unit='Top 5 Charts' date-end='2020-12-31' date-format='quarter' date-link='interval'
+        date-start='2019-12-31'
+        measures='[{"name": "Regionen", "unit": "mEUR"}, {"name": "Geschäftsbereiche", "unit": "mEUR"}, {"name": "Produkte", "unit": "mEUR"},{"name": "Forecast", "unit": "mEUR"}]'
+        order='ac1' order-direction='desc' scenarios='ac1, fc1, pp1, pl1'></bn-title>
+
+      <bn-body>
+        <div> Test Runner components <a href="examples/title.html">Title</a> </div>
+        <bn-grid columns="4" height="100%" left="0" rows="2" top="0">
+          <div> Test Runner components <a href="examples/title.html">Title</a> </div>
+          <bn-card grid-column="1/ span 2" grid-row="1 " image='debug/Zielvolumen.png'>
+            <bn-chart-time datasets='$Charts_Time' level='subCategory' order='subCategory' order-direction='asc'
+              scenarios='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos' styles='' unit-scaling='0.04' percentage-scaling='50'></bn-chart-time>
+          </bn-card>
+         </bn-grid>
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
+
+  </bn-context>
+
+</body>
+
+</html>
