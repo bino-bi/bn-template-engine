@@ -14,9 +14,16 @@ import {
   validateThereOfJsonStr, isValidMeasureScale, validateCategoryThereOfJsonStr
 } from "../../utils/validate";
 
+import withDataset from "../../utils/withDataset";
+import withComponentStatus from "../../utils/withComponentStatus";
+import {globalLabelKeys} from "../../stores/internationalization";
+import withTranslation from "../../utils/withTranslation";
+import {withStyled} from "../../utils/styled/withStyled";
+
+
 import {
   DataFormat,
-  DataFormatDigits,
+  IDataFormatDigits,
   I18nMode, MeasureType,
   IOrder,
   OrderColumn,
@@ -25,14 +32,6 @@ import {
   TableDrillGroup,
   TableType, ITableDataRow,
 } from "@bino-bi/ibcs-component-interface";
-
-
-import withDataset from "../../utils/withDataset";
-import withComponentStatus from "../../utils/withComponentStatus";
-import {globalLabelKeys} from "../../stores/internationalization";
-import withTranslation from "../../utils/withTranslation";
-import {withStyled} from "../../utils/styled/withStyled";
-
 
 @Component({
   tag: 'bn-table',
@@ -57,7 +56,7 @@ export class Table {
   /**
    * A not mundane tile which should describes the shown data.
    */
-  @Prop() title!: string;
+  @Prop() tableTitle: string = "";
 
 
   /**
@@ -463,8 +462,8 @@ export class Table {
   }
 
 
-  private prepareDataFormatDigits(): DataFormatDigits {
-    const formatDigits: DataFormatDigits = {
+  private prepareDataFormatDigits(): IDataFormatDigits {
+    const formatDigits: IDataFormatDigits = {
       percent: this.dataFormatDigitsPercent,
       decimal: this.dataFormatDigitsDecimal
     };
@@ -502,7 +501,7 @@ export class Table {
     return "GREATEST";
   }
 
-  private prepareMeasureType(): string {
+  private prepareMeasureType(): MeasureType {
     if (isBlankInput(this.measureType)) {
       return MeasureType.VOLUME;
     }
@@ -524,27 +523,37 @@ export class Table {
     return map;
   }
 
+  private prepareTableTitle(): string {
+
+    return this.tableTitle;
+  }
+
+
   render() {
     return <Host>
       <ibcs-table
-        table-title={this.title}
+        data={this.data}
+        table-title={this.prepareTableTitle()}
         scenarios={this.prepareScenarios()}
         scenarios-data-format={this.prepareDataFormat()}
         grouped={this.prepareGrouped()}
-        show-group-title={this.prepareShowGroupTitle()}
-        type={this.prepareTableType()}
         limit={this.prepareLimit()}
+        show-group-title={this.prepareShowGroupTitle()}
         thereof={this.prepareThereOf()}
         partof={this.preparePartOf()}
-        categorythereof = {this.prepareCategoryThereOf()}
         order={this.prepareOrder()}
-        i18n-mode={this.prepareI18nMode()}
-        i18n={this.prepareI18n()}
-        data={this.data}
-        dataFormatDigits={this.prepareDataFormatDigits()}
+        categorythereof = {this.prepareCategoryThereOf()}
+        type={this.prepareTableType()}
         category-width={this.prepareCategoryWidth()}
+        dataFormatDigits={this.prepareDataFormatDigits()}
+        i18n={this.prepareI18n()}
+        i18n-mode={this.prepareI18nMode()}
         measure-scale={this.prepareMeasureScale()}
         measure-type={this.prepareMeasureType()}
+
+
+
+
       ></ibcs-table>
     </Host>;
   }

@@ -1,20 +1,14 @@
 import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
-  isValidDirection,
+  isValidDirection, isValidInteger,
   isValidLevel,
   isValidNumber,
   validateOrderList,
   validateScenarioList,
   validateVariancesList
 } from "../../utils/validate";
-import {
-  AggregationLevel,
-  IOrder,
-  ITimeChartDataRow, ITimeChartStyles,
-  OrderColumn,
-  OrderDirection
-} from "@bino-bi/ibcs-component-interface";
+
 
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -23,6 +17,14 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import {Formatter} from "@bino-bi/ibcs-component/dist/collection/utils";
+
+import {
+  AggregationLevel,
+  IOrder,
+  ITimeChartDataRow, ITimeChartStyles,
+  OrderColumn,
+  OrderDirection
+} from "@bino-bi/ibcs-component-interface";
 
 
 @Component({
@@ -36,6 +38,14 @@ export class Chart {
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
+
+  /**
+   * Custom chart title
+   */
+  @Prop()
+  chartTitle: string = "";
+
+
   /**
    * List of Scenarios Map.
    *<br /> <br />
@@ -95,6 +105,22 @@ export class Chart {
   validateLeftSync(newValue: string | number) {
     if (!isValidNumber(newValue as number)){
       throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
+
+  /**
+   * Set the maximum number of columns stacks The value 0 means *no limit*
+   * <br /><br />
+   *
+   * columns stacks wich where cut by the limit are cumulated as REST
+   *
+   */
+  @Prop() limit: number = 0;
+  @Watch('limit')
+  validateLimit(newValue: number) {
+    if (!isValidInteger(newValue)) {
+      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
   }
 
@@ -207,6 +233,7 @@ export class Chart {
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
+    this.validateLimit(this.limit);
     // this.validateStyles(this.styles);
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
@@ -237,7 +264,7 @@ export class Chart {
   }
 
 
-  private prepareHideCategories(localScenarioString: string): boolean {
+  private prepareHideAxisLabels(localScenarioString: string): boolean {
     return validateVariancesList(localScenarioString).length == 0;
   }
 
@@ -316,13 +343,21 @@ export class Chart {
     });
   }
 
-  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles){
+  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number{
     if( this.syncSpaceLeft >= 0 ) {
       return this.syncSpaceLeft;
     }
 
-    let leftSideOffset =  Formatter.getMaxWidthOfArrayItems(this.scenariosArray, preparedI18n, preparedStyle);
+    let leftSideOffset: number =  Formatter.getMaxWidthOfArrayItems(this.scenariosArray, preparedI18n, preparedStyle);
     return leftSideOffset;
+  }
+  private prepareChartTitle(): string {
+
+    return this.chartTitle;
+  }
+
+  private prepareLimit(): number {
+    return Math.floor(Number(this.limit) || 0);
   }
 
   chartTemplate(localScenarioString: string) {
@@ -332,17 +367,18 @@ export class Chart {
 
     return  <ibcs-chart-time
       data={this.data}
+      chartTitle={this.prepareChartTitle()}
       scenarios={this.prepareScenarios()}
       variances={this.prepareVariances(localScenarioString)}
-      hideAxisLabels={this.prepareHideCategories(localScenarioString)}
+      hideAxisLabels={this.prepareHideAxisLabels(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
-      chartTitle={null}
-      styles={preparedStyle}
+      limit={this.prepareLimit()}
       leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n,preparedStyle )}
+      styles={preparedStyle}
       i18n={preparedI18n}
-      level={this.prepareLevel()}
       order={this.prepareOrder()}
+      level={this.prepareLevel()}
     ></ibcs-chart-time>
   }
 

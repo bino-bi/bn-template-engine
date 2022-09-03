@@ -13,20 +13,18 @@ import {
   isValidBoolean, isValidi18nMode, validateI18nString
 } from "../../utils/validate";
 
-
+import withComponentStatus from "../../utils/withComponentStatus";
+import {globalLabelKeys} from "../../stores/internationalization";
+import withTranslation from "../../utils/withTranslation";
+import {withStyled} from "../../utils/styled/withStyled";
 import {
-  DateDistance,
-  DateLink, I18nMode,
-  MeasureEntry,
+  DateDistance, DateLink,
+  I18nMode, IMeasureEntry,
   IOrder,
   OrderColumn,
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
-import withComponentStatus from "../../utils/withComponentStatus";
-import {globalLabelKeys} from "../../stores/internationalization";
-import withTranslation from "../../utils/withTranslation";
-import {withStyled} from "../../utils/styled/withStyled";
 
 @Component({
   tag: 'bn-card',
@@ -314,11 +312,11 @@ export class Card {
     };
   }
 
-  private prepareMeasures(): MeasureEntry[] {
+  private prepareMeasures(): IMeasureEntry[] {
     if (isBlankInput(this.measures)) {
       return [];
     }
-    return JSON.parse(this.measures) as MeasureEntry[];
+    return JSON.parse(this.measures) as IMeasureEntry[];
   }
 
   setCardClass(): string {
