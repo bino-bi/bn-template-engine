@@ -250,9 +250,17 @@
         show-group-title="true"
         type="SUM"
         measure-scale="_"
-        prepareMeasureType="volume"
+        prepareMeasureType="volume">
       </bn-table>
 
+
+    <bn-chart-structure datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+                        scenarios='fc1' styles='' unit-scaling='0.04'
+                        percentage-scaling='25'></bn-chart-structure>
+    <bn-chart-time datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+                        scenarios='fc1' styles='' unit-scaling='0.04'
+                        percentage-scaling='25'></bn-chart-time>
+    </bn-card>
     </bn-body>
     <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
   </bn-page>
