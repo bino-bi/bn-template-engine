@@ -528,6 +528,42 @@ export class Table {
     return this.tableTitle;
   }
 
+  public getDataStructure(): any {
+    let dataSetStructure: any = { ITableDataRow: {
+      setName: {type: "string", isOptional: false, description: ""},
+      date: {type: "string", isOptional: false, description: ""},
+      operation: {type: "string", isOptional: false, description: ""},
+      rowGroup: {type: "string", isOptional: false, description: ""},
+      rowGroupIndex: {type: "number", isOptional: false, description: ""},
+      category: {type: "string", isOptional: false, description: ""},
+      categoryIndex: {type: "number", isOptional: false, description: ""},
+      subCategory: {type: "string", isOptional: false, description: ""},
+      subCategoryIndex: {type: "number", isOptional: false, description: ""},
+      columnGroup: {type: "string", isOptional: false, description: ""},
+      columnGroupIndex: {type: "number", isOptional: false, description: ""},
+      columnSubGroup: {type: "string", isOptional: false, description: ""},
+      columnSubGroupIndex: {type: "number", isOptional: false, description: ""},
+      ac1: {type: "number", isOptional: false, description: ""},
+      ac2: {type: "number", isOptional: false, description: ""},
+      ac3: {type: "number", isOptional: false, description: ""},
+      ac4: {type: "number", isOptional: false, description: ""},
+      pp1: {type: "number", isOptional: false, description: ""},
+      pp2: {type: "number", isOptional: false, description: ""},
+      pp3: {type: "number", isOptional: false, description: ""},
+      pp4: {type: "number", isOptional: false, description: ""},
+      fc1: {type: "number", isOptional: false, description: ""},
+      fc2: {type: "number", isOptional: false, description: ""},
+      fc3: {type: "number", isOptional: false, description: ""},
+      fc4: {type: "number", isOptional: false, description: ""},
+      pl1: {type: "number", isOptional: false, description: ""},
+      pl2: {type: "number", isOptional: false, description: ""},
+      pl3: {type: "number", isOptional: false, description: ""},
+      pl4: {type: "number", isOptional: false, description: ""}
+    }};
+
+    return dataSetStructure;
+  }
+
 
   render() {
     return <Host>
@@ -550,11 +586,7 @@ export class Table {
         i18n-mode={this.prepareI18nMode()}
         measure-scale={this.prepareMeasureScale()}
         measure-type={this.prepareMeasureType()}
-
-
-
-
-      ></ibcs-table>
+  ></ibcs-table>
     </Host>;
   }
 }
