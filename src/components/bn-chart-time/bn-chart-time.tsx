@@ -360,12 +360,47 @@ export class Chart {
     return Math.floor(Number(this.limit) || 0);
   }
 
+  public getDataStructure(): any {
+    let dataSetStructure: any = {ITimeChartDataRow: {
+        setName: {type: "string", isOptional: false, description: ""},
+        date: {type: "string", isOptional: false, description: ""},
+        operation: {type: "string", isOptional: false, description: ""},
+        rowGroup: {type: "string", isOptional: false, description: ""},
+        rowGroupIndex: {type: "number", isOptional: false, description: ""},
+        category: {type: "string", isOptional: false, description: ""},
+        categoryIndex: {type: "number", isOptional: false, description: ""},
+        subCategory: {type: "string", isOptional: false, description: ""},
+        subCategoryIndex: {type: "number", isOptional: false, description: ""},
+        columnGroup: {type: "string", isOptional: false, description: ""},
+        columnGroupIndex: {type: "number", isOptional: false, description: ""},
+        columnSubGroup: {type: "string", isOptional: false, description: ""},
+        columnSubGroupIndex: {type: "number", isOptional: false, description: ""},
+        ac1: {type: "number", isOptional: false, description: ""},
+        ac2: {type: "number", isOptional: false, description: ""},
+        ac3: {type: "number", isOptional: false, description: ""},
+        ac4: {type: "number", isOptional: false, description: ""},
+        pp1: {type: "number", isOptional: false, description: ""},
+        pp2: {type: "number", isOptional: false, description: ""},
+        pp3: {type: "number", isOptional: false, description: ""},
+        pp4: {type: "number", isOptional: false, description: ""},
+        fc1: {type: "number", isOptional: false, description: ""},
+        fc2: {type: "number", isOptional: false, description: ""},
+        fc3: {type: "number", isOptional: false, description: ""},
+        fc4: {type: "number", isOptional: false, description: ""},
+        pl1: {type: "number", isOptional: false, description: ""},
+        pl2: {type: "number", isOptional: false, description: ""},
+        pl3: {type: "number", isOptional: false, description: ""},
+        pl4: {type: "number", isOptional: false, description: ""},
+      }};
+
+    return dataSetStructure;
+  }
+
   chartTemplate(localScenarioString: string) {
 
     let preparedI18n: Map<string, string> =  this.prepareI18n();
     let preparedStyle: ITimeChartStyles =  this.prepareStyle();
 
-    console.log("TIME", preparedStyle);
     return  <ibcs-chart-time
       data={this.data}
       chartTitle={this.prepareChartTitle()}

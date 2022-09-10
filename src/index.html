@@ -33,8 +33,8 @@
   <bn-component-style>
     {
     "global": {
-    "fontFamily": "'Noto Sans', sans-serif, Arial",
-    "fontSizePx": 13.3333
+    "fontFamily": "'Helvetica'",
+    "fontSizePx": 13
     }
     }
   </bn-component-style>
@@ -240,6 +240,13 @@
               measures='[{"name": "0.33.x", "unit": ""}]'
     ></bn-title>
     <bn-body>
+      <bn-chart-time chart-title = "Das ist mein neuer Tite asdasd   dasdasd "
+                     limit = '0'
+                     datasets='$Charts_Time' level='category' order='ac1' order-direction='desc'
+                     scenarios='ac1,pp1,fc1;dac1_pp1_pos' styles='' unit-scaling='0.1'
+                     sync-space-left = '150'
+
+                     percentage-scaling='50'></bn-chart-time>
       <bn-table
         datasets='$Charts_Time'
         table-title="My Table"
@@ -255,11 +262,11 @@
 
 
     <bn-chart-structure datasets='$Charts_Time' level='category' order='category' order-direction='asc'
-                        scenarios='fc1' styles='' unit-scaling='0.04'
+                        scenarios='ac1,fc1;dac1_fc1_neg' styles='' unit-scaling='0.04'
                         percentage-scaling='25'></bn-chart-structure>
-    <bn-chart-time datasets='$Charts_Time' level='category' order='category' order-direction='asc'
-                        scenarios='fc1' styles='' unit-scaling='0.04'
-                        percentage-scaling='25'></bn-chart-time>
+
+
+
     </bn-card>
     </bn-body>
     <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
