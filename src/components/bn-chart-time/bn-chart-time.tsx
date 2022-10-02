@@ -1,6 +1,6 @@
 import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
-  isBlankInput,
+  isBlankInput, isValidAxisLabelsMode, isValidDateFormat,
   isValidDirection, isValidInteger,
   isValidLevel,
   isValidNumber,
@@ -19,7 +19,7 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import {Formatter} from "@bino-bi/ibcs-component/dist/collection/utils";
 
 import {
-  AggregationLevel,
+  AggregationLevel, AxisLabelsMode, DateDistance,
   IOrder,
   ITimeChartDataRow, ITimeChartStyles,
   OrderColumn,
@@ -181,7 +181,6 @@ export class Chart {
    *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
    */
   @Prop() order!: string;
-
   @Watch('order')
   validateOrderList(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
@@ -197,13 +196,6 @@ export class Chart {
    *  ```asc // desc```
    */
   @Prop() orderDirection!: string;
-
-  /** set translaton mode.
-   *  <br /><br />
-   *  values:<br />
-   *  ``` all // none // meta ```
-   */
-
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
     if (!isValidDirection(newValue)) {
@@ -211,6 +203,37 @@ export class Chart {
     }
 
   }
+
+  /** Axis Date Interval
+   *  <br /><br />
+   *  values:<br />
+   *  ```year// quarter // month // week // day // time```
+   */
+  @Prop() dateInterval!: string;
+  @Watch('dateInterval')
+  validateDateInterval(newValue: string) {
+    if (!isValidDateFormat(newValue)) {
+      throw new Error('dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
+
+  /** Axis Labels Mode defines in which mode the labels are rendered.
+   *  long, and short mode uses the long an short styles for the date
+   *  smart only displays relevant information if a change/ transition occured
+   *  (eg.  only on 1.Jan  the year is displayed)
+   *  <br /><br />
+   *  values:<br />
+   *  ```smart // long // short```
+   */
+  @Prop() axisLabelsMode!: string;
+  @Watch('axisLabelsMode')
+  validateAxisLabelsMode(newValue: string) {
+    if (!isValidAxisLabelsMode(newValue)) {
+      throw new Error('axisLabelsMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+    }
+  }
+
+
 
   private scenariosArray: string[];
   private canvasWidthSegmented: number;
@@ -239,6 +262,9 @@ export class Chart {
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
     this.validateLeftSync(this.syncSpaceLeft);
+    this.validateDateInterval(this.dateInterval);
+    this.validateAxisLabelsMode(this.axisLabelsMode);
+
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -352,12 +378,19 @@ export class Chart {
     return leftSideOffset;
   }
   private prepareChartTitle(): string {
-
     return this.chartTitle;
   }
 
   private prepareLimit(): number {
     return Math.floor(Number(this.limit) || 0);
+  }
+
+  private prepareDateInterval(): DateDistance {
+    return DateDistance[this.dateInterval?.toUpperCase() as keyof typeof DateDistance];
+  }
+
+  private prepareAxisLabelsMode(): AxisLabelsMode {
+    return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
 
   public getDataStructure(): any {
@@ -415,6 +448,8 @@ export class Chart {
       i18n={preparedI18n}
       order={this.prepareOrder()}
       level={this.prepareLevel()}
+      dateInterval={this.prepareDateInterval()}
+      axisLabelsMode={this.prepareAxisLabelsMode()}
     ></ibcs-chart-time>
   }
 
