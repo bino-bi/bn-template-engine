@@ -1,5 +1,5 @@
 import {
-  AggregationLevel,
+  AggregationLevel, AxisLabelsMode,
   DataFormat,
   DateDistance,
   DateLink, I18nMode, MeasureType,
@@ -118,6 +118,11 @@ export function isValidDateLink(value: string): boolean {
 export function isValidDateFormat(value: string): boolean {
   return value?.toUpperCase() in DateDistance;
 }
+
+export function isValidAxisLabelsMode(value: string): boolean {
+  return value?.toUpperCase() in AxisLabelsMode;
+}
+
 
 
 export function isValidDataFormat(value: string): boolean {

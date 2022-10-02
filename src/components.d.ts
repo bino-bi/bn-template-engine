@@ -102,9 +102,17 @@ export namespace Components {
     }
     interface BnChartTime {
         /**
+          * Axis Labels Mode defines in which mode the labels are rendered. long, and short mode uses the long an short styles for the date smart only displays relevant information if a change/ transition occured (eg.  only on 1.Jan  the year is displayed) <br /><br /> values:<br /> ```smart // long // short```
+         */
+        "axisLabelsMode": string;
+        /**
           * Custom chart title
          */
         "chartTitle": string;
+        /**
+          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // time```
+         */
+        "dateInterval": string;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
@@ -530,9 +538,17 @@ declare namespace LocalJSX {
     }
     interface BnChartTime {
         /**
+          * Axis Labels Mode defines in which mode the labels are rendered. long, and short mode uses the long an short styles for the date smart only displays relevant information if a change/ transition occured (eg.  only on 1.Jan  the year is displayed) <br /><br /> values:<br /> ```smart // long // short```
+         */
+        "axisLabelsMode": string;
+        /**
           * Custom chart title
          */
         "chartTitle"?: string;
+        /**
+          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // time```
+         */
+        "dateInterval": string;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
