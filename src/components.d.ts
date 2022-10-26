@@ -110,9 +110,13 @@ export namespace Components {
          */
         "chartTitle": string;
         /**
-          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // time```
+          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
          */
         "dateInterval": string;
+        /**
+          * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+         */
+        "dateIntervalLimit": number;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
@@ -546,9 +550,13 @@ declare namespace LocalJSX {
          */
         "chartTitle"?: string;
         /**
-          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // time```
+          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
          */
         "dateInterval": string;
+        /**
+          * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+         */
+        "dateIntervalLimit"?: number;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
