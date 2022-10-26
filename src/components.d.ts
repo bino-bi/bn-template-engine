@@ -116,7 +116,7 @@ export namespace Components {
         /**
           * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
          */
-        "dateIntervalLimit": number;
+        "intervalSpanLimit": number;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
@@ -556,7 +556,7 @@ declare namespace LocalJSX {
         /**
           * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
          */
-        "dateIntervalLimit"?: number;
+        "intervalSpanLimit"?: number;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
