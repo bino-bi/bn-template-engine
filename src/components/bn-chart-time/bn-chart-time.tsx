@@ -207,7 +207,7 @@ export class Chart {
   /** Axis Date Interval
    *  <br /><br />
    *  values:<br />
-   *  ```year// quarter // month // week // day // time```
+   *  ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
    */
   @Prop() dateInterval!: string;
   @Watch('dateInterval')
@@ -216,6 +216,12 @@ export class Chart {
       throw new Error('dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.');
     }
   }
+
+  /** Max number of collumns
+   *  is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+   */
+  @Prop()
+  intervalSpanLimit: number = 28;
 
   /** Axis Labels Mode defines in which mode the labels are rendered.
    *  long, and short mode uses the long an short styles for the date
@@ -389,6 +395,10 @@ export class Chart {
     return DateDistance[this.dateInterval?.toUpperCase() as keyof typeof DateDistance];
   }
 
+  private prepareIntervalSpanLimit(): number {
+    return this.intervalSpanLimit;
+  }
+
   private prepareAxisLabelsMode(): AxisLabelsMode {
     return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
@@ -449,6 +459,7 @@ export class Chart {
       order={this.prepareOrder()}
       level={this.prepareLevel()}
       dateInterval={this.prepareDateInterval()}
+      intervalSpanLimit={this.prepareIntervalSpanLimit()}
       axisLabelsMode={this.prepareAxisLabelsMode()}
     ></ibcs-chart-time>
   }

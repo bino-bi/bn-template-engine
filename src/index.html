@@ -74,6 +74,59 @@
     }
   </bn-internationalization>
 
+  <bn-datasource name="Spaltengruppierung">
+    [
+    {
+    "setname": "de",
+    "operation": "+",
+    "rowGroup": "BinoBI",
+    "rowGroupIndex": 1,
+    "category": "Kategorie A",
+    "categoryIndex": 1,
+    "subCategory": "SubKA",
+    "subCategoryIndex": 1,
+    "columnGroup": "SGruppeA",
+    "columnGroupIndex": 1,
+    "columnSubGroup": "SUntergruppeA",
+    "columnSubGroupIndex": 1,
+    "pp1": 540,
+    "ac1": 450
+    },
+    {
+    "setname": "de",
+    "operation": "+",
+    "rowGroup": "BinoBI",
+    "rowGroupIndex": 1,
+    "category": "Kategorie B",
+    "categoryIndex": 1,
+    "subCategory": "SubKA",
+    "subCategoryIndex": 1,
+    "columnGroup": "SGruppeB",
+    "columnGroupIndex": 2,
+    "columnSubGroup": "SUntergruppeB",
+    "columnSubGroupIndex": 2,
+    "pp1": 530,
+    "ac1": 350
+    },
+    {
+    "setname": "de",
+    "operation": "+",
+    "rowGroup": "BinoBI",
+    "rowGroupIndex": 1,
+    "category": "Kategorie C",
+    "categoryIndex": 1,
+    "subCategory": "SubKB",
+    "subCategoryIndex": 1,
+    "columnGroup": "SGruppeA",
+    "columnGroupIndex": 1,
+    "columnSubGroup": "SUntergruppeB",
+    "columnSubGroupIndex": 2,
+    "pp1": 500,
+    "ac1": 900
+    }
+    ]
+  </bn-datasource>
+
   <bn-datasource name="Charts_Time">
     [
     {
@@ -240,6 +293,55 @@
               measures='[{"name": "0.33.x", "unit": ""}]'
     ></bn-title>
     <bn-body>
+      <bn-table
+
+        category-width              ='inf'
+        data-format                 ="decimal"
+        data-format-digits-decimal  = "0"
+        data-format-digits-percent  = "0"
+        datasets                    ="$Spaltengruppierung"
+        grouped                     ="true"
+        limit                       ='0'
+        measure-scale               ='_'
+        measure-type                ='volume'
+        order                       ='ac1'
+        order-direction             ='desc'
+        partof                      =''
+        scenarios                   ='ac1,pp1'
+        show-group-title            ='false'
+        table-title                 ='Balance Sheet Items'
+        type                        ='list'
+        thereof                     ='[
+          {
+            "rowGroup":     "",
+            "category":     "",
+            "subCategory":  ""
+          },
+          {
+            "rowGroup":     "",
+            "category":     "",
+            "subCategory":  ""
+          },
+           {
+            "rowGroup":     "",
+            "category":     "",
+            "subCategory":  ""
+          },
+            {
+            "rowGroup":     "",
+            "category":     "",
+            "subCategory":  ""
+          }
+          ]'
+
+        categorythereof
+          ='{"ac1": [{"name": "SGruppeA", "subGroups": ["SUntergruppeA", "SUntergruppeB"]}, {"name": "SGruppeB", "subGroups": ["SUntergruppeB"]}],
+            "pp1": [{"name": "SGruppeA", "subGroups": ["SUntergruppeA", "SUntergruppeB"]}, {"name": "SGruppeB", "subGroups": ["SUntergruppeB"]}]
+            }'
+
+      ></bn-table>
+
+
       <bn-chart-structure datasets='$Charts_Time' level='category' order='category' order-direction='asc'
                           scenarios='ac1,fc1;dac1_fc1_neg' styles='' unit-scaling='0.04' limit="4"
                           percentage-scaling='25'></bn-chart-structure>
@@ -264,6 +366,7 @@
         measure-scale="_"
         prepareMeasureType="volume">
       </bn-table>
+
 
 
 
