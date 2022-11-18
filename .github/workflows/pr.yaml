@@ -1,0 +1,24 @@
+name: Snapshot
+on: pull_request
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@bino-bi"
+          always-auth: true
+          token: ${{ secrets.GH_REGISTRY_PACKAGES }}
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_REGISTRY_PACKAGES }}
+      - name: Run test
+        run: npm run test
