@@ -1,4 +1,4 @@
-import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
+import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isTableCategoryWidth,
@@ -16,9 +16,9 @@ import {
 
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
-import {globalLabelKeys} from "../../stores/internationalization";
+import { globalLabelKeys } from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
-import {withStyled} from "../../utils/styled/withStyled";
+import { withStyled } from "../../utils/styled/withStyled";
 
 
 import {
@@ -105,7 +105,7 @@ export class Table {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() grouped:  string = 'false';
+  @Prop() grouped: string = 'false';
 
   @Watch('grouped')
   validateGrouped(newValue: string) {
@@ -126,7 +126,7 @@ export class Table {
   @Prop() showGroupTitle: string = 'true';
 
   @Watch('showGroupTitle')
-  validateShowGroupTitle(newValue: string ) {
+  validateShowGroupTitle(newValue: string) {
     if (!isValidBoolean(newValue)) {
       throw new Error('showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
     }
@@ -365,7 +365,7 @@ export class Table {
 
   @Watch('categorythereof')
   validateCategoryThereOf(newValue: string | null) {
-      const invalidElements: string[] = validateCategoryThereOfJsonStr(newValue);
+    const invalidElements: string[] = validateCategoryThereOfJsonStr(newValue);
     if (invalidElements.length > 0) {
       throw new Error('categorythereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
     }
@@ -408,7 +408,7 @@ export class Table {
   }
 
   private prepareShowGroupTitle(): boolean {
-    return ( this.showGroupTitle == "true");
+    return (this.showGroupTitle == "true");
   }
 
   private prepareTableType(): TableType {
@@ -452,13 +452,13 @@ export class Table {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["in", "category","operation", "there_of", "part_of","SUM_TOTAL" ];
+    const i18nMetaLabelsLocal = ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t(".".concat(key))]));
+    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
 
@@ -512,7 +512,7 @@ export class Table {
     if (this.categorythereof == null || this.categorythereof.trim() == '') {
       return new Map();
     }
-    let parsedString =  JSON.parse(this.categorythereof);
+    let parsedString = JSON.parse(this.categorythereof);
     let map = new Map();
 
     for (const [key, value] of Object.entries(parsedString)) {
@@ -531,45 +531,48 @@ export class Table {
   }
 
   public getDataStructure(): any {
-    let dataSetStructure: any = { ITableDataRow: {
-      setName: {type: "string", isOptional: false, description: ""},
-      date: {type: "string", isOptional: false, description: ""},
-      operation: {type: "string", isOptional: false, description: ""},
-      rowGroup: {type: "string", isOptional: false, description: ""},
-      rowGroupIndex: {type: "number", isOptional: false, description: ""},
-      category: {type: "string", isOptional: false, description: ""},
-      categoryIndex: {type: "number", isOptional: false, description: ""},
-      subCategory: {type: "string", isOptional: false, description: ""},
-      subCategoryIndex: {type: "number", isOptional: false, description: ""},
-      columnGroup: {type: "string", isOptional: false, description: ""},
-      columnGroupIndex: {type: "number", isOptional: false, description: ""},
-      columnSubGroup: {type: "string", isOptional: false, description: ""},
-      columnSubGroupIndex: {type: "number", isOptional: false, description: ""},
-      ac1: {type: "number", isOptional: false, description: ""},
-      ac2: {type: "number", isOptional: false, description: ""},
-      ac3: {type: "number", isOptional: false, description: ""},
-      ac4: {type: "number", isOptional: false, description: ""},
-      pp1: {type: "number", isOptional: false, description: ""},
-      pp2: {type: "number", isOptional: false, description: ""},
-      pp3: {type: "number", isOptional: false, description: ""},
-      pp4: {type: "number", isOptional: false, description: ""},
-      fc1: {type: "number", isOptional: false, description: ""},
-      fc2: {type: "number", isOptional: false, description: ""},
-      fc3: {type: "number", isOptional: false, description: ""},
-      fc4: {type: "number", isOptional: false, description: ""},
-      pl1: {type: "number", isOptional: false, description: ""},
-      pl2: {type: "number", isOptional: false, description: ""},
-      pl3: {type: "number", isOptional: false, description: ""},
-      pl4: {type: "number", isOptional: false, description: ""}
-    }};
+    let dataSetStructure: any = {
+      ITableDataRow: {
+        setName: { type: "string", isOptional: false, description: "" },
+        date: { type: "string", isOptional: false, description: "" },
+        operation: { type: "string", isOptional: false, description: "" },
+        rowGroup: { type: "string", isOptional: false, description: "" },
+        rowGroupIndex: { type: "number", isOptional: false, description: "" },
+        category: { type: "string", isOptional: false, description: "" },
+        categoryIndex: { type: "number", isOptional: false, description: "" },
+        subCategory: { type: "string", isOptional: false, description: "" },
+        subCategoryIndex: { type: "number", isOptional: false, description: "" },
+        columnGroup: { type: "string", isOptional: false, description: "" },
+        columnGroupIndex: { type: "number", isOptional: false, description: "" },
+        columnSubGroup: { type: "string", isOptional: false, description: "" },
+        columnSubGroupIndex: { type: "number", isOptional: false, description: "" },
+        ac1: { type: "number", isOptional: false, description: "" },
+        ac2: { type: "number", isOptional: false, description: "" },
+        ac3: { type: "number", isOptional: false, description: "" },
+        ac4: { type: "number", isOptional: false, description: "" },
+        pp1: { type: "number", isOptional: false, description: "" },
+        pp2: { type: "number", isOptional: false, description: "" },
+        pp3: { type: "number", isOptional: false, description: "" },
+        pp4: { type: "number", isOptional: false, description: "" },
+        fc1: { type: "number", isOptional: false, description: "" },
+        fc2: { type: "number", isOptional: false, description: "" },
+        fc3: { type: "number", isOptional: false, description: "" },
+        fc4: { type: "number", isOptional: false, description: "" },
+        pl1: { type: "number", isOptional: false, description: "" },
+        pl2: { type: "number", isOptional: false, description: "" },
+        pl3: { type: "number", isOptional: false, description: "" },
+        pl4: { type: "number", isOptional: false, description: "" }
+      }
+    };
 
     return dataSetStructure;
   }
 
 
   render() {
-    return <Host>
+    return <Host style={{ display: 'inline-block' }}>
       <ibcs-table
+        style={{ display: 'inline-block' }}
         data={this.data}
         table-title={this.prepareTableTitle()}
         scenarios={this.prepareScenarios()}
@@ -580,7 +583,7 @@ export class Table {
         thereof={this.prepareThereOf()}
         partof={this.preparePartOf()}
         order={this.prepareOrder()}
-        categorythereof = {this.prepareCategoryThereOf()}
+        categorythereof={this.prepareCategoryThereOf()}
         type={this.prepareTableType()}
         category-width={this.prepareCategoryWidth()}
         dataFormatDigits={this.prepareDataFormatDigits()}
@@ -588,7 +591,7 @@ export class Table {
         i18n-mode={this.prepareI18nMode()}
         measure-scale={this.prepareMeasureScale()}
         measure-type={this.prepareMeasureType()}
-  ></ibcs-table>
+      ></ibcs-table>
     </Host>;
   }
 }
