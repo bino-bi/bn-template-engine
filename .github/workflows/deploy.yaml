@@ -13,6 +13,8 @@ jobs:
           scope: "@bino-bi"
           always-auth: true
           token: ${{ secrets.GH_REGISTRY_PACKAGES }}
+          cache: "npm"
+          cache-dependency-path: package-lock.json
       - name: Install dependencies
         run: npm ci
         env:
