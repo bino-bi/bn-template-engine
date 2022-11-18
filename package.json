@@ -48,7 +48,7 @@
     "@bino-bi/ibcs-component": "0.34.22",
     "@bino-bi/ibcs-component-interface": "0.7.0",
     "@corex/deepmerge": "^3.0.611",
-    "@emotion/hash": "^0.8.0",
+    "@emotion/hash": "^0.9.0",
     "@types/lodash": "^4.14.189",
     "faker": "^5.5.3",
     "lodash": "^4.17.21",
