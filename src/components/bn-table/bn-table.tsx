@@ -570,9 +570,9 @@ export class Table {
 
 
   render() {
-    return <Host style={{ display: 'inline-block' }}>
+    return <Host>
       <ibcs-table
-        style={{ display: 'inline-block' }}
+        style={{ postion: 'relative', display: 'inline-block' }}
         data={this.data}
         table-title={this.prepareTableTitle()}
         scenarios={this.prepareScenarios()}
