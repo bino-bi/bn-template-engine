@@ -201,6 +201,14 @@ export namespace Components {
     interface BnInternationalization {
         "code": string;
     }
+    interface BnMap {
+        "attribution": string;
+        "latitude": number;
+        "longitude": number;
+        "scale": number;
+        "showScale": boolean;
+        "titleLayer": string;
+    }
     interface BnPage {
         /**
           * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga```
@@ -396,6 +404,12 @@ declare global {
         prototype: HTMLBnInternationalizationElement;
         new (): HTMLBnInternationalizationElement;
     };
+    interface HTMLBnMapElement extends Components.BnMap, HTMLStencilElement {
+    }
+    var HTMLBnMapElement: {
+        prototype: HTMLBnMapElement;
+        new (): HTMLBnMapElement;
+    };
     interface HTMLBnPageElement extends Components.BnPage, HTMLStencilElement {
     }
     var HTMLBnPageElement: {
@@ -438,6 +452,7 @@ declare global {
         "bn-footer": HTMLBnFooterElement;
         "bn-grid": HTMLBnGridElement;
         "bn-internationalization": HTMLBnInternationalizationElement;
+        "bn-map": HTMLBnMapElement;
         "bn-page": HTMLBnPageElement;
         "bn-table": HTMLBnTableElement;
         "bn-template": HTMLBnTemplateElement;
@@ -641,6 +656,14 @@ declare namespace LocalJSX {
     interface BnInternationalization {
         "code"?: string;
     }
+    interface BnMap {
+        "attribution"?: string;
+        "latitude"?: number;
+        "longitude"?: number;
+        "scale"?: number;
+        "showScale"?: boolean;
+        "titleLayer"?: string;
+    }
     interface BnPage {
         /**
           * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga```
@@ -780,6 +803,7 @@ declare namespace LocalJSX {
         "bn-footer": BnFooter;
         "bn-grid": BnGrid;
         "bn-internationalization": BnInternationalization;
+        "bn-map": BnMap;
         "bn-page": BnPage;
         "bn-table": BnTable;
         "bn-template": BnTemplate;
@@ -802,6 +826,7 @@ declare module "@stencil/core" {
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
+            "bn-map": LocalJSX.BnMap & JSXBase.HTMLAttributes<HTMLBnMapElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
