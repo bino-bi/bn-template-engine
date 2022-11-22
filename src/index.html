@@ -294,9 +294,13 @@
     ></bn-title>
 
     <bn-body>
-      <bn-map scale=15 attribution="Another Test" title-layer="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" latitude=50.1 longitude=8.679129 show-scale=false></bn-map>
+      <bn-map scale=15 attribution="Another Test" title-layer="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" latitude=50.1 longitude=8.679129 show-scale=false
+              gpxs='[{"file": "http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx", "color": "#FC5200", "opacity": 0.75, "weight": 3, "lineCap": "round"},
+                     {"file": "http://localhost:3333/build/assets/gpx/Chasing_Legends.gpx", "color": "#FC5200", "opacity": 0.75, "weight": 3, "lineCap": "round"}]'
+              markers='[{"latitude": 50.137634, "longitude": 8.679129, "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png", "iconWidth": 64, "iconHeight":64},
+                        {"latitude": 50.437634, "longitude": 8.679129, "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png", "iconWidth": 64, "iconHeight":64}]'
+      ></bn-map>
       <bn-table
-
         category-width              ='inf'
         data-format                 ="decimal"
         data-format-digits-decimal  = "0"

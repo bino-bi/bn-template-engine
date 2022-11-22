@@ -101,6 +101,10 @@ The **bn-chart-time** can be used within the bn-content element
 
 ## Dependencies
 
+### Used by
+
+ - test-runner-time
+
 ### Depends on
 
 - ibcs-chart-time
@@ -109,6 +113,7 @@ The **bn-chart-time** can be used within the bn-content element
 ```mermaid
 graph TD;
   bn-chart-time --> ibcs-chart-time
+  test-runner-time --> bn-chart-time
   style bn-chart-time fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

@@ -202,11 +202,37 @@ export namespace Components {
         "code": string;
     }
     interface BnMap {
+        /**
+          * Set Footer label
+         */
         "attribution": string;
+        /**
+          * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
+         */
+        "gpxs": string | null;
+        /**
+          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+         */
         "latitude": number;
+        /**
+          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+         */
         "longitude": number;
+        /**
+          * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
+         */
+        "markers": string | null;
+        /**
+          * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
+         */
         "scale": number;
+        /**
+          * Activates/ Deactivates Map Scale
+         */
         "showScale": boolean;
+        /**
+          * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
+         */
         "titleLayer": string;
     }
     interface BnPage {
@@ -657,11 +683,37 @@ declare namespace LocalJSX {
         "code"?: string;
     }
     interface BnMap {
+        /**
+          * Set Footer label
+         */
         "attribution"?: string;
+        /**
+          * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
+         */
+        "gpxs"?: string | null;
+        /**
+          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+         */
         "latitude"?: number;
+        /**
+          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+         */
         "longitude"?: number;
+        /**
+          * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
+         */
+        "markers"?: string | null;
+        /**
+          * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
+         */
         "scale"?: number;
+        /**
+          * Activates/ Deactivates Map Scale
+         */
         "showScale"?: boolean;
+        /**
+          * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
+         */
         "titleLayer"?: string;
     }
     interface BnPage {
