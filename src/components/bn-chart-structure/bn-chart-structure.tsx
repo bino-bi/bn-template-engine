@@ -1,4 +1,4 @@
-import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isValidDirection, isValidInteger,
@@ -12,8 +12,8 @@ import {
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
-import {globalLabelKeys} from "../../stores/internationalization";
-import {withStyled} from "../../utils/styled/withStyled";
+import { globalLabelKeys } from "../../stores/internationalization";
+import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import {
   AggregationLevel,
@@ -226,7 +226,7 @@ export class Chart {
 
   prepareDimension(): { height: number, width: number } {
     this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
-    return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
+    return { width: this.canvasWidthSegmented, height: this.element.clientHeight };
   }
 
   private prepareScenarios(): string[] {
@@ -337,35 +337,37 @@ export class Chart {
   }
 
   public getDataStructure(): any {
-    let dataSetStructure: any = {IStructureChartDataRow: {
-        operation: {type: "string", isOptional: false, description: ""},
-        rowGroup: {type: "string", isOptional: false, description: ""},
-        rowGroupIndex: {type: "number", isOptional: false, description: ""},
-        category: {type: "string", isOptional: false, description: ""},
-        categoryIndex: {type: "number", isOptional: false, description: ""},
-        subCategory: {type: "string", isOptional: false, description: ""},
-        subCategoryIndex: {type: "number", isOptional: false, description: ""},
-        columnGroup: {type: "string", isOptional: false, description: ""},
-        columnGroupIndex: {type: "number", isOptional: false, description: ""},
-        columnSubGroup: {type: "string", isOptional: false, description: ""},
-        columnSubGroupIndex: {type: "number", isOptional: false, description: ""},
-        ac1: {type: "number", isOptional: false, description: ""},
-        ac2: {type: "number", isOptional: false, description: ""},
-        ac3: {type: "number", isOptional: false, description: ""},
-        ac4: {type: "number", isOptional: false, description: ""},
-        pp1: {type: "number", isOptional: false, description: ""},
-        pp2: {type: "number", isOptional: false, description: ""},
-        pp3: {type: "number", isOptional: false, description: ""},
-        pp4: {type: "number", isOptional: false, description: ""},
-        fc1: {type: "number", isOptional: false, description: ""},
-        fc2: {type: "number", isOptional: false, description: ""},
-        fc3: {type: "number", isOptional: false, description: ""},
-        fc4: {type: "number", isOptional: false, description: ""},
-        pl1: {type: "number", isOptional: false, description: ""},
-        pl2: {type: "number", isOptional: false, description: ""},
-        pl3: {type: "number", isOptional: false, description: ""},
-        pl4: {type: "number", isOptional: false, description: ""},
-      }};
+    let dataSetStructure: any = {
+      IStructureChartDataRow: {
+        operation: { type: "string", isOptional: false, description: "" },
+        rowGroup: { type: "string", isOptional: false, description: "" },
+        rowGroupIndex: { type: "number", isOptional: false, description: "" },
+        category: { type: "string", isOptional: false, description: "" },
+        categoryIndex: { type: "number", isOptional: false, description: "" },
+        subCategory: { type: "string", isOptional: false, description: "" },
+        subCategoryIndex: { type: "number", isOptional: false, description: "" },
+        columnGroup: { type: "string", isOptional: false, description: "" },
+        columnGroupIndex: { type: "number", isOptional: false, description: "" },
+        columnSubGroup: { type: "string", isOptional: false, description: "" },
+        columnSubGroupIndex: { type: "number", isOptional: false, description: "" },
+        ac1: { type: "number", isOptional: false, description: "" },
+        ac2: { type: "number", isOptional: false, description: "" },
+        ac3: { type: "number", isOptional: false, description: "" },
+        ac4: { type: "number", isOptional: false, description: "" },
+        pp1: { type: "number", isOptional: false, description: "" },
+        pp2: { type: "number", isOptional: false, description: "" },
+        pp3: { type: "number", isOptional: false, description: "" },
+        pp4: { type: "number", isOptional: false, description: "" },
+        fc1: { type: "number", isOptional: false, description: "" },
+        fc2: { type: "number", isOptional: false, description: "" },
+        fc3: { type: "number", isOptional: false, description: "" },
+        fc4: { type: "number", isOptional: false, description: "" },
+        pl1: { type: "number", isOptional: false, description: "" },
+        pl2: { type: "number", isOptional: false, description: "" },
+        pl3: { type: "number", isOptional: false, description: "" },
+        pl4: { type: "number", isOptional: false, description: "" },
+      }
+    };
 
     return dataSetStructure;
   }

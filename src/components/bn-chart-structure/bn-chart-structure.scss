@@ -1,10 +1,16 @@
-.container {
-    display: flex; /* or inline-flex */
+bn-chart-structure {
+  display: inline-block;
+  position: relative;
+
+  .container {
+    display: flex;
+    /* or inline-flex */
     flex-direction: row;
   }
 
-.background-image {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  .background-image {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }
