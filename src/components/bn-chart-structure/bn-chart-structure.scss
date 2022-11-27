@@ -1,6 +1,7 @@
 bn-chart-structure {
   display: inline-block;
   position: relative;
+  overflow: hidden;
 
   .container {
     display: flex;
