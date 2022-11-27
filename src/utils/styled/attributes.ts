@@ -1,8 +1,8 @@
 import hash from '@emotion/hash'
-import {isValidNumber} from "../validate";
+import { isValidNumber } from "../validate";
 
 const transofrmToUnitString = (value) => {
-  if(isValidNumber(value)) {
+  if (isValidNumber(value)) {
     return `${value}px`;
   } else {
     return value;
@@ -115,7 +115,7 @@ function getStyle(attr: AttributeInfo, className: string, value: string): string
 function getCSS(attr: AttributeInfo, value: string): ClassStyle {
   const className = getClassName(attr, value);
   const style = getStyle(attr, className, value);
-  return {className, style};
+  return { className, style };
 }
 
 export const apply = (el: Element): Map<string, ClassStyle> => {
@@ -125,9 +125,9 @@ export const apply = (el: Element): Map<string, ClassStyle> => {
     const value = el.getAttribute(name);
     if (value) {
       if (['top', 'left', 'right', 'bottom'].includes(name)) {
-        map.set("position", getCSS(attributes["position"], "relative"))
+        map.set("position", getCSS(attributes["position"], "absolute"))
       }
-      const transform: (string) => string = attributes[name].transform || function(v: string): string {
+      const transform: (string) => string = attributes[name].transform || function (v: string): string {
         return v;
       }
       map.set(name, getCSS(attributes[name], transform(value)))
