@@ -33,4 +33,30 @@ export function generateUUID() {
   });
 };
 
+export const ref = <T>(value: T, onChange: (value: T | undefined) => void) => {
+  var current = value;
 
+  const get = () => (current)
+  const set = (value: T) => {
+    const old = current
+    current = value
+    if (old !== value)
+      onChange(current)
+  }
+  const setAndGet = (value: T) => {
+    set(value)
+  }
+  const getAndSet = (value: T) => {
+    const old = get()
+    set(value)
+    return old;
+  }
+
+  const modify = (handler: (value: T) => T) => {
+    set(handler(get()))
+  }
+
+  return {
+    get, set, setAndGet, getAndSet, modify
+  }
+}
