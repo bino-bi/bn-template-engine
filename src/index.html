@@ -286,7 +286,23 @@
     }
     ]
   </bn-datasource>
-
+  <bn-datasource name="Markers">
+    [
+    {
+    "latitude": 48.137634,
+    "longitude": 8.679129,
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/194/194522.png",
+    "iconWidth": 24,
+    "iconHeight": 24,
+    },{
+    "latitude": 49.137634,
+    "longitude": 8.679129,
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/194/194524.png",
+    "iconWidth": 24,
+    "iconHeight": 24,
+    }
+    ]
+  </bn-datasource>
 
   <bn-page name="Charts_2x2" format="a4" orientation="landscape">
     <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
@@ -299,6 +315,8 @@
                      {"file": "http://localhost:3333/build/assets/gpx/Chasing_Legends.gpx", "color": "#FC5200", "opacity": 0.75, "weight": 3, "lineCap": "round"}]'
               markers='[{"latitude": 50.137634, "longitude": 8.679129, "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png", "iconWidth": 64, "iconHeight":64},
                         {"latitude": 50.437634, "longitude": 8.679129, "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png", "iconWidth": 64, "iconHeight":64}]'
+              markerdata= 'Markers'
+              markerdata= 'Markers'
       ></bn-map>
       <bn-table
         category-width              ='inf'

@@ -520,7 +520,7 @@ export class Table {
 
     }
 
-    console.log("map", map);
+
 
     return map;
   }
