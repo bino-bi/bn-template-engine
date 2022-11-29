@@ -44,13 +44,14 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@bino-bi/ibcs-component": "0.35.0",
+    "@bino-bi/ibcs-component": "0.35.3",
     "@bino-bi/ibcs-component-interface": "0.7.0",
     "@corex/deepmerge": "^4.0.29",
     "@emotion/hash": "^0.9.0",
-    "@types/lodash": "^4.14.189",
+    "@types/lodash": "^4.14.190",
     "faker": "^6.6.6",
     "lodash": "^4.17.21",
+    "nanoid": "^4.0.0",
     "ramda": "^0.28.0",
     "styletron-engine-atomic": "^1.5.0"
   }
