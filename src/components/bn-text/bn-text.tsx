@@ -1,10 +1,11 @@
-import { Component, h, Host, Prop, State } from "@stencil/core";
+import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
 import withDataset from "../../utils/withDataset";
 import withTranslation from "../../utils/withTranslation";
 import withComponentStatus from "../../utils/withComponentStatus";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-import {BinoChartSyles} from "@bino-bi/ibcs-component/dist/types/utils/model";
+import { BinoChartSyles } from "@bino-bi/ibcs-component/dist/types/utils/model";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-text',
@@ -17,6 +18,7 @@ export class Text {
   constructor() {
     withStyled(this);
     withComponentStatus(this);
+    this.errors = withHasError(this);
     this.t = withTranslation(this).t;
     withDataset(this, (name, data) => {
       this.data = { ...this.data, [name]: data };
@@ -30,6 +32,17 @@ export class Text {
 
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
   private readonly t: (key: string, data?: object) => string;
+  private readonly errors: ErrorDispatcher;
+
+  @Watch('value')
+  validateValue(newValue: string) {
+    const isBlank = typeof newValue !== 'string' || newValue === '';
+    if (isBlank) {
+      this.errors.replace([{ type: 'warning', message: 'Empty value' }])
+    } else {
+      this.errors.clear();
+    };
+  }
 
   scopedEval = (scope, script) => {
     try {
@@ -41,7 +54,7 @@ export class Text {
 
 
   private prepareStyle(): BinoChartSyles {
-    return  this.componentStyle($ => $.chart);
+    return this.componentStyle($ => $.chart);
   }
 
   render() {
