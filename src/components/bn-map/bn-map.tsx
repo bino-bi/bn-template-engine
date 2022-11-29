@@ -1,6 +1,10 @@
-import {Component, h, Host, Prop, Watch} from '@stencil/core';
-import {isValidBoolean, isValidNumber} from "../../utils/validate";
+import {Component, h, Host, Prop, State, Watch} from '@stencil/core';
+import {isValidBoolean, isValidNumber, validateGpxType, validateMarkerType} from "../../utils/validate";
 import {isEmpty, isString} from "lodash";
+import {withStyled} from "../../utils/styled/withStyled";
+import withComponentStatus from "../../utils/withComponentStatus";
+import withDataset from "../../utils/withDataset";
+
 
 type MarkerParams = {
   latitude: number;
@@ -25,9 +29,24 @@ type GpxParams = {
   shadow: true,
 })
 export class BnMap {
+  //private readonly t: (key: string, data?: object) => string;
 
-  private markersList: MarkerParams[] = [];
+  private markerList: MarkerParams[] = [];
   private gpxList: GpxParams[] = []
+
+  @State() gpxdata: GpxParams[] = [];
+  @State() data: MarkerParams[] = [];
+
+
+  constructor() {
+    withStyled(this);
+    withComponentStatus(this);
+    withDataset(this, (_name, data) => {
+      this.data = data || [];
+    });
+
+    //this.t = withTranslation(this).t;
+  }
 
   /**
    * Latitude of the maps viewport center,
@@ -128,9 +147,14 @@ export class BnMap {
     }
 
     try {
-      this.markersList = JSON.parse(newValue);
+      const invalidScenarios: string[] = validateMarkerType(newValue);
+      if (invalidScenarios.length > 0) {
+        throw new Error('Markers: invalid value(s) \'' + invalidScenarios + '\' are not supported.:');
+      }
+
+      this.markerList = JSON.parse(newValue);
     } catch (e) {
-      throw new Error('gpxs: invalid value(s) \'' + newValue + '\' are not supported.:' + e.message);
+      throw new Error('Markers: invalid value(s) \'' + newValue + '\' are not supported.:' + e.message);
     }
   }
 
@@ -141,7 +165,7 @@ export class BnMap {
    *          "opacity": 0.75,
    *          "weight": 3,
    *          "lineCap": "round"}]
-   */
+   *          */
   @Prop() gpxs: string | null = null;
 
   @Watch('gpxs')
@@ -152,15 +176,19 @@ export class BnMap {
     }
 
     try {
+      const invalidScenarios: string[] = validateGpxType(newValue);
+      if (invalidScenarios.length > 0) {
+        throw new Error('gpxs: invalid value(s) \'' + invalidScenarios + '\' are not supported.:');
+      }
+
       this.gpxList = JSON.parse(newValue);
     } catch (e) {
-      throw new Error('gpxs: invalid value(s) \'' + newValue + '\' are not supported.:' + e.message);
+      throw new Error('gpxs: invalid  \'' + newValue + '\' is not supported.:' + e.message);
     }
   }
 
 
   componentWillLoad() {
-    console.log("will load ");
     this.validateLatitude(this.latitude);
     this.validateLongitude(this.longitude);
     this.validateScale(this.scale);
@@ -169,31 +197,68 @@ export class BnMap {
     this.validateTitleLayer(this.titleLayer);
     this.validateMarkers(this.markers);
     this.validateGpx(this.gpxs);
-    console.log("did will load ");
   }
 
   render() {
+
+
     return (
       <Host>
         <ibcs-map attribution={this.attribution} tile-layer={this.titleLayer} latitude={this.latitude}
                   longitude={this.longitude} scale={this.scale} show-scale={this.showScale}>
-          {this.markersList.map(this.createMarker)}
-          {this.gpxList.map(this.createGPX)}
+          {this.prepareMarkerData().map(this.createMarker)}
+          {this.prepareGpxData().map(this.createGPX)}
         </ibcs-map>
       </Host>
     );
   }
 
   private createMarker(marker: MarkerParams): any {
-    console.log("Marker", marker);
     return <map-marker latitude={marker.latitude} longitude={marker.longitude} icon-url={marker.iconUrl}
                        icon-width={marker.iconWidth} icon-height={marker.iconHeight}/>
   }
 
   private createGPX(gpx: GpxParams): any {
-    console.log("GpxParams", gpx);
+
     return <gpx-layer file={gpx.file} color={gpx.color} opacity={gpx.opacity} weight={gpx.weight}
                       line-cap={gpx.lineCap}></gpx-layer>
   }
 
+  private prepareMarkerData() {
+    console.log("data", this.data);
+    console.log("Markers", [...this.data, ...this.markerList]);
+    return [...this.data, ...this.markerList];
+  }
+
+  private prepareGpxData() {
+    return [...this.gpxdata, ...this.gpxList];
+  }
+
+  public getDataStructureGpxParams(): any {
+    let dataSetStructure: any = {
+      GpxParams: {
+        file: {type: "string", isOptional: false, description: ""},
+        color: {type: "string", isOptional: false, description: ""},
+        opacity: {type: "number", isOptional: false, description: ""},
+        weight: {type: "number", isOptional: false, description: ""},
+        lineCap: {type: "string", isOptional: false, description: ""},
+      }
+    };
+
+    return dataSetStructure;
+  }
+
+  public getDataStructureMarkerParams(): any {
+    let dataSetStructure: any = {
+      MarkerParams: {
+        latitude: {type: "number", isOptional: false, description: ""},
+        longitude: {type: "string", isOptional: false, description: ""},
+        iconUrl: {type: "number", isOptional: false, description: ""},
+        iconWidth: {type: "number", isOptional: false, description: ""},
+        iconHeight: {type: "number", isOptional: false, description: ""},
+      }
+    };
+
+    return dataSetStructure;
+  }
 }
