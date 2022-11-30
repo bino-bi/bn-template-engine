@@ -571,26 +571,28 @@ export class Table {
 
   render() {
     return <Host>
-      <ibcs-table
-        data={this.data}
-        table-title={this.prepareTableTitle()}
-        scenarios={this.prepareScenarios()}
-        scenarios-data-format={this.prepareDataFormat()}
-        grouped={this.prepareGrouped()}
-        limit={this.prepareLimit()}
-        show-group-title={this.prepareShowGroupTitle()}
-        thereof={this.prepareThereOf()}
-        partof={this.preparePartOf()}
-        order={this.prepareOrder()}
-        categorythereof={this.prepareCategoryThereOf()}
-        type={this.prepareTableType()}
-        category-width={this.prepareCategoryWidth()}
-        dataFormatDigits={this.prepareDataFormatDigits()}
-        i18n={this.prepareI18n()}
-        i18n-mode={this.prepareI18nMode()}
-        measure-scale={this.prepareMeasureScale()}
-        measure-type={this.prepareMeasureType()}
-      ></ibcs-table>
+      <div>
+        <ibcs-table
+          data={this.data}
+          table-title={this.prepareTableTitle()}
+          scenarios={this.prepareScenarios()}
+          scenarios-data-format={this.prepareDataFormat()}
+          grouped={this.prepareGrouped()}
+          limit={this.prepareLimit()}
+          show-group-title={this.prepareShowGroupTitle()}
+          thereof={this.prepareThereOf()}
+          partof={this.preparePartOf()}
+          order={this.prepareOrder()}
+          categorythereof={this.prepareCategoryThereOf()}
+          type={this.prepareTableType()}
+          category-width={this.prepareCategoryWidth()}
+          dataFormatDigits={this.prepareDataFormatDigits()}
+          i18n={this.prepareI18n()}
+          i18n-mode={this.prepareI18nMode()}
+          measure-scale={this.prepareMeasureScale()}
+          measure-type={this.prepareMeasureType()}
+        ></ibcs-table>
+      </div>
     </Host>;
   }
 }
