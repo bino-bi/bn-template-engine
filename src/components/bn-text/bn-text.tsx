@@ -62,7 +62,9 @@ export class Text {
     this.prepareStyle();
 
     return <Host>
-      {this.scopedEval({ data: this.data, t: this.t }, "`" + this.value + "`")}
+      <div>
+        {this.scopedEval({ data: this.data, t: this.t }, "`" + this.value + "`")}
+      </div>
     </Host>
   }
 }
