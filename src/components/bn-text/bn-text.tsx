@@ -69,7 +69,7 @@ export class Text {
 
     return <Host>
       <div>
-        <span ref={(el) => { this.container = el }}></span>
+        <span class="container" ref={(el) => { this.container = el }}></span>
       </div>
     </Host>
   }
