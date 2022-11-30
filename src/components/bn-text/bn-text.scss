@@ -2,4 +2,8 @@ bn-text {
   display: inline-block;
   position: relative;
   overflow: hidden;
+
+  span.container p {
+    margin: 0;
+  }
 }
