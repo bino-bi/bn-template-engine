@@ -211,6 +211,10 @@ export namespace Components {
          */
         "gpxs": string | null;
         /**
+          * Name of the gpxs Dataset used in map  default: $gpxs
+         */
+        "gpxsDatasetName": string;
+        /**
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
          */
         "latitude": number;
@@ -222,6 +226,10 @@ export namespace Components {
           * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
          */
         "markers": string | null;
+        /**
+          * Name of the makers Dataset used in map  default: $markers
+         */
+        "markersDatasetName": string;
         /**
           * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
          */
@@ -692,6 +700,10 @@ declare namespace LocalJSX {
          */
         "gpxs"?: string | null;
         /**
+          * Name of the gpxs Dataset used in map  default: $gpxs
+         */
+        "gpxsDatasetName"?: string;
+        /**
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
          */
         "latitude"?: number;
@@ -703,6 +715,10 @@ declare namespace LocalJSX {
           * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
          */
         "markers"?: string | null;
+        /**
+          * Name of the makers Dataset used in map  default: $markers
+         */
+        "markersDatasetName"?: string;
         /**
           * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
          */

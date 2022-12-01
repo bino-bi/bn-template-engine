@@ -34,20 +34,49 @@ export class BnMap {
   private markerList: MarkerParams[] = [];
   private gpxList: GpxParams[] = []
 
-  @State() gpxdata: GpxParams[] = [];
-  @State() data: MarkerParams[] = [];
-
+ //  @State() gpxdata: GpxParams[] = [];
+  @State() gpxData:    GpxParams[] = [];
+  @State() markerData: MarkerParams[] = [];
+  @State() data: any[] = [];
 
   constructor() {
     withStyled(this);
     withComponentStatus(this);
-    withDataset(this, (_name, data) => {
-      this.data = data || [];
+    withDataset(this, (name, data) => {
+      if(name == this.markersDatasetName) {
+          this.markerData = data;
+      } else if(name == this.gpxsDatasetName) {
+          this.gpxData = data;
+      }
     });
-
     //this.t = withTranslation(this).t;
   }
 
+  /**
+   * Name of the makers Dataset used in map
+   *
+   * default: $markers
+   */
+  @Prop({mutable: false}) markersDatasetName: string = "$markers";
+  @Watch('markerDatasetName')
+  validateMarkerDatasetName(newValue: number) {
+    if (!isString(newValue)) {
+      throw new Error('markerDatasetName: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
+
+  /**
+   * Name of the gpxs Dataset used in map
+   *
+   * default: $gpxs
+   */
+  @Prop({mutable: false}) gpxsDatasetName: string = "$gpxs";
+  @Watch('gpxsDatasetName')
+  validateGpxsDatasetName(newValue: number) {
+    if (!isString(newValue)) {
+      throw new Error('gpxsDatasetName: invalid value(s) \'' + newValue + '\' are not supported.')
+    }
+  }
   /**
    * Latitude of the maps viewport center,
    * the selected value will be ignored if gpx files are
@@ -225,13 +254,13 @@ export class BnMap {
   }
 
   private prepareMarkerData() {
-    console.log("data", this.data);
-    console.log("Markers", [...this.data, ...this.markerList]);
-    return [...this.data, ...this.markerList];
+    console.log("!!!markerData",this.markerData);
+    return [...this.markerData, ...this.markerList];
   }
 
   private prepareGpxData() {
-    return [...this.gpxdata, ...this.gpxList];
+    console.log("!!!prepareGpxData",this.gpxData);
+    return [ ...this.gpxData, ...this.gpxList];
   }
 
   public getDataStructureGpxParams(): any {
