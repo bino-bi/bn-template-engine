@@ -57,12 +57,20 @@ export class Text {
     return this.componentStyle($ => $.chart);
   }
 
+  private container!: HTMLSpanElement
+
+  componentDidRender() {
+    this.container.innerHTML = this.scopedEval({ data: this.data, t: this.t }, "`" + this.value + "`")
+  }
+
   render() {
     // TODO Stlye fuer etxgt noch setzen
     this.prepareStyle();
 
     return <Host>
-      {this.scopedEval({ data: this.data, t: this.t }, "`" + this.value + "`")}
+      <div>
+        <span class="container" ref={(el) => { this.container = el }}></span>
+      </div>
     </Host>
   }
 }

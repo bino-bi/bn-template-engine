@@ -1,4 +1,9 @@
 bn-text {
+  display: inline-block;
   position: relative;
-  display: inline;
+  overflow: hidden;
+
+  span.container p {
+    margin: 0;
+  }
 }
