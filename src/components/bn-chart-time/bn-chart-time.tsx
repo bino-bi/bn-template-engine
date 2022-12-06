@@ -315,7 +315,6 @@ export class Chart {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
-
     return Number(this.unitScaling);
   }
 
