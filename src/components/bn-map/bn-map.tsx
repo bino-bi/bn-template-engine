@@ -58,7 +58,7 @@ export class BnMap {
    * default: $markers
    */
   @Prop({mutable: false}) markersDatasetName: string = "$markers";
-  @Watch('markerDatasetName')
+  @Watch('markersDatasetName')
   validateMarkerDatasetName(newValue: number) {
     if (!isString(newValue)) {
       throw new Error('markerDatasetName: invalid value(s) \'' + newValue + '\' are not supported.')
