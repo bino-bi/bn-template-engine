@@ -322,6 +322,14 @@
               measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
 
     <bn-body>
+      <bn-chart-time chart-title="Das ist mein neuer Tite asdasd   dasdasd " limit='0' datasets='$Charts_Time'
+                     level='category' order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles=''
+                     unit-scaling='0.0001' sync-space-left='150' date-interval='quarter' axis-labels-mode='long'
+                     percentage-scaling='50'></bn-chart-time>
+      <bn-table datasets='$Charts_Time' table-title="My Table" scenarios="ac1,fc1,pp1,dac1_fc1_pos,drac1_fc1_pos"
+                data-format="decimal" grouped="true" limit="0" show-group-title="true" type="SUM" measure-scale="_"
+                prepareMeasureType="volume">
+      </bn-table>
       <bn-map scale=15 attribution="Another Test"
               title-layer="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" latitude=50.1
               longitude=8.679129 show-scale=false
@@ -366,14 +374,8 @@
                           percentage-scaling='25'>
       </bn-chart-structure>
 
-      <bn-chart-time chart-title="Das ist mein neuer Tite asdasd   dasdasd " limit='0' datasets='$Charts_Time'
-                     level='category' order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1;dac1_pp1_pos' styles=''
-                     unit-scaling='0.1' sync-space-left='150' date-interval='quarter' axis-labels-mode='long'
-                     percentage-scaling='50'></bn-chart-time>
-      <bn-table datasets='$Charts_Time' table-title="My Table" scenarios="ac1,fc1,pp1,dac1_fc1_pos,drac1_fc1_pos"
-                data-format="decimal" grouped="true" limit="0" show-group-title="true" type="SUM" measure-scale="_"
-                prepareMeasureType="volume">
-      </bn-table>
+
+
       </bn-card>
       <bn-text value="Hallo"></bn-text>
     </bn-body>
