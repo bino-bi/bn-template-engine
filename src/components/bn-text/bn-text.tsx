@@ -38,9 +38,9 @@ export class Text {
   validateValue(newValue: string) {
     const isBlank = typeof newValue !== 'string' || newValue === '';
     if (isBlank) {
-      this.errors.replace([{ type: 'warning', message: 'Empty value' }])
+      this.errors.addOrReplace({ id: 'no_value', type: 'warning', message: 'Empty value' })
     } else {
-      this.errors.clear();
+      this.errors.remove("no_value")
     };
   }
 
