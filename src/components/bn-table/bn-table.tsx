@@ -1,37 +1,42 @@
-import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
+import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
 import {
   isBlankInput,
   isTableCategoryWidth,
   isValidBoolean,
   isValidDataFormat,
   isValidDirection,
-  isValidMeasureType,
   isValidInteger,
+  isValidMeasureScale,
+  isValidMeasureType,
   isValidTableType,
+  validateCategoryThereOfJsonStr,
   validateOrderList,
   validatePartOfJsonStr,
   validateScenarioList,
-  validateThereOfJsonStr, isValidMeasureScale, validateCategoryThereOfJsonStr
+  validateThereOfJsonStr
 } from "../../utils/validate";
 
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
-import { globalLabelKeys } from "../../stores/internationalization";
+import {globalLabelKeys} from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
-import { withStyled } from "../../utils/styled/withStyled";
+import {withStyled} from "../../utils/styled/withStyled";
 
 
 import {
   DataFormat,
+  I18nMode,
   IDataFormatDigits,
-  I18nMode, MeasureType,
   IOrder,
+  ITableDataRow,
+  MeasureType,
   OrderColumn,
   OrderDirection,
   TableCategoryWidth,
   TableDrillGroup,
-  TableType, ITableDataRow,
+  TableType,
 } from "@bino-bi/ibcs-component-interface";
+import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-table',
@@ -39,13 +44,14 @@ import {
 })
 export class Table {
   private readonly t: (key: string, data?: object) => string;
-
+  private readonly errors: ErrorDispatcher;
   @State() data: ITableDataRow[] = []
 
 
   constructor() {
     withStyled(this);
     withComponentStatus(this);
+    this.errors = withHasError(this);
     withDataset(this, (_name, data) => {
       this.data = data || [];
     });
@@ -72,12 +78,15 @@ export class Table {
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
+    const errId: string = 'ERR_scenarios';
     const invalidScenarios: string[] = validateScenarioList(newValue);
+
     if (invalidScenarios.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
-
 
   /**
    *  Defines the data unit type of the tables data.
@@ -92,8 +101,12 @@ export class Table {
 
   @Watch('dataFormat')
   validateDataFormat(newValue: string) {
+    const errId: string = 'ERR_dataFormat';
+
     if (!isValidDataFormat(newValue)) {
-      throw new Error('dataFormat: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({id: errId, type: 'warning', message:'dataFormat: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -109,8 +122,12 @@ export class Table {
 
   @Watch('grouped')
   validateGrouped(newValue: string) {
+    const errId: string = 'ERR_grouped';
+
     if (!isValidBoolean(newValue)) {
-      throw new Error('grouped: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({id: errId, type: 'warning', message: 'grouped: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -127,8 +144,12 @@ export class Table {
 
   @Watch('showGroupTitle')
   validateShowGroupTitle(newValue: string) {
+    const errId: string = 'ERR_showGroupTitle';
+
     if (!isValidBoolean(newValue)) {
-      throw new Error('showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({id: errId,  type: 'warning', message: 'showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -144,8 +165,12 @@ export class Table {
 
   @Watch('type')
   validateType(newValue: string | boolean) {
+    const errId: string = 'ERR_type';
+
     if (!isValidTableType(newValue)) {
-      throw new Error('type: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({id: errId, type: 'warning', message: 'type: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -161,8 +186,12 @@ export class Table {
 
   @Watch('limit')
   validateLimit(newValue: number) {
+    const errId: string = 'ERR_limit';
+
     if (!isValidInteger(newValue)) {
-      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({id: errId, type: 'warning', message: 'order: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -187,9 +216,13 @@ export class Table {
 
   @Watch('thereof')
   validateThereOf(newValue: string) {
+    const errId: string = 'ERR_thereof';
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
+
     if (invalidElements.length > 0) {
-      throw new Error('ThereOf: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'ThereOf: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -211,9 +244,13 @@ export class Table {
 
   @Watch('partof')
   validatePartOf(newValue: string) {
+    const errId: string = 'ERR_partof';
     const invalidElements: string[] = validatePartOfJsonStr(newValue);
+
     if (invalidElements.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'partof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -228,9 +265,13 @@ export class Table {
 
   @Watch('order')
   validateOrderList(newValue: string) {
+    const errId: string = 'ERR_order';
     const invalidElements: string[] = validateOrderList(newValue);
+
     if (invalidElements.length > 0) {
-      throw new Error('order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({  id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -244,8 +285,12 @@ export class Table {
 
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
+    const errId: string = 'ERR_orderDirection';
+
     if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
 
   }
@@ -262,8 +307,12 @@ export class Table {
 
   @Watch('measureType')
   validateMeasureType(newValue: string) {
+    const errId: string = 'ERR_measureType';
+
     if (!isValidMeasureType(newValue)) {
-      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({id: errId, type: 'warning', message: 'measureType: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -305,8 +354,12 @@ export class Table {
 
   @Watch('measureType')
   validateMeasureScale(newValue: string) {
+    const errId: string = 'ERR_measureType';
+
     if (!isValidMeasureScale(newValue)) {
-      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureType: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -317,8 +370,12 @@ export class Table {
 
   @Watch('dataFormatDigitsDecimal')
   validateDataFormatDigitsDecimal(newValue: number) {
+    const errId: string = 'ERR_dataFormatDigitsDecimal';
+
     if (!isValidInteger(newValue)) {
-      throw new Error('dataFormatDigitsDecimal: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'dataFormatDigitsDecimal: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -329,8 +386,12 @@ export class Table {
 
   @Watch('dataFormatDigitsPercent')
   validateDateFormatDigitsPercent(newValue: number) {
+    const errId: string = 'ERR_dataFormatDigitsPercent';
+
     if (!isValidInteger(newValue)) {
-      throw new Error('dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -346,8 +407,12 @@ export class Table {
 
   @Watch('categoryWidth')
   validateCategoryWidth(newValue: string) {
+    const errId: string = 'ERR_categoryWidth';
+
     if (!isTableCategoryWidth(newValue)) {
-      throw new Error('categoryWidth: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'categoryWidth: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -366,8 +431,11 @@ export class Table {
   @Watch('categorythereof')
   validateCategoryThereOf(newValue: string | null) {
     const invalidElements: string[] = validateCategoryThereOfJsonStr(newValue);
+    const errId: string = 'ERR_categorythereof';
     if (invalidElements.length > 0) {
-      throw new Error('categorythereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({  id: errId, type: 'warning', message:'categorythereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove( errId);
     }
   }
 
