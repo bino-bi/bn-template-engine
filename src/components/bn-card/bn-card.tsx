@@ -25,6 +25,7 @@ import {
   OrderDirection,
   TimePeriod
 } from "@bino-bi/ibcs-component-interface";
+import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-card',
@@ -35,12 +36,13 @@ import {
 
 export class Card {
   private readonly t: (key: string, data?: object) => string;
+  private readonly errors: ErrorDispatcher;
 
   constructor() {
     withStyled(this);
     withComponentStatus(this);
     this.t = withTranslation(this).t;
-
+    this.errors = withHasError(this);
   }
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
@@ -57,8 +59,12 @@ export class Card {
   @Watch('scenarios')
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
+    const errId: string = 'ERR_scenarios';
+
     if (invalidScenarios?.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -75,8 +81,12 @@ export class Card {
   @Watch('order')
   validateOrder(newValue: string) {
     const invalidScenarios: string[] = validateOrderList(newValue);
+    const errId: string = 'ERR_order';
+
     if (invalidScenarios?.length > 0) {
-      throw new Error('order: invalid value \'' + invalidScenarios?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'order: invalid value \'' + invalidScenarios?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -89,8 +99,12 @@ export class Card {
 
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
+    const errId: string = 'ERR_orderDirection';
+
     if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -107,8 +121,12 @@ export class Card {
   @Watch('measures')
   validateMeasures(newValue: string) {
     const invalidMeasures: string[] = validateMeasureList(newValue);
+    const errId: string = 'ERR_measures';
+
     if (invalidMeasures?.length > 0) {
-      throw new Error('measures: invalid value \'' + invalidMeasures + '\' is not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'measures: invalid value \'' + invalidMeasures + '\' is not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -120,8 +138,12 @@ export class Card {
 
   @Watch('dateStart')
   validateDateStart(newValue: string) {
+    const errId: string = 'ERR_dateStart';
+
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      throw new Error('dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -134,8 +156,12 @@ export class Card {
 
   @Watch('dateEnd')
   validateDateEnd(newValue: string) {
+    const errId: string = 'ERR_dateEnd';
+
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      throw new Error('dateEnd: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'dateEnd: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -158,8 +184,12 @@ export class Card {
 
   @Watch('dateFormat')
   validateDateFormat(newValue: string) {
+    const errId: string = 'ERR_dateFormat';
+
     if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
-      throw new Error('dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -187,8 +217,12 @@ export class Card {
 
   @Watch('dateLink')
   validateDateLink(newValue: string) {
+    const errId: string = 'ERR_dateLink';
+
     if (!isValidDateLink(newValue) && !isBlankInput(newValue) ) {
-      throw new Error('dateLink: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'dateLink: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -213,8 +247,12 @@ export class Card {
 
   @Watch('showBorder')
   validateShowBorder(newValue: string | boolean) {
+    const errId: string = 'ERR_showBorder';
+
     if (!isValidBoolean(newValue)) {
-      throw new Error('showBorder: invalid value(s) \'' + newValue?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'showBorder: invalid value(s) \'' + newValue?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -238,8 +276,12 @@ export class Card {
 
   @Watch('internationalisationMode')
   validatei18nMode(newValue: string) {
+    const errId: string = 'ERR_internationalisationMode';
+
     if (!isValidi18nMode(newValue)) {
-      throw new Error('internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'internationalisationMode: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -250,8 +292,12 @@ export class Card {
   @Prop() internationalisation?: string;
   @Watch('internationalisation')
   validateI18n(newValue: string) {
+    const errId: string = 'ERR_internationalisation';
+
     if (!validateI18nString(newValue)) {
-      throw new Error('internationalisation: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'internationalisation: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 

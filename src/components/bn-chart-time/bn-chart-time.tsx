@@ -26,6 +26,8 @@ import {
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
 
+import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
+
 
 @Component({
   tag: 'bn-chart-time',
@@ -38,6 +40,7 @@ export class Chart {
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
+  private readonly errors: ErrorDispatcher;
 
   /**
    * Custom chart title
@@ -83,9 +86,13 @@ export class Chart {
   validateScenario(newValue: string) {
     this.scenariosArray = newValue.split(";").map(value => value.trim());
     const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
+    const errId: string = 'ERR_scenarios';
+    const errIdVar: string = 'ERR_variances';
 
     if (invalidScenarios.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
 
     let invalidVariances: string[] = [];
@@ -94,17 +101,26 @@ export class Chart {
       invalidVariances = invalidVariances.concat(validateVariancesList(this.scenariosArray[i]));
     }
 
+
     if (invalidVariances.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.')
+      this.errors.addOrReplace({ id: errIdVar, type: 'warning', message:'scenarios: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errIdVar);
     }
   }
+
+
 
   @Prop() syncSpaceLeft: number = -1;
 
   @Watch('syncSpaceLeft')
   validateLeftSync(newValue: string | number) {
+    const errId: string = 'ERR_syncSpaceLeft';
+
     if (!isValidNumber(newValue as number)){
-      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'syncSpaceLeft: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -119,8 +135,12 @@ export class Chart {
   @Prop() limit: number = 0;
   @Watch('limit')
   validateLimit(newValue: number) {
+    const errId: string = 'ERR_limit';
+
     if (!isValidInteger(newValue)) {
-      throw new Error('order: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'limit: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -135,8 +155,12 @@ export class Chart {
 
   @Watch('unitScaling')
   validateUnitScaling(newValue: string | number) {
+    const errId: string = 'ERR_unitScaling';
+
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'unitScaling: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -149,10 +173,14 @@ export class Chart {
    */
   @Prop() percentageScaling!: string | number;
 
-  @Watch('unitScaling')
+  @Watch('percentageScaling')
   validatePercentageScaling(newValue: string | number) {
+    const errId: string = 'ERR_percentageScaling';
+
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      throw new Error('unitScaling: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'percentageScaling: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -169,8 +197,12 @@ export class Chart {
 
   @Watch('level')
   validateLevel(newValue: string) {
+    const errId: string = 'ERR_level';
+
     if (!isValidLevel(newValue)) {
-      throw new Error('level: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'level: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -183,9 +215,12 @@ export class Chart {
   @Prop() order!: string;
   @Watch('order')
   validateOrderList(newValue: string) {
+    const errId: string = 'ERR_order';
     const invalidElements: string[] = validateOrderList(newValue);
     if (invalidElements.length > 0) {
-      throw new Error('order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -198,10 +233,13 @@ export class Chart {
   @Prop() orderDirection!: string;
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
-    if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.');
-    }
+    const errId: string = 'ERR_orderDirection';
 
+    if (!isValidDirection(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
+    }
   }
 
   /** Axis Date Interval
@@ -212,8 +250,12 @@ export class Chart {
   @Prop() dateInterval!: string;
   @Watch('dateInterval')
   validateDateInterval(newValue: string) {
+    const errId: string = 'ERR_dateInterval';
+
     if (!isValidDateFormat(newValue)) {
-      throw new Error('dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -234,8 +276,12 @@ export class Chart {
   @Prop() axisLabelsMode!: string;
   @Watch('axisLabelsMode')
   validateAxisLabelsMode(newValue: string) {
+    const errId: string = 'ERR_axisLabelsMode';
+
     if (!isValidAxisLabelsMode(newValue)) {
-      throw new Error('axisLabelsMode: invalid value \'' + newValue?.toString() + '\' is not supported.');
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'axisLabelsMode: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -252,7 +298,7 @@ export class Chart {
       this.data = data || [];
     });
     this.chartTemplate = this.chartTemplate.bind(this);
-
+    this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
 

@@ -4,6 +4,7 @@ import {isEmpty, isString} from "lodash";
 import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
+import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
 
 
 type MarkerParams = {
@@ -30,6 +31,7 @@ type GpxParams = {
 })
 export class BnMap {
   //private readonly t: (key: string, data?: object) => string;
+  private readonly errors: ErrorDispatcher;
 
   private markerList: MarkerParams[] = [];
   private gpxList: GpxParams[] = []
@@ -42,6 +44,7 @@ export class BnMap {
   constructor() {
     withStyled(this);
     withComponentStatus(this);
+    this.errors = withHasError(this);
     withDataset(this, (name, data) => {
       if(name == this.markersDatasetName) {
           this.markerData = data;
@@ -60,8 +63,12 @@ export class BnMap {
   @Prop({mutable: false}) markersDatasetName: string = "$markers";
   @Watch('markersDatasetName')
   validateMarkerDatasetName(newValue: number) {
+    const errId: string = 'ERR_markersDatasetName';
+
     if (!isString(newValue)) {
-      throw new Error('markerDatasetName: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({id: errId, type: 'warning', message:'markerDatasetName: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -73,8 +80,12 @@ export class BnMap {
   @Prop({mutable: false}) gpxsDatasetName: string = "$gpxs";
   @Watch('gpxsDatasetName')
   validateGpxsDatasetName(newValue: number) {
+    const errId: string = 'ERR_markersDatasetName';
+
     if (!isString(newValue)) {
-      throw new Error('gpxsDatasetName: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({id: errId, type: 'warning', message:'gpxsDatasetName: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
   /**
@@ -86,8 +97,12 @@ export class BnMap {
 
   @Watch('latitude')
   validateLatitude(newValue: number) {
+    const errId: string = 'ERR_latitude';
+
     if (!isValidNumber(newValue)) {
-      throw new Error('latitude: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'latitude: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -100,8 +115,12 @@ export class BnMap {
 
   @Watch('longitude')
   validateLongitude(newValue: number) {
+    const errId: string = 'ERR_longitude';
+
     if (!isValidNumber(newValue)) {
-      throw new Error('longitude: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({  id: errId, type: 'warning', message:'longitude: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -116,8 +135,12 @@ export class BnMap {
 
   @Watch('scale')
   validateScale(newValue: number) {
+    const errId: string = 'ERR_scale';
+
     if (!isValidNumber(newValue)) {
-      throw new Error('scale: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId,  type: 'warning', message:'scale: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -128,8 +151,12 @@ export class BnMap {
 
   @Watch('showScale')
   validateShowScale(newValue: boolean) {
+    const errId: string = 'ERR_showScale';
+
     if (!isValidBoolean(newValue)) {
-      throw new Error('scale: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({  id: errId, type: 'warning', message:'showScale: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -140,8 +167,16 @@ export class BnMap {
 
   @Watch('attribution')
   validateAttribution(newValue: string) {
+    const errId: string = 'ERR_attribution';
+
     if (!isString(newValue)) {
-      throw new Error('attribution: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'attribution: invalid value(s) \'' + newValue + '\' are not supported.'
+      });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -153,8 +188,12 @@ export class BnMap {
 
   @Watch('titleLayer')
   validateTitleLayer(newValue: string) {
+    const errId: string = 'ERR_titleLayer';
+
     if (!isString(newValue)) {
-      throw new Error('titleLayer: invalid value(s) \'' + newValue + '\' are not supported.')
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'titleLayer: invalid value(s) \'' + newValue + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -174,16 +213,22 @@ export class BnMap {
     if (isEmpty(newValue)) {
       return;
     }
-
+    const errId: string = 'ERR_markers';
+    const errIdJson: string = 'ERR_markersJSON';
     try {
       const invalidScenarios: string[] = validateMarkerType(newValue);
+
+
       if (invalidScenarios.length > 0) {
-        throw new Error('Markers: invalid value(s) \'' + invalidScenarios + '\' are not supported.:');
+        this.errors.addOrReplace({ id: errId, type: 'warning', message:'Markers: invalid value(s) \'' + invalidScenarios + '\' are not supported.'});
+      } else {
+        this.errors.remove(errId);
       }
 
       this.markerList = JSON.parse(newValue);
+      this.errors.remove(errIdJson);
     } catch (e) {
-      throw new Error('Markers: invalid value(s) \'' + newValue + '\' are not supported.:' + e.message);
+      this.errors.addOrReplace({id: errIdJson, type: 'warning', message:'Markers: invalid value(s) \'' + newValue + '\' are not supported.:' + e.message});
     }
   }
 
@@ -203,16 +248,20 @@ export class BnMap {
     if (isEmpty(newValue)) {
       return;
     }
-
+    const errId: string = 'ERR_gpxs';
+    const errIdJson: string = 'ERR_gpxsJSON';
     try {
       const invalidScenarios: string[] = validateGpxType(newValue);
       if (invalidScenarios.length > 0) {
-        throw new Error('gpxs: invalid value(s) \'' + invalidScenarios + '\' are not supported.:');
+        this.errors.addOrReplace({ id: errId, type: 'warning', message:'gpxs: invalid value(s) \'' + invalidScenarios + '\' are not supported.'});
+      } else {
+        this.errors.remove(errId);
       }
 
       this.gpxList = JSON.parse(newValue);
+      this.errors.remove(errIdJson);
     } catch (e) {
-      throw new Error('gpxs: invalid  \'' + newValue + '\' is not supported.:' + e.message);
+      this.errors.addOrReplace({id: errIdJson, type: 'warning', message:'gpxs: invalid  \'' + newValue + '\' is not supported.:' + e.message});
     }
   }
 
@@ -254,12 +303,12 @@ export class BnMap {
   }
 
   private prepareMarkerData() {
-    console.log("!!!markerData",this.markerData);
+
     return [...this.markerData, ...this.markerList];
   }
 
   private prepareGpxData() {
-    console.log("!!!prepareGpxData",this.gpxData);
+
     return [ ...this.gpxData, ...this.gpxList];
   }
 

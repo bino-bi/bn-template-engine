@@ -77,7 +77,7 @@ export function isValidNumber(value: number | string): boolean {
 
 export function isValidDirection(value: string): boolean {
   if (isBlankInput(value)) {
-    return true;
+    return false;
   }
 
   return value?.toUpperCase() in OrderDirection;
