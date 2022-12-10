@@ -489,6 +489,8 @@ export class Chart {
     let preparedI18n: Map<string, string> =  this.prepareI18n();
     let preparedStyle: ITimeChartStyles =  this.prepareStyle();
 
+    console.log("TITLE",this.prepareChartTitle(), "order",this.prepareOrder(), "data", this.data, "dataInt", this.prepareDateInterval() );
+
     return  <ibcs-chart-time
       data={this.data}
       chartTitle={this.prepareChartTitle()}
