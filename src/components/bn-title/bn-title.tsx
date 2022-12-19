@@ -265,7 +265,7 @@ export class Title {
     if (isBlankInput(this.scenarios)) {
       return [];
     }
-    return this.scenarios?.split(",").map(entry => entry.trim());
+    return this.scenarios?.replace(';', ',').split(",").map(entry => entry.trim());
   }
 
   private prepareBusinessUnit(): string {

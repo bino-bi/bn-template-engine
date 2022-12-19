@@ -33,7 +33,7 @@ export function validateVariancesList(value: string): string[] {
     return [];
   }
 
-  let invalidScenarios: string[] = value.split(',').filter(element => {
+  let invalidScenarios: string[] = value.replace(';', ',').split(',').filter(element => {
       const splittedElement = element.split('_');
 
       const scenarioSubtrahend = splittedElement[0]?.replace(/^dr|^d/, "").toUpperCase().trim();

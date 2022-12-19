@@ -635,6 +635,7 @@
 
   <bn-page name="Charts_2x2" format="a4" orientation="landscape">
     <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
+              scenarios='ac1,fc1;drfc1_ac1_neg'
               measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
 
     <bn-body>
@@ -648,7 +649,7 @@
         limit						='0'
         order				        =''
         order-direction			    ='desc'
-        scenarios			        ='ac3,pp3'
+        scenarios			        ='ac1,fc1;drfc1_ac1_neg'
         styles				        =''
         sync-space-left				='-1'
         unit-scaling			    ='0.005'
@@ -667,7 +668,7 @@
         unit-scaling			    ='0.01'
         percentage-scaling          ='50'
       ></bn-chart-time>
-      <bn-table datasets='$Charts_Time' table-title="My Table" scenarios="ac1,fc1,pp1,dac1_fc1_pos,drac1_fc1_pos"
+      <bn-table datasets='$Charts_Time' table-title="My Table" scenarios="ac1,fc1,pp1;dac1_fc1_pos,drac1_fc1_pos"
                 data-format="decimal" grouped="true" limit="0" show-group-title="true" type="SUM" measure-scale="_"
                 prepareMeasureType="volume">
       </bn-table>
