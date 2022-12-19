@@ -79,6 +79,7 @@ export class Table {
   @Watch('scenarios')
   validateScenario(newValue: string) {
     const errId: string = 'ERR_scenarios';
+
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
     if (invalidScenarios.length > 0) {
@@ -543,7 +544,7 @@ export class Table {
     if (isBlankInput(this.scenarios)) {
       return [];
     }
-    return this.scenarios?.split(",").map(entry => entry.trim());
+    return this.scenarios?.replace(';', ',').split(",").map(entry => entry.trim());
   }
 
   private prepareCategoryWidth(): TableCategoryWidth {
