@@ -52,6 +52,21 @@ export class Chart {
    *  values:<br /> ```ac // fc // pp // pl  [1-4]```
    *  example:<br /> ```ac1,ac2,ac3,ac4```
    *
+   */
+  @Prop() scenarios!: string;
+  @Watch('scenarios')
+  validateScenario(newValue: string) {
+    const invalidScenarios: string[] = validateScenarioList(newValue);
+    const errId: string = 'ERR_scenarios';
+
+    if (invalidScenarios.length > 0) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+  /**
+   * List of Variance Map.
    *<br /> <br />
    *   Variance chart can be added by seperating the scenarios
    *   of each chart with ```;```<br />
@@ -70,27 +85,14 @@ export class Chart {
    *<br /> <br />
    *   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
    *
-   *    example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
+   *    example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
    */
-  @Prop() scenarios!: string;
-  @Watch('scenarios')
-  validateScenario(newValue: string) {
-    this.scenariosArray = newValue.split(";").map(value => value.trim());
-    const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
-    const errId: string = 'ERR_scenarios';
+  @Prop() variances!: string;
+  @Watch('variances')
+  validateVariances(newValue: string) {
+
     const errIdVar: string = 'ERR_variances';
-
-    if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
-    } else {
-      this.errors.remove(errId);
-    }
-
-    let invalidVariances: string[] = [];
-
-    for (let i = 1; i < this.scenariosArray.length; i++) {
-      invalidVariances = invalidVariances.concat(validateVariancesList(this.scenariosArray[i]));
-    }
+    let invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
       this.errors.addOrReplace({ id: errIdVar,type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
@@ -98,6 +100,7 @@ export class Chart {
       this.errors.remove(errIdVar);
     }
   }
+
 
 
 
@@ -190,7 +193,17 @@ export class Chart {
    *  ```asc // desc```
    */
   @Prop() orderDirection!: string;
+  @Watch('orderDirection')
+  validateOrderDirection(newValue: string) {
+    const errId: string = 'ERR_orderDirection';
 
+    if (!isValidDirection(newValue)) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
+    }
+
+  }
   /** set translaton mode.
    *  <br /><br />
    *  values:<br />
@@ -217,17 +230,7 @@ export class Chart {
     }
   }
 
-  @Watch('orderDirection')
-  validateOrderDirection(newValue: string) {
-    const errId: string = 'ERR_orderDirection';
 
-    if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
-    } else {
-      this.errors.remove(errId);
-    }
-
-  }
 
   private scenariosArray: string[];
   private canvasWidthSegmented: number;
@@ -249,6 +252,7 @@ export class Chart {
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
+    this.validateVariances(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
     //this.validateStyles(this.styles);
     this.validateLevel(this.level);
@@ -265,17 +269,14 @@ export class Chart {
     if (isBlankInput(this.scenarios)) {
       return [];
     }
-    return this.scenariosArray[0]?.split(",").map(entry => entry.trim());
+    return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
-  private prepareVariances(localScenarioString: string): string[] {
-    const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
-
-    if (isValidateVariancesList == false) {
-      return null;
+  private prepareVariances(): string[] {
+    if (isBlankInput(this.variances)) {
+      return [];
     }
-
-    return localScenarioString.split(',');
+    return this.variances?.split(",").map(entry => entry.trim());
   }
 
 
@@ -405,11 +406,12 @@ export class Chart {
   }
 
   chartTemplate(localScenarioString: string) {
+
     return <ibcs-chart-structure
       data={this.data}
       chartTitle={this.prepareChartTitle()}
       scenarios={this.prepareScenarios()}
-      variances={this.prepareVariances(localScenarioString)}
+      variances={[localScenarioString]}
       hideCategories={this.prepareHideCategories(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
@@ -422,9 +424,15 @@ export class Chart {
   }
 
   render() {
+    let scenariosArray = [''];
+    let variancesArray = this.prepareVariances();
+    if (variancesArray.length > 0){
+      scenariosArray = [...scenariosArray,...variancesArray];
+    }
+
     return <Host>
       <div class="container">
-        {this.scenariosArray.map(this.chartTemplate)}
+        {scenariosArray.map(this.chartTemplate)}
       </div>
     </Host>
   }
