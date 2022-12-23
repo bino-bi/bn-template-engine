@@ -13,7 +13,7 @@ import {
   validateOrderList,
   validatePartOfJsonStr,
   validateScenarioList,
-  validateThereOfJsonStr
+  validateThereOfJsonStr, validateVariancesList
 } from "../../utils/validate";
 
 import withDataset from "../../utils/withDataset";
@@ -65,16 +65,13 @@ export class Table {
   @Prop() tableTitle: string = "";
 
 
-  /**
-   *  List of scenarios. Valid scenarios are
+  /** List of scenarios displayed in card header.
    *  <br /><br />
-   *  variances pattern d<scenario_baseScenario>
-   *  relative variance pattern dr<scenario_baseScenario>
-   * <br /><br />
-   *  values: <br />
-   *  ```ac[1-4] | fc[1-4] | pp[1-4] | pl[1-4] | dfc[1-4]_ac[1-4] | drfc[1-4]_ac[1-4]```
+   *  If scenarios is empty string (`''` or `null`) the scenarios are omitted
+   *  <br /><br />
+   *  values:<br /> ```ac // fc // py // pl // null```
    */
-  @Prop() readonly scenarios!: string;
+  @Prop() readonly scenarios: string;
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
@@ -83,7 +80,39 @@ export class Table {
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+
+  /** <br /> <br />
+   List of Variances
+   The additonal variances which
+   are calculated form the given scenarios.
+   the scenarios used in the variances have also
+   be defined in the *scenarios* property.
+   <br /> <br />
+   the variance is defiend as  (Scenario A -  ScenarioB)
+   neu. neg and pos post fix defines which value is *good*
+   a negative or a positive value.
+   <br /> <br />
+   if empty variance charts are hidden
+   <br /> <br />
+   each variance creates a chart
+   <br /> <br />
+   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   */
+  @Prop() readonly variances: string;
+
+  @Watch('variances')
+  validateVariances(newValue: string) {
+    const errId: string = 'ERR_variances';
+    const invalidVariances: string[] = validateVariancesList(newValue);
+
+    if (invalidVariances.length > 0) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
     } else {
       this.errors.remove(errId);
     }
@@ -541,10 +570,19 @@ export class Table {
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios)) {
+    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)  ) {
       return [];
     }
-    return this.scenarios?.replace(';', ',').split(",").map(entry => entry.trim());
+    let scenarios = [];
+
+    if(this.scenarios?.trim().length > 0) {
+      scenarios = scenarios.concat(this.scenarios?.split(","));
+    }
+
+    if(this.variances?.trim().length > 0) {
+      scenarios = scenarios.concat(this.variances?.split(","));
+    }
+    return scenarios.map(entry => entry.trim());
   }
 
   private prepareCategoryWidth(): TableCategoryWidth {

@@ -8,7 +8,7 @@ import {
   isValidDateLink,
   isValidDirection,
   validateMeasureList, validateOrderList,
-  validateScenarioList,
+  validateScenarioList, validateVariancesList,
 } from "../../utils/validate";
 
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -24,6 +24,7 @@ import {
   ITimePeriod,
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
+import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
 
 
 @Component({
@@ -34,11 +35,12 @@ import {
 
 export class Title {
   private readonly t: (key: string, data?: object) => string;
-
+  private readonly errors: ErrorDispatcher;
   constructor() {
     withStyled(this);
     withComponentStatus(this);
     this.t = withTranslation(this).t;
+    this.errors = withHasError(this);
 
   }
 
@@ -56,11 +58,48 @@ export class Title {
 
   @Watch('scenarios')
   validateScenario(newValue: string) {
+    const errId: string = 'ERR_scenarios';
+
     const invalidScenarios: string[] = validateScenarioList(newValue);
-    if (invalidScenarios?.length > 0) {
-      throw new Error('scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
+
+    if (invalidScenarios.length > 0) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
+
+  /** <br /> <br />
+   List of Variances
+   The additonal variances which
+   are calculated form the given scenarios.
+   the scenarios used in the variances have also
+   be defined in the *scenarios* property.
+   <br /> <br />
+   the variance is defiend as  (Scenario A -  ScenarioB)
+   neu. neg and pos post fix defines which value is *good*
+   a negative or a positive value.
+   <br /> <br />
+   if empty variance charts are hidden
+   <br /> <br />
+   each variance creates a chart
+   <br /> <br />
+   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   */
+  @Prop() readonly variances: string;
+
+  @Watch('variances')
+  validateVariances(newValue: string) {
+    const errId: string = 'ERR_variances';
+    const invalidVariances: string[] = validateVariancesList(newValue);
+
+    if (invalidVariances.length > 0) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
 
 
   /** List of the primary scenarios on which the order direction are applied.
@@ -74,9 +113,13 @@ export class Title {
 
   @Watch('order')
   validateOrder(newValue: string) {
-    const invalidScenarios: string[] = validateOrderList(newValue);
-    if (invalidScenarios?.length > 0) {
-      throw new Error('order: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.')
+    const invalidElements: string[] = validateOrderList(newValue);
+    const errId: string = 'ERR_order';
+
+    if (invalidElements.length > 0) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -89,8 +132,12 @@ export class Title {
 
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
+    const errId: string = 'ERR_orderDirection';
+
     if (!isValidDirection(newValue)) {
-      throw new Error('orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -106,9 +153,13 @@ export class Title {
 
   @Watch('measures')
   validateMeasures(newValue: string) {
+    const errId: string = 'ERR_measures';
     const invalidMeasures: string[] = validateMeasureList(newValue);
-    if (invalidMeasures?.length > 0) {
-      throw new Error('measures: invalid value \'' + invalidMeasures + '\' is not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]')
+
+    if (invalidMeasures.length > 0) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'measures: invalid value(s) \'' + invalidMeasures?.toString() + '\' are not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -120,8 +171,11 @@ export class Title {
 
   @Watch('dateStart')
   validateDateStart(newValue: string) {
+    const errId: string = 'ERR_dateStart';
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      throw new Error('dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -134,8 +188,12 @@ export class Title {
 
   @Watch('dateEnd')
   validateDateEnd(newValue: string) {
+    const errId: string = 'ERR_dateEnd';
+
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      throw new Error('dateEnd: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -158,8 +216,12 @@ export class Title {
 
   @Watch('dateFormat')
   validateDateFormat(newValue: string) {
+    const errId: string = 'ERR_dateFormat';
+
     if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
-      throw new Error('dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -187,8 +249,11 @@ export class Title {
 
   @Watch('dateLink')
   validateDateLink(newValue: string) {
+    const errId: string = 'ERR_dateLink';
     if (!isValidDateLink(newValue) && !isBlankInput(newValue)) {
-      throw new Error('dateLink: invalid value \'' + newValue.toString() + '\' is not supported.')
+      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateLink: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -196,6 +261,7 @@ export class Title {
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
+    this.validateVariances(this.variances);
     this.validateMeasures(this.measures);
     this.validateDateStart(this.dateStart);
     this.validateDateEnd(this.dateEnd);
@@ -262,10 +328,19 @@ export class Title {
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios)) {
+    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)  ) {
       return [];
     }
-    return this.scenarios?.replace(';', ',').split(",").map(entry => entry.trim());
+    let scenarios = [];
+
+    if(this.scenarios?.trim().length > 0) {
+      scenarios = scenarios.concat(this.scenarios?.split(","));
+    }
+
+    if(this.variances?.trim().length > 0) {
+      scenarios = scenarios.concat(this.variances?.split(","));
+    }
+    return scenarios.map(entry => entry.trim());
   }
 
   private prepareBusinessUnit(): string {
