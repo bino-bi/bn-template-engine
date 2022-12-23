@@ -428,7 +428,12 @@ export class Chart {
     let leftSideOffset: number =  Formatter.getMaxWidthOfArrayItems(this.scenariosArray, preparedI18n, preparedStyle);
     return leftSideOffset;
   }
-  private prepareChartTitle(): string {
+  private prepareChartTitle(localScenarioString: string): string {
+    const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
+
+    if (isValidateVariancesList == false) {
+      return null;
+    }
     return this.chartTitle;
   }
 
@@ -489,11 +494,9 @@ export class Chart {
     let preparedI18n: Map<string, string> =  this.prepareI18n();
     let preparedStyle: ITimeChartStyles =  this.prepareStyle();
 
-    console.log("TITLE",this.prepareChartTitle(), "order",this.prepareOrder(), "data", this.data, "dataInt", this.prepareDateInterval() );
-
     return  <ibcs-chart-time
       data={this.data}
-      chartTitle={this.prepareChartTitle()}
+      chartTitle={this.prepareChartTitle(localScenarioString)}
       scenarios={this.prepareScenarios()}
       variances={this.prepareVariances(localScenarioString)}
       hideAxisLabels={this.prepareHideAxisLabels(localScenarioString)}
