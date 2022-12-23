@@ -10,7 +10,7 @@ import {
   validateMeasureList,
   validateOrderList,
   validateScenarioList,
-  isValidBoolean, isValidi18nMode, validateI18nString
+  isValidBoolean, isValidi18nMode, validateI18nString, validateVariancesList
 } from "../../utils/validate";
 
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -68,6 +68,41 @@ export class Card {
     }
   }
 
+  /**
+   * List of Variance Map.
+   *<br /> <br />
+   *   Variance chart can be added by seperating the scenarios
+   *   of each chart with ```;```<br />
+   *   The additonal variances which
+   *   are calculated form the given scenarios.
+   *   the scenarios used in the variances have also
+   *   be defined in the *scenarios* property.
+   *<br /> <br />
+   *   the variance is defiend as  (Scenario A -  ScenarioB)
+   *   neu. neg and pos post fix defines which value is *good*
+   *   a negative or a positive value.
+   *<br /> <br />
+   *   if empty variance charts are hidden
+   *<br /> <br />
+   *   each variance creates a chart
+   *<br /> <br />
+   *   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   *
+   *    example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
+   */
+  @Prop() variances!: string;
+  @Watch('variances')
+  validateVariances(newValue: string) {
+
+    const errIdVar: string = 'ERR_variances';
+    let invalidVariances: string[] = validateVariancesList(newValue);
+
+    if (invalidVariances.length > 0) {
+      this.errors.addOrReplace({ id: errIdVar,type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errIdVar);
+    }
+  }
 
   /** List of the primary scenarios on which the order direction are applied.
    *  <br /><br />
@@ -303,6 +338,7 @@ export class Card {
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
+    this.validateVariances(this.variances);
     this.validateMeasures(this.measures);
     this.validateDateStart(this.dateStart);
     this.validateDateEnd(this.dateEnd);
@@ -393,7 +429,14 @@ export class Card {
     if (isBlankInput(this.scenarios)) {
       return [];
     }
-    return this.scenarios?.replace(';', ',').split(",").map(entry => entry.trim());
+    return this.scenarios?.split(",").map(entry => entry.trim());
+  }
+
+  private prepareVariances(): string[] {
+    if (isBlankInput(this.scenarios)) {
+      return [];
+    }
+    return this.variances?.split(",").map(entry => entry.trim());
   }
 
   private prepareFooterText(): string {
@@ -425,6 +468,7 @@ export class Card {
           class=""
           businessUnit={this.prepareBusinessUnit()}
           scenarios={this.prepareScenarios()}
+          variances={this.prepareVariances()}
           measures={this.prepareMeasures()}
           timeperiod={this.prepareTitleTimePeriod()}
           order={this.prepareTitleOrder()}

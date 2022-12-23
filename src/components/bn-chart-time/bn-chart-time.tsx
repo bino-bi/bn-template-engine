@@ -1,7 +1,10 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
 import {
-  isBlankInput, isValidAxisLabelsMode, isValidDateFormat,
-  isValidDirection, isValidInteger,
+  isBlankInput,
+  isValidAxisLabelsMode,
+  isValidDateFormat,
+  isValidDirection,
+  isValidInteger,
   isValidLevel,
   isValidNumber,
   validateOrderList,
@@ -13,15 +16,18 @@ import {
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
-import { globalLabelKeys } from "../../stores/internationalization";
-import { withStyled } from "../../utils/styled/withStyled";
+import {globalLabelKeys} from "../../stores/internationalization";
+import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import {Formatter} from "@bino-bi/ibcs-component/dist/collection/utils";
 
 import {
-  AggregationLevel, AxisLabelsMode, DateDistance,
+  AggregationLevel,
+  AxisLabelsMode,
+  DateDistance,
   IOrder,
-  ITimeChartDataRow, ITimeChartStyles,
+  ITimeChartDataRow,
+  ITimeChartStyles,
   OrderColumn,
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
@@ -59,6 +65,22 @@ export class Chart {
    *  values:<br /> ```ac // fc // pp // pl  [1-4]```
    *  example:<br /> ```ac1,ac2,ac3,ac4```
    *
+   */
+  @Prop() scenarios!: string;
+  @Watch('scenarios')
+  validateScenario(newValue: string) {
+    const invalidScenarios: string[] = validateScenarioList(newValue);
+    const errId: string = 'ERR_scenarios';
+
+    if (invalidScenarios.length > 0) {
+      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * List of Variance Map.
    *<br /> <br />
    *   Variance chart can be added by seperating the scenarios
    *   of each chart with ```;```<br />
@@ -77,39 +99,26 @@ export class Chart {
    *<br /> <br />
    *   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
    *
-   *    example: <br />```'ac1,pp1,fc1,fc2;dpp1_ac1_neg;dfc1_ac1_neg'```
+   *    example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
    */
-  @Prop() scenarios!: string;
+  @Prop() variances!: string;
 
+  @Watch('variances')
+  validateVariances(newValue: string) {
 
-  @Watch('scenarios')
-  validateScenario(newValue: string) {
-    this.scenariosArray = newValue.split(";").map(value => value.trim());
-    const invalidScenarios: string[] = validateScenarioList(this.scenariosArray[0]);
-    const errId: string = 'ERR_scenarios';
     const errIdVar: string = 'ERR_variances';
-
-    if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
-    } else {
-      this.errors.remove(errId);
-    }
-
-    let invalidVariances: string[] = [];
-
-    for (let i = 1; i < this.scenariosArray.length; i++) {
-      invalidVariances = invalidVariances.concat(validateVariancesList(this.scenariosArray[i]));
-    }
-
+    let invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errIdVar, type: 'warning', message:'scenarios: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({
+        id: errIdVar,
+        type: 'warning',
+        message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'
+      });
     } else {
       this.errors.remove(errIdVar);
     }
   }
-
-
 
   @Prop() syncSpaceLeft: number = -1;
 
@@ -117,8 +126,12 @@ export class Chart {
   validateLeftSync(newValue: string | number) {
     const errId: string = 'ERR_syncSpaceLeft';
 
-    if (!isValidNumber(newValue as number)){
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'syncSpaceLeft: invalid value(s) \'' + newValue + '\' are not supported.'});
+    if (!isValidNumber(newValue as number)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'syncSpaceLeft: invalid value(s) \'' + newValue + '\' are not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -133,12 +146,17 @@ export class Chart {
    *
    */
   @Prop() limit: number = 0;
+
   @Watch('limit')
   validateLimit(newValue: number) {
     const errId: string = 'ERR_limit';
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'limit: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'limit: invalid value \'' + newValue?.toString() + '\' is not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -158,7 +176,11 @@ export class Chart {
     const errId: string = 'ERR_unitScaling';
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'unitScaling: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'unitScaling: invalid value(s) \'' + newValue + '\' are not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -178,7 +200,11 @@ export class Chart {
     const errId: string = 'ERR_percentageScaling';
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'percentageScaling: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'percentageScaling: invalid value(s) \'' + newValue + '\' are not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -200,7 +226,11 @@ export class Chart {
     const errId: string = 'ERR_level';
 
     if (!isValidLevel(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'level: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'level: invalid value(s) \'' + newValue + '\' are not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -213,12 +243,17 @@ export class Chart {
    *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
    */
   @Prop() order!: string;
+
   @Watch('order')
   validateOrderList(newValue: string) {
     const errId: string = 'ERR_order';
     const invalidElements: string[] = validateOrderList(newValue);
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -231,12 +266,17 @@ export class Chart {
    *  ```asc // desc```
    */
   @Prop() orderDirection!: string;
+
   @Watch('orderDirection')
   validateOrderDirection(newValue: string) {
     const errId: string = 'ERR_orderDirection';
 
     if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -248,12 +288,17 @@ export class Chart {
    *  ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
    */
   @Prop() dateInterval!: string;
+
   @Watch('dateInterval')
   validateDateInterval(newValue: string) {
     const errId: string = 'ERR_dateInterval';
 
     if (!isValidDateFormat(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -274,20 +319,22 @@ export class Chart {
    *  ```smart // long // short```
    */
   @Prop() axisLabelsMode!: string;
+
   @Watch('axisLabelsMode')
   validateAxisLabelsMode(newValue: string) {
     const errId: string = 'ERR_axisLabelsMode';
 
     if (!isValidAxisLabelsMode(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'axisLabelsMode: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'axisLabelsMode: invalid value \'' + newValue?.toString() + '\' is not supported.'
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-
-
-  private scenariosArray: string[];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
@@ -307,6 +354,7 @@ export class Chart {
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
+    this.validateVariances(this.scenarios);
     this.validateUnitScaling(this.unitScaling);
     this.validateLimit(this.limit);
     // this.validateStyles(this.styles);
@@ -320,25 +368,22 @@ export class Chart {
   }
 
   prepareDimension(): { height: number, width: number } {
-    this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
-    return { width: this.canvasWidthSegmented, height: this.element.clientHeight };
+    this.canvasWidthSegmented = this.element.clientWidth / [...this.scenarios.split(','),...this.variances.split(',')].length;
+    return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
   }
 
   private prepareScenarios(): string[] {
     if (isBlankInput(this.scenarios)) {
       return [];
     }
-    return this.scenariosArray[0]?.split(",").map(entry => entry.trim());
+    return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
-  private prepareVariances(localScenarioString: string): string[] {
-    const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
-
-    if (isValidateVariancesList == false) {
-      return null;
+  private prepareVariances(): string[] {
+    if (isBlankInput(this.variances)) {
+      return [];
     }
-
-    return localScenarioString.split(',');
+    return this.variances?.split(",").map(entry => entry.trim());
   }
 
 
@@ -389,21 +434,22 @@ export class Chart {
     return this.componentStyle($ => {
       return {
         scaleFactors: {
-          scenarioOffset:        $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
+          scenarioOffset: $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
           scenarioLabelToColumn: $["bn-chart-time"]['scaleFactors']['scenarioLabelToColumn'],
-          labelToColum:          $["bn-chart-time"]['scaleFactors']['labelToColum'],
-          labelToAxis:           $["bn-chart-time"]['scaleFactors']['labelToAxis'],
-          needleWidth:           $["bn-chart-time"]['scaleFactors']['needleWidth'],
-          needleHeadWidth:       $["bn-chart-time"]['scaleFactors']['needleHeadWidth'],
-          columnWidth:           $["bn-chart-time"]['scaleFactors']['columnWidth'],
+          labelToColum: $["bn-chart-time"]['scaleFactors']['labelToColum'],
+          labelToAxis: $["bn-chart-time"]['scaleFactors']['labelToAxis'],
+          needleWidth: $["bn-chart-time"]['scaleFactors']['needleWidth'],
+          needleHeadWidth: $["bn-chart-time"]['scaleFactors']['needleHeadWidth'],
+          columnWidth: $["bn-chart-time"]['scaleFactors']['columnWidth'],
           varianceAxisLineWidth: $["bn-chart-time"]['scaleFactors']['varianceAxisLineWidth'],
-          axisLineWidth:         $["bn-chart-time"]['scaleFactors']['axisLineWidth'],
-          auxiliaryLineWidth:    $["bn-chart-time"]['scaleFactors']['auxiliaryLineWidth'],
-          scenarioLineWidth:     $["bn-chart-time"]['scaleFactors']['scenarioLineWidth'],
-          markerWidth:           $["bn-chart-time"]['scaleFactors']['markerWidth'],
-          markerOffset:          $["bn-chart-time"]['scaleFactors']['markerOffset'],
-          categoryWidth:         $["bn-chart-time"]['scaleFactors']['categoryWidth'],
-          axisTickLength:        $["bn-chart-time"]['scaleFactors']['axisTickLength'],} ,
+          axisLineWidth: $["bn-chart-time"]['scaleFactors']['axisLineWidth'],
+          auxiliaryLineWidth: $["bn-chart-time"]['scaleFactors']['auxiliaryLineWidth'],
+          scenarioLineWidth: $["bn-chart-time"]['scaleFactors']['scenarioLineWidth'],
+          markerWidth: $["bn-chart-time"]['scaleFactors']['markerWidth'],
+          markerOffset: $["bn-chart-time"]['scaleFactors']['markerOffset'],
+          categoryWidth: $["bn-chart-time"]['scaleFactors']['categoryWidth'],
+          axisTickLength: $["bn-chart-time"]['scaleFactors']['axisTickLength'],
+        },
         fontStyles: {
           font: `${$["global"]['fontSizePx']}px ${$["global"]['fontFamily']}`,
           size: $["global"]['fontSizePx'],
@@ -412,22 +458,23 @@ export class Chart {
           leading: 1.8,
         },
         axisStyles: $["bn-chart-time"]['axisStyles'],
-        barStyles:  $["bn-chart-time"]['barStyles'],
-        varianceStyles:  $["bn-chart-time"]['varianceStyles'],
+        barStyles: $["bn-chart-time"]['barStyles'],
+        varianceStyles: $["bn-chart-time"]['varianceStyles'],
         padding: $["bn-chart-time"]['padding'],
         pattern: null
       }
     });
   }
 
-  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number{
-    if( this.syncSpaceLeft >= 0 ) {
+  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {
+    if (this.syncSpaceLeft >= 0) {
       return this.syncSpaceLeft;
     }
 
-    let leftSideOffset: number =  Formatter.getMaxWidthOfArrayItems(this.scenariosArray, preparedI18n, preparedStyle);
+    let leftSideOffset: number = Formatter.getMaxWidthOfArrayItems([...this.variances,...this.scenarios], preparedI18n, preparedStyle);
     return leftSideOffset;
   }
+
   private prepareChartTitle(localScenarioString: string): string {
     const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
 
@@ -454,7 +501,8 @@ export class Chart {
   }
 
   public getDataStructure(): any {
-    let dataSetStructure: any = {ITimeChartDataRow: {
+    let dataSetStructure: any = {
+      ITimeChartDataRow: {
         setName: {type: "string", isOptional: false, description: ""},
         date: {type: "string", isOptional: false, description: ""},
         operation: {type: "string", isOptional: false, description: ""},
@@ -484,26 +532,27 @@ export class Chart {
         pl2: {type: "number", isOptional: false, description: ""},
         pl3: {type: "number", isOptional: false, description: ""},
         pl4: {type: "number", isOptional: false, description: ""},
-      }};
+      }
+    };
 
     return dataSetStructure;
   }
 
   chartTemplate(localScenarioString: string) {
 
-    let preparedI18n: Map<string, string> =  this.prepareI18n();
-    let preparedStyle: ITimeChartStyles =  this.prepareStyle();
+    let preparedI18n: Map<string, string> = this.prepareI18n();
+    let preparedStyle: ITimeChartStyles = this.prepareStyle();
 
-    return  <ibcs-chart-time
+    return <ibcs-chart-time
       data={this.data}
       chartTitle={this.prepareChartTitle(localScenarioString)}
       scenarios={this.prepareScenarios()}
-      variances={this.prepareVariances(localScenarioString)}
+      variances={[localScenarioString]}
       hideAxisLabels={this.prepareHideAxisLabels(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       limit={this.prepareLimit()}
-      leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n,preparedStyle )}
+      leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
       styles={preparedStyle}
       i18n={preparedI18n}
       order={this.prepareOrder()}
@@ -514,13 +563,19 @@ export class Chart {
     ></ibcs-chart-time>
   }
 
-  render() {  return <Host>
+  render() {
+    let scenariosArray = [''];
+    let variancesArray = this.prepareVariances();
+    if (variancesArray.length > 0) {
+      scenariosArray = [...scenariosArray, ...variancesArray];
+    }
+
+    return <Host>
       <div class="container">
-        {this.scenariosArray.map(this.chartTemplate)}
+        {scenariosArray.map(this.chartTemplate)}
       </div>
     </Host>
   }
-
 
 
 }
