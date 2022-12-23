@@ -388,7 +388,7 @@ export class Chart {
 
 
   private prepareHideAxisLabels(localScenarioString: string): boolean {
-    return validateVariancesList(localScenarioString).length == 0;
+    return localScenarioString.length != 0;
   }
 
   private prepareI18n(): Map<string, string> {
@@ -539,7 +539,6 @@ export class Chart {
   }
 
   chartTemplate(localScenarioString: string) {
-
     let preparedI18n: Map<string, string> = this.prepareI18n();
     let preparedStyle: ITimeChartStyles = this.prepareStyle();
 
@@ -548,7 +547,7 @@ export class Chart {
       chartTitle={this.prepareChartTitle(localScenarioString)}
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
-      hideAxisLabels={this.prepareHideAxisLabels(localScenarioString)}
+      hideAxisLabels={ this.prepareHideAxisLabels(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       limit={this.prepareLimit()}
