@@ -281,7 +281,7 @@ export class Chart {
 
 
   private prepareHideCategories(localScenarioString: string): boolean {
-    return validateVariancesList(localScenarioString).length == 0;
+    return localScenarioString.length != 0;
   }
 
   private prepareI18n(): Map<string, string> {
@@ -360,7 +360,10 @@ export class Chart {
     });
   }
 
-  private prepareChartTitle(): string {
+  private prepareChartTitle(localScenarioString: string): string {
+    if(localScenarioString.length != 0){
+      return '';
+    }
 
     return this.chartTitle;
   }
@@ -409,7 +412,7 @@ export class Chart {
 
     return <ibcs-chart-structure
       data={this.data}
-      chartTitle={this.prepareChartTitle()}
+      chartTitle={this.prepareChartTitle(localScenarioString)}
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
       hideCategories={this.prepareHideCategories(localScenarioString)}
