@@ -479,7 +479,7 @@ export class Chart {
     if(localScenarioString.length != 0){
       return '';
     }
-    
+
     return this.chartTitle;
   }
 
