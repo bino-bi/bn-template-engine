@@ -476,11 +476,10 @@ export class Chart {
   }
 
   private prepareChartTitle(localScenarioString: string): string {
-    const isValidateVariancesList: boolean = validateVariancesList(localScenarioString).length == 0;
-
-    if (isValidateVariancesList == false) {
-      return null;
+    if(localScenarioString.length != 0){
+      return '';
     }
+    
     return this.chartTitle;
   }
 
