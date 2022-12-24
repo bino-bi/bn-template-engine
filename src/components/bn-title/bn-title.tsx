@@ -10,7 +10,7 @@ import {
   validateMeasureList, validateOrderList,
   validateScenarioList, validateVariancesList,
 } from "../../utils/validate";
-
+import { DateTime } from "luxon";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import {globalLabelKeys} from "../../stores/internationalization";
@@ -313,8 +313,8 @@ export class Title {
     }
 
     return {
-      start: new Date(this.dateStart),
-      end: new Date(this.dateEnd),
+      start: DateTime.fromISO(this.dateStart),
+      end: DateTime.fromISO(this.dateEnd),
       format: DateDistance[this.dateFormat?.toUpperCase() as keyof typeof DateDistance],
       link: DateLink[this.dateLink?.toUpperCase() as keyof typeof OrderDirection],
     };
@@ -351,6 +351,7 @@ export class Title {
   }
 
   render() {
+
     return <Host>
       <ibcs-title
         businessUnit={this.prepareBusinessUnit()}

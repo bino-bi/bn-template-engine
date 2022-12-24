@@ -919,61 +919,11 @@
 
   <bn-page name="Charts_2x2" format="a4" orientation="landscape">
     <bn-body>
-      <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
+      <bn-title business-unit='Chart Examples'  date-start='2022-09-03T00:02:00+02:00' date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval'
                 scenarios='ac1'
                 variances="dfc1_ac1_neg,drfc1_ac1_neg"
                 measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
 
-      <bn-body>
-
-
-        <bn-table category-width='inf'
-                  data-format="decimal"
-                  data-format-digits-decimal="0"
-                  data-format-digits-percent="0"
-                  datasets="$Bilanz"
-                  grouped="true"
-                  limit='0'
-                  measure-scale='_'
-                  measure-type='volume'
-                  order='ac1'
-                  order-direction='desc'
-                  partof=''
-                  scenarios='ac1,pp1'
-                  show-group-title='false'
-                  table-title='Balance Sheet Items'
-                  type='list'
-                  thereof=''
-                  categorythereof=''></bn-table>
-
-        <bn-table category-width="inf"
-                  data-format="decimal"
-                  data-format-digits-decimal="0"
-                  data-format-digits-percent="0"
-                  datasets="$Bilanz"
-                  grouped="true"
-                  limit="0"
-                  measure-scale="_"
-                  measure-type="volume"
-                  order="category"
-                  order-direction="asc"
-                  partof="[]"
-                  scenarios="pp1,ac1"
-                  variances="dpp1_ac1_pos"
-                  show-group-title="true"
-                  table-title="Bundesanzeiger"
-                  type="sum"
-                  thereof="[]"
-                  height="500"
-                  width="500"
-                  top="0"
-                  left="10"
-                  draggable="true"
-                  ></bn-table>
-
-
-
-        </bn-card>
 
     </bn-body>
     <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
