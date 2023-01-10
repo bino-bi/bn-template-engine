@@ -22,12 +22,10 @@ export class Context {
 
   currentPageUpdate = undefined
 
-  // @ts-ignores
-  observer = new MutationObserver((m: MutationRecord[]) => {
-    if (this.currentPageUpdate) {
-      clearTimeout(this.currentPageUpdate)
+  connectedCallback() {
+    if (this.locale) {
+      state.locale = this.locale;
     }
-
     this.currentPageUpdate = setTimeout(() => {
       this.el.querySelectorAll('bn-page').forEach((page, index) => {
         const footer = page.querySelector("bn-footer");
@@ -36,20 +34,13 @@ export class Context {
           footer.setAttribute("page-number", (index + 1).toString());
         }
       })
-    }, 50)
-  });
-
-
-
-  connectedCallback() {
-    if (this.locale) {
-      state.locale = this.locale;
-    }
-    this.observer.observe(this.el, { childList: true });
+    }, 250)
   }
 
   disconnectedCallback() {
-    if (this.observer) this.observer.disconnect();
+    if (this.currentPageUpdate) {
+      clearTimeout(this.currentPageUpdate)
+    }
   }
 
   componentWillLoad() {
