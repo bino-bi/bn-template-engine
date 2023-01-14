@@ -471,7 +471,8 @@ export class Chart {
       return this.syncSpaceLeft;
     }
 
-    let leftSideOffset: number = Formatter.getMaxWidthOfArrayItems([...this.variances,...this.scenarios], preparedI18n, preparedStyle);
+
+    let leftSideOffset: number = Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(),...this.prepareScenarios()], preparedI18n, preparedStyle);
     return leftSideOffset;
   }
 
