@@ -30,7 +30,7 @@
     "exportdoc": "node scripts/docExporter.js ../www/docs/product/components/"
   },
   "devDependencies": {
-    "@stencil/core": "^2.20.0",
+    "@stencil/core": "^3.0.0",
     "@stencil/sass": "^2.0.1",
     "@stencil/store": "^2.0.1",
     "@types/jest": "^27.0.3",
