@@ -12,7 +12,7 @@ import {
   validateScenarioList,
   isValidBoolean, isValidi18nMode, validateI18nString, validateVariancesList
 } from "../../utils/validate";
-
+import { DateTime } from "luxon";
 import withComponentStatus from "../../utils/withComponentStatus";
 import {globalLabelKeys} from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
@@ -20,10 +20,8 @@ import {withStyled} from "../../utils/styled/withStyled";
 import {
   DateDistance, DateLink,
   I18nMode, IMeasureEntry,
-  IOrder,
-  OrderColumn,
+  IOrder, ITimePeriod,
   OrderDirection,
-  TimePeriod
 } from "@bino-bi/ibcs-component-interface";
 import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
 
@@ -360,35 +358,35 @@ export class Card {
     const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key  => [key, this.t("ibcs-title.".concat(key))]));
+    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    return  new Map([...i18nMapGlobal.entries(),...i18nMapLocal.entries()]);
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
+
   private prepareTitleOrder(): IOrder {
-    if(isBlankInput(this.order)) {
+    if (isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
       return null;
     }
+
     return {
-      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      hierarchy: this.order.split(",").map(entry => entry.trim()),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
   }
 
-  private prepareTitleTimePeriod(): TimePeriod | null {
-    if ( isBlankInput(this.dateStart) && isBlankInput(this.dateEnd)) {
+  private prepareTitleTimePeriod(): ITimePeriod | null {
+    if (isBlankInput(this.dateStart) && isBlankInput(this.dateEnd)) {
       return null;
     }
-
     if (isBlankInput(this.dateLink)) {
       return null;
     }
 
-
     return {
-      start: new Date(this.dateStart),
-      end: new Date(this.dateEnd),
+      start: DateTime.fromISO(this.dateStart),
+      end: DateTime.fromISO(this.dateEnd),
       format: DateDistance[this.dateFormat?.toUpperCase() as keyof typeof DateDistance],
       link: DateLink[this.dateLink?.toUpperCase() as keyof typeof OrderDirection],
     };
@@ -426,17 +424,19 @@ export class Card {
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios)) {
+    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)  ) {
       return [];
     }
-    return this.scenarios?.split(",").map(entry => entry.trim());
-  }
+    let scenarios = [];
 
-  private prepareVariances(): string[] {
-    if (isBlankInput(this.scenarios)) {
-      return [];
+    if(this.scenarios?.trim().length > 0) {
+      scenarios = scenarios.concat(this.scenarios?.split(","));
     }
-    return this.variances?.split(",").map(entry => entry.trim());
+
+    if(this.variances?.trim().length > 0) {
+      scenarios = scenarios.concat(this.variances?.split(","));
+    }
+    return scenarios.map(entry => entry.trim());
   }
 
   private prepareFooterText(): string {
@@ -447,12 +447,11 @@ export class Card {
   }
 
   private prepareBusinessUnit(): string {
-    if (isBlankInput(this.businessUnit) || this.businessUnit == "null" ) {
+    if (isBlankInput(this.businessUnit) || this.businessUnit == "null") {
       return null;
     }
     return this.businessUnit;
   }
-
 
   render() {
     let logo = ''
@@ -468,7 +467,6 @@ export class Card {
           class=""
           businessUnit={this.prepareBusinessUnit()}
           scenarios={this.prepareScenarios()}
-          variances={this.prepareVariances()}
           measures={this.prepareMeasures()}
           timeperiod={this.prepareTitleTimePeriod()}
           order={this.prepareTitleOrder()}
