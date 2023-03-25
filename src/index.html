@@ -924,7 +924,24 @@
                 variances="dfc1_ac1_neg,drfc1_ac1_neg"
                 measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
 
+      <bn-chart-time title = "Das ist mein neuer Titel......"
+                     limit = '0'
+                     datasets='$Charts_Time' level='category' order='ac1' order-direction='desc'
+                     scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+                     sync-space-left = '150'
+                     interval-span-Limit = 9
+                     percentage-scaling='50'></bn-chart-time>
 
+      <bn-card business-unit="TEST Business"
+               date-start="2023-03-01:02:00+02:00"
+               date-end="2024-02-01:02:00+02:00"
+               date-format="week"
+               date-link="interval"
+               footer-text="test"
+               image="https://licensebuttons.net/l/by-nc/3.0/88x31.png" >
+        <bn-chart-time datasets='$Charts_Time' level='subCategory' order='subCategory' order-direction='asc'
+                       scenarios='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos' styles='' unit-scaling='0.04' percentage-scaling='50'></bn-chart-time>
+      </bn-card>
     </bn-body>
     <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
   </bn-page>
@@ -932,5 +949,7 @@
 </bn-context>
 
 </body>
+
+
 
 </html>
