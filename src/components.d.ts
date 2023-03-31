@@ -213,6 +213,9 @@ export namespace Components {
     interface BnInternationalization {
         "code": string;
     }
+    interface BnLayout {
+        "layout": 'full' | 'split-vertical' | 'split-horizontal';
+    }
     interface BnMap {
         /**
           * Set Footer label
@@ -458,6 +461,12 @@ declare global {
         prototype: HTMLBnInternationalizationElement;
         new (): HTMLBnInternationalizationElement;
     };
+    interface HTMLBnLayoutElement extends Components.BnLayout, HTMLStencilElement {
+    }
+    var HTMLBnLayoutElement: {
+        prototype: HTMLBnLayoutElement;
+        new (): HTMLBnLayoutElement;
+    };
     interface HTMLBnMapElement extends Components.BnMap, HTMLStencilElement {
     }
     var HTMLBnMapElement: {
@@ -506,6 +515,7 @@ declare global {
         "bn-footer": HTMLBnFooterElement;
         "bn-grid": HTMLBnGridElement;
         "bn-internationalization": HTMLBnInternationalizationElement;
+        "bn-layout": HTMLBnLayoutElement;
         "bn-map": HTMLBnMapElement;
         "bn-page": HTMLBnPageElement;
         "bn-table": HTMLBnTableElement;
@@ -722,6 +732,9 @@ declare namespace LocalJSX {
     interface BnInternationalization {
         "code"?: string;
     }
+    interface BnLayout {
+        "layout"?: 'full' | 'split-vertical' | 'split-horizontal';
+    }
     interface BnMap {
         /**
           * Set Footer label
@@ -911,6 +924,7 @@ declare namespace LocalJSX {
         "bn-footer": BnFooter;
         "bn-grid": BnGrid;
         "bn-internationalization": BnInternationalization;
+        "bn-layout": BnLayout;
         "bn-map": BnMap;
         "bn-page": BnPage;
         "bn-table": BnTable;
@@ -934,6 +948,7 @@ declare module "@stencil/core" {
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
+            "bn-layout": LocalJSX.BnLayout & JSXBase.HTMLAttributes<HTMLBnLayoutElement>;
             "bn-map": LocalJSX.BnMap & JSXBase.HTMLAttributes<HTMLBnMapElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;
