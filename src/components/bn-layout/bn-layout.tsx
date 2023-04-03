@@ -31,13 +31,13 @@ export class Layout {
 
         switch (this.layout) {
             case 'full':
-                return <slot name='slot-1'></slot>
+                return <slot name='slot-0'></slot>
             case 'split-vertical':
-                return <Fragment><slot name='slot-1'></slot><slot name='slot-2'></slot></Fragment>
+                return <Fragment><slot name='slot-0'></slot><slot name='slot-1'></slot></Fragment>
             case 'split-horizontal':
-                return <Fragment><slot name='slot-1'></slot><slot name='slot-2'></slot></Fragment>
+                return <Fragment><slot name='slot-0'></slot><slot name='slot-1'></slot></Fragment>
             default:
-                return <slot name='slot-1'></slot>
+                return <slot name='slot-0'></slot>
         }
     }
 
