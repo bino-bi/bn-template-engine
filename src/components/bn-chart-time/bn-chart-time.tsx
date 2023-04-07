@@ -569,8 +569,6 @@ export class Chart {
       scenariosArray = [...scenariosArray, ...variancesArray];
     }
 
-    console.log("scenarioArrays", scenariosArray);
-
     return <Host>
       <div class="container">
         {scenariosArray.map(this.chartTemplate)}
