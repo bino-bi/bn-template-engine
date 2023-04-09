@@ -16,26 +16,28 @@ export class Layout {
   gridGap: string  = "0";
 
   @Prop()
-  fitToConent: boolean = true;
-
+  fitToContent: boolean = true;
 
   render() {
-    return <div style={this.getLayoutStyle()}>
-      {this.getSlots()}
+    let style = this.getLayoutStyle();
+    let arrOfSlots: string[] =  this.extractSlotNames(style["grid-template-areas"]);
+
+    return <div style={style}>
+      {this.getSlots(arrOfSlots)}
     </div>
   }
 
-  private getCommonStyles(display: string = "grid") {
+  private getCommonStyles() {
     let height = "100%";
     let width  = "100%";
 
-    if(this.fitToConent === true) {
+    if(this.fitToContent === true) {
       width = "fit-content";
       height = "fit-content";
     }
 
     return {
-      display: display,
+      display: "grid",
       height: height,
       width: width,
       'grid-gap': this.gridGap
@@ -43,16 +45,16 @@ export class Layout {
   }
 
   private getLayoutStyle() {
-    switch(this.layout) {
+    switch (this.layout) {
       case 'split-vertical':
         return {
-          ...this.getCommonStyles('flex'),
-          flexDirection: "row"
+          ...this.getCommonStyles(),
+          "grid-template-areas": "\"a  b\"",
         };
       case 'split-horizontal':
         return {
-          ...this.getCommonStyles('flex'),
-          flexDirection: 'column'
+          ...this.getCommonStyles(),
+          "grid-template-areas": "\"a\" \"b\"",
         };
       case '2x2':
         return {
@@ -89,44 +91,14 @@ export class Layout {
           ...this.getCommonStyles(),
           "grid-template-areas": "\"a b c\" \"d d d\"",
         };
+      default:
+        return {
+          ...this.getCommonStyles(),
+          "grid-template-areas": "\"a\"",
+        };
     }
 
   }
-
-
-
-
-  private crateFullItems() {
-    let divStyle = {
-      height: "100%",
-      width: "100%",
-      overflow: "hidden",
-    };
-
-    return [divStyle];
-  }
-
-  private crateHSplitItems() {
-    let divStyle = {
-      height: "50%",
-      width: "100%",
-      overflow: "hidden",
-    };
-
-    return [divStyle, divStyle];
-  }
-
-  private crateVSplitItems() {
-    let divStyle = {
-      height: "100%",
-      width: "50%",
-      overflow: "hidden",
-    };
-
-    return [divStyle, divStyle];
-  }
-
-
 
   private createDivAreaStyles(elements :string[]) {
     return elements.map(x => (
@@ -135,8 +107,8 @@ export class Layout {
       }));
   }
 
-  private getSlots() {
-    const items = this.getItemsArr();
+  private getSlots(slotNames: string[]) {
+    const items = this.createDivAreaStyles(slotNames);
 
     return <Fragment>
       {items.map((value, index) => {
@@ -147,32 +119,17 @@ export class Layout {
     </Fragment>
   }
 
-  private getItemsArr() {
-    switch (this.layout) {
-      case 'full':
-        return this.crateFullItems();
-      case 'split-vertical':
-        return this.crateVSplitItems();
-      case 'split-horizontal':
-        return this.crateHSplitItems();
-      case '2x2':
-        return this.createDivAreaStyles(["a","b","c","d"]);
-      case '3x3':
-        return this.createDivAreaStyles(["a","b","c","d","e","f","g","h","i"]);
-      case '4x4':
-        return  this.createDivAreaStyles(["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p"]);
-      case '1 over 2':
-        return this.createDivAreaStyles(["a","b","c"]);
-      case '2 over 1':
-        return this.createDivAreaStyles(["a","b","c"]);
-      case '1 over 3':
-        return this.createDivAreaStyles(["a","b","c", "d"]);
-      case '3 over 1':
-        return this.createDivAreaStyles(["a","b","c", "d"]);
-      default:
-        return this.crateFullItems();
+  private extractSlotNames(styleElement: string | null) {
+    if( styleElement == null) {
+      return [];
     }
+
+    const words = styleElement.match(/\b\w+\b/g);
+    if (!words) {
+      return [];
+    }
+
+    return  Array.from(new Set(words));
+
   }
-
-
 }
