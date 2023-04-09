@@ -214,7 +214,10 @@ export namespace Components {
         "code": string;
     }
     interface BnLayout {
-        "layout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1 over 2' | '1 over 3' | '2 over 1' | '3 over 1';
+        "customTemplate": string;
+        "fitToConent": boolean;
+        "gridGap": string;
+        "layout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1 over 2' | '1 over 3' | '2 over 1' | '3 over 1' | 'custom-template';
     }
     interface BnMap {
         /**
@@ -733,7 +736,10 @@ declare namespace LocalJSX {
         "code"?: string;
     }
     interface BnLayout {
-        "layout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1 over 2' | '1 over 3' | '2 over 1' | '3 over 1';
+        "customTemplate"?: string;
+        "fitToConent"?: boolean;
+        "gridGap"?: string;
+        "layout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1 over 2' | '1 over 3' | '2 over 1' | '3 over 1' | 'custom-template';
     }
     interface BnMap {
         /**
