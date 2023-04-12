@@ -7,7 +7,7 @@ import {Component, Fragment, h, Prop} from "@stencil/core";
 })
 export class Layout {
   @Prop()
-  layout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1 over 2' | '1 over 3' | '2 over 1' | '3 over 1' | 'custom-template' = 'full'
+  layout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
 
   @Prop()
   customTemplate: string  =  "\"a b\" \"c d\"";
@@ -71,26 +71,31 @@ export class Layout {
           ...this.getCommonStyles(),
           "grid-template-areas": "\"a b c d\" \"e f g h\" \"i j k l\"",
         };
-      case '1 over 2':
+      case '1-over-2':
         return {
           ...this.getCommonStyles(),
           "grid-template-areas": "\"a a\" \"b c\"",
         };
-      case '2 over 1':
+      case '2-over-1':
         return {
           ...this.getCommonStyles(),
           "grid-template-areas": "\"a b\" \"c c c\"",
         };
-      case '1 over 3':
+      case '1-over-3':
         return {
           ...this.getCommonStyles(),
           "grid-template-areas": "\"a a a \" \"b c d\"",
         };
-      case '3 over 1':
+      case '3-over-1':
         return {
           ...this.getCommonStyles(),
           "grid-template-areas": "\"a b c\" \"d d d\"",
         };
+      case 'custom-template':
+        return {
+          ...this.getCommonStyles(),
+          "grid-template-areas": this.customTemplate,
+        };    
       default:
         return {
           ...this.getCommonStyles(),
@@ -130,6 +135,5 @@ export class Layout {
     }
 
     return  Array.from(new Set(words));
-
   }
 }
