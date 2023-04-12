@@ -22,6 +22,9 @@ export class Layout {
     let style = this.getLayoutStyle();
     let arrOfSlots: string[] =  this.extractSlotNames(style["grid-template-areas"]);
 
+    console.log("Layout", this.layout, this.customTemplate, this.gridGap , this.fitToContent );
+
+
     return <div style={style}>
       {this.getSlots(arrOfSlots)}
     </div>
@@ -95,14 +98,13 @@ export class Layout {
         return {
           ...this.getCommonStyles(),
           "grid-template-areas": this.customTemplate,
-        };    
+        };
       default:
         return {
           ...this.getCommonStyles(),
           "grid-template-areas": "\"a\"",
         };
     }
-
   }
 
   private createDivAreaStyles(elements :string[]) {
