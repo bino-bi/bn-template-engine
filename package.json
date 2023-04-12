@@ -1,6 +1,6 @@
 {
   "name": "@bino-bi/bn-template-engine",
-  "version": "0.35.20",
+  "version": "0.35.21",
   "description": "Stencil Component Starter",
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
