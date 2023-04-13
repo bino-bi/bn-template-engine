@@ -1,4 +1,4 @@
-import {Component, Fragment, h, Prop} from "@stencil/core";
+import {Component, Fragment, h, Method, Prop} from "@stencil/core";
 
 @Component({
   tag: 'bn-layout',
@@ -17,6 +17,19 @@ export class Layout {
 
   @Prop()
   fitToContent: boolean = true;
+
+
+  templateMap = new Map([['split-vertical', "\"a  b\""],
+    ['split-horizontal', "\"a\" \"b\""],
+    ['2x2', "\"a b\" \"c d\""],
+    ['3x3', "\"a b c\" \"d e f\" \"g h i\""],
+    ['4x4', "\"a b c d\" \"e f g h\" \"i j k l\""],
+    ['1-over-2', "\"a a\" \"b c\""],
+    ['2-over-1', "\"a b\" \"c c c\""],
+    ['1-over-3', "\"a a a \" \"b c d\""],
+    ['3-over-1', "\"a b c\" \"d d d\""],
+    ['custom-template', "\"a b\" \"c c c\""]
+  ]);
 
   render() {
     let style = this.getLayoutStyle();
@@ -47,64 +60,10 @@ export class Layout {
     };
   }
 
-  private getLayoutStyle() {
-    switch (this.layout) {
-      case 'split-vertical':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a  b\"",
-        };
-      case 'split-horizontal':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a\" \"b\"",
-        };
-      case '2x2':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a b\" \"c d\"",
-        };
-      case '3x3':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a b c\" \"d e f\" \"g h i\"",
-        };
-      case '4x4':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a b c d\" \"e f g h\" \"i j k l\"",
-        };
-      case '1-over-2':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a a\" \"b c\"",
-        };
-      case '2-over-1':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a b\" \"c c c\"",
-        };
-      case '1-over-3':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a a a \" \"b c d\"",
-        };
-      case '3-over-1':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a b c\" \"d d d\"",
-        };
-      case 'custom-template':
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": this.customTemplate,
-        };
-      default:
-        return {
-          ...this.getCommonStyles(),
-          "grid-template-areas": "\"a\"",
-        };
-    }
+  private getLayoutStyle() {    return {
+      ...this.getCommonStyles(),
+      "grid-template-areas": this.getTemplatePattern(this.layout),
+    };
   }
 
   private createDivAreaStyles(elements :string[]) {
@@ -137,5 +96,25 @@ export class Layout {
     }
 
     return  Array.from(new Set(words));
+  }
+
+   private getTemplatePattern(name: string): string {
+    if (this.templateMap.has(name) == false && name != 'custom-template') {
+      return "\"a\"";
+    }
+
+    if (name == 'custom-template') {
+      return this.customTemplate;
+    }
+
+    return this.templateMap.get(name);
+  }
+
+
+  @Method()
+  async  getNumberOfSlot(name: string) {
+    let template = this.getTemplatePattern(name);
+
+    return  Promise.resolve(this.extractSlotNames(template).length);
   }
 }
