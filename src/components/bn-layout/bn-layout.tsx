@@ -35,7 +35,7 @@ export class Layout {
     let style = this.getLayoutStyle();
     let arrOfSlots: string[] =  this.extractSlotNames(style["grid-template-areas"]);
 
-    console.log("Layout", this.layout, this.customTemplate, this.gridGap , this.fitToContent );
+    // console.log("Layout", this.layout, this.customTemplate, this.gridGap , this.fitToContent );
 
 
     return <div style={style}>
@@ -115,6 +115,6 @@ export class Layout {
   async  getNumberOfSlot(name: string) {
     let template = this.getTemplatePattern(name);
 
-    return  Promise.resolve(this.extractSlotNames(template).length);
+    return  this.extractSlotNames(template).length;
   }
 }
