@@ -56,7 +56,7 @@ export class Layout {
       display: "grid",
       height: height,
       width: width,
-      'grid-gap': this.gridGap
+      gap: this.gridGap +"px"
     };
   }
 
