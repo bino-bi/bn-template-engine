@@ -1,19 +1,19 @@
-import {createStore} from "@stencil/store";
+import { createStore } from "@stencil/store";
 import flattenObject from "../utils/flattenObject";
 
 
 
 const globalLabelKeys = ["ORDER_asc", "ORDER_desc",
-    "ac1", "pp1", "fc1", "pl1",
-    "ac2", "pp2", "fc2", "pl2",
-    "ac3", "pp3", "fc3", "pl3",
-    "ac4", "pp4", "fc4", "pl4",
-    "ibcssymbol_delta_ac", "ibcssymbol_delta_generic", "ibcssymbol_delta_ac_relative",
-    "ibcssymbol_delta_generic_relative"];
+  "ac1", "pp1", "fc1", "pl1",
+  "ac2", "pp2", "fc2", "pl2",
+  "ac3", "pp3", "fc3", "pl3",
+  "ac4", "pp4", "fc4", "pl4",
+  "ibcssymbol_delta_ac", "ibcssymbol_delta_generic", "ibcssymbol_delta_ac_relative",
+  "ibcssymbol_delta_generic_relative"];
 
 
 const de = flattenObject({
-  "global":{
+  "global": {
     "ac1": "AC",
     "pp1": "PY",
     "fc1": "FC",
@@ -38,7 +38,7 @@ const de = flattenObject({
     "ibcssymbol_delta_generic_relative": "Δ({%})%",
   },
   "bn-title": {
-    "SEPERATOR_WS":", ",
+    "SEPERATOR_WS": ", ",
     "CONNECTOR_WS": " und ",
     "in": "in",
   },
@@ -56,7 +56,7 @@ const de = flattenObject({
 })
 
 const en = flattenObject({
-  "global":{
+  "global": {
     "ac1": "AC",
     "pp1": "PY",
     "fc1": "FC",
@@ -81,7 +81,7 @@ const en = flattenObject({
     "ibcssymbol_delta_generic_relative": "Δ({%})%",
   },
   "bn-title": {
-    "SEPERATOR_WS":", ",
+    "SEPERATOR_WS": ", ",
     "CONNECTOR_WS": " and ",
     "in": "in",
   },
@@ -97,8 +97,11 @@ const en = flattenObject({
   }
 })
 
-const {state, on, get, set} = createStore({de, en});
 
-export {on, get, set, globalLabelKeys};
+window["BN_INTERNATIONALIZATION_KEYS"] = Object.keys(de || {})
+
+const { state, on, get, set } = createStore({ de, en });
+
+export { on, get, set, globalLabelKeys };
 export default state;
 
