@@ -98,10 +98,11 @@ const en = flattenObject({
 })
 
 
-window["BN_INTERNATIONALIZATION_KEYS"] = Object.keys(de || {})
 
-const { state, on, get, set } = createStore({ de, en });
+const BN_INTERNATIONALIZATION_KEYS = Object.keys(de || {})
 
-export { on, get, set, globalLabelKeys };
+const { state, on, get, set, } = createStore({ de, en });
+
+export { on, get, set, globalLabelKeys, BN_INTERNATIONALIZATION_KEYS };
 export default state;
 
