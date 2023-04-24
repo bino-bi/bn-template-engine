@@ -1,4 +1,4 @@
-import { Component, Fragment, h } from "@stencil/core";
+import { Component, Fragment, Method, h } from "@stencil/core";
 import { BN_INTERNATIONALIZATION_KEYS } from "../../stores/internationalization";
 
 @Component({
@@ -9,6 +9,11 @@ export class EditorCompanion {
     constructor() {
         window["BN_INTERNATIONALIZATION_KEYS"] = BN_INTERNATIONALIZATION_KEYS
         console.log('EditorCompanion loaded');
+    }
+
+    @Method()
+    internationalizationKeys(): Promise<string[]> {
+        return Promise.resolve(BN_INTERNATIONALIZATION_KEYS)
     }
 
     render() {
