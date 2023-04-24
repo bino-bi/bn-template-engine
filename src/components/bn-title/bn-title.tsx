@@ -1,5 +1,5 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
-import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
+import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
 
 import {
   isBlankInput,
@@ -13,8 +13,8 @@ import {
 import { DateTime } from "luxon";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
-import {globalLabelKeys} from "../../stores/internationalization";
-import {withStyled} from "../../utils/styled/withStyled";
+import { globalLabelKeys } from "../../stores/internationalization";
+import { withStyled } from "../../utils/styled/withStyled";
 import {
   DateDistance,
   DateLink,
@@ -24,15 +24,13 @@ import {
   ITimePeriod,
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
-import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 
 @Component({
   tag: 'bn-title',
   styleUrl: 'bn-title.scss',
 })
-
-
 export class Title {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
@@ -63,7 +61,7 @@ export class Title {
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -94,7 +92,7 @@ export class Title {
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -117,7 +115,7 @@ export class Title {
     const errId: string = 'ERR_order';
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -135,7 +133,7 @@ export class Title {
     const errId: string = 'ERR_orderDirection';
 
     if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -157,7 +155,7 @@ export class Title {
     const invalidMeasures: string[] = validateMeasureList(newValue);
 
     if (invalidMeasures.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'measures: invalid value(s) \'' + invalidMeasures?.toString() + '\' are not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measures: invalid value(s) \'' + invalidMeasures?.toString() + '\' are not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]' });
     } else {
       this.errors.remove(errId);
     }
@@ -173,7 +171,7 @@ export class Title {
   validateDateStart(newValue: string) {
     const errId: string = 'ERR_dateStart';
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -191,7 +189,7 @@ export class Title {
     const errId: string = 'ERR_dateEnd';
 
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -219,7 +217,7 @@ export class Title {
     const errId: string = 'ERR_dateFormat';
 
     if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -251,7 +249,7 @@ export class Title {
   validateDateLink(newValue: string) {
     const errId: string = 'ERR_dateLink';
     if (!isValidDateLink(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'dateLink: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateLink: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -328,16 +326,16 @@ export class Title {
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)  ) {
+    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)) {
       return [];
     }
     let scenarios = [];
 
-    if(this.scenarios?.trim().length > 0) {
+    if (this.scenarios?.trim().length > 0) {
       scenarios = scenarios.concat(this.scenarios?.split(","));
     }
 
-    if(this.variances?.trim().length > 0) {
+    if (this.variances?.trim().length > 0) {
       scenarios = scenarios.concat(this.variances?.split(","));
     }
     return scenarios.map(entry => entry.trim());
