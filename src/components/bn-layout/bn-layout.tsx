@@ -25,7 +25,7 @@ export class Layout {
     ['3x3', "\"a b c\" \"d e f\" \"g h i\""],
     ['4x4', "\"a b c d\" \"e f g h\" \"i j k l\""],
     ['1-over-2', "\"a a\" \"b c\""],
-    ['2-over-1', "\"a b\" \"c c c\""],
+    ['2-over-1', "\"a b\" \"c c\""],
     ['1-over-3', "\"a a a \" \"b c d\""],
     ['3-over-1', "\"a b c\" \"d d d\""],
     ['custom-template', "\"a b\" \"c c c\""]

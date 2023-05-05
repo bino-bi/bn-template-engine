@@ -6,7 +6,6 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
 
-
 type MarkerParams = {
   latitude: number;
   longitude: number;
@@ -22,7 +21,6 @@ type GpxParams = {
   weight: number;
   lineCap: string;
 }
-
 
 @Component({
   tag: 'bn-map',
