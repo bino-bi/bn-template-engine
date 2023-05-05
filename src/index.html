@@ -1153,6 +1153,32 @@
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
+    <bn-page name="Charts_MAP" format="a4" orientation="landscape">
+      <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
+                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+      <bn-body>
+        <bn-layout layout="2 over 1">
+          <div slot="slot-0">
+            <bn-map title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
+                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-map>
+          </div>
+          <div slot="slot-1">
+            <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
+                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+          </div>
+          <div slot="slot-2">
+            <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
+                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+          </div>
+        </bn-layout>
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
+
   </bn-context>
 
 </body>
