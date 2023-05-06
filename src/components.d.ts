@@ -397,6 +397,9 @@ export namespace Components {
          */
         "variances": string;
     }
+    interface EditorCompanion {
+        "internationalizationKeys": () => Promise<string[]>;
+    }
 }
 declare global {
     interface HTMLBnBodyElement extends Components.BnBody, HTMLStencilElement {
@@ -507,6 +510,12 @@ declare global {
         prototype: HTMLBnTitleElement;
         new (): HTMLBnTitleElement;
     };
+    interface HTMLEditorCompanionElement extends Components.EditorCompanion, HTMLStencilElement {
+    }
+    var HTMLEditorCompanionElement: {
+        prototype: HTMLEditorCompanionElement;
+        new (): HTMLEditorCompanionElement;
+    };
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
@@ -526,6 +535,7 @@ declare global {
         "bn-template": HTMLBnTemplateElement;
         "bn-text": HTMLBnTextElement;
         "bn-title": HTMLBnTitleElement;
+        "editor-companion": HTMLEditorCompanionElement;
     }
 }
 declare namespace LocalJSX {
@@ -919,6 +929,8 @@ declare namespace LocalJSX {
          */
         "variances"?: string;
     }
+    interface EditorCompanion {
+    }
     interface IntrinsicElements {
         "bn-body": BnBody;
         "bn-card": BnCard;
@@ -938,6 +950,7 @@ declare namespace LocalJSX {
         "bn-template": BnTemplate;
         "bn-text": BnText;
         "bn-title": BnTitle;
+        "editor-companion": EditorCompanion;
     }
 }
 export { LocalJSX as JSX };
@@ -962,6 +975,7 @@ declare module "@stencil/core" {
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
             "bn-text": LocalJSX.BnText & JSXBase.HTMLAttributes<HTMLBnTextElement>;
             "bn-title": LocalJSX.BnTitle & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
+            "editor-companion": LocalJSX.EditorCompanion & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
         }
     }
 }
