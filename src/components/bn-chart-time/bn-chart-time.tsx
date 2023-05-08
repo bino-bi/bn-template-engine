@@ -467,12 +467,12 @@ export class Chart {
   }
 
   private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {
-    if (this.syncSpaceLeft >= 0) {
+    let leftSideOffset: number =  Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(),...this.prepareScenarios(), ...this.prepareChartTitle(this.chartTitle)], preparedI18n, preparedStyle);
+
+    if(leftSideOffset < this.syncSpaceLeft) {
       return this.syncSpaceLeft;
     }
 
-
-    let leftSideOffset: number = Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(),...this.prepareScenarios()], preparedI18n, preparedStyle);
     return leftSideOffset;
   }
 
