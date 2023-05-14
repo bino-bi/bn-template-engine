@@ -14,7 +14,7 @@ import {
   isValidInteger,
   validateThereOfJsonStr,
   isValidi18nMode,
-  validateCategoryThereOfJsonStr
+  validateCategoryThereOfJsonStr, validateGpxType
 } from './validate';
 
 describe('validateScenarioList', () => {
@@ -583,4 +583,10 @@ describe('categoryThereOf tests', () => {
       "                                           \"ac1\": {\"name\": \"test\", \"subGroups\": [\"test\"]}]}")).toEqual([ "Invalid JSON structure"]);
   })
 
+});
+
+describe('gpxs tests', () => {
+  it('valid object', () => {
+    expect(validateGpxType("[{\"file\": \"http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx\", \"color\": \"#FC5200\", \"opacity\": 0.75, \"weight\": 3, \"lineCap\": \"round\"}]")).toEqual([]);
+  });
 });
