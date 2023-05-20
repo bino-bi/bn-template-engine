@@ -32,6 +32,6 @@ export class EditorCompanion {
     }
 
     private distinct(data: object[], key: string): any[] {
-        return [...new Set(data.map(d => d[key]))]
+        return [...new Set(data.map(d => d[key]))].filter(Boolean) // TODO: refine filter ("", 0 also removed
     }
 }
