@@ -398,6 +398,8 @@ export namespace Components {
         "variances": string;
     }
     interface EditorCompanion {
+        "getDistinctFromDataSource": (dataSourceName: string, key: string) => Promise<any[]>;
+        "getDistinctFromDataset": (datasetName: string, key: string) => Promise<any[]>;
         "internationalizationKeys": () => Promise<string[]>;
     }
 }
