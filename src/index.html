@@ -73,7 +73,7 @@
       }
       }
     </bn-internationalization>
-
+<!--
     <bn-datasource name="Spaltengruppierung">
       [
       {
@@ -316,7 +316,7 @@
       }
       ]
     </bn-datasource>
-
+-->
     <bn-datasource name="Bilanz">
       [
       {
@@ -373,8 +373,7 @@
       "rowGroupIndex": 1,
       "category": "4. Immaterielle Anlagewerte",
       "categoryIndex": 4,
-      "subCategory": "a) entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte
-      sowie Lizenzen an solchen Rechten und Werten",
+      "subCategory": "a) entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte sowie Lizenzen an solchen Rechten und Werten",
       "subCategoryIndex": 1,
       "columnGroup": null,
       "columnGroupIndex": null,
@@ -601,7 +600,7 @@
       }
       ]
     </bn-datasource>
-
+<!--
     <bn-datasource name="Verlaufsgrafik">
       [
       {
@@ -917,6 +916,56 @@
       ]
     </bn-datasource>
 
+-->
+
+    <bn-page name="Charts_full" format="a4" orientation="landscape">
+      <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
+                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+      <bn-body>
+        <bn-layout layout="full">
+          <div slot="slot-0">
+            <bn-table category-width="w15"
+                      data-format="decimal"
+                      data-format-digits-decimal="1"
+                      data-format-digits-percent="2"
+                      datasets="$Bilanz"
+                      grouped="false"
+                      internationalisation="null"
+                      internationalisation-mode="meta"
+                      limit="0"
+                      measure-scale="_"
+                      measure-type="volume"
+                      order="category"
+                      order-direction="asc"
+                      partof="[]"
+                      scenarios="ac1"
+                      variances=""
+                      show-group-title="true"
+                      table-title=""
+                      type="sum"
+                      thereof="[]"></bn-table>
+          </div>
+        </bn-layout>
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
+
+
+
+  </bn-context>
+
+</body>
+
+
+
+</html>
+
+
+
+<!--
+
+
     <bn-page name="Charts_full" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
                 date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
@@ -1179,10 +1228,5 @@
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
-  </bn-context>
 
-</body>
-
-
-
-</html>
+-->
