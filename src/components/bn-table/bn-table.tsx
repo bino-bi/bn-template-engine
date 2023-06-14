@@ -556,6 +556,8 @@ export class Table {
     let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
+
+    console.log("i18n", new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]));
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
@@ -633,7 +635,9 @@ export class Table {
   }
 
   private prepareTableTitle(): string {
-
+    if(this.tableTitle == "" || this.tableTitle == null) {
+      return "SUM_TOTAL";
+    }
     return this.tableTitle;
   }
 
