@@ -278,9 +278,9 @@ export namespace Components {
          */
         "categoryWidth": string;
         /**
-          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},             {"name": "UK", "subGroups": []}],    }```
+          * Defines which drill-column is displayed. <br /> <br /><br /> ```scenario``` the scenaro to drill <br/> ```group``` is a list of child columns of the parent <br/><br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},     {"scenario": "ac2", "name": "UK", "subGroups": []}],    ```
          */
-        "categorythereof": string | null;
+        "columnthereof": string | null;
         /**
           * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
          */
@@ -812,9 +812,9 @@ declare namespace LocalJSX {
          */
         "categoryWidth"?: string;
         /**
-          * Defines which drill-column is displayed. <br /> <br /><br /> ```name``` is the name of the parent column of the drill <br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},             {"name": "UK", "subGroups": []}],    }```
+          * Defines which drill-column is displayed. <br /> <br /><br /> ```scenario``` the scenaro to drill <br/> ```group``` is a list of child columns of the parent <br/><br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},     {"scenario": "ac2", "name": "UK", "subGroups": []}],    ```
          */
-        "categorythereof"?: string | null;
+        "columnthereof"?: string | null;
         /**
           * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
          */

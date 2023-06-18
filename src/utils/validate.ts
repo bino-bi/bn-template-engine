@@ -273,7 +273,7 @@ export function isTableCategoryWidth(value: string): boolean {
   return value?.toUpperCase().trim() in TableCategoryWidth;
 }
 
-export function validateCategoryThereOfJsonStr(value: string): string[] {
+export function validateColumnThereOfJsonStr(value: string): string[] {
   if (isBlankInput(value)) {
     return [];
   }
