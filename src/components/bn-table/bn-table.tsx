@@ -9,7 +9,7 @@ import {
   isValidMeasureScale,
   isValidMeasureType,
   isValidTableType,
-  validateCategoryThereOfJsonStr,
+  validateColumnThereOfJsonStr,
   validateOrderList,
   validatePartOfJsonStr,
   validateScenarioList,
@@ -449,21 +449,22 @@ export class Table {
   /**
    * Defines which drill-column is displayed. <br />
    * <br /><br />
-   * ```name``` is the name of the parent column of the drill <br/>
+   * ```scenario``` the scenaro to drill <br/>
+   * ```group``` is a list of child columns of the parent <br/><br/>
    * ```subGroups``` is a list of child columns of the parent <br/><br/>
    * example:<br />
-   * ```{"ac1": [{"name": "DE", "subGroups": ["Berlin"]},
-   *             {"name": "UK", "subGroups": []}],
-   *    }```
+   * ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},
+   *     {"scenario": "ac2", "name": "UK", "subGroups": []}],
+   *    ```
    */
-  @Prop() categorythereof: string | null = null;
+  @Prop() columnthereof: string | null = null;
 
-  @Watch('categorythereof')
+  @Watch('columnthereof')
   validateCategoryThereOf(newValue: string | null) {
-    const invalidElements: string[] = validateCategoryThereOfJsonStr(newValue);
+    const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
     const errId: string = 'ERR_categorythereof';
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({  id: errId, type: 'warning', message:'categorythereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({  id: errId, type: 'warning', message:'columnthereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
     } else {
       this.errors.remove( errId);
     }
@@ -490,7 +491,7 @@ export class Table {
     this.validateCategoryWidth(this.categoryWidth);
     this.validateMeasureType(this.measureType);
     this.validateMeasureScale(this.measureScale);
-    this.validateCategoryThereOf(this.categorythereof)
+    this.validateCategoryThereOf(this.columnthereof)
   }
 
   disconnectedCallback() {
@@ -557,7 +558,7 @@ export class Table {
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
 
-    console.log("i18n", new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]));
+   
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
@@ -617,19 +618,19 @@ export class Table {
     return MeasureType[this.measureType?.toUpperCase() as keyof typeof MeasureType];
   }
 
-  private prepareCategoryThereOf(): Map<string, any> {
-    if (this.categorythereof == null || this.categorythereof.trim() == '') {
+  private prepareColumnThereOf(): Map<string, any> {
+    if (this.columnthereof == null || this.columnthereof.trim() == '') {
       return new Map();
     }
-    let parsedString = JSON.parse(this.categorythereof);
+    let parsedString = JSON.parse(this.columnthereof);
     let map = new Map();
 
-    for (const [key, value] of Object.entries(parsedString)) {
-      map.set(key, value as any);
-
+    for (const [_key, value] of Object.entries(parsedString)) {
+      if ( map.has(value["scenario"]) == false) {
+        map.set(value["scenario"], []);
+      }
+      map.get(value["scenario"]).push(value);
     }
-
-
 
     return map;
   }
@@ -694,7 +695,7 @@ export class Table {
           thereof={this.prepareThereOf()}
           partof={this.preparePartOf()}
           order={this.prepareOrder()}
-          categorythereof={this.prepareCategoryThereOf()}
+          categorythereof={this.prepareColumnThereOf()}
           type={this.prepareTableType()}
           category-width={this.prepareCategoryWidth()}
           dataFormatDigits={this.prepareDataFormatDigits()}
