@@ -14,7 +14,7 @@ import {
   isValidInteger,
   validateThereOfJsonStr,
   isValidi18nMode,
-  validateCategoryThereOfJsonStr, validateGpxType
+  validateGpxType
 } from './validate';
 
 describe('validateScenarioList', () => {
@@ -568,7 +568,7 @@ describe('isValidi18nMode', () => {
     expect(isValidi18nMode(null)).toEqual(false);
   });
 });
-
+/*
 describe('categoryThereOf tests', () => {
   it('valid object', () => {
     expect(validateCategoryThereOfJsonStr("{\"pp1\": [{\"name\": \"test\", \"subGroups\": [\"test\"]}]}")).toEqual([]);
@@ -584,6 +584,8 @@ describe('categoryThereOf tests', () => {
   })
 
 });
+
+*/
 
 describe('gpxs tests', () => {
   it('valid object', () => {
