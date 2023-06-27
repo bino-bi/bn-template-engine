@@ -466,12 +466,16 @@ export class Chart {
     });
   }
 
-  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {
-    let leftSideOffset: number =  Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(),...this.prepareScenarios(), this.chartTitle], preparedI18n, preparedStyle);
-
-    if(leftSideOffset < this.syncSpaceLeft) {
+  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {  
+    if(this.syncSpaceLeft > -1) {
       return this.syncSpaceLeft;
     }
+
+    let leftSideOffset: number =  Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(),...this.prepareScenarios(), this.chartTitle], preparedI18n, preparedStyle);
+
+    //if(leftSideOffset < this.syncSpaceLeft) {
+    //  return this.syncSpaceLeft;
+    //}
 
     return leftSideOffset;
   }
