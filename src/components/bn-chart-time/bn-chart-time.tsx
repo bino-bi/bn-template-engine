@@ -471,6 +471,7 @@ export class Chart {
     console.log("prepareLeftSideOffset", this.syncSpaceLeft, [...this.prepareVariances(),...this.prepareScenarios(), this.chartTitle] );
 
     if(this.syncSpaceLeft > -1) {
+      console.log("this.syncSpaceLeft",this.syncSpaceLeft);
       return this.syncSpaceLeft;
     }
 
