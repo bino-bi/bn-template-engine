@@ -422,8 +422,12 @@ export class Chart {
   }
 
   private prepareOrder(): IOrder {
+    let entryValue = this.level;
+    if(this.order.toLocaleLowerCase() === "levelindex") {
+      entryValue +="Index";
+    }
     const tableOrder: IOrder = {
-      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      hierarchy: [OrderColumn[entryValue?.toUpperCase() as keyof typeof OrderColumn]],
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
 
