@@ -21,11 +21,13 @@ The **bn-body** is a child element of bn-page and mandatory for a valid report t
 ### Used by
 
  - [bn-card](../bn-card)
+ - [bn-layout-page](../bn-layout-page)
 
 ### Graph
 ```mermaid
 graph TD;
   bn-card --> bn-footer
+  bn-layout-page --> bn-footer
   style bn-footer fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
