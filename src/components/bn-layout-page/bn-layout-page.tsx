@@ -125,8 +125,10 @@ export class LayoutPage {
         let style = this.getLayoutStyle();
         let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
 
+        console.dir({ pageFormat: this.pageFormat })
+
         //@ts-ignore
-        return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
+        return <bn-page styles={this.styles} format="a3" orientation={this.pageOrientation}>
             <bn-title business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink}>
             </bn-title>
             <bn-body>
