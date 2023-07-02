@@ -23,11 +23,11 @@
 <body>
   <bn-context locale="de">
 
-    <bn-scaling name="auto"> 
-    {
+    <bn-scaling name="auto">
+      {
       "pppp": 1234123214124,
       "ppu": 24234234,
-    }
+      }
     </bn-scaling>
 
     <bn-component-style name="big">
@@ -80,7 +80,7 @@
       }
       }
     </bn-internationalization>
-<!--
+    <!--
     <bn-datasource name="Spaltengruppierung">
       [
       {
@@ -380,7 +380,8 @@
       "rowGroupIndex": 1,
       "category": "4. Immaterielle Anlagewerte",
       "categoryIndex": 4,
-      "subCategory": "a) entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte sowie Lizenzen an solchen Rechten und Werten",
+      "subCategory": "a) entgeltlich erworbene Konzessionen, gewerbliche Schutzrechte und ähnliche Rechte und Werte
+      sowie Lizenzen an solchen Rechten und Werten",
       "subCategoryIndex": 1,
       "columnGroup": null,
       "columnGroupIndex": null,
@@ -607,7 +608,7 @@
       }
       ]
     </bn-datasource>
-<!--
+    <!--
     <bn-datasource name="Verlaufsgrafik">
       [
       {
@@ -927,62 +928,33 @@
 
     <bn-page name="Charts_full" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-01T00:02:00+02:00'
-                date-end='2022-10-31T00:02:00+02:00' date-format='auto' date-link='end' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-10-31T00:02:00+02:00' date-format='auto' date-link='end' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="full">
           <div slot="slot-0">
-            <bn-table category-width="w15"
-                      data-format="decimal"
-                      data-format-digits-decimal="1"
-                      data-format-digits-percent="2"
-                      datasets="$Bilanz"
-                      grouped="false"
-                      internationalisation="null"
-                      internationalisation-mode="meta"
-                      limit="0"
-                      measure-scale="_"
-                      measure-type="volume"
-                      order="categoryIndex"
-                      order-direction="desc"
-                      partof="[]"
-                      scenarios="ac1"
-                      variances=""
-                      show-group-title="true"
-                      table-title=""
-                      type="sum"
-                      columnthereof='[{"scenario": "ac1", "group": "gr1", "subGroups": ["subgr2"]}]'></bn-table>
+            <bn-table category-width="w15" data-format="decimal" data-format-digits-decimal="1"
+              data-format-digits-percent="2" datasets="$Bilanz" grouped="false" internationalisation="null"
+              internationalisation-mode="meta" limit="0" measure-scale="_" measure-type="volume" order="categoryIndex"
+              order-direction="desc" partof="[]" scenarios="ac1" variances="" show-group-title="true" table-title=""
+              type="sum" columnthereof='[{"scenario": "ac1", "group": "gr1", "subGroups": ["subgr2"]}]'></bn-table>
           </div>
         </bn-layout>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
-
-
-  </bn-context>
-
-</body>
-
-
-
-</html>
-
-
-
-
-
-
     <bn-page name="Charts_full" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="full">
           <div slot="slot-0">
-            <bn-chart-time chart-title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' variances='dac1_pp1_pos' styles='' unit-scaling='0.1'
-                           sync-space-left='50' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+            <bn-chart-time chart-title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time'
+              level='category' order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' variances='dac1_pp1_pos'
+              styles='' unit-scaling='0.1' sync-space-left='50' interval-span-Limit=9
+              percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
@@ -990,19 +962,19 @@
     </bn-page>
     <bn-page name="Charts_vsplit" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="split-vertical">
           <div slot="slot-0">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
@@ -1010,19 +982,19 @@
     </bn-page>
     <bn-page name="Charts_hsplit" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="split-horizontal">
           <div slot="slot-0">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
@@ -1031,29 +1003,29 @@
 
     <bn-page name="Charts_2x2" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="2x2" grid-gap="300">
           <div slot="slot-0">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-2">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-3">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
@@ -1062,39 +1034,39 @@
 
     <bn-page name="Charts_3x3" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="3x3">
           <div slot="slot-0">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-2">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-3">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-4">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-5">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
@@ -1103,54 +1075,54 @@
 
     <bn-page name="Charts_3x3" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="3x3">
           <div slot="slot-0">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-2">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-3">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-4">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-5">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-6">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-7">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-8">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
@@ -1159,50 +1131,50 @@
 
     <bn-page name="Charts_1over2" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="1 over 2">
           <div slot="slot-0">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-2">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
-                  </bn-layout>
+        </bn-layout>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
     <bn-page name="Charts_2over1" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="2 over 1">
           <div slot="slot-0">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-2">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
@@ -1211,28 +1183,38 @@
 
     <bn-page name="Charts_MAP" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
-                date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-                variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
         <bn-layout layout="2 over 1">
           <div slot="slot-0">
             <bn-map title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-map>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-map>
           </div>
           <div slot="slot-1">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
           <div slot="slot-2">
             <bn-chart-time title="Das ist mein neuer Titel......" limit='0' datasets='$Charts_Time' level='category'
-                           order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
-                           sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
+              order='ac1' order-direction='desc' scenarios='ac1,pp1,fc1' styles='' unit-scaling='0.1'
+              sync-space-left='150' interval-span-Limit=9 percentage-scaling='50'></bn-chart-time>
           </div>
         </bn-layout>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
+    <bn-layout-page page-format="a3">
+      <slot name="slot-0">Hallo</slot>
+    </bn-layout-page>
 
+  </bn-context>
+
+</body>
+
+
+
+</html>
