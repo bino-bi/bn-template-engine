@@ -2,7 +2,6 @@ import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 
 @Component({
     tag: 'bn-layout-page',
-    shadow: true,
     styleUrl: 'bn-layout-page.scss',
 })
 export class LayoutPage {
