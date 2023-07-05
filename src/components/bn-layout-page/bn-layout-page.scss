@@ -1,0 +1,62 @@
+@mixin portrait($format, $height, $width) {
+  &[format=#{$format}] {
+    height: $height;
+    width: $width;
+
+    &[page-orientation='portrait'] {
+      height: $height;
+      width: $width;
+    }
+
+    &[page-orientation='landscape'] {
+      height: $width;
+      width: $height;
+    }
+  }
+}
+
+@mixin landscape($format, $width , $height) {
+  &[page-format="#{$format}"] {
+
+    height: $height;
+    width: $width;
+
+    &[page-orientation='portrait'] {
+      height: $width;
+      width: $height;
+    }
+
+    &[page-orientation='landscape'] {
+      height: $height;
+      width: $width;
+    }
+  }
+}
+
+
+bn-layout-page {
+  background: white;
+
+  height: 768px; // XGA is the deafult size
+  width: 1024px; // XGA is the deafult size
+  display: flex;
+  flex-direction: column;
+  page-break-after: always;
+  overflow: hidden;
+
+  @include landscape("xga", 1024px, 768px);
+  @include landscape("hd", 1280px, 720px);
+  @include landscape("full-hd", 1920px, 1080px); //DEPRECATED 1.0
+  @include landscape("full_hd", 1920px, 1080px);
+  @include landscape("4k", 3840px, 2160px);
+  @include landscape("4k2k", 4096px, 2160px);
+
+  @include portrait("a4", 11.7in, 8.27in);
+  @include portrait("a3", 16.54in, 11.7in);
+  @include portrait("a2", 23.4in, 16.54in);
+  @include portrait("a1", 33.1in, 23.4in);
+  @include portrait("a0", 46.8in, 33.1in);
+
+  @include portrait("letter", 11in, 8.5in);
+  @include portrait("legal", 14in, 8.5in);
+}
