@@ -3,6 +3,7 @@ import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 @Component({
     tag: 'bn-layout-page',
     styleUrl: 'bn-layout-page.scss',
+    shadow: true
 })
 export class LayoutPage {
     @Element() el: HTMLElement
