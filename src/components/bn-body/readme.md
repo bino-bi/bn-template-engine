@@ -13,6 +13,19 @@ the **bn-body** is a child element of bn-page and mandatory for a valid report t
 <!-- Auto Generated Below -->
 
 
+## Dependencies
+
+### Used by
+
+ - [bn-layout-page](../bn-layout-page)
+
+### Graph
+```mermaid
+graph TD;
+  bn-layout-page --> bn-body
+  style bn-body fill:#f9f,stroke:#333,stroke-width:4px
+```
+
 ----------------------------------------------
 
 developed by Bino Bi

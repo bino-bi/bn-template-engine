@@ -220,6 +220,28 @@ export namespace Components {
         "gridGap": string;
         "layout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
     }
+    interface BnLayoutPage {
+        "footerDisplayPageNumber"?: boolean;
+        "footerText"?: string;
+        "getNumberOfSlot": (name: string) => Promise<number>;
+        "layout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "layoutCustomTemplate": string;
+        "layoutFitToContent": boolean;
+        "layoutGridGap": string;
+        "pageFormat"?: string;
+        "pageOrientation"?: string;
+        "styles"?: string;
+        "titleBusinessUnit": string;
+        "titleDateEnd"?: string;
+        "titleDateFormat": string;
+        "titleDateLink": string;
+        "titleDateStart"?: string;
+        "titleMeasures"?: string;
+        "titleOrder": string;
+        "titleOrderDirection": string;
+        "titleScenarios"?: string;
+        "titleVariances"?: string;
+    }
     interface BnMap {
         /**
           * Set Footer label
@@ -476,6 +498,12 @@ declare global {
         prototype: HTMLBnLayoutElement;
         new (): HTMLBnLayoutElement;
     };
+    interface HTMLBnLayoutPageElement extends Components.BnLayoutPage, HTMLStencilElement {
+    }
+    var HTMLBnLayoutPageElement: {
+        prototype: HTMLBnLayoutPageElement;
+        new (): HTMLBnLayoutPageElement;
+    };
     interface HTMLBnMapElement extends Components.BnMap, HTMLStencilElement {
     }
     var HTMLBnMapElement: {
@@ -531,6 +559,7 @@ declare global {
         "bn-grid": HTMLBnGridElement;
         "bn-internationalization": HTMLBnInternationalizationElement;
         "bn-layout": HTMLBnLayoutElement;
+        "bn-layout-page": HTMLBnLayoutPageElement;
         "bn-map": HTMLBnMapElement;
         "bn-page": HTMLBnPageElement;
         "bn-table": HTMLBnTableElement;
@@ -754,6 +783,27 @@ declare namespace LocalJSX {
         "gridGap"?: string;
         "layout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
     }
+    interface BnLayoutPage {
+        "footerDisplayPageNumber"?: boolean;
+        "footerText"?: string;
+        "layout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "layoutCustomTemplate"?: string;
+        "layoutFitToContent"?: boolean;
+        "layoutGridGap"?: string;
+        "pageFormat"?: string;
+        "pageOrientation"?: string;
+        "styles"?: string;
+        "titleBusinessUnit"?: string;
+        "titleDateEnd"?: string;
+        "titleDateFormat"?: string;
+        "titleDateLink"?: string;
+        "titleDateStart"?: string;
+        "titleMeasures"?: string;
+        "titleOrder"?: string;
+        "titleOrderDirection"?: string;
+        "titleScenarios"?: string;
+        "titleVariances"?: string;
+    }
     interface BnMap {
         /**
           * Set Footer label
@@ -946,6 +996,7 @@ declare namespace LocalJSX {
         "bn-grid": BnGrid;
         "bn-internationalization": BnInternationalization;
         "bn-layout": BnLayout;
+        "bn-layout-page": BnLayoutPage;
         "bn-map": BnMap;
         "bn-page": BnPage;
         "bn-table": BnTable;
@@ -971,6 +1022,7 @@ declare module "@stencil/core" {
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
             "bn-layout": LocalJSX.BnLayout & JSXBase.HTMLAttributes<HTMLBnLayoutElement>;
+            "bn-layout-page": LocalJSX.BnLayoutPage & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
             "bn-map": LocalJSX.BnMap & JSXBase.HTMLAttributes<HTMLBnMapElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;

@@ -18,6 +18,19 @@ Each Child-element must be used only once.
 | `orientation` | `orientation` | Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format                                                   | `string` | `undefined` |
 
 
+## Dependencies
+
+### Used by
+
+ - [bn-layout-page](../bn-layout-page)
+
+### Graph
+```mermaid
+graph TD;
+  bn-layout-page --> bn-page
+  style bn-page fill:#f9f,stroke:#333,stroke-width:4px
+```
+
 ----------------------------------------------
 
 developed by Bino Bi
