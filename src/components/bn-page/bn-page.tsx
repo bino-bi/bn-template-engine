@@ -49,15 +49,15 @@ export class Page {
   }
 
   render() {
-    return <Host style={this.prepareStyle()}>
+    return <Host format={this.format} orientation={this.orientation} style={this.prepareStyle()}>
       <slot />
     </Host>
   }
 
   private prepareStyle() {
     let pageStyle = {
-      "font-family":  this.componentStyle($ => $.global["fontFamily"]),
-      "font-size":    `${this.componentStyle($ => $.global["fontSizePx"])}px`,
+      "font-family": this.componentStyle($ => $.global["fontFamily"]),
+      "font-size": `${this.componentStyle($ => $.global["fontSizePx"])}px`,
     };
 
     return pageStyle;

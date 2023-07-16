@@ -48,6 +48,10 @@ The header element **bn-title** used in the top of the page is placed in front o
 
 ## Dependencies
 
+### Used by
+
+ - [bn-layout-page](../bn-layout-page)
+
 ### Depends on
 
 - ibcs-title
@@ -56,6 +60,7 @@ The header element **bn-title** used in the top of the page is placed in front o
 ```mermaid
 graph TD;
   bn-title --> ibcs-title
+  bn-layout-page --> bn-title
   style bn-title fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

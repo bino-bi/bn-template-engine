@@ -1,4 +1,4 @@
-@mixin portrait($format,$height, $width) {
+@mixin portrait($format, $height, $width) {
   &[format=#{$format}] {
     height: $height;
     width: $width;
@@ -15,7 +15,7 @@
   }
 }
 
-@mixin landscape($format, $width ,$height) {
+@mixin landscape($format, $width , $height) {
   &[format="#{$format}"] {
 
     height: $height;
@@ -51,7 +51,7 @@ bn-page {
   @include landscape("4k", 3840px, 2160px);
   @include landscape("4k2k", 4096px, 2160px);
 
-  @include portrait("a4", 11.7in, 8.27in);
+  @include portrait("a4", 11.6in, 8.17in); //11.7in, 8.27in
   @include portrait("a3", 16.54in, 11.7in);
   @include portrait("a2", 23.4in, 16.54in);
   @include portrait("a1", 33.1in, 23.4in);
