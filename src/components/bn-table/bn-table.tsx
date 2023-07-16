@@ -558,7 +558,7 @@ export class Table {
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
 
-   
+    console.log("PrepareI18n Table", new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]),"globalLabelKey", globalLabelKeys);
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
