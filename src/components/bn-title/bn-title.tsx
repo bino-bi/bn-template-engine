@@ -32,7 +32,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
   styleUrl: 'bn-title.scss',
 })
 export class Title {
-  private readonly t: (key: string, data?: object) => string;
+  private readonly t: (key: string, namespace?: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   constructor() {
     withStyled(this);

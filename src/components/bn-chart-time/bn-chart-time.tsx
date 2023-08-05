@@ -44,9 +44,17 @@ export class Chart {
 
   @State() data: ITimeChartDataRow[] = []
 
-  private readonly t: (key: string, data?: object) => string;
+  private readonly t: (key: string, namespace?: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
   private readonly errors: ErrorDispatcher;
+
+
+   /**
+   * Custom namespace
+   */
+    @Prop()
+    namespace: string = "_global";
+  
 
   /**
    * Custom chart title
@@ -398,7 +406,10 @@ export class Chart {
     let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
+    let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
+
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
   }
 
 
