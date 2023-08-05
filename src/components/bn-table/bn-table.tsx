@@ -43,7 +43,7 @@ import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
   styleUrl: 'bn-table.css'
 })
 export class Table {
-  private readonly t: (key: string, data?: object) => string;
+  private readonly t: (key: string, namespace?: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   @State() data: ITableDataRow[] = []
 
@@ -58,6 +58,15 @@ export class Table {
 
     this.t = withTranslation(this).t;
   }
+
+
+
+    /**
+   * Custom namespace
+   */
+    @Prop()
+    namespace: string = "_global";
+  
 
   /**
    * A not mundane tile which should describes the shown data.
@@ -558,8 +567,10 @@ export class Table {
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
     //let i18nMapCustom =
 
-    console.log("PrepareI18n Table",this.t);
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
+    let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
+
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
   }
 
 

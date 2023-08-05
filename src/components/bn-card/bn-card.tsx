@@ -33,7 +33,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 
 export class Card {
-  private readonly t: (key: string, data?: object) => string;
+  private readonly t: (key: string, namespace?: string,  data?: object) => string;
   private readonly errors: ErrorDispatcher;
 
   constructor() {

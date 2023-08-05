@@ -84,6 +84,10 @@ export namespace Components {
          */
         "limit": number;
         /**
+          * Custom namespace
+         */
+        "namespace": string;
+        /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
         "order": string;
@@ -133,6 +137,10 @@ export namespace Components {
           * Set the maximum number of columns stacks The value 0 means *no limit* <br /><br />  columns stacks wich where cut by the limit are cumulated as REST
          */
         "limit": number;
+        /**
+          * Custom namespace
+         */
+        "namespace": string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
@@ -331,6 +339,10 @@ export namespace Components {
           * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted. <br /><br /> values: <br /> ```volume // currency```
          */
         "measureType": string;
+        /**
+          * Custom namespace
+         */
+        "namespace": string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
          */
@@ -648,6 +660,10 @@ declare namespace LocalJSX {
          */
         "limit"?: number;
         /**
+          * Custom namespace
+         */
+        "namespace"?: string;
+        /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
         "order": string;
@@ -697,6 +713,10 @@ declare namespace LocalJSX {
           * Set the maximum number of columns stacks The value 0 means *no limit* <br /><br />  columns stacks wich where cut by the limit are cumulated as REST
          */
         "limit"?: number;
+        /**
+          * Custom namespace
+         */
+        "namespace"?: string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
          */
@@ -893,6 +913,10 @@ declare namespace LocalJSX {
           * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted. <br /><br /> values: <br /> ```volume // currency```
          */
         "measureType"?: string;
+        /**
+          * Custom namespace
+         */
+        "namespace"?: string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
          */
