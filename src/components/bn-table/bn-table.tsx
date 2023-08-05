@@ -554,11 +554,11 @@ export class Table {
     const i18nMetaLabelsLocal = ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
+    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    //let i18nMapCustom =
 
-
-    console.log("PrepareI18n Table", new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]),"globalLabelKey", i18nMapLocal);
+    console.log("PrepareI18n Table",this.t);
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 

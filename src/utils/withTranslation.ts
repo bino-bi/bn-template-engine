@@ -9,7 +9,7 @@ const withTranslation = (component: any) => {
     if (key.startsWith('.')) {
       key = getElement(component).localName + key;
     }
-
+    console.log("withTranslation",context.locale, key, locales);
     return _.template(locales[context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data)
   };
 
