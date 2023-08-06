@@ -101,7 +101,7 @@ const en = flattenObject({
 
 const BN_INTERNATIONALIZATION_KEYS = Object.keys(de || {})
 
-const { state, on, get, set, } = createStore({ "_global": { de, en }});
+const { state, on, get, set, } = createStore({ "_system": { de, en }});
 
 export { on, get, set, globalLabelKeys, BN_INTERNATIONALIZATION_KEYS };
 export default state;

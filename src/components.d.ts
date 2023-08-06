@@ -220,6 +220,7 @@ export namespace Components {
     }
     interface BnInternationalization {
         "code": string;
+        "namespace": string;
     }
     interface BnLayout {
         "customTemplate": string;
@@ -796,6 +797,7 @@ declare namespace LocalJSX {
     }
     interface BnInternationalization {
         "code"?: string;
+        "namespace"?: string;
     }
     interface BnLayout {
         "customTemplate"?: string;
