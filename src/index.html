@@ -47,7 +47,7 @@
     </bn-component-style>
 
 
-    <bn-internationalization code="de">
+    <bn-internationalization code="de" namespace="AutosUndSo">
       {
       "bn-chart": {
       "title1": 1,
@@ -60,24 +60,11 @@
       }
     </bn-internationalization>
 
-    <bn-internationalization code="de">
+    <bn-internationalization code="en" namespace="_global">
       {
-      "hello": "Hallo, {{name}}!",
-      "title2": "new",
-      "title3": { "test": 124 }
-      }
-    </bn-internationalization>
-
-    <bn-internationalization code="en">
-      {
-      "bn-chart": {
-      "title1": 1,
-      "title2": 2
-      },
-      "global": {
-      "ac1": 1,
-      "pp1": 2
-      }
+       "global":{"ac1":"GlobASS","fc1":"FSS"},
+       "bn-chart":{"ac1":"AS","fc1":"FSS"},
+       "bn-table":{"fc1":"FSS2","SUM_TOTAL":"LOCASS"}
       }
     </bn-internationalization>
     <!--
@@ -1367,7 +1354,7 @@
                   variances="" 
                   show-group-title="true" 
                   table-title="" 
-                  type="list" 
+                  type="sum" 
                   thereof="[{&quot;rowGroup&quot;:&quot;Firma_1&quot;,&quot;category&quot;:&quot;Geschäftssparte_A&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_1&quot;,&quot;category&quot;:&quot;Geschäftssparte_B&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_2&quot;,&quot;category&quot;:&quot;Geschäftssparte_A&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_2&quot;,&quot;category&quot;:&quot;Geschäftssparte_B&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_3&quot;,&quot;category&quot;:&quot;Geschäftssparte_C&quot;,&quot;subCategory&quot;:&quot;&quot;}]" 
                  ></bn-table>
      </bn-layout-page>  </bn-context>

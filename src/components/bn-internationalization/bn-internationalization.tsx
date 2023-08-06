@@ -14,8 +14,9 @@ export class Internationalization {
     withBodyObserver(this, (data) => {
       try {
         const i18n = flattenObject(JSON.parse(data));
-        // @ts-ignore
-        set(this.code, {...get(this.code), ...i18n})
+
+       // @ts-ignore
+        set(this.namespace, {...get( this.namespace)?.[this.code], ...i18n})
       } catch (e) {
         console.error(e)
       }
@@ -23,6 +24,7 @@ export class Internationalization {
   }
 
   @Prop() code: string;
+  @Prop() namespace: string;
 
   render() {
     return <Host/>
