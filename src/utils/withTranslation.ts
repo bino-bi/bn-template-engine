@@ -13,7 +13,7 @@ const withTranslation = (component: any) => {
     if (locales[namespace] == null) {
       namespace = "_system";
     }
-    console.debug({"locales": locales, 
+    console.log({"locales": locales, 
                    "namespace": namespace,
                    "locale":context.locale,
                    "key": key,

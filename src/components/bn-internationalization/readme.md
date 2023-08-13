@@ -7,9 +7,10 @@
 
 ## Properties
 
-| Property | Attribute | Description | Type     | Default     |
-| -------- | --------- | ----------- | -------- | ----------- |
-| `code`   | `code`    |             | `string` | `undefined` |
+| Property    | Attribute   | Description | Type     | Default     |
+| ----------- | ----------- | ----------- | -------- | ----------- |
+| `code`      | `code`      |             | `string` | `undefined` |
+| `namespace` | `namespace` |             | `string` | `undefined` |
 
 
 ----------------------------------------------
