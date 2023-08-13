@@ -16,7 +16,7 @@ export class Internationalization {
         const i18n = flattenObject(JSON.parse(data));
 
        // @ts-ignore
-        set(this.namespace, {...get( this.namespace)?.[this.code], ...i18n})
+        set(this.name, {...get( this.name)?.[this.code], ...i18n})
       } catch (e) {
         console.error(e)
       }
@@ -24,7 +24,7 @@ export class Internationalization {
   }
 
   @Prop() code: string;
-  @Prop() namespace: string;
+  @Prop() name: string;
 
   render() {
     return <Host/>
