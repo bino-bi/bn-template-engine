@@ -17,7 +17,8 @@ const withTranslation = (component: any) => {
                    "namespace": namespace,
                    "locale":context.locale,
                    "key": key,
-                   "data": data});
+                   "data": data,
+                   "templ": _.template(locales[namespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data)});
     return _.template(locales[namespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data)
   };
 
