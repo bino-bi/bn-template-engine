@@ -5,7 +5,7 @@ import { getElement } from "@stencil/core";
 
 const withTranslation = (component: any) => {
   const t = (key: string,  namespace: string = "_system", data?: object) => {
-
+    console.log("withTranslation neu", namespace);
     if (key.startsWith('.')) {
       key = getElement(component).localName + key;
     }
