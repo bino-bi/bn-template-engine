@@ -65,7 +65,7 @@ export class Table {
    * Custom namespace
    */
     @Prop()
-    namespace: string = "_global";
+    namespace: string = "_system";
   
 
   /**
@@ -563,14 +563,18 @@ export class Table {
     const i18nMetaLabelsLocal = ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal  = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
-    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    // system
+    let i18nMapSystemLocal  = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
+    let i18nMapSystemGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
     //let i18nMapCustom =
 
     let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
     let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
+    
+    console.log("this.namespace", this.namespace, "i18nMapNameSpaceGlobal", i18nMapNameSpaceGlobal);
 
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
+
+    return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
   }
 
 
