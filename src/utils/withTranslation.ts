@@ -10,16 +10,13 @@ const withTranslation = (component: any) => {
       key = getElement(component).localName + key;
     }
         
-    if (locales[namespace] == null) {
+    if (locales[namespace]?.[context.locale]?.[key] == null) {
       namespace = "_system";
     }
-    console.log({"locales": locales, 
-                   "namespace": namespace,
-                   "locale":context.locale,
-                   "key": key,
-                   "data": data,
-                   "templ": _.template(locales[namespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data)});
-    return _.template(locales[namespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data)
+   
+    console.log("locales", locales);
+
+    return _.template(locales[namespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data);
   };
 
   return { t }
