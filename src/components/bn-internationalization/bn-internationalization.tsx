@@ -14,9 +14,14 @@ export class Internationalization {
     withBodyObserver(this, (data) => {
       try {
         const i18n = flattenObject(JSON.parse(data));
-
-       // @ts-ignore
-        set(this.name, {...get( this.name)?.[this.code], ...i18n})
+        
+        // @ts-ignore     
+        let namespace = {...get(this.name)};
+        namespace[this.code] = i18n;
+       
+        // @ts-ignore      
+        set(this.name,  namespace);
+      
       } catch (e) {
         console.error(e)
       }
