@@ -5,16 +5,16 @@ import { getElement } from "@stencil/core";
 
 const withTranslation = (component: any) => {
   const t = (key: string,  namespace: string = "_system", data?: object) => {
-    console.log("withTranslation neu", namespace);
+   
     if (key.startsWith('.')) {
       key = getElement(component).localName + key;
     }
-        
+
     if (locales[namespace]?.[context.locale]?.[key] == null) {
       namespace = "_system";
     }
    
-    console.log("locales", locales);
+  
 
     return _.template(locales[namespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data);
   };

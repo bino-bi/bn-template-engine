@@ -56,16 +56,15 @@ export class Table {
       this.data = data || [];
     });
 
-    this.t = withTranslation(this).t;
+    this. t= withTranslation(this).t;
   }
 
 
 
-    /**
-   * Custom namespace
-   */
-    @Prop()
-    namespace: string = "_system";
+  /**
+  * Custom namespace
+  */
+  @Prop() namespace: string = "_system";
   
 
   /**
