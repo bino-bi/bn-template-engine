@@ -20,6 +20,7 @@ export class LayoutPage {
     @Prop() titleDateEnd?: string;
     @Prop() titleDateFormat: string = 'none';
     @Prop() titleDateLink: string = 'none';
+    @Prop() titleNamespace: string = '_system';
 
 
     @Prop() pageFormat?: string;
@@ -130,7 +131,7 @@ export class LayoutPage {
 
         //@ts-ignore
         return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
-            <bn-title business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink}>
+            <bn-title namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink}>
             </bn-title>
             <bn-body>
                 <div style={style}>
