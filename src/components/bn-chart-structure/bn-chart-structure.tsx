@@ -41,7 +41,7 @@ export class Chart {
    * Custom namespace
    */
   @Prop()
-  namespace: string = "_global";
+  namespace: string = "_system";
 
 
   /**

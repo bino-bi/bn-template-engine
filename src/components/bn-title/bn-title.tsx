@@ -42,6 +42,12 @@ export class Title {
 
   }
 
+
+  /**
+  * Custom namespace
+  */
+  @Prop() namespace: string = "_system";
+
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
 
@@ -281,10 +287,15 @@ export class Title {
     const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
-    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    // system
+    let i18nMapSystemLocal  = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
+    let i18nMapSystemGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    //let i18nMapCustom =
 
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
+    let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
+    
+    return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
   }
 
   private prepareI18nMode(): I18nMode {

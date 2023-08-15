@@ -570,9 +570,6 @@ export class Table {
     let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
     let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
     
-    console.log("this.namespace", this.namespace, "i18nMapNameSpaceGlobal", i18nMapNameSpaceGlobal);
-
-
     return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
   }
 

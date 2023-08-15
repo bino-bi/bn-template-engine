@@ -9,7 +9,7 @@ const withTranslation = (component: any) => {
     if (key.startsWith('.')) {
       key = getElement(component).localName + key;
     }
-
+    
     if (locales[namespace]?.[context.locale]?.[key] == null) {
       namespace = "_system";
     }
