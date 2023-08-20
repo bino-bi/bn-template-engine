@@ -246,6 +246,7 @@ export namespace Components {
         "titleDateLink": string;
         "titleDateStart"?: string;
         "titleMeasures"?: string;
+        "titleNamespace": string;
         "titleOrder": string;
         "titleOrderDirection": string;
         "titleScenarios"?: string;
@@ -825,6 +826,7 @@ declare namespace LocalJSX {
         "titleDateLink"?: string;
         "titleDateStart"?: string;
         "titleMeasures"?: string;
+        "titleNamespace"?: string;
         "titleOrder"?: string;
         "titleOrderDirection"?: string;
         "titleScenarios"?: string;
