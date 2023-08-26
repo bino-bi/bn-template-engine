@@ -458,6 +458,168 @@
     ]
 
      </bn-datasource>
+
+
+
+     <bn-datasource name="Charts_Time">
+      [
+      {
+      "setName": "de",
+      "date": "2022-04-01",
+      "operation": "+",
+      "rowGroup": "Afrika",
+      "rowGroupIndex": 1,
+      "category": "I",
+      "categoryIndex": 1,
+      "subCategory": "Question Mark",
+      "subCategoryIndex": 1,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 100,
+      "ac1": -100,
+      "pl1": 100,
+      "fc1": 100,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-03-01",
+      "operation": "+",
+      "rowGroup": "Amerika",
+      "rowGroupIndex": 1,
+      "category": "II",
+      "categoryIndex": 2,
+      "subCategory": "Stars",
+      "subCategoryIndex": 2,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 1201,
+      "ac1": 300,
+      "pl1": 1209,
+      "fc1": 1009,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-02-01",
+      "operation": "+",
+      "rowGroup": "Asien",
+      "rowGroupIndex": 1,
+      "category": "III",
+      "categoryIndex": 3,
+      "subCategory": "Cash Cows",
+      "subCategoryIndex": 3,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": -835,
+      "ac1": -880,
+      "pl1": -955,
+      "fc1": -975,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-01-01",
+      "operation": "+",
+      "rowGroup": "Europa",
+      "rowGroupIndex": 1,
+      "category": "Produktgrupppe IV",
+      "categoryIndex": 4,
+      "subCategory": "Poor Dogs",
+      "subCategoryIndex": 4,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 423,
+      "ac1": 741,
+      "pl1": 641,
+      "fc1": 841,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      },
+      {
+      "setName": "de",
+      "date": "2022-04-01",
+      "operation": "+",
+      "rowGroup": "Rest",
+      "rowGroupIndex": 1,
+      "category": "Rest",
+      "categoryIndex": 5,
+      "subCategory": "Rest",
+      "subCategoryIndex": 5,
+      "columnGroup": null,
+      "columnGroupIndex": null,
+      "columnSubGroup": null,
+      "columnSubGroupIndex": null,
+      "pp1": 1,
+      "ac1": 400,
+      "pl1": 1,
+      "fc1": 100,
+      "ac2": 1,
+      "pp2": 7,
+      "fc2": 7,
+      "pl2": 4,
+      "ac3": 1,
+      "pp3": 7,
+      "fc3": 7,
+      "pl3": 4,
+      "ac4": 1,
+      "pp4": 7,
+      "fc4": 7,
+      "pl4": 4
+      }
+      ]
+    </bn-datasource>     
     <bn-datasource name="Bilanz">
       [
       {
@@ -1366,6 +1528,12 @@
                   namespace="tesst"
                   thereof="[{&quot;rowGroup&quot;:&quot;Firma_1&quot;,&quot;category&quot;:&quot;Geschäftssparte_A&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_1&quot;,&quot;category&quot;:&quot;Geschäftssparte_B&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_2&quot;,&quot;category&quot;:&quot;Geschäftssparte_A&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_2&quot;,&quot;category&quot;:&quot;Geschäftssparte_B&quot;,&quot;subCategory&quot;:&quot;&quot;},{&quot;rowGroup&quot;:&quot;Firma_3&quot;,&quot;category&quot;:&quot;Geschäftssparte_C&quot;,&quot;subCategory&quot;:&quot;&quot;}]" 
                  ></bn-table>
+                 <bn-chart-time datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+                 scenarios='ac1,pp1,fc1;dac1_pp1_pos;drac1_pp1_pos' styles='' unit-scaling='0.14'
+                 percentage-scaling='50'></bn-chart-time>
+                 <bn-chart-structure datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+                 scenarios='ac1,pp1;dac1_pp1_pos' styles='' unit-scaling='0.04'
+                 percentage-scaling='25'></bn-chart-structure>      
      </bn-layout-page>  </bn-context>
 
 </body>
