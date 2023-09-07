@@ -26,12 +26,18 @@ export class Context {
     if (this.locale) {
       state.locale = this.locale;
     }
+
     this.currentPageUpdate = setTimeout(() => {
-      this.el.querySelectorAll('bn-page').forEach((page, index) => {
-        const footer = page.querySelector("bn-footer");
-        if (footer) {
-          // @ts-ignore
-          footer.setAttribute("page-number", (index + 1).toString());
+
+      this.el.querySelectorAll('bn-page, bn-layout-page').forEach((page, index) => {
+        if (page.localName === 'bn-layout-page') {
+          page.setAttribute("page-number", (index + 1).toString());
+        } else {
+          const footer = page.querySelector("bn-footer");
+          if (footer) {
+            // @ts-ignore
+            footer.setAttribute("page-number", (index + 1).toString());
+          }
         }
       })
     }, 250)

@@ -250,6 +250,23 @@
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
+    <bn-layout-page></bn-layout-page>
+
+    <bn-page name="Charts_2x2" format="a4" orientation="landscape">
+      <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
+        measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+      <bn-body>
+        <bn-chart-time datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+          scenarios='ac1,pp1,ac2,fc1;dac1_pp1_pos;drac1_pp1_pos' styles='' unit-scaling='0.14'
+          percentage-scaling='50'></bn-chart-time>
+
+        <bn-chart-time chart-title="FFF" limit='0' datasets='$Charts_Time' level='category' order='ac1'
+          order-direction='desc' scenarios='ac1,pp1,ac2,ac3' variances='dac1_pp1_pos' styles='' unit-scaling='0.1'
+          percentage-scaling='50'></bn-chart-time>
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
+
   </bn-context>
 
 </body>

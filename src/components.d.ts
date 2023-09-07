@@ -230,6 +230,7 @@ export namespace Components {
         "layoutFitToContent": boolean;
         "layoutGridGap": string;
         "pageFormat"?: string;
+        "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;
         "titleBusinessUnit": string;
@@ -798,6 +799,7 @@ declare namespace LocalJSX {
         "layoutFitToContent"?: boolean;
         "layoutGridGap"?: string;
         "pageFormat"?: string;
+        "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;
         "titleBusinessUnit"?: string;
