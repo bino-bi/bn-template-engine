@@ -1,4 +1,4 @@
-import {Component, h, Host, Prop, State, Watch} from "@stencil/core";
+import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isTableCategoryWidth,
@@ -18,9 +18,9 @@ import {
 
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
-import {globalLabelKeys} from "../../stores/internationalization";
+import { globalLabelKeys } from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
-import {withStyled} from "../../utils/styled/withStyled";
+import { withStyled } from "../../utils/styled/withStyled";
 
 
 import {
@@ -36,14 +36,14 @@ import {
   TableDrillGroup,
   TableType,
 } from "@bino-bi/ibcs-component-interface";
-import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-table',
   styleUrl: 'bn-table.css'
 })
 export class Table {
-  private readonly t: (key: string, namespace?: string, data?: object) => string;
+  private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   @State() data: ITableDataRow[] = []
 
@@ -56,16 +56,8 @@ export class Table {
       this.data = data || [];
     });
 
-    this. t= withTranslation(this).t;
+    this.t = withTranslation(this).t;
   }
-
-
-
-  /**
-  * Custom namespace
-  */
-  @Prop() namespace: string = "_system";
-  
 
   /**
    * A not mundane tile which should describes the shown data.
@@ -88,7 +80,7 @@ export class Table {
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -120,7 +112,7 @@ export class Table {
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -142,7 +134,7 @@ export class Table {
     const errId: string = 'ERR_dataFormat';
 
     if (!isValidDataFormat(newValue)) {
-      this.errors.addOrReplace({id: errId, type: 'warning', message:'dataFormat: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormat: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -163,7 +155,7 @@ export class Table {
     const errId: string = 'ERR_grouped';
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({id: errId, type: 'warning', message: 'grouped: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'grouped: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -185,7 +177,7 @@ export class Table {
     const errId: string = 'ERR_showGroupTitle';
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({id: errId,  type: 'warning', message: 'showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -206,7 +198,7 @@ export class Table {
     const errId: string = 'ERR_type';
 
     if (!isValidTableType(newValue)) {
-      this.errors.addOrReplace({id: errId, type: 'warning', message: 'type: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'type: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -227,7 +219,7 @@ export class Table {
     const errId: string = 'ERR_limit';
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({id: errId, type: 'warning', message: 'order: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -307,7 +299,7 @@ export class Table {
     const invalidElements: string[] = validateOrderList(newValue);
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({  id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -348,7 +340,7 @@ export class Table {
     const errId: string = 'ERR_measureType';
 
     if (!isValidMeasureType(newValue)) {
-      this.errors.addOrReplace({id: errId, type: 'warning', message: 'measureType: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureType: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -411,7 +403,7 @@ export class Table {
     const errId: string = 'ERR_dataFormatDigitsDecimal';
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'dataFormatDigitsDecimal: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormatDigitsDecimal: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -427,7 +419,7 @@ export class Table {
     const errId: string = 'ERR_dataFormatDigitsPercent';
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -448,7 +440,7 @@ export class Table {
     const errId: string = 'ERR_categoryWidth';
 
     if (!isTableCategoryWidth(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'categoryWidth: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'categoryWidth: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -472,9 +464,9 @@ export class Table {
     const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
     const errId: string = 'ERR_categorythereof';
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({  id: errId, type: 'warning', message:'columnthereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'columnthereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
     } else {
-      this.errors.remove( errId);
+      this.errors.remove(errId);
     }
   }
 
@@ -563,14 +555,10 @@ export class Table {
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system
-    let i18nMapSystemLocal  = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
-    let i18nMapSystemGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
-    //let i18nMapCustom =
+    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
+    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
-    let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
-    
-    return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
 
@@ -584,16 +572,16 @@ export class Table {
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)  ) {
+    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)) {
       return [];
     }
     let scenarios = [];
 
-    if(this.scenarios?.trim().length > 0) {
+    if (this.scenarios?.trim().length > 0) {
       scenarios = scenarios.concat(this.scenarios?.split(","));
     }
 
-    if(this.variances?.trim().length > 0) {
+    if (this.variances?.trim().length > 0) {
       scenarios = scenarios.concat(this.variances?.split(","));
     }
     return scenarios.map(entry => entry.trim());
@@ -637,7 +625,7 @@ export class Table {
     let map = new Map();
 
     for (const [_key, value] of Object.entries(parsedString)) {
-      if ( map.has(value["scenario"]) == false) {
+      if (map.has(value["scenario"]) == false) {
         map.set(value["scenario"], []);
       }
       map.get(value["scenario"]).push(value);
@@ -647,7 +635,7 @@ export class Table {
   }
 
   private prepareTableTitle(): string {
-    if(this.tableTitle == "" || this.tableTitle == null) {
+    if (this.tableTitle == "" || this.tableTitle == null) {
       return "SUM_TOTAL";
     }
     return this.tableTitle;

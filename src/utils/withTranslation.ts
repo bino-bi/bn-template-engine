@@ -1,22 +1,56 @@
 import { default as context } from "../stores/context"
-import { default as locales } from "../stores/internationalization"
+import { default as locales, on } from "../stores/internationalization"
 import * as _ from "lodash";
-import { getElement } from "@stencil/core";
+import { forceUpdate, getElement } from "@stencil/core";
+import { runIfExisits } from "./utils";
 
 const withTranslation = (component: any) => {
-  const t = (key: string,  namespace: string = "_system", data?: object) => {
-   
+  let subscription: () => void;
+  let namespace: string | undefined = undefined;
+
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'namespace') {
+        namespace = (getElement(component).getAttribute('namespace'));
+        forceUpdate(component);
+      }
+    });
+  });
+
+  const connectedCallback = component['connectedCallback'];
+  component['connectedCallback'] = () => {
+    const element = getElement(component);
+    observer.observe(element, { attributes: true, attributeFilter: ['namespace'] });
+
+    subscription = on("set", (key, value) => {
+      if (key == namespace) {
+        forceUpdate(component);
+      }
+    })
+
+    runIfExisits(connectedCallback, component);
+  };
+
+  const disconnectedCallback = component['disconnectedCallback'];
+  component['disconnectedCallback'] = () => {
+    observer.disconnect();
+    runIfExisits(subscription);
+    runIfExisits(disconnectedCallback, component);
+  };
+
+  const t = (key: string, data?: object) => {
+
     if (key.startsWith('.')) {
       key = getElement(component).localName + key;
     }
-    
-    if (locales[namespace]?.[context.locale]?.[key] == null) {
-      namespace = "_system";
-    }
-   
-  
 
-    return _.template(locales[namespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data);
+    let currentNamespace = namespace;
+
+    if (locales[currentNamespace]?.[context.locale]?.[key] == null) {
+      currentNamespace = "_system";
+    }
+
+    return _.template(locales[currentNamespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data);
   };
 
   return { t }

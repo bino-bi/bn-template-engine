@@ -1,4 +1,4 @@
-import {Component, Element, h, Host, Prop, State, Watch} from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isValidAxisLabelsMode,
@@ -16,10 +16,10 @@ import {
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
-import {globalLabelKeys} from "../../stores/internationalization";
-import {withStyled} from "../../utils/styled/withStyled";
+import { globalLabelKeys } from "../../stores/internationalization";
+import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-import {Formatter} from "@bino-bi/ibcs-component/dist/collection/utils";
+import { Formatter } from "@bino-bi/ibcs-component/dist/collection/utils";
 
 import {
   AggregationLevel,
@@ -32,7 +32,7 @@ import {
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
 
-import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 
 @Component({
@@ -44,17 +44,9 @@ export class Chart {
 
   @State() data: ITimeChartDataRow[] = []
 
-  private readonly t: (key: string, namespace?: string, data?: object) => string;
+  private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
   private readonly errors: ErrorDispatcher;
-
-
-   /**
-   * Custom namespace
-   */
-    @Prop()
-    namespace: string = "_system";
-  
 
   /**
    * Custom chart title
@@ -81,7 +73,7 @@ export class Chart {
     const errId: string = 'ERR_scenarios';
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -376,8 +368,8 @@ export class Chart {
   }
 
   prepareDimension(): { height: number, width: number } {
-    this.canvasWidthSegmented = this.element.clientWidth / [...this.scenarios.split(','),...this.variances.split(',')].length;
-    return {width: this.canvasWidthSegmented, height: this.element.clientHeight};
+    this.canvasWidthSegmented = this.element.clientWidth / [...this.scenarios.split(','), ...this.variances.split(',')].length;
+    return { width: this.canvasWidthSegmented, height: this.element.clientHeight };
   }
 
   private prepareScenarios(): string[] {
@@ -406,10 +398,7 @@ export class Chart {
     let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
-    let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
-
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
 
@@ -434,8 +423,8 @@ export class Chart {
 
   private prepareOrder(): IOrder {
     let entryValue = this.level;
-    if(this.order.toLocaleLowerCase() === "levelindex") {
-      entryValue +="Index";
+    if (this.order.toLocaleLowerCase() === "levelindex") {
+      entryValue += "Index";
     }
     const tableOrder: IOrder = {
       hierarchy: [OrderColumn[entryValue?.toUpperCase() as keyof typeof OrderColumn]],
@@ -481,16 +470,16 @@ export class Chart {
     });
   }
 
-  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {  
-   
-    console.log("prepareLeftSideOffset", this.syncSpaceLeft, [...this.prepareVariances(),...this.prepareScenarios(), this.chartTitle] );
+  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {
 
-    if(this.syncSpaceLeft > -1) {
-      console.log("this.syncSpaceLeft",this.syncSpaceLeft);
+    console.log("prepareLeftSideOffset", this.syncSpaceLeft, [...this.prepareVariances(), ...this.prepareScenarios(), this.chartTitle]);
+
+    if (this.syncSpaceLeft > -1) {
+      console.log("this.syncSpaceLeft", this.syncSpaceLeft);
       return this.syncSpaceLeft;
     }
 
-    let leftSideOffset: number =  Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(),...this.prepareScenarios(), this.chartTitle], preparedI18n, preparedStyle);
+    let leftSideOffset: number = Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(), ...this.prepareScenarios(), this.chartTitle], preparedI18n, preparedStyle);
 
     //if(leftSideOffset < this.syncSpaceLeft) {
     //  return this.syncSpaceLeft;
@@ -500,7 +489,7 @@ export class Chart {
   }
 
   private prepareChartTitle(localScenarioString: string): string {
-    if(localScenarioString.length != 0){
+    if (localScenarioString.length != 0) {
       return '';
     }
 
@@ -526,35 +515,35 @@ export class Chart {
   public getDataStructure(): any {
     let dataSetStructure: any = {
       ITimeChartDataRow: {
-        setName: {type: "string", isOptional: false, description: ""},
-        date: {type: "string", isOptional: false, description: ""},
-        operation: {type: "string", isOptional: false, description: ""},
-        rowGroup: {type: "string", isOptional: false, description: ""},
-        rowGroupIndex: {type: "number", isOptional: false, description: ""},
-        category: {type: "string", isOptional: false, description: ""},
-        categoryIndex: {type: "number", isOptional: false, description: ""},
-        subCategory: {type: "string", isOptional: false, description: ""},
-        subCategoryIndex: {type: "number", isOptional: false, description: ""},
-        columnGroup: {type: "string", isOptional: false, description: ""},
-        columnGroupIndex: {type: "number", isOptional: false, description: ""},
-        columnSubGroup: {type: "string", isOptional: false, description: ""},
-        columnSubGroupIndex: {type: "number", isOptional: false, description: ""},
-        ac1: {type: "number", isOptional: false, description: ""},
-        ac2: {type: "number", isOptional: false, description: ""},
-        ac3: {type: "number", isOptional: false, description: ""},
-        ac4: {type: "number", isOptional: false, description: ""},
-        pp1: {type: "number", isOptional: false, description: ""},
-        pp2: {type: "number", isOptional: false, description: ""},
-        pp3: {type: "number", isOptional: false, description: ""},
-        pp4: {type: "number", isOptional: false, description: ""},
-        fc1: {type: "number", isOptional: false, description: ""},
-        fc2: {type: "number", isOptional: false, description: ""},
-        fc3: {type: "number", isOptional: false, description: ""},
-        fc4: {type: "number", isOptional: false, description: ""},
-        pl1: {type: "number", isOptional: false, description: ""},
-        pl2: {type: "number", isOptional: false, description: ""},
-        pl3: {type: "number", isOptional: false, description: ""},
-        pl4: {type: "number", isOptional: false, description: ""},
+        setName: { type: "string", isOptional: false, description: "" },
+        date: { type: "string", isOptional: false, description: "" },
+        operation: { type: "string", isOptional: false, description: "" },
+        rowGroup: { type: "string", isOptional: false, description: "" },
+        rowGroupIndex: { type: "number", isOptional: false, description: "" },
+        category: { type: "string", isOptional: false, description: "" },
+        categoryIndex: { type: "number", isOptional: false, description: "" },
+        subCategory: { type: "string", isOptional: false, description: "" },
+        subCategoryIndex: { type: "number", isOptional: false, description: "" },
+        columnGroup: { type: "string", isOptional: false, description: "" },
+        columnGroupIndex: { type: "number", isOptional: false, description: "" },
+        columnSubGroup: { type: "string", isOptional: false, description: "" },
+        columnSubGroupIndex: { type: "number", isOptional: false, description: "" },
+        ac1: { type: "number", isOptional: false, description: "" },
+        ac2: { type: "number", isOptional: false, description: "" },
+        ac3: { type: "number", isOptional: false, description: "" },
+        ac4: { type: "number", isOptional: false, description: "" },
+        pp1: { type: "number", isOptional: false, description: "" },
+        pp2: { type: "number", isOptional: false, description: "" },
+        pp3: { type: "number", isOptional: false, description: "" },
+        pp4: { type: "number", isOptional: false, description: "" },
+        fc1: { type: "number", isOptional: false, description: "" },
+        fc2: { type: "number", isOptional: false, description: "" },
+        fc3: { type: "number", isOptional: false, description: "" },
+        fc4: { type: "number", isOptional: false, description: "" },
+        pl1: { type: "number", isOptional: false, description: "" },
+        pl2: { type: "number", isOptional: false, description: "" },
+        pl3: { type: "number", isOptional: false, description: "" },
+        pl4: { type: "number", isOptional: false, description: "" },
       }
     };
 
@@ -570,7 +559,7 @@ export class Chart {
       chartTitle={this.prepareChartTitle(localScenarioString)}
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
-      hideAxisLabels={ this.prepareHideAxisLabels(localScenarioString)}
+      hideAxisLabels={this.prepareHideAxisLabels(localScenarioString)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       limit={this.prepareLimit()}
