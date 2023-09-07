@@ -32,7 +32,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
   styleUrl: 'bn-title.scss',
 })
 export class Title {
-  private readonly t: (key: string, namespace?: string, data?: object) => string;
+  private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   constructor() {
     withStyled(this);
@@ -288,14 +288,11 @@ export class Title {
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system
-    let i18nMapSystemLocal  = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
+    let i18nMapSystemLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapSystemGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
     //let i18nMapCustom =
 
-    let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
-    let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
-    
-    return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
+    return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries()]);
   }
 
   private prepareI18nMode(): I18nMode {
