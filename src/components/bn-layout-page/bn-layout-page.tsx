@@ -25,6 +25,7 @@ export class LayoutPage {
 
     @Prop() pageFormat?: string;
     @Prop() pageOrientation?: string;
+    @Prop() pageNumber?: string;
 
     @Prop() footerText?: string;
     @Prop() footerDisplayPageNumber?: boolean = true;
@@ -138,7 +139,7 @@ export class LayoutPage {
                     {this.getSlots(arrOfSlots)}
                 </div>
             </bn-body>
-            <bn-footer text={this.footerText} display-page-number={this.footerDisplayPageNumber}>
+            <bn-footer text={this.footerText} page-number={this.pageNumber} display-page-number={this.footerDisplayPageNumber}>
             </bn-footer>
         </bn-page>
     }
