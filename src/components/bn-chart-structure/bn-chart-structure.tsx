@@ -21,7 +21,7 @@ import {
   OrderColumn,
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
-import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 
 @Component({
@@ -33,16 +33,9 @@ export class Chart {
 
   @State() data: IStructureChartDataRow[] = []
 
-  private readonly t: (key: string, namespace?: string, data?: object) => string;
+  private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
   private readonly errors: ErrorDispatcher;
-
-  /**
-   * Custom namespace
-   */
-  @Prop()
-  namespace: string = "_system";
-
 
   /**
    * Custom chart title
@@ -68,7 +61,7 @@ export class Chart {
     const errId: string = 'ERR_scenarios';
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -103,7 +96,7 @@ export class Chart {
     let invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errIdVar,type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errIdVar, type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errIdVar);
     }
@@ -126,7 +119,7 @@ export class Chart {
     const errId: string = 'ERR_unitScaling';
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'unitScaling: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'unitScaling: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -146,7 +139,7 @@ export class Chart {
     const errId: string = 'ERR_percentageScaling';
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'percentageScaling: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'percentageScaling: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -168,7 +161,7 @@ export class Chart {
     const errId: string = 'ERR_level';
 
     if (!isValidLevel(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'level: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'level: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -188,7 +181,7 @@ export class Chart {
     const errId: string = 'ERR_order';
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -206,7 +199,7 @@ export class Chart {
     const errId: string = 'ERR_orderDirection';
 
     if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -232,7 +225,7 @@ export class Chart {
     const errId: string = 'ERR_order';
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId,type: 'warning', message:'limit: invalid value \'' + newValue?.toString() + '\' is not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'limit: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -299,10 +292,7 @@ export class Chart {
     let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
     let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
 
-    let i18nMapNameSpaceLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key), this.namespace)]));
-    let i18nMapNameSpaceGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key), this.namespace)]));
-
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries(), ...i18nMapNameSpaceGlobal.entries(), ...i18nMapNameSpaceLocal.entries()]);
+    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
 
@@ -372,7 +362,7 @@ export class Chart {
   }
 
   private prepareChartTitle(localScenarioString: string): string {
-    if(localScenarioString.length != 0){
+    if (localScenarioString.length != 0) {
       return '';
     }
 
@@ -440,8 +430,8 @@ export class Chart {
   render() {
     let scenariosArray = [''];
     let variancesArray = this.prepareVariances();
-    if (variancesArray.length > 0){
-      scenariosArray = [...scenariosArray,...variancesArray];
+    if (variancesArray.length > 0) {
+      scenariosArray = [...scenariosArray, ...variancesArray];
     }
 
     return <Host>

@@ -31,7 +31,7 @@ export class Text {
   @State() data: any = {}
 
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
-  private readonly t: (key: string, namespace?: string, data?: object) => string;
+  private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
 
   @Watch('value')

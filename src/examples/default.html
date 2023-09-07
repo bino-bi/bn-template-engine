@@ -32,15 +32,15 @@
     </bn-component-style>
     <bn-component-style>
       {
-        "global": {
-          "fontFamily": "'Noto Sans', sans-serif, Arial",
-          "fontSizePx": 13.3333
-        }
+      "global": {
+      "fontFamily": "'Noto Sans', sans-serif, Arial",
+      "fontSizePx": 13.3333
+      }
       }
     </bn-component-style>
 
 
-    <bn-internationalization code="de">
+    <bn-internationalization code="de" namespace="test">
       {
       "bn-chart": {
       "title1": 1,
@@ -53,7 +53,7 @@
       }
     </bn-internationalization>
 
-    <bn-internationalization code="de">
+    <bn-internationalization code="de" namespace="test2">
       {
       "hello": "Hallo, {{name}}!",
       "title2": "new",
@@ -61,7 +61,7 @@
       }
     </bn-internationalization>
 
-    <bn-internationalization code="en">
+    <bn-internationalization code="en" namespace="test">
       {
       "bn-chart": {
       "title1": 1,
@@ -75,7 +75,7 @@
     </bn-internationalization>
 
     <bn-datasource name="Charts_Time">
-     [
+      [
       {
       "setName": "de",
       "date": "2022-04-01",
@@ -247,9 +247,10 @@
           <div> Test Runner components <a href="examples/title.html">Title</a> </div>
           <bn-card grid-column="1/ span 2" grid-row="1 " image='debug/Zielvolumen.png'>
             <bn-chart-time datasets='$Charts_Time' level='subCategory' order='subCategory' order-direction='asc'
-              scenarios='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos' styles='' unit-scaling='0.04' percentage-scaling='50'></bn-chart-time>
+              scenarios='ac1,pp1,fc1;dfc1_ac1_pos;dpp1_ac1_pos;drpp1_ac1_pos' styles='' unit-scaling='0.04'
+              percentage-scaling='50'></bn-chart-time>
           </bn-card>
-         </bn-grid>
+        </bn-grid>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>

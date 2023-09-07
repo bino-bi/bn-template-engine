@@ -1,6 +1,6 @@
-import {Component, Prop, h, Host} from "@stencil/core";
+import { Component, Prop, h, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
-import {get, set} from "../../stores/internationalization";
+import { get, set } from "../../stores/internationalization";
 import flattenObject from "../../utils/flattenObject";
 import withComponentStatus from "../../utils/withComponentStatus";
 
@@ -14,14 +14,14 @@ export class Internationalization {
     withBodyObserver(this, (data) => {
       try {
         const i18n = flattenObject(JSON.parse(data));
-        
+
         // @ts-ignore     
-        let namespace = {...get(this.name)};
+        let namespace = { ...get(this.namespace) };
         namespace[this.code] = i18n;
-       
+
         // @ts-ignore      
-        set(this.name,  namespace);
-      
+        set(this.namespace, namespace);
+
       } catch (e) {
         console.error(e)
       }
@@ -29,10 +29,10 @@ export class Internationalization {
   }
 
   @Prop() code: string;
-  @Prop() name: string;
+  @Prop() namespace: string;
 
   render() {
-    return <Host/>
+    return <Host />
   }
 }
 
