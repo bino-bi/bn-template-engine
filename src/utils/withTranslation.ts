@@ -22,7 +22,7 @@ const withTranslation = (component: any) => {
     const element = getElement(component);
     observer.observe(element, { attributes: true, attributeFilter: ['namespace'] });
 
-    subscription = on("set", (key, value) => {
+    subscription = on("set", (key, _value) => {
       if (key == namespace) {
         forceUpdate(component);
       }

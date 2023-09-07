@@ -103,10 +103,6 @@ const BN_INTERNATIONALIZATION_KEYS = Object.keys(de || {})
 
 const { state, on, get, set, } = createStore({ "_system": { de, en } });
 
-on('set', (prop, value) => {
-  console.dir({...state})
-})
-
 export { on, get, set, globalLabelKeys, BN_INTERNATIONALIZATION_KEYS };
 export default state;
 
