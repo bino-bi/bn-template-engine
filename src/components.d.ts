@@ -225,11 +225,11 @@ export namespace Components {
         "footerDisplayPageNumber"?: boolean;
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
+        "pageCustomTemplate": string;
+        "pageFitToContent": boolean;
         "pageFormat"?: string;
+        "pageGridGap": string;
         "pageLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
-        "pageLayoutCustomTemplate": string;
-        "pageLayoutFitToContent": boolean;
-        "pageLayoutGridGap": string;
         "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;
@@ -794,11 +794,11 @@ declare namespace LocalJSX {
     interface BnLayoutPage {
         "footerDisplayPageNumber"?: boolean;
         "footerText"?: string;
+        "pageCustomTemplate"?: string;
+        "pageFitToContent"?: boolean;
         "pageFormat"?: string;
+        "pageGridGap"?: string;
         "pageLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
-        "pageLayoutCustomTemplate"?: string;
-        "pageLayoutFitToContent"?: boolean;
-        "pageLayoutGridGap"?: string;
         "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;

@@ -31,9 +31,9 @@ export class LayoutPage {
     @Prop() footerDisplayPageNumber?: boolean = true;
 
     @Prop() pageLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
-    @Prop() pageLayoutCustomTemplate: string = "\"a b\" \"c d\"";
-    @Prop() pageLayoutGridGap: string = "0";
-    @Prop() pageLayoutFitToContent: boolean = true;
+    @Prop() pageCustomTemplate: string = "\"a b\" \"c d\"";
+    @Prop() pageGridGap: string = "0";
+    @Prop() pageFitToContent: boolean = true;
 
     private templateMap = new Map([['split-vertical', "\"a  b\""],
     ['split-horizontal', "\"a\" \"b\""],
@@ -51,7 +51,7 @@ export class LayoutPage {
         let height = "100%";
         let width = "100%";
 
-        if (this.pageLayoutFitToContent === true) {
+        if (this.pageFitToContent === true) {
             width = "fit-content";
             height = "fit-content";
         }
@@ -60,7 +60,7 @@ export class LayoutPage {
             display: "grid",
             height: height,
             width: width,
-            gap: this.pageLayoutGridGap + "px"
+            gap: this.pageGridGap + "px"
         };
     }
 
@@ -111,7 +111,7 @@ export class LayoutPage {
         }
 
         if (name == 'custom-template') {
-            return this.pageLayoutCustomTemplate;
+            return this.pageCustomTemplate;
         }
 
         return this.templateMap.get(name);
