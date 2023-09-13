@@ -30,10 +30,10 @@ export class LayoutPage {
     @Prop() footerText?: string;
     @Prop() footerDisplayPageNumber?: boolean = true;
 
-    @Prop() layout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
-    @Prop() layoutCustomTemplate: string = "\"a b\" \"c d\"";
-    @Prop() layoutGridGap: string = "0";
-    @Prop() layoutFitToContent: boolean = true;
+    @Prop() pageLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
+    @Prop() pageLayoutCustomTemplate: string = "\"a b\" \"c d\"";
+    @Prop() pageLayoutGridGap: string = "0";
+    @Prop() pageLayoutFitToContent: boolean = true;
 
     private templateMap = new Map([['split-vertical', "\"a  b\""],
     ['split-horizontal', "\"a\" \"b\""],
@@ -51,7 +51,7 @@ export class LayoutPage {
         let height = "100%";
         let width = "100%";
 
-        if (this.layoutFitToContent === true) {
+        if (this.pageLayoutFitToContent === true) {
             width = "fit-content";
             height = "fit-content";
         }
@@ -60,14 +60,14 @@ export class LayoutPage {
             display: "grid",
             height: height,
             width: width,
-            gap: this.layoutGridGap + "px"
+            gap: this.pageLayoutGridGap + "px"
         };
     }
 
     private getLayoutStyle() {
         return {
             ...this.getCommonStyles(),
-            "grid-template-areas": this.getTemplatePattern(this.layout),
+            "grid-template-areas": this.getTemplatePattern(this.pageLayout),
         };
     }
 
@@ -105,12 +105,13 @@ export class LayoutPage {
     }
 
     private getTemplatePattern(name: string): string {
+        console.dir({ name: name })
         if (this.templateMap.has(name) == false && name != 'custom-template') {
             return "\"a\"";
         }
 
         if (name == 'custom-template') {
-            return this.layoutCustomTemplate;
+            return this.pageLayoutCustomTemplate;
         }
 
         return this.templateMap.get(name);
