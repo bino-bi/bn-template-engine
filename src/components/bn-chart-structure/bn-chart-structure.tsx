@@ -133,7 +133,6 @@ export class Chart {
    * pixel per percentage.
    */
   @Prop() percentageScaling!: string | number;
-
   @Watch('percentageScaling')
   validatePercentageScaling(newValue: string | number) {
     const errId: string = 'ERR_percentageScaling';
@@ -309,7 +308,7 @@ export class Chart {
       return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
     }
 
-    return Number(this.percentageScaling);
+    return Number(this.percentageScaling) * 100;
   }
 
   private prepareLevel(): AggregationLevel {
