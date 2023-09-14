@@ -305,7 +305,7 @@ export class Chart {
 
   private preparePixelPerPercentage(): number {
     if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
-      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
+      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string); // TODO: check if this is correct '* 100' or not if global scaling groups are implemented (JHE)
     }
 
     return Number(this.percentageScaling) * 100;
