@@ -7,6 +7,8 @@ import { runIfExisits } from "./utils";
 const withTranslation = (component: any) => {
   let subscription: () => void;
   let namespace: string | undefined = undefined;
+  
+
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -21,6 +23,8 @@ const withTranslation = (component: any) => {
   component['connectedCallback'] = () => {
     const element = getElement(component);
     observer.observe(element, { attributes: true, attributeFilter: ['namespace'] });
+
+    namespace = (getElement(component).getAttribute('namespace'));
 
     subscription = on("set", (key, _value) => {
       if (key == namespace) {
@@ -45,7 +49,7 @@ const withTranslation = (component: any) => {
     }
 
     let currentNamespace = namespace;
-
+    
     if (locales[currentNamespace]?.[context.locale]?.[key] == null) {
       currentNamespace = "_system";
     }
