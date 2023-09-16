@@ -21,7 +21,96 @@
 </head>
 
 <body>
-  <bn-context locale='de'><bn-internationalization code='de' namespace='test'>{}</bn-internationalization>
+  <bn-context locale='de'><bn-internationalization code='de' namespace='test'>{
+    "global": {
+      "ac1": "AC33333",
+      "ac2": "AC2",
+      "ac3": "AC3",
+      "ac4": "AC4"    
+    },
+    "bn-chart": {},
+    "bn-table": {
+      "in": "in",
+      "REST": "REST",
+      "part_of": "in % von",
+      "category": " ",
+      "there_of": "davon",
+      "SUM_TOTAL": "❖",
+      "operation": " "
+    },
+    "bn-title": {
+      "in": "in",
+      "CONNECTOR_WS": " und ",
+      "SEPERATOR_WS": ", "
+    }
+  }</bn-internationalization>
+
+  <bn-context locale='de'><bn-internationalization code='de' namespace='gogogo'>{
+    "global": {
+      "ac1": "AC22222",
+      "ac2": "AC2",
+      "ac3": "AC3",
+      "ac4": "AC4" 
+    },
+    "bn-chart": {},
+    "bn-table": {
+      "in": "in",
+      "REST": "REST",
+      "part_of": "in % von",
+      "category": " ",
+      "there_of": "davon",
+      "SUM_TOTAL": "❖",
+      "operation": " "
+    },
+    "bn-title": {
+      "in": "in",
+      "CONNECTOR_WS": " und ",
+      "SEPERATOR_WS": ", "
+    }
+  }</bn-internationalization>
+
+  <bn-context locale='de'><bn-internationalization code='de' namespace='_system'>{
+    "global": {
+      "ac1": "AC111111",
+      "ac2": "AC2",
+      "ac3": "AC3",
+      "ac4": "AC4",
+      "fc1": "FCSYSTEM",
+      "fc2": "FC2",
+      "fc3": "FC3",
+      "fc4": "FC4",
+      "pl1": "PL",
+      "pl2": "PL2",
+      "pl3": "PL3",
+      "pl4": "PL4",
+      "pp1": "PY",
+      "pp2": "PY2",
+      "pp3": "PY3",
+      "pp4": "PY4",
+      "ORDER_asc": "↑",
+      "ORDER_desc": "↓",
+      "ibcssymbol_delta_ac": "Δ{%}",
+      "ibcssymbol_delta_generic": "Δ({%})",
+      "ibcssymbol_delta_ac_relative": "Δ{%}%",
+      "ibcssymbol_delta_generic_relative": "Δ({%})%"
+    },
+    "bn-chart": {},
+    "bn-table": {
+      "in": "in",
+      "REST": "REST",
+      "part_of": "in % von",
+      "category": " ",
+      "there_of": "davon",
+      "SUM_TOTAL": "❖",
+      "operation": " "
+    },
+    "bn-title": {
+      "in": "in",
+      "CONNECTOR_WS": " und ",
+      "SEPERATOR_WS": ", "
+    }
+  }</bn-internationalization>
+
     <bn-datasource name='marktwerte'>[
       {
       "ac1":5267,
@@ -1090,16 +1179,16 @@
         <div slot='slot-0'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='quarter'
             datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
             order-direction='desc' scenarios='ac1,fc1' interval-span-limit='12' chart-title='Marktwert'
-            namespace='_global' level='category' axis-labels-mode='short'> </bn-chart-time>
+            namespace='gogogo' level='category' axis-labels-mode='short'> </bn-chart-time>
         </div>
         <div slot='slot-1'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='auto'
             datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
-            order-direction='desc' scenarios='pp1,ac1' interval-span-limit='17' namespace='_global' level='category'
+            order-direction='desc' scenarios='pp1,ac1' interval-span-limit='17' namespace='gogogo' level='category'
             axis-labels-mode='smart'> </bn-chart-time>
         </div>
         <div slot='slot-2'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='auto'
             datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
-            order-direction='desc' scenarios='fc1,pl1' interval-span-limit='27' namespace='_global' level='category'
+            order-direction='desc' scenarios='fc1,pl1' interval-span-limit='27' namespace='gogogo' level='category'
             axis-labels-mode='smart'> </bn-chart-time>
         </div>
       </bn-layout-page>
