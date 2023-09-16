@@ -56,7 +56,7 @@ export class Footer {
   }
 
   render() {
-    return <Host id={this.displayPageNumber? "container-page-footer": "container"}>
+    return <Host id={(this.displayPageNumber || this.text  || this.code) ? "container-page-footer": "container"}>
       <div id="footer-text">
         {
           this.text != null ? <span class="note">{this.text}</span> : ""
