@@ -42,12 +42,6 @@ export class Title {
 
   }
 
-
-  /**
-  * Custom namespace
-  */
-  @Prop() namespace: string = "_system";
-
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = '';
 
