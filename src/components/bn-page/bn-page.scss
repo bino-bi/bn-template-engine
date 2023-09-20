@@ -25,34 +25,15 @@
     &[orientation="portrait"] {
       height: $width;
       width: $height;
-      page: #{$format}_portrait;
     }
 
     &[orientation="landscape"] {
       height: $height;
       width: $width;
-      page: #{$format}_landscape;
     }
   }
 }
 
-@page a4_landscape {
-  size: A4 landscape;
-  margin: 0;
-
-  @top-right {
-    content: "Page " counter(pageNumber);
-  }
-}
-
-@page a4_portrait {
-  size: A4 portrait;
-  margin: 0;
-
-  @top-right {
-    content: "Page " counter(pageNumber);
-  }
-}
 
 bn-page {
   background: white;
