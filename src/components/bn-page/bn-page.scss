@@ -1,15 +1,15 @@
 @mixin portrait($format, $height, $width) {
-  &[format=#{$format}] {
+  &[format="#{$format}"] {
     height: $height;
     width: $width;
 
-    &[orientation='portrait'] {
+    &[orientation="portrait"] {
       height: $height;
       width: $width;
       page: #{$format}_portrait;
     }
 
-    &[orientation='landscape'] {
+    &[orientation="landscape"] {
       height: $width;
       width: $height;
       page: #{$format}_landscape;
@@ -22,13 +22,13 @@
     height: $height;
     width: $width;
 
-    &[orientation='portrait'] {
+    &[orientation="portrait"] {
       height: $width;
       width: $height;
       page: #{$format}_portrait;
     }
 
-    &[orientation='landscape'] {
+    &[orientation="landscape"] {
       height: $height;
       width: $width;
       page: #{$format}_landscape;
@@ -37,13 +37,21 @@
 }
 
 @page a4_landscape {
-  size: a4 landscape;
+  size: A4 landscape;
   margin: 0;
+
+  @top-right {
+    content: "Page " counter(pageNumber);
+  }
 }
 
 @page a4_portrait {
-  size: a4 portrait;
+  size: A4 portrait;
   margin: 0;
+
+  @top-right {
+    content: "Page " counter(pageNumber);
+  }
 }
 
 bn-page {

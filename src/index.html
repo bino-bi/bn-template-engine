@@ -21,15 +21,16 @@
 </head>
 
 <body>
-  <bn-context locale='de'><bn-internationalization code='de' namespace='test'>{
-    "global": {
+  <bn-context locale='de'>
+    <bn-internationalization code='de' namespace='test'>{
+      "global": {
       "ac1": "AC33333",
       "ac2": "AC2",
       "ac3": "AC3",
-      "ac4": "AC4"    
-    },
-    "bn-chart": {},
-    "bn-table": {
+      "ac4": "AC4"
+      },
+      "bn-chart": {},
+      "bn-table": {
       "in": "in",
       "REST": "REST",
       "part_of": "in % von",
@@ -37,23 +38,23 @@
       "there_of": "davon",
       "SUM_TOTAL": "❖",
       "operation": " "
-    },
-    "bn-title": {
+      },
+      "bn-title": {
       "in": "in",
       "CONNECTOR_WS": " und ",
       "SEPERATOR_WS": ", "
-    }
-  }</bn-internationalization>
+      }
+      }</bn-internationalization>
 
-  <bn-context locale='de'><bn-internationalization code='de' namespace='gogogo'>{
-    "global": {
+    <bn-internationalization code='de' namespace='gogogo'>{
+      "global": {
       "ac1": "AC22222",
       "ac2": "AC2",
       "ac3": "AC3",
-      "ac4": "AC4" 
-    },
-    "bn-chart": {},
-    "bn-table": {
+      "ac4": "AC4"
+      },
+      "bn-chart": {},
+      "bn-table": {
       "in": "in",
       "REST": "REST",
       "part_of": "in % von",
@@ -61,16 +62,16 @@
       "there_of": "davon",
       "SUM_TOTAL": "❖",
       "operation": " "
-    },
-    "bn-title": {
+      },
+      "bn-title": {
       "in": "in",
       "CONNECTOR_WS": " und ",
       "SEPERATOR_WS": ", "
-    }
-  }</bn-internationalization>
+      }
+      }</bn-internationalization>
 
-  <bn-context locale='de'><bn-internationalization code='de' namespace='_system'>{
-    "global": {
+    <bn-internationalization code='de' namespace='_system'>{
+      "global": {
       "ac1": "AC111111",
       "ac2": "AC2",
       "ac3": "AC3",
@@ -93,9 +94,9 @@
       "ibcssymbol_delta_generic": "Δ({%})",
       "ibcssymbol_delta_ac_relative": "Δ{%}%",
       "ibcssymbol_delta_generic_relative": "Δ({%})%"
-    },
-    "bn-chart": {},
-    "bn-table": {
+      },
+      "bn-chart": {},
+      "bn-table": {
       "in": "in",
       "REST": "REST",
       "part_of": "in % von",
@@ -103,13 +104,13 @@
       "there_of": "davon",
       "SUM_TOTAL": "❖",
       "operation": " "
-    },
-    "bn-title": {
+      },
+      "bn-title": {
       "in": "in",
       "CONNECTOR_WS": " und ",
       "SEPERATOR_WS": ", "
-    }
-  }</bn-internationalization>
+      }
+      }</bn-internationalization>
 
     <bn-datasource name='marktwerte'>[
       {
@@ -1116,9 +1117,8 @@
       }
       ]</bn-datasource>
     <div><bn-layout-page page-format='a4' scenarios-variances-variances='' title-scenarios='ac1,fc1' show-footer='true'
-        title-namespace="test"
-        title-order-direction='' scenarios-variances-scenarios='' title-business-unit='Illiquide - Real Assets'
-        title-date-format='auto' page-layout='2-over-1'
+        title-namespace="test" title-order-direction='' scenarios-variances-scenarios=''
+        title-business-unit='Illiquide - Real Assets' title-date-format='auto' page-layout='2-over-1'
         title-measures='[{"name":"Kapitalzusagen","unit":"Mrd."},{"name":"Allokiertes Kapital","unit":"Mrd."},{"name":"Marktwert","unit":"Mrd."}]'
         title-date-end='2023-12-30T23:00:00.000Z' page-grid-gap='15' title-date-link='mat' title-order=''
         page-orientation='portrait' page-fit-to-content='true' page-custom-template='"a"' title-variances=''
@@ -1159,7 +1159,8 @@
         title-variances='' show-title='true'>
         <div slot='slot-0'><bn-chart-structure unit-scaling='0.02' datasets='$kapitalzusagen' order='levelIndex'
             variances='dfc1_ac1_pos,dfc1_ac1_neg' percentage-scaling='10' limit='0' order-direction='asc'
-            scenarios='ac1,fc1' chart-title='Kapitalzusagen' namespace='_global' level='category'> </bn-chart-structure>
+            scenarios='ac1,fc1' chart-title='Kapitalzusagen' namespace='_global' level='category'>
+          </bn-chart-structure>
         </div>
         <div slot='slot-1'><bn-chart-structure unit-scaling='0.02' datasets='$allokiertes_kapital' order='level'
             variances='dac1_pl1_pos,drac1_pl1_pos' percentage-scaling='1' limit='0' order-direction='asc'
