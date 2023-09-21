@@ -1,7 +1,10 @@
 :host {
   background: white;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   //page-break-after: always;
   overflow: hidden;
+  float: left;
+  clear: left;
+  
 }

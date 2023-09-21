@@ -121,8 +121,22 @@ export class LayoutPage {
     @Method()
     async getNumberOfSlot(name: string) {
         let template = this.getTemplatePattern(name);
-
         return this.extractSlotNames(template).length;
+    }
+
+    componentDidUpdate() {
+        // workaround for the render rotation issue
+        let renderOrientation = this.el.closest('bn-context').getAttribute('render-orientation')
+        if (renderOrientation && renderOrientation != this.pageOrientation) {
+            const page = this.el.shadowRoot.querySelector('bn-page');
+            const layout = this.el.closest('bn-layout-page')
+            if (layout && page) {
+                page.style.transform = 'rotate(-90deg) translate(-100%)'
+                page.style.transformOrigin = 'top left';
+                layout.style.width = `${page.clientHeight}px`;
+                layout.style.height = `${page.clientWidth}px`;
+            }
+        }
     }
 
     render() {
@@ -130,9 +144,9 @@ export class LayoutPage {
         let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
 
         // @ts-ignore
-        return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>        
+        return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
             <bn-title   // @ts-ignore 
-                        namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
+                namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
             </bn-title>
             <bn-body>
                 <div style={style}>
