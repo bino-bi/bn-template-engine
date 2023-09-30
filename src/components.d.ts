@@ -335,6 +335,10 @@ export namespace Components {
          */
         "measureType": string;
         /**
+          * measureUnit displayed in table.
+         */
+        "measureUnit": string;
+        /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
          */
         "order": string;
@@ -354,6 +358,10 @@ export namespace Components {
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
          */
         "showGroupTitle": string;
+        /**
+          * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+         */
+        "showMeasureScale": string;
         /**
           * A not mundane tile which should describes the shown data.
          */
@@ -900,6 +908,10 @@ declare namespace LocalJSX {
          */
         "measureType"?: string;
         /**
+          * measureUnit displayed in table.
+         */
+        "measureUnit"?: string;
+        /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
          */
         "order"?: string;
@@ -919,6 +931,10 @@ declare namespace LocalJSX {
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
          */
         "showGroupTitle"?: string;
+        /**
+          * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+         */
+        "showMeasureScale"?: string;
         /**
           * A not mundane tile which should describes the shown data.
          */
