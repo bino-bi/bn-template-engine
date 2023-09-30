@@ -64,6 +64,10 @@ export class Table {
    */
   @Prop() tableTitle: string = "";
 
+ /**
+   * measureUnit displayed in table.
+   */
+ @Prop() measureUnit: string = "";
 
   /** List of scenarios displayed in card header.
    *  <br /><br />
@@ -160,6 +164,25 @@ export class Table {
       this.errors.remove(errId);
     }
   }
+
+    /**
+   *  Toggles display of measure units in table header
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
+   */
+    @Prop() showMeasureScale: string = 'false';
+
+    @Watch('showMeasureScale')
+    validateShowMeasureScale(newValue: string) {
+      const errId: string = 'ERR_grouped';
+  
+      if (!isValidBoolean(newValue)) {
+        this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      } else {
+        this.errors.remove(errId);
+      }
+    }
 
 
   /**
@@ -491,7 +514,8 @@ export class Table {
     this.validateCategoryWidth(this.categoryWidth);
     this.validateMeasureType(this.measureType);
     this.validateMeasureScale(this.measureScale);
-    this.validateCategoryThereOf(this.columnthereof)
+    this.validateCategoryThereOf(this.columnthereof);
+    this.validateShowMeasureScale(this.showMeasureScale);
   }
 
   disconnectedCallback() {
@@ -641,6 +665,16 @@ export class Table {
     return this.tableTitle;
   }
 
+  prepareShowMeasureScale(): boolean {
+    return (this.showMeasureScale == "true");
+  }
+  prepareMeasureUnit(): string {
+      if (this.measureUnit == "" || this.measureUnit == null) {
+        return "";
+      }
+      return this.measureUnit;
+  }
+
   public getDataStructure(): any {
     let dataSetStructure: any = {
       ITableDataRow: {
@@ -702,8 +736,11 @@ export class Table {
           i18n-mode={this.prepareI18nMode()}
           measure-scale={this.prepareMeasureScale()}
           measure-type={this.prepareMeasureType()}
+          measure-unit={this.prepareMeasureUnit()}
+          showMeasureScale={this.prepareShowMeasureScale()}
         ></ibcs-table>
       </div>
     </Host>;
   }
+ 
 }
