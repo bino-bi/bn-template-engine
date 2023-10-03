@@ -17,11 +17,15 @@
       margin: 0;
       padding: 0;
     }
+
+    bn-layout-page {
+      border: 1px solid black;
+    }
   </style>
 </head>
 
 <body>
-  <bn-context render-orientation="portrait" locale='de'>
+  <bn-context render-orientation="landscape" locale='de'>
     <bn-internationalization code='de' namespace='test'>{
       "global": {
       "ac1": "AC33333",
@@ -1116,85 +1120,89 @@
       "columnSubGroupIndex":null
       }
       ]</bn-datasource>
-    <div><bn-layout-page page-format='a4' scenarios-variances-variances='' title-scenarios='ac1,fc1' show-footer='true'
-        title-namespace="test" title-order-direction='' scenarios-variances-scenarios=''
-        title-business-unit='Illiquide - Real Assets' title-date-format='auto' page-layout='2-over-1'
-        title-measures='[{"name":"Kapitalzusagen","unit":"Mrd."},{"name":"Allokiertes Kapital","unit":"Mrd."},{"name":"Marktwert","unit":"Mrd."}]'
-        title-date-end='2023-12-30T23:00:00.000Z' page-grid-gap='15' title-date-link='mat' title-order=''
-        page-orientation='landscape' page-fit-to-content='true' page-custom-template='"a"' title-variances=''
-        show-title='true' footer-display-page-number='true' order-group-order-direction=''
-        title-date-start='2022-12-30T23:00:00.000Z' order-group-order=''>
-        <div slot='slot-0'><bn-table show-measure-unit='false' partof='[]' data-format='decimal' scenarios-variances-variances=''
-            category-width='w15' data-format-digits-percent='2' scenarios='pp1,pl1,ac1,fc1' measure-scale='GREATEST'
-            table-title='Kapitalzusage' show-group-title='true' datasets='$nullwert_test' order='category' variances=''
-            type='sum' order-group-order-direction='asc' limit='0' measure-type='volume'
-            scenarios-variances-scenarios='pp1,pl1,ac1,fc1' thereof='[]' columnthereof='[]' grouped='true'
-            data-format-digits-decimal='1' order-direction='asc' namespace='_global' order-group-order='category'>
-          </bn-table>
-        </div>
-        <div slot='slot-1'><bn-table measure-unit='USD' show-measure-unit='false' partof='[]' data-format='decimal' scenarios-variances-variances=''
-            category-width='w15' data-format-digits-percent='2' scenarios='pp1,pl1,ac1,fc1' measure-scale='GREATEST'
-            table-title='Allokiertes Kapital' show-group-title='true' datasets='$allokiertes_kapital' order='category'
-            variances='' type='sum' order-group-order-direction='asc' limit='0' measure-type='volume'
-            scenarios-variances-scenarios='pp1,pl1,ac1,fc1' thereof='[]' columnthereof='[]' grouped='true'
-            data-format-digits-decimal='1' order-direction='asc' namespace='_global' order-group-order='category'>
-          </bn-table>
-        </div>
-        <div slot='slot-2'><bn-table partof='[]' data-format='decimal'
-            scenarios-variances-variances='dac1_pp1_pos,drac1_pp1_pos' category-width='w15'
-            data-format-digits-percent='2' scenarios='pp1,pl1,ac1,fc1' measure-scale='GREATEST' table-title='Marktwert'
-            show-group-title='true' datasets='$marktwerte' order='category' variances='dac1_pp1_pos,drac1_pp1_pos'
-            type='sum' order-group-order-direction='asc' limit='0' measure-type='volume'
-            scenarios-variances-scenarios='pp1,pl1,ac1,fc1' thereof='[]' columnthereof='[]' grouped='true'
-            data-format-digits-decimal='1' order-direction='asc' namespace='_global' order-group-order='category'>
-          </bn-table>
-        </div>
-      </bn-layout-page>
-      <bn-layout-page page-format='a4' title-scenarios='' show-footer='true' title-order-direction=''
-        title-business-unit='Illiquide - Real Assets' footer-display-page-number='true' title-date-format='quarter'
-        title-date-start='2021-12-30T23:00:00.000Z' page-layout='custom-template'
-        title-measures='[{"name":"Kapitalzusagen","unit":"Mrd."},{"name":"Allokiertes Kapital","unit":"Mrd."},{"name":"Marktwert","unit":"Mrd."}]'
-        title-date-end='2022-12-29T23:00:00.000Z' page-grid-gap='15' title-date-link='interval' title-order=''
-        page-orientation='portrait' page-fit-to-content='true' page-custom-template='"SlotA" "SlotB" "SlotC"'
-        title-variances='' show-title='true'>
-        <div slot='slot-0'><bn-chart-structure unit-scaling='0.02' datasets='$kapitalzusagen' order='levelIndex'
-            variances='dfc1_ac1_pos,dfc1_ac1_neg' percentage-scaling='10' limit='0' order-direction='asc'
-            scenarios='ac1,fc1' chart-title='Kapitalzusagen' namespace='_global' level='category'>
-          </bn-chart-structure>
-        </div>
-        <div slot='slot-1'><bn-chart-structure unit-scaling='0.02' datasets='$allokiertes_kapital' order='level'
-            variances='dac1_pl1_pos,drac1_pl1_pos' percentage-scaling='1' limit='0' order-direction='asc'
-            scenarios='pl1,ac1' chart-title='Allokiertes Kapital' namespace='_global' level='category'>
-          </bn-chart-structure>
-        </div>
-        <div slot='slot-2'><bn-chart-structure unit-scaling='0.02' datasets='$marktwerte' order='category'
-            variances='dac1_pp1_pos,drac1_pp1_pos' percentage-scaling='1' limit='0' order-direction='asc'
-            scenarios='pp1,ac1' chart-title='Marktwert' namespace='_global' level='category'> </bn-chart-structure>
-        </div>
-      </bn-layout-page>
-      <bn-layout-page page-format='a4' title-scenarios='' show-footer='true' title-order-direction=''
-        title-business-unit='Illiquide - Real Estate' footer-display-page-number='true' title-date-format='none'
-        title-date-start='2021-12-30T23:00:00.000Z' page-layout='custom-template'
-        title-measures='[{"name":"Marktwert","unit":"Mrd."}]' title-date-end='2023-12-28T23:00:00.000Z'
-        page-grid-gap='15' title-date-link='start' title-order='' page-orientation='portrait' page-fit-to-content='true'
-        page-custom-template='"SlotA" "SlotB" "SlotC"' title-variances='' show-title='true'>
-        <div slot='slot-0'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='quarter'
-            datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
-            order-direction='desc' scenarios='ac1,fc1' interval-span-limit='12' chart-title='Marktwert'
-            namespace='gogogo' level='category' axis-labels-mode='short'> </bn-chart-time>
-        </div>
-        <div slot='slot-1'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='auto'
-            datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
-            order-direction='desc' scenarios='pp1,ac1' interval-span-limit='17' namespace='gogogo' level='category'
-            axis-labels-mode='smart'> </bn-chart-time>
-        </div>
-        <div slot='slot-2'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='auto'
-            datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
-            order-direction='desc' scenarios='fc1,pl1' interval-span-limit='27' namespace='gogogo' level='category'
-            axis-labels-mode='smart'> </bn-chart-time>
-        </div>
-      </bn-layout-page>
-    </div>
+
+
+    <bn-layout-page page-format='a4' scenarios-variances-variances='' title-scenarios='ac1,fc1' show-footer='true'
+      title-namespace="test" title-order-direction='' scenarios-variances-scenarios=''
+      title-business-unit='Illiquide - Real Assets' title-date-format='auto' page-layout='2-over-1'
+      title-measures='[{"name":"Kapitalzusagen","unit":"Mrd."},{"name":"Allokiertes Kapital","unit":"Mrd."},{"name":"Marktwert","unit":"Mrd."}]'
+      title-date-end='2023-12-30T23:00:00.000Z' page-grid-gap='15' title-date-link='mat' title-order=''
+      page-orientation='landscape' page-fit-to-content='true' page-custom-template='"a"' title-variances=''
+      show-title='true' footer-display-page-number='true' order-group-order-direction=''
+      title-date-start='2022-12-30T23:00:00.000Z' order-group-order=''>
+      <div slot='slot-0'><bn-table show-measure-unit='false' partof='[]' data-format='decimal'
+          scenarios-variances-variances='' category-width='w15' data-format-digits-percent='2'
+          scenarios='pp1,pl1,ac1,fc1' measure-scale='GREATEST' table-title='Kapitalzusage' show-group-title='true'
+          datasets='$nullwert_test' order='category' variances='' type='sum' order-group-order-direction='asc' limit='0'
+          measure-type='volume' scenarios-variances-scenarios='pp1,pl1,ac1,fc1' thereof='[]' columnthereof='[]'
+          grouped='true' data-format-digits-decimal='1' order-direction='asc' namespace='_global'
+          order-group-order='category'>
+        </bn-table>
+      </div>
+      <div slot='slot-1'><bn-table measure-unit='USD' show-measure-unit='false' partof='[]' data-format='decimal'
+          scenarios-variances-variances='' category-width='w15' data-format-digits-percent='2'
+          scenarios='pp1,pl1,ac1,fc1' measure-scale='GREATEST' table-title='Allokiertes Kapital' show-group-title='true'
+          datasets='$allokiertes_kapital' order='category' variances='' type='sum' order-group-order-direction='asc'
+          limit='0' measure-type='volume' scenarios-variances-scenarios='pp1,pl1,ac1,fc1' thereof='[]'
+          columnthereof='[]' grouped='true' data-format-digits-decimal='1' order-direction='asc' namespace='_global'
+          order-group-order='category'>
+        </bn-table>
+      </div>
+      <div slot='slot-2'><bn-table partof='[]' data-format='decimal'
+          scenarios-variances-variances='dac1_pp1_pos,drac1_pp1_pos' category-width='w15' data-format-digits-percent='2'
+          scenarios='pp1,pl1,ac1,fc1' measure-scale='GREATEST' table-title='Marktwert' show-group-title='true'
+          datasets='$marktwerte' order='category' variances='dac1_pp1_pos,drac1_pp1_pos' type='sum'
+          order-group-order-direction='asc' limit='0' measure-type='volume'
+          scenarios-variances-scenarios='pp1,pl1,ac1,fc1' thereof='[]' columnthereof='[]' grouped='true'
+          data-format-digits-decimal='1' order-direction='asc' namespace='_global' order-group-order='category'>
+        </bn-table>
+      </div>
+    </bn-layout-page>
+    <bn-layout-page page-format='a4' title-scenarios='' show-footer='true' title-order-direction=''
+      title-business-unit='Illiquide - Real Assets' footer-display-page-number='true' title-date-format='quarter'
+      title-date-start='2021-12-30T23:00:00.000Z' page-layout='custom-template'
+      title-measures='[{"name":"Kapitalzusagen","unit":"Mrd."},{"name":"Allokiertes Kapital","unit":"Mrd."},{"name":"Marktwert","unit":"Mrd."}]'
+      title-date-end='2022-12-29T23:00:00.000Z' page-grid-gap='15' title-date-link='interval' title-order=''
+      page-orientation='portrait' page-fit-to-content='true' page-custom-template='"SlotA" "SlotB" "SlotC"'
+      title-variances='' show-title='true'>
+      <div slot='slot-0'><bn-chart-structure unit-scaling='0.02' datasets='$kapitalzusagen' order='levelIndex'
+          variances='dfc1_ac1_pos,dfc1_ac1_neg' percentage-scaling='10' limit='0' order-direction='asc'
+          scenarios='ac1,fc1' chart-title='Kapitalzusagen' namespace='_global' level='category'>
+        </bn-chart-structure>
+      </div>
+      <div slot='slot-1'><bn-chart-structure unit-scaling='0.02' datasets='$allokiertes_kapital' order='level'
+          variances='dac1_pl1_pos,drac1_pl1_pos' percentage-scaling='1' limit='0' order-direction='asc'
+          scenarios='pl1,ac1' chart-title='Allokiertes Kapital' namespace='_global' level='category'>
+        </bn-chart-structure>
+      </div>
+      <div slot='slot-2'><bn-chart-structure unit-scaling='0.02' datasets='$marktwerte' order='category'
+          variances='dac1_pp1_pos,drac1_pp1_pos' percentage-scaling='1' limit='0' order-direction='asc'
+          scenarios='pp1,ac1' chart-title='Marktwert' namespace='_global' level='category'> </bn-chart-structure>
+      </div>
+    </bn-layout-page>
+    <bn-layout-page page-format='a4' title-scenarios='' show-footer='true' title-order-direction=''
+      title-business-unit='Illiquide - Real Estate' footer-display-page-number='true' title-date-format='none'
+      title-date-start='2021-12-30T23:00:00.000Z' page-layout='custom-template'
+      title-measures='[{"name":"Marktwert","unit":"Mrd."}]' title-date-end='2023-12-28T23:00:00.000Z' page-grid-gap='15'
+      title-date-link='start' title-order='' page-orientation='portrait' page-fit-to-content='true'
+      page-custom-template='"SlotA" "SlotB" "SlotC"' title-variances='' show-title='true'>
+      <div slot='slot-0'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='quarter'
+          datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
+          order-direction='desc' scenarios='ac1,fc1' interval-span-limit='12' chart-title='Marktwert' namespace='gogogo'
+          level='category' axis-labels-mode='short'> </bn-chart-time>
+      </div>
+      <div slot='slot-1'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='auto'
+          datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
+          order-direction='desc' scenarios='pp1,ac1' interval-span-limit='17' namespace='gogogo' level='category'
+          axis-labels-mode='smart'> </bn-chart-time>
+      </div>
+      <div slot='slot-2'><bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='auto'
+          datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
+          order-direction='desc' scenarios='fc1,pl1' interval-span-limit='27' namespace='gogogo' level='category'
+          axis-labels-mode='smart'> </bn-chart-time>
+      </div>
+    </bn-layout-page>
+
   </bn-context>
 </body>
 
