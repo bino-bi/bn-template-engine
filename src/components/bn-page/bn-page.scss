@@ -6,13 +6,11 @@
     &[orientation="portrait"] {
       height: $height;
       width: $width;
-      page: #{$format}_portrait;
     }
 
     &[orientation="landscape"] {
       height: $width;
       width: $height;
-      page: #{$format}_landscape;
     }
   }
 }
