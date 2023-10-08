@@ -354,7 +354,7 @@ export class Chart {
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
-    this.validateVariances(this.scenarios);
+    this.validateVariances(this.variances);
     this.validateUnitScaling(this.unitScaling);
     this.validateLimit(this.limit);
     // this.validateStyles(this.styles);

@@ -52,6 +52,7 @@ export class Table {
     withStyled(this);
     withComponentStatus(this);
     this.errors = withHasError(this);
+   
     withDataset(this, (_name, data) => {
       this.data = data || [];
     });
@@ -501,6 +502,7 @@ export class Table {
     // this.unsubscribe = onChange("test", (value) => this.datasouce = value);
 
     this.validateScenario(this.scenarios);
+    this.validateVariances(this.variances);
     this.validateDataFormat(this.dataFormat);
     this.validateGrouped(this.grouped);
     this.validateShowGroupTitle(this.showGroupTitle);
