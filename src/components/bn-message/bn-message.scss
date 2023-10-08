@@ -1,0 +1,32 @@
+bn-message {
+  padding: 0.2em 0.5em;
+  display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+  &#container-page-message {
+    /* border-top: 0.05em solid #CCC; */
+    height: 4.55em;
+    box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    border-bottom: 0.1em solid #DDD;     
+  
+  } 
+
+  div#message-text {
+    font-size: 1.4em;
+    overflow: clip;
+    display: inline;
+  }
+
+  .image {
+    z-index: 2;
+    background-color: transparent;
+    border: transparent;
+    height: 4em;
+    width:  auto;
+    display: inline;
+  }
+}
+
+
