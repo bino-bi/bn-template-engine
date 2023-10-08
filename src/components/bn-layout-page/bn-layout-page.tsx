@@ -10,6 +10,9 @@ export class LayoutPage {
 
     @Prop() styles?: string;
 
+    @Prop() messageText: string = '';
+    @Prop() messageImage: string = '';
+
     @Prop() titleBusinessUnit: string = '';
     @Prop() titleScenarios?: string;
     @Prop() titleVariances?: string;
@@ -142,9 +145,10 @@ export class LayoutPage {
     render() {
         let style = this.getLayoutStyle();
         let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
-
+        console.log("MessageImage", this.messageImage);
         // @ts-ignore
         return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
+            <bn-message text={this.messageText} image={this.messageImage}></bn-message>
             <bn-title   // @ts-ignore 
                 namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
             </bn-title>
@@ -153,8 +157,7 @@ export class LayoutPage {
                     {this.getSlots(arrOfSlots)}
                 </div>
             </bn-body>
-            <bn-footer text={this.footerText} page-number={this.pageNumber} display-page-number={this.footerDisplayPageNumber}>
-            </bn-footer>
+            <bn-footer text={this.footerText} page-number={this.pageNumber} display-page-number={this.footerDisplayPageNumber}></bn-footer>
         </bn-page>
     }
 }

@@ -225,6 +225,8 @@ export namespace Components {
         "footerDisplayPageNumber"?: boolean;
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
+        "messageImage": string;
+        "messageText": string;
         "pageCustomTemplate": string;
         "pageFitToContent": boolean;
         "pageFormat"?: string;
@@ -286,6 +288,16 @@ export namespace Components {
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
          */
         "titleLayer": string;
+    }
+    interface BnMessage {
+        /**
+          * /**    Url of the cards logo/ pictogram.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
+         */
+        "image": string;
+        /**
+          * Message text. <br />If empty string (`''` or `null`) the footer row is omitted
+         */
+        "text": string;
     }
     interface BnPage {
         /**
@@ -521,6 +533,12 @@ declare global {
         prototype: HTMLBnMapElement;
         new (): HTMLBnMapElement;
     };
+    interface HTMLBnMessageElement extends Components.BnMessage, HTMLStencilElement {
+    }
+    var HTMLBnMessageElement: {
+        prototype: HTMLBnMessageElement;
+        new (): HTMLBnMessageElement;
+    };
     interface HTMLBnPageElement extends Components.BnPage, HTMLStencilElement {
     }
     var HTMLBnPageElement: {
@@ -572,6 +590,7 @@ declare global {
         "bn-layout": HTMLBnLayoutElement;
         "bn-layout-page": HTMLBnLayoutPageElement;
         "bn-map": HTMLBnMapElement;
+        "bn-message": HTMLBnMessageElement;
         "bn-page": HTMLBnPageElement;
         "bn-table": HTMLBnTableElement;
         "bn-template": HTMLBnTemplateElement;
@@ -798,6 +817,8 @@ declare namespace LocalJSX {
     interface BnLayoutPage {
         "footerDisplayPageNumber"?: boolean;
         "footerText"?: string;
+        "messageImage"?: string;
+        "messageText"?: string;
         "pageCustomTemplate"?: string;
         "pageFitToContent"?: boolean;
         "pageFormat"?: string;
@@ -859,6 +880,16 @@ declare namespace LocalJSX {
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
          */
         "titleLayer"?: string;
+    }
+    interface BnMessage {
+        /**
+          * /**    Url of the cards logo/ pictogram.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
+         */
+        "image"?: string;
+        /**
+          * Message text. <br />If empty string (`''` or `null`) the footer row is omitted
+         */
+        "text"?: string;
     }
     interface BnPage {
         /**
@@ -1020,6 +1051,7 @@ declare namespace LocalJSX {
         "bn-layout": BnLayout;
         "bn-layout-page": BnLayoutPage;
         "bn-map": BnMap;
+        "bn-message": BnMessage;
         "bn-page": BnPage;
         "bn-table": BnTable;
         "bn-template": BnTemplate;
@@ -1046,6 +1078,7 @@ declare module "@stencil/core" {
             "bn-layout": LocalJSX.BnLayout & JSXBase.HTMLAttributes<HTMLBnLayoutElement>;
             "bn-layout-page": LocalJSX.BnLayoutPage & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
             "bn-map": LocalJSX.BnMap & JSXBase.HTMLAttributes<HTMLBnMapElement>;
+            "bn-message": LocalJSX.BnMessage & JSXBase.HTMLAttributes<HTMLBnMessageElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
