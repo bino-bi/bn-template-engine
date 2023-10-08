@@ -472,10 +472,8 @@ export class Chart {
 
   private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {
 
-    console.log("prepareLeftSideOffset", this.syncSpaceLeft, [...this.prepareVariances(), ...this.prepareScenarios(), this.chartTitle]);
-
-    if (this.syncSpaceLeft > -1) {
-      console.log("this.syncSpaceLeft", this.syncSpaceLeft);
+    
+    if (this.syncSpaceLeft > -1) {     
       return this.syncSpaceLeft;
     }
 
