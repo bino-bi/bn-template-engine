@@ -145,7 +145,7 @@ export class LayoutPage {
     render() {
         let style = this.getLayoutStyle();
         let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
-        console.log("MessageImage", this.messageImage);
+   
         // @ts-ignore
         return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
             <bn-message text={this.messageText} image={this.messageImage}></bn-message>
