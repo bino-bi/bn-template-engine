@@ -48,16 +48,17 @@ export class Footer {
     return `./assets/${imgUrl}.png`
   }
 
+
   render() {
     return <Host id={(this.text  || this.image) ? "container-page-message": "container"}>
       <div id="message-text">
         {
-          this.text != null || this.text != ""? <span class="note">{this.text}</span> : ""
+          this.text != null && this.text != ""? <span class="note">{this.text}</span> : ""
         }
       </div>
       <div id="page-image">
         {
-          this.image != null || this.image != "" ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} /> : ""
+          this.image != null && this.image != "" ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} /> : ""
         }
       </div>    
       {/* </div> */}
