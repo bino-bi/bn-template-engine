@@ -1,11 +1,11 @@
     import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 
     @Component({
-        tag: 'bn-layout-page',
-        styleUrl: 'bn-layout-page.scss',
+        tag: 'bn-layout-card',
+        styleUrl: 'bn-layout-card.scss',
         shadow: true
     })
-    export class LayoutPage {
+    export class LayoutCard {
         @Element() el: HTMLElement
 
         @Prop() styles?: string;
