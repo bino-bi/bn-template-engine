@@ -13,46 +13,9 @@ bn-card {
     border: 0.1em solid #DDD;
   }
 
-  .measure {
-    font-weight: bold;
-  }
-
   div {
     /*background-color: white;*/
     color: black;
   }
-
-  .image {
-    z-index: 2;
-    background-color: transparent;
-    border: transparent;
-    height: auto;
-    width:  2.5em;
-  }
-
-  .overlay {
-    width: 100%;
-    padding-right: 100px;
-    position: absolute;
-    text-align: right;
-   /* background-color: yellow;*/
-    border: transparent;
-  }
-
-  .content {
-    display: flex; /* or inline-flex */
-    flex-direction: column;
-    position: relative;
-    width: 100%;
-/*background: red;*/
-}
-.titelgreen {
-background: greenyellow;
-}
-
-.footergreen {
-background: deepskyblue;
-}
-
 }
 
