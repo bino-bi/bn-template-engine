@@ -49,6 +49,8 @@ bn-page {
   @include landscape("4k", 3840px, 2160px);
   @include landscape("4k2k", 4096px, 2160px);
 
+  @include portrait("a6", 5.83in, 4.13in);
+  @include portrait("a5", 8.27in, 5.83in);
   @include portrait("a4", 11.6in, 8.17in); //11.7in, 8.27in
   @include portrait("a3", 16.54in, 11.7in);
   @include portrait("a2", 23.4in, 16.54in);
@@ -58,5 +60,5 @@ bn-page {
   @include portrait("letter", 11in, 8.5in);
   @include portrait("legal", 14in, 8.5in);
   @include portrait("tabloid", 17in, 11in);
-  @include portrait("ledger", 17in, 11in);
+  @include landscape("ledger", 17in, 11in);
 }
