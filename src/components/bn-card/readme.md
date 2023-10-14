@@ -10,25 +10,17 @@ Each Child-element must be used only once.
 <!-- Auto Generated Below -->
 
 
-## Properties
-
-| Property      | Attribute     | Description                                                                                                                                                                                 | Type     | Default     |
-| ------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `format`      | `format`      | Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga``` | `string` | `undefined` |
-| `orientation` | `orientation` | Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format                                                   | `string` | `undefined` |
-
-
 ## Dependencies
 
 ### Used by
 
- - [bn-layout-page](../bn-layout-page)
+ - [bn-layout-card](../bn-layout-card)
 
 ### Graph
 ```mermaid
 graph TD;
-  bn-layout-page --> bn-page
-  style bn-page fill:#f9f,stroke:#333,stroke-width:4px
+  bn-layout-card --> bn-card
+  style bn-card fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

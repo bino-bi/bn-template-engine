@@ -9,66 +9,6 @@ export namespace Components {
     interface BnBody {
     }
     interface BnCard {
-        /**
-          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
-         */
-        "businessUnit": string;
-        /**
-          * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-         */
-        "dateEnd": string;
-        /**
-          * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
-         */
-        "dateFormat": string;
-        /**
-          * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
-         */
-        "dateLink": string;
-        /**
-          * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-         */
-        "dateStart": string;
-        /**
-          * Custom text for footer which is displayed in the bottom-left of the card element<br /> If empty string (`''` or `null`) the footer row is omitted <br /><br /> example:<br /> ``` Hello, Footer!```
-         */
-        "footerText": string;
-        /**
-          * Url of the cards logo/ pictogram. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
-         */
-        "image": string;
-        /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
-         */
-        "internationalisationMode": string;
-        /**
-          * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
-         */
-        "measures": string;
-        /**
-          * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
-         */
-        "order": string;
-        /**
-          * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
-         */
-        "orderDirection": string;
-        /**
-          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
-         */
-        "scenarios": string;
-        /**
-          * show or hides the cards border <br /><br /> values:<br /> ``` true // false ```
-         */
-        "showBorder": string;
-        /**
-          * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
-         */
-        "variances": string;
     }
     interface BnChartStructure {
         /**
@@ -220,6 +160,28 @@ export namespace Components {
         "getNumberOfSlot": (name: string) => Promise<number>;
         "gridGap": string;
         "layout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+    }
+    interface BnLayoutCard {
+        "footerText"?: string;
+        "getNumberOfSlot": (name: string) => Promise<number>;
+        "messageImage": string;
+        "pageCustomTemplate": string;
+        "pageFitToContent": boolean;
+        "pageGridGap": string;
+        "pageLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "showBorder": boolean;
+        "styles"?: string;
+        "titleBusinessUnit": string;
+        "titleDateEnd"?: string;
+        "titleDateFormat": string;
+        "titleDateLink": string;
+        "titleDateStart"?: string;
+        "titleMeasures"?: string;
+        "titleNamespace": string;
+        "titleOrder": string;
+        "titleOrderDirection": string;
+        "titleScenarios"?: string;
+        "titleVariances"?: string;
     }
     interface BnLayoutPage {
         "footerDisplayPageNumber"?: boolean;
@@ -521,6 +483,12 @@ declare global {
         prototype: HTMLBnLayoutElement;
         new (): HTMLBnLayoutElement;
     };
+    interface HTMLBnLayoutCardElement extends Components.BnLayoutCard, HTMLStencilElement {
+    }
+    var HTMLBnLayoutCardElement: {
+        prototype: HTMLBnLayoutCardElement;
+        new (): HTMLBnLayoutCardElement;
+    };
     interface HTMLBnLayoutPageElement extends Components.BnLayoutPage, HTMLStencilElement {
     }
     var HTMLBnLayoutPageElement: {
@@ -588,6 +556,7 @@ declare global {
         "bn-grid": HTMLBnGridElement;
         "bn-internationalization": HTMLBnInternationalizationElement;
         "bn-layout": HTMLBnLayoutElement;
+        "bn-layout-card": HTMLBnLayoutCardElement;
         "bn-layout-page": HTMLBnLayoutPageElement;
         "bn-map": HTMLBnMapElement;
         "bn-message": HTMLBnMessageElement;
@@ -603,66 +572,6 @@ declare namespace LocalJSX {
     interface BnBody {
     }
     interface BnCard {
-        /**
-          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
-         */
-        "businessUnit"?: string;
-        /**
-          * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-         */
-        "dateEnd"?: string;
-        /**
-          * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
-         */
-        "dateFormat"?: string;
-        /**
-          * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
-         */
-        "dateLink"?: string;
-        /**
-          * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-         */
-        "dateStart"?: string;
-        /**
-          * Custom text for footer which is displayed in the bottom-left of the card element<br /> If empty string (`''` or `null`) the footer row is omitted <br /><br /> example:<br /> ``` Hello, Footer!```
-         */
-        "footerText"?: string;
-        /**
-          * Url of the cards logo/ pictogram. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
-         */
-        "image"?: string;
-        /**
-          * Lookup Map of translation tokens. (TODO: SHE)
-         */
-        "internationalisation"?: string;
-        /**
-          * Mode of Translation <br /><br /> values:<br /> ``` none // meta // all ```
-         */
-        "internationalisationMode"?: string;
-        /**
-          * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
-         */
-        "measures"?: string;
-        /**
-          * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
-         */
-        "order"?: string;
-        /**
-          * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
-         */
-        "orderDirection"?: string;
-        /**
-          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
-         */
-        "scenarios"?: string;
-        /**
-          * show or hides the cards border <br /><br /> values:<br /> ``` true // false ```
-         */
-        "showBorder"?: string;
-        /**
-          * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
-         */
-        "variances": string;
     }
     interface BnChartStructure {
         /**
@@ -813,6 +722,27 @@ declare namespace LocalJSX {
         "fitToContent"?: boolean;
         "gridGap"?: string;
         "layout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+    }
+    interface BnLayoutCard {
+        "footerText"?: string;
+        "messageImage"?: string;
+        "pageCustomTemplate"?: string;
+        "pageFitToContent"?: boolean;
+        "pageGridGap"?: string;
+        "pageLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "showBorder"?: boolean;
+        "styles"?: string;
+        "titleBusinessUnit"?: string;
+        "titleDateEnd"?: string;
+        "titleDateFormat"?: string;
+        "titleDateLink"?: string;
+        "titleDateStart"?: string;
+        "titleMeasures"?: string;
+        "titleNamespace"?: string;
+        "titleOrder"?: string;
+        "titleOrderDirection"?: string;
+        "titleScenarios"?: string;
+        "titleVariances"?: string;
     }
     interface BnLayoutPage {
         "footerDisplayPageNumber"?: boolean;
@@ -1049,6 +979,7 @@ declare namespace LocalJSX {
         "bn-grid": BnGrid;
         "bn-internationalization": BnInternationalization;
         "bn-layout": BnLayout;
+        "bn-layout-card": BnLayoutCard;
         "bn-layout-page": BnLayoutPage;
         "bn-map": BnMap;
         "bn-message": BnMessage;
@@ -1076,6 +1007,7 @@ declare module "@stencil/core" {
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
             "bn-layout": LocalJSX.BnLayout & JSXBase.HTMLAttributes<HTMLBnLayoutElement>;
+            "bn-layout-card": LocalJSX.BnLayoutCard & JSXBase.HTMLAttributes<HTMLBnLayoutCardElement>;
             "bn-layout-page": LocalJSX.BnLayoutPage & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
             "bn-map": LocalJSX.BnMap & JSXBase.HTMLAttributes<HTMLBnMapElement>;
             "bn-message": LocalJSX.BnMessage & JSXBase.HTMLAttributes<HTMLBnMessageElement>;

@@ -11,11 +11,14 @@
 | ------------------------- | ---------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | `footerDisplayPageNumber` | `footer-display-page-number` |             | `boolean`                                                                                                                                                  | `true`              |
 | `footerText`              | `footer-text`                |             | `string`                                                                                                                                                   | `undefined`         |
-| `layout`                  | `layout`                     |             | `"1-over-2" \| "1-over-3" \| "2-over-1" \| "2x2" \| "3-over-1" \| "3x3" \| "4x4" \| "custom-template" \| "full" \| "split-horizontal" \| "split-vertical"` | `'full'`            |
-| `layoutCustomTemplate`    | `layout-custom-template`     |             | `string`                                                                                                                                                   | `"\"a b\" \"c d\""` |
-| `layoutFitToContent`      | `layout-fit-to-content`      |             | `boolean`                                                                                                                                                  | `true`              |
-| `layoutGridGap`           | `layout-grid-gap`            |             | `string`                                                                                                                                                   | `"0"`               |
+| `messageImage`            | `message-image`              |             | `string`                                                                                                                                                   | `''`                |
+| `messageText`             | `message-text`               |             | `string`                                                                                                                                                   | `''`                |
+| `pageCustomTemplate`      | `page-custom-template`       |             | `string`                                                                                                                                                   | `"\"a b\" \"c d\""` |
+| `pageFitToContent`        | `page-fit-to-content`        |             | `boolean`                                                                                                                                                  | `true`              |
 | `pageFormat`              | `page-format`                |             | `string`                                                                                                                                                   | `undefined`         |
+| `pageGridGap`             | `page-grid-gap`              |             | `string`                                                                                                                                                   | `"0"`               |
+| `pageLayout`              | `page-layout`                |             | `"1-over-2" \| "1-over-3" \| "2-over-1" \| "2x2" \| "3-over-1" \| "3x3" \| "4x4" \| "custom-template" \| "full" \| "split-horizontal" \| "split-vertical"` | `'full'`            |
+| `pageNumber`              | `page-number`                |             | `string`                                                                                                                                                   | `undefined`         |
 | `pageOrientation`         | `page-orientation`           |             | `string`                                                                                                                                                   | `undefined`         |
 | `styles`                  | `styles`                     |             | `string`                                                                                                                                                   | `undefined`         |
 | `titleBusinessUnit`       | `title-business-unit`        |             | `string`                                                                                                                                                   | `''`                |
@@ -49,6 +52,7 @@ Type: `Promise<number>`
 ### Depends on
 
 - [bn-page](../bn-page)
+- [bn-message](../bn-message)
 - [bn-title](../bn-title)
 - [bn-body](../bn-body)
 - [bn-footer](../bn-footer)
@@ -57,6 +61,7 @@ Type: `Promise<number>`
 ```mermaid
 graph TD;
   bn-layout-page --> bn-page
+  bn-layout-page --> bn-message
   bn-layout-page --> bn-title
   bn-layout-page --> bn-body
   bn-layout-page --> bn-footer
