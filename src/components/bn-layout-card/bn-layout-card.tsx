@@ -26,11 +26,11 @@
    
         @Prop() footerText?: string;
 
-        @Prop() pageLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
-        @Prop() pageCustomTemplate: string = "\"a b\" \"c d\"";
-        @Prop() pageGridGap: string = "0";
-        @Prop() pageFitToContent: boolean = true;
-        @Prop() showBorder: boolean = true;
+        @Prop() cardLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
+        @Prop() cardCustomTemplate: string = "\"a b\" \"c d\"";
+        @Prop() cardGridGap: string = "0";
+        @Prop() cardFitToContent: boolean = true;
+        @Prop() cardShowBorder: boolean = true;
 
         private templateMap = new Map([['split-vertical', "\"a  b\""],
         ['split-horizontal', "\"a\" \"b\""],
@@ -48,7 +48,7 @@
             let height = "100%";
             let width = "100%";
 
-            if (this.pageFitToContent === true) {
+            if (this.cardFitToContent === true) {
                 width = "fit-content";
                 height = "fit-content";
             }
@@ -57,14 +57,14 @@
                 display: "grid",
                 height: height,
                 width: width,
-                gap: this.pageGridGap + "px"
+                gap: this.cardGridGap + "px"
             };
         }
 
         private getLayoutStyle() {
             return {
                 ...this.getCommonStyles(),
-                "grid-template-areas": this.getTemplatePattern(this.pageLayout),
+                "grid-template-areas": this.getTemplatePattern(this.cardLayout),
             };
         }
 
@@ -108,7 +108,7 @@
             }
 
             if (name == 'custom-template') {
-                return this.pageCustomTemplate;
+                return this.cardCustomTemplate;
             }
 
             return this.templateMap.get(name);
@@ -126,7 +126,7 @@
         }
 
         setCardClass(): string {
-            if (this.showBorder == true) {
+            if (this.cardShowBorder == true) {
               return "card_box border";
             }
             return "card_box"
