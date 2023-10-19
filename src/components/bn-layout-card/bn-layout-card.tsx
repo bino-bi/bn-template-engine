@@ -125,12 +125,19 @@
             // workaround for the render rotation issue       
         }
 
+        setCardClass(): string {
+            if (this.showBorder == true) {
+              return "card_box border";
+            }
+            return "card_box"
+        }
+
         render() {
             let style = this.getLayoutStyle();
             let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
     
             // @ts-ignore
-            return <bn-card styles={this.styles}>            
+            return <bn-card styles={this.styles} class={this.setCardClass()}>            
                 <bn-title   // @ts-ignore 
                     namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
                 </bn-title>
