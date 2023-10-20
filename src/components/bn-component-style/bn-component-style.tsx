@@ -10,7 +10,6 @@ import withComponentStatus from "../../utils/withComponentStatus";
 })
 export class ComponentStyle {
   @Prop() name: string = "_default";
-  @Prop() component: string;
 
   constructor() {
     withComponentStatus(this);
