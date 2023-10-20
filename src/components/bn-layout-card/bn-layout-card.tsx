@@ -24,7 +24,7 @@
         @Prop() titleDateLink: string = 'none';
         @Prop() titleNamespace: string = '_system';
    
-        @Prop() footerText?: string;
+        @Prop() footerText?: string = '';
 
         @Prop() cardLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
         @Prop() cardCustomTemplate: string = "\"a b\" \"c d\"";
@@ -146,7 +146,7 @@
                         {this.getSlots(arrOfSlots)}
                     </div>
                 </bn-body>
-                <bn-footer text={this.footerText} page-number={0} display-page-number={false}></bn-footer>
+                <bn-footer text={this.footerText} page-number={0} display-Page-Number={"false"}></bn-footer>
             </bn-card>
         }
     }

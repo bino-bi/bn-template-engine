@@ -162,14 +162,14 @@ export namespace Components {
         "layout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
     }
     interface BnLayoutCard {
+        "cardCustomTemplate": string;
+        "cardFitToContent": boolean;
+        "cardGridGap": string;
+        "cardLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "cardShowBorder": boolean;
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         "messageImage": string;
-        "pageCustomTemplate": string;
-        "pageFitToContent": boolean;
-        "pageGridGap": string;
-        "pageLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
-        "showBorder": boolean;
         "styles"?: string;
         "titleBusinessUnit": string;
         "titleDateEnd"?: string;
@@ -724,13 +724,13 @@ declare namespace LocalJSX {
         "layout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
     }
     interface BnLayoutCard {
+        "cardCustomTemplate"?: string;
+        "cardFitToContent"?: boolean;
+        "cardGridGap"?: string;
+        "cardLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "cardShowBorder"?: boolean;
         "footerText"?: string;
         "messageImage"?: string;
-        "pageCustomTemplate"?: string;
-        "pageFitToContent"?: boolean;
-        "pageGridGap"?: string;
-        "pageLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
-        "showBorder"?: boolean;
         "styles"?: string;
         "titleBusinessUnit"?: string;
         "titleDateEnd"?: string;
