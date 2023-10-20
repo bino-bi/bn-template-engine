@@ -1202,6 +1202,28 @@
           axis-labels-mode='smart'> </bn-chart-time>
       </div>
     </bn-layout-page>
+    <bn-layout-page message-image='bar' page-format='a4' title-scenarios='' show-footer='true' title-order-direction=''
+    title-business-unit='Illiquide - Real Estate' footer-display-page-number='true' title-date-format='none'
+    title-date-start='2021-12-30T23:00:00.000Z' page-layout='custom-template'
+    title-measures='[{"name":"Marktwert","unit":"Mrd."}]' title-date-end='2023-12-28T23:00:00.000Z' page-grid-gap='15'
+    title-date-link='start' title-order='' page-orientation='landscape' page-fit-to-content='true'
+    page-custom-template='"SlotA" "SlotB" "SlotC"' title-variances='' show-title='true'>
+    <div slot='slot-0'>      
+      <bn-layout-card message-image='bar' page-format='a4' title-scenarios='' show-footer='true' title-order-direction=''
+      title-business-unit='Illiquide - Real Estate' footer-display-page-number='true' title-date-format='none'
+      title-date-start='2021-12-30T23:00:00.000Z' page-layout='custom-template'
+      title-measures='[{"name":"Marktwert","unit":"Mrd."}]' title-date-end='2023-12-28T23:00:00.000Z' page-grid-gap='15'
+      title-date-link='start' title-order='' page-orientation='landscape' page-fit-to-content='true'
+      page-custom-template='"SlotA" "SlotB" "SlotC"' title-variances='' show-title='true'>
+      <div slot='card-slot-0'>      
+        <bn-chart-time sync-space-left='80' unit-scaling='0.01' date-interval='quarter'
+          datasets='$verlaufsgrafik' order='category' variances='' percentage-scaling='1' limit='0'
+          order-direction='desc' scenarios='ac1,fc1' interval-span-limit='12' chart-title='Marktwert' namespace='gogogo'
+          level='category' axis-labels-mode='short'> </bn-chart-time>
+      </div>  
+    </bn-layout-card>
+    </div>  
+  </bn-layout-page>
 
   </bn-context>
 </body>
