@@ -77,8 +77,9 @@
         }
 
         private getSlots(slotNames: string[]) {
+            console.log("getSlots", slotNames);
             const items = this.createDivAreaStyles(slotNames);
-
+            console.log("getSlots items", items);
             return <Fragment>
                 {items.map((value, index) => {
                     return <div style={value}>
@@ -134,8 +135,9 @@
 
         render() {
             let style = this.getLayoutStyle();
+            console.log("style to render", style);
             let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
-    
+            console.log("arrOfSlots to render", arrOfSlots);
             // @ts-ignore
             return <bn-card styles={this.styles} class={this.setCardClass()}>            
                 <bn-title   // @ts-ignore 
