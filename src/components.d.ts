@@ -100,7 +100,6 @@ export namespace Components {
         "variances": string;
     }
     interface BnComponentStyle {
-        "component": string;
         "name": string;
     }
     interface BnContext {
@@ -663,7 +662,6 @@ declare namespace LocalJSX {
         "variances": string;
     }
     interface BnComponentStyle {
-        "component"?: string;
         "name"?: string;
     }
     interface BnContext {
