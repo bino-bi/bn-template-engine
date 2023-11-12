@@ -138,6 +138,11 @@
             console.log("style to render", style);
             let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
             console.log("arrOfSlots to render", arrOfSlots);
+            
+            if (arrOfSlots != null) {
+                console.log("!!!!!!!!!!!!!!!!!!!!!!arrOfSlots to render", arrOfSlots);
+                this.getSlots(arrOfSlots) 
+            }
             // @ts-ignore
             return <bn-card styles={this.styles} class={this.setCardClass()}>            
                 <bn-title   // @ts-ignore 
