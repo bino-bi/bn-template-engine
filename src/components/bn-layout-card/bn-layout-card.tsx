@@ -143,9 +143,10 @@
                 <bn-title   // @ts-ignore 
                     namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
                 </bn-title>
-                <bn-body>
+                <bn-body> 
                     <div style={style}>
-                        {this.getSlots(arrOfSlots)}
+                        Hello, World {console.log("insside ",arrOfSlots)}
+                        {/*this.getSlots(arrOfSlots)*/}
                     </div>
                 </bn-body>
                 <bn-footer text={this.footerText} page-number={0} display-Page-Number={"false"}></bn-footer>
