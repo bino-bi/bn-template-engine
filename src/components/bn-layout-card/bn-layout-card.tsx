@@ -1,4 +1,4 @@
-    import { Component, h, Element, Prop, Method} from "@stencil/core";
+    import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 
     @Component({
         tag: 'bn-layout-card',
@@ -44,7 +44,7 @@
         ['custom-template', "\"a b\" \"c c c\""]
         ]);
 
-       /* private getCommonStyles() {
+        private getCommonStyles() {
             let height = "100%";
             let width = "100%";
 
@@ -60,23 +60,23 @@
                 gap: this.cardGridGap + "px"
             };
         }
-*/
-       /* private getLayoutStyle() {
+
+        private getLayoutStyle() {
             return {
                 ...this.getCommonStyles(),
                 "grid-template-areas": this.getTemplatePattern(this.cardLayout),
             };
-        }*/
+        }
 
-       /* private createDivAreaStyles(elements: string[]) {
+        private createDivAreaStyles(elements: string[]) {
             return elements.map(x => (
                 {
                     "overflow": "hidden",
                     "grid-area": x,
                 }));
-        }*/
+        }
 
-        /*private getSlots(slotNames: string[]) {
+        private getSlots(slotNames: string[]) {
             console.log("getSlots", slotNames);
             const items = this.createDivAreaStyles(slotNames);
             console.log("getSlots items", items);
@@ -87,7 +87,7 @@
                     </div>
                 })}
             </Fragment>
-        }*/
+        }
 
         private extractSlotNames(styleElement: string | null) {
             if (styleElement == null) {
@@ -134,31 +134,22 @@
         }
 
         render() {
-            //let style = this.getLayoutStyle();
-            //console.log("style to render", style);
-            //let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
-            //console.log("arrOfSlots to render", arrOfSlots);
-            
-            //if (arrOfSlots != null) {
-            //    console.log("arrOfSlots to render", arrOfSlots);
-            //    this.getSlots(arrOfSlots) 
-           // }
-
-            return <p>Hello WOrld</p>
-        
+            let style = this.getLayoutStyle();
+            console.log("style to render", style);
+            let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
+            console.log("arrOfSlots to render", arrOfSlots);
             // @ts-ignore
-           //return <bn-card styles={this.styles} class={this.setCardClass()}>            
-           //     <bn-title   // @ts-ignore 
-           //         namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
-            //    </bn-title>
-           //     <bn-body> 
-            //        <div style={style}>
-            //            Hello, World {console.log("insside ",arrOfSlots)}
-           //             {/*this.getSlots(arrOfSlots)*/}
-            //       </div>
-            //    </bn-body>
-           //     <bn-footer text={this.footerText} page-number={0} display-Page-Number={"false"}></bn-footer>
-         //   </bn-card>
+            return <bn-card styles={this.styles} class={this.setCardClass()}>            
+                <bn-title   // @ts-ignore 
+                    namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
+                </bn-title>
+                <bn-body>
+                    <div style={style}>
+                        {this.getSlots(arrOfSlots)}
+                    </div>
+                </bn-body>
+                <bn-footer text={this.footerText} page-number={0} display-Page-Number={"false"}></bn-footer>
+            </bn-card>
         }
     }
 
