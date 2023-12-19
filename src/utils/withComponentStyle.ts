@@ -11,6 +11,7 @@ const withComponentStyle = (component: any ) => {
   let style: Style = state["_system"]
   
   const updateStyle = () => {    
+    console.log("SELECTED STYLE::", selectedStyle, state[selectedStyle] )
     style = merge([state["_system"] || ({} as Style), state["_default"] || ({} as Style), state[selectedStyle] || ({} as Style)]);  
   };
 
