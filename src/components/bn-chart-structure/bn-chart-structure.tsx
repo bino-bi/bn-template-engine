@@ -22,6 +22,8 @@ import {
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { Style } from "../../stores/componentStyles";
+
 
 
 @Component({
@@ -34,7 +36,7 @@ export class Chart {
   @State() data: IStructureChartDataRow[] = []
 
   private readonly t: (key: string, data?: object) => string;
-  private readonly componentStyle: <T, >(q: (Style) => T) => T;
+  private readonly componentStyle: <T, >(q: (style: Style) => T) => T;
   private readonly errors: ErrorDispatcher;
 
   /**
@@ -221,7 +223,7 @@ export class Chart {
 
   @Watch('limit')
   validateLimit(newValue: number) {
-    const errId: string = 'ERR_order';
+    const errId: string = 'ERR_limit';
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'limit: invalid value \'' + newValue?.toString() + '\' is not supported.' });
@@ -229,6 +231,8 @@ export class Chart {
       this.errors.remove(errId);
     }
   }
+
+
 
 
 
@@ -254,7 +258,7 @@ export class Chart {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateUnitScaling(this.unitScaling);
-    //this.validateStyles(this.styles);
+    //this.validateSelectedStyle(this.selectedStyle);
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
@@ -326,6 +330,7 @@ export class Chart {
 
   private prepareStyle(): IStructureChartStyles {
     return this.componentStyle($ => {
+      console.log("I am $::", $);
       return {
         scaleFactors: {
           scenarioOffset: $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
@@ -409,7 +414,7 @@ export class Chart {
   }
 
   chartTemplate(localScenarioString: string) {
-
+    console.log("Styles::",this.prepareStyle() );
     return <ibcs-chart-structure
       data={this.data}
       chartTitle={this.prepareChartTitle(localScenarioString)}
