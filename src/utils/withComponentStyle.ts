@@ -4,42 +4,48 @@ import state, { Style, on } from "../stores/componentStyles";
 import { runIfExisits } from "./utils";
 import { merge } from '@corex/deepmerge'
 
-const withComponentStyle = (component: any) => {
+const withComponentStyle = (component: any ) => {
   let subscription: () => void;
-
-  let styles: string[] = [];
+  
+  let selectedStyle: string;
   let style: Style = state["_system"]
-
-  const updateStyle = () => {
-    style = merge([state["_system"] || ({} as Style), state["_default"] || ({} as Style), ...styles.map(key => state[key] || ({} as Style))]);
+  
+  const updateStyle = () => {    
+    style = merge([state["_system"] || ({} as Style), state["_default"] || ({} as Style), state[selectedStyle] || ({} as Style)]);  
   };
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'styles') {
-        const elm = getElement(component);
-        styles = (elm.getAttribute('styles') || "").split(",");
+      if (mutation.attributeName === 'selected-style') {        
+       
+        selectedStyle = (getElement(component).getAttribute('selected-style'));        
         updateStyle();
-        forceUpdate(elm);
+        forceUpdate(component);
       }
     });
   });
 
   const connectedCallback = component['connectedCallback'];
   component['connectedCallback'] = () => {
-    const elm = getElement(component);
-    observer.observe(elm, { attributes: true, attributeFilter: ['styles'] });
-    styles = (elm.getAttribute('styles') || "").split(",");
+    const element = getElement(component);
+    observer.observe(element, { attributes: true, attributeFilter: ['selected-style'] });
+    
+    selectedStyle = (getElement(component).getAttribute('selected-style'));
+    
     updateStyle();
+    
+    subscription = on("set", key => {    
+      if (key === selectedStyle) {
+        selectedStyle = (getElement(component).getAttribute('selected-style'));
+        updateStyle();
+        forceUpdate(getElement(component));
+      }
+    });    
+    
     runIfExisits(connectedCallback, component);
   }
 
-  subscription = on("set", key => {
-    if (styles.includes(key as string) || key === "_default") {
-      updateStyle();
-      forceUpdate(getElement(component));
-    }
-  });
+ 
 
   const disconnectedCallback = component['disconnectedCallback'];
   component['disconnectedCallback'] = () => {
@@ -48,9 +54,11 @@ const withComponentStyle = (component: any) => {
     runIfExisits(disconnectedCallback, component);
   };
 
-  const componentStyle = <T,>(q: ($style: Style) => T): T => {
+  const componentStyle = <T,>(q: ($style: Style) => T): T => {   
     return q(style);
   }
+
+  
 
   return componentStyle
 }

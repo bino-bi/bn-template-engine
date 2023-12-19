@@ -15,7 +15,7 @@ export class ComponentStyle {
     withComponentStatus(this);
     withBodyObserver(this, (data) => {
       try {
-        const parsedData = JSON.parse(data);
+        const parsedData = JSON.parse(data);       
         set(this.name, parsedData as Style)
       } catch (e) {
         //TODO: add error chanel for JSON parsing errors
