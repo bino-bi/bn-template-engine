@@ -194,6 +194,7 @@ export function validateThereOfJsonStr(value: string): string[] {
   try {
     const jsonObject = JSON.parse(value);
     if (jsonObject instanceof Array) {
+     
       // return newObj.filter(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))
       return jsonObject.filter(elem => !(elem.hasOwnProperty('rowGroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subCategory')));
 
@@ -274,35 +275,16 @@ export function isTableCategoryWidth(value: string): boolean {
 }
 
 export function validateColumnThereOfJsonStr(value: string): string[] {
+  
   if (isBlankInput(value)) {
     return [];
   }
 
   try {
     const jsonObject = JSON.parse(value);
-    let errList = [];
-
-    for (var value in jsonObject) {
-
-      if (!(value.toUpperCase().trim() in Scenarios)){
-        errList.push(value + ":" + jsonObject[value] + " invalid scenario");
-        continue;
-      }
-
-      if (typeof jsonObject[value] === 'object') {
-        jsonObject[value]?.forEach((elem) => {
-          if(typeof elem?.name !== 'string' || typeof elem?.  subGroups !== 'object'){
-            errList.push(value + ":" + elem);
-          }
-        });
-
-      }
-    }
-    return errList;
-
-    } catch {
-  }
-
+    return jsonObject.filter(elem => !(elem.hasOwnProperty('scenario') && elem.hasOwnProperty('name') && elem.hasOwnProperty('subGroups')))   
+  } catch {}
+  
   return ["Invalid JSON structure"];
 }
 
