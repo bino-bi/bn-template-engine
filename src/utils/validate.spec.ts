@@ -14,7 +14,8 @@ import {
   isValidInteger,
   validateThereOfJsonStr,
   isValidi18nMode,
-  validateGpxType
+  validateGpxType,
+  validateColumnThereOfJsonStr
 } from './validate';
 
 describe('validateScenarioList', () => {
@@ -590,5 +591,31 @@ describe('categoryThereOf tests', () => {
 describe('gpxs tests', () => {
   it('valid object', () => {
     expect(validateGpxType("[{\"file\": \"http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx\", \"color\": \"#FC5200\", \"opacity\": 0.75, \"weight\": 3, \"lineCap\": \"round\"}]")).toEqual([]);
+  });
+});
+
+describe('validateColumnThereOfJsonStr test', () => {
+  it('returns [] for valid json string', () => {
+    let valid = '[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]}, {"scenario": "ac2", "name": "UK", "subGroups": []}]';
+
+    expect(validateColumnThereOfJsonStr(valid)).toEqual([]); 
+  });
+
+  it('returns [{"xxx": "ac1", "name": "DE", "subGroups": ["Berlin"]}] for invalid valid json string', () => {
+    let valid = '[{"xxx": "ac1", "name": "DE", "subGroups": ["Berlin"]}';
+
+    expect(validateColumnThereOfJsonStr(valid)).toEqual(["Invalid JSON structure"]);
+  });
+
+  it('returns [] for empyt array', () => {
+    let valid = '[]';
+
+    expect(validateColumnThereOfJsonStr(valid)).toEqual([]);
+  });
+
+  it('returns [] for empty string', () => {
+    let valid = '';
+
+    expect(validateColumnThereOfJsonStr(valid)).toEqual([]);
   });
 });

@@ -484,7 +484,8 @@ export class Table {
   @Prop() columnthereof: string | null = null;
 
   @Watch('columnthereof')
-  validateCategoryThereOf(newValue: string | null) {
+  validateColumnThereOf(newValue: string | null) {
+    console.log("columnthereof", newValue)
     const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
     const errId: string = 'ERR_categorythereof';
     if (invalidElements.length > 0) {
@@ -516,7 +517,7 @@ export class Table {
     this.validateCategoryWidth(this.categoryWidth);
     this.validateMeasureType(this.measureType);
     this.validateMeasureScale(this.measureScale);
-    this.validateCategoryThereOf(this.columnthereof);
+    this.validateColumnThereOf(this.columnthereof);
     this.validateShowMeasureScale(this.showMeasureScale);
   }
 
