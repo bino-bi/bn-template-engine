@@ -20,6 +20,9 @@ type GpxParams = {
   opacity: number;
   weight: number;
   lineCap: string;
+  startIconUrl: string;
+  endIconUrl: string;
+  shadowUrl: string;
 }
 
 @Component({
@@ -297,7 +300,7 @@ export class BnMap {
   private createGPX(gpx: GpxParams): any {
 
     return <gpx-layer file={gpx.file} color={gpx.color} opacity={gpx.opacity} weight={gpx.weight}
-                      line-cap={gpx.lineCap}></gpx-layer>
+                      line-cap={gpx.lineCap} start-icon-url={gpx.startIconUrl} end-icon-url={gpx.endIconUrl} shadow-url=""></gpx-layer>
   }
 
   private prepareMarkerData() {

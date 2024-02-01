@@ -11,6 +11,13 @@
 
 
 
+#### Parameters
+
+| Name             | Type     | Description |
+| ---------------- | -------- | ----------- |
+| `dataSourceName` | `string` |             |
+| `key`            | `string` |             |
+
 #### Returns
 
 Type: `Promise<any[]>`
@@ -20,6 +27,13 @@ Type: `Promise<any[]>`
 ### `getDistinctFromDataset(datasetName: string, key: string) => Promise<any[]>`
 
 
+
+#### Parameters
+
+| Name          | Type     | Description |
+| ------------- | -------- | ----------- |
+| `datasetName` | `string` |             |
+| `key`         | `string` |             |
 
 #### Returns
 
