@@ -40,6 +40,12 @@
 
 
 
+#### Parameters
+
+| Name   | Type     | Description |
+| ------ | -------- | ----------- |
+| `name` | `string` |             |
+
 #### Returns
 
 Type: `Promise<number>`
