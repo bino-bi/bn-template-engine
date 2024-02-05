@@ -81,7 +81,7 @@ export class BnMap {
   @Prop({mutable: false}) gpxsDatasetName: string = "$gpxs";
   @Watch('gpxsDatasetName')
   validateGpxsDatasetName(newValue: number) {
-    const errId: string = 'ERR_markersDatasetName';
+    const errId: string = 'ERR_gpxsDatasetName';
 
     if (!isString(newValue)) {
       this.errors.addOrReplace({id: errId, type: 'warning', message:'gpxsDatasetName: invalid value(s) \'' + newValue + '\' are not supported.'});
@@ -185,14 +185,14 @@ export class BnMap {
    * URL for maplayer provider
    * example provers https://leaflet-extras.github.io/leaflet-providers/preview/
    */
-  @Prop() titleLayer: string = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
+  @Prop() tileLayer: string = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
 
-  @Watch('titleLayer')
-  validateTitleLayer(newValue: string) {
-    const errId: string = 'ERR_titleLayer';
+  @Watch('tileLayer')
+  validateTileLayer(newValue: string) {
+    const errId: string = 'ERR_tileLayer';
 
     if (!isString(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message:'titleLayer: invalid value(s) \'' + newValue + '\' are not supported.'});
+      this.errors.addOrReplace({ id: errId, type: 'warning', message:'tileLayer: invalid value(s) \'' + newValue + '\' are not supported.'});
     } else {
       this.errors.remove(errId);
     }
@@ -273,7 +273,7 @@ export class BnMap {
     this.validateScale(this.scale);
     this.validateShowScale(this.showScale);
     this.validateAttribution(this.attribution);
-    this.validateTitleLayer(this.titleLayer);
+    this.validateTileLayer(this.tileLayer);
     this.validateMarkers(this.markers);
     this.validateGpx(this.gpxs);
   }
@@ -283,7 +283,7 @@ export class BnMap {
 
     return (
       <Host>
-        <ibcs-map attribution={this.attribution} tile-layer={this.titleLayer} latitude={this.latitude}
+        <ibcs-map attribution={this.attribution} tile-layer={this.tileLayer} latitude={this.latitude}
                   longitude={this.longitude} scale={this.scale} show-scale={this.showScale}>
           {this.prepareMarkerData().map(this.createMarker)}
           {this.prepareGpxData().map(this.createGPX)}
