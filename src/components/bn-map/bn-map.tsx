@@ -279,8 +279,7 @@ export class BnMap {
   }
 
   render() {
-
-    console.log("scale={this.scale}", this.scale, "show-scale={this.showScale}", this.showScale, "latitude={this.latitude}", this.latitude, "longitude={this.longitude}", this.longitude)
+ 
     return (
       <Host>
         <ibcs-map attribution={this.attribution} tile-layer={this.tileLayer} latitude={this.latitude}
