@@ -248,7 +248,7 @@ export namespace Components {
         /**
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
          */
-        "titleLayer": string;
+        "tileLayer": string;
     }
     interface BnMessage {
         /**
@@ -807,7 +807,7 @@ declare namespace LocalJSX {
         /**
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
          */
-        "titleLayer"?: string;
+        "tileLayer"?: string;
     }
     interface BnMessage {
         /**
