@@ -7,3 +7,20 @@
   float: left;
   clear: left;
 }
+
+bn-card {
+  .cardtitle {
+     display: inline-flex;
+  }
+  .image {
+    margin-right: 0.5em;
+    margin-top: 0.5em;
+    z-index: 2;
+    background-color: transparent;
+    border: transparent;
+    height: 4em;
+    width:  auto;
+    display: inline;
+  }
+}
+
