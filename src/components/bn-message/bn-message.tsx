@@ -1,4 +1,4 @@
-import { Component, getAssetPath,  h, Host, Prop } from "@stencil/core";
+import { Component, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
@@ -58,7 +58,8 @@ export class Footer {
       </div>
       <div id="page-image">
         {
-          this.image != null && this.image != "" ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} /> : ""
+          //this.image != null && this.image != "" ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} /> : ""
+          this.image != null && this.image != "" ? <img class="image" src={this.image} /> : ""
         }
       </div>    
       {/* </div> */}
