@@ -138,9 +138,15 @@
             let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);        
             // @ts-ignore
             return <bn-card styles={this.styles} class={this.setCardClass()}>            
-                <bn-title   // @ts-ignore 
-                    namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
-                </bn-title>
+                <div class="cardtitle">
+                    <bn-title   // @ts-ignore 
+                         namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
+                    </bn-title>
+                    {
+                        //this.image != null && this.image != "" ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} /> : ""
+                        this.messageImage != null && this.messageImage != "" ? <img class="image" src={this.messageImage} /> : ""
+                    }
+                </div>              
                 <bn-body>
                     <div style={style}>
                         {this.getSlots(arrOfSlots)}
