@@ -10,7 +10,7 @@
 
         @Prop() styles?: string;
 
-        @Prop() messageImage: string = '';
+        @Prop() titleImage: string = '';
 
         @Prop() titleBusinessUnit: string = '';
         @Prop() titleScenarios?: string;
@@ -77,9 +77,9 @@
         }
 
         private getSlots(slotNames: string[]) {
-            console.log("getSlots", slotNames);
+          
             const items = this.createDivAreaStyles(slotNames);
-            console.log("getSlots items", items);
+          
             return <Fragment>
                 {items.map((value, index) => {
                     return <div style={value}>
@@ -144,7 +144,7 @@
                     </bn-title>
                     {
                         //this.image != null && this.image != "" ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} /> : ""
-                        this.messageImage != null && this.messageImage != "" ? <img class="image" src={this.messageImage} /> : ""
+                        this.titleImage != null && this.titleImage != "" ? <img class="image" src={this.titleImage} /> : ""
                     }
                 </div>              
                 <bn-body>
