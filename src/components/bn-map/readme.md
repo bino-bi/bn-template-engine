@@ -18,7 +18,7 @@
 | `markersDatasetName` | `markers-dataset-name` | Name of the makers Dataset used in map  default: $markers                                                                                                                                                                     | `string`  | `"$markers"`                                                            |
 | `scale`              | `scale`                | scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected                                                         | `number`  | `11`                                                                    |
 | `showScale`          | `show-scale`           | Activates/ Deactivates Map Scale                                                                                                                                                                                              | `boolean` | `false`                                                                 |
-| `titleLayer`         | `title-layer`          | URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/                                                                                                                         | `string`  | `'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'` |
+| `tileLayer`          | `tile-layer`           | URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/                                                                                                                         | `string`  | `'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'` |
 
 
 ## Dependencies
@@ -26,15 +26,11 @@
 ### Depends on
 
 - ibcs-map
-- map-marker
-- gpx-layer
 
 ### Graph
 ```mermaid
 graph TD;
   bn-map --> ibcs-map
-  bn-map --> map-marker
-  bn-map --> gpx-layer
   style bn-map fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

@@ -283,25 +283,13 @@ export class BnMap {
     return (
       <Host>
         <ibcs-map attribution={this.attribution} tile-layer={this.tileLayer} latitude={this.latitude}
-                  longitude={this.longitude} scale={this.scale} show-scale={this.showScale}>
-          {this.prepareMarkerData().map(this.createMarker)}
-          {this.prepareGpxData().map(this.createGPX)}
+                  longitude={this.longitude} scale={this.scale} show-scale={this.showScale} gpxs-layer={this.prepareGpxData()} markers={this.prepareMarkerData()}>        
         </ibcs-map>
       </Host>
     );
   }
 
-  private createMarker(marker: MarkerParams): any {
-    return <map-marker latitude={marker.latitude} longitude={marker.longitude} icon-url={marker.iconUrl}
-                       icon-width={marker.iconWidth} icon-height={marker.iconHeight}/>
-  }
-
-  private createGPX(gpx: GpxParams): any {
-
-    return <gpx-layer file={gpx.file} color={gpx.color} opacity={gpx.opacity} weight={gpx.weight}
-                      line-cap={gpx.lineCap} start-icon-url={gpx.startIconUrl} end-icon-url={gpx.endIconUrl} shadow-url=""></gpx-layer>
-  }
-
+ 
   private prepareMarkerData() {
 
     return [...this.markerData, ...this.markerList];
