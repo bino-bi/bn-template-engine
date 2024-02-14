@@ -278,8 +278,7 @@ export class BnMap {
     this.validateGpx(this.gpxs);
   }
 
-  render() {
- 
+  render() { 
     return (
       <Host>
         <ibcs-map attribution={this.attribution} tile-layer={this.tileLayer} latitude={this.latitude}
@@ -291,12 +290,12 @@ export class BnMap {
 
  
   private prepareMarkerData() {
-
+    console.log("prepareMarkerData",  [...this.markerData, ...this.markerList] );
     return [...this.markerData, ...this.markerList];
   }
 
   private prepareGpxData() {
-
+    console.log("prepareGpxData",  [ ...this.gpxData, ...this.gpxList] );
     return [ ...this.gpxData, ...this.gpxList];
   }
 
