@@ -282,20 +282,18 @@ export class BnMap {
     return (
       <Host>
         <ibcs-map attribution={this.attribution} tile-layer={this.tileLayer} latitude={this.latitude}
-                  longitude={this.longitude} scale={this.scale} show-scale={this.showScale} gpxs-layer={this.prepareGpxData()} markers={this.prepareMarkerData()}>        
+                  longitude={this.longitude} scale={this.scale} show-scale={this.showScale} gpxs={this.prepareGpxData()} markers={this.prepareMarkerData()}>        
         </ibcs-map>
       </Host>
     );
   }
 
  
-  private prepareMarkerData() {
-    console.log("prepareMarkerData",  [...this.markerData, ...this.markerList] );
+  private prepareMarkerData() {    
     return [...this.markerData, ...this.markerList];
   }
 
-  private prepareGpxData() {
-    console.log("prepareGpxData",  [ ...this.gpxData, ...this.gpxList] );
+  private prepareGpxData() {  
     return [ ...this.gpxData, ...this.gpxList];
   }
 
@@ -307,6 +305,9 @@ export class BnMap {
         opacity: {type: "number", isOptional: false, description: ""},
         weight: {type: "number", isOptional: false, description: ""},
         lineCap: {type: "string", isOptional: false, description: ""},
+        startIconUrl: {type: "string", isOptional: false, description: ""},
+        endIconUrl: {type: "string", isOptional: false, description: ""},
+        shadowUrl: {type: "string", isOptional: false, description: ""},
       }
     };
 
@@ -321,6 +322,7 @@ export class BnMap {
         iconUrl: {type: "number", isOptional: false, description: ""},
         iconWidth: {type: "number", isOptional: false, description: ""},
         iconHeight: {type: "number", isOptional: false, description: ""},
+        tile: {type: "string", isOptional: false, description: ""},
       }
     };
 
