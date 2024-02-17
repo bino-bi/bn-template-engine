@@ -279,10 +279,22 @@ export class BnMap {
   }
 
   render() { 
+
+    console.log("GPX::",this.prepareGpxData());
+
+    
     return (
       <Host>
-        <ibcs-map attribution={this.attribution} tile-layer={this.tileLayer} latitude={this.latitude}
-                  longitude={this.longitude} scale={this.scale} show-scale={this.showScale} gpxs={this.prepareGpxData()} markers={this.prepareMarkerData()}>        
+        <ibcs-map tileLayer={this.tileLayer}
+                  latitude={this.latitude}  
+                  longitude={this.longitude}
+                  scale={this.scale}
+                  showScale={this.showScale}
+                  showZoom={false}
+                  attribution={this.attribution}    
+                  gpxs={this.prepareGpxData()} 
+                  markers={this.prepareMarkerData()}
+                  >        
         </ibcs-map>
       </Host>
     );
@@ -294,7 +306,7 @@ export class BnMap {
   }
 
   private prepareGpxData() {  
-    return [ ...this.gpxData, ...this.gpxList];
+     return [ ...this.gpxData, ...this.gpxList];
   }
 
   public getDataStructureGpxParams(): any {
