@@ -289,6 +289,8 @@ export class Chart {
    */
   @Prop() dateInterval!: string;
 
+  
+
   @Watch('dateInterval')
   validateDateInterval(newValue: string) {
     const errId: string = 'ERR_dateInterval';
@@ -303,6 +305,30 @@ export class Chart {
       this.errors.remove(errId);
     }
   }
+
+   /** Chart Type
+   *  <br /><br />
+   *  values:<br />
+   *  ```bar// line / area```
+   */
+   @Prop() type: string = "bar";
+ 
+
+   @Watch('type')
+   validateChartType(newValue: string) {
+     const errId: string = 'ERR_chartType';
+ 
+     /*if (!isValidateType(newValue)) {
+       this.errors.addOrReplace({
+         id: errId,
+         type: 'warning',
+         message: 'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'
+       });
+     } else {
+       this.errors.remove(errId);
+     }*/
+   }
+ 
 
   /** Max number of collumns
    *  is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
@@ -364,6 +390,7 @@ export class Chart {
     this.validateLeftSync(this.syncSpaceLeft);
     this.validateDateInterval(this.dateInterval);
     this.validateAxisLabelsMode(this.axisLabelsMode);
+    this.validateChartType(this.type);
 
   }
 
@@ -510,6 +537,10 @@ export class Chart {
     return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
 
+  private prepareChartType() {
+    return this.type;
+  }
+
   public getDataStructure(): any {
     let dataSetStructure: any = {
       ITimeChartDataRow: {
@@ -569,8 +600,10 @@ export class Chart {
       dateInterval={this.prepareDateInterval()}
       intervalSpanLimit={this.prepareIntervalSpanLimit()}
       axisLabelsMode={this.prepareAxisLabelsMode()}
+      type={this.prepareChartType()}
     ></ibcs-chart-time>
   }
+ 
 
   render() {
     let scenariosArray = [''];
