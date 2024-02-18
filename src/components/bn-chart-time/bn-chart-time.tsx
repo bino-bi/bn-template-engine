@@ -317,7 +317,7 @@ export class Chart {
    @Watch('type')
    validateChartType(newValue: string) {
      const errId: string = 'ERR_chartType';
- 
+     console.log("newValue", newValue, errId);
      /*if (!isValidateType(newValue)) {
        this.errors.addOrReplace({
          id: errId,
@@ -536,6 +536,7 @@ export class Chart {
   private prepareAxisLabelsMode(): AxisLabelsMode {
     return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
+
 
   private prepareChartType() {
     return this.type;
