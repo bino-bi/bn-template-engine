@@ -152,7 +152,7 @@
                         {this.getSlots(arrOfSlots)}
                     </div>
                 </bn-body>
-                <bn-footer text={this.footerText} page-number={0} display-Page-Number={"false"}></bn-footer>
+                <bn-footer text={this.footerText} page-number={0} display-page-number={"false"}></bn-footer>
             </bn-card>
         }
     }
