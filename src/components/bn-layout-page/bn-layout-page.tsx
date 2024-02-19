@@ -79,6 +79,7 @@
                 {
                     "overflow": "hidden",
                     "grid-area": x,
+                    "height" : "100%"
                 }));
         }
 
@@ -108,7 +109,6 @@
         }
 
         private getTemplatePattern(name: string): string {
-            console.dir({ name: name })
             if (this.templateMap.has(name) == false && name != 'custom-template') {
                 return "\"a\"";
             }
