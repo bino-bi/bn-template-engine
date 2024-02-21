@@ -1,4 +1,4 @@
-import {Component, h, Host, Prop, State, Watch} from '@stencil/core';
+import {Component, h, Host, Listen, Prop, State, Watch} from '@stencil/core';
 import {isValidBoolean, isValidNumber, validateGpxType, validateMarkerType} from "../../utils/validate";
 import {isEmpty, isString} from "lodash";
 import {withStyled} from "../../utils/styled/withStyled";
@@ -41,6 +41,7 @@ export class BnMap {
   @State() gpxData:    GpxParams[] = [];
   @State() markerData: MarkerParams[] = [];
   @State() data: any[] = [];
+
 
   constructor() {
     withStyled(this);
@@ -94,7 +95,7 @@ export class BnMap {
    * the selected value will be ignored if gpx files are
    * selected
    */
-  @Prop({mutable: false}) latitude: number = 50.137634;
+  @Prop({mutable: true}) latitude: number = 50.137634;
 
   @Watch('latitude')
   validateLatitude(newValue: number) {
@@ -112,7 +113,7 @@ export class BnMap {
    * the selected value will be ignored if gpx files are
    * selected
    */
-  @Prop({mutable: false}) longitude: number = 8.679129;
+  @Prop({mutable: true}) longitude: number = 8.679129;
 
   @Watch('longitude')
   validateLongitude(newValue: number) {
@@ -132,7 +133,7 @@ export class BnMap {
    * the selected value will be ignored if gpx files are
    * selected
    */
-  @Prop({mutable: false}) scale: number = 11;
+  @Prop({mutable: true}) scale: number = 11;
 
   @Watch('scale')
   validateScale(newValue: number) {
@@ -266,6 +267,19 @@ export class BnMap {
     }
   }
 
+
+  @Listen('stateUpdated')
+  stateUpdated(status: any) {    
+    console.log("stateUpdated", status);
+  }
+
+  @Listen('dragZoomEnded')
+  dragZoomEnded(props: any) {    
+    console.log("dragZoomEnded", props);
+    this.latitude = props.detail.latitude;
+    this.longitude = props.detail.longitude;
+    this.scale = props.detail.scale;
+  }
 
   componentWillLoad() {
     this.validateLatitude(this.latitude);
