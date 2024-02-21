@@ -1,5 +1,6 @@
 import { generateUUID, runIfExisits } from "./utils";
-import { ComponentRegister, ComponentStatus } from "./componentRegister";
+import { ComponentRegister } from "./componentRegister";
+import { ComponentStatus } from "@bino-bi/ibcs-component-interface";
 
 const withComponentStatus = (component: any) => {
   let uuid: string = generateUUID();
