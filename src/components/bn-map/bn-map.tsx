@@ -275,10 +275,7 @@ export class BnMap {
 
   @Listen('dragZoomEnded')
   dragZoomEnded(props: any) {    
-    console.log("dragZoomEnded", props);
-    this.latitude = props.detail.latitude;
-    this.longitude = props.detail.longitude;
-    this.scale = props.detail.scale;
+    console.log("dragZoomEnded", props.detail);
   }
 
   componentWillLoad() {
