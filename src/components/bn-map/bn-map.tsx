@@ -275,6 +275,7 @@ export class BnMap {
 
   @Listen('dragZoomEnded')
   dragZoomEnded(props: any) {    
+
     console.log("dragZoomEnded", props.detail);
   }
 
@@ -290,10 +291,6 @@ export class BnMap {
   }
 
   render() { 
-
-    console.log("GPX::",this.prepareGpxData());
-
-    
     return (
       <Host>
         <ibcs-map tileLayer={this.tileLayer}
