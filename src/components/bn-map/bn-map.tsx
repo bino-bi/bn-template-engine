@@ -1,4 +1,4 @@
-import {Component, h, Host, Listen, Prop, State, Watch} from '@stencil/core';
+import {Component, h, Host,  Prop, State, Watch} from '@stencil/core';
 import {isValidBoolean, isValidNumber, validateGpxType, validateMarkerType} from "../../utils/validate";
 import {isEmpty, isString} from "lodash";
 import {withStyled} from "../../utils/styled/withStyled";
