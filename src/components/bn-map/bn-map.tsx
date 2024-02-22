@@ -268,16 +268,16 @@ export class BnMap {
   }
 
 
-  @Listen('stateUpdated')
-  stateUpdated(status: any) {    
-    console.log("stateUpdated", status);
-  }
+  //@Listen('stateUpdated')
+  //stateUpdated(status: any) {    
+  //  console.log("stateUpdated", status);
+  //}
 
-  @Listen('dragZoomEnded')
-  dragZoomEnded(props: any) {    
+  //@Listen('dragZoomEnded')
+  //dragZoomEnded(props: any) {    
 
-    console.log("dragZoomEnded", props.detail);
-  }
+  //  console.log("dragZoomEnded", props.detail);
+  // }
 
   componentWillLoad() {
     this.validateLatitude(this.latitude);
