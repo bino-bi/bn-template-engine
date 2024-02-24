@@ -217,6 +217,7 @@ export namespace Components {
           * Set Footer label
          */
         "attribution": string;
+        "geojsons": string | null;
         /**
           * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
          */
@@ -413,6 +414,10 @@ export namespace Components {
         "internationalizationKeys": () => Promise<string[]>;
     }
 }
+export interface BnMapCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLBnMapElement;
+}
 declare global {
     interface HTMLBnBodyElement extends Components.BnBody, HTMLStencilElement {
     }
@@ -498,7 +503,19 @@ declare global {
         prototype: HTMLBnLayoutPageElement;
         new (): HTMLBnLayoutPageElement;
     };
+    interface HTMLBnMapElementEventMap {
+        "bnStateUpdated": any;
+        "bnDragZoomEnded": any;
+    }
     interface HTMLBnMapElement extends Components.BnMap, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLBnMapElementEventMap>(type: K, listener: (this: HTMLBnMapElement, ev: BnMapCustomEvent<HTMLBnMapElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLBnMapElementEventMap>(type: K, listener: (this: HTMLBnMapElement, ev: BnMapCustomEvent<HTMLBnMapElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLBnMapElement: {
         prototype: HTMLBnMapElement;
@@ -780,6 +797,7 @@ declare namespace LocalJSX {
           * Set Footer label
          */
         "attribution"?: string;
+        "geojsons"?: string | null;
         /**
           * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
          */
@@ -804,6 +822,8 @@ declare namespace LocalJSX {
           * Name of the makers Dataset used in map  default: $markers
          */
         "markersDatasetName"?: string;
+        "onBnDragZoomEnded"?: (event: BnMapCustomEvent<any>) => void;
+        "onBnStateUpdated"?: (event: BnMapCustomEvent<any>) => void;
         /**
           * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
          */
