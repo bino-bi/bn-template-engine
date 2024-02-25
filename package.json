@@ -44,11 +44,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@bino-bi/ibcs-component": "^0.39.25",
+    "@bino-bi/ibcs-component": "^0.39.17",
     "@bino-bi/ibcs-component-interface": "0.8.1",
     "@corex/deepmerge": "^4.0.29",
     "@emotion/hash": "^0.9.0",
-    "@types/geojson": "^7946.0.14",
     "@types/lodash": "^4.14.191",
     "faker": "^5.5.3",
     "lodash": "^4.17.21",
