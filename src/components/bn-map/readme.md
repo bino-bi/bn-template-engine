@@ -10,7 +10,6 @@
 | Property             | Attribute              | Description                                                                                                                                                                                                                   | Type      | Default                                                                 |
 | -------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------- |
 | `attribution`        | `attribution`          | Set Footer label                                                                                                                                                                                                              | `string`  | `''`                                                                    |
-| `geojsons`           | `geojsons`             |                                                                                                                                                                                                                               | `string`  | `null`                                                                  |
 | `gpxs`               | `gpxs`                 | GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]                                                            | `string`  | `null`                                                                  |
 | `gpxsDatasetName`    | `gpxs-dataset-name`    | Name of the gpxs Dataset used in map  default: $gpxs                                                                                                                                                                          | `string`  | `"$gpxs"`                                                               |
 | `latitude`           | `latitude`             | Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected                                                                                                                            | `number`  | `50.137634`                                                             |
@@ -20,14 +19,6 @@
 | `scale`              | `scale`                | scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected                                                         | `number`  | `11`                                                                    |
 | `showScale`          | `show-scale`           | Activates/ Deactivates Map Scale                                                                                                                                                                                              | `boolean` | `false`                                                                 |
 | `tileLayer`          | `tile-layer`           | URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/                                                                                                                         | `string`  | `'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'` |
-
-
-## Events
-
-| Event             | Description | Type               |
-| ----------------- | ----------- | ------------------ |
-| `bnDragZoomEnded` |             | `CustomEvent<any>` |
-| `bnStateUpdated`  |             | `CustomEvent<any>` |
 
 
 ## Dependencies

@@ -1,12 +1,10 @@
-import {Component, h, Host,  Listen,  Prop, State, Watch} from '@stencil/core';
-import {isValidBoolean, isValidNumber, validateGeoJsonType, validateGpxType, validateMarkerType} from "../../utils/validate";
+import {Component, h, Host,  Prop, State, Watch} from '@stencil/core';
+import {isValidBoolean, isValidNumber, validateGpxType, validateMarkerType} from "../../utils/validate";
 import {isEmpty, isString} from "lodash";
 import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
-import { GeoJSON } from "geojson";
-import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 
 type MarkerParams = {
   latitude: number;
@@ -38,12 +36,10 @@ export class BnMap {
 
   private markerList: MarkerParams[] = [];
   private gpxList: GpxParams[] = []
-  private geoJsonList: GeoJSON[] = []
 
  //  @State() gpxdata: GpxParams[] = [];
   @State() gpxData:    GpxParams[] = [];
   @State() markerData: MarkerParams[] = [];
-  @State() geoJsonData: GeoJSON[] = [];
   @State() data: any[] = [];
 
 
@@ -257,7 +253,6 @@ export class BnMap {
     const errId: string = 'ERR_gpxs';
     const errIdJson: string = 'ERR_gpxsJSON';
     try {
-      console.log("validateGpx", newValue );
       const invalidScenarios: string[] = validateGpxType(newValue);
       if (invalidScenarios.length > 0) {
         this.errors.addOrReplace({ id: errId, type: 'warning', message:'gpxs: invalid value(s) \'' + invalidScenarios + '\' are not supported.'});
@@ -272,50 +267,17 @@ export class BnMap {
     }
   }
 
-  @Prop() geojsons: string | null = null;
 
-  @Watch('geojsons')
-  validateGeoJson(newValue: string | null) {
+  //@Listen('stateUpdated')
+  //stateUpdated(status: any) {    
+  //  console.log("stateUpdated", status);
+  //}
 
-    if (isEmpty(newValue)) {
-      return;
-    }
-    const errId: string = 'ERR_geojsons';
-    const errIdJson: string = 'ERR_geojsons';
-    try {
-      console.log("validateGeoJson", newValue );
-      const invalidScenarios: string[] = validateGeoJsonType(newValue);
-      if (invalidScenarios.length > 0) {
-        this.errors.addOrReplace({ id: errId, type: 'warning', message:'geojsosn: invalid value(s) \'' + invalidScenarios + '\' are not supported.'});
-      } else {
-        this.errors.remove(errId);
-      }
+  //@Listen('dragZoomEnded')
+  //dragZoomEnded(props: any) {    
 
-      this.geoJsonList = JSON.parse(newValue);
-      console.log("geoJsonList",  this.geoJsonList  );
-      this.errors.remove(errIdJson);
-    } catch (e) {
-      this.errors.addOrReplace({id: errIdJson, type: 'warning', message:'geojsons: invalid  \'' + newValue + '\' is not supported.:' + e.message});
-    }
-  }
-  
-  
-  // @ts-ignore
-  @Event() bnStateUpdated: EventEmitter<any>;
-    // @ts-ignore
-  @Event() bnDragZoomEnded: EventEmitter<any>;
-
-  @Listen('stateUpdated')
-  stateUpdated(status: any) {    
-    console.log("stateUpdated", status.detail);
-    this.bnStateUpdated.emit(ComponentStatus.SUCCESSFUL);
-  }
-
-  @Listen('dragZoomEnded')
-  dragZoomEnded(props: any) {       
-    this.bnDragZoomEnded.emit(props.detail);
-  }
-
+  //  console.log("dragZoomEnded", props.detail);
+  // }
 
   componentWillLoad() {
     this.validateLatitude(this.latitude);
@@ -326,80 +288,34 @@ export class BnMap {
     this.validateTileLayer(this.tileLayer);
     this.validateMarkers(this.markers);
     this.validateGpx(this.gpxs);
-    this.validateGeoJson(this.geojsons);
   }
 
-  // this.prepareGeoJsonData()
   render() { 
-      <Host>          
-          <ibcs-map tile-layer={this.tileLayer}
+    return (
+      <Host>
+        <ibcs-map tileLayer={this.tileLayer}
                   latitude={this.latitude}  
                   longitude={this.longitude}
                   scale={this.scale}
-                  show-scale={this.showScale}
-                  show-zoom={false}
-                  custom-view={true}
+                  showScale={this.showScale}
+                  showZoom={false}
                   attribution={this.attribution}    
                   gpxs={this.prepareGpxData()} 
                   markers={this.prepareMarkerData()}
-                  geojsons={this.prepareGeoJsonData()}
-        >           
+                  >        
         </ibcs-map>
       </Host>
-    ;
+    );
   }
 
  
-
-
-  /*
-
-        <ibcs-map customView = {true}
-                    latitude={51.137634}
-                    longitude={9.679129} 
-                    scale = {10}
-                    showScale = {false}
-                    showZoom = {false}
-                    attribution={"Jens ist Toll"}  
-                    gpxs = {gpxExample} 
-                    geojsons={geoJsonExample}
-                    markers = {`[]`}
-                    >           
-          </ibcs-map>
-
-
-           <ibcs-map tile-layer={this.tileLayer}
-                  latitude={this.latitude}  
-                  longitude={this.longitude}
-                  scale={this.scale}
-                  show-scale={this.showScale}
-                  show-zoom={false}
-                  custom-view={true}
-                  attribution={this.attribution}    
-                  gpxs={this.prepareGpxData()} 
-                  markers={this.prepareMarkerData()}
-                  geojsons={this.prepareGeoJsonData()}
-        >           
-        </ibcs-map>
-
-
-        
-  */
-
   private prepareMarkerData() {    
     return [...this.markerData, ...this.markerList];
   }
 
   private prepareGpxData() {  
-     console.log("prepareGpxData: ", [ ...this.gpxData, ...this.gpxList]);
      return [ ...this.gpxData, ...this.gpxList];
   }
-
-  private prepareGeoJsonData() {  
-    console.log("prepareGeoJsonData: ", [ ...this.geoJsonData, ...this.geoJsonList]);
-    return [ ...this.geoJsonData, ...this.geoJsonList];
- }
-
 
   public getDataStructureGpxParams(): any {
     let dataSetStructure: any = {
