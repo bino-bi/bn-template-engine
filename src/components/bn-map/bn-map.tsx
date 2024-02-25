@@ -5,7 +5,7 @@ import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
-import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
+//import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 
 type MarkerParams = {
   latitude: number;
