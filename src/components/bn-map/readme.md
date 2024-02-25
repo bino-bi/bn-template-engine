@@ -22,6 +22,14 @@
 | `tileLayer`          | `tile-layer`           | URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/                                                                                                                         | `string`  | `'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'` |
 
 
+## Events
+
+| Event             | Description | Type               |
+| ----------------- | ----------- | ------------------ |
+| `bnDragZoomEnded` |             | `CustomEvent<any>` |
+| `bnStateUpdated`  |             | `CustomEvent<any>` |
+
+
 ## Dependencies
 
 ### Depends on
