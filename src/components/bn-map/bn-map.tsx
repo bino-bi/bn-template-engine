@@ -1,10 +1,11 @@
-import {Component, h, Host,  Prop, State, Watch} from '@stencil/core';
+import {Component, h, Host,  Listen,  Prop, State, Watch} from '@stencil/core';
 import {isValidBoolean, isValidNumber, validateGpxType, validateMarkerType, validateGeojsonType} from "../../utils/validate";
 import {isEmpty, isString} from "lodash";
 import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
+import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 
 type MarkerParams = {
   latitude: number;
@@ -303,18 +304,22 @@ export class BnMap {
     }
   }
 
+  // @ts-ignore
+  @Event() bnStateUpdated: EventEmitter<any>;
+    // @ts-ignore
+  @Event() bnDragZoomEnded: EventEmitter<any>;
+  
 
+  
+  @Listen('stateUpdated')
+  stateUpdated(status: any) {      
+      this.bnStateUpdated.emit(status.detail);   
+  }
 
-  //@Listen('stateUpdated')
-  //stateUpdated(status: any) {    
-  //  console.log("stateUpdated", status);
-  //}
-
-  //@Listen('dragZoomEnded')
-  //dragZoomEnded(props: any) {    
-
-  //  console.log("dragZoomEnded", props.detail);
-  // }
+  @Listen('dragZoomEnded')
+  dragZoomEnded(props: any) {       
+    this.bnDragZoomEnded.emit(props.detail);
+  }
 
   componentWillLoad() {
     this.validateLatitude(this.latitude);
