@@ -217,6 +217,7 @@ export namespace Components {
           * Set Footer label
          */
         "attribution": string;
+        "geojsons": string | null;
         /**
           * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
          */
@@ -780,6 +781,7 @@ declare namespace LocalJSX {
           * Set Footer label
          */
         "attribution"?: string;
+        "geojsons"?: string | null;
         /**
           * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
          */
