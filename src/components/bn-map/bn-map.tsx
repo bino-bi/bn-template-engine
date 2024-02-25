@@ -1,5 +1,5 @@
 import {Component, h, Host,  Prop, State, Watch} from '@stencil/core';
-import {isValidBoolean, isValidNumber, validateGpxType, validateMarkerType} from "../../utils/validate";
+import {isValidBoolean, isValidNumber, validateGpxType, validateMarkerType, validateGeojsonType} from "../../utils/validate";
 import {isEmpty, isString} from "lodash";
 import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -25,6 +25,15 @@ type GpxParams = {
   shadowUrl: string;
 }
 
+type GeojsonParams = {
+  file: string;
+  color: string;
+  opacity: number;
+  weight: number;
+  lineCap: string;  
+}
+
+
 @Component({
   tag: 'bn-map',
   styleUrl: 'bn-map.css',
@@ -36,9 +45,11 @@ export class BnMap {
 
   private markerList: MarkerParams[] = [];
   private gpxList: GpxParams[] = []
+  private geojsonList: GeojsonParams[] = []
 
  //  @State() gpxdata: GpxParams[] = [];
   @State() gpxData:    GpxParams[] = [];
+  @State() geojsonData:  GeojsonParams[] = [];
   @State() markerData: MarkerParams[] = [];
   @State() data: any[] = [];
 
@@ -267,6 +278,32 @@ export class BnMap {
     }
   }
 
+  @Prop() geojsons: string | null = null;
+
+  @Watch('geojsons')
+  validateGeojson(newValue: string | null) {
+
+    if (isEmpty(newValue)) {
+      return;
+    }
+    const errId: string = 'ERR_geojsons';
+    const errIdJson: string = 'ERR_geojsons';
+    try {
+      const invalidScenarios: string[] = validateGeojsonType(newValue);
+      if (invalidScenarios.length > 0) {
+        this.errors.addOrReplace({ id: errId, type: 'warning', message:'geojsons: invalid value(s) \'' + invalidScenarios + '\' are not supported.'});
+      } else {
+        this.errors.remove(errId);
+      }
+
+      this.geojsonList = JSON.parse(newValue);
+      this.errors.remove(errIdJson);
+    } catch (e) {
+      this.errors.addOrReplace({id: errIdJson, type: 'warning', message:'geojsons: invalid  \'' + newValue + '\' is not supported.:' + e.message});
+    }
+  }
+
+
 
   //@Listen('stateUpdated')
   //stateUpdated(status: any) {    
@@ -288,6 +325,7 @@ export class BnMap {
     this.validateTileLayer(this.tileLayer);
     this.validateMarkers(this.markers);
     this.validateGpx(this.gpxs);
+    this.validateGeojson(this.geojsons);
   }
 
   render() { 
@@ -302,6 +340,8 @@ export class BnMap {
                   attribution={this.attribution}    
                   gpxs={this.prepareGpxData()} 
                   markers={this.prepareMarkerData()}
+                  geojsons={this.prepareGeojsonData()} 
+                  
                   >        
         </ibcs-map>
       </Host>
@@ -317,6 +357,11 @@ export class BnMap {
      return [ ...this.gpxData, ...this.gpxList];
   }
 
+  private prepareGeojsonData() {  
+    return [ ...this.geojsonData, ...this.geojsonList];
+ }
+
+
   public getDataStructureGpxParams(): any {
     let dataSetStructure: any = {
       GpxParams: {
@@ -328,6 +373,20 @@ export class BnMap {
         startIconUrl: {type: "string", isOptional: false, description: ""},
         endIconUrl: {type: "string", isOptional: false, description: ""},
         shadowUrl: {type: "string", isOptional: false, description: ""},
+      }
+    };
+
+    return dataSetStructure;
+  }
+
+  public getDataStructureGeojsonParams(): any {
+    let dataSetStructure: any = {
+      GeojsonParams: {
+        file: {type: "string", isOptional: false, description: ""},
+        color: {type: "string", isOptional: false, description: ""},
+        opacity: {type: "number", isOptional: false, description: ""},
+        weight: {type: "number", isOptional: false, description: ""},
+        lineCap: {type: "string", isOptional: false, description: ""},        
       }
     };
 

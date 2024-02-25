@@ -139,6 +139,23 @@ export function validateGpxType(value: string): string[] {
   return ["Invalid JSON structure"]
 }
 
+export function validateGeojsonType(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  try {
+    const newObj = JSON.parse(value);
+    if (newObj instanceof Array){
+      return newObj.filter(elem => !(elem.hasOwnProperty('file')));
+    }
+  } catch(e) {
+    throw e;
+  }
+
+  return ["Invalid JSON structure"]
+}
+
 export function isValidDate(value: any): boolean {
   const newDate: number = Date.parse(value);
   return Number.isInteger(newDate);
