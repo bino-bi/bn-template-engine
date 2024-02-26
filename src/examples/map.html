@@ -100,7 +100,7 @@
       "opacity": 0.75,
       "weight": 3,
       "lineCap": "round"
-      } 
+      }
       ]
     </bn-datasource>
 
@@ -108,7 +108,8 @@
     <bn-page name="Charts_MAP" format="a4" orientation="landscape">
       <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
         date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
-        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'
+        page-fit-to-content="false"></bn-title>
       <bn-body>
         <bn-layout layout="2 over 1">
           <div slot="slot-0">
@@ -116,9 +117,9 @@
             <bn-map markersDatasetName='$markers' gpxsDatasetName='$gpxs' latitude='8.679129' longitude='50.137634'
               scale='12' show-scale='true' attribution='BinoBI Text Label'
               tile-layer='https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png'
-              markers='[{"latitude": 50.137634, "longitude": 8.679129, "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png", "iconWidth": 64, "iconHeight":64, "title" :"HEllo"}]'
+              markers='[{"latitude": 50.137634, "longitude": 8.679129, "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png", "iconWidth": 64, "iconHeight":64}]'
               gpxs='[{"file": "http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx", "color": "#FC5200", "opacity": 0.75, "weight": 3, "lineCap": "round"}]'></bn-map>
-          </div>         
+          </div>
         </bn-layout>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
@@ -127,11 +128,4 @@
   </bn-context>
 
 </body>
-
-
-
-
-
-
-
 </html>
