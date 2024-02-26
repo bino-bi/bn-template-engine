@@ -5,6 +5,9 @@ import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
+import { ComponentRegister } from '../../utils/componentRegister';
+import { generateUUID } from '../../utils/utils';
+import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 //import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 
 type MarkerParams = {
@@ -54,6 +57,7 @@ export class BnMap {
   @State() markerData: MarkerParams[] = [];
   @State() data: any[] = [];
 
+  private uuid: string = generateUUID();
 
   constructor() {
     withStyled(this);
@@ -312,8 +316,9 @@ export class BnMap {
 
   
   @Listen('stateUpdated')
-  stateUpdated(status: any) {      
-      this.bnStateUpdated.emit(status.detail);   
+  stateUpdated(status: any) {   
+    console.log("stateUpdated",status.detail, ComponentStatus[status.detail as keyof typeof ComponentStatus] );
+    ComponentRegister.updateStatus(this.uuid, status.detail);
   }
 
   @Listen('dragZoomEnded')
@@ -333,7 +338,8 @@ export class BnMap {
     this.validateGeojson(this.geojsons);
   }
 
-  render() { 
+  
+  render() {     
     return (
       <Host>
         <ibcs-map tileLayer={this.tileLayer}
