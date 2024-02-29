@@ -284,8 +284,8 @@ export class Chart {
   }
 
 
-  private prepareHideCategories(localScenarioString: string): boolean {
-    return localScenarioString.length != 0;
+  private prepareHideCategories(localScenarioString: string): boolean | string {
+    return String(localScenarioString.length != 0);
   }
 
   private prepareI18n(): Map<string, string> {
@@ -414,7 +414,7 @@ export class Chart {
   }
 
   chartTemplate(localScenarioString: string) {
-    console.log("Styles::",this.prepareStyle() );
+    console.log("chartTemplate", localScenarioString,this.prepareHideCategories(localScenarioString))
     return <ibcs-chart-structure
       data={this.data}
       chartTitle={this.prepareChartTitle(localScenarioString)}
@@ -434,9 +434,12 @@ export class Chart {
   render() {
     let scenariosArray = [''];
     let variancesArray = this.prepareVariances();
+    
     if (variancesArray.length > 0) {
       scenariosArray = [...scenariosArray, ...variancesArray];
     }
+
+    console.log("scenariosArray",scenariosArray,variancesArray);
 
     return <Host>
       <div class="container">
