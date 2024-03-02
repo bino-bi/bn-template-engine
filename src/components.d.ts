@@ -234,6 +234,7 @@ export namespace Components {
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
          */
         "longitude": number;
+        "manualPosOverride": boolean;
         /**
           * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
          */
@@ -814,6 +815,7 @@ declare namespace LocalJSX {
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
          */
         "longitude"?: number;
+        "manualPosOverride"?: boolean;
         /**
           * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
          */
