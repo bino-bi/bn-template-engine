@@ -162,6 +162,21 @@ export class BnMap {
     }
   }
 
+  
+    @Prop({mutable: true}) manualPosOverride: boolean = true;
+
+    @Watch('manualPosOverride')
+    validateManualPosOverride(newValue: boolean) {
+      const errId: string = 'ERR_scale';
+  
+      if (!isValidBoolean(newValue)) {
+        this.errors.addOrReplace({ id: errId,  type: 'warning', message:'manualPosOverride: invalid value(s) \'' + newValue + '\' are not supported.'});
+      } else {
+        this.errors.remove(errId);
+      }
+    }
+  
+
   /**
    * Activates/ Deactivates Map Scale
    */
@@ -336,6 +351,7 @@ export class BnMap {
     this.validateMarkers(this.markers);
     this.validateGpx(this.gpxs);
     this.validateGeojson(this.geojsons);
+    this.validateManualPosOverride(this.manualPosOverride);
   }
 
   
@@ -352,6 +368,7 @@ export class BnMap {
                   gpxs={this.prepareGpxData()} 
                   markers={this.prepareMarkerData()}
                   geojsons={this.prepareGeojsonData()} 
+                  manualPosOverride={this.manualPosOverride}
                   
                   >        
         </ibcs-map>
