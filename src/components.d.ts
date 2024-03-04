@@ -39,6 +39,7 @@ export namespace Components {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        "showCategories": string;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
@@ -89,6 +90,7 @@ export namespace Components {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        "showCategories": string;
         "syncSpaceLeft": number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```
@@ -623,6 +625,7 @@ declare namespace LocalJSX {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        "showCategories"?: string;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
@@ -673,6 +676,7 @@ declare namespace LocalJSX {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        "showCategories"?: string;
         "syncSpaceLeft"?: number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```

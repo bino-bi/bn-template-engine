@@ -1,6 +1,6 @@
 import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
-  isBlankInput, isValidDirection, isValidInteger,
+  isBlankInput, isValidBoolean, isValidDirection, isValidInteger,
   isValidLevel,
   isValidNumber,
   validateOrderList,
@@ -232,7 +232,18 @@ export class Chart {
     }
   }
 
+  @Prop() showCategories: string = 'true';
 
+  @Watch('showCategories')
+  validateShowCategories(newValue: string) {
+    const errId: string = 'ERR_showCategories';
+
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showCategories: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
 
 
 
@@ -262,6 +273,7 @@ export class Chart {
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
+    this.validateShowCategories(this.showCategories);
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -285,8 +297,8 @@ export class Chart {
 
 
   private prepareHideCategories(localScenarioString: string): boolean | string {
-    console.log("prepareHideCategories", localScenarioString,  String(localScenarioString.length != 0))
-    return localScenarioString.length != 0;
+   
+    return localScenarioString.length != 0 || this.showCategories != "true";
   }
 
   private prepareI18n(): Map<string, string> {
