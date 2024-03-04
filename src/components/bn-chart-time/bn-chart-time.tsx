@@ -2,6 +2,7 @@ import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isValidAxisLabelsMode,
+  isValidBoolean,
   isValidDateFormat,
   isValidDirection,
   isValidInteger,
@@ -361,6 +362,19 @@ export class Chart {
     }
   }
 
+  @Prop() showCategories: string = 'true';
+
+  @Watch('showCategories')
+  validateShowCategories(newValue: string) {
+    const errId: string = 'ERR_showCategories';
+
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showCategories: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
@@ -391,6 +405,7 @@ export class Chart {
     this.validateDateInterval(this.dateInterval);
     this.validateAxisLabelsMode(this.axisLabelsMode);
     this.validateChartType(this.type);
+    this.validateShowCategories(this.showCategories);
 
   }
 
@@ -415,7 +430,7 @@ export class Chart {
 
 
   private prepareHideAxisLabels(localScenarioString: string): boolean {
-    return localScenarioString.length != 0;
+    return localScenarioString.length != 0 || this.showCategories != "true";
   }
 
   private prepareI18n(): Map<string, string> {
