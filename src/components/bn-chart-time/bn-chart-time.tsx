@@ -56,6 +56,10 @@ export class Chart {
   chartTitle: string = "";
 
 
+  @Prop()
+  filter: string = "";
+
+
   /**
    * List of Scenarios Map.
    *<br /> <br />
@@ -552,6 +556,16 @@ export class Chart {
     return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
 
+  
+  private prepareFilter(): string {
+    if (this.filter.length != 0) {
+      return '';
+    }
+
+    return this.filter;
+  }
+
+
 
   private prepareChartType() {
     return this.type;
@@ -617,6 +631,7 @@ export class Chart {
       intervalSpanLimit={this.prepareIntervalSpanLimit()}
       axisLabelsMode={this.prepareAxisLabelsMode()}
       type={this.prepareChartType()}
+      filter={this.prepareFilter()}
     ></ibcs-chart-time>
   }
  

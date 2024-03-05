@@ -15,6 +15,7 @@ export namespace Components {
           * Custom chart title
          */
         "chartTitle": string;
+        "filter": string;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
@@ -62,6 +63,7 @@ export namespace Components {
           * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
          */
         "dateInterval": string;
+        "filter": string;
         /**
           * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
          */
@@ -299,6 +301,7 @@ export namespace Components {
           * Number of percent digits in a table cell
          */
         "dataFormatDigitsPercent": number;
+        "filter": string;
         /**
           * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
          */
@@ -601,6 +604,7 @@ declare namespace LocalJSX {
           * Custom chart title
          */
         "chartTitle"?: string;
+        "filter"?: string;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
          */
@@ -648,6 +652,7 @@ declare namespace LocalJSX {
           * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
          */
         "dateInterval": string;
+        "filter"?: string;
         /**
           * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
          */
@@ -884,6 +889,7 @@ declare namespace LocalJSX {
           * Number of percent digits in a table cell
          */
         "dataFormatDigitsPercent"?: number;
+        "filter"?: string;
         /**
           * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
          */

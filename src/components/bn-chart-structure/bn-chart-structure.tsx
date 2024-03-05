@@ -45,6 +45,10 @@ export class Chart {
   @Prop()
   chartTitle: string = "";
 
+  @Prop()
+  filter: string = "";
+
+
   /**
    * List of Scenarios Map.
    *<br /> <br />
@@ -386,6 +390,14 @@ export class Chart {
     return this.chartTitle;
   }
 
+  private prepareFilter(): string {
+    if (this.filter.length != 0) {
+      return '';
+    }
+
+    return this.filter;
+  }
+
   private prepareLimit(): number {
     return Math.floor(Number(this.limit) || 0);
   }
@@ -440,6 +452,7 @@ export class Chart {
       i18n={this.prepareI18n()}
       order={this.prepareOrder()}
       level={this.prepareLevel()}
+      filter={this.prepareFilter()}
     ></ibcs-chart-structure>
   }
 
