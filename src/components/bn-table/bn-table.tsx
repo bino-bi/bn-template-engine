@@ -65,10 +65,16 @@ export class Table {
    */
   @Prop() tableTitle: string = "";
 
+
+  @Prop()
+  filter: string = "";
+
+
  /**
    * measureUnit displayed in table.
    */
  @Prop() measureUnit: string = "";
+
 
   /** List of scenarios displayed in card header.
    *  <br /><br />
@@ -678,6 +684,14 @@ export class Table {
       return this.measureUnit;
   }
 
+  private prepareFilter(): string {
+    if (this.filter.length != 0) {
+      return '';
+    }
+
+    return this.filter;
+  }
+
   public getDataStructure(): any {
     let dataSetStructure: any = {
       ITableDataRow: {
@@ -741,6 +755,7 @@ export class Table {
           measure-type={this.prepareMeasureType()}
           measure-unit={this.prepareMeasureUnit()}
           showMeasureScale={this.prepareShowMeasureScale()}
+          filter={this.prepareFilter()}
         ></ibcs-table>
       </div>
     </Host>;
