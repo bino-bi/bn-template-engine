@@ -391,7 +391,7 @@ export class Chart {
   }
 
   private prepareFilter(): string {
-    if (this.filter.length != 0) {
+    if (this.filter.length == 0) {
       return '';
     }
 
