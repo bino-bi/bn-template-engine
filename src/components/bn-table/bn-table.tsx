@@ -685,7 +685,7 @@ export class Table {
   }
 
   private prepareFilter(): string {
-    if (this.filter.length != 0) {
+    if (this.filter.length == 0) {
       return '';
     }
 
