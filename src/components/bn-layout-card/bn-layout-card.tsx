@@ -41,7 +41,9 @@
         ['2-over-1', "\"a b\" \"c c\""],
         ['1-over-3', "\"a a a \" \"b c d\""],
         ['3-over-1', "\"a b c\" \"d d d\""],
-        ['custom-template', "\"a b\" \"c c c\""]
+        ['custom-template', "\"a b\" \"c c c\""],
+        ['gold3', "\"a c\" \"b c\""],
+        ['gold4', "\"a b c c\" \"d d c c\""]
         ]);
 
         private getCommonStyles() {
