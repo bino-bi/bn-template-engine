@@ -7,6 +7,7 @@ import {
   isValidDirection,
   isValidInteger,
   isValidLevel,
+  isValidMeasureScale,
   isValidNumber,
   validateOrderList,
   validateScenarioList,
@@ -379,6 +380,77 @@ export class Chart {
     }
   }
 
+
+    /**
+   *  Sets the SiPrefix of the Mesaurements and converts the
+   *  original value.
+   *  <br /><br />
+   *  values:  <br />
+   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
+   *  <br /><br />
+   *  SiPrefix overview:
+   *  ```     "Y":  1E+24,```<br />
+   *  ```    "Z":  1E+21,```<br />
+   *  ```   "E":  1E+18,```<br />
+   *  ```     "P":  1E+15,```<br />
+   *  ```     "T":  1E+12,```<br />
+   *  ```     "G":  1000000000,```<br />
+   *  ```     "M":  1000000,```<br />
+   *  ```     "k":  1000,```<br />
+   *  <br />
+   *  ```     "m":  0.001,```<br />
+   *  ```    "μ":  0.000001,```<br />
+   *  ```     "n":  0.000000001,```<br />
+   *  ```     "p":  0.000000000001,```<br />
+   *  ```     "f":  0.000000000000001,```<br />
+   *  ```     "a":  0.000000000000000001,```<br />
+   *  ```     "z":  0.000000000000000000001,```<br />
+   *  ```     "y":  0.000000000000000000000001,```<br />
+   *  <br /><br />
+   * Special modes:
+   * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   *<br /><br />
+   * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+   *
+   *
+   */
+   @Prop() measureScale: string = "greatest";
+
+   @Watch('measureScale')
+   validateMeasureScale(newValue: string) {
+     const errId: string = 'ERR_measureScale';
+  
+     if (!isValidMeasureScale(newValue)) {
+       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+     } else {
+       this.errors.remove(errId);
+     }
+   }
+ 
+   /**
+    *  Toggles display of measure units in table header
+    *  <br /><br />
+    *  values: <br />
+    *  ```true // false```
+    */
+   @Prop() showMeasureScale: string = 'false';
+ 
+   @Watch('showMeasureScale')
+   validateShowMeasureScale(newValue: string) {
+      const errId: string = 'ERR_grouped';
+      
+       if (!isValidBoolean(newValue)) {
+           this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+       } else {
+           this.errors.remove(errId);
+       }
+   }
+ 
+    /**
+    * measureUnit displayed in table.
+    */
+   @Prop() measureUnit: string = "";
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
@@ -410,7 +482,8 @@ export class Chart {
     this.validateAxisLabelsMode(this.axisLabelsMode);
     this.validateChartType(this.type);
     this.validateShowCategories(this.showCategories);
-
+    this.validateMeasureScale(this.measureScale);
+    this.validateShowMeasureScale(this.showMeasureScale);
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -609,6 +682,32 @@ export class Chart {
     return dataSetStructure;
   }
 
+  private prepareMeasureScale(): string {
+    if (isBlankInput(this.measureScale)) {
+      return "GREATEST";
+    }
+
+    if (['_', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'm', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(this.measureScale.trim())) {
+      return this.measureScale.trim();
+    }
+
+    if (this.measureScale.trim().toUpperCase() === 'LEAST') {
+      return this.measureScale.trim();
+    }
+
+    return "GREATEST";
+  }
+
+  prepareShowMeasureScale(): boolean {
+    return (this.showMeasureScale == "true");
+  }
+  prepareMeasureUnit(): string {
+      if (this.measureUnit == "" || this.measureUnit == null) {
+        return "";
+      }
+      return this.measureUnit;
+  }
+
   chartTemplate(localScenarioString: string) {
     let preparedI18n: Map<string, string> = this.prepareI18n();
     let preparedStyle: ITimeChartStyles = this.prepareStyle();
@@ -632,6 +731,9 @@ export class Chart {
       axisLabelsMode={this.prepareAxisLabelsMode()}
       type={this.prepareChartType()}
       filter={this.prepareFilter()}
+      measure-scale={this.prepareMeasureScale()}
+      measure-unit={this.prepareMeasureUnit()}
+      showMeasureScale={this.prepareShowMeasureScale()}
     ></ibcs-chart-time>
   }
  
