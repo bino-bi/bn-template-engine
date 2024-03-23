@@ -532,7 +532,7 @@ export class Chart {
   prepareShowMeasureScale(localScenarioString: string): boolean {
     return localScenarioString.length != 0 || this.showMeasureScale != "true";  
   }
-  
+
   prepareMeasureUnit(): string {
       if (this.measureUnit == "" || this.measureUnit == null) {
         return "";
@@ -557,7 +557,7 @@ export class Chart {
       filter={this.prepareFilter()}
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
-      showMeasureScale={this.prepareShowMeasureScale()}
+      showMeasureScale={this.prepareShowMeasureScale(localScenarioString)}
     ></ibcs-chart-structure>
   }
 
