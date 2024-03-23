@@ -529,9 +529,10 @@ export class Chart {
     return "GREATEST";
   }
 
-  prepareShowMeasureScale(): boolean {
-    return (this.showMeasureScale == "true");
+  prepareShowMeasureScale(localScenarioString: string): boolean {
+    return localScenarioString.length != 0 || this.showMeasureScale != "true";  
   }
+  
   prepareMeasureUnit(): string {
       if (this.measureUnit == "" || this.measureUnit == null) {
         return "";
