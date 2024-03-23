@@ -506,8 +506,8 @@ export class Chart {
   }
 
 
-  private prepareHideAxisLabels(localScenarioString: string): boolean {
-    return localScenarioString.length != 0 || this.showCategories != "true";
+  private prepareHideAxisLabels(idx: number): boolean {
+    return idx >= 1|| this.showCategories != "true";
   }
 
   private prepareI18n(): Map<string, string> {
@@ -605,8 +605,8 @@ export class Chart {
     return leftSideOffset;
   }
 
-  private prepareChartTitle(localScenarioString: string): string {
-    if (localScenarioString.length != 0) {
+  private prepareChartTitle(idx: number): string {
+    if (idx >= 1) {
       return '';
     }
 
@@ -698,8 +698,8 @@ export class Chart {
     return "GREATEST";
   }
 
-  prepareShowMeasureScale(localScenarioString: string): boolean {
-    return localScenarioString.length != 0 || this.showMeasureScale != "true";   
+  prepareShowMeasureScale(idx: number): boolean {
+    return idx == 0 && this.showMeasureScale == "true";   
   }
 
   prepareMeasureUnit(): string {
@@ -709,16 +709,16 @@ export class Chart {
       return this.measureUnit;
   }
 
-  chartTemplate(localScenarioString: string) {
+  chartTemplate(localScenarioString: string, idx: number) {
     let preparedI18n: Map<string, string> = this.prepareI18n();
     let preparedStyle: ITimeChartStyles = this.prepareStyle();
-
+   
     return <ibcs-chart-time
       data={this.data}
-      chartTitle={this.prepareChartTitle(localScenarioString)}
+      chartTitle={this.prepareChartTitle(idx)}
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
-      hideAxisLabels={this.prepareHideAxisLabels(localScenarioString)}
+      hideAxisLabels={this.prepareHideAxisLabels(idx)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       limit={this.prepareLimit()}
@@ -734,7 +734,7 @@ export class Chart {
       filter={this.prepareFilter()}
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
-      showMeasureScale={this.prepareShowMeasureScale(localScenarioString)}
+      showMeasureScale={this.prepareShowMeasureScale(idx)}
     ></ibcs-chart-time>
   }
  
