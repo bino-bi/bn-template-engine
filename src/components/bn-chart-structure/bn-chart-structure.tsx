@@ -375,9 +375,8 @@ export class Chart {
   }
 
 
-  private prepareHideCategories(localScenarioString: string): boolean | string {
-   
-    return localScenarioString.length != 0 || this.showCategories != "true";
+  private prepareHideCategories(idx: number): boolean | string {   
+    return idx >= 1 || this.showCategories != "true";
   }
 
   private prepareI18n(): Map<string, string> {
@@ -422,7 +421,7 @@ export class Chart {
 
   private prepareStyle(): IStructureChartStyles {
     return this.componentStyle($ => {
-      console.log("I am $::", $);
+     
       return {
         scaleFactors: {
           scenarioOffset: $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
@@ -457,8 +456,8 @@ export class Chart {
     });
   }
 
-  private prepareChartTitle(localScenarioString: string): string {
-    if (localScenarioString.length != 0) {
+  private prepareChartTitle(idx: number): string {
+    if (idx >= 1) {
       return '';
     }
 
@@ -529,10 +528,9 @@ export class Chart {
     return "GREATEST";
   }
 
-  prepareShowMeasureScale(localScenarioString: string): boolean {
-    return localScenarioString.length != 0 || this.showMeasureScale != "true";  
+  prepareShowMeasureScale(idx: number): boolean {
+    return idx == 0 && this.showMeasureScale == "true";   
   }
-
   prepareMeasureUnit(): string {
       if (this.measureUnit == "" || this.measureUnit == null) {
         return "";
@@ -540,13 +538,14 @@ export class Chart {
       return this.measureUnit;
   }
 
-  chartTemplate(localScenarioString: string) {   
+  chartTemplate(localScenarioString: string, idx: number) {   
+
     return <ibcs-chart-structure
       data={this.data}
-      chartTitle={this.prepareChartTitle(localScenarioString)}
+      chartTitle={this.prepareChartTitle(idx)}
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
-      hideCategories={this.prepareHideCategories(localScenarioString)}
+      hideCategories={this.prepareHideCategories(idx)}
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       limit={this.prepareLimit()}
@@ -557,7 +556,7 @@ export class Chart {
       filter={this.prepareFilter()}
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
-      showMeasureScale={this.prepareShowMeasureScale(localScenarioString)}
+      showMeasureScale={this.prepareShowMeasureScale(idx)}
     ></ibcs-chart-structure>
   }
 
