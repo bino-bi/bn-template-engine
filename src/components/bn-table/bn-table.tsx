@@ -412,12 +412,12 @@ export class Table {
    */
   @Prop() measureScale: string = "greatest";
 
-  @Watch('measureType')
+  @Watch('measureScale')
   validateMeasureScale(newValue: string) {
-    const errId: string = 'ERR_measureType';
+    const errId: string = 'ERR_measureScale';
 
     if (!isValidMeasureScale(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureType: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
       this.errors.remove(errId);
     }
