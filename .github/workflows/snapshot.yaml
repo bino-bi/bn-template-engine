@@ -25,12 +25,13 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GH_REGISTRY_PACKAGES }}
       - name: Run build
         run: npm run build
-      - name: Upload to stoage
-        uses: mamal72/minio-perfect-deploy-action@main
+
+      - name : Ypload to storage
+        uses: shallwefootball/s3-upload-action@master
         with:
+          aws_key_id: ${{ secrets.STORAGE_ACCESS_KEY }}
+          aws_secret_access_key: ${{ secrets.STORAGE_SECRET_KEY }}
+          aws_bucket: "cdn"
           endpoint: ${{ secrets.STORAGE_ENDPOINT }}
-          access_key: ${{ secrets.STORAGE_ACCESS_KEY }}
-          secret_key: ${{ secrets.STORAGE_SECRET_KEY }}
-          bucket: "cdn"
           source_dir: "dist/bn-template-engine"
-          target_dir: "/bn-template-engine/SNAPSHOT"
+          destination_dir: "/bn-template-engine/SNAPSHOT"
