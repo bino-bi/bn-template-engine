@@ -34,4 +34,4 @@ jobs:
           aws_bucket: "cdn"
           endpoint: ${{ secrets.STORAGE_ENDPOINT }}
           source_dir: "dist/bn-template-engine"
-          destination_dir: "/bn-template-engine/SNAPSHOT"
+          destination_dir: "bn-template-engine/SNAPSHOT"
