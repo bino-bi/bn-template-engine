@@ -15,17 +15,18 @@ import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-import {
+/*import {
   AggregationLevel,
   IOrder,
   IStructureChartDataRow, IStructureChartStyles,
   OrderColumn,
   OrderDirection
-} from "@bino-bi/ibcs-component-interface";
+} from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style } from "../../stores/componentStyles";
-
-
+import { StructureChartDataRow, StructureChartStyle } from "./ibcs-chart-structure/utils/model";
+import { AggregationLevel } from "../../utils/constants";
+import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 
 @Component({
   tag: 'bn-chart-structure',
@@ -34,7 +35,7 @@ import { Style } from "../../stores/componentStyles";
 export class Chart {
   @Element() private element: HTMLElement;
 
-  @State() data: IStructureChartDataRow[] = []
+  @State() data: StructureChartDataRow[] = []
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (style: Style) => T) => T;
@@ -375,7 +376,7 @@ export class Chart {
   }
 
 
-  private prepareHideCategories(idx: number): boolean | string {   
+  private prepareHideCategories(idx: number): boolean {   
     return idx >= 1 || this.showCategories != "true";
   }
 
@@ -410,8 +411,8 @@ export class Chart {
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
-  private prepareOrder(): IOrder {
-    const tableOrder: IOrder = {
+  private prepareOrder(): Order {
+    const tableOrder: Order = {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
@@ -419,7 +420,7 @@ export class Chart {
     return tableOrder;
   }
 
-  private prepareStyle(): IStructureChartStyles {
+  private prepareStyle(): StructureChartStyle {
     return this.componentStyle($ => {
      
       return {
@@ -545,7 +546,7 @@ export class Chart {
       chartTitle={this.prepareChartTitle(idx)}
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
-      hideCategories={this.prepareHideCategories(idx)}
+      hideCategories={this.prepareHideCategories(idx) }
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       limit={this.prepareLimit()}

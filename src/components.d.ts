@@ -5,6 +5,36 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { StructureChartDataRow } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model";
+import { StructureChartStyle } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model/styles/StructureChartStyle";
+import { Order } from "./utils/model/Order";
+import { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
+import { DataFormatDigits } from "./utils/model/DataFormatDigits";
+import { TimeChartDataRow } from "./components/bn-chart-time/ibcs-chart-time/utils/model/TimeChartDataRow";
+import { TimeChartStyle } from "./components/bn-chart-time/ibcs-chart-time/utils/model/styles/TimeChartStyle";
+import { AggregationLevel as AggregationLevel1, DataFormatDigits as DataFormatDigits1 } from "./components";
+import { DateDistance } from "./utils/DateStringFactory";
+import { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
+import { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
+import { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLayer";
+import { TableDataRow } from "./components/bn-table/ibcs-table/utils/model/TableDataRow";
+import { TableDrillGroup } from "./components/bn-table/ibcs-table/utils/model/TableDrillGroup";
+import { TableType } from "./components/bn-table/ibcs-table/utils/model";
+export { StructureChartDataRow } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model";
+export { StructureChartStyle } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model/styles/StructureChartStyle";
+export { Order } from "./utils/model/Order";
+export { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
+export { DataFormatDigits } from "./utils/model/DataFormatDigits";
+export { TimeChartDataRow } from "./components/bn-chart-time/ibcs-chart-time/utils/model/TimeChartDataRow";
+export { TimeChartStyle } from "./components/bn-chart-time/ibcs-chart-time/utils/model/styles/TimeChartStyle";
+export { AggregationLevel as AggregationLevel1, DataFormatDigits as DataFormatDigits1 } from "./components";
+export { DateDistance } from "./utils/DateStringFactory";
+export { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
+export { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
+export { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLayer";
+export { TableDataRow } from "./components/bn-table/ibcs-table/utils/model/TableDataRow";
+export { TableDrillGroup } from "./components/bn-table/ibcs-table/utils/model/TableDrillGroup";
+export { TableType } from "./components/bn-table/ibcs-table/utils/model";
 export namespace Components {
     interface BnBody {
     }
@@ -443,10 +473,121 @@ export namespace Components {
         "getDistinctFromDataset": (datasetName: string, key: string) => Promise<any[]>;
         "internationalizationKeys": () => Promise<string[]>;
     }
+    interface IbcsChartStructure {
+        "chartTitle": string;
+        "data": StructureChartDataRow[];
+        "dataFormatDigits": DataFormatDigits;
+        "filter": string;
+        "hideCategories": boolean;
+        "i18n": Map<string, string>;
+        "level": AggregationLevel;
+        "limit": number;
+        "measureScale": string;
+        "measureUnit": string;
+        "order": Order;
+        "pixelPerPercentage": number;
+        "pixelPerUnit": number;
+        "scenarios": string[];
+        "showMeasureScale": boolean;
+        "styles": StructureChartStyle | undefined;
+        "variances": string[];
+    }
+    interface IbcsChartTime {
+        "axisLabelsMode": AxisLabelsMode;
+        "chartTitle"?: string;
+        "data": TimeChartDataRow[];
+        "dataFormatDigits": DataFormatDigits;
+        "dateInterval": DateDistance;
+        "filter": string;
+        "hideAxisLabels": boolean;
+        "i18n": Map<string, string>;
+        "intervalSpanLimit": number;
+        "leftSideOffsetForHorizontalSync": number;
+        "level": AggregationLevel1;
+        "limit": number;
+        "measureScale": string;
+        "measureUnit": string;
+        "order": Order;
+        "pixelPerPercentage": number;
+        "pixelPerUnit": number;
+        "scenarios": string[];
+        "showMeasureScale": boolean;
+        "styles": TimeChartStyle | undefined;
+        "variances": string[];
+    }
+    interface IbcsMap {
+        "attribution": string;
+        "customView": boolean;
+        "geojsons": GeoJsonLayer[] | string;
+        "gpxs": GpxLayer[] | string;
+        "latitude": number;
+        "longitude": number;
+        "manualPosOverride": boolean;
+        "markers": Marker[] | string;
+        "scale": number;
+        "setProps": (data: Partial<IbcsMap>) => Promise<void>;
+        "showScale": boolean;
+        "showZoom": boolean;
+        "tileLayer": string;
+        "unSetProps": (data: Partial<IbcsMap>) => Promise<void>;
+    }
+    interface IbcsTable {
+        "categoryWidth": TableCategoryWidth;
+        "categorythereof": Map<string, any>;
+        "data": TableDataRow[];
+        "dataFormatDigits": DataFormatDigits1;
+        "filter": string;
+        "grouped"?: boolean;
+        "i18n": Map<string, string>;
+        "i18nMode": I18nMode;
+        "limit": number;
+        "measureScale": string;
+        "measureType": MeasureType;
+        "measureUnit": string;
+        "order": Order;
+        "partof": TableDrillGroup[];
+        "scenarios": string[];
+        "scenariosDataFormat": DataFormat;
+        "showGroupTitle": boolean;
+        "showMeasureScale": boolean;
+        "tableTitle": string;
+        "thereof": TableDrillGroup[];
+        "type": TableType;
+    }
+    interface IbcsTitle {
+        "businessUnit": string;
+        "i18n": Map<string, string>;
+        "i18nMode": I18nMode;
+        "intervalSpanLimit": number;
+        "measures": IMeasureEntry[];
+        "order": IOrder;
+        "scenarios": string[];
+        "setBusinessUnit": (businessUnit: string) => Promise<void>;
+        "setProps": (data: Partial<IbcsTitle>) => Promise<void>;
+        "timeperiod"?: ITimePeriod;
+    }
+    interface TestRunnerCard {
+    }
+    interface TestRunnerChart {
+    }
+    interface TestRunnerChartTime {
+    }
+    interface TestRunnerMap {
+    }
+    interface TestRunnerTable {
+    }
+    interface TestRunnerTime {
+    }
+    interface TestRunnerTitle {
+    }
 }
 export interface BnMapCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLBnMapElement;
+}
+export interface IbcsMapCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLIbcsMapElement;
 }
 declare global {
     interface HTMLBnBodyElement extends Components.BnBody, HTMLStencilElement {
@@ -593,6 +734,90 @@ declare global {
         prototype: HTMLEditorCompanionElement;
         new (): HTMLEditorCompanionElement;
     };
+    interface HTMLIbcsChartStructureElement extends Components.IbcsChartStructure, HTMLStencilElement {
+    }
+    var HTMLIbcsChartStructureElement: {
+        prototype: HTMLIbcsChartStructureElement;
+        new (): HTMLIbcsChartStructureElement;
+    };
+    interface HTMLIbcsChartTimeElement extends Components.IbcsChartTime, HTMLStencilElement {
+    }
+    var HTMLIbcsChartTimeElement: {
+        prototype: HTMLIbcsChartTimeElement;
+        new (): HTMLIbcsChartTimeElement;
+    };
+    interface HTMLIbcsMapElementEventMap {
+        "stateUpdated": any;
+        "dragZoomEnded": any;
+    }
+    interface HTMLIbcsMapElement extends Components.IbcsMap, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLIbcsMapElementEventMap>(type: K, listener: (this: HTMLIbcsMapElement, ev: IbcsMapCustomEvent<HTMLIbcsMapElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLIbcsMapElementEventMap>(type: K, listener: (this: HTMLIbcsMapElement, ev: IbcsMapCustomEvent<HTMLIbcsMapElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLIbcsMapElement: {
+        prototype: HTMLIbcsMapElement;
+        new (): HTMLIbcsMapElement;
+    };
+    interface HTMLIbcsTableElement extends Components.IbcsTable, HTMLStencilElement {
+    }
+    var HTMLIbcsTableElement: {
+        prototype: HTMLIbcsTableElement;
+        new (): HTMLIbcsTableElement;
+    };
+    interface HTMLIbcsTitleElement extends Components.IbcsTitle, HTMLStencilElement {
+    }
+    var HTMLIbcsTitleElement: {
+        prototype: HTMLIbcsTitleElement;
+        new (): HTMLIbcsTitleElement;
+    };
+    interface HTMLTestRunnerCardElement extends Components.TestRunnerCard, HTMLStencilElement {
+    }
+    var HTMLTestRunnerCardElement: {
+        prototype: HTMLTestRunnerCardElement;
+        new (): HTMLTestRunnerCardElement;
+    };
+    interface HTMLTestRunnerChartElement extends Components.TestRunnerChart, HTMLStencilElement {
+    }
+    var HTMLTestRunnerChartElement: {
+        prototype: HTMLTestRunnerChartElement;
+        new (): HTMLTestRunnerChartElement;
+    };
+    interface HTMLTestRunnerChartTimeElement extends Components.TestRunnerChartTime, HTMLStencilElement {
+    }
+    var HTMLTestRunnerChartTimeElement: {
+        prototype: HTMLTestRunnerChartTimeElement;
+        new (): HTMLTestRunnerChartTimeElement;
+    };
+    interface HTMLTestRunnerMapElement extends Components.TestRunnerMap, HTMLStencilElement {
+    }
+    var HTMLTestRunnerMapElement: {
+        prototype: HTMLTestRunnerMapElement;
+        new (): HTMLTestRunnerMapElement;
+    };
+    interface HTMLTestRunnerTableElement extends Components.TestRunnerTable, HTMLStencilElement {
+    }
+    var HTMLTestRunnerTableElement: {
+        prototype: HTMLTestRunnerTableElement;
+        new (): HTMLTestRunnerTableElement;
+    };
+    interface HTMLTestRunnerTimeElement extends Components.TestRunnerTime, HTMLStencilElement {
+    }
+    var HTMLTestRunnerTimeElement: {
+        prototype: HTMLTestRunnerTimeElement;
+        new (): HTMLTestRunnerTimeElement;
+    };
+    interface HTMLTestRunnerTitleElement extends Components.TestRunnerTitle, HTMLStencilElement {
+    }
+    var HTMLTestRunnerTitleElement: {
+        prototype: HTMLTestRunnerTitleElement;
+        new (): HTMLTestRunnerTitleElement;
+    };
     interface HTMLElementTagNameMap {
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
@@ -616,6 +841,18 @@ declare global {
         "bn-text": HTMLBnTextElement;
         "bn-title": HTMLBnTitleElement;
         "editor-companion": HTMLEditorCompanionElement;
+        "ibcs-chart-structure": HTMLIbcsChartStructureElement;
+        "ibcs-chart-time": HTMLIbcsChartTimeElement;
+        "ibcs-map": HTMLIbcsMapElement;
+        "ibcs-table": HTMLIbcsTableElement;
+        "ibcs-title": HTMLIbcsTitleElement;
+        "test-runner-card": HTMLTestRunnerCardElement;
+        "test-runner-chart": HTMLTestRunnerChartElement;
+        "test-runner-chart-time": HTMLTestRunnerChartTimeElement;
+        "test-runner-map": HTMLTestRunnerMapElement;
+        "test-runner-table": HTMLTestRunnerTableElement;
+        "test-runner-time": HTMLTestRunnerTimeElement;
+        "test-runner-title": HTMLTestRunnerTitleElement;
     }
 }
 declare namespace LocalJSX {
@@ -1052,6 +1289,111 @@ declare namespace LocalJSX {
     }
     interface EditorCompanion {
     }
+    interface IbcsChartStructure {
+        "chartTitle"?: string;
+        "data"?: StructureChartDataRow[];
+        "dataFormatDigits"?: DataFormatDigits;
+        "filter"?: string;
+        "hideCategories"?: boolean;
+        "i18n"?: Map<string, string>;
+        "level"?: AggregationLevel;
+        "limit"?: number;
+        "measureScale"?: string;
+        "measureUnit"?: string;
+        "order"?: Order;
+        "pixelPerPercentage"?: number;
+        "pixelPerUnit"?: number;
+        "scenarios"?: string[];
+        "showMeasureScale"?: boolean;
+        "styles"?: StructureChartStyle | undefined;
+        "variances"?: string[];
+    }
+    interface IbcsChartTime {
+        "axisLabelsMode"?: AxisLabelsMode;
+        "chartTitle"?: string;
+        "data"?: TimeChartDataRow[];
+        "dataFormatDigits"?: DataFormatDigits;
+        "dateInterval"?: DateDistance;
+        "filter"?: string;
+        "hideAxisLabels"?: boolean;
+        "i18n"?: Map<string, string>;
+        "intervalSpanLimit"?: number;
+        "leftSideOffsetForHorizontalSync"?: number;
+        "level"?: AggregationLevel1;
+        "limit"?: number;
+        "measureScale"?: string;
+        "measureUnit"?: string;
+        "order"?: Order;
+        "pixelPerPercentage"?: number;
+        "pixelPerUnit"?: number;
+        "scenarios"?: string[];
+        "showMeasureScale"?: boolean;
+        "styles"?: TimeChartStyle | undefined;
+        "variances"?: string[];
+    }
+    interface IbcsMap {
+        "attribution"?: string;
+        "customView"?: boolean;
+        "geojsons"?: GeoJsonLayer[] | string;
+        "gpxs"?: GpxLayer[] | string;
+        "latitude"?: number;
+        "longitude"?: number;
+        "manualPosOverride"?: boolean;
+        "markers"?: Marker[] | string;
+        "onDragZoomEnded"?: (event: IbcsMapCustomEvent<any>) => void;
+        "onStateUpdated"?: (event: IbcsMapCustomEvent<any>) => void;
+        "scale"?: number;
+        "showScale"?: boolean;
+        "showZoom"?: boolean;
+        "tileLayer"?: string;
+    }
+    interface IbcsTable {
+        "categoryWidth"?: TableCategoryWidth;
+        "categorythereof"?: Map<string, any>;
+        "data"?: TableDataRow[];
+        "dataFormatDigits"?: DataFormatDigits1;
+        "filter"?: string;
+        "grouped"?: boolean;
+        "i18n"?: Map<string, string>;
+        "i18nMode"?: I18nMode;
+        "limit"?: number;
+        "measureScale"?: string;
+        "measureType"?: MeasureType;
+        "measureUnit"?: string;
+        "order"?: Order;
+        "partof"?: TableDrillGroup[];
+        "scenarios"?: string[];
+        "scenariosDataFormat"?: DataFormat;
+        "showGroupTitle"?: boolean;
+        "showMeasureScale"?: boolean;
+        "tableTitle"?: string;
+        "thereof"?: TableDrillGroup[];
+        "type"?: TableType;
+    }
+    interface IbcsTitle {
+        "businessUnit"?: string;
+        "i18n"?: Map<string, string>;
+        "i18nMode"?: I18nMode;
+        "intervalSpanLimit"?: number;
+        "measures"?: IMeasureEntry[];
+        "order"?: IOrder;
+        "scenarios"?: string[];
+        "timeperiod"?: ITimePeriod;
+    }
+    interface TestRunnerCard {
+    }
+    interface TestRunnerChart {
+    }
+    interface TestRunnerChartTime {
+    }
+    interface TestRunnerMap {
+    }
+    interface TestRunnerTable {
+    }
+    interface TestRunnerTime {
+    }
+    interface TestRunnerTitle {
+    }
     interface IntrinsicElements {
         "bn-body": BnBody;
         "bn-card": BnCard;
@@ -1075,6 +1417,18 @@ declare namespace LocalJSX {
         "bn-text": BnText;
         "bn-title": BnTitle;
         "editor-companion": EditorCompanion;
+        "ibcs-chart-structure": IbcsChartStructure;
+        "ibcs-chart-time": IbcsChartTime;
+        "ibcs-map": IbcsMap;
+        "ibcs-table": IbcsTable;
+        "ibcs-title": IbcsTitle;
+        "test-runner-card": TestRunnerCard;
+        "test-runner-chart": TestRunnerChart;
+        "test-runner-chart-time": TestRunnerChartTime;
+        "test-runner-map": TestRunnerMap;
+        "test-runner-table": TestRunnerTable;
+        "test-runner-time": TestRunnerTime;
+        "test-runner-title": TestRunnerTitle;
     }
 }
 export { LocalJSX as JSX };
@@ -1103,6 +1457,18 @@ declare module "@stencil/core" {
             "bn-text": LocalJSX.BnText & JSXBase.HTMLAttributes<HTMLBnTextElement>;
             "bn-title": LocalJSX.BnTitle & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
             "editor-companion": LocalJSX.EditorCompanion & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
+            "ibcs-chart-structure": LocalJSX.IbcsChartStructure & JSXBase.HTMLAttributes<HTMLIbcsChartStructureElement>;
+            "ibcs-chart-time": LocalJSX.IbcsChartTime & JSXBase.HTMLAttributes<HTMLIbcsChartTimeElement>;
+            "ibcs-map": LocalJSX.IbcsMap & JSXBase.HTMLAttributes<HTMLIbcsMapElement>;
+            "ibcs-table": LocalJSX.IbcsTable & JSXBase.HTMLAttributes<HTMLIbcsTableElement>;
+            "ibcs-title": LocalJSX.IbcsTitle & JSXBase.HTMLAttributes<HTMLIbcsTitleElement>;
+            "test-runner-card": LocalJSX.TestRunnerCard & JSXBase.HTMLAttributes<HTMLTestRunnerCardElement>;
+            "test-runner-chart": LocalJSX.TestRunnerChart & JSXBase.HTMLAttributes<HTMLTestRunnerChartElement>;
+            "test-runner-chart-time": LocalJSX.TestRunnerChartTime & JSXBase.HTMLAttributes<HTMLTestRunnerChartTimeElement>;
+            "test-runner-map": LocalJSX.TestRunnerMap & JSXBase.HTMLAttributes<HTMLTestRunnerMapElement>;
+            "test-runner-table": LocalJSX.TestRunnerTable & JSXBase.HTMLAttributes<HTMLTestRunnerTableElement>;
+            "test-runner-time": LocalJSX.TestRunnerTime & JSXBase.HTMLAttributes<HTMLTestRunnerTimeElement>;
+            "test-runner-title": LocalJSX.TestRunnerTitle & JSXBase.HTMLAttributes<HTMLTestRunnerTitleElement>;
         }
     }
 }

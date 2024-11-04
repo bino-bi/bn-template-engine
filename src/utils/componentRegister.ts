@@ -1,4 +1,9 @@
-import { ComponentStatus } from "@bino-bi/ibcs-component-interface";
+
+export enum ComponentStatus {
+  RUNNING,
+  SUCCESSFUL,
+  ERROR
+}
 
 export namespace ComponentRegister {
   var currentTimeOutId: NodeJS.Timeout = undefined;

@@ -1,7 +1,10 @@
 import { createStore } from "@stencil/store";
-import {SVGStyleGroup, SVGVariancesStyleGroup} from "@bino-bi/ibcs-component/dist/types/utils/model";
+import { ScaleFactorsTimeChart } from "../components/bn-chart-time/ibcs-chart-time/utils/model";
+import { SVGStyleGroup, SVGVariancesStyleGroup } from "../utils/model";
+import { ScaleFactorsStructureChart } from "../components/bn-chart-structure/ibcs-chart-structure/utils/model";
+// import {SVGStyleGroup, SVGVariancesStyleGroup} from "@bino-bi/ibcs-component/dist/types/utils/model";
 
-import {IScaleFactorsStructureChart, IScaleFactorsTimeChart} from "@bino-bi/ibcs-component-interface";
+// import {IScaleFactorsStructureChart, IScaleFactorsTimeChart} from "@bino-bi/ibcs-component-interface";
 
 export interface Style {
   global: GlobalStyle;
@@ -21,7 +24,7 @@ export interface TextStyle {
 }
 
 export interface TimeChartStyle {
-  scaleFactors: IScaleFactorsTimeChart;
+  scaleFactors: ScaleFactorsTimeChart;
   axisStyles: SVGStyleGroup;
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
@@ -34,7 +37,7 @@ export interface TimeChartStyle {
 }
 
 export interface StructureChartStyle {
-  scaleFactors: IScaleFactorsStructureChart;
+  scaleFactors: ScaleFactorsStructureChart;
   axisStyles: SVGStyleGroup;
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
