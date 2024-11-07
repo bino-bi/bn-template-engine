@@ -51,11 +51,14 @@
     "alasql": "^4.5.2",
     "calculate-size": "^1.1.1",
     "faker": "^5.5.3",
+    "leaflet": "^1.9.4",
+    "leaflet-gpx": "^2.1.2",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
     "nanoid": "^4.0.0",
     "ramda": "^0.28.0",
     "styletron-engine-atomic": "^1.5.0",
-    "svgjs": "^2.6.2"
+    "svgjs": "^2.6.2",
+    "xlsx": "^0.18.5"
   }
 }

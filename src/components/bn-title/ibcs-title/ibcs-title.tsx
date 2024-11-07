@@ -3,18 +3,22 @@ import { Component, h, Method, Prop } from "@stencil/core";
 
 import { Title } from "./utils/Title";
 import { TitleConifgAdapter, TitleConfig } from "./utils/model/TitleConfig";
-import { MeasureEntryAdapter } from "./utils/model/MeasureEntriy";
-import { OrderAdapter } from "../../utils/model/Order";
-import { TimePeriodAdapter } from "./utils/model/TimePeriod";
-import { StringAdapter } from "../../utils/helper/StringAdapter";
-import {
+import { MeasureEntry, MeasureEntryAdapter } from "./utils/model/MeasureEntriy";
+// import { OrderAdapter } from "../../utils/model/Order";
+import { TimePeriod, TimePeriodAdapter } from "./utils/model/TimePeriod";
+import { Order, OrderAdapter, OrderDirection } from "../../../utils/model/Order";
+import { I18nMode } from "../../../utils/constants";
+import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { StringAdapter } from "../../../utils/helper/StringAdapter";
+// import { StringAdapter } from "../../utils/helper/StringAdapter";
+/*import {
   I18nMode,
   IOrder,
   OrderDirection,
   ITimePeriod,
   IMeasureEntry,
-} from "@bino-bi/ibcs-component-interface";
-import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+} from "@bino-bi/ibcs-component-interface";*/
+// import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 
 
 
@@ -51,16 +55,16 @@ export class IbcsTitle {
 
 
   @Prop()
-  measures: IMeasureEntry[] = [];
+  measures: MeasureEntry[] = [];
 
   @Prop()
-  timeperiod?: ITimePeriod;
+  timeperiod?: TimePeriod;
 
   @Prop()
   intervalSpanLimit: number = 28;
 
   @Prop()
-  order: IOrder = {
+  order: Order = {
     hierarchy: [],
     direction: OrderDirection.ASC,
   };

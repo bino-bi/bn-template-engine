@@ -1,12 +1,18 @@
-import { IAdapter } from "../../../../utils/helper/IAdapter";
-import { CompareUtil } from "../../../../utils/helper/CompareUtil";
+// import { IAdapter } from "../../../../utils/helper/IAdapter";
+// import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 
-import { OrderAdapter } from "../../../../utils/model/Order";
+// import { OrderAdapter } from "../../../../utils/model/Order";
+import { I18nMode } from "../../../../../utils/constants";
+import { AdapterUtils } from "../../../../../utils/helper/AdapterUtils";
+import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
+import { IAdapter } from "../../../../../utils/helper/IAdapter";
+import { StringAdapter } from "../../../../../utils/helper/StringAdapter";
+import { Order, OrderAdapter } from "../../../../../utils/model/Order";
 import { MeasureEntry, MeasureEntryAdapter } from "./MeasureEntriy";
 import { TimePeriod, TimePeriodAdapter } from "./TimePeriod";
-import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
-import { StringAdapter } from "../../../../utils/helper/StringAdapter";
-import {I18nMode, IOrder} from "@bino-bi/ibcs-component-interface";
+// import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
+// import { StringAdapter } from "../../../../utils/helper/StringAdapter";
+// import {I18nMode, IOrder} from "@bino-bi/ibcs-component-interface";
 
 export class TitleConfig {
   businessunit: string = '';
@@ -14,7 +20,7 @@ export class TitleConfig {
   scenarios: string[] = [];
   timeperiod: TimePeriod | undefined;
   i18nMode: I18nMode = I18nMode.ALL;
-  order?: IOrder | undefined;
+  order?: Order | undefined;
   intervalSpanLimit: number = 32;
 
   constructor() {

@@ -26,9 +26,9 @@ import { TimeChartStyle, TimeChartStylesAdapter } from "./utils/model/styles/Tim
 // import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVariancesStyleGroup";
 // import { PaddingAdapter } from "../../utils/model/styles/Padding";
 import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsTimeChart";
-import { AggregationLevel } from "../../../components";
+//import { AggregationLevel } from "../../../components";
 import { DateDistance } from "../../../utils/DateStringFactory";
-import { AxisLabelsMode } from "../../../utils/constants";
+import { AggregationLevel, AxisLabelsMode } from "../../../utils/constants";
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";

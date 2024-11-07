@@ -254,17 +254,20 @@ describe("IBCS Table Test", () => {
           {
             "rowGroup": "Product",
             "category": "Category A",
-            "subCategory": "Category - SUB 2"
+            "subCategory": "Category - SUB 2",
+            partOf:""
           }, {
             "rowGroup": "",
             "category": "Category B",
-            "subCategory": ""
+            "subCategory": "",
+            partOf:""
           }]}
         partof={[
           {
-            "rowGroup": "Product",
-            "category": "Category A",
-            "subCategory": ""
+            rowGroup: "Product",
+            category: "Category A",
+            subCategory: "",
+            partOf:""
           }
         ]}
         categorythereof={new Map([[
@@ -1090,11 +1093,15 @@ describe("IBCS Table Test", () => {
           {
             "rowGroup": "Product",
             "category": "Category A",
-            "subCategory": "Category - SUB 2"
+            "subCategory": "Category - SUB 2",
+            "partOf": "",
+            
           }, {
             "rowGroup": "",
             "category": "Category B",
-            "subCategory": ""
+            "subCategory": "",
+            "partOf": "",
+            
           }]}
         categorythereof={new Map([[
           "ac1", [{
@@ -1869,11 +1876,14 @@ describe("IBCS Table Test", () => {
             {
               "rowGroup": "Product",
               "category": "Category A",
-              "subCategory": "Category - SUB 2"
+              "subCategory": "Category - SUB 2",
+              "partOf": "",
+            
             }, {
               "rowGroup": "",
               "category": "Category B",
-              "subCategory": ""
+              "subCategory": "",
+              "partOf": "",
             }]}
           categorythereof={new Map([[
             "ac1", [{
@@ -2292,11 +2302,14 @@ describe("IBCS Table Test", () => {
               {
                 "rowGroup": "Product",
                 "category": "Category A",
-                "subCategory": "Category - SUB 2"
+                "subCategory": "Category - SUB 2",
+                "partOf": "",
+            
               }, {
                 "rowGroup": "",
                 "category": "Category B",
-                "subCategory": "null"
+                "subCategory": "null",
+                "partOf": "",            
               }]}
             categorythereof={new Map([[
               "ac1", [{
@@ -2953,11 +2966,15 @@ describe("IBCS Table Test", () => {
               {
                 "rowGroup": "Product",
                 "category": "Category A",
-                "subCategory": "Category - SUB 2"
+                "subCategory": "Category - SUB 2",
+                "partOf": "",
+            
               }, {
                 "rowGroup": "",
                 "category": "Category B",
-                "subCategory": ""
+                "subCategory": "",
+                "partOf": "",
+            
               }]}
             categorythereof={new Map([[
               "ac1", [{
@@ -3005,11 +3022,15 @@ describe("IBCS Table Test", () => {
                 {
                   "rowGroup": "Product",
                   "category": "Category A",
-                  "subCategory": "Category - SUB 2"
+                  "subCategory": "Category - SUB 2",
+                  "partOf": "",
+            
                 }, {
                   "rowGroup": "",
                   "category": "Category B",
-                  "subCategory": ""
+                  "subCategory": "",
+                  "partOf": "",
+            
                 }]}
               categorythereof={new Map([[
                 "ac1", [{

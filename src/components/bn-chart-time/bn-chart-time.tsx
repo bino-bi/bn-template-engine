@@ -20,9 +20,10 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
-import withComponentStyle from "../../utils/withComponentStyle";
-import { Formatter } from "@bino-bi/ibcs-component/dist/collection/utils";
+//import withComponentStyle from "../../utils/withComponentStyle";
+//import { Formatter } from "@bino-bi/ibcs-component/dist/collection/utils";
 
+/*
 import {
   AggregationLevel,
   AxisLabelsMode,
@@ -33,9 +34,26 @@ import {
   OrderColumn,
   OrderDirection
 } from "@bino-bi/ibcs-component-interface";
-
+*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { TimeChartDataRow, TimeChartStyle } from "./ibcs-chart-time/utils/model";
+//import {  AggregationLevel, AxisLabelsMode, DateDistance, Order } from "../../components";
+import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
+import { Formatter } from "../../utils/formatter";
+import { AxisLabelsMode } from "../../utils/constants";
+import { DateDistance } from "../../utils/DateStringFactory";
 
+// TODO FIXME: JHE: Style wieder hinzufuegen
+//import withComponentStyle from "../../utils/withComponentStyle";
+
+enum AggregationLevel {
+  ROWGROUP = "rowGroup",
+  ROWGROUPINDEX = "rowGroupIndex",
+  CATEGORY = "category",
+  CATEGORYINDEX = "categoryIndex",
+  SUBCATEGORY = "subCategory",
+  SUBCATEGORYINDEX = "subCategoryIndex",
+}
 
 @Component({
   tag: 'bn-chart-time',
@@ -44,7 +62,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 export class Chart {
   @Element() private element: HTMLElement;
 
-  @State() data: ITimeChartDataRow[] = []
+  @State() data: TimeChartDataRow[] = []
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
@@ -462,7 +480,7 @@ export class Chart {
     });
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
-    this.componentStyle = withComponentStyle(this);
+    //this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
 
   }
@@ -540,12 +558,12 @@ export class Chart {
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
-  private prepareOrder(): IOrder {
+  private prepareOrder(): Order {
     let entryValue = this.level;
     if (this.order.toLocaleLowerCase() === "levelindex") {
       entryValue += "Index";
     }
-    const tableOrder: IOrder = {
+    const tableOrder: Order = {
       hierarchy: [OrderColumn[entryValue?.toUpperCase() as keyof typeof OrderColumn]],
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
@@ -553,12 +571,13 @@ export class Chart {
     return tableOrder;
   }
 
-  private prepareStyle(): ITimeChartStyles {
+  private prepareStyle(): TimeChartStyle {
     return this.componentStyle($ => {
       return {
         scaleFactors: {
           scenarioOffset: $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
           scenarioLabelToColumn: $["bn-chart-time"]['scaleFactors']['scenarioLabelToColumn'],
+          labelToColumn: 0.3,
           labelToColum: $["bn-chart-time"]['scaleFactors']['labelToColum'],
           labelToAxis: $["bn-chart-time"]['scaleFactors']['labelToAxis'],
           needleWidth: $["bn-chart-time"]['scaleFactors']['needleWidth'],
@@ -589,7 +608,7 @@ export class Chart {
     });
   }
 
-  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: ITimeChartStyles): number {
+  private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: TimeChartStyle): number {
 
     
     if (this.syncSpaceLeft > -1) {     
@@ -625,6 +644,7 @@ export class Chart {
     return this.intervalSpanLimit;
   }
 
+
   private prepareAxisLabelsMode(): AxisLabelsMode {
     return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
@@ -640,9 +660,9 @@ export class Chart {
 
 
 
-  private prepareChartType() {
+  /*private prepareChartType() {
     return this.type;
-  }
+  }*/
 
   public getDataStructure(): any {
     let dataSetStructure: any = {
@@ -711,7 +731,7 @@ export class Chart {
 
   chartTemplate(localScenarioString: string, idx: number) {
     let preparedI18n: Map<string, string> = this.prepareI18n();
-    let preparedStyle: ITimeChartStyles = this.prepareStyle();
+    let preparedStyle: TimeChartStyle = this.prepareStyle();
    
     return <ibcs-chart-time
       data={this.data}
@@ -730,7 +750,7 @@ export class Chart {
       dateInterval={this.prepareDateInterval()}
       intervalSpanLimit={this.prepareIntervalSpanLimit()}
       axisLabelsMode={this.prepareAxisLabelsMode()}
-      type={this.prepareChartType()}
+    //  type={this.prepareChartType()}
       filter={this.prepareFilter()}
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}

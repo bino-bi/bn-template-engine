@@ -1,8 +1,11 @@
 import { h } from '@stencil/core';
 import { newSpecPage } from '@stencil/core/testing';
 import {IbcsTitle} from "./ibcs-title";
-import {DateDistance, DateLink, IOrder, OrderDirection} from "@bino-bi/ibcs-component-interface";
+// import {DateDistance, DateLink, IOrder, OrderDirection} from "@bino-bi/ibcs-component-interface";
 import {DateTime} from "luxon";
+import { Order, OrderDirection } from '../../../utils/model/Order';
+import { DateDistance } from '../../../components';
+import { DateLink } from '../../../utils/DateStringFactory';
 
 it('should render my component with only a Business Unit', async () => {
   const businessUnit = 'Business Unit';
@@ -92,7 +95,7 @@ it('should render scenarios', async () => {
       order = {{
         hierarchy: ["ac1"],
         direction: OrderDirection.ASC
-      } as IOrder}>
+      } as Order}>
     </ibcs-title>),
   });
 

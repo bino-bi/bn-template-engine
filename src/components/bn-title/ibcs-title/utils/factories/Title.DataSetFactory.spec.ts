@@ -2,11 +2,16 @@ import {Title} from "../Title";
 import {TitleConfig, TitleConifgAdapter} from "../model/TitleConfig";
 import {MeasureEntryAdapter} from "../model/MeasureEntriy";
 import {TimePeriodAdapter} from "../model/TimePeriod";
-import {OrderAdapter} from "../../../../utils/model/Order";
-import {StringAdapter} from "../../../../utils/helper/StringAdapter";
-import {DateDistance, DateLink, I18nMode, OrderDirection} from "@bino-bi/ibcs-component-interface";
+// import {OrderAdapter} from "../../../../utils/model/Order";
+// import {StringAdapter} from "../../../../utils/helper/StringAdapter";
+// import {DateDistance, DateLink, I18nMode, OrderDirection} from "@bino-bi/ibcs-component-interface";
 import {DateTime} from "luxon";
-import { IBCSRuleSet } from "../../../../utils/ibcsRuleSet";
+import { OrderAdapter, OrderDirection } from "../../../../../utils/model/Order";
+import { StringAdapter } from "../../../../../utils/helper/StringAdapter";
+import { I18nMode } from "../../../../../utils/constants";
+import { DateDistance, DateLink } from "../../../../../utils/DateStringFactory";
+import { IBCSRuleSet } from "../../../../../utils/ibcsRuleSet";
+// import { IBCSRuleSet } from "../../../../utils/ibcsRuleSet";
 
 // Test i18n data
 let i18n: Map<string, string> = new Map();

@@ -1,6 +1,6 @@
 import {Component, h} from "@stencil/core";
-import { TableType } from "../components";
-import { MeasureType, I18nMode, TableCategoryWidth } from "../utils/constants";
+
+import { MeasureType, I18nMode, TableCategoryWidth, TableType } from "../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../utils/model/Order";
 // import {TableType, OrderDirection} from "../components/ibcs-table/utils/model";
 /*import {
@@ -502,19 +502,25 @@ export class TestRunnerTable {
         category-width={TableCategoryWidth.W25}
         thereof={[{rowGroup: "Firma_1",
                   category: "Geschäftssparte_A",
-                  subCategory: ""},
+                  subCategory: "",
+                  partOf:""},
                   {rowGroup: "Firma_1",
                   category: "Geschäftssparte_B",
-                  subCategory:""},
+                  subCategory:"",
+                  partOf:"",
+                  },
                   {rowGroup:"Firma_2",
                   category:"Geschäftssparte_A",
-                  subCategory:""},
+                  subCategory:"",
+                  partOf:""},
                   {rowGroup:"Firma_2",
                   category:"Geschäftssparte_B",
-                  subCategory:""},
+                  subCategory:"",
+                  partOf:""},
                   {rowGroup:"Firma_3",
                   category:"Geschäftssparte_C",
-                  subCategory:""}]}      
+                  subCategory:"",
+                  partOf:""}]}      
         categorythereof={new Map()}
       ></ibcs-table>
     </div>);

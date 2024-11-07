@@ -15,7 +15,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
-import {
+/*import {
   DateDistance,
   DateLink,
   I18nMode,
@@ -23,8 +23,14 @@ import {
   IOrder,
   ITimePeriod,
   OrderDirection
-} from "@bino-bi/ibcs-component-interface";
+} from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { I18nMode } from "../../utils/constants";
+import { Order, OrderDirection } from "../../utils/model/Order";
+import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
+import { DateDistance, DateLink } from "../../utils/DateStringFactory";
+import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
+//import { MeasureEntry, MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
 
 
 @Component({
@@ -289,11 +295,11 @@ export class Title {
     return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries()]);
   }
 
-  private prepareI18nMode(): I18nMode {
+  private prepareI18nMode(): I18nMode {  
     return I18nMode.META;
   }
 
-  private prepareTitleOrder(): IOrder {
+  private prepareTitleOrder(): Order {
     if (isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
       return null;
     }
@@ -304,7 +310,7 @@ export class Title {
     };
   }
 
-  private prepareTitleTimePeriod(): ITimePeriod | null {
+  private prepareTitleTimePeriod(): TimePeriod | null {
     if (isBlankInput(this.dateStart) && isBlankInput(this.dateEnd)) {
       return null;
     }
@@ -320,11 +326,11 @@ export class Title {
     };
   }
 
-  private prepareMeasures(): IMeasureEntry[] {
+  private prepareMeasures(): MeasureEntry[] {
     if (isBlankInput(this.measures)) {
       return [];
     }
-    return JSON.parse(this.measures) as IMeasureEntry[];
+    return JSON.parse(this.measures) as MeasureEntry[];
   }
 
   private prepareScenarios(): string[] {

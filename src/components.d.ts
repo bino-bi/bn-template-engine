@@ -12,7 +12,6 @@ import { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, Ta
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
 import { TimeChartDataRow } from "./components/bn-chart-time/ibcs-chart-time/utils/model/TimeChartDataRow";
 import { TimeChartStyle } from "./components/bn-chart-time/ibcs-chart-time/utils/model/styles/TimeChartStyle";
-import { AggregationLevel as AggregationLevel1, DataFormatDigits as DataFormatDigits1 } from "./components";
 import { DateDistance } from "./utils/DateStringFactory";
 import { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
 import { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
@@ -20,6 +19,8 @@ import { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLa
 import { TableDataRow } from "./components/bn-table/ibcs-table/utils/model/TableDataRow";
 import { TableDrillGroup } from "./components/bn-table/ibcs-table/utils/model/TableDrillGroup";
 import { TableType } from "./components/bn-table/ibcs-table/utils/model";
+import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
+import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
 export { StructureChartDataRow } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model";
 export { StructureChartStyle } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model/styles/StructureChartStyle";
 export { Order } from "./utils/model/Order";
@@ -27,7 +28,6 @@ export { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, Ta
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
 export { TimeChartDataRow } from "./components/bn-chart-time/ibcs-chart-time/utils/model/TimeChartDataRow";
 export { TimeChartStyle } from "./components/bn-chart-time/ibcs-chart-time/utils/model/styles/TimeChartStyle";
-export { AggregationLevel as AggregationLevel1, DataFormatDigits as DataFormatDigits1 } from "./components";
 export { DateDistance } from "./utils/DateStringFactory";
 export { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
 export { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
@@ -35,6 +35,8 @@ export { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLa
 export { TableDataRow } from "./components/bn-table/ibcs-table/utils/model/TableDataRow";
 export { TableDrillGroup } from "./components/bn-table/ibcs-table/utils/model/TableDrillGroup";
 export { TableType } from "./components/bn-table/ibcs-table/utils/model";
+export { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
+export { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
 export namespace Components {
     interface BnBody {
     }
@@ -503,7 +505,7 @@ export namespace Components {
         "i18n": Map<string, string>;
         "intervalSpanLimit": number;
         "leftSideOffsetForHorizontalSync": number;
-        "level": AggregationLevel1;
+        "level": AggregationLevel;
         "limit": number;
         "measureScale": string;
         "measureUnit": string;
@@ -535,7 +537,7 @@ export namespace Components {
         "categoryWidth": TableCategoryWidth;
         "categorythereof": Map<string, any>;
         "data": TableDataRow[];
-        "dataFormatDigits": DataFormatDigits1;
+        "dataFormatDigits": DataFormatDigits;
         "filter": string;
         "grouped"?: boolean;
         "i18n": Map<string, string>;
@@ -559,12 +561,12 @@ export namespace Components {
         "i18n": Map<string, string>;
         "i18nMode": I18nMode;
         "intervalSpanLimit": number;
-        "measures": IMeasureEntry[];
-        "order": IOrder;
+        "measures": MeasureEntry[];
+        "order": Order;
         "scenarios": string[];
         "setBusinessUnit": (businessUnit: string) => Promise<void>;
         "setProps": (data: Partial<IbcsTitle>) => Promise<void>;
-        "timeperiod"?: ITimePeriod;
+        "timeperiod"?: TimePeriod;
     }
     interface TestRunnerCard {
     }
@@ -1319,7 +1321,7 @@ declare namespace LocalJSX {
         "i18n"?: Map<string, string>;
         "intervalSpanLimit"?: number;
         "leftSideOffsetForHorizontalSync"?: number;
-        "level"?: AggregationLevel1;
+        "level"?: AggregationLevel;
         "limit"?: number;
         "measureScale"?: string;
         "measureUnit"?: string;
@@ -1351,7 +1353,7 @@ declare namespace LocalJSX {
         "categoryWidth"?: TableCategoryWidth;
         "categorythereof"?: Map<string, any>;
         "data"?: TableDataRow[];
-        "dataFormatDigits"?: DataFormatDigits1;
+        "dataFormatDigits"?: DataFormatDigits;
         "filter"?: string;
         "grouped"?: boolean;
         "i18n"?: Map<string, string>;
@@ -1375,10 +1377,10 @@ declare namespace LocalJSX {
         "i18n"?: Map<string, string>;
         "i18nMode"?: I18nMode;
         "intervalSpanLimit"?: number;
-        "measures"?: IMeasureEntry[];
-        "order"?: IOrder;
+        "measures"?: MeasureEntry[];
+        "order"?: Order;
         "scenarios"?: string[];
-        "timeperiod"?: ITimePeriod;
+        "timeperiod"?: TimePeriod;
     }
     interface TestRunnerCard {
     }

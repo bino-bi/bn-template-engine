@@ -23,7 +23,7 @@ import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
 
 
-import {
+/*import {
   DataFormat,
   I18nMode,
   IDataFormatDigits,
@@ -35,8 +35,14 @@ import {
   TableCategoryWidth,
   TableDrillGroup,
   TableType,
-} from "@bino-bi/ibcs-component-interface";
+} from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { TableDataRow } from "./ibcs-table/utils/model/TableDataRow";
+import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
+import { TableType } from "./ibcs-table/utils/model";
+import { TableDrillGroup } from "./ibcs-table/utils/model/TableDrillGroup";
+import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
+import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
 
 @Component({
   tag: 'bn-table',
@@ -45,7 +51,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 export class Table {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
-  @State() data: ITableDataRow[] = []
+  @State() data: TableDataRow[] = []
 
 
   constructor() {
@@ -570,8 +576,8 @@ export class Table {
   }
 
 
-  private prepareOrder(): IOrder {
-    const tableOrder: IOrder = {
+  private prepareOrder(): Order {
+    const tableOrder: Order = {
       hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
@@ -595,8 +601,8 @@ export class Table {
   }
 
 
-  private prepareDataFormatDigits(): IDataFormatDigits {
-    const formatDigits: IDataFormatDigits = {
+  private prepareDataFormatDigits(): DataFormatDigits {
+    const formatDigits: DataFormatDigits = {
       percent: this.dataFormatDigitsPercent,
       decimal: this.dataFormatDigitsDecimal
     };

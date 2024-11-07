@@ -1,6 +1,6 @@
 import {Component, h, Host,  Method, Prop, Watch, Event, EventEmitter} from "@stencil/core";
 // @ts-ignore
-import L from "leaflet-gpx";
+import * as L from "leaflet-gpx";
 import { Marker } from "./utils/model/Marker";
 import { GpxLayer } from "./utils/model/GpxLayer";
 import { GeoJsonLayer } from "./utils/model/GeoJsonLayer";
