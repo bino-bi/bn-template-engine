@@ -1,9 +1,8 @@
 import {h, Component} from "@stencil/core";
-import { TableType } from "../components";
-import { I18nMode, AggregationLevel } from "../utils/constants";
+
+import { I18nMode, AggregationLevel, TableType } from "../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../utils/model/Order";
-// import {AggregationLevel, I18nMode, IOrder, OrderColumn, OrderDirection} from"@bino-bi/ibcs-component-interface";
-// import {TableType} from "../components/ibcs-table/utils/model";
+
 
 @Component({
   tag: "test-runner-card",

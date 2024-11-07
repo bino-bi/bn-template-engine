@@ -2,33 +2,19 @@ import { Component, h, Host, Prop } from "@stencil/core";
 
 import { OrderDirection, TableType } from "./utils/model";
 
-// import {}
-// import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
-/*import {
-  DataFormat,
-  IDataFormatDigits,
-  I18nMode,
-  IOrder, ITableDataRow, ITableDrillGroup,
-  MeasureType,
-  OrderDirection,
-  TableCategoryWidth,
-} from "@bino-bi/ibcs-component-interface";*/
 import { TableRow } from "./utils/elements";
 import { Table } from "./utils/Table";
-// import { OrderAdapter } from "../../utils/model/Order";
-// import { StringAdapter } from "../../utils/helper/StringAdapter";
+
 import { TableComponentConfig, TableComponentConfigAdapter } from "./utils/model/TableComponentConfig";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./utils/model/TableDrillGroup";
 import { TableDataRow, TableDataRowAdapter } from "./utils/model/TableDataRow";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../../utils/constants";
-import { DataFormatDigits } from "../../../components";
+
 import { AdapterUtils } from "../../../utils/helper/AdapterUtils";
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
-import { DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
+import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
 import { Order, OrderAdapter } from "../../../utils/model/Order";
-// import { AdapterUtils } from "../../utils/helper/AdapterUtils";
-// import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 
 
 @Component({

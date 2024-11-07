@@ -1,5 +1,8 @@
-import { IAdapter } from "../../../../utils/helper/IAdapter";
-import { CompareUtil } from "../../../../utils/helper/CompareUtil";
+//import { IAdapter } from "../../../../utils/helper/IAdapter";
+// import { CompareUtil } from "../../../../utils/helper/CompareUtil";
+
+import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
+import { IAdapter } from "../../../../../utils/helper/IAdapter";
 
 export class MeasureEntry {
   constructor(public name: string = '',

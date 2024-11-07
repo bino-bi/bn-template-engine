@@ -3,8 +3,8 @@
 // import { StringAdapter } from "../../../../utils/helper/StringAdapter";
 // import { Order, OrderAdapter } from "../../../../utils/model/Order";
 // import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
-import { Order, AggregationLevel } from "../../../../../components";
-import { AxisLabelsMode } from "../../../../../utils/constants";
+
+import { AggregationLevel, AxisLabelsMode } from "../../../../../utils/constants";
 import { DataAnalyzer } from "../../../../../utils/dataAnalyzer";
 import { DateDistance } from "../../../../../utils/DateStringFactory";
 import { AdapterUtils } from "../../../../../utils/helper/AdapterUtils";
@@ -12,7 +12,7 @@ import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../../utils/helper/IAdapter";
 import { StringAdapter } from "../../../../../utils/helper/StringAdapter";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../../utils/model/DataFormatDigits";
-import { OrderAdapter } from "../../../../../utils/model/Order";
+import { Order, OrderAdapter } from "../../../../../utils/model/Order";
 import { SiPrefix } from "../../../../../utils/model/SiPrefix";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./TimeChartDataRow";
 // import {AggregationLevel, AxisLabelsMode, DateDistance, IDataFormatDigits} from "@bino-bi/ibcs-component-interface";

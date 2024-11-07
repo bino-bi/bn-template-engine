@@ -1,3 +1,4 @@
+import { TimeChartStyle } from "../components/bn-chart-time/ibcs-chart-time/utils/model";
 import {BinoChartSyles, QueryColumnNames, VarianceScenario} from "./model";
 
 import CalculateSize from "calculate-size";
@@ -5,15 +6,16 @@ import CalculateSize from "calculate-size";
 export class Formatter {
   // implements ISO 80000-1
   // private decimalSeparator = ',';
-  private static tsdDelimiter: string = ' ';
+  private static tsdDelimiter: string = '&#8201';
   private static postfixSeperator: string = '';
 
-  static number(value: number, type: string = 'decimal', digits: number = 1, digitsMin: number = 0, scale = 1) {
+  static number(value: number, _type: string = 'decimal', digits: number = 1, digitsMin: number = 0, scale = 1) {
     // replace used as workaround to implement ISO 80000-1
     let scaledValue = value / scale;
-
+    // TODO: JHE: FIX Type not used????
+    
     return scaledValue.toLocaleString('de-DE', {
-      style: type,
+      //  dstyle: type,
       useGrouping: true,
       maximumFractionDigits: digits,
       minimumFractionDigits: digitsMin
@@ -59,7 +61,8 @@ export class Formatter {
 
   }
 
-  static getMaxWidthOfArrayItems(scenarios: string[], i18n: Map<string, string>, style: BinoChartSyles) {
+  // FIXME JHE: querverweis  TimeChartSTyle muss raus
+  static getMaxWidthOfArrayItems(scenarios: string[], i18n: Map<string, string>, style: BinoChartSyles | TimeChartStyle) {
     return CalculateSize(scenarios.map((scenario) => Formatter.translateScenarioLabel(scenario, i18n))
       .reduce((a, b) => a.length < b.length ? b : a, ""), {
       font: style.fontStyles.font,

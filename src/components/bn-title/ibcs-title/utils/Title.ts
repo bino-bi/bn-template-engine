@@ -1,6 +1,7 @@
 import {TitleDataSetFactory} from "./factories";
 import {TitleConfig} from "./model/TitleConfig";
 import {MeasureEntry} from "./model/MeasureEntriy";
+import { IBCSRuleSet } from "../../../../utils/ibcsRuleSet";
 
  
 enum FactoryState {

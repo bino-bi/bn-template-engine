@@ -24,7 +24,7 @@ import withComponentStyle from "../../utils/withComponentStyle";
 } from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style } from "../../stores/componentStyles";
-import { StructureChartDataRow, StructureChartStyle } from "./ibcs-chart-structure/utils/model";
+import { StructureChartDataRow} from "./ibcs-chart-structure/utils/model";
 import { AggregationLevel } from "../../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 
@@ -419,8 +419,8 @@ export class Chart {
 
     return tableOrder;
   }
-
-  private prepareStyle(): StructureChartStyle {
+  // TODO: FIXME:  Adapter pattenr doch noch verschieben?
+  private prepareStyle(): any {
     return this.componentStyle($ => {
      
       return {

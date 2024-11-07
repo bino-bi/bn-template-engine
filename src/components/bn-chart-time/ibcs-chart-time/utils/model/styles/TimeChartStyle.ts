@@ -1,12 +1,15 @@
 // import { IAdapter } from "../../../../../utils/helper/IAdapter";
 import { CompareUtil } from "../../../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../../../utils/helper/IAdapter";
-import { SVGPolgonPattern, SVGStyleGroup, SVGVariancesStyleGroup } from "../../../../../../utils/model";
+import { SVGPolgonPattern } from "../../../../../../utils/model/ChartStyles";
+//import { SVGPolgonPattern, SVGStyleGroup, SVGVariancesStyleGroup } from "../../../../../../utils/model";
 import { FontStyle, FontStyleAdapter } from "../../../../../../utils/model/styles/FontStyle";
-import { PaddingAdapter } from "../../../../../../utils/model/styles/Padding";
-import { SVGStyleGroupAdapter } from "../../../../../../utils/model/styles/SVGStyleGroup";
-import { SVGVariancesStyleGroupAdapter } from "../../../../../../utils/model/styles/SVGVariancesStyleGroup";
-import { MarkerPattern, Padding } from "../../helper";
+import { Padding, PaddingAdapter } from "../../../../../../utils/model/styles/Padding";
+
+import { SVGStyleGroup, SVGStyleGroupAdapter } from "../../../../../../utils/model/styles/SVGStyleGroup";
+import { SVGVariancesStyleGroup, SVGVariancesStyleGroupAdapter } from "../../../../../../utils/model/styles/SVGVariancesStyleGroup";
+import { MarkerPattern } from "../../helper/MarkerPattern";
+
 // import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
 
 // import { FontStyle, FontStyleAdapter } from "../../../../../utils/model/styles/FontStyle";

@@ -15,7 +15,7 @@ export class TestRunnerTitle {
         businessUnit = "Business Unit"
       ></ibcs-title>
         =====
-        <ibcs-title measures = {[{name: "Bruttoumsatz"}]}></ibcs-title>
+        <ibcs-title measures = {[{name: "Bruttoumsatz",unit:"EUR"}]}></ibcs-title>
         ==========
         <ibcs-title
           scenarios       = {["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos","ac2"]}

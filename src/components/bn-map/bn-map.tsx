@@ -5,18 +5,12 @@ import {withStyled} from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, {ErrorDispatcher} from "../../utils/withHasError";
-import { ComponentRegister } from '../../utils/componentRegister';
+import { ComponentRegister, ComponentStatus } from '../../utils/componentRegister';
 import { generateUUID } from '../../utils/utils';
-import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
+import { Marker } from './ibcs-map/utils/model/Marker';
+//import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 //import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 
-type MarkerParams = {
-  latitude: number;
-  longitude: number;
-  iconUrl: string;
-  iconWidth: number;
-  iconHeight: number;
-}
 
 type GpxParams = {
   file: string;
@@ -47,14 +41,14 @@ export class BnMap {
   //private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
 
-  private markerList: MarkerParams[] = [];
+  private markerList: Marker[] = [];
   private gpxList: GpxParams[] = []
   private geojsonList: GeojsonParams[] = []
 
  //  @State() gpxdata: GpxParams[] = [];
   @State() gpxData:    GpxParams[] = [];
   @State() geojsonData:  GeojsonParams[] = [];
-  @State() markerData: MarkerParams[] = [];
+  @State() markerData: Marker[] = [];
   @State() data: any[] = [];
 
   private uuid: string = generateUUID();
