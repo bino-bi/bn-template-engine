@@ -36,7 +36,7 @@ import {
 } from "@bino-bi/ibcs-component-interface";
 */
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
-import { TimeChartDataRow, TimeChartStyle } from "./ibcs-chart-time/utils/model";
+import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
 //import {  AggregationLevel, AxisLabelsMode, DateDistance, Order } from "../../components";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";

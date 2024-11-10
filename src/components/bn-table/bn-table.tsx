@@ -37,10 +37,10 @@ import { withStyled } from "../../utils/styled/withStyled";
   TableType,
 } from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
-import { TableDataRow } from "./ibcs-table/utils/model/TableDataRow";
+import { TableDataRow } from "./utils/model/TableDataRow";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
-import { TableType } from "./ibcs-table/utils/model";
-import { TableDrillGroup } from "./ibcs-table/utils/model/TableDrillGroup";
+import { TableType } from "./utils/model";
+import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
 

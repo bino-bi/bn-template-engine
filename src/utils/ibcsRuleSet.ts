@@ -1,7 +1,7 @@
 
 
 //import {VisualisationRuleSet, Scenario} from "../components/ibcs-table/utils/model";
-import { Scenario, VisualisationRuleSet } from "../components/bn-table/ibcs-table/utils/model"; // TODO JHE: Scenario Dublicate
+import { Scenario, VisualisationRuleSet } from "../components/bn-table/utils/model"; // TODO JHE: Scenario Dublicate
 import { VarianceScenario } from "./model/VarianceScenario";
 
 /**

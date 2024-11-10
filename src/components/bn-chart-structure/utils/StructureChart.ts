@@ -17,7 +17,7 @@ import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { Order, OrderColumn } from "../../../utils/model/Order";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
-import { VisualisationRuleSet } from "../../bn-table/ibcs-table/utils/model";
+import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 // import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 // import { Order } from "../../../utils/model/Order";
