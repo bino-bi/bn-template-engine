@@ -9,7 +9,7 @@
 
 ### Depends on
 
-- [ibcs-title](../components/ibcs-title)
+- [ibcs-title](../components/bn-title/ibcs-title)
 
 ### Graph
 ```mermaid
@@ -20,4 +20,4 @@ graph TD;
 
 ----------------------------------------------
 
-*Built with [StencilJS](https://stenciljs.com/)*
+developed by Bino Bi

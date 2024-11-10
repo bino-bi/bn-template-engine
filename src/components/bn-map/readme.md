@@ -35,7 +35,7 @@
 
 ### Depends on
 
-- ibcs-map
+- [ibcs-map](ibcs-map)
 
 ### Graph
 ```mermaid
