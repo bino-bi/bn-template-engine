@@ -10,15 +10,15 @@
 // import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
-import { AggregationLevel } from "../../../../../utils/constants";
-import { DataAnalyzer } from "../../../../../utils/dataAnalyzer";
-import { AdapterUtils } from "../../../../../utils/helper/AdapterUtils";
-import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
-import { IAdapter } from "../../../../../utils/helper/IAdapter";
-import { StringAdapter } from "../../../../../utils/helper/StringAdapter";
-import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../../utils/model/DataFormatDigits";
-import { Order, OrderAdapter } from "../../../../../utils/model/Order";
-import { SiPrefix } from "../../../../../utils/model/SiPrefix";
+import { AggregationLevel } from "../../../../utils/constants";
+import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
+import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
+import { CompareUtil } from "../../../../utils/helper/CompareUtil";
+import { IAdapter } from "../../../../utils/helper/IAdapter";
+import { StringAdapter } from "../../../../utils/helper/StringAdapter";
+import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../utils/model/DataFormatDigits";
+import { Order, OrderAdapter } from "../../../../utils/model/Order";
+import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StructureChartDataRow, StructureChartDataRowAdapter } from "./StructureChartDataRow";
 
 export class StructureChartComponentConfig {

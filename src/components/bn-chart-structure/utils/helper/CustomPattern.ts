@@ -1,6 +1,6 @@
 import { G, Pattern, Svg } from "@svgdotjs/svg.js";
 import {StructureChartStyle} from "../model";
-import { SVGPolgonPattern } from "../../../../../utils/model";
+import { SVGPolgonPattern } from "../../../../utils/model";
 // import { SVGPolgonPattern } from "../../../../utils/model";
 
 export class CustomPattern {

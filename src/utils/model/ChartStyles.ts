@@ -1,5 +1,5 @@
 import {Pattern} from "@svgdotjs/svg.js";
-import { ScaleFactorsStructureChart } from "../../components/bn-chart-structure/ibcs-chart-structure/utils/model";
+import { ScaleFactorsStructureChart } from "../../components/bn-chart-structure/utils/model";
 import { ScaleFactorsTimeChart } from "../../components/bn-chart-time/ibcs-chart-time/utils/model";
 
 export interface BinoChartSyles {

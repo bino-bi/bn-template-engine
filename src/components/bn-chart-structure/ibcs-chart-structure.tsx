@@ -24,22 +24,22 @@ import { ScaleFactorsStructureChartAdapter } from "./utils/model";
 //import { PaddingAdapter } from "../../utils/model/styles/Padding";
 //import { SVGStyleAdapter } from "../../utils/model/styles/SVGStyle";
 import { StructureChartStylesAdapter, StructureChartStyle } from "./utils/model/styles/StructureChartStyle";
-import { Order, OrderAdapter, OrderDirection } from "../../../utils/model/Order";
-import { AggregationLevel } from "../../../utils/constants";
-import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
-import { StringAdapter } from "../../../utils/helper/StringAdapter";
-import { FontStyleAdapter } from "../../../utils/model/styles/FontStyle";
-import { SVGStyleGroupAdapter } from "../../../utils/model/styles/SVGStyleGroup";
-import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
-import { PaddingAdapter } from "../../../utils/model/styles/Padding";
-import { SVGStyleAdapter } from "../../../utils/model/styles/SVGStyle";
-import { SVGVariancesStyleGroupAdapter } from "../../../utils/model/styles/SVGVariancesStyleGroup";
+import { Order, OrderAdapter, OrderDirection } from "../../utils/model/Order";
+import { AggregationLevel } from "../../utils/constants";
+import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
+import { StringAdapter } from "../../utils/helper/StringAdapter";
+import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
+import { SVGStyleGroupAdapter } from "../../utils/model/styles/SVGStyleGroup";
+import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import { PaddingAdapter } from "../../utils/model/styles/Padding";
+import { SVGStyleAdapter } from "../../utils/model/styles/SVGStyle";
+import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVariancesStyleGroup";
 //import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 //import { DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 
 @Component({
   tag: "ibcs-chart-structure",
-  styleUrl: "ibcs-chart-structure.scss",
+  styleUrl: "bn-chart-structure.scss",
 })
 
 export class IbcsChartStructure {
@@ -111,9 +111,7 @@ export class IbcsChartStructure {
     }
 
     return (
-      <Host>
-        
-
+      <Host>       
         {/*<div ref={(el) => this.patternElement = el} id="pattern" class="hidePatternContainer" /> */}
         <div innerHTML={this.pattern?.toString()} class="hidePatternContainer" /> 
       

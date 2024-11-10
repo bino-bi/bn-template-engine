@@ -3,10 +3,10 @@ import {HookLocation, Label} from "./Label";
 
 import {G} from "@svgdotjs/svg.js";
 import {ElementPositions,} from "../helper";
-import { SVGPolgonPattern, SVGStyle } from "../../../../../utils/model";
-import { DataFormatDigits } from "../../../../../utils/model/DataFormatDigits";
-import { SiPrefix } from "../../../../../utils/model/SiPrefix";
-import { SVGStyleGroup } from "../../../../../utils/model/styles/SVGStyleGroup";
+import { SVGPolgonPattern, SVGStyle } from "../../../../utils/model";
+import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
+import { SiPrefix } from "../../../../utils/model/SiPrefix";
+import { SVGStyleGroup } from "../../../../utils/model/styles/SVGStyleGroup";
 // import {HookLocation} from "../../../ibcs-chart-time/utils/elements";
 // import {SVGPolgonPattern, SVGStyle} from "../../../../utils/model";
 // import {SVGStyleGroup} from "../../../../utils/model/styles/SVGStyleGroup";

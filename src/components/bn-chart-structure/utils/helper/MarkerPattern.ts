@@ -1,6 +1,6 @@
 // import { SVGPolgonPattern } from "../../../../utils/model";
 
-import { SVGPolgonPattern } from "../../../../../utils/model";
+import { SVGPolgonPattern } from "../../../../utils/model";
 
 export class MarkerPattern {
 

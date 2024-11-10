@@ -14,4 +14,94 @@ bn-chart-structure {
     flex-wrap: wrap;
     justify-content: flex-end;
   }
+
+  .categories {
+    text-align: right;
+    font-size: 1em;
+    // font-family: NotoSans, Helvetica Neue, Helvetica;
+
+  }
+
+  .label-bg {
+    fill: white;
+    opacity: 0.7
+  }
+
+  .label-text {
+    text-align: right;
+    font-size: 1em;
+    //font-family: NotoSans, Helvetica Neue, Helvetica;
+  }
+
+  .axis-title {
+    text-align: center;
+    //font-family: NotoSans, Helvetica Neue, Helvetica;
+  }
+
+
+  .axis-ac {
+    stroke: black;
+    stroke-width: 0.1em;
+  }
+
+  .axis-pp {
+    stroke: grey;
+    stroke-width: 0.1em;
+  }
+
+  .axis-fc {
+    stroke: black;
+    stroke-dasharray: 2;
+    stroke-width: 0.1em;
+  }
+
+  .axis-pl {
+    stroke: white;
+    stroke-width: 0.1em;
+    outline-offset: 0em;
+    outline: 0.1em solid black;
+
+  }
+
+  canvas {
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .measure {
+    font-weight: bold;
+  }
+
+  span {
+    display: inline-block;
+  }
+
+  .hidePatternContainer {
+    height: 0;
+    width: 0;
+  }
+
+  div {
+    float: left;
+
+  }
+
+  .warning {
+
+    font-size: 0.8em;
+    font-style: italic;
+  }
+
+  .footer {
+    margin: 0.2em;
+    font-size: 0.6em;  
+  }
+
+  .footer-hide{
+    margin: 0.2em;
+    font-size: 0.6em;  
+    opacity: 0;
+  }
 }

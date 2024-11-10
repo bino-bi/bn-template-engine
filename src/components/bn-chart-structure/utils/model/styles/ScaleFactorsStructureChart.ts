@@ -1,8 +1,8 @@
 // import { IAdapter } from "../../../../../utils/helper/IAdapter";
 // import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
 
-import { CompareUtil } from "../../../../../../utils/helper/CompareUtil";
-import { IAdapter } from "../../../../../../utils/helper/IAdapter";
+import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
+import { IAdapter } from "../../../../../utils/helper/IAdapter";
 
 export class ScaleFactorsStructureChart {
   public scenarioOffset: number = 0.3;
