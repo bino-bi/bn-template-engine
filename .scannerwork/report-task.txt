@@ -1,0 +1,6 @@
+projectKey=bn-template-engine
+serverUrl=http://192.168.1.100:32768
+serverVersion=10.7.0.96327
+dashboardUrl=http://192.168.1.100:32768/dashboard?id=bn-template-engine
+ceTaskId=4f229c2f-060d-4734-8f4d-49950a634e8c
+ceTaskUrl=http://192.168.1.100:32768/api/ce/task?id=4f229c2f-060d-4734-8f4d-49950a634e8c

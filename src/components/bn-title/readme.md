@@ -55,7 +55,7 @@ The header element **bn-title** used in the top of the page is placed in front o
 
 ### Depends on
 
-- ibcs-title
+- [ibcs-title](ibcs-title)
 
 ### Graph
 ```mermaid
