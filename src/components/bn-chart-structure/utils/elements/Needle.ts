@@ -3,7 +3,7 @@ import {HookLocation, Label} from "./Label";
 
 import {G} from "@svgdotjs/svg.js";
 import {ElementPositions,} from "../helper";
-import { SVGStyle } from "../../../../../utils/model";
+import { SVGStyle } from "../../../../utils/model";
 // import {SVGStyle} from "../../../../utils/model/styles/SVGStyle";
 
 

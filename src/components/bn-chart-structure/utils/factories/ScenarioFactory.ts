@@ -13,7 +13,7 @@ import {
   DataPoint,
 } from "../model";
 import {Needle} from "../elements";
-import { SVGPolgonPattern } from "../../../../../utils/model";
+import { SVGPolgonPattern } from "../../../../utils/model";
 // import { SVGPolgonPattern} from "../../../../utils/model";
 
 

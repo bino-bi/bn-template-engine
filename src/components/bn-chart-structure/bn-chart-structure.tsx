@@ -15,16 +15,9 @@ import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-/*import {
-  AggregationLevel,
-  IOrder,
-  IStructureChartDataRow, IStructureChartStyles,
-  OrderColumn,
-  OrderDirection
-} from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style } from "../../stores/componentStyles";
-import { StructureChartDataRow} from "./ibcs-chart-structure/utils/model";
+import { StructureChartDataRow} from "./utils/model";
 import { AggregationLevel } from "../../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 

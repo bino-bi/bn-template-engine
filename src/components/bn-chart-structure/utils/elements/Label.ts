@@ -1,8 +1,8 @@
 import { G } from "@svgdotjs/svg.js";
 import { StructureChartStyle } from "../model";
-import { DataFormatDigits } from "../../../../../utils/model/DataFormatDigits";
-import { SiPrefix } from "../../../../../utils/model/SiPrefix";
-import { Formatter } from "../../../../../utils/formatter";
+import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
+import { SiPrefix } from "../../../../utils/model/SiPrefix";
+import { Formatter } from "../../../../utils/formatter";
 
 // import {Formatter} from "../../../../utils";
 // import {StructureChartStyle} from "../model";

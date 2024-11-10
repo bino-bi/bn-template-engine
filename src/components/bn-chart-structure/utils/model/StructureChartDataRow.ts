@@ -1,8 +1,8 @@
 // import { IAdapter } from "../../../../utils/helper/IAdapter";
 // import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 import {DateTime} from "luxon";
-import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
-import { IAdapter } from "../../../../../utils/helper/IAdapter";
+import { CompareUtil } from "../../../../utils/helper/CompareUtil";
+import { IAdapter } from "../../../../utils/helper/IAdapter";
 
 
 export class StructureChartDataRow {

@@ -6,7 +6,7 @@ import {HookLocation, Label} from "./Label";
 import {ElementPositions} from "../helper";
 // import {SVGPolgonPattern} from "../../../../utils/model";
 import {StructureChartDimension, DataPoint, StructureChartStyle} from "../model";
-import { SVGPolgonPattern } from "../../../../../utils/model";
+import { SVGPolgonPattern } from "../../../../utils/model";
 
 export class Marker {
 

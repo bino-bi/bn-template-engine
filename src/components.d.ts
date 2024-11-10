@@ -5,8 +5,8 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { StructureChartDataRow } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model";
-import { StructureChartStyle } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model/styles/StructureChartStyle";
+import { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
+import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { Order } from "./utils/model/Order";
 import { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
@@ -21,8 +21,8 @@ import { TableDrillGroup } from "./components/bn-table/ibcs-table/utils/model/Ta
 import { TableType } from "./components/bn-table/ibcs-table/utils/model";
 import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
-export { StructureChartDataRow } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model";
-export { StructureChartStyle } from "./components/bn-chart-structure/ibcs-chart-structure/utils/model/styles/StructureChartStyle";
+export { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
+export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 export { Order } from "./utils/model/Order";
 export { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
