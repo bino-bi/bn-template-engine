@@ -1,5 +1,5 @@
 import {DateTime, DateTimeUnit, DurationLike} from "luxon";
-import { DateFormat, DateLinkFormat } from "../components/bn-chart-time/ibcs-chart-time/utils/model"; //TODO: JHE:  Merge Title und Cahrt DateFormat...
+import { DateFormat, DateLinkFormat } from "../components/bn-chart-time/utils/model"; //TODO: JHE:  Merge Title und Cahrt DateFormat...
 //import {DateFormat, DateLinkFormat} from "../components/ibcs-chart-time/utils/model";
 
 export enum DateDistance {

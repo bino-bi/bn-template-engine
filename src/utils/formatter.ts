@@ -1,4 +1,4 @@
-import { TimeChartStyle } from "../components/bn-chart-time/ibcs-chart-time/utils/model";
+import { TimeChartStyle } from "../components/bn-chart-time/utils/model";
 import {BinoChartSyles, QueryColumnNames, VarianceScenario} from "./model";
 
 import CalculateSize from "calculate-size";
