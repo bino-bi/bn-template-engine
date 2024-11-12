@@ -6,8 +6,8 @@ import CalculateSize from "calculate-size";
 export class Formatter {
   // implements ISO 80000-1
   // private decimalSeparator = ',';
-  private static tsdDelimiter: string = '&#8201';
-  private static postfixSeperator: string = '';
+  private static tsdDelimiter: string = '.';
+  private static postfixSeperator: string = ',';
 
   static number(value: number, _type: string = 'decimal', digits: number = 1, digitsMin: number = 0, scale = 1) {
     // replace used as workaround to implement ISO 80000-1
