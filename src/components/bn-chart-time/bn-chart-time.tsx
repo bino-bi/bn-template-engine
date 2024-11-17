@@ -20,7 +20,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
-//import withComponentStyle from "../../utils/withComponentStyle";
+import withComponentStyle from "../../utils/withComponentStyle";
 //import { Formatter } from "@bino-bi/ibcs-component/dist/collection/utils";
 
 /*
@@ -42,9 +42,6 @@ import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode } from "../../utils/constants";
 import { DateDistance } from "../../utils/DateStringFactory";
-
-// TODO FIXME: JHE: Style wieder hinzufuegen
-//import withComponentStyle from "../../utils/withComponentStyle";
 
 enum AggregationLevel {
   ROWGROUP = "rowGroup",
@@ -480,7 +477,7 @@ export class Chart {
     });
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
-    //this.componentStyle = withComponentStyle(this);
+    this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
 
   }
