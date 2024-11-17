@@ -62,7 +62,7 @@ export class Chart {
     const errId: string = 'ERR_scenarios';
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + JSON.stringify(invalidScenarios) + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -97,7 +97,7 @@ export class Chart {
     let invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errIdVar, type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errIdVar, type: 'warning', message: 'variances: invalid value(s) \'' + JSON.stringify(invalidVariances) + '\' are not supported.' });
     } else {
       this.errors.remove(errIdVar);
     }
@@ -181,7 +181,7 @@ export class Chart {
     const errId: string = 'ERR_order';
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }

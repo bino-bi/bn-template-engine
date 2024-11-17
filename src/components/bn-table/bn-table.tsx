@@ -129,7 +129,7 @@ export class Table {
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'variances: invalid value(s) \'' + JSON.stringify(invalidVariances) + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -286,7 +286,7 @@ export class Table {
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'ThereOf: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'ThereOf: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -312,9 +312,9 @@ export class Table {
   validatePartOf(newValue: string) {
     const errId: string = 'ERR_partof';
     const invalidElements: string[] = validatePartOfJsonStr(newValue);
-
+    console.log("ïnvalid ->", invalidElements);
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'partof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'partof: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -335,7 +335,7 @@ export class Table {
     const invalidElements: string[] = validateOrderList(newValue);
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -501,7 +501,7 @@ export class Table {
     const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
     const errId: string = 'ERR_categorythereof';
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'columnthereof: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'columnthereof: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
     }
@@ -546,6 +546,7 @@ export class Table {
   }
 
   private prepareShowGroupTitle(): boolean {
+
     return (this.showGroupTitle == "true");
   }
 
@@ -569,8 +570,7 @@ export class Table {
   private preparePartOf(): TableDrillGroup[] {
     if (this.partof == null || this.partof.trim() == '') {
       return [];
-    }
-
+    }    
     return JSON.parse(this.partof!) as TableDrillGroup[];
 
   }
@@ -747,7 +747,7 @@ export class Table {
           scenarios-data-format={this.prepareDataFormat()}
           grouped={this.prepareGrouped()}
           limit={this.prepareLimit()}
-          show-group-title={this.prepareShowGroupTitle()}
+          showGroupTitle={this.prepareShowGroupTitle()}
           thereof={this.prepareThereOf()}
           partof={this.preparePartOf()}
           order={this.prepareOrder()}
