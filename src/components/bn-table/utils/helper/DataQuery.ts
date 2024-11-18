@@ -324,6 +324,9 @@ export class DataQuery {
     // adds drill rows if setup in config
     // if there of is set drilldown row is displayed with absolute numbers,
     // if part of is also not null a relative percenatage based of the selected basis is displayed
+   
+    
+    
     if (this.config.thereOf == undefined || this.config.thereOf.length == 0) {
       return;
     }
@@ -334,17 +337,25 @@ export class DataQuery {
     // create drill queryies based on config
 
     this.config.thereOf.forEach((element) => {
-      let fromString = "1 <> 1";   // helper for strin concat  1<>1 OR ... OR ...
-      fromString += ` OR (${QueryColumnNames.CATEGORY} = '${element.category}'`;
+      let isFirst = true;
+      let fromString = "1 <> 1 OR ( ";   // helper for strin concat  1<>1 OR ... OR ...
+
+      if (!(null == element.category || 0 === element.category.length || !element.category.trim())) {
+         // if not empty       
+        fromString += ` ${QueryColumnNames.CATEGORY} = '${element.category}'`;
+        isFirst = false;
+      }
 
       if (!(null == element.rowGroup || 0 === element.rowGroup.length || !element.rowGroup.trim())) {
-        // if not empty
-        fromString += `and ${QueryColumnNames.ROWGROUP} = '${element.rowGroup}'`;
+        // if not empty 
+               
+        fromString += ` ${isFirst? '' : 'AND'} ${QueryColumnNames.ROWGROUP} = '${element.rowGroup}'`;
+        isFirst = false;
       }
 
       if (!(null == element.subCategory || 0 === element.subCategory.length || !element.subCategory.trim())) {
-        // if not empty
-        fromString += `and ${QueryColumnNames.SUBCATEGORY} = '${element.subCategory}'`;
+        // if not empty 
+        fromString += ` ${isFirst? '' : 'AND'} ${QueryColumnNames.SUBCATEGORY} = '${element.subCategory}'`;
       }
       fromString += `)`;
 
@@ -361,6 +372,8 @@ export class DataQuery {
                          ORDER BY ${order[1]}`);
     });
 
+    console.log("thereOf",drillQueries[0]);
+  
     // invertet Sort directon because the later used insertion which results into expected order direction
     //drillQueries.push(`SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, null as operation, 'DRILLELEMENT' as ${QueryColumnNames.TYPE}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, ${QueryColumnNames.ROWGROUP}  as ${QueryColumnNames.ROWGROUP} , ${scenarios} FROM ? WHERE ${fromString} GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}  ORDER BY ${order[1]}`);
 
