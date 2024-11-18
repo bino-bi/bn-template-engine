@@ -117,6 +117,8 @@ export class Table {
       this.data = data;
     }
 
+    console.log("setData", this.config.scenarios, this.config.categoryThereOf, this.config.order )
+
     let normalizedScenarios = this.normalizeScenarios(this.config.scenarios, this.config.categoryThereOf, this.config.order );
     
       
@@ -152,6 +154,9 @@ export class Table {
 
   private normalizeScenarios(scenarios: string[], categoryThereOf: Map<string, any>, order: Order): { name: string, group: string, type: string, order: string | undefined }[] {
     let normalizedScenarios: { name: string, group: string, type: string, order: string | undefined}[] = [];
+    
+    console.log("normalizeScenarios",categoryThereOf);
+    
     for (let scenario of scenarios) {
       if (categoryThereOf?.has(scenario)) {
         let categoryDrills = categoryThereOf.get(scenario);
