@@ -234,7 +234,7 @@ export function validatePartOfJsonStr(value: string): string[] {
     const jsonObject = JSON.parse(value);
     if (jsonObject instanceof Array) {
       // return newObj.filter(elem => elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category') && elem.hasOwnProperty('subcategory'))
-      return jsonObject.filter(elem => !(elem.hasOwnProperty('rowgroup') && elem.hasOwnProperty('category')));
+      return jsonObject.filter(elem => !(elem.hasOwnProperty('rowGroup') && elem.hasOwnProperty('category')));
 
     }
   } catch {
