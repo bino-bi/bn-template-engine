@@ -84,7 +84,7 @@ export class TableDataSetFactory {
     if (TableType.OPT === type || TableType.OPTNOTOTAL === type) {
       header = [{name: QueryColumnNames.OPERATION, group: QueryColumnNames.OPERATION,type: QueryColumnNames.OPERATION, order: undefined }, {name: QueryColumnNames.CATEGORY, group: QueryColumnNames.CATEGORY,type: QueryColumnNames.CATEGORY, order: undefined }];
     }
-
+    
     // NOTE: scenarios are already sorted in setConfig
     return [...header, ...scenarios];
   }

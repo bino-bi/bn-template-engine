@@ -372,8 +372,7 @@ export class DataQuery {
                          ORDER BY ${order[1]}`);
     });
 
-    console.log("thereOf",drillQueries[0]);
-  
+
     // invertet Sort directon because the later used insertion which results into expected order direction
     //drillQueries.push(`SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, null as operation, 'DRILLELEMENT' as ${QueryColumnNames.TYPE}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, ${QueryColumnNames.ROWGROUP}  as ${QueryColumnNames.ROWGROUP} , ${scenarios} FROM ? WHERE ${fromString} GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}  ORDER BY ${order[1]}`);
 
@@ -398,11 +397,14 @@ export class DataQuery {
   }
 
   private calculateColumnGroupRest(res: any[], categoryThereOf: Map<string, any>) {
+ 
     if (categoryThereOf == null || categoryThereOf.size == 0) {
       return;
     }
     let scenarioRestMap: Map<string, any> = new Map();
-
+    let scenarioRestHasValuesMap: Map<string, any> = new Map();
+   
+    
     categoryThereOf.forEach((value, key) => {
       let categoryDrills = value;
       let columnsList = [];
@@ -410,6 +412,7 @@ export class DataQuery {
         columnsList.push(`${key}##${drillElement.name}`);
       }
       scenarioRestMap.set(key, columnsList);
+      scenarioRestHasValuesMap.set(`${key}##REST`, false);
     });
 
     res.forEach(group => {
@@ -423,9 +426,29 @@ export class DataQuery {
               }
             });
             row[`${key}##REST`] = row[key] - minuent;
+            
+            if(row[`${key}##REST`] != 0 ) {
+              scenarioRestHasValuesMap.set(`${key}##REST`, true);
+            } 
+
           });
         }
       });
+    });
+
+    const emptyRestColumns: string[] = Array.from(scenarioRestHasValuesMap.entries())
+                                       .filter(([_key, value]) => !value) 
+                                       .map(([key]) => key);            
+  
+    
+    res.forEach(group => {
+
+        group.forEach((row: { [x: string]: any; }) => {
+          for (const deleteColumn of emptyRestColumns) {
+            delete row[deleteColumn]
+          }
+          
+        });
     });
 
   }

@@ -117,12 +117,11 @@ export class Table {
       this.data = data;
     }
 
-    console.log("setData", this.config.scenarios, this.config.categoryThereOf, this.config.order )
-
     let normalizedScenarios = this.normalizeScenarios(this.config.scenarios, this.config.categoryThereOf, this.config.order );
     
       
     this.headerRows = this.dataSetFactory.createHeader(this.config.type, normalizedScenarios, this.i18n, this.config.measureScale, this.config.measureUnit,this.config.showMeasureScale);
+    
     this.bodyRows = this.dataSetFactory.createBodyRows(this.config, this.i18n, this.data);
     this.state = FactoryState.UP_TO_DATE;
   }
@@ -154,9 +153,7 @@ export class Table {
 
   private normalizeScenarios(scenarios: string[], categoryThereOf: Map<string, any>, order: Order): { name: string, group: string, type: string, order: string | undefined }[] {
     let normalizedScenarios: { name: string, group: string, type: string, order: string | undefined}[] = [];
-    
-    console.log("normalizeScenarios",categoryThereOf);
-    
+ 
     for (let scenario of scenarios) {
       if (categoryThereOf?.has(scenario)) {
         let categoryDrills = categoryThereOf.get(scenario);

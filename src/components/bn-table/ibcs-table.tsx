@@ -134,7 +134,7 @@ export class IbcsTable {
 
   componentWillRender() {
     const config: TableComponentConfig = this.prepareConfig();
-    console.log("TABLE", config, this.showGroupTitle);
+
     const data: TableDataRow[] = this.prepareData();
 
     this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(this.dataFormatDigits);
