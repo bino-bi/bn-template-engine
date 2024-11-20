@@ -104,8 +104,8 @@
       "pl3": 4,
       "ac4": 1,
       "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      "fc4": null,
+      "pl4": 0
       },
       {
       "setName": "de",
@@ -135,8 +135,8 @@
       "pl3": 4,
       "ac4": 1,
       "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      "fc4": null,
+      "pl4": 0
       },
       {
       "setName": "de",
@@ -166,8 +166,8 @@
       "pl3": 4,
       "ac4": 1,
       "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      "fc4": null,
+      "pl4": 0
       },
       {
       "setName": "de",
@@ -197,8 +197,8 @@
       "pl3": 4,
       "ac4": 1,
       "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      "fc4": null,
+      "pl4": 0
       },
       {
       "setName": "de",
@@ -228,8 +228,8 @@
       "pl3": 4,
       "ac4": 1,
       "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      "fc4": null,
+      "pl4": 0
       }
       ]
     </bn-datasource>
@@ -248,7 +248,7 @@
                     type="sum"
                     order='levelIndex'
                     order-direction='desc' 
-                    scenarios='ac1,pp1,fc1' 
+                    scenarios='ac1,ac4,pp1,pl4,fc1,fc4' 
                     variances='dac1_pp1_pos' 
                     styles='' 
                     unit-scaling='0.1' 
@@ -256,7 +256,8 @@
                     show-group-title="false"
                     percentage-scaling='25'
                     thereof='[{"rowGroup":"","category":"","subCategory":"Question Mark"}]'
-                    partof='[{"rowGroup":"","category":"I"}]'
+                  
+                    columnthereof='[{"scenario":"pl4","name":"null","subGroups":["null"]}]'
                     filter=''
                     ></bn-table>   
 <!--     <h1>Time</h1>  
