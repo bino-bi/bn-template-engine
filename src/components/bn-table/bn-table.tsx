@@ -312,7 +312,7 @@ export class Table {
   validatePartOf(newValue: string) {
     const errId: string = 'ERR_partof';
     const invalidElements: string[] = validatePartOfJsonStr(newValue);
-    console.log("ïnvalid ->", invalidElements);
+    
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'partof: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
     } else {
@@ -522,6 +522,7 @@ export class Table {
     this.validateType(this.type);
     this.validateLimit(this.limit);
     this.validateThereOf(this.thereof);
+    this.validatePartOf(this.partof);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
