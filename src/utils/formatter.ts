@@ -9,13 +9,14 @@ export class Formatter {
   private static tsdDelimiter: string = '.';
   private static postfixSeperator: string = ',';
 
-  static number(value: number, _type: string = 'decimal', digits: number = 1, digitsMin: number = 0, scale = 1) {
+  static number(value: number, type: string = 'decimal', digits: number = 1, digitsMin: number = 0, scale = 1) {
     // replace used as workaround to implement ISO 80000-1
     let scaledValue = value / scale;
-    // TODO: JHE: FIX Type not used????
-    
+        
+    console.log("Number:", value, type, digits);
+
     return scaledValue.toLocaleString('de-DE', {
-      //  dstyle: type,
+      style: type as Intl.NumberFormatOptions['style'],
       useGrouping: true,
       maximumFractionDigits: digits,
       minimumFractionDigits: digitsMin
