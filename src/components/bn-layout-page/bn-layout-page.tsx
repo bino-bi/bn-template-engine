@@ -82,7 +82,6 @@
             return elements.map(x => (
                 {
                     "width": "100%",                  
-                    "border": "1px solid black",
                     "overflow": "hidden",
                     "grid-area": x,
                     "height" : "100%"
