@@ -33,8 +33,8 @@
     <bn-component-style>
       {
       "global": {
-      "fontFamily": "'Noto Sans', sans-serif, Arial",
-      "fontSizePx": 13.3333
+      "fontFamily": "'Helvetica'",
+      "fontSizePx": 13
       }
       }
     </bn-component-style>
@@ -74,230 +74,40 @@
       }
     </bn-internationalization>
 
-    <bn-datasource name="Charts_Time">
+    <bn-datasource name="markers">
       [
       {
-      "setName": "de",
-      "date": "2022-04-01",
-      "operation": "+",
-      "rowGroup": "Afrika",
-      "rowGroupIndex": 1,
-      "category": "I",
-      "categoryIndex": 1,
-      "subCategory": "Question Mark",
-      "subCategoryIndex": 1,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 100,
-      "ac1": -100,
-      "pl1": 100,
-      "fc1": 100,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": null,
-      "pl4": 0
+      "latitude": 51.137634,
+      "longitude": 8.679129,
+      "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",
+      "iconWidth": 32,
+      "iconHeight":32
       },
       {
-      "setName": "de",
-      "date": "2022-03-01",
-      "operation": "+",
-      "rowGroup": "Amerika",
-      "rowGroupIndex": 2,
-      "category": "II",
-      "categoryIndex": 2,
-      "subCategory": "Stars",
-      "subCategoryIndex": 2,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1201,
-      "ac1": 300,
-      "pl1": 1209,
-      "fc1": 1009,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": null,
-      "pl4": 0
-      },
+      "latitude": 51.137634,
+      "longitude": 9.0,
+      "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",
+      "iconWidth": 32,
+      "iconHeight":32
+      }
+      ]
+    </bn-datasource>
+    <bn-datasource name="gpxs">
+      [
       {
-      "setName": "de",
-      "date": "2022-02-01",
-      "operation": "+",
-      "rowGroup": "Asien",
-      "rowGroupIndex": 3,
-      "category": "III",
-      "categoryIndex": 3,
-      "subCategory": "Cash Cows",
-      "subCategoryIndex": 3,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": -835,
-      "ac1": -880,
-      "pl1": -955,
-      "fc1": -975,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": null,
-      "pl4": 0
-      },
-      {
-      "setName": "de",
-      "date": "2022-01-01",
-      "operation": "+",
-      "rowGroup": "Europa",
-      "rowGroupIndex": 4,
-      "category": "Produktgrupppe IV",
-      "categoryIndex": 4,
-      "subCategory": "Poor Dogs",
-      "subCategoryIndex": 4,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 423,
-      "ac1": 741,
-      "pl1": 641,
-      "fc1": 841,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": null,
-      "pl4": 0
-      },
-      {
-      "setName": "de",
-      "date": "2022-04-01",
-      "operation": "+",
-      "rowGroup": "Rest",
-      "rowGroupIndex": 5,
-      "category": "Rest",
-      "categoryIndex": 5,
-      "subCategory": "Question Mark",
-      "subCategoryIndex": 5,
-      "columnGroup": null,
-      "columnGroupIndex": null,
-      "columnSubGroup": null,
-      "columnSubGroupIndex": null,
-      "pp1": 1,
-      "ac1": 400,
-      "pl1": 1,
-      "fc1": 100,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": null,
-      "pl4": 0
+      "file": "http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx",
+      "color": "#FC52FF",
+      "opacity": 0.75,
+      "weight": 3,
+      "lineCap": "round"
       }
       ]
     </bn-datasource>
 
 
-    <bn-page name="Charts_2x2" format="a4" orientation="landscape">
-      <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
-        measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
-      <bn-body>   
-        <h1>Table</h1>  
-        <bn-table 
-                    title="Test Titel" 
-                    limit='40' 
-                    datasets='$Charts_Time' 
-                    level='rowGroup' 
-                    type="sum"
-                    order='levelIndex'
-                    order-direction='desc' 
-                    scenarios='ac1,ac4,pp1,pl4,fc1,fc4' 
-                    variances='dac1_pp1_pos' 
-                    styles='' 
-                    unit-scaling='0.1' 
-                    grouped="true"
-                    show-group-title="false"
-                    percentage-scaling='25'
-                    thereof='[{"rowGroup":"","category":"","subCategory":"Question Mark"}]'
-                  
-                    columnthereof='[{"scenario":"pl4","name":"null","subGroups":["null"]}]'
-                    filter=''
-                    ></bn-table>   
-<!--     <h1>Time</h1>  
-              <bn-chart-time 
-                    title="Test Titel" 
-                    limit='40' 
-                    datasets='$Charts_Time' 
-                    level='rowGroup' 
-                    order='levelIndex'
-                    order-direction='desc' 
-                    scenarios='ac1,pp1,fc1' 
-                    variances='dac1_pp1_pos' 
-                    styles='' 
-                    unit-scaling='0.1' 
-                    percentage-scaling='25'
-                    filter=''
-                    ></bn-chart-time>
-                    
-             <h1>Structure</h1>            
-       <bn-chart-structure 
-                    title="Test Titel" 
-                    limit='40' 
-                    datasets='$Charts_Time' 
-                    level='rowGroup' 
-                    order='levelIndex'
-                    order-direction='desc' 
-                    scenarios='ac1,pp1,fc1' 
-                    variances='dac1_pp1_pos' 
-                    styles='' 
-                    unit-scaling='0.1' 
-                    percentage-scaling='25'
-                    filter=''
-                    ></bn-chart-structure>
--->
-      </bn-body>
-      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
-    </bn-page>
+    <bn-layout-page canvas-container-selected="false" id="01JKY5TBJWH0HRGSBFT1XTQWN1" footer-display-page-number="true" message-image="" message-text="" page-custom-template="&quot;SlotA&quot;" page-fit-to-content="true" page-format="a4" page-grid-gap="0" page-layout="split-vertical" page-orientation="portrait" title-business-unit="" title-date-format="none" title-date-link="none" class="hydrated" page-number="1" title-measures="[]"><div slot="slot-0" style="flex: 1 1 0%; height: 100%;"><bn-text canvas-selected="false" canvas-item="true" canvas-draggable="true" id="01JKY5TGZV2Y2VJ9TRWZ247QDV" value="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet." namespace="_system" nodes="" class="hydrated" draggable="true"><div><span class="container">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</span></div></bn-text></div><div slot="slot-1" style="flex: 1 1 0%; height: 100%;"><bn-text canvas-selected="false" canvas-item="true" canvas-draggable="true" id="01JKY5TV3W0FGV0WG1JZN0TZ9P" value="<p>Lorem ipsum dolor sit </p>" namespace="_system" nodes="" class="hydrated" draggable="true"><div><span class="container"><p>13Lorem ipsum dolor sit </p></span></div></bn-text></div></bn-layout-page>
 
   </bn-context>
 
 </body>
-
 </html>
