@@ -65,20 +65,24 @@
                 display: "grid",
                 height: height,
                 width: width,
-                gap: this.pageGridGap + "px"
+                gap: this.pageGridGap + "px"               
             };
         }
 
         private getLayoutStyle() {
             return {
                 ...this.getCommonStyles(),
-                "grid-template-areas": this.getTemplatePattern(this.pageLayout),
+                "grid-template-areas": this.getTemplateAreas(this.pageLayout),
+                "grid-template-columns":  this.getGridTemplateColumns(this.pageLayout),
             };
         }
 
         private createDivAreaStyles(elements: string[]) {
+      
             return elements.map(x => (
                 {
+                    "width": "100%",                  
+                    "border": "1px solid black",
                     "overflow": "hidden",
                     "grid-area": x,
                     "height" : "100%"
@@ -90,8 +94,9 @@
 
             return <Fragment>
                 {items.map((value, index) => {
-                    return <div style={value}>
-                        <slot name={'slot-' + index}></slot>
+                
+                   return <div style={value}>                        
+                        <slot  name={'slot-' + index}></slot>
                     </div>
                 })}
             </Fragment>
@@ -110,7 +115,7 @@
             return Array.from(new Set(words));
         }
 
-        private getTemplatePattern(name: string): string {
+        private getTemplateAreas(name: string): string {
             if (this.templateMap.has(name) == false && name != 'custom-template') {
                 return "\"a\"";
             }
@@ -122,10 +127,38 @@
             return this.templateMap.get(name);
         }
 
+        private calculatePercentages(input: string): string {
+            const items = input.trim().split(/\s+/); 
+            const count = items.length;
+            
+            if (count === 0) return "100%";
+            
+            const percentage = (100 / count).toFixed(0) + "%"; 
+        
+            return Array(count).fill(percentage).join(" ");
+        }
+
+        private getGridTemplateColumns(name: string): string {
+            if (this.templateMap.has(name) == false && name != 'custom-template') {
+                return "100%";
+            }
+            let template;
+            const pattern = /\"[\w\d\s]+\"/g;  
+
+            if (name == 'custom-template') {
+                template = this.pageCustomTemplate;
+            } else {
+                template = this.templateMap.get(name);
+            }
+           
+            const matches = template.match(pattern);      
+            return this.calculatePercentages(matches[0])
+        }
+
 
         @Method()
         async getNumberOfSlot(name: string) {
-            let template = this.getTemplatePattern(name);
+            let template = this.getTemplateAreas(name);
             return this.extractSlotNames(template).length;
         }
 

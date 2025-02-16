@@ -1,60 +1,131 @@
 <!DOCTYPE html>
-<html dir="ltr" lang="en">
+<html dir="ltr" lang="de">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
   <title>Stencil Component Starter</title>
-
-  <script type="module" src="/build/ibcs-component.esm.js"></script>
-  <script nomodule src="/build/ibcs-component.js"></script>
-
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet">
+  <script type="module" src="/build/bn-template-engine.esm.js"></script>
+  <script nomodule src="/build/bn-template-engine.js"></script>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
 </head>
 
 <body>
-  <test-runner-chart-time></test-runner-chart-time>
-  
-   
-  <!--  
-    <test-runner-chart></test-runner-chart>
-   <test-runner-chart-time></test-runner-chart-time>
-     <test-runner-chart-time></test-runner-chart-time>
-   <test-runner-chart></test-runner-chart>
-   <test-runner-chart-time></test-runner-chart-time>
-   <test-runner-map></test-runner-map>
-<test-runner-title></test-runner-title>
-     <test-runner-chart-time></test-runner-chart-time>
-  <test-runner-chart></test-runner-chart>
-  <test-runner-table></test-runner-table>
- 
-  <test-runner-table></test-runner-table>
+  <bn-context locale="de">
 
-     
-  
-      <test-runner-chart-time></test-runner-chart-time>
-     <test-runner-chart></test-runner-chart>
-    <test-runner-chart-time></test-runner-chart-time>
-    <test-runner-table></test-runner-table>
-
-   <test-runner-chart></test-runner-chart>
-<test-runner-time></test-runner-time>
-<test-runner-title></test-runner-title>
-<test-runner-chart-time></test-runner-chart-time>
-<test-runner-chart></test-runner-chart>
+    <bn-component-style name="big">
+      {
+      "global": {
+      "fontSizePx": 10
+      }
+      }
+    </bn-component-style>
+    <bn-component-style>
+      {
+      "global": {
+      "fontFamily": "'Helvetica'",
+      "fontSizePx": 13
+      }
+      }
+    </bn-component-style>
 
 
-<test-runner-chart-time></test-runner-chart-time>
-<test-runner-chart></test-runner-chart>
-<test-runner-chart-time></test-runner-chart-time>
-<test-runner-chart-time></test-runner-chart-time>
-<test-runner-table></test-runner-table>
-<test-runner-chart></test-runner-chart>
+    <bn-internationalization code="de" namespace="test">
+      {
+      "bn-chart": {
+      "title1": 1,
+      "title2": 2
+      },
+      "global": {
+      "fc1": "FC",
+      "title2": 2
+      }
+      }
+    </bn-internationalization>
+
+    <bn-internationalization code="de" namespace="test2">
+      {
+      "hello": "Hallo, {{name}}!",
+      "title2": "new",
+      "title3": { "test": 124 }
+      }
+    </bn-internationalization>
+
+    <bn-internationalization code="en" namespace="test">
+      {
+      "bn-chart": {
+      "title1": 1,
+      "title2": 2
+      },
+      "global": {
+      "ac1": 1,
+      "pp1": 2
+      }
+      }
+    </bn-internationalization>
+
+    <bn-datasource name="markers">
+      [
+      {
+      "latitude": 51.137634,
+      "longitude": 8.679129,
+      "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",
+      "iconWidth": 32,
+      "iconHeight":32
+      },
+      {
+      "latitude": 51.137634,
+      "longitude": 9.0,
+      "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",
+      "iconWidth": 32,
+      "iconHeight":32
+      }
+      ]
+    </bn-datasource>
+    <bn-datasource name="gpxs">
+      [
+      {
+      "file": "http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx",
+      "color": "#FC52FF",
+      "opacity": 0.75,
+      "weight": 3,
+      "lineCap": "round"
+      }
+      ]
+    </bn-datasource>
 
 
+    <bn-page name="Charts_MAP" format="a4" orientation="landscape">
+      <bn-title business-unit='Chart Examples' date-start='2022-09-03T00:02:00+02:00'
+        date-end='2022-09-05T00:02:00+02:00' date-format='day' date-link='interval' scenarios='ac1'
+        variances="dfc1_ac1_neg,drfc1_ac1_neg" measures='[{"name": "0.33.x", "unit": ""}]'
+        page-fit-to-content="false"></bn-title>
+      <bn-body>
+        <bn-layout layout="2 over 1">
+          <div slot="slot-0">
+            <bn-text value="Hallo das ist ein Test und ich will dass wir hier fertig sind"></bn-text>
+            <bn-map markersDatasetName='$markers' gpxsDatasetName='$gpxs' latitude='8.679129' longitude='50.137634'
+              scale='12' show-scale='true' attribution='BinoBI Text Label'
+              tile-layer='https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png'
+              markers='[{"latitude": 50.137634, "longitude": 8.679129, "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png", "iconWidth": 64, "iconHeight":64}]'
+              gpxs='[{"file": "http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx", "color": "#FC5200", "opacity": 0.75, "weight": 3, "lineCap": "round"}]'></bn-map>
+          </div>
+        </bn-layout>
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
 
-<test-runner-time></test-runner-time>-->
+  </bn-context>
 
 </body>
-
 </html>
