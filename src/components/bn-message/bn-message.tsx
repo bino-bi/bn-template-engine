@@ -1,5 +1,6 @@
 import { Component, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
+import state, { get } from "../../stores/assets";
 
 @Component({
   tag: 'bn-message',
@@ -11,10 +12,10 @@ export class Footer {
     withComponentStatus(this);
   }
 
-   /**
-   *  Message text.
-   *  <br />If empty string (`''` or `null`) the footer row is omitted
-   */
+  /**
+  *  Message text.
+  *  <br />If empty string (`''` or `null`) the footer row is omitted
+  */
   @Prop({ mutable: true })
   text: string;
 
@@ -30,38 +31,31 @@ export class Footer {
    */
   @Prop() readonly image: string;
 
- 
-  isValidHttpUrl(string) {
-    let url;
-    try {
-      url = new URL(string);
-    } catch (_) {
-      return false;
+  prepareAssetUrl(value: string) {
+    if (value == null || value == "") {
+      return "";
     }
-    return url.protocol === "http:" || url.protocol === "https:";
-  }
 
-  prepareAssetUrl(imgUrl: string) {
-    if (this.isValidHttpUrl(imgUrl)) {
-      return imgUrl
+    if (value.startsWith("asset:")) {
+      return state[value.substring(6)] // TODO: will not work with IE11 (state proxie is not available) )
     }
-    return `./assets/${imgUrl}.png`
+
+    return value;
   }
 
 
   render() {
-    return <Host id={(this.text  || this.image) ? "container-page-message": "container"}>
+    return <Host id={(this.text || this.image) ? "container-page-message" : "container"}>
       <div id="message-text">
         {
-          this.text != null && this.text != ""? <span class="note">{this.text}</span> : ""
+          this.text != null && this.text != "" ? <span class="note">{this.text}</span> : ""
         }
       </div>
       <div id="page-image">
         {
-          //this.image != null && this.image != "" ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.image)}`)} /> : ""
-          this.image != null && this.image != "" ? <img class="image" src={this.image} /> : ""
+          this.image != null && this.image != "" ? <img class="image" src={this.prepareAssetUrl(this.image)} /> : ""
         }
-      </div>    
+      </div>
       {/* </div> */}
     </Host>
   }
