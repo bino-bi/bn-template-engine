@@ -1,5 +1,5 @@
 import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
-import state, { get } from "../../stores/assets";
+import state from "../../stores/assets";
 
 @Component({
     tag: 'bn-layout-card',
