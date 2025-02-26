@@ -1,6 +1,6 @@
 import { Component, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
-import state, { get } from "../../stores/assets";
+import state from "../../stores/assets";
 
 @Component({
   tag: 'bn-message',
