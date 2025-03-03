@@ -1,7 +1,7 @@
-import {Component, Prop, h, Host, Watch} from "@stencil/core";
+import { Component, Prop, h, Host, Watch } from "@stencil/core";
 import withDatasource from "../../utils/withDatasource";
 import withBodyObserver from "../../utils/withBodyObserver";
-import {set} from '../../stores/datasets';
+import { set } from '../../stores/datasets';
 import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
 
@@ -15,7 +15,7 @@ export class Dataset {
     // @ts-ignore
     this.database = new alasql.Database();
     withDatasource(this, (name, data) => {
-      this.database.tables[name] = {data};
+      this.database.tables[name] = { data };
       this.executeQuery();
     });
 
@@ -38,13 +38,25 @@ export class Dataset {
    */
   @Prop() datasources: string = "";
 
+  @Prop() static: boolean = false;
+
   private query: string;
   private database: any;
   private latestResult: any;
 
   executeQuery() {
     if (!!this.query && !!this.name) {
-      const result = this.database.exec(this.query);
+      let result: any;
+      if (this.static) {
+        try {
+          result = JSON.parse(this.query);
+        } catch (e) {
+          console.error("Failed to parse static dataset", e);
+          result = [];
+        }
+      } else {
+        result = this.database.exec(this.query);
+      }
       if (this.latestResult !== result) {
         this.latestResult = result;
         // @ts-ignore
@@ -59,6 +71,6 @@ export class Dataset {
   }
 
   render() {
-    return <Host/>
+    return <Host />
   }
 }
