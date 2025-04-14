@@ -184,6 +184,7 @@ export namespace Components {
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        "static": boolean;
     }
     interface BnDatasource {
         /**
@@ -1003,6 +1004,7 @@ declare namespace LocalJSX {
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        "static"?: boolean;
     }
     interface BnDatasource {
         /**
