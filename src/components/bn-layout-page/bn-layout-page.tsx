@@ -73,7 +73,7 @@ export class LayoutPage {
         return {
             ...this.getCommonStyles(),
             "grid-template-areas": this.getTemplateAreas(this.pageLayout),
-            "grid-template-columns": this.getGridTemplateColumns(this.pageLayout),
+            "grid-template-columns": "auto auto"//this.getGridTemplateColumns(this.pageLayout),
         };
     }
 
@@ -106,7 +106,7 @@ export class LayoutPage {
             return [];
         }
 
-        const words = styleElement.match(/[\b\w+\b\.]/g);
+        const words = styleElement.match(/[\b\w+\b]/g);
         if (!words) {
             return [];
         }
