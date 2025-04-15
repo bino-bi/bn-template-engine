@@ -73,7 +73,9 @@ export class LayoutPage {
         return {
             ...this.getCommonStyles(),
             "grid-template-areas": this.getTemplateAreas(this.pageLayout),
-            "grid-template-columns": "auto auto"//this.getGridTemplateColumns(this.pageLayout),
+            "grid-auto-columns": "auto",
+            "grid-auto-rows": "auto",
+            //"grid-template-columns": this.getGridTemplateColumns(this.pageLayout),
         };
     }
 
