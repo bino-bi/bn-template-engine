@@ -106,7 +106,7 @@ export class LayoutPage {
             return [];
         }
 
-        const words = styleElement.match(/[\b\w+\b]/g);
+        const words = styleElement.match(/\b\w+\b/g);
         if (!words) {
             return [];
         }
