@@ -73,9 +73,7 @@ export class LayoutPage {
         return {
             ...this.getCommonStyles(),
             "grid-template-areas": this.getTemplateAreas(this.pageLayout),
-            "grid-auto-columns": "auto",
-            "grid-auto-rows": "auto",
-            //"grid-template-columns": this.getGridTemplateColumns(this.pageLayout),
+            "grid-template-columns": this.getGridTemplateColumns(this.pageLayout),
         };
     }
 
@@ -138,13 +136,12 @@ export class LayoutPage {
 
         return Array(count).fill(percentage).join(" ");
     }
-    //@ts-expect-error TODO bring it back
     private getGridTemplateColumns(name: string): string {
         if (this.templateMap.has(name) == false && name != 'custom-template') {
             return "100%";
         }
         let template;
-        const pattern = /\"[\w\d\s]+\"/g;
+        const pattern = /\"[\w\d\s\.]+\"/g;
 
         if (name == 'custom-template') {
             template = this.pageCustomTemplate;
