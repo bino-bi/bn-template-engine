@@ -138,7 +138,7 @@ export class LayoutPage {
 
         return Array(count).fill(percentage).join(" ");
     }
-
+    //@ts-expect-error TODO bring it back
     private getGridTemplateColumns(name: string): string {
         if (this.templateMap.has(name) == false && name != 'custom-template') {
             return "100%";
