@@ -13,8 +13,6 @@ export class Formatter {
     // replace used as workaround to implement ISO 80000-1
     let scaledValue = value / scale;
         
-    console.log("Number:", value, type, digits);
-
     return scaledValue.toLocaleString('de-DE', {
       style: type as Intl.NumberFormatOptions['style'],
       useGrouping: true,
