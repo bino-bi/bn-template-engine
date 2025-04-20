@@ -12,7 +12,7 @@ export namespace ComponentRegister {
     console.log("Component status rdy: " + componentRegisterIsRendered())
   }, 100)
 
-
+  // TODO: improve that make it faster Sven
   export const updateStatus = (uuid: string, status: ComponentStatus) => {
     if (currentTimeOutId) {
       clearTimeout(currentTimeOutId);

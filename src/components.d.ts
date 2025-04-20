@@ -38,6 +38,12 @@ export { TableType } from "./components/bn-table/utils/model";
 export { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 export { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
 export namespace Components {
+    interface BnAsset {
+        /**
+          * Unique (template scope) name of the asset
+         */
+        "name": string;
+    }
     interface BnBody {
     }
     interface BnCard {
@@ -178,6 +184,7 @@ export namespace Components {
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        "static": boolean;
     }
     interface BnDatasource {
         /**
@@ -585,6 +592,12 @@ export interface IbcsMapCustomEvent<T> extends CustomEvent<T> {
     target: HTMLIbcsMapElement;
 }
 declare global {
+    interface HTMLBnAssetElement extends Components.BnAsset, HTMLStencilElement {
+    }
+    var HTMLBnAssetElement: {
+        prototype: HTMLBnAssetElement;
+        new (): HTMLBnAssetElement;
+    };
     interface HTMLBnBodyElement extends Components.BnBody, HTMLStencilElement {
     }
     var HTMLBnBodyElement: {
@@ -808,6 +821,7 @@ declare global {
         new (): HTMLTestRunnerTitleElement;
     };
     interface HTMLElementTagNameMap {
+        "bn-asset": HTMLBnAssetElement;
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
         "bn-chart-structure": HTMLBnChartStructureElement;
@@ -844,6 +858,12 @@ declare global {
     }
 }
 declare namespace LocalJSX {
+    interface BnAsset {
+        /**
+          * Unique (template scope) name of the asset
+         */
+        "name": string;
+    }
     interface BnBody {
     }
     interface BnCard {
@@ -984,6 +1004,7 @@ declare namespace LocalJSX {
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        "static"?: boolean;
     }
     interface BnDatasource {
         /**
@@ -1377,6 +1398,7 @@ declare namespace LocalJSX {
     interface TestRunnerTitle {
     }
     interface IntrinsicElements {
+        "bn-asset": BnAsset;
         "bn-body": BnBody;
         "bn-card": BnCard;
         "bn-chart-structure": BnChartStructure;
@@ -1416,6 +1438,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
+            "bn-asset": LocalJSX.BnAsset & JSXBase.HTMLAttributes<HTMLBnAssetElement>;
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
             "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
             "bn-chart-structure": LocalJSX.BnChartStructure & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;

@@ -1,198 +1,197 @@
-    import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
+import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 
-    @Component({
-        tag: 'bn-layout-page',
-        styleUrl: 'bn-layout-page.scss',
-        shadow: true
-    })
-    export class LayoutPage {
-        @Element() el: HTMLElement
+@Component({
+    tag: 'bn-layout-page',
+    styleUrl: 'bn-layout-page.scss',
+    shadow: true
+})
+export class LayoutPage {
+    @Element() el: HTMLElement
 
-        @Prop() styles?: string;
+    @Prop() styles?: string;
 
-        @Prop() messageText: string = '';
-        @Prop() messageImage: string = '';
+    @Prop() messageText: string = '';
+    @Prop() messageImage: string = '';
 
-        @Prop() titleBusinessUnit: string = '';
-        @Prop() titleScenarios?: string;
-        @Prop() titleVariances?: string;
-        @Prop() titleOrder: string = 'category';
-        @Prop() titleOrderDirection: string = 'asc';
-        @Prop() titleMeasures?: string;
-        @Prop() titleDateStart?: string;
-        @Prop() titleDateEnd?: string;
-        @Prop() titleDateFormat: string = 'none';
-        @Prop() titleDateLink: string = 'none';
-        @Prop() titleNamespace: string = '_system';
+    @Prop() titleBusinessUnit: string = '';
+    @Prop() titleScenarios?: string;
+    @Prop() titleVariances?: string;
+    @Prop() titleOrder: string = 'category';
+    @Prop() titleOrderDirection: string = 'asc';
+    @Prop() titleMeasures?: string;
+    @Prop() titleDateStart?: string;
+    @Prop() titleDateEnd?: string;
+    @Prop() titleDateFormat: string = 'none';
+    @Prop() titleDateLink: string = 'none';
+    @Prop() titleNamespace: string = '_system';
 
 
-        @Prop() pageFormat?: string;
-        @Prop() pageOrientation?: string;
-        @Prop() pageNumber?: string;
+    @Prop() pageFormat?: string;
+    @Prop() pageOrientation?: string;
+    @Prop() pageNumber?: string;
 
-        @Prop() footerText?: string;
-        @Prop() footerDisplayPageNumber?: boolean = true;
+    @Prop() footerText?: string;
+    @Prop() footerDisplayPageNumber?: boolean = true;
 
-        @Prop() pageLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
-        @Prop() pageCustomTemplate: string = "\"a b\" \"c d\"";
-        @Prop() pageGridGap: string = "0";
-        @Prop() pageFitToContent: boolean = true;
+    @Prop() pageLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
+    @Prop() pageCustomTemplate: string = "\"a b\" \"c d\"";
+    @Prop() pageGridGap: string = "0";
+    @Prop() pageFitToContent: boolean = true;
 
-        private templateMap = new Map([['split-vertical', "\"a  b\""],
-        ['split-horizontal', "\"a\" \"b\""],
-        ['2x2', "\"a b\" \"c d\""],
-        ['3x3', "\"a b c\" \"d e f\" \"g h i\""],
-        ['4x4', "\"a b c d\" \"e f g h\" \"i j k l\" \"m n o p\""],
-        ['1-over-2', "\"a a\" \"b c\""],
-        ['2-over-1', "\"a b\" \"c c\""],
-        ['1-over-3', "\"a a a \" \"b c d\""],
-        ['3-over-1', "\"a b c\" \"d d d\""],
-        ['custom-template', "\"a b\" \"c c c\""],
-        ['gold3', "\"a c\" \"b c\""],
-        ['gold4', "\"a b c c\" \"d d c c\""]
-        ]);
+    private templateMap = new Map([['split-vertical', "\"a  b\""],
+    ['split-horizontal', "\"a\" \"b\""],
+    ['2x2', "\"a b\" \"c d\""],
+    ['3x3', "\"a b c\" \"d e f\" \"g h i\""],
+    ['4x4', "\"a b c d\" \"e f g h\" \"i j k l\" \"m n o p\""],
+    ['1-over-2', "\"a a\" \"b c\""],
+    ['2-over-1', "\"a b\" \"c c\""],
+    ['1-over-3', "\"a a a \" \"b c d\""],
+    ['3-over-1', "\"a b c\" \"d d d\""],
+    ['custom-template', "\"a b\" \"c c c\""],
+    ['gold3', "\"a c\" \"b c\""],
+    ['gold4', "\"a b c c\" \"d d c c\""]
+    ]);
 
-        private getCommonStyles() {
-            let height = "100%";
-            let width = "100%";
+    private getCommonStyles() {
+        let height = "100%";
+        let width = "100%";
 
-            if (this.pageFitToContent === true) {
-                width = "fit-content";
-                height = "fit-content";
+        if (this.pageFitToContent === true) {
+            width = "fit-content";
+            height = "fit-content";
+        }
+
+        return {
+            display: "grid",
+            height: height,
+            width: width,
+            gap: this.pageGridGap + "px"
+        };
+    }
+
+    private getLayoutStyle() {
+        return {
+            ...this.getCommonStyles(),
+            "grid-template-areas": this.getTemplateAreas(this.pageLayout),
+            "grid-template-columns": this.getGridTemplateColumns(this.pageLayout),
+        };
+    }
+
+    private createDivAreaStyles(elements: string[]) {
+
+        return elements.map(x => (
+            {
+                "width": "100%",
+                "overflow": "hidden",
+                "grid-area": x,
+                "height": "100%"
+            }));
+    }
+
+    private getSlots(slotNames: string[]) {
+        const items = this.createDivAreaStyles(slotNames);
+
+        return <Fragment>
+            {items.map((value, index) => {
+
+                return <div style={value}>
+                    <slot name={'slot-' + index}></slot>
+                </div>
+            })}
+        </Fragment>
+    }
+
+    private extractSlotNames(styleElement: string | null) {
+        if (styleElement == null) {
+            return [];
+        }
+
+        const words = styleElement.match(/\b\w+\b/g);
+        if (!words) {
+            return [];
+        }
+
+        return Array.from(new Set(words));
+    }
+
+    private getTemplateAreas(name: string): string {
+        if (this.templateMap.has(name) == false && name != 'custom-template') {
+            return "\"a\"";
+        }
+
+        if (name == 'custom-template') {
+            return this.pageCustomTemplate;
+        }
+
+        return this.templateMap.get(name);
+    }
+
+    private calculatePercentages(input: string): string {
+        const items = input.trim().split(/\s+/);
+        const count = items.length;
+
+        if (count === 0) return "100%";
+
+        const percentage = (100 / count).toFixed(0) + "%";
+
+        return Array(count).fill(percentage).join(" ");
+    }
+    private getGridTemplateColumns(name: string): string {
+        if (this.templateMap.has(name) == false && name != 'custom-template') {
+            return "100%";
+        }
+        let template;
+        const pattern = /\"[\w\d\s\.]+\"/g;
+
+        if (name == 'custom-template') {
+            template = this.pageCustomTemplate;
+        } else {
+            template = this.templateMap.get(name);
+        }
+
+        const matches = template.match(pattern);
+        return this.calculatePercentages(matches[0])
+    }
+
+
+    @Method()
+    async getNumberOfSlot(name: string) {
+        let template = this.getTemplateAreas(name);
+        return this.extractSlotNames(template).length;
+    }
+
+    componentDidUpdate() {
+        // workaround for the render rotation issue
+        let renderOrientation = this.el.closest('bn-context').getAttribute('render-orientation')
+        if (renderOrientation && renderOrientation != this.pageOrientation) {
+            const page = this.el.shadowRoot.querySelector('bn-page');
+            const layout = this.el.closest('bn-layout-page')
+            if (layout && page) {
+                page.style.transform = 'rotate(-90deg) translate(-100%)'
+                page.style.transformOrigin = 'top left';
+                layout.style.width = `${page.clientHeight}px`;
+                layout.style.height = `${page.clientWidth}px`;
             }
-
-            return {
-                display: "grid",
-                height: height,
-                width: width,
-                gap: this.pageGridGap + "px"               
-            };
-        }
-
-        private getLayoutStyle() {
-            return {
-                ...this.getCommonStyles(),
-                "grid-template-areas": this.getTemplateAreas(this.pageLayout),
-                "grid-template-columns":  this.getGridTemplateColumns(this.pageLayout),
-            };
-        }
-
-        private createDivAreaStyles(elements: string[]) {
-      
-            return elements.map(x => (
-                {
-                    "width": "100%",                  
-                    "overflow": "hidden",
-                    "grid-area": x,
-                    "height" : "100%"
-                }));
-        }
-
-        private getSlots(slotNames: string[]) {
-            const items = this.createDivAreaStyles(slotNames);
-
-            return <Fragment>
-                {items.map((value, index) => {
-                
-                   return <div style={value}>                        
-                        <slot  name={'slot-' + index}></slot>
-                    </div>
-                })}
-            </Fragment>
-        }
-
-        private extractSlotNames(styleElement: string | null) {
-            if (styleElement == null) {
-                return [];
-            }
-
-            const words = styleElement.match(/\b\w+\b/g);
-            if (!words) {
-                return [];
-            }
-
-            return Array.from(new Set(words));
-        }
-
-        private getTemplateAreas(name: string): string {
-            if (this.templateMap.has(name) == false && name != 'custom-template') {
-                return "\"a\"";
-            }
-
-            if (name == 'custom-template') {
-                return this.pageCustomTemplate;
-            }
-
-            return this.templateMap.get(name);
-        }
-
-        private calculatePercentages(input: string): string {
-            const items = input.trim().split(/\s+/); 
-            const count = items.length;
-            
-            if (count === 0) return "100%";
-            
-            const percentage = (100 / count).toFixed(0) + "%"; 
-        
-            return Array(count).fill(percentage).join(" ");
-        }
-
-        private getGridTemplateColumns(name: string): string {
-            if (this.templateMap.has(name) == false && name != 'custom-template') {
-                return "100%";
-            }
-            let template;
-            const pattern = /\"[\w\d\s]+\"/g;  
-
-            if (name == 'custom-template') {
-                template = this.pageCustomTemplate;
-            } else {
-                template = this.templateMap.get(name);
-            }
-           
-            const matches = template.match(pattern);      
-            return this.calculatePercentages(matches[0])
-        }
-
-
-        @Method()
-        async getNumberOfSlot(name: string) {
-            let template = this.getTemplateAreas(name);
-            return this.extractSlotNames(template).length;
-        }
-
-        componentDidUpdate() {
-            // workaround for the render rotation issue
-            let renderOrientation = this.el.closest('bn-context').getAttribute('render-orientation')
-            if (renderOrientation && renderOrientation != this.pageOrientation) {
-                const page = this.el.shadowRoot.querySelector('bn-page');
-                const layout = this.el.closest('bn-layout-page')
-                if (layout && page) {
-                    page.style.transform = 'rotate(-90deg) translate(-100%)'
-                    page.style.transformOrigin = 'top left';
-                    layout.style.width = `${page.clientHeight}px`;
-                    layout.style.height = `${page.clientWidth}px`;
-                }
-            }
-        }
-
-        render() {
-            let style = this.getLayoutStyle();
-            let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
-    
-            // @ts-ignore
-            return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
-                <bn-message text={this.messageText} image={this.messageImage}></bn-message>
-                <bn-title   // @ts-ignore 
-                    namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
-                </bn-title>
-                <bn-body>
-                    <div style={style}>
-                        {this.getSlots(arrOfSlots)}
-                    </div>
-                </bn-body>
-                <bn-footer text={this.footerText} page-number={this.pageNumber} display-page-number={this.footerDisplayPageNumber}></bn-footer>
-            </bn-page>
         }
     }
+
+    render() {
+        let style = this.getLayoutStyle();
+        let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
+
+        // @ts-ignore
+        return <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
+            <bn-message text={this.messageText} image={this.messageImage}></bn-message>
+            <bn-title   // @ts-ignore 
+                namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
+            </bn-title>
+            <bn-body>
+                <div style={style}>
+                    {this.getSlots(arrOfSlots)}
+                </div>
+            </bn-body>
+            <bn-footer text={this.footerText} page-number={this.pageNumber} display-page-number={this.footerDisplayPageNumber}></bn-footer>
+        </bn-page>
+    }
+}
 
