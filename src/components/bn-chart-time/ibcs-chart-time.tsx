@@ -103,9 +103,14 @@ export class IbcsChartTime {
 
   @Prop()
   showMeasureScale: boolean = true;
-  
+
+  @Prop() showOverlayMedian: boolean = false;
+  @Prop() showOverlayAvg: boolean =  true;
+
   @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
+
+
 
   drawElement: SVGElement | undefined;
   patternElement: HTMLSpanElement | undefined;
@@ -213,7 +218,9 @@ export class IbcsChartTime {
       "measureScale": this.measureScale,
       "measureUnit": this.measureUnit,     
       "showMeasureScale": this.showMeasureScale,
-      "dataFormatDigits":this.dataFormatDigits,    
+      "dataFormatDigits":this.dataFormatDigits,   
+      "showOverlayMedian": this.showOverlayMedian,
+      "showOverlayAvg": this.showOverlayAvg, 
     });
   }
 

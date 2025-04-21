@@ -155,6 +155,8 @@ export namespace Components {
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
          */
         "showMeasureScale": string;
+        "showOverlayAVG": string;
+        "showOverlayMedian": string;
         "syncSpaceLeft": number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```
@@ -514,6 +516,8 @@ export namespace Components {
         "pixelPerUnit": number;
         "scenarios": string[];
         "showMeasureScale": boolean;
+        "showOverlayAvg": boolean;
+        "showOverlayMedian": boolean;
         "styles": TimeChartStyle | undefined;
         "variances": string[];
     }
@@ -975,6 +979,8 @@ declare namespace LocalJSX {
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
          */
         "showMeasureScale"?: string;
+        "showOverlayAVG"?: string;
+        "showOverlayMedian"?: string;
         "syncSpaceLeft"?: number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```
@@ -1331,6 +1337,8 @@ declare namespace LocalJSX {
         "pixelPerUnit"?: number;
         "scenarios"?: string[];
         "showMeasureScale"?: boolean;
+        "showOverlayAvg"?: boolean;
+        "showOverlayMedian"?: boolean;
         "styles"?: TimeChartStyle | undefined;
         "variances"?: string[];
     }

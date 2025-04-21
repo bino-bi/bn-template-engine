@@ -26,6 +26,7 @@ import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
+import { DataAnalyzer } from "../../../utils/dataAnalyzer";
 // import { AggregationLevel, AxisLabelsMode, DateDistance, IDataFormatDigits } from "@bino-bi/ibcs-component-interface";
 // import { VisualisationRuleSet } from "../../ibcs-table/utils/model";
 // import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
@@ -101,6 +102,8 @@ export class TimeChart {
   private measureScale: SiPrefix = new SiPrefix();
   private measureUnit: string = "";
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
+  private showOverlayMedian: boolean = false;
+  private showOverlayAvg: boolean = false;
   
   constructor(ruleSet: VisualisationRuleSet, config: TimeChartComponentConfig, styles: TimeChartStyle) {
     this.initSQLFunctions();
@@ -168,6 +171,9 @@ export class TimeChart {
     this.dataFormatDigits = config.dataFormatDigits;    
     
     this.updatePosition(config.scenarios);
+
+    this.showOverlayMedian = config.showOverlayMedian;
+    this.showOverlayAvg = config.showOverlayAvg;
 
   }
 
@@ -278,6 +284,7 @@ export class TimeChart {
       this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
     } else {
       this.drawScenarios(this.dataModel, svgContainer);
+      this.drawOverlayLayer(this.dataModel, svgContainer);
       this.drawAxisAndLabels(this.dataModel, svgContainer);
     }
   }
@@ -746,7 +753,6 @@ export class TimeChart {
       width: columnGroup.width() as number + this.position.spacings.columnWidth
     };
 
-
   }
 
   private drawVarianceScenario(dataModel: any, svgContainer: Svg): G {
@@ -770,6 +776,86 @@ export class TimeChart {
     };
 
     return columnGroup;
+  }
+
+  private drawOverlayLayer (dataModel: any, svgContainer: Svg) {
+    let overlayGroup: G = svgContainer.group()
+      .id("Overlay");
+
+    let scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);
+   
+    if ( this.showOverlayAvg == true) {
+      let previousDataPoint: null;
+
+      const avgDataModel = tranformToAvgDataModel(dataModel);
+
+      avgDataModel.forEach((elements: any, index: number) => {
+        if (previousDataPoint != null) {
+          scenarioFactory.createLine(`Ø  ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index -1).draw(this.dataFormatDigits, this.measureScale);
+        }       
+        previousDataPoint = elements["scenario1"]; 
+  
+      });
+    }
+
+    /*if ( this.showOverlayMedian === true) {
+     
+      let previousDataPoint: null;
+
+
+      const medianDataModel = tranformToMedianDataModel(dataModel);
+      
+      medianDataModel.forEach((elements: any, index: number) => {
+        if (previousDataPoint != null) {
+          scenarioFactory.createLine(`Median ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index -1 ).draw(this.dataFormatDigits, this.measureScale);
+        }       
+        previousDataPoint = elements["scenario1"]; 
+  
+      });
+    }*/
+    
+    /*
+    const total = dataModel.reduce((sum, elements) => {
+      return sum + (elements["scenario1"]?.value || 0); // Sum up the values of scenario1
+    }, 0);
+  
+    const count = dataModel.filter(elements => elements["scenario1"]?.value !== undefined).length; // Count valid scenario1 values
+  
+    const average = count > 0 ? total / count : 0; // Calculate the average, avoid division by zero
+  
+    const newDataModel = dataModel.map(elements => {
+      return {
+          ...elements,
+          scenario1: {
+              ...elements["scenario1"],
+              value: average // Replace the value with the average
+          }
+      };
+    });
+    
+    // scenarioFactory.createMedian("Median").draw();
+    console.log("drawOverlayLayer", dataModel);
+    const pointArray = [];
+
+
+    newDataModel.forEach((elements: any, index: number) => {
+        pointArray.push([elements.scenario1.x, elements.scenario1.y]);
+    });
+
+    */
+
+
+
+    //scenarioFactory.createLine("Average", pointArray, 90).draw();
+
+
+   // scenarioFactory.createLine("Average").draw();  
+    /*
+    this.scenariosArea = {
+      height: overlayGroup.height() as number + this.styles.padding.top + this.styles.padding.bottom,
+      width: overlayGroup.width() as number + this.position.spacings.columnWidth
+    };*/
+
   }
 
   private leftOuterJoinDates(result: TimeChartResponseRow[], dateInterval: DateDistance): TimeChartResponseRow[] {
@@ -845,5 +931,68 @@ export class TimeChart {
     return Array.from(dateRangeEntries.values());
 
   }
+}
+function tranformToAvgDataModel(dataModel: any) {
+  const total = dataModel.reduce((sum: number, elements: any) => {
+    return sum + (elements["scenario1"]?.value || 0); // Sum up the values of scenario1
+  }, 0);
+
+  const count = dataModel.filter((elements: any) => elements["scenario1"]?.value !== undefined).length; // Count valid scenario1 values
+
+  const average = count > 0 ? total / count : 0; // Calculate the average, avoid division by zero
+
+  // Create a new first element
+  const firstElement = {
+    ...dataModel[0],
+    scenario1: new DataPoint(average, dataModel[0]["scenario1"].scenario, dataModel[0]["scenario1"].pixelPerUnit, dataModel[0]["scenario1"].variance),
+  };
+
+  // Create a new last element
+  const lastElement = {
+    ...dataModel[dataModel.length - 1],
+    scenario1: new DataPoint(average, dataModel[dataModel.length - 1]["scenario1"].scenario, dataModel[dataModel.length - 1]["scenario1"].pixelPerUnit, dataModel[dataModel.length - 1]["scenario1"].variance),
+  };
+
+  // Add the new first and last elements to the transformed data model
+  return [firstElement, ...dataModel.map((elements: any) => {
+    return {
+      ...elements,
+      scenario1: new DataPoint(average, elements["scenario1"].scenario, elements["scenario1"].pixelPerUnit, elements["scenario1"].variance),
+    };
+  }), lastElement];
+
+}
+
+function tranformToMedianDataModel(dataModel: any) {
+  const values = dataModel
+    .map((elements: any) => elements["scenario1"]?.value)
+    .filter((value: number | undefined) => value !== undefined)
+    .sort((a: number, b: number) => a - b);
+
+  const median =
+    values.length % 2 === 0
+      ? (values[values.length / 2 - 1] + values[values.length / 2]) / 2
+      : values[Math.floor(values.length / 2)];
+
+
+    // Create a new first element
+  const firstElement = {
+      ...dataModel[0],
+      scenario1: new DataPoint(median, dataModel[0]["scenario1"].scenario, dataModel[0]["scenario1"].pixelPerUnit, dataModel[0]["scenario1"].variance),
+  };
+  
+    // Create a new last element
+  const lastElement = {
+      ...dataModel[dataModel.length - 1],
+      scenario1: new DataPoint(median, dataModel[dataModel.length - 1]["scenario1"].scenario, dataModel[dataModel.length - 1]["scenario1"].pixelPerUnit, dataModel[dataModel.length - 1]["scenario1"].variance),
+  };
+
+   // Add the new first and last elements to the transformed data model
+   return [firstElement, ...dataModel.map((elements: any) => {
+    return {
+      ...elements,
+      scenario1: new DataPoint(median, elements["scenario1"].scenario, elements["scenario1"].pixelPerUnit, elements["scenario1"].variance),
+    };
+  }), lastElement];
 }
 
