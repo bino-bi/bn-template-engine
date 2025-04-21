@@ -9,8 +9,10 @@ import {Needle} from "../elements/Needle";
 // import {SVGPolgonPattern} from "../../../../utils/model";
 import {TimeChartStyle} from "../model/styles/TimeChartStyle";
 import { SVGPolgonPattern } from "../../../../utils/model";
+import { Line } from "../elements/Line";
 
 export class ScenarioFactory {
+  
   styles: TimeChartStyle;
   svgGroups: {
     parent: G,
@@ -48,6 +50,21 @@ export class ScenarioFactory {
     this.elementCnt = elementCnt;
 
 
+  }
+
+  public createLine(name: string, dataPoint: any, previousDataPoint: any, index: number): Line {
+    let isPrimaryColumn = false;
+    let columnGroup = this.svgGroups.scenario1.group().id("" + index);
+    let labelGroup = this.svgGroups.scenario1Label.group().id("" + index);
+
+    let lineLabel: string  | null = null;
+    
+    if (this.isLastDataPoint(index -1)){
+      lineLabel =  name; ///`${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
+    }
+
+    return new Line(this.position, this.styles, dataPoint, previousDataPoint, index, isPrimaryColumn, columnGroup, lineLabel).updateLabelGroup(labelGroup);;
+  
   }
 
   public createPrimaryBar(dataPoint: DataPoint, index: number): Column {

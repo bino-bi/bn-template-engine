@@ -33,8 +33,8 @@
     <bn-component-style>
       {
       "global": {
-      "fontFamily": "'Helvetica'",
-      "fontSizePx": 13
+      "fontFamily": "'Noto Sans', sans-serif, Arial",
+      "fontSizePx": 13.3333
       }
       }
     </bn-component-style>
@@ -73,36 +73,6 @@
       }
       }
     </bn-internationalization>
-
-    <bn-datasource name="markers">
-      [
-      {
-      "latitude": 51.137634,
-      "longitude": 8.679129,
-      "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",
-      "iconWidth": 32,
-      "iconHeight":32
-      },
-      {
-      "latitude": 51.137634,
-      "longitude": 9.0,
-      "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",
-      "iconWidth": 32,
-      "iconHeight":32
-      }
-      ]
-    </bn-datasource>
-    <bn-datasource name="gpxs">
-      [
-      {
-      "file": "http://localhost:3333/build/assets/gpx/Fahrt_am_Nachmittag.gpx",
-      "color": "#FC52FF",
-      "opacity": 0.75,
-      "weight": 3,
-      "lineCap": "round"
-      }
-      ]
-    </bn-datasource>
     <bn-datasource name="Charts_Time">
       [
       {
@@ -264,30 +234,25 @@
     </bn-datasource>
 
 
-    <bn-layout-page canvas-container-selected="false" id="01JKY5TBJWH0HRGSBFT1XTQWN1" footer-display-page-number="true"
-      message-image="" message-text="" page-custom-template="&quot;SlotA SlotB&quot;" page-fit-to-content="true"
-      page-format="a4" page-grid-gap="0" page-layout="4x4" page-orientation="portrait" title-business-unit=""
-      title-date-format="none" title-date-link="none" page-number="1" title-measures="[]">
-      <div slot="slot-0" style="flex: 1 1 0%; height: 100%;">
-        <bn-text canvas-selected="false" canvas-item="true" canvas-draggable="true" id="01JKY5TGZV2Y2VJ9TRWZ247QDV"
-          value="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
-          namespace="_system" nodes="" draggable="true">
+    <bn-page name="Charts_2x2" format="a4" orientation="landscape">
+      <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
+        measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
+      <bn-body>
+        <bn-chart-time datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+          scenarios='ac1,pp1,fc1;dac1_pp1_pos;drac1_pp1_pos' styles='' unit-scaling='0.14' date-interval="month" 
+          overlay='[{"name": "ÁVG", "type": "avg", scenarios: "ac1"}, {"name": "median", "type": "median", scenarios: "ac1"}], {"name": "Benchmark", "type": "benchmark", scenarios: "pl1"}'
 
-        </bn-text>
-      </div>
+          percentage-scaling='50'></bn-chart-time>
 
-      <div slot="slot-1" style="flex: 1 1 0%; height: 100%;"> <bn-chart-structure datasets='$Charts_Time'
-          level='category' order='category' order-direction='asc' scenarios='ac1,pp1,fc1' variances='dac1_pp1_pos'
-          styles='' unit-scaling='0.04' percentage-scaling='25'></bn-chart-structure>
-      </div>
-
-      <div slot="slot-2" style="flex: 1 1 0%; height: 100%;">
-       <bn-table></bn-table>
-      </div>
-    </bn-layout-page>
+        <bn-chart-time chart-title="FFF" limit='0' datasets='$Charts_Time' level='category' order='ac1'
+          order-direction='desc' scenarios='ac1,pp1' variances='dac1_pp1_pos' styles='' unit-scaling='0.1' date-interval="month"
+          percentage-scaling='50'></bn-chart-time>
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
 
   </bn-context>
 
 </body>
 
-</html>
+</htmlll

@@ -551,6 +551,7 @@ export class Chart {
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
       showMeasureScale={this.prepareShowMeasureScale(idx)}
+ 
     ></ibcs-chart-structure>
   }
 
