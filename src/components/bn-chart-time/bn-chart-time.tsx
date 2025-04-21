@@ -463,13 +463,13 @@ export class Chart {
    }
  
 
-   @Prop() showOverlayAVG: string = 'true';
-   @Watch('showOverlayAVG')
-   validateShowOverlayAVG(newValue: string) {
+   @Prop() showOverlayAvg: string = 'true';
+   @Watch('showOverlayAvg')
+   validateShowOverlayAvg(newValue: string) {
       const errId: string = 'ERR_grouped';
       
        if (!isValidBoolean(newValue)) {
-           this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayAVG: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+           this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayAvg: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
        } else {
            this.errors.remove(errId);
        }
@@ -524,7 +524,7 @@ export class Chart {
     this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
     this.validateShowMeasureScale(this.showMeasureScale);
-    this.validateShowOverlayAVG(this.showOverlayAVG);
+    this.validateShowOverlayAvg(this.showOverlayAvg);
     this.validateShowOverlayMedian(this.showOverlayMedian);
   }
 
@@ -541,12 +541,12 @@ export class Chart {
   }
 
   private prepareAvg(): boolean {
-    console.log("prepareAvg",this.showOverlayAVG == "true");
-    return this.showOverlayAVG == "true";
+ 
+    return this.showOverlayAvg == "true";
   }
 
   private prepareMedian(): boolean {
-    console.log("prepareMedian",this.showOverlayMedian == "true");
+ 
     return this.showOverlayMedian == "true";
   }
 

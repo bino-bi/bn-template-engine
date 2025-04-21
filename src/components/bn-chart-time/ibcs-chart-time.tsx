@@ -105,7 +105,7 @@ export class IbcsChartTime {
   showMeasureScale: boolean = true;
 
   @Prop() showOverlayMedian: boolean = false;
-  @Prop() showOverlayAvg: boolean =  true;
+  @Prop() showOverlayAvg: boolean =  false;
 
   @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };

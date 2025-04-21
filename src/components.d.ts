@@ -155,7 +155,7 @@ export namespace Components {
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
          */
         "showMeasureScale": string;
-        "showOverlayAVG": string;
+        "showOverlayAvg": string;
         "showOverlayMedian": string;
         "syncSpaceLeft": number;
         /**
@@ -979,7 +979,7 @@ declare namespace LocalJSX {
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
          */
         "showMeasureScale"?: string;
-        "showOverlayAVG"?: string;
+        "showOverlayAvg"?: string;
         "showOverlayMedian"?: string;
         "syncSpaceLeft"?: number;
         /**
