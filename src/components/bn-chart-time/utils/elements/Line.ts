@@ -128,7 +128,7 @@ export class Line {
         yPos: this.position.getColumnPositionY() - dataPoint.getScaledUnit(),
         labelYPos: this.position.getColumnDataLabelPositionY(dataPoint.getScaledUnit()),
         scenarioLabelXPos: this.position.getColumnPositionX(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
-        scenarioLabelYPos: this.position.getColumnPositionY() - (Math.abs(dataPoint.getScaledUnit()) * 0.5)
+        scenarioLabelYPos: this.position.getColumnPositionY() - dataPoint.getScaledUnit()
       };
     
   }
