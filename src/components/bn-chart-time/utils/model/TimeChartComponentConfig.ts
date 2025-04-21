@@ -38,8 +38,6 @@ export class TimeChartComponentConfig {
   public measureUnit: string = "";  
   public showMeasureScale: boolean = true;
   public dataFormatDigits: DataFormatDigits = {decimal: 1, percent: 2};
-  public medianAvg: string[] = [];
-  public medianMedian: string[] = [];
   public showOverlayMedian: boolean = true;
   public showOverlayAvg: boolean = true;
   constructor(public data: TimeChartDataRow[],
@@ -131,12 +129,12 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
       config.dataFormatDigits = this.dataFormatDigitsAdapter.adapt(data.dataFormatDigits);
     }
     
-    if (CompareUtil.isArray(data.medianAvg)) {
-      config.medianAvg = AdapterUtils.adaptArray(data.medianAvg, this.stringAdapter);
+    if (CompareUtil.isBoolean(data.showOverlayAvg)) {
+      config.showOverlayAvg = data.showOverlayAvg;
     }
 
-    if (CompareUtil.isArray(data.medianMedian)) {
-      config.medianMedian = AdapterUtils.adaptArray(data.medianMedian, this.stringAdapter);
+    if (CompareUtil.isBoolean(data.showOverlayMedian)) {
+      config.showOverlayMedian = data.showOverlayMedian;
     }
 
     return config;

@@ -175,6 +175,8 @@ export class TimeChart {
     this.showOverlayMedian = config.showOverlayMedian;
     this.showOverlayAvg = config.showOverlayAvg;
 
+    console.log("setConfig", config);
+
   }
 
   public getFooter(): string {  
@@ -798,7 +800,7 @@ export class TimeChart {
       });
     }
 
-    /*if ( this.showOverlayMedian === true) {
+    if ( this.showOverlayMedian === true) {
      
       let previousDataPoint: null;
 
@@ -812,50 +814,7 @@ export class TimeChart {
         previousDataPoint = elements["scenario1"]; 
   
       });
-    }*/
-    
-    /*
-    const total = dataModel.reduce((sum, elements) => {
-      return sum + (elements["scenario1"]?.value || 0); // Sum up the values of scenario1
-    }, 0);
-  
-    const count = dataModel.filter(elements => elements["scenario1"]?.value !== undefined).length; // Count valid scenario1 values
-  
-    const average = count > 0 ? total / count : 0; // Calculate the average, avoid division by zero
-  
-    const newDataModel = dataModel.map(elements => {
-      return {
-          ...elements,
-          scenario1: {
-              ...elements["scenario1"],
-              value: average // Replace the value with the average
-          }
-      };
-    });
-    
-    // scenarioFactory.createMedian("Median").draw();
-    console.log("drawOverlayLayer", dataModel);
-    const pointArray = [];
-
-
-    newDataModel.forEach((elements: any, index: number) => {
-        pointArray.push([elements.scenario1.x, elements.scenario1.y]);
-    });
-
-    */
-
-
-
-    //scenarioFactory.createLine("Average", pointArray, 90).draw();
-
-
-   // scenarioFactory.createLine("Average").draw();  
-    /*
-    this.scenariosArea = {
-      height: overlayGroup.height() as number + this.styles.padding.top + this.styles.padding.bottom,
-      width: overlayGroup.width() as number + this.position.spacings.columnWidth
-    };*/
-
+    }
   }
 
   private leftOuterJoinDates(result: TimeChartResponseRow[], dateInterval: DateDistance): TimeChartResponseRow[] {
