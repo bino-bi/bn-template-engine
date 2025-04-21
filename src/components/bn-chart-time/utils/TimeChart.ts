@@ -166,7 +166,7 @@ export class TimeChart {
     this.leftSideOffsetForHorizontalSync = config.leftSideOffsetForHorizontalSync;
     
     this.measureScale = config.measureScale;
-    console.log("measureScale", this.measureScale);
+
     this.measureUnit = config.measureUnit;  
     this.dataFormatDigits = config.dataFormatDigits;    
     
@@ -175,7 +175,6 @@ export class TimeChart {
     this.showOverlayMedian = config.showOverlayMedian;
     this.showOverlayAvg = config.showOverlayAvg;
 
-    console.log("setConfig", config);
 
   }
 
@@ -804,16 +803,15 @@ export class TimeChart {
      
       let previousDataPoint: null;
 
-
       const medianDataModel = tranformToMedianDataModel(dataModel);
       
       medianDataModel.forEach((elements: any, index: number) => {
         if (previousDataPoint != null) {
-          scenarioFactory.createLine(`Median ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index -1 ).draw(this.dataFormatDigits, this.measureScale);
+          scenarioFactory.createLine(`Mdn ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index -1 ).draw(this.dataFormatDigits, this.measureScale);
         }       
         previousDataPoint = elements["scenario1"]; 
   
-      });
+      }); 
     }
   }
 
