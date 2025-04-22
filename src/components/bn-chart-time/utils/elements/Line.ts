@@ -23,7 +23,7 @@ export class Line {
   private readonly scenarioGroup: G;
   private readonly LineBarStyles: any;
   private dataPoint: DataPoint;
-  private previousDataPoint: DataPoint;
+//  private previousDataPoint: DataPoint;
   private readonly styles: TimeChartStyle;
   // @ts-ignore
   private index: number;
@@ -61,7 +61,7 @@ export class Line {
 
   constructor(position: ElementPositions, styles: TimeChartStyle, dataPoint: DataPoint, previousDataPoint: DataPoint, index: number, isPrimaryLine: boolean, scenarioGroup: G, LineLabel: string | null) {
     this.dataPoint = dataPoint;
-    this.previousDataPoint = previousDataPoint;
+    // this.previousDataPoint = previousDataPoint;
     this.index = index;
     this.isPrimaryLine = isPrimaryLine;
     this.position = position;
@@ -105,7 +105,7 @@ export class Line {
     }
 
     let scenarioStyle: SVGStyle | undefined = this.getScenarioStyle();
-    let strokeStyle =  "#00FF00"; //this.convertToSVGStyle(scenarioStyle, "stroke");
+    // let strokeStyle =  "#00FF00"; //this.convertToSVGStyle(scenarioStyle, "stroke");
     let fillStyle = this.getFillStyle(scenarioStyle);
 
     if(this.LineGroup != null) {

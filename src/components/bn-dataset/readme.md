@@ -16,10 +16,11 @@ The SQL for the transformation is in the db-dataset body.
 
 ## Properties
 
-| Property            | Attribute     | Description                                                                              | Type     | Default     |
-| ------------------- | ------------- | ---------------------------------------------------------------------------------------- | -------- | ----------- |
-| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2``` | `string` | `""`        |
-| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                           | `string` | `undefined` |
+| Property            | Attribute     | Description                                                                              | Type      | Default     |
+| ------------------- | ------------- | ---------------------------------------------------------------------------------------- | --------- | ----------- |
+| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2``` | `string`  | `""`        |
+| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                           | `string`  | `undefined` |
+| `static`            | `static`      |                                                                                          | `boolean` | `false`     |
 
 
 ----------------------------------------------
