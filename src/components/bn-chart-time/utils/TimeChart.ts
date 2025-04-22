@@ -26,7 +26,7 @@ import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
-import { DataAnalyzer } from "../../../utils/dataAnalyzer";
+// import { DataAnalyzer } from "../../../utils/dataAnalyzer";
 // import { AggregationLevel, AxisLabelsMode, DateDistance, IDataFormatDigits } from "@bino-bi/ibcs-component-interface";
 // import { VisualisationRuleSet } from "../../ibcs-table/utils/model";
 // import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
