@@ -18,9 +18,10 @@ export class Asset {
         withBodyObserver(this, (data => {
             try {
                 const cleanData = data.replace(/\s/g, '');
-                if (!cleanData.startsWith("data:")) {
-                    throw new Error("Invalid data url");
-                }
+                // Using the bino cli also a path must be valid
+                // if (!cleanData.startsWith("data:")) {
+                //     throw new Error("Invalid data url");
+                // }
                 set(this.name, cleanData);
             } catch (e) {
                 console.error("Error parsing asset", e, data);
