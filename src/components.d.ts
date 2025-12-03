@@ -51,8 +51,12 @@ export namespace Components {
     interface BnChartStructure {
         /**
           * Custom chart title
+          * @default ""
          */
         "chartTitle": string;
+        /**
+          * @default ""
+         */
         "filter": string;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
@@ -60,14 +64,17 @@ export namespace Components {
         "level": string;
         /**
           * Set the maximum number of bars for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
+          * @default 0
          */
         "limit": number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * @default "greatest"
          */
         "measureScale": string;
         /**
           * measureUnit displayed in table.
+          * @default ""
          */
         "measureUnit": string;
         /**
@@ -86,9 +93,13 @@ export namespace Components {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        /**
+          * @default 'true'
+         */
         "showCategories": string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "showMeasureScale": string;
         /**
@@ -107,15 +118,20 @@ export namespace Components {
         "axisLabelsMode": string;
         /**
           * Custom chart title
+          * @default ""
          */
         "chartTitle": string;
         /**
           * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
          */
         "dateInterval": string;
+        /**
+          * @default ""
+         */
         "filter": string;
         /**
           * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+          * @default 28
          */
         "intervalSpanLimit": number;
         /**
@@ -124,14 +140,17 @@ export namespace Components {
         "level": string;
         /**
           * Set the maximum number of columns stacks The value 0 means *no limit* <br /><br />  columns stacks wich where cut by the limit are cumulated as REST
+          * @default 0
          */
         "limit": number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * @default "greatest"
          */
         "measureScale": string;
         /**
           * measureUnit displayed in table.
+          * @default ""
          */
         "measureUnit": string;
         /**
@@ -150,16 +169,30 @@ export namespace Components {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        /**
+          * @default 'true'
+         */
         "showCategories": string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "showMeasureScale": string;
+        /**
+          * @default 'true'
+         */
         "showOverlayAvg": string;
+        /**
+          * @default 'false'
+         */
         "showOverlayMedian": string;
+        /**
+          * @default -1
+         */
         "syncSpaceLeft": number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```
+          * @default "bar"
          */
         "type": string;
         /**
@@ -172,6 +205,9 @@ export namespace Components {
         "variances": string;
     }
     interface BnComponentStyle {
+        /**
+          * @default "_default"
+         */
         "name": string;
     }
     interface BnContext {
@@ -180,12 +216,16 @@ export namespace Components {
     interface BnDataset {
         /**
           * Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```
+          * @default ""
          */
         "datasources": string;
         /**
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        /**
+          * @default false
+         */
         "static": boolean;
     }
     interface BnDatasource {
@@ -201,10 +241,12 @@ export namespace Components {
         "code": string;
         /**
           * Toggle if pagenumer label is displayed
+          * @default true
          */
         "displayPageNumber": boolean;
         /**
           * Pagenumber value. Is displayed if displayPageNumber == true
+          * @default null
          */
         "pageNumber": number | null;
         /**
@@ -213,11 +255,23 @@ export namespace Components {
         "text": string;
     }
     interface BnGrid {
+        /**
+          * @default "start"
+         */
         "align": 'start' | 'end' | 'center' | 'stretch';
+        /**
+          * @default "space-between"
+         */
         "alignContent": 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
         "columnGap": string;
         "columns": number;
+        /**
+          * @default "start"
+         */
         "justify": 'start' | 'end' | 'center' | 'stretch';
+        /**
+          * @default "space-between"
+         */
         "justifyContent": 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
         "rowGap": string;
         "rows": number;
@@ -227,49 +281,127 @@ export namespace Components {
         "namespace": string;
     }
     interface BnLayoutCard {
+        /**
+          * @default "\"a b\" \"c d\""
+         */
         "cardCustomTemplate": string;
+        /**
+          * @default true
+         */
         "cardFitToContent": boolean;
+        /**
+          * @default "0"
+         */
         "cardGridGap": string;
+        /**
+          * @default 'full'
+         */
         "cardLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        /**
+          * @default true
+         */
         "cardShowBorder": boolean;
+        /**
+          * @default ''
+         */
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         "styles"?: string;
+        /**
+          * @default ''
+         */
         "titleBusinessUnit": string;
         "titleDateEnd"?: string;
+        /**
+          * @default 'none'
+         */
         "titleDateFormat": string;
+        /**
+          * @default 'none'
+         */
         "titleDateLink": string;
         "titleDateStart"?: string;
+        /**
+          * @default ''
+         */
         "titleImage": string;
         "titleMeasures"?: string;
+        /**
+          * @default '_system'
+         */
         "titleNamespace": string;
+        /**
+          * @default 'category'
+         */
         "titleOrder": string;
+        /**
+          * @default 'asc'
+         */
         "titleOrderDirection": string;
         "titleScenarios"?: string;
         "titleVariances"?: string;
     }
     interface BnLayoutPage {
+        /**
+          * @default true
+         */
         "footerDisplayPageNumber"?: boolean;
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
+        /**
+          * @default ''
+         */
         "messageImage": string;
+        /**
+          * @default ''
+         */
         "messageText": string;
+        /**
+          * @default "\"a b\" \"c d\""
+         */
         "pageCustomTemplate": string;
+        /**
+          * @default true
+         */
         "pageFitToContent": boolean;
         "pageFormat"?: string;
+        /**
+          * @default "0"
+         */
         "pageGridGap": string;
+        /**
+          * @default 'full'
+         */
         "pageLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
         "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;
+        /**
+          * @default ''
+         */
         "titleBusinessUnit": string;
         "titleDateEnd"?: string;
+        /**
+          * @default 'none'
+         */
         "titleDateFormat": string;
+        /**
+          * @default 'none'
+         */
         "titleDateLink": string;
         "titleDateStart"?: string;
         "titleMeasures"?: string;
+        /**
+          * @default '_system'
+         */
         "titleNamespace": string;
+        /**
+          * @default 'category'
+         */
         "titleOrder": string;
+        /**
+          * @default 'asc'
+         */
         "titleOrderDirection": string;
         "titleScenarios"?: string;
         "titleVariances"?: string;
@@ -277,44 +409,60 @@ export namespace Components {
     interface BnMap {
         /**
           * Set Footer label
+          * @default ''
          */
         "attribution": string;
+        /**
+          * @default null
+         */
         "geojsons": string | null;
         /**
           * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
+          * @default null
          */
         "gpxs": string | null;
         /**
           * Name of the gpxs Dataset used in map  default: $gpxs
+          * @default "$gpxs"
          */
         "gpxsDatasetName": string;
         /**
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+          * @default 50.137634
          */
         "latitude": number;
         /**
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+          * @default 8.679129
          */
         "longitude": number;
+        /**
+          * @default true
+         */
         "manualPosOverride": boolean;
         /**
           * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
+          * @default null
          */
         "markers": string | null;
         /**
           * Name of the makers Dataset used in map  default: $markers
+          * @default "$markers"
          */
         "markersDatasetName": string;
         /**
           * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
+          * @default 11
          */
         "scale": number;
         /**
           * Activates/ Deactivates Map Scale
+          * @default false
          */
         "showScale": boolean;
         /**
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
+          * @default 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'
          */
         "tileLayer": string;
     }
@@ -341,55 +489,71 @@ export namespace Components {
     interface BnTable {
         /**
           * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
+          * @default 'w15'
          */
         "categoryWidth": string;
         /**
           * Defines which drill-column is displayed. <br /> <br /><br /> ```scenario``` the scenaro to drill <br/> ```group``` is a list of child columns of the parent <br/><br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},     {"scenario": "ac2", "name": "UK", "subGroups": []}],    ```
+          * @default null
          */
         "columnthereof": string | null;
         /**
           * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
+          * @default 'decimal'
          */
         "dataFormat": string;
         /**
           * Number of decimal digits in a table cell
+          * @default 1
          */
         "dataFormatDigitsDecimal": number;
         /**
           * Number of percent digits in a table cell
+          * @default 2
          */
         "dataFormatDigitsPercent": number;
+        /**
+          * @default ""
+         */
         "filter": string;
         /**
           * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "grouped": string;
         /**
           * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
+          * @default 0
          */
         "limit": number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * @default "greatest"
          */
         "measureScale": string;
         /**
           * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted. <br /><br /> values: <br /> ```volume // currency```
+          * @default "volume"
          */
         "measureType": string;
         /**
           * measureUnit displayed in table.
+          * @default ""
          */
         "measureUnit": string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
+          * @default 'category'
          */
         "order": string;
         /**
           * Set sorting order direction <br /><br /> values: <br /> ```asc  // desc```
+          * @default 'asc'
          */
         "orderDirection": string;
         /**
           * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
+          * @default '[]'
          */
         "partof": string;
         /**
@@ -398,22 +562,27 @@ export namespace Components {
         "scenarios": string;
         /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
+          * @default 'true'
          */
         "showGroupTitle": string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "showMeasureScale": string;
         /**
           * A not mundane tile which should describes the shown data.
+          * @default ""
          */
         "tableTitle": string;
         /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
+          * @default '[]'
          */
         "thereof": string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
+          * @default 'list'
          */
         "type": string;
         /**
@@ -433,6 +602,7 @@ export namespace Components {
     interface BnTitle {
         /**
           * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
+          * @default ''
          */
         "businessUnit": string;
         /**
@@ -441,10 +611,12 @@ export namespace Components {
         "dateEnd": string;
         /**
           * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
+          * @default 'none'
          */
         "dateFormat": string;
         /**
           * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
+          * @default 'none'
          */
         "dateLink": string;
         /**
@@ -457,10 +629,12 @@ export namespace Components {
         "measures": string;
         /**
           * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
+          * @default 'category'
          */
         "order": string;
         /**
           * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
+          * @default 'asc'
          */
         "orderDirection": string;
         /**
@@ -478,95 +652,326 @@ export namespace Components {
         "internationalizationKeys": () => Promise<string[]>;
     }
     interface IbcsChartStructure {
+        /**
+          * @default ""
+         */
         "chartTitle": string;
+        /**
+          * @default []
+         */
         "data": StructureChartDataRow[];
+        /**
+          * @default { percent: 2, decimal: 1 }
+         */
         "dataFormatDigits": DataFormatDigits;
+        /**
+          * @default ""
+         */
         "filter": string;
+        /**
+          * @default false
+         */
         "hideCategories": boolean;
+        /**
+          * @default new Map()
+         */
         "i18n": Map<string, string>;
+        /**
+          * @default AggregationLevel.CATEGORY
+         */
         "level": AggregationLevel;
+        /**
+          * @default 0
+         */
         "limit": number;
+        /**
+          * @default "_"
+         */
         "measureScale": string;
+        /**
+          * @default ""
+         */
         "measureUnit": string;
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order": Order;
+        /**
+          * @default 50
+         */
         "pixelPerPercentage": number;
+        /**
+          * @default 10
+         */
         "pixelPerUnit": number;
+        /**
+          * @default []
+         */
         "scenarios": string[];
+        /**
+          * @default true
+         */
         "showMeasureScale": boolean;
         "styles": StructureChartStyle | undefined;
+        /**
+          * @default []
+         */
         "variances": string[];
     }
     interface IbcsChartTime {
+        /**
+          * @default AxisLabelsMode.SMART
+         */
         "axisLabelsMode": AxisLabelsMode;
         "chartTitle"?: string;
+        /**
+          * @default []
+         */
         "data": TimeChartDataRow[];
+        /**
+          * @default { percent: 2, decimal: 1 }
+         */
         "dataFormatDigits": DataFormatDigits;
+        /**
+          * @default DateDistance.AUTO
+         */
         "dateInterval": DateDistance;
+        /**
+          * @default ""
+         */
         "filter": string;
+        /**
+          * @default false
+         */
         "hideAxisLabels": boolean;
+        /**
+          * @default new Map()
+         */
         "i18n": Map<string, string>;
+        /**
+          * @default 28
+         */
         "intervalSpanLimit": number;
+        /**
+          * @default -1
+         */
         "leftSideOffsetForHorizontalSync": number;
+        /**
+          * @default AggregationLevel.CATEGORY
+         */
         "level": AggregationLevel;
+        /**
+          * @default 0
+         */
         "limit": number;
+        /**
+          * @default "_"
+         */
         "measureScale": string;
+        /**
+          * @default ""
+         */
         "measureUnit": string;
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order": Order;
+        /**
+          * @default 50
+         */
         "pixelPerPercentage": number;
+        /**
+          * @default 2
+         */
         "pixelPerUnit": number;
+        /**
+          * @default []
+         */
         "scenarios": string[];
+        /**
+          * @default true
+         */
         "showMeasureScale": boolean;
+        /**
+          * @default false
+         */
         "showOverlayAvg": boolean;
+        /**
+          * @default false
+         */
         "showOverlayMedian": boolean;
         "styles": TimeChartStyle | undefined;
+        /**
+          * @default []
+         */
         "variances": string[];
     }
     interface IbcsMap {
+        /**
+          * @default this._attribution
+         */
         "attribution": string;
+        /**
+          * @default this._customView
+         */
         "customView": boolean;
+        /**
+          * @default this._geojsons
+         */
         "geojsons": GeoJsonLayer[] | string;
+        /**
+          * @default this._gpxs
+         */
         "gpxs": GpxLayer[] | string;
+        /**
+          * @default this._latitude
+         */
         "latitude": number;
+        /**
+          * @default this._longitude
+         */
         "longitude": number;
+        /**
+          * @default this._manualPosOverride
+         */
         "manualPosOverride": boolean;
+        /**
+          * @default this._markers
+         */
         "markers": Marker[] | string;
+        /**
+          * @default this._scale
+         */
         "scale": number;
         "setProps": (data: Partial<IbcsMap>) => Promise<void>;
+        /**
+          * @default this._showScale
+         */
         "showScale": boolean;
+        /**
+          * @default this._showZoom
+         */
         "showZoom": boolean;
+        /**
+          * @default this._tileLayer
+         */
         "tileLayer": string;
         "unSetProps": (data: Partial<IbcsMap>) => Promise<void>;
     }
     interface IbcsTable {
+        /**
+          * @default TableCategoryWidth.INF
+         */
         "categoryWidth": TableCategoryWidth;
+        /**
+          * @default new Map()
+         */
         "categorythereof": Map<string, any>;
+        /**
+          * @default []
+         */
         "data": TableDataRow[];
+        /**
+          * @default { percent: 2, decimal: 1 }
+         */
         "dataFormatDigits": DataFormatDigits;
+        /**
+          * @default ""
+         */
         "filter": string;
+        /**
+          * @default false
+         */
         "grouped"?: boolean;
+        /**
+          * @default new Map()
+         */
         "i18n": Map<string, string>;
+        /**
+          * @default I18nMode.ALL
+         */
         "i18nMode": I18nMode;
+        /**
+          * @default 0
+         */
         "limit": number;
+        /**
+          * @default "_"
+         */
         "measureScale": string;
+        /**
+          * @default MeasureType.VOLUME
+         */
         "measureType": MeasureType;
+        /**
+          * @default ""
+         */
         "measureUnit": string;
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order": Order;
+        /**
+          * @default []
+         */
         "partof": TableDrillGroup[];
+        /**
+          * @default []
+         */
         "scenarios": string[];
+        /**
+          * @default DataFormat.DECIMAL
+         */
         "scenariosDataFormat": DataFormat;
+        /**
+          * @default true
+         */
         "showGroupTitle": boolean;
+        /**
+          * @default true
+         */
         "showMeasureScale": boolean;
+        /**
+          * @default "SUM_TOTAL"
+         */
         "tableTitle": string;
+        /**
+          * @default []
+         */
         "thereof": TableDrillGroup[];
+        /**
+          * @default TableType.LIST
+         */
         "type": TableType;
     }
     interface IbcsTitle {
+        /**
+          * @default ''
+         */
         "businessUnit": string;
+        /**
+          * @default new Map<string, string>()
+         */
         "i18n": Map<string, string>;
+        /**
+          * @default I18nMode.ALL
+         */
         "i18nMode": I18nMode;
+        /**
+          * @default 28
+         */
         "intervalSpanLimit": number;
+        /**
+          * @default []
+         */
         "measures": MeasureEntry[];
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order": Order;
+        /**
+          * @default []
+         */
         "scenarios": string[];
         "setBusinessUnit": (businessUnit: string) => Promise<void>;
         "setProps": (data: Partial<IbcsTitle>) => Promise<void>;
@@ -875,8 +1280,12 @@ declare namespace LocalJSX {
     interface BnChartStructure {
         /**
           * Custom chart title
+          * @default ""
          */
         "chartTitle"?: string;
+        /**
+          * @default ""
+         */
         "filter"?: string;
         /**
           * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
@@ -884,14 +1293,17 @@ declare namespace LocalJSX {
         "level": string;
         /**
           * Set the maximum number of bars for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
+          * @default 0
          */
         "limit"?: number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * @default "greatest"
          */
         "measureScale"?: string;
         /**
           * measureUnit displayed in table.
+          * @default ""
          */
         "measureUnit"?: string;
         /**
@@ -910,9 +1322,13 @@ declare namespace LocalJSX {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        /**
+          * @default 'true'
+         */
         "showCategories"?: string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "showMeasureScale"?: string;
         /**
@@ -931,15 +1347,20 @@ declare namespace LocalJSX {
         "axisLabelsMode": string;
         /**
           * Custom chart title
+          * @default ""
          */
         "chartTitle"?: string;
         /**
           * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
          */
         "dateInterval": string;
+        /**
+          * @default ""
+         */
         "filter"?: string;
         /**
           * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+          * @default 28
          */
         "intervalSpanLimit"?: number;
         /**
@@ -948,14 +1369,17 @@ declare namespace LocalJSX {
         "level": string;
         /**
           * Set the maximum number of columns stacks The value 0 means *no limit* <br /><br />  columns stacks wich where cut by the limit are cumulated as REST
+          * @default 0
          */
         "limit"?: number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * @default "greatest"
          */
         "measureScale"?: string;
         /**
           * measureUnit displayed in table.
+          * @default ""
          */
         "measureUnit"?: string;
         /**
@@ -974,16 +1398,30 @@ declare namespace LocalJSX {
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
          */
         "scenarios": string;
+        /**
+          * @default 'true'
+         */
         "showCategories"?: string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "showMeasureScale"?: string;
+        /**
+          * @default 'true'
+         */
         "showOverlayAvg"?: string;
+        /**
+          * @default 'false'
+         */
         "showOverlayMedian"?: string;
+        /**
+          * @default -1
+         */
         "syncSpaceLeft"?: number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```
+          * @default "bar"
          */
         "type"?: string;
         /**
@@ -996,6 +1434,9 @@ declare namespace LocalJSX {
         "variances": string;
     }
     interface BnComponentStyle {
+        /**
+          * @default "_default"
+         */
         "name"?: string;
     }
     interface BnContext {
@@ -1004,12 +1445,16 @@ declare namespace LocalJSX {
     interface BnDataset {
         /**
           * Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```
+          * @default ""
          */
         "datasources"?: string;
         /**
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        /**
+          * @default false
+         */
         "static"?: boolean;
     }
     interface BnDatasource {
@@ -1025,10 +1470,12 @@ declare namespace LocalJSX {
         "code"?: string;
         /**
           * Toggle if pagenumer label is displayed
+          * @default true
          */
         "displayPageNumber"?: boolean;
         /**
           * Pagenumber value. Is displayed if displayPageNumber == true
+          * @default null
          */
         "pageNumber"?: number | null;
         /**
@@ -1037,11 +1484,23 @@ declare namespace LocalJSX {
         "text"?: string;
     }
     interface BnGrid {
+        /**
+          * @default "start"
+         */
         "align"?: 'start' | 'end' | 'center' | 'stretch';
+        /**
+          * @default "space-between"
+         */
         "alignContent"?: 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
         "columnGap"?: string;
         "columns"?: number;
+        /**
+          * @default "start"
+         */
         "justify"?: 'start' | 'end' | 'center' | 'stretch';
+        /**
+          * @default "space-between"
+         */
         "justifyContent"?: 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
         "rowGap"?: string;
         "rows"?: number;
@@ -1051,47 +1510,125 @@ declare namespace LocalJSX {
         "namespace"?: string;
     }
     interface BnLayoutCard {
+        /**
+          * @default "\"a b\" \"c d\""
+         */
         "cardCustomTemplate"?: string;
+        /**
+          * @default true
+         */
         "cardFitToContent"?: boolean;
+        /**
+          * @default "0"
+         */
         "cardGridGap"?: string;
+        /**
+          * @default 'full'
+         */
         "cardLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        /**
+          * @default true
+         */
         "cardShowBorder"?: boolean;
+        /**
+          * @default ''
+         */
         "footerText"?: string;
         "styles"?: string;
+        /**
+          * @default ''
+         */
         "titleBusinessUnit"?: string;
         "titleDateEnd"?: string;
+        /**
+          * @default 'none'
+         */
         "titleDateFormat"?: string;
+        /**
+          * @default 'none'
+         */
         "titleDateLink"?: string;
         "titleDateStart"?: string;
+        /**
+          * @default ''
+         */
         "titleImage"?: string;
         "titleMeasures"?: string;
+        /**
+          * @default '_system'
+         */
         "titleNamespace"?: string;
+        /**
+          * @default 'category'
+         */
         "titleOrder"?: string;
+        /**
+          * @default 'asc'
+         */
         "titleOrderDirection"?: string;
         "titleScenarios"?: string;
         "titleVariances"?: string;
     }
     interface BnLayoutPage {
+        /**
+          * @default true
+         */
         "footerDisplayPageNumber"?: boolean;
         "footerText"?: string;
+        /**
+          * @default ''
+         */
         "messageImage"?: string;
+        /**
+          * @default ''
+         */
         "messageText"?: string;
+        /**
+          * @default "\"a b\" \"c d\""
+         */
         "pageCustomTemplate"?: string;
+        /**
+          * @default true
+         */
         "pageFitToContent"?: boolean;
         "pageFormat"?: string;
+        /**
+          * @default "0"
+         */
         "pageGridGap"?: string;
+        /**
+          * @default 'full'
+         */
         "pageLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
         "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;
+        /**
+          * @default ''
+         */
         "titleBusinessUnit"?: string;
         "titleDateEnd"?: string;
+        /**
+          * @default 'none'
+         */
         "titleDateFormat"?: string;
+        /**
+          * @default 'none'
+         */
         "titleDateLink"?: string;
         "titleDateStart"?: string;
         "titleMeasures"?: string;
+        /**
+          * @default '_system'
+         */
         "titleNamespace"?: string;
+        /**
+          * @default 'category'
+         */
         "titleOrder"?: string;
+        /**
+          * @default 'asc'
+         */
         "titleOrderDirection"?: string;
         "titleScenarios"?: string;
         "titleVariances"?: string;
@@ -1099,46 +1636,62 @@ declare namespace LocalJSX {
     interface BnMap {
         /**
           * Set Footer label
+          * @default ''
          */
         "attribution"?: string;
+        /**
+          * @default null
+         */
         "geojsons"?: string | null;
         /**
           * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
+          * @default null
          */
         "gpxs"?: string | null;
         /**
           * Name of the gpxs Dataset used in map  default: $gpxs
+          * @default "$gpxs"
          */
         "gpxsDatasetName"?: string;
         /**
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+          * @default 50.137634
          */
         "latitude"?: number;
         /**
           * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
+          * @default 8.679129
          */
         "longitude"?: number;
+        /**
+          * @default true
+         */
         "manualPosOverride"?: boolean;
         /**
           * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
+          * @default null
          */
         "markers"?: string | null;
         /**
           * Name of the makers Dataset used in map  default: $markers
+          * @default "$markers"
          */
         "markersDatasetName"?: string;
         "onBnDragZoomEnded"?: (event: BnMapCustomEvent<any>) => void;
         "onBnStateUpdated"?: (event: BnMapCustomEvent<any>) => void;
         /**
           * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
+          * @default 11
          */
         "scale"?: number;
         /**
           * Activates/ Deactivates Map Scale
+          * @default false
          */
         "showScale"?: boolean;
         /**
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
+          * @default 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'
          */
         "tileLayer"?: string;
     }
@@ -1165,55 +1718,71 @@ declare namespace LocalJSX {
     interface BnTable {
         /**
           * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
+          * @default 'w15'
          */
         "categoryWidth"?: string;
         /**
           * Defines which drill-column is displayed. <br /> <br /><br /> ```scenario``` the scenaro to drill <br/> ```group``` is a list of child columns of the parent <br/><br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},     {"scenario": "ac2", "name": "UK", "subGroups": []}],    ```
+          * @default null
          */
         "columnthereof"?: string | null;
         /**
           * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
+          * @default 'decimal'
          */
         "dataFormat"?: string;
         /**
           * Number of decimal digits in a table cell
+          * @default 1
          */
         "dataFormatDigitsDecimal"?: number;
         /**
           * Number of percent digits in a table cell
+          * @default 2
          */
         "dataFormatDigitsPercent"?: number;
+        /**
+          * @default ""
+         */
         "filter"?: string;
         /**
           * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "grouped"?: string;
         /**
           * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
+          * @default 0
          */
         "limit"?: number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * @default "greatest"
          */
         "measureScale"?: string;
         /**
           * Sets the Measure Type of the Table volume is different displayed and interpreted as currency names of siprefix are adapted. <br /><br /> values: <br /> ```volume // currency```
+          * @default "volume"
          */
         "measureType"?: string;
         /**
           * measureUnit displayed in table.
+          * @default ""
          */
         "measureUnit"?: string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
+          * @default 'category'
          */
         "order"?: string;
         /**
           * Set sorting order direction <br /><br /> values: <br /> ```asc  // desc```
+          * @default 'asc'
          */
         "orderDirection"?: string;
         /**
           * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
+          * @default '[]'
          */
         "partof"?: string;
         /**
@@ -1222,22 +1791,27 @@ declare namespace LocalJSX {
         "scenarios"?: string;
         /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
+          * @default 'true'
          */
         "showGroupTitle"?: string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
+          * @default 'false'
          */
         "showMeasureScale"?: string;
         /**
           * A not mundane tile which should describes the shown data.
+          * @default ""
          */
         "tableTitle"?: string;
         /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
+          * @default '[]'
          */
         "thereof"?: string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
+          * @default 'list'
          */
         "type"?: string;
         /**
@@ -1257,6 +1831,7 @@ declare namespace LocalJSX {
     interface BnTitle {
         /**
           * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
+          * @default ''
          */
         "businessUnit"?: string;
         /**
@@ -1265,10 +1840,12 @@ declare namespace LocalJSX {
         "dateEnd"?: string;
         /**
           * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
+          * @default 'none'
          */
         "dateFormat"?: string;
         /**
           * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
+          * @default 'none'
          */
         "dateLink"?: string;
         /**
@@ -1281,10 +1858,12 @@ declare namespace LocalJSX {
         "measures"?: string;
         /**
           * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
+          * @default 'category'
          */
         "order"?: string;
         /**
           * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
+          * @default 'asc'
          */
         "orderDirection"?: string;
         /**
@@ -1299,95 +1878,326 @@ declare namespace LocalJSX {
     interface EditorCompanion {
     }
     interface IbcsChartStructure {
+        /**
+          * @default ""
+         */
         "chartTitle"?: string;
+        /**
+          * @default []
+         */
         "data"?: StructureChartDataRow[];
+        /**
+          * @default { percent: 2, decimal: 1 }
+         */
         "dataFormatDigits"?: DataFormatDigits;
+        /**
+          * @default ""
+         */
         "filter"?: string;
+        /**
+          * @default false
+         */
         "hideCategories"?: boolean;
+        /**
+          * @default new Map()
+         */
         "i18n"?: Map<string, string>;
+        /**
+          * @default AggregationLevel.CATEGORY
+         */
         "level"?: AggregationLevel;
+        /**
+          * @default 0
+         */
         "limit"?: number;
+        /**
+          * @default "_"
+         */
         "measureScale"?: string;
+        /**
+          * @default ""
+         */
         "measureUnit"?: string;
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order"?: Order;
+        /**
+          * @default 50
+         */
         "pixelPerPercentage"?: number;
+        /**
+          * @default 10
+         */
         "pixelPerUnit"?: number;
+        /**
+          * @default []
+         */
         "scenarios"?: string[];
+        /**
+          * @default true
+         */
         "showMeasureScale"?: boolean;
         "styles"?: StructureChartStyle | undefined;
+        /**
+          * @default []
+         */
         "variances"?: string[];
     }
     interface IbcsChartTime {
+        /**
+          * @default AxisLabelsMode.SMART
+         */
         "axisLabelsMode"?: AxisLabelsMode;
         "chartTitle"?: string;
+        /**
+          * @default []
+         */
         "data"?: TimeChartDataRow[];
+        /**
+          * @default { percent: 2, decimal: 1 }
+         */
         "dataFormatDigits"?: DataFormatDigits;
+        /**
+          * @default DateDistance.AUTO
+         */
         "dateInterval"?: DateDistance;
+        /**
+          * @default ""
+         */
         "filter"?: string;
+        /**
+          * @default false
+         */
         "hideAxisLabels"?: boolean;
+        /**
+          * @default new Map()
+         */
         "i18n"?: Map<string, string>;
+        /**
+          * @default 28
+         */
         "intervalSpanLimit"?: number;
+        /**
+          * @default -1
+         */
         "leftSideOffsetForHorizontalSync"?: number;
+        /**
+          * @default AggregationLevel.CATEGORY
+         */
         "level"?: AggregationLevel;
+        /**
+          * @default 0
+         */
         "limit"?: number;
+        /**
+          * @default "_"
+         */
         "measureScale"?: string;
+        /**
+          * @default ""
+         */
         "measureUnit"?: string;
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order"?: Order;
+        /**
+          * @default 50
+         */
         "pixelPerPercentage"?: number;
+        /**
+          * @default 2
+         */
         "pixelPerUnit"?: number;
+        /**
+          * @default []
+         */
         "scenarios"?: string[];
+        /**
+          * @default true
+         */
         "showMeasureScale"?: boolean;
+        /**
+          * @default false
+         */
         "showOverlayAvg"?: boolean;
+        /**
+          * @default false
+         */
         "showOverlayMedian"?: boolean;
         "styles"?: TimeChartStyle | undefined;
+        /**
+          * @default []
+         */
         "variances"?: string[];
     }
     interface IbcsMap {
+        /**
+          * @default this._attribution
+         */
         "attribution"?: string;
+        /**
+          * @default this._customView
+         */
         "customView"?: boolean;
+        /**
+          * @default this._geojsons
+         */
         "geojsons"?: GeoJsonLayer[] | string;
+        /**
+          * @default this._gpxs
+         */
         "gpxs"?: GpxLayer[] | string;
+        /**
+          * @default this._latitude
+         */
         "latitude"?: number;
+        /**
+          * @default this._longitude
+         */
         "longitude"?: number;
+        /**
+          * @default this._manualPosOverride
+         */
         "manualPosOverride"?: boolean;
+        /**
+          * @default this._markers
+         */
         "markers"?: Marker[] | string;
         "onDragZoomEnded"?: (event: IbcsMapCustomEvent<any>) => void;
         "onStateUpdated"?: (event: IbcsMapCustomEvent<any>) => void;
+        /**
+          * @default this._scale
+         */
         "scale"?: number;
+        /**
+          * @default this._showScale
+         */
         "showScale"?: boolean;
+        /**
+          * @default this._showZoom
+         */
         "showZoom"?: boolean;
+        /**
+          * @default this._tileLayer
+         */
         "tileLayer"?: string;
     }
     interface IbcsTable {
+        /**
+          * @default TableCategoryWidth.INF
+         */
         "categoryWidth"?: TableCategoryWidth;
+        /**
+          * @default new Map()
+         */
         "categorythereof"?: Map<string, any>;
+        /**
+          * @default []
+         */
         "data"?: TableDataRow[];
+        /**
+          * @default { percent: 2, decimal: 1 }
+         */
         "dataFormatDigits"?: DataFormatDigits;
+        /**
+          * @default ""
+         */
         "filter"?: string;
+        /**
+          * @default false
+         */
         "grouped"?: boolean;
+        /**
+          * @default new Map()
+         */
         "i18n"?: Map<string, string>;
+        /**
+          * @default I18nMode.ALL
+         */
         "i18nMode"?: I18nMode;
+        /**
+          * @default 0
+         */
         "limit"?: number;
+        /**
+          * @default "_"
+         */
         "measureScale"?: string;
+        /**
+          * @default MeasureType.VOLUME
+         */
         "measureType"?: MeasureType;
+        /**
+          * @default ""
+         */
         "measureUnit"?: string;
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order"?: Order;
+        /**
+          * @default []
+         */
         "partof"?: TableDrillGroup[];
+        /**
+          * @default []
+         */
         "scenarios"?: string[];
+        /**
+          * @default DataFormat.DECIMAL
+         */
         "scenariosDataFormat"?: DataFormat;
+        /**
+          * @default true
+         */
         "showGroupTitle"?: boolean;
+        /**
+          * @default true
+         */
         "showMeasureScale"?: boolean;
+        /**
+          * @default "SUM_TOTAL"
+         */
         "tableTitle"?: string;
+        /**
+          * @default []
+         */
         "thereof"?: TableDrillGroup[];
+        /**
+          * @default TableType.LIST
+         */
         "type"?: TableType;
     }
     interface IbcsTitle {
+        /**
+          * @default ''
+         */
         "businessUnit"?: string;
+        /**
+          * @default new Map<string, string>()
+         */
         "i18n"?: Map<string, string>;
+        /**
+          * @default I18nMode.ALL
+         */
         "i18nMode"?: I18nMode;
+        /**
+          * @default 28
+         */
         "intervalSpanLimit"?: number;
+        /**
+          * @default []
+         */
         "measures"?: MeasureEntry[];
+        /**
+          * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+         */
         "order"?: Order;
+        /**
+          * @default []
+         */
         "scenarios"?: string[];
         "timeperiod"?: TimePeriod;
     }
