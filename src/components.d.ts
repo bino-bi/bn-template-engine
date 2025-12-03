@@ -276,6 +276,12 @@ export namespace Components {
         "rowGap": string;
         "rows": number;
     }
+    interface BnImage {
+        /**
+          * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
+         */
+        "image": string;
+    }
     interface BnInternationalization {
         "code": string;
         "namespace": string;
@@ -1067,6 +1073,12 @@ declare global {
         prototype: HTMLBnGridElement;
         new (): HTMLBnGridElement;
     };
+    interface HTMLBnImageElement extends Components.BnImage, HTMLStencilElement {
+    }
+    var HTMLBnImageElement: {
+        prototype: HTMLBnImageElement;
+        new (): HTMLBnImageElement;
+    };
     interface HTMLBnInternationalizationElement extends Components.BnInternationalization, HTMLStencilElement {
     }
     var HTMLBnInternationalizationElement: {
@@ -1241,6 +1253,7 @@ declare global {
         "bn-datasource": HTMLBnDatasourceElement;
         "bn-footer": HTMLBnFooterElement;
         "bn-grid": HTMLBnGridElement;
+        "bn-image": HTMLBnImageElement;
         "bn-internationalization": HTMLBnInternationalizationElement;
         "bn-layout-card": HTMLBnLayoutCardElement;
         "bn-layout-page": HTMLBnLayoutPageElement;
@@ -1504,6 +1517,12 @@ declare namespace LocalJSX {
         "justifyContent"?: 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
         "rowGap"?: string;
         "rows"?: number;
+    }
+    interface BnImage {
+        /**
+          * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
+         */
+        "image"?: string;
     }
     interface BnInternationalization {
         "code"?: string;
@@ -2227,6 +2246,7 @@ declare namespace LocalJSX {
         "bn-datasource": BnDatasource;
         "bn-footer": BnFooter;
         "bn-grid": BnGrid;
+        "bn-image": BnImage;
         "bn-internationalization": BnInternationalization;
         "bn-layout-card": BnLayoutCard;
         "bn-layout-page": BnLayoutPage;
@@ -2267,6 +2287,7 @@ declare module "@stencil/core" {
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
+            "bn-image": LocalJSX.BnImage & JSXBase.HTMLAttributes<HTMLBnImageElement>;
             "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
             "bn-layout-card": LocalJSX.BnLayoutCard & JSXBase.HTMLAttributes<HTMLBnLayoutCardElement>;
             "bn-layout-page": LocalJSX.BnLayoutPage & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
