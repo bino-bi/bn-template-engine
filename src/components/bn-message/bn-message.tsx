@@ -35,12 +35,12 @@ export class Footer {
     if (value == null || value == "") {
       return "";
     }
-
+    // for backward compatibility deprecated "asset:" prefix
     if (value.startsWith("asset:")) {
       return state[value.substring(6)] // TODO: will not work with IE11 (state proxie is not available) )
     }
 
-    return value;
+    return state[value] || value;
   }
 
 
