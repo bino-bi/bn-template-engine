@@ -280,7 +280,7 @@ export namespace Components {
         /**
           * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
          */
-        "image": string;
+        "source": string;
     }
     interface BnInternationalization {
         "code": string;
@@ -1522,7 +1522,7 @@ declare namespace LocalJSX {
         /**
           * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
          */
-        "image"?: string;
+        "source"?: string;
     }
     interface BnInternationalization {
         "code"?: string;

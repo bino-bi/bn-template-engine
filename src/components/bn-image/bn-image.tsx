@@ -5,6 +5,7 @@ import state from "../../stores/assets";
 
 @Component({
     tag: 'bn-image',
+    styleUrl: 'bn-image.scss'
 })
 export class Image {
     constructor() {
@@ -22,7 +23,7 @@ export class Image {
    * <br /><br />
    *  example:<br /> ```debug/concordia.png```
    */
-    @Prop() readonly image: string;
+    @Prop() readonly source: string;
 
     prepareAssetUrl(value: string) {
         if (value == null || value == "") {
@@ -38,7 +39,7 @@ export class Image {
 
     render() {
         return <Host>
-            {this.image != null && this.image != "" ? <img src={this.prepareAssetUrl(this.image)} /> : ""}
+            {this.source != null && this.source != "" ? <img src={this.prepareAssetUrl(this.source)} /> : ""}
         </Host>;
     }
 }
