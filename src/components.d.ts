@@ -178,6 +178,17 @@ export namespace Components {
           * @default 'false'
          */
         "showMeasureScale": string;
+        /**
+          * @default 'true'
+         */
+        "showOverlayAvg": string;
+        /**
+          * @default 'false'
+         */
+        "showOverlayMedian": string;
+        /**
+          * @default -1
+         */
         "syncSpaceLeft": number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```
@@ -274,13 +285,6 @@ export namespace Components {
     interface BnInternationalization {
         "code": string;
         "namespace": string;
-    }
-    interface BnLayout {
-        "customTemplate": string;
-        "fitToContent": boolean;
-        "getNumberOfSlot": (name: string) => Promise<number>;
-        "gridGap": string;
-        "layout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
     }
     interface BnLayoutCard {
         /**
@@ -1416,6 +1420,17 @@ declare namespace LocalJSX {
           * @default 'false'
          */
         "showMeasureScale"?: string;
+        /**
+          * @default 'true'
+         */
+        "showOverlayAvg"?: string;
+        /**
+          * @default 'false'
+         */
+        "showOverlayMedian"?: string;
+        /**
+          * @default -1
+         */
         "syncSpaceLeft"?: number;
         /**
           * Chart Type <br /><br /> values:<br /> ```bar// line / area```
@@ -1512,12 +1527,6 @@ declare namespace LocalJSX {
     interface BnInternationalization {
         "code"?: string;
         "namespace"?: string;
-    }
-    interface BnLayout {
-        "customTemplate"?: string;
-        "fitToContent"?: boolean;
-        "gridGap"?: string;
-        "layout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
     }
     interface BnLayoutCard {
         /**
