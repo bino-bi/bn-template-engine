@@ -98,13 +98,13 @@ export class TimeChart {
   private intervalSpanLimit: number = 32;
 
   private ruleSet: VisualisationRuleSet;
-  
+
   private measureScale: SiPrefix = new SiPrefix();
   private measureUnit: string = "";
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
   private showOverlayMedian: boolean = false;
   private showOverlayAvg: boolean = false;
-  
+
   constructor(ruleSet: VisualisationRuleSet, config: TimeChartComponentConfig, styles: TimeChartStyle) {
     this.initSQLFunctions();
     this.ruleSet = ruleSet || new IBCSRuleSet();
@@ -140,8 +140,8 @@ export class TimeChart {
   setConfig(config: TimeChartComponentConfig) {
     this.state = FactoryState.DIRTY;
 
-    this.sortScenariosbyVisualisationRules(config);    
-    
+    this.sortScenariosbyVisualisationRules(config);
+
     this.setData([...config.data], config.filter);
     this.hideAxisLabels = config.hideAxisLabels || false;
     this.pixelPerUnit = config.pixelPerUnit;
@@ -150,7 +150,7 @@ export class TimeChart {
     this.intervalSpanLimit = config.intervalSpanLimit;
     this.dateInterval = this.findDateInterval(config.dateInterval);
 
-    
+
 
 
     this.dataModel = this.populateModel(config.scenarios, this.dateInterval, config.level, config.sortOrder);
@@ -164,12 +164,12 @@ export class TimeChart {
     this.highestVarianceDataPointValue = this.findHighestDataPointValue(this.variancesDataModel);
     this.axisScenario = this.setAxisScenario(config.variances);
     this.leftSideOffsetForHorizontalSync = config.leftSideOffsetForHorizontalSync;
-    
+
     this.measureScale = config.measureScale;
 
-    this.measureUnit = config.measureUnit;  
-    this.dataFormatDigits = config.dataFormatDigits;    
-    
+    this.measureUnit = config.measureUnit;
+    this.dataFormatDigits = config.dataFormatDigits;
+
     this.updatePosition(config.scenarios);
 
     this.showOverlayMedian = config.showOverlayMedian;
@@ -178,11 +178,11 @@ export class TimeChart {
 
   }
 
-  public getFooter(): string {  
-    if (this.measureScale.value == 1 && this.measureUnit == "" ){
+  public getFooter(): string {
+    if (this.measureScale.value == 1 && this.measureUnit == "") {
       return " ";
     }
-     return Formatter.translateScenarioLabel("in" , this.i18n) + " " + this.measureScale.prefix + this.measureUnit;  
+    return Formatter.translateScenarioLabel("in", this.i18n) + " " + this.measureScale.prefix + this.measureUnit;
   }
 
   private sortScenariosbyVisualisationRules(config: TimeChartComponentConfig) {
@@ -225,13 +225,13 @@ export class TimeChart {
 
     this.state = FactoryState.DIRTY; // mark dataSet for update
     this.preparedDataSet.length = 0; // cleans formerly loaded and prepared  dataset
-    
-    if(filter != null && filter.length > 0 ) {
-      try{
-        this.preparedDataSet  = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
-      } catch(e) {
+
+    if (filter != null && filter.length > 0) {
+      try {
+        this.preparedDataSet = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
+      } catch (e) {
         this.preparedDataSet = data;
-      }     
+      }
     } else {
       this.preparedDataSet = data;
     }
@@ -469,22 +469,22 @@ export class TimeChart {
   private queryMinMaxDates(): any[] {
 
     //let result: any[] = [];
-    const result = alasql(`SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ?`, [this.preparedDataSet]);
+    const result = alasql<any[]>(`SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ?`, [this.preparedDataSet]);
 
-    if(result[0]?.mindate != null){
+    if (result[0]?.mindate != null) {
       result[0].mindate = DateTime.fromMillis(result[0]?.mindate);
     }
-    if(result[0]?.maxdate != null){
+    if (result[0]?.maxdate != null) {
       result[0].maxdate = DateTime.fromMillis(result[0]?.maxdate);
-    }     
-    
+    }
+
     return result;
   }
 
   private queryDataSet(dateInterval: DateDistance, select: string, order: string) {
     const scenarios = ['ac1', 'ac2', 'ac3', 'ac4', 'pp1', 'pp2', 'pp3', 'pp4', 'fc1', 'fc2', 'fc3', 'fc4', 'pl1', 'pl2', 'pl3', 'pl4'];
     const dateSelect = `normalizeDate([date], '${dateInterval}' , '${this.locale}') as  calcdate`;
-    const result = alasql(`SELECT ${"p.calcdate"}                                ${select},
+    const result = alasql<any[]>(`SELECT ${"p.calcdate"}                                ${select},
                           ${scenarios.map((scenario: string) => { return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt` }).join(",")} 
                      
                            FROM (SELECT ${dateSelect} ${select},
@@ -508,7 +508,7 @@ export class TimeChart {
                            GROUP BY ${"calcdate"} ${order}
                            ORDER BY ${"calcdate asc"}`, [this.preparedDataSet]);
 
-    console.log("queryDataSet", result);                       
+    console.log("queryDataSet", result);
     return result;
   }
 
@@ -529,7 +529,7 @@ export class TimeChart {
       //}
     });
 
-    console.log("createDataRows", dataModel);        
+    console.log("createDataRows", dataModel);
     return dataModel;
   }
 
@@ -601,7 +601,7 @@ export class TimeChart {
         }
       }
     }
-    console.log("populateVarianceModel", varianceModel);     
+    console.log("populateVarianceModel", varianceModel);
     return varianceModel;
   }
 
@@ -779,39 +779,39 @@ export class TimeChart {
     return columnGroup;
   }
 
-  private drawOverlayLayer (dataModel: any, svgContainer: Svg) {
+  private drawOverlayLayer(dataModel: any, svgContainer: Svg) {
     let overlayGroup: G = svgContainer.group()
       .id("Overlay");
 
     let scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);
-   
-    if ( this.showOverlayAvg == true) {
+
+    if (this.showOverlayAvg == true) {
       let previousDataPoint: null;
 
       const avgDataModel = tranformToAvgDataModel(dataModel);
 
       avgDataModel.forEach((elements: any, index: number) => {
         if (previousDataPoint != null) {
-          scenarioFactory.createLine(`Ø  ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index -1).draw(this.dataFormatDigits, this.measureScale);
-        }       
-        previousDataPoint = elements["scenario1"]; 
-  
+          scenarioFactory.createLine(`Ø  ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index - 1).draw(this.dataFormatDigits, this.measureScale);
+        }
+        previousDataPoint = elements["scenario1"];
+
       });
     }
 
-    if ( this.showOverlayMedian === true) {
-     
+    if (this.showOverlayMedian === true) {
+
       let previousDataPoint: null;
 
       const medianDataModel = tranformToMedianDataModel(dataModel);
-      
+
       medianDataModel.forEach((elements: any, index: number) => {
         if (previousDataPoint != null) {
-          scenarioFactory.createLine(`Mdn ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index -1 ).draw(this.dataFormatDigits, this.measureScale);
-        }       
-        previousDataPoint = elements["scenario1"]; 
-  
-      }); 
+          scenarioFactory.createLine(`Mdn ${this.i18n.get(elements["scenario1"].scenario as string) || elements["scenario1"].scenario}`, elements["scenario1"], previousDataPoint, index - 1).draw(this.dataFormatDigits, this.measureScale);
+        }
+        previousDataPoint = elements["scenario1"];
+
+      });
     }
   }
 
@@ -932,20 +932,20 @@ function tranformToMedianDataModel(dataModel: any) {
       : values[Math.floor(values.length / 2)];
 
 
-    // Create a new first element
+  // Create a new first element
   const firstElement = {
-      ...dataModel[0],
-      scenario1: new DataPoint(median, dataModel[0]["scenario1"].scenario, dataModel[0]["scenario1"].pixelPerUnit, dataModel[0]["scenario1"].variance),
-  };
-  
-    // Create a new last element
-  const lastElement = {
-      ...dataModel[dataModel.length - 1],
-      scenario1: new DataPoint(median, dataModel[dataModel.length - 1]["scenario1"].scenario, dataModel[dataModel.length - 1]["scenario1"].pixelPerUnit, dataModel[dataModel.length - 1]["scenario1"].variance),
+    ...dataModel[0],
+    scenario1: new DataPoint(median, dataModel[0]["scenario1"].scenario, dataModel[0]["scenario1"].pixelPerUnit, dataModel[0]["scenario1"].variance),
   };
 
-   // Add the new first and last elements to the transformed data model
-   return [firstElement, ...dataModel.map((elements: any) => {
+  // Create a new last element
+  const lastElement = {
+    ...dataModel[dataModel.length - 1],
+    scenario1: new DataPoint(median, dataModel[dataModel.length - 1]["scenario1"].scenario, dataModel[dataModel.length - 1]["scenario1"].pixelPerUnit, dataModel[dataModel.length - 1]["scenario1"].variance),
+  };
+
+  // Add the new first and last elements to the transformed data model
+  return [firstElement, ...dataModel.map((elements: any) => {
     return {
       ...elements,
       scenario1: new DataPoint(median, elements["scenario1"].scenario, elements["scenario1"].pixelPerUnit, elements["scenario1"].variance),
