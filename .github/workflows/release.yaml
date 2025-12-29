@@ -1,0 +1,63 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    build-and-release:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout source repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  registry-url: "https://npm.pkg.github.com"
+                  scope: "@bino-bi"
+                  always-auth: true
+                  token: ${{ secrets.GH_REGISTRY_PACKAGES }}
+                  cache: "npm"
+                  cache-dependency-path: package-lock.json
+
+            - name: Install dependencies
+              run: npm ci
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.GH_REGISTRY_PACKAGES }}
+
+            - name: Build
+              run: npm run build
+
+            - name: Get version from tag
+              id: version
+              run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+            - name: Zip build artifacts
+              run: |
+                  cd dist
+                  zip -r ../bn-template-engine-${{ steps.version.outputs.VERSION }}.zip .
+
+            - name: Checkout releases repository
+              uses: actions/checkout@v4
+              with:
+                  repository: bino-bi/bn-template-engine-releases
+                  token: ${{ secrets.GH_RELEASES_TOKEN }}
+                  path: releases-repo
+
+            - name: Create release in releases repository
+              uses: softprops/action-gh-release@v2
+              with:
+                  repository: bino-bi/bn-template-engine-releases
+                  token: ${{ secrets.GH_RELEASES_TOKEN }}
+                  tag_name: ${{ steps.version.outputs.VERSION }}
+                  name: Release ${{ steps.version.outputs.VERSION }}
+                  body: |
+                      Release ${{ steps.version.outputs.VERSION }} of bn-template-engine
+
+                      Built from: ${{ github.repository }}@${{ github.sha }}
+                  files: bn-template-engine-${{ steps.version.outputs.VERSION }}.zip
+                  draft: false
+                  prerelease: false
