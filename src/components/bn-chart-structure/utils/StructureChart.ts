@@ -54,16 +54,16 @@ export class StructureChart {
   private limit: number = 0;
 
   private ruleSet: VisualisationRuleSet;
- 
+
   private measureScale: SiPrefix = new SiPrefix();
-  private measureUnit: string = "";  
+  private measureUnit: string = "";
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
 
   constructor(ruleSet: VisualisationRuleSet, config: StructureChartComponentConfig, styles: StructureChartStyle) {
     this.initSQLFunctions();
     this.ruleSet = ruleSet || new IBCSRuleSet();
     this.i18n = this.createI18n(new Map());
-    this.styles = styles;   
+    this.styles = styles;
     this.setConfig(config);
     this.position = this.createElementPosition();
   }
@@ -94,11 +94,11 @@ export class StructureChart {
     this.styles = newStyle;
   }
 
-  
+
   setConfig(config: StructureChartComponentConfig) {
     this.state = FactoryState.DIRTY;
-    
-    this.sortScenariosbyVisualisationRules(config);    
+
+    this.sortScenariosbyVisualisationRules(config);
     this.hideCategories = config.hideCategories || false;
     this.limit = config.limit;
     this.pixelPerUnit = config.pixelPerUnit || 1;
@@ -115,15 +115,15 @@ export class StructureChart {
     this.highestDataPointValue = this.findHighestDataPointValue(this.dataModel);
     this.highestVarianceDataPointValue = this.findHighestDataPointValue(this.variancesDataModel);
     this.axisScenario = this.setAxisScenario(config.variances);
-  
+
     this.measureScale = config.measureScale;
-    this.measureUnit = config.measureUnit;    
+    this.measureUnit = config.measureUnit;
     this.dataFormatDigits = config.dataFormatDigits;
-    
+
     this.updatePosition();
   }
 
-  
+
   private sortScenariosbyVisualisationRules(config: StructureChartComponentConfig) {
     let self = this;
     config.scenarios.sort((n1, n2) => {
@@ -183,12 +183,12 @@ export class StructureChart {
     this.state = FactoryState.DIRTY; // mark dataSet for update
     this.preparedDataSet.length = 0; // cleans formerly loaded and prepared  dataset
 
-    if(filter != null && filter.length > 0 ) {
-      try{
-        this.preparedDataSet  = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
-      } catch(e) {
+    if (filter != null && filter.length > 0) {
+      try {
+        this.preparedDataSet = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
+      } catch (e) {
         this.preparedDataSet = data;
-      }     
+      }
     } else {
       this.preparedDataSet = data;
     }
@@ -198,16 +198,16 @@ export class StructureChart {
   public getAllocatedCanvasWidth(): number {
     //let columnLabelWidth = this.calculateCategoryWidth();
 
-    let leftSideWidth =  this.position.getAxisPositionX(); //this.calculateLeftSideWidth(this.getVarianceType());
+    let leftSideWidth = this.position.getAxisPositionX(); //this.calculateLeftSideWidth(this.getVarianceType());
     let rightSideWidth = this.calculateRightSideWidth(this.getVarianceType());
 
-    let width = leftSideWidth + rightSideWidth +  + this.styles.padding.left + this.styles.padding.right;
+    let width = leftSideWidth + rightSideWidth + + this.styles.padding.left + this.styles.padding.right;
 
     if (rightSideWidth < this.titleLength / 2) {
       width += this.titleLength / 2;
     }
- 
-    if (leftSideWidth  < this.titleLength / 2) {
+
+    if (leftSideWidth < this.titleLength / 2) {
       width += this.titleLength / 2;
     }
 
@@ -249,7 +249,7 @@ export class StructureChart {
     }
   }
 
-  setPattern(fc: string, fcPolygonPattern: SVGPolgonPattern) { 
+  setPattern(fc: string, fcPolygonPattern: SVGPolgonPattern) {
     this.styles.pattern.set(fc, fcPolygonPattern);
   }
 
@@ -269,11 +269,11 @@ export class StructureChart {
 
   }
 
-  public getFooter(): string {  
-    if (this.measureScale.value == 1 && this.measureUnit == "" ){
+  public getFooter(): string {
+    if (this.measureScale.value == 1 && this.measureUnit == "") {
       return " ";
     }
-    return Formatter.translateScenarioLabel("in" , this.i18n) + " " + this.measureScale.prefix + this.measureUnit;  
+    return Formatter.translateScenarioLabel("in", this.i18n) + " " + this.measureScale.prefix + this.measureUnit;
   }
 
   private setAxisScenario(scenarios: string[]): Scenario {
@@ -304,16 +304,16 @@ export class StructureChart {
     let orderStr = this.createOrderStr(level, sortOrder);
     let select = this.createSelectString(level, sortOrder);
     let groupByStr = this.createGroupByStr(level, sortOrder);
-    console.log("populateModel", `SELECT ${select} ${selectedScenarios.length > 0? 
+    console.log("populateModel", `SELECT ${select} ${selectedScenarios.length > 0 ?
       "," + selectedScenarios.map((scenario: string) => { return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt` }).join(",")
-      :""}                          
+      : ""}                          
       FROM ?
       GROUP BY ${groupByStr}
       ORDER BY ${orderStr}`);
-      
-    let result = alasql(`SELECT ${select} ${selectedScenarios.length > 0? 
-                         "," + selectedScenarios.map((scenario: string) => { return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt` }).join(",")
-                         :""}                          
+
+    let result = alasql<any[]>(`SELECT ${select} ${selectedScenarios.length > 0 ?
+      "," + selectedScenarios.map((scenario: string) => { return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt` }).join(",")
+      : ""}                          
                          FROM ?
                          GROUP BY ${groupByStr}
                          ORDER BY ${orderStr}`, [this.preparedDataSet]);
@@ -616,7 +616,7 @@ export class StructureChart {
           textHook = HookLocation.Left;
           isPositive = false;
         }
-        console.log("drawAxisAndLabels", isPositive, textHook,elements.category); 
+        console.log("drawAxisAndLabels", isPositive, textHook, elements.category);
         new Label(axisLabelGroup, this.position.getCategoryPositionX(isPositive), this.position.getBarCenterPositionY(index), '', elements.category, this.styles, HookLocation.Center, textHook).draw();
       });
     }
@@ -687,7 +687,7 @@ export class StructureChart {
       width = Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
 
-    if(width <= this.titleLength) {
+    if (width <= this.titleLength) {
       return this.titleLength;
     }
 
@@ -712,9 +712,9 @@ export class StructureChart {
 
       const sizeLabelValue = this.calculateTextBoxWidth(this.highestVarianceDataPointValue.value);
       width = Math.abs(this.highestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
-    } 
+    }
 
-    if(width <= this.titleLength) {
+    if (width <= this.titleLength) {
       return this.titleLength;
     }
 

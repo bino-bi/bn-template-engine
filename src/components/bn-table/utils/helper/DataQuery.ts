@@ -1,9 +1,9 @@
 import alasql from "alasql";
-import {OrderDirection, TableType} from "../model";
-import {QueryGroups} from "./QueryGroup";
+import { OrderDirection, TableType } from "../model";
+import { QueryGroups } from "./QueryGroup";
 // import {QueryColumnNames, VarianceScenario} from "../../../../utils/model";
-import {TableComponentConfig} from "../model/TableComponentConfig";
-import {TableDataRow} from "../model/TableDataRow";
+import { TableComponentConfig } from "../model/TableComponentConfig";
+import { TableDataRow } from "../model/TableDataRow";
 import { Order } from "../../../../components";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 // import {Order} from "../../../../utils/model/Order"; // FIXME IOrder
@@ -37,7 +37,7 @@ export class DataQuery {
     let relativeScenarios = this.getRelativeScenarios()
 
     let groups: QueryGroups = new QueryGroups(this.config);
-    let groupsAggregated = this.config.grouped ? [QueryColumnNames.ROWGROUP, QueryColumnNames.ROWGROUPINDEX ] : [];
+    let groupsAggregated = this.config.grouped ? [QueryColumnNames.ROWGROUP, QueryColumnNames.ROWGROUPINDEX] : [];
 
     let order: [string, string] = ["", ""];
     if (this.config.order.hierarchy.length > 0) {
@@ -48,7 +48,7 @@ export class DataQuery {
 
     // meta defines groups and the number detail rows in each group
     // Bsp:  0: Object { totalrowcnt: 7, rowgroup: "Umsatz" }
-    let meta = alasql(`SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated : ""}
+    let meta = alasql<any[]>(`SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated : ""}
                        FROM ? ${groupsAggregated.length > 0 ? "GROUP BY " + groupsAggregated : ""}  
                        ORDER BY ${order[0]}`, [data]);
 
@@ -79,7 +79,7 @@ export class DataQuery {
       try {
         res.push(alasql(query, [data]));
       } catch (err) {
-        console.log("ERROR::", err, "QUERRY::",query, "CONFIG",self.config, "QUERRYS",queries)
+        console.log("ERROR::", err, "QUERRY::", query, "CONFIG", self.config, "QUERRYS", queries)
       }
     });
 
@@ -100,20 +100,20 @@ export class DataQuery {
 
   detectNaNCells(scenarios: any, res: any[]) {
     res.forEach((group) => {
-      group.map((row: any) => { 
+      group.map((row: any) => {
         scenarios.forEach((scenario: any) => {
           let varianceScenario = new VarianceScenario(scenario);
-        
-          if (varianceScenario.isValid  == true){
-            if (row[varianceScenario.base +"_cnt"] == 0 || row[varianceScenario.delta +"_cnt"] == 0){            
-              row[scenario] = Number.NaN;             
-            }  
-          } else {
-            if (row[scenario +"_cnt"] == 0){            
-              row[scenario] = Number.NaN;             
+
+          if (varianceScenario.isValid == true) {
+            if (row[varianceScenario.base + "_cnt"] == 0 || row[varianceScenario.delta + "_cnt"] == 0) {
+              row[scenario] = Number.NaN;
             }
-          }            
-        });  
+          } else {
+            if (row[scenario + "_cnt"] == 0) {
+              row[scenario] = Number.NaN;
+            }
+          }
+        });
         return row;
       });
     });
@@ -134,14 +134,14 @@ export class DataQuery {
     }
 
     drillQueries.forEach(function (query) {
-      resDrill.push(...alasql(query, [data]));
+      resDrill.push(...alasql<any[]>(query, [data]));
     });
 
     let scenarioNames = this.exctractScenarioNames(scenarios);
     let rowGroupSumResultRows: any[] = []
 
     sumGroupQueries.forEach(function (query) {
-      rowGroupSumResultRows.push(...alasql(query, [data]));
+      rowGroupSumResultRows.push(...alasql<any[]>(query, [data]));
     });
 
 
@@ -289,29 +289,29 @@ export class DataQuery {
     } else {
       // if no grouped mode selected matching only searching for category not for groupname
       const duplicateSubCategoriesList = this.findDuplicateSubCategories(resDrill);
-       
+
       resDrill.forEach(function (drillItem) {
         res.forEach(function (resSegment) {
           let index = resSegment.findIndex((e: any) => e.category != null && (e.category === drillItem.category));
-            
+
           if (index >= 0) {
-                    
+
             if (numberOfElement.has(`${drillItem.category}`)) {
               let num = numberOfElement.get(`${drillItem.category}`) || 0;
               numberOfElement.set(`${drillItem.category}`, num + 1);
-  
+
             } else {
-              numberOfElement.set(`${drillItem.category}`, 1);                 
-            }
-            
-            if(drillItem[QueryColumnNames.ROWNR] == 1) {
-                drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;  
+              numberOfElement.set(`${drillItem.category}`, 1);
             }
 
-           else if(duplicateSubCategoriesList.includes(drillItem.subCategory)) {
-              drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;  
-          }
-        
+            if (drillItem[QueryColumnNames.ROWNR] == 1) {
+              drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
+            }
+
+            else if (duplicateSubCategoriesList.includes(drillItem.subCategory)) {
+              drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
+            }
+
             resSegment.splice(index + drillItem[QueryColumnNames.ROWNR], 0, drillItem);
 
           }
@@ -324,9 +324,9 @@ export class DataQuery {
     // adds drill rows if setup in config
     // if there of is set drilldown row is displayed with absolute numbers,
     // if part of is also not null a relative percenatage based of the selected basis is displayed
-   
-    
-    
+
+
+
     if (this.config.thereOf == undefined || this.config.thereOf.length == 0) {
       return;
     }
@@ -341,21 +341,21 @@ export class DataQuery {
       let fromString = "1 <> 1 OR ( ";   // helper for strin concat  1<>1 OR ... OR ...
 
       if (!(null == element.category || 0 === element.category.length || !element.category.trim())) {
-         // if not empty       
+        // if not empty       
         fromString += ` ${QueryColumnNames.CATEGORY} = '${element.category}'`;
         isFirst = false;
       }
 
       if (!(null == element.rowGroup || 0 === element.rowGroup.length || !element.rowGroup.trim())) {
         // if not empty 
-               
-        fromString += ` ${isFirst? '' : 'AND'} ${QueryColumnNames.ROWGROUP} = '${element.rowGroup}'`;
+
+        fromString += ` ${isFirst ? '' : 'AND'} ${QueryColumnNames.ROWGROUP} = '${element.rowGroup}'`;
         isFirst = false;
       }
 
       if (!(null == element.subCategory || 0 === element.subCategory.length || !element.subCategory.trim())) {
         // if not empty 
-        fromString += ` ${isFirst? '' : 'AND'} ${QueryColumnNames.SUBCATEGORY} = '${element.subCategory}'`;
+        fromString += ` ${isFirst ? '' : 'AND'} ${QueryColumnNames.SUBCATEGORY} = '${element.subCategory}'`;
       }
       fromString += `)`;
 
@@ -377,7 +377,7 @@ export class DataQuery {
     //drillQueries.push(`SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, null as operation, 'DRILLELEMENT' as ${QueryColumnNames.TYPE}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, ${QueryColumnNames.ROWGROUP}  as ${QueryColumnNames.ROWGROUP} , ${scenarios} FROM ? WHERE ${fromString} GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}  ORDER BY ${order[1]}`);
 
     drillQueries.forEach(function (query) {
-      resDrill.push(...alasql(query, [data]));
+      resDrill.push(...alasql<any[]>(query, [data]));
     });
 
     this.injectDrillRowsToResultRows(resDrill, res);
@@ -388,7 +388,7 @@ export class DataQuery {
     res.forEach(group => {
       group.forEach((row: { [x: string]: any; }) => {
         if (row[QueryColumnNames.TYPE] !== "GROUPHEAD") {
-          relativeScenarios.forEach((value: string, key: string) => {         
+          relativeScenarios.forEach((value: string, key: string) => {
             row[key] = ((row[key] / row[value]));
           });
         }
@@ -397,14 +397,14 @@ export class DataQuery {
   }
 
   private calculateColumnGroupRest(res: any[], categoryThereOf: Map<string, any>) {
- 
+
     if (categoryThereOf == null || categoryThereOf.size == 0) {
       return;
     }
     let scenarioRestMap: Map<string, any> = new Map();
     let scenarioRestHasValuesMap: Map<string, any> = new Map();
-   
-    
+
+
     categoryThereOf.forEach((value, key) => {
       let categoryDrills = value;
       let columnsList = [];
@@ -426,10 +426,10 @@ export class DataQuery {
               }
             });
             row[`${key}##REST`] = row[key] - minuent;
-            
-            if(row[`${key}##REST`] != 0 ) {
+
+            if (row[`${key}##REST`] != 0) {
               scenarioRestHasValuesMap.set(`${key}##REST`, true);
-            } 
+            }
 
           });
         }
@@ -437,18 +437,18 @@ export class DataQuery {
     });
 
     const emptyRestColumns: string[] = Array.from(scenarioRestHasValuesMap.entries())
-                                       .filter(([_key, value]) => !value) 
-                                       .map(([key]) => key);            
-  
-    
+      .filter(([_key, value]) => !value)
+      .map(([key]) => key);
+
+
     res.forEach(group => {
 
-        group.forEach((row: { [x: string]: any; }) => {
-          for (const deleteColumn of emptyRestColumns) {
-            delete row[deleteColumn]
-          }
-          
-        });
+      group.forEach((row: { [x: string]: any; }) => {
+        for (const deleteColumn of emptyRestColumns) {
+          delete row[deleteColumn]
+        }
+
+      });
     });
 
   }
@@ -482,10 +482,10 @@ export class DataQuery {
           return `SUM(${scenarios.base} - ${scenarios.delta}) as ${scenario}`;
         }
       }
-      
+
       if (isSumRow) {
         return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
-      }   
+      }
 
       return `SUM(${scenario}) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
     }
@@ -521,7 +521,7 @@ export class DataQuery {
     let scenarios = new VarianceScenario(scenario);
 
     if (scenarios.isValid && scenarios.type == 'dr') {
-      return {key: `${scenario}`, value: `dr_${scenarios.delta}`}
+      return { key: `${scenario}`, value: `dr_${scenarios.delta}` }
     }
 
     return null;
@@ -698,7 +698,7 @@ export class DataQuery {
 
 
     for (const query of drillQueries) {
-      resDrill.push(...alasql(query, [data]));
+      resDrill.push(...alasql<any[]>(query, [data]));
     }
 
     this.injectDrillColumnsToResultRows(resDrill, res);
