@@ -6,11 +6,20 @@ import { ScaleFactorsStructureChart } from "../components/bn-chart-structure/uti
 
 // import {IScaleFactorsStructureChart, IScaleFactorsTimeChart} from "@bino-bi/ibcs-component-interface";
 
+export interface TreeChartStyle {
+  edgeColor: string;
+  edgeWidth: number;
+  operatorCircleRadius: number;
+  operatorFontSize: number;
+  operatorColor: string;
+}
+
 export interface Style {
   global: GlobalStyle;
   "bn-text": TextStyle;
   "bn-chart-time": TimeChartStyle;
   "bn-chart-structure": StructureChartStyle;
+  "bn-chart-tree": TreeChartStyle;
 }
 
 export interface GlobalStyle {
@@ -142,6 +151,13 @@ const { state, on, get, set } = createStore<{ [key: string]: Style }>(
           right: 10,
           bottom: 10,
         },
+      },
+      "bn-chart-tree": {
+        "edgeColor": "#404040",
+        "edgeWidth": 1,
+        "operatorCircleRadius": 10,
+        "operatorFontSize": 12,
+        "operatorColor": "#404040",
       },
     }
   }
