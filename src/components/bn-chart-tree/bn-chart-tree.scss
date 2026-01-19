@@ -1,0 +1,46 @@
+bn-chart-tree {
+  display: inline-block;
+  position: relative;
+
+  .tree-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tree-grid {
+    position: relative;
+    display: grid;
+    align-items: center;
+  }
+
+  .tree-node {
+    position: relative;
+    z-index: 1;
+    border: 1px solid #404040;
+    padding: 8px;
+    background: white;
+  }
+
+  .edge-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .operator-group {
+    .operator-text {
+      font-size: 12px;
+      font-weight: bold;
+      fill: #404040;
+    }
+  }
+
+  .tree-error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+}

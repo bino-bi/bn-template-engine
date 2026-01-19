@@ -318,3 +318,60 @@ export function isValidFontFamily(value: string): boolean {
   console.log("isValidFontFamily not yet validated", value);
   return true;
 }
+
+export function isValidTreeDirection(value: string): boolean {
+  if (isBlankInput(value)) {
+    return false;
+  }
+  return ['ltr', 'rtl', 'ttb', 'btt'].includes(value?.toLowerCase().trim());
+}
+
+export function isValidEdgeStyle(value: string): boolean {
+  if (isBlankInput(value)) {
+    return false;
+  }
+  return ['straight', 'orthogonal', 'curved'].includes(value?.toLowerCase().trim());
+}
+
+export function validateTreeEdgesJson(value: string): string[] {
+  if (isBlankInput(value)) {
+    return ['edges: value is required'];
+  }
+
+  try {
+    const jsonObject = JSON.parse(value);
+    if (!Array.isArray(jsonObject)) {
+      return ['edges: must be an array'];
+    }
+
+    if (jsonObject.length === 0) {
+      return ['edges: array must not be empty'];
+    }
+
+    const errors: string[] = [];
+    const validOperators = ['*', '/', '+', '-', 'x', '÷', 'none'];
+
+    jsonObject.forEach((edge, index) => {
+      if (typeof edge !== 'object' || edge === null) {
+        errors.push(`edges[${index}]: must be an object`);
+        return;
+      }
+
+      if (typeof edge.from !== 'string' || edge.from.trim() === '') {
+        errors.push(`edges[${index}]: 'from' is required`);
+      }
+
+      if (typeof edge.to !== 'string' || edge.to.trim() === '') {
+        errors.push(`edges[${index}]: 'to' is required`);
+      }
+
+      if (edge.operator !== undefined && !validOperators.includes(edge.operator)) {
+        errors.push(`edges[${index}]: 'operator' must be one of: ${validOperators.join(', ')}`);
+      }
+    });
+
+    return errors;
+  } catch {
+    return ['edges: invalid JSON structure'];
+  }
+}
