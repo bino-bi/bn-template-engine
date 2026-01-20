@@ -81,6 +81,45 @@ export function getConnectionPoint(
 }
 
 /**
+ * Get the connection point on a node for multi-parent scenarios.
+ * When a node has multiple parents, each parent connects at a different
+ * vertical position on the target node's edge, spread around the center.
+ * @param parentIndex - Index of this parent (0-based)
+ * @param totalParents - Total number of parents for this node
+ * @param spacing - Spacing between connection points in pixels
+ */
+export function getMultiParentConnectionPoint(
+  rect: NodeRect,
+  direction: LayoutDirection,
+  parentIndex: number,
+  totalParents: number,
+  spacing: number = 8
+): Point {
+  // Calculate offset from center for this parent
+  // Parents are spread evenly around center with given spacing
+  const totalSpread = (totalParents - 1) * spacing;
+  const offset = -totalSpread / 2 + parentIndex * spacing;
+
+  switch (direction) {
+    case 'ltr':
+      // Left to right: target connects from left, offset vertically
+      return { x: rect.left, y: rect.centerY + offset };
+
+    case 'rtl':
+      // Right to left: target connects from right, offset vertically
+      return { x: rect.left + rect.width, y: rect.centerY + offset };
+
+    case 'ttb':
+      // Top to bottom: target connects from top, offset horizontally
+      return { x: rect.centerX + offset, y: rect.top };
+
+    case 'btt':
+      // Bottom to top: target connects from bottom, offset horizontally
+      return { x: rect.centerX + offset, y: rect.top + rect.height };
+  }
+}
+
+/**
  * Generate an SVG path connecting two points with the specified style
  */
 export function generateEdgePath(
@@ -146,20 +185,22 @@ function generateCurvedPath(start: Point, end: Point, direction: LayoutDirection
 
 /**
  * Generate an orthogonal (right-angle) path
+ * The bend point is positioned closer to the children (70% of the way) for better visual balance
  */
 function generateOrthogonalPath(start: Point, end: Point, direction: LayoutDirection): EdgePath {
   const isHorizontal = direction === 'ltr' || direction === 'rtl';
   let path: string;
   let midpoint: Point;
+  const bendRatio = 0.7; // Position bend point 70% towards the end
 
   if (isHorizontal) {
     // For horizontal layouts, go horizontally first, then vertically
-    const midX = (start.x + end.x) / 2;
+    const midX = start.x + (end.x - start.x) * bendRatio;
     path = `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`;
     midpoint = { x: midX, y: (start.y + end.y) / 2 };
   } else {
     // For vertical layouts, go vertically first, then horizontally
-    const midY = (start.y + end.y) / 2;
+    const midY = start.y + (end.y - start.y) * bendRatio;
     path = `M ${start.x} ${start.y} L ${start.x} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
     midpoint = { x: (start.x + end.x) / 2, y: midY };
   }
@@ -169,7 +210,7 @@ function generateOrthogonalPath(start: Point, end: Point, direction: LayoutDirec
 
 /**
  * Calculate the position for an operator label between sibling nodes.
- * The operator is placed on the vertical/horizontal line segment of the orthogonal path.
+ * The operator is placed at the T-junction where the parent's line meets the vertical/horizontal split.
  */
 export function calculateOperatorPosition(
   parentRect: NodeRect,
@@ -177,47 +218,49 @@ export function calculateOperatorPosition(
   sibling2Rect: NodeRect,
   direction: LayoutDirection
 ): Point {
+  const bendRatio = 0.7; // Must match the bendRatio in generateOrthogonalPath
+
   switch (direction) {
     case 'ltr': {
-      // Vertical line is at midpoint between parent's right edge and children's left edge
+      // T-junction: where parent's horizontal line meets the vertical split
       const parentRight = parentRect.left + parentRect.width;
       const childrenLeft = Math.min(sibling1Rect.left, sibling2Rect.left);
-      const midX = (parentRight + childrenLeft) / 2;
+      const midX = parentRight + (childrenLeft - parentRight) * bendRatio;
       return {
         x: midX,
-        y: (sibling1Rect.centerY + sibling2Rect.centerY) / 2
+        y: parentRect.centerY  // At parent's Y level (the T-junction)
       };
     }
 
     case 'rtl': {
-      // Vertical line is at midpoint between parent's left edge and children's right edge
+      // T-junction for RTL
       const parentLeft = parentRect.left;
       const childrenRight = Math.max(sibling1Rect.left + sibling1Rect.width, sibling2Rect.left + sibling2Rect.width);
-      const midX = (parentLeft + childrenRight) / 2;
+      const midX = childrenRight + (parentLeft - childrenRight) * bendRatio;
       return {
         x: midX,
-        y: (sibling1Rect.centerY + sibling2Rect.centerY) / 2
+        y: parentRect.centerY
       };
     }
 
     case 'ttb': {
-      // Horizontal line is at midpoint between parent's bottom edge and children's top edge
+      // T-junction for top-to-bottom
       const parentBottom = parentRect.top + parentRect.height;
       const childrenTop = Math.min(sibling1Rect.top, sibling2Rect.top);
-      const midY = (parentBottom + childrenTop) / 2;
+      const midY = parentBottom + (childrenTop - parentBottom) * bendRatio;
       return {
-        x: (sibling1Rect.centerX + sibling2Rect.centerX) / 2,
+        x: parentRect.centerX,  // At parent's X level (the T-junction)
         y: midY
       };
     }
 
     case 'btt': {
-      // Horizontal line is at midpoint between parent's top edge and children's bottom edge
+      // T-junction for bottom-to-top
       const parentTop = parentRect.top;
       const childrenBottom = Math.max(sibling1Rect.top + sibling1Rect.height, sibling2Rect.top + sibling2Rect.height);
-      const midY = (parentTop + childrenBottom) / 2;
+      const midY = childrenBottom + (parentTop - childrenBottom) * bendRatio;
       return {
-        x: (sibling1Rect.centerX + sibling2Rect.centerX) / 2,
+        x: parentRect.centerX,
         y: midY
       };
     }

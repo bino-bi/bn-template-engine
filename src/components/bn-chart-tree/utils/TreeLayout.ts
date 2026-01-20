@@ -113,7 +113,8 @@ interface NodeIndexInfo {
 }
 
 /**
- * Calculate vertical indices for nodes, ensuring parent nodes span their children
+ * Calculate vertical indices for nodes, ensuring parent nodes span their children.
+ * Handles DAG structures where a node may have multiple parents.
  */
 function calculateNodeIndices(
   config: TreeConfig
@@ -124,10 +125,16 @@ function calculateNodeIndices(
     return indices;
   }
 
-  // Assign indices using DFS
+  // Assign indices using DFS, tracking visited nodes for DAG support
   let currentIndex = 0;
 
   function assignIndex(node: string): NodeIndexInfo {
+    // If already visited (node has multiple parents), return existing index
+    const existing = indices.get(node);
+    if (existing) {
+      return existing;
+    }
+
     const children = config.adjacencyList.get(node) || [];
 
     if (children.length === 0) {
