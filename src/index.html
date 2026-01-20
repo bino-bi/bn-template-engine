@@ -238,13 +238,13 @@
       <bn-title business-unit='Chart Examples' date-end='2022-09-03' date-format='day' date-link='interval'
         measures='[{"name": "0.33.x", "unit": ""}]'></bn-title>
       <bn-body>
-        <bn-chart-time  datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+        <bn-chart-time chart-mode="line" datasets='$Charts_Time' level='category' order='category' order-direction='asc'
           scenarios='ac1,pp1,fc1;dac1_pp1_pos;drac1_pp1_pos' styles='' unit-scaling='0.14' date-interval="month"
           overlay='[{"name": "ÁVG", "type": "avg", scenarios: "ac1"}, {"name": "median", "type": "median", scenarios: "ac1"}], {"name": "Benchmark", "type": "benchmark", scenarios: "pl1"}'
           show-overlay-avg='false' percentage-scaling='50'></bn-chart-time>
 
-        <bn-chart-time chart-title="FFF" limit='0' datasets='$Charts_Time' level='category' order='ac1'
-          order-direction='desc' scenarios='ac1,pp1' variances='dac1_pp1_pos' styles='' unit-scaling='0.1'
+        <bn-chart-time chart-mode="line" chart-title="FFF" limit='0' datasets='$Charts_Time' level='category'
+          order='ac1' order-direction='desc' scenarios='ac1,pp1' variances='dac1_pp1_pos' styles='' unit-scaling='0.1'
           date-interval="month" show-overlay-avg='true' show-overlay-median='true'
           percentage-scaling='50'></bn-chart-time>
       </bn-body>

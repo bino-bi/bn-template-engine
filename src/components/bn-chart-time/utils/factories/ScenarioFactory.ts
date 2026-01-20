@@ -10,6 +10,7 @@ import {Needle} from "../elements/Needle";
 import {TimeChartStyle} from "../model/styles/TimeChartStyle";
 import { SVGPolgonPattern } from "../../../../utils/model";
 import { Line } from "../elements/Line";
+import { LineSeries, LineSeriesDataPoint } from "../elements/LineSeries";
 
 export class ScenarioFactory {
   
@@ -155,6 +156,25 @@ export class ScenarioFactory {
 
   private isFirstDataPoint(index: number): boolean {
     return 0 === index;
+  }
+
+  public createLineSeries(dataPoints: LineSeriesDataPoint[], scenarioName: string): LineSeries {
+    const lineSeriesGroup = this.svgGroups.parent.group().id("LineSeries_" + scenarioName);
+    const labelGroup = this.svgGroups.scenario1Label.group().id("LineSeries_Label_" + scenarioName);
+
+    // Scenario label for the line (to be shown at the right of the last data point)
+    const scenarioLabel = `${this.i18n.get(scenarioName) || scenarioName}`;
+
+    return new LineSeries(
+      this.position,
+      this.styles,
+      dataPoints,
+      lineSeriesGroup,
+      labelGroup,
+      scenarioName,
+      scenarioLabel,
+      this.i18n
+    );
   }
 
 }

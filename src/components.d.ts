@@ -10,7 +10,7 @@ import { EdgeStyleType } from "./components/bn-chart-tree/utils/EdgeRenderer";
 import { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
 import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { Order } from "./utils/model/Order";
-import { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
+import { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
 import { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
@@ -28,7 +28,7 @@ export { EdgeStyleType } from "./components/bn-chart-tree/utils/EdgeRenderer";
 export { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
 export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 export { Order } from "./utils/model/Order";
-export { AggregationLevel, AxisLabelsMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
+export { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
 export { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
@@ -121,6 +121,11 @@ export namespace Components {
          */
         "axisLabelsMode": string;
         /**
+          * Chart Mode - controls how the chart is rendered <br /><br /> values:<br /> ```bar // line // auto``` <br /><br /> When set to 'auto', the chart will switch to line mode when the number of data points exceeds maxBars.
+          * @default "bar"
+         */
+        "chartMode": string;
+        /**
           * Custom chart title
           * @default ""
          */
@@ -147,6 +152,11 @@ export namespace Components {
           * @default 0
          */
         "limit": number;
+        /**
+          * Max Bars - threshold for auto-switching to line mode <br /><br /> When chartMode is set to 'auto' and the number of data points exceeds this value, the chart will render as a line chart.
+          * @default 28
+         */
+        "maxBars": number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
           * @default "greatest"
@@ -764,6 +774,10 @@ export namespace Components {
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode": AxisLabelsMode;
+        /**
+          * @default ChartMode.BAR
+         */
+        "chartMode": ChartMode;
         "chartTitle"?: string;
         /**
           * @default []
@@ -805,6 +819,10 @@ export namespace Components {
           * @default 0
          */
         "limit": number;
+        /**
+          * @default 28
+         */
+        "maxBars": number;
         /**
           * @default "_"
          */
@@ -1401,6 +1419,11 @@ declare namespace LocalJSX {
          */
         "axisLabelsMode": string;
         /**
+          * Chart Mode - controls how the chart is rendered <br /><br /> values:<br /> ```bar // line // auto``` <br /><br /> When set to 'auto', the chart will switch to line mode when the number of data points exceeds maxBars.
+          * @default "bar"
+         */
+        "chartMode"?: string;
+        /**
           * Custom chart title
           * @default ""
          */
@@ -1427,6 +1450,11 @@ declare namespace LocalJSX {
           * @default 0
          */
         "limit"?: number;
+        /**
+          * Max Bars - threshold for auto-switching to line mode <br /><br /> When chartMode is set to 'auto' and the number of data points exceeds this value, the chart will render as a line chart.
+          * @default 28
+         */
+        "maxBars"?: number;
         /**
           * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
           * @default "greatest"
@@ -2041,6 +2069,10 @@ declare namespace LocalJSX {
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode"?: AxisLabelsMode;
+        /**
+          * @default ChartMode.BAR
+         */
+        "chartMode"?: ChartMode;
         "chartTitle"?: string;
         /**
           * @default []
@@ -2082,6 +2114,10 @@ declare namespace LocalJSX {
           * @default 0
          */
         "limit"?: number;
+        /**
+          * @default 28
+         */
+        "maxBars"?: number;
         /**
           * @default "_"
          */

@@ -40,7 +40,7 @@ import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
 //import {  AggregationLevel, AxisLabelsMode, DateDistance, Order } from "../../components";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
-import { AxisLabelsMode } from "../../utils/constants";
+import { AxisLabelsMode, ChartMode } from "../../utils/constants";
 import { DateDistance } from "../../utils/DateStringFactory";
 
 enum AggregationLevel {
@@ -333,7 +333,7 @@ export class Chart {
    *  ```bar// line / area```
    */
    @Prop() type: string = "bar";
- 
+
 
    @Watch('type')
    validateChartType(newValue: string) {
@@ -348,6 +348,54 @@ export class Chart {
      } else {
        this.errors.remove(errId);
      }*/
+   }
+
+   /** Chart Mode - controls how the chart is rendered
+   *  <br /><br />
+   *  values:<br />
+   *  ```bar // line // auto```
+   *  <br /><br />
+   *  When set to 'auto', the chart will switch to line mode
+   *  when the number of data points exceeds maxBars.
+   */
+   @Prop() chartMode: string = "bar";
+
+   @Watch('chartMode')
+   validateChartMode(newValue: string) {
+     const errId: string = 'ERR_chartMode';
+     const validModes = ['bar', 'line', 'auto'];
+
+     if (!validModes.includes(newValue?.toLowerCase())) {
+       this.errors.addOrReplace({
+         id: errId,
+         type: 'warning',
+         message: 'chartMode: invalid value \'' + newValue?.toString() + '\' is not supported. Valid values are: bar, line, auto.'
+       });
+     } else {
+       this.errors.remove(errId);
+     }
+   }
+
+   /** Max Bars - threshold for auto-switching to line mode
+   *  <br /><br />
+   *  When chartMode is set to 'auto' and the number of data points
+   *  exceeds this value, the chart will render as a line chart.
+   */
+   @Prop() maxBars: number = 28;
+
+   @Watch('maxBars')
+   validateMaxBars(newValue: number) {
+     const errId: string = 'ERR_maxBars';
+
+     if (!isValidInteger(newValue) || newValue < 1) {
+       this.errors.addOrReplace({
+         id: errId,
+         type: 'warning',
+         message: 'maxBars: invalid value \'' + newValue?.toString() + '\' is not supported. Must be a positive integer.'
+       });
+     } else {
+       this.errors.remove(errId);
+     }
    }
  
 
@@ -526,6 +574,8 @@ export class Chart {
     this.validateShowMeasureScale(this.showMeasureScale);
     this.validateShowOverlayAvg(this.showOverlayAvg);
     this.validateShowOverlayMedian(this.showOverlayMedian);
+    this.validateChartMode(this.chartMode);
+    this.validateMaxBars(this.maxBars);
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -763,6 +813,20 @@ export class Chart {
       return this.measureUnit;
   }
 
+  private prepareChartMode(): ChartMode {
+    const mode = this.chartMode?.toLowerCase();
+    if (mode === 'line') {
+      return ChartMode.LINE;
+    } else if (mode === 'auto') {
+      return ChartMode.AUTO;
+    }
+    return ChartMode.BAR;
+  }
+
+  private prepareMaxBars(): number {
+    return Math.floor(Number(this.maxBars) || 28);
+  }
+
   chartTemplate(localScenarioString: string, idx: number) {
     let preparedI18n: Map<string, string> = this.prepareI18n();
     let preparedStyle: TimeChartStyle = this.prepareStyle();
@@ -791,6 +855,8 @@ export class Chart {
       showOverlayAvg={this.prepareAvg()}
       showOverlayMedian={this.prepareMedian()}
       showMeasureScale={this.prepareShowMeasureScale(idx)}
+      chartMode={this.prepareChartMode()}
+      maxBars={this.prepareMaxBars()}
     ></ibcs-chart-time>
   }
  

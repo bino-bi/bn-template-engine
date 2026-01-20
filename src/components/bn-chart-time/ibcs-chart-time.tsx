@@ -28,7 +28,7 @@ import { TimeChartStyle, TimeChartStylesAdapter } from "./utils/model/styles/Tim
 import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsTimeChart";
 //import { AggregationLevel } from "../../../components";
 import { DateDistance } from "../../utils/DateStringFactory";
-import { AggregationLevel, AxisLabelsMode } from "../../utils/constants";
+import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../utils/constants";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
@@ -106,6 +106,12 @@ export class IbcsChartTime {
 
   @Prop() showOverlayMedian: boolean = false;
   @Prop() showOverlayAvg: boolean =  false;
+
+  @Prop()
+  chartMode: ChartMode = ChartMode.BAR;
+
+  @Prop()
+  maxBars: number = 28;
 
   @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
@@ -218,9 +224,11 @@ export class IbcsChartTime {
       "measureScale": this.measureScale,
       "measureUnit": this.measureUnit,     
       "showMeasureScale": this.showMeasureScale,
-      "dataFormatDigits":this.dataFormatDigits,   
+      "dataFormatDigits":this.dataFormatDigits,
       "showOverlayMedian": this.showOverlayMedian,
-      "showOverlayAvg": this.showOverlayAvg, 
+      "showOverlayAvg": this.showOverlayAvg,
+      "chartMode": this.chartMode,
+      "maxBars": this.maxBars,
     });
   }
 
