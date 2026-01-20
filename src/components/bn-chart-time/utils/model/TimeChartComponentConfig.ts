@@ -4,7 +4,7 @@
 // import { Order, OrderAdapter } from "../../../../utils/model/Order";
 // import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
 
-import { AggregationLevel, AxisLabelsMode } from "../../../../utils/constants";
+import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../../../utils/constants";
 import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 import { DateDistance } from "../../../../utils/DateStringFactory";
 import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
@@ -40,6 +40,8 @@ export class TimeChartComponentConfig {
   public dataFormatDigits: DataFormatDigits = {decimal: 1, percent: 2};
   public showOverlayMedian: boolean = true;
   public showOverlayAvg: boolean = true;
+  public chartMode: ChartMode = ChartMode.BAR;
+  public maxBars: number = 28;
   constructor(public data: TimeChartDataRow[],
     public scenarios: string[],
   ) {
@@ -135,6 +137,14 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isBoolean(data.showOverlayMedian)) {
       config.showOverlayMedian = data.showOverlayMedian;
+    }
+
+    if (CompareUtil.isExisting(data.chartMode)) {
+      config.chartMode = data.chartMode;
+    }
+
+    if (CompareUtil.isNumber(data.maxBars)) {
+      config.maxBars = data.maxBars;
     }
 
     return config;

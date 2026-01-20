@@ -4,7 +4,7 @@ import { ElementPositions, Padding, } from "./helper";
 
 import { DataPoint, Scenario } from "./model";
 
-import { Axis, HookLocation, Label } from "./elements";
+import { Axis, HookLocation, Label, LineSeriesDataPoint } from "./elements";
 import { ScenarioFactory, } from "./factories";
 import alasql from "alasql";
 
@@ -19,7 +19,7 @@ import { TimeChartDataRow } from "./model/TimeChartDataRow";
 //import { DateStringFactory } from "../../../utils/DateStringFactory";
 import { DateTime } from "luxon";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
-import { AggregationLevel, AxisLabelsMode } from "../../../utils/constants";
+import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../../utils/constants";
 import { DataFormatDigits, Order } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
@@ -104,6 +104,8 @@ export class TimeChart {
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
   private showOverlayMedian: boolean = false;
   private showOverlayAvg: boolean = false;
+  private chartMode: ChartMode = ChartMode.BAR;
+  private maxBars: number = 28;
 
   constructor(ruleSet: VisualisationRuleSet, config: TimeChartComponentConfig, styles: TimeChartStyle) {
     this.initSQLFunctions();
@@ -174,6 +176,8 @@ export class TimeChart {
 
     this.showOverlayMedian = config.showOverlayMedian;
     this.showOverlayAvg = config.showOverlayAvg;
+    this.chartMode = config.chartMode;
+    this.maxBars = config.maxBars;
 
 
   }
@@ -284,10 +288,32 @@ export class TimeChart {
       this.drawVarianceScenario(this.variancesDataModel, svgContainer);
       this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
     } else {
-      this.drawScenarios(this.dataModel, svgContainer);
-      this.drawOverlayLayer(this.dataModel, svgContainer);
-      this.drawAxisAndLabels(this.dataModel, svgContainer);
+      const effectiveChartMode = this.determineEffectiveChartMode();
+
+      if (effectiveChartMode === ChartMode.LINE) {
+        this.drawLineScenarios(this.dataModel, svgContainer);
+        this.drawAxisAndLabelsForLineChart(this.dataModel, svgContainer);
+      } else {
+        this.drawScenarios(this.dataModel, svgContainer);
+        this.drawOverlayLayer(this.dataModel, svgContainer);
+        this.drawAxisAndLabels(this.dataModel, svgContainer);
+      }
     }
+  }
+
+  private determineEffectiveChartMode(): ChartMode {
+    if (this.chartMode === ChartMode.LINE) {
+      return ChartMode.LINE;
+    }
+
+    if (this.chartMode === ChartMode.AUTO) {
+      // Auto-switch to line mode when data points exceed maxBars threshold
+      if (this.dataModel.length > this.maxBars) {
+        return ChartMode.LINE;
+      }
+    }
+
+    return ChartMode.BAR;
   }
 
   setPattern(fc: string, fcPolygonPattern: SVGPolgonPattern) {
@@ -754,6 +780,155 @@ export class TimeChart {
       width: columnGroup.width() as number + this.position.spacings.columnWidth
     };
 
+  }
+
+  private drawLineScenarios(dataModel: any, svgContainer: Svg): void {
+    const lineGroup: G = svgContainer.group().id("LineScenarios");
+
+    const scenarioFactory = new ScenarioFactory(this.position, lineGroup, this.styles, dataModel.length, this.i18n);
+
+    // Collect data points for each scenario
+    const scenario1Points: LineSeriesDataPoint[] = [];
+    const scenario2Points: LineSeriesDataPoint[] = [];
+    const scenario3Points: LineSeriesDataPoint[] = [];
+    const scenario4Points: LineSeriesDataPoint[] = [];
+
+    dataModel.forEach((elements: any, index: number) => {
+      if (elements["scenario1"]) {
+        scenario1Points.push({ dataPoint: elements["scenario1"], index });
+      }
+      if (elements["scenario2"]) {
+        scenario2Points.push({ dataPoint: elements["scenario2"], index });
+      }
+      if (elements["scenario3"]) {
+        scenario3Points.push({ dataPoint: elements["scenario3"], index });
+      }
+      if (elements["scenario4"]) {
+        scenario4Points.push({ dataPoint: elements["scenario4"], index });
+      }
+    });
+
+    // Draw line series for each scenario that has data
+    if (scenario1Points.length > 0 && scenario1Points.some(p => !p.dataPoint.isEmpty())) {
+      const scenarioName = scenario1Points[0]?.dataPoint?.scenario as string || "ac1";
+      scenarioFactory.createLineSeries(scenario1Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    }
+
+    if (scenario2Points.length > 0 && scenario2Points.some(p => !p.dataPoint.isEmpty())) {
+      const scenarioName = scenario2Points[0]?.dataPoint?.scenario as string || "pp1";
+      scenarioFactory.createLineSeries(scenario2Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    }
+
+    if (scenario3Points.length > 0 && scenario3Points.some(p => !p.dataPoint.isEmpty())) {
+      const scenarioName = scenario3Points[0]?.dataPoint?.scenario as string || "fc1";
+      scenarioFactory.createLineSeries(scenario3Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    }
+
+    if (scenario4Points.length > 0 && scenario4Points.some(p => !p.dataPoint.isEmpty())) {
+      const scenarioName = scenario4Points[0]?.dataPoint?.scenario as string || "pl1";
+      scenarioFactory.createLineSeries(scenario4Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    }
+
+    this.scenariosArea = {
+      height: lineGroup.height() as number + this.styles.padding.top + this.styles.padding.bottom,
+      width: lineGroup.width() as number + this.position.spacings.columnWidth
+    };
+  }
+
+  private drawAxisAndLabelsForLineChart(dataModel: any[], svgContainer: Svg): void {
+    const dateStringFactory: DateStringFactory = this.createDateFactory();
+    const axisLabelGroup: G = svgContainer.group().id("AxisAndDateLabelsLine");
+    const isRelative: boolean = false;
+    const lastIndex = dataModel.length - 1;
+
+    if (this.hideAxisLabels === false) {
+      dataModel.forEach((elements: any, index: number) => {
+        // Only show labels for first, last, and year change points
+        if (!this.shouldShowLineChartAxisLabel(dataModel, index)) {
+          return;
+        }
+
+        let hookLocation: HookLocation = HookLocation.Top;
+        let offset = this.position.spacings.labelToAxis;
+        if (elements["scenario1"]["value"] < 0) {
+          hookLocation = HookLocation.Bottom;
+          offset *= -1;
+        }
+
+        // Get the date label
+        let datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
+
+        new Label(
+          axisLabelGroup,
+          this.position.getColumnCenterPositionX(index),
+          this.position.getAxisPositionY(isRelative) + offset,
+          '',
+          datelabel,
+          this.styles,
+          hookLocation,
+          HookLocation.Center
+        ).forceStringTypeDraw();
+
+        // Draw vertical dashed separator line at year transitions (except for first and last)
+        if (index > 0 && index < lastIndex && this.isYearChange(dataModel, index)) {
+          this.drawYearSeparatorLine(axisLabelGroup, index, isRelative);
+        }
+      });
+    }
+
+    new Axis({
+      scenarioType: this.axisScenario,
+      labelText: this.title,
+      isRelative: isRelative
+    }, this.position, axisLabelGroup).draw();
+
+    this.axisCategoryArea = {
+      height: axisLabelGroup.height() as number,
+      width: axisLabelGroup.width() as number
+    };
+  }
+
+  private shouldShowLineChartAxisLabel(dataModel: any[], index: number): boolean {
+    const lastIndex = dataModel.length - 1;
+
+    // Always show first and last labels
+    if (index === 0 || index === lastIndex) {
+      return true;
+    }
+
+    // Show label if year changed from previous data point
+    return this.isYearChange(dataModel, index);
+  }
+
+  private isYearChange(dataModel: any[], index: number): boolean {
+    if (index === 0) {
+      return false;
+    }
+
+    const currentDate = dataModel[index]?.date;
+    const previousDate = dataModel[index - 1]?.date;
+
+    if (!currentDate || !previousDate) {
+      return false;
+    }
+
+    return currentDate.year !== previousDate.year;
+  }
+
+  private drawYearSeparatorLine(group: G, index: number, isRelative: boolean): void {
+    const xPos = this.position.getColumnCenterPositionX(index) - (this.position.spacings.columnWidth / 2);
+    // Calculate chart height from the max data point
+    const chartHeight = this.position.columnValue.max.getScaledUnit() + this.position.dataLabelHeight;
+    const topY = this.position.getAxisPositionY(isRelative) - chartHeight;
+    const bottomY = this.position.getAxisPositionY(isRelative);
+
+    group.line([[xPos, topY], [xPos, bottomY]])
+      .stroke({
+        color: '#999999',
+        width: 1,
+        dasharray: '4,4'
+      })
+      .attr('stroke-dasharray', '4,4');
   }
 
   private drawVarianceScenario(dataModel: any, svgContainer: Svg): G {

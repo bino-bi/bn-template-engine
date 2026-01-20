@@ -83,4 +83,10 @@ export enum ChartType {
     WATERFALL = "waterfall",
 }
 
+export enum ChartMode {
+    BAR = "bar",
+    LINE = "line",
+    AUTO = "auto",
+}
+
 
