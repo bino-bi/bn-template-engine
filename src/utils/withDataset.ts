@@ -1,9 +1,17 @@
 import { on as onSet, get as getSet } from '../stores/datasets';
 import { on as onSource, get as getSource } from '../stores/datasources';
-import { startsWith, partition } from 'ramda';
 
 import { runIfExisits } from "./utils";
 import { getElement } from "@stencil/core";
+
+const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => {
+  const matches: T[] = [];
+  const nonMatches: T[] = [];
+  for (const item of arr) {
+    (predicate(item) ? matches : nonMatches).push(item);
+  }
+  return [matches, nonMatches];
+};
 
 const withDataset = (component: any, onUpdate: (name: string, data: any) => void) => {
   let subscriptionSet: () => void;
@@ -14,7 +22,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.attributeName === 'datasets') {
-        [datasources, datasets] = (partition(startsWith("$"), getElement(component).getAttribute('datasets').split(",")));
+        [datasources, datasets] = partition(s => s.startsWith("$"), getElement(component).getAttribute('datasets').split(","));
         datasets.forEach(name => {
           // @ts-ignore
           onUpdate(name, getSet(name));
@@ -30,7 +38,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
   const connectedCallback = component['connectedCallback'];
   component['connectedCallback'] = () => {
     const element = getElement(component);
-    [datasources, datasets] = (partition(startsWith("$"), (element.getAttribute('datasets') || "").split(",")));
+    [datasources, datasets] = partition(s => s.startsWith("$"), (element.getAttribute('datasets') || "").split(","));
     datasets.forEach(name => {
       // @ts-ignore
       onUpdate(name, getSet(name));
