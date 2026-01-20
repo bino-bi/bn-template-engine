@@ -2,7 +2,9 @@ import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import { isValidBoolean, isValidNumber } from "../../utils/validate";
 import withComponentStatus from "../../utils/withComponentStatus";
 import { withStyled } from "../../utils/styled/withStyled";
+import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { Style } from "../../stores/componentStyles";
 
 import {
   TreeConfig,
@@ -47,6 +49,7 @@ export class ChartTree {
   @State() private svgHeight: number = 0;
 
   private readonly errors: ErrorDispatcher;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private resizeObserver: ResizeObserver | null = null;
   private gridContainer: HTMLElement | null = null;
 
@@ -200,35 +203,27 @@ export class ChartTree {
     }
   }
 
-  /**
-   * Default edge line color.
-   */
-  @Prop({ attribute: 'edge-color' }) edgeColor: string = '#404040';
-
-  /**
-   * Default edge line width in pixels.
-   */
-  @Prop({ attribute: 'edge-width' }) edgeWidth: number = 1;
-
-  @Watch('edgeWidth')
-  validateEdgeWidth(newValue: number) {
-    const errId = 'ERR_edgeWidth';
-
-    if (!isValidNumber(newValue) || newValue <= 0) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: 'warning',
-        message: `edge-width: invalid value '${newValue}', must be a positive number`
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
   constructor() {
     withStyled(this);
     withComponentStatus(this);
     this.errors = withHasError(this);
+    this.componentStyle = withComponentStyle(this);
+  }
+
+  /**
+   * Get tree chart styles from component style store
+   */
+  private getTreeStyle() {
+    return this.componentStyle($ => {
+      const baseFontSize = $["global"].fontSizePx;
+      return {
+        edgeColor: $["bn-chart-tree"].edgeColor,
+        edgeWidth: $["bn-chart-tree"].edgeWidth,
+        operatorCircleRadius: $["bn-chart-tree"].operatorCircleRadius,
+        operatorFontSize: baseFontSize * $["bn-chart-tree"].operatorFontSizeScale,
+        operatorColor: $["bn-chart-tree"].operatorColor
+      };
+    });
   }
 
   componentWillLoad() {
@@ -238,7 +233,6 @@ export class ChartTree {
     this.validateNodeSpacing(this.nodeSpacing);
     this.validateEdgeStyle(this.edgeStyle);
     this.validateShowOperators(this.showOperators);
-    this.validateEdgeWidth(this.edgeWidth);
   }
 
   componentDidLoad() {
@@ -340,6 +334,7 @@ export class ChartTree {
       return null;
     }
 
+    const treeStyle = this.getTreeStyle();
     const paths: any[] = [];
     const operators: any[] = [];
 
@@ -373,7 +368,7 @@ export class ChartTree {
       }
 
       const { path } = generateEdgePath(start, end, this.edgeStyle, this.direction);
-      const svgStyle = getEdgeSvgStyle(this.edgeColor, this.edgeWidth, edge.style);
+      const svgStyle = getEdgeSvgStyle(treeStyle.edgeColor, treeStyle.edgeWidth, edge.style);
 
       paths.push(
         <path
@@ -419,17 +414,17 @@ export class ChartTree {
               <circle
                 cx={position.x}
                 cy={position.y}
-                r="10"
+                r={treeStyle.operatorCircleRadius}
                 fill="white"
-                stroke={this.edgeColor}
-                stroke-width={this.edgeWidth}
+                stroke={treeStyle.edgeColor}
+                stroke-width={treeStyle.edgeWidth}
               />
               <text
                 x={position.x}
                 y={position.y}
                 text-anchor="middle"
                 dominant-baseline="central"
-                class="operator-text"
+                style={{ fontSize: `${treeStyle.operatorFontSize}px`, fill: treeStyle.operatorColor, fontWeight: 'bold' }}
               >
                 {operatorSymbol}
               </text>

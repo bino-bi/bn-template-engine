@@ -30,11 +30,7 @@ bn-chart-tree {
   }
 
   .operator-group {
-    .operator-text {
-      font-size: 12px; // DYnmosch? 
-      font-weight: bold;
-      fill: #404040;
-    }
+    // Styles are now set inline via componentStyle store
   }
 
   .tree-error {

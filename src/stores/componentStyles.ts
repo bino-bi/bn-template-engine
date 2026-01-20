@@ -10,7 +10,7 @@ export interface TreeChartStyle {
   edgeColor: string;
   edgeWidth: number;
   operatorCircleRadius: number;
-  operatorFontSize: number;
+  operatorFontSizeScale: number; // Scale factor relative to global.fontSizePx
   operatorColor: string;
 }
 
@@ -156,7 +156,7 @@ const { state, on, get, set } = createStore<{ [key: string]: Style }>(
         "edgeColor": "#404040",
         "edgeWidth": 1,
         "operatorCircleRadius": 10,
-        "operatorFontSize": 12,
+        "operatorFontSizeScale": 0.9, // Relative to global.fontSizePx
         "operatorColor": "#404040",
       },
     }
