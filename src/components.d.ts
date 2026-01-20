@@ -215,20 +215,10 @@ export namespace Components {
          */
         "direction": LayoutDirection;
         /**
-          * Default edge line color.
-          * @default '#404040'
-         */
-        "edgeColor": string;
-        /**
           * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
           * @default 'orthogonal'
          */
         "edgeStyle": EdgeStyleType;
-        /**
-          * Default edge line width in pixels.
-          * @default 1
-         */
-        "edgeWidth": number;
         /**
           * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
          */
@@ -1505,20 +1495,10 @@ declare namespace LocalJSX {
          */
         "direction"?: LayoutDirection;
         /**
-          * Default edge line color.
-          * @default '#404040'
-         */
-        "edgeColor"?: string;
-        /**
           * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
           * @default 'orthogonal'
          */
         "edgeStyle"?: EdgeStyleType;
-        /**
-          * Default edge line width in pixels.
-          * @default 1
-         */
-        "edgeWidth"?: number;
         /**
           * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
          */
