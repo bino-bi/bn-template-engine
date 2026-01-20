@@ -13,6 +13,7 @@ import {
 import {
   generateEdgePath,
   getConnectionPoint,
+  getMultiParentConnectionPoint,
   calculateOperatorPosition
 } from '../utils/EdgeRenderer';
 
@@ -178,6 +179,23 @@ describe('TreeLayout', () => {
         rtlLayout.positions.get('child1')?.gridColumn!
       );
     });
+
+    it('should handle DAG structures (node with multiple parents)', () => {
+      // node1 -> node2 -> node5, node1 -> node3 -> node5 (node5 has 2 parents)
+      const dagConfig = parseTreeConfig('[{"from":"node1","to":"node2"},{"from":"node1","to":"node3"},{"from":"node2","to":"node5"},{"from":"node3","to":"node5"}]');
+      const layout = calculateLayout(dagConfig!, 'ltr', 60, 20);
+
+      // All 4 nodes should have positions
+      expect(layout.positions.size).toBe(4);
+
+      // node5 should only appear once with a single position
+      const node5Position = layout.positions.get('node5');
+      expect(node5Position).toBeDefined();
+      expect(node5Position!.level).toBe(2); // Level 2 (node1=0, node2/node3=1, node5=2)
+
+      // Both node2 and node3 should have edges to node5 (verified by edge count in config)
+      expect(dagConfig!.edges.filter(e => e.to === 'node5').length).toBe(2);
+    });
   });
 
   describe('grid helpers', () => {
@@ -232,6 +250,38 @@ describe('EdgeRenderer', () => {
     });
   });
 
+  describe('getMultiParentConnectionPoint', () => {
+    it('should offset connection points vertically for ltr with 2 parents', () => {
+      // With 2 parents and default spacing of 8px, they should be at centerY-4 and centerY+4
+      const point0 = getMultiParentConnectionPoint(nodeRect, 'ltr', 0, 2);
+      const point1 = getMultiParentConnectionPoint(nodeRect, 'ltr', 1, 2);
+
+      // Both connect to left edge (x=0)
+      expect(point0.x).toBe(0);
+      expect(point1.x).toBe(0);
+
+      // First parent at centerY - 4, second at centerY + 4
+      expect(point0.y).toBe(21); // 25 - 4
+      expect(point1.y).toBe(29); // 25 + 4
+
+      // They should be 8px apart
+      expect(point1.y - point0.y).toBe(8);
+    });
+
+    it('should offset connection points horizontally for ttb with 2 parents', () => {
+      const point0 = getMultiParentConnectionPoint(nodeRect, 'ttb', 0, 2);
+      const point1 = getMultiParentConnectionPoint(nodeRect, 'ttb', 1, 2);
+
+      // Both connect to top edge (y=0)
+      expect(point0.y).toBe(0);
+      expect(point1.y).toBe(0);
+
+      // First parent at centerX - 4, second at centerX + 4
+      expect(point0.x).toBe(46); // 50 - 4
+      expect(point1.x).toBe(54); // 50 + 4
+    });
+  });
+
   describe('generateEdgePath', () => {
     const start = { x: 0, y: 0 };
     const end = { x: 100, y: 100 };
@@ -266,23 +316,24 @@ describe('EdgeRenderer', () => {
     const sibling1Rect = { left: 200, top: 0, width: 100, height: 50, centerX: 250, centerY: 25 };
     const sibling2Rect = { left: 200, top: 100, width: 100, height: 50, centerX: 250, centerY: 125 };
 
-    it('should position operator on the vertical line between parent and children for ltr', () => {
+    it('should position operator at T-junction with 70% bend ratio for ltr', () => {
       const pos = calculateOperatorPosition(parentRect, sibling1Rect, sibling2Rect, 'ltr');
-      // midX = (parentRight + childrenLeft) / 2 = (100 + 200) / 2 = 150
-      expect(pos.x).toBe(150);
-      // midY between siblings = (25 + 125) / 2 = 75
+      // midX = parentRight + (childrenLeft - parentRight) * 0.7 = 100 + (200 - 100) * 0.7 = 170
+      expect(pos.x).toBe(170);
+      // Y at parent's centerY (T-junction) = 75
       expect(pos.y).toBe(75);
     });
 
-    it('should position operator on the vertical line for rtl', () => {
+    it('should position operator at T-junction with 70% bend ratio for rtl', () => {
       // For RTL, parent would be on the right
       const rtlParent = { left: 300, top: 50, width: 100, height: 50, centerX: 350, centerY: 75 };
       const rtlSibling1 = { left: 100, top: 0, width: 100, height: 50, centerX: 150, centerY: 25 };
       const rtlSibling2 = { left: 100, top: 100, width: 100, height: 50, centerX: 150, centerY: 125 };
 
       const pos = calculateOperatorPosition(rtlParent, rtlSibling1, rtlSibling2, 'rtl');
-      // midX = (parentLeft + childrenRight) / 2 = (300 + 200) / 2 = 250
-      expect(pos.x).toBe(250);
+      // midX = childrenRight + (parentLeft - childrenRight) * 0.7 = 200 + (300 - 200) * 0.7 = 270
+      expect(pos.x).toBe(270);
+      // Y at parent's centerY = 75
       expect(pos.y).toBe(75);
     });
   });

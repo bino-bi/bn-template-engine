@@ -251,6 +251,27 @@
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
+    <bn-page>
+      <bn-body>
+        <bn-chart-tree edges='[
+            {"from":"node1","to":"node2", "operator":"x"},
+            {"from":"node1","to":"node3"},
+            {"from":"node2","to":"node4", "operator":"+"},
+            {"from":"node2","to":"node5"},
+            {"from":"node3","to":"node5", "operator":"+"},
+            {"from":"node3","to":"node6"}
+    
+          ]'>
+          <bn-text slot="node1" value="node1"></bn-text>
+          <bn-text slot="node2" value="node2"></bn-text>
+          <bn-text slot="node3" value="node3"></bn-text>
+          <bn-text slot="node4" value="node4"></bn-text>
+          <bn-text slot="node5" value="node5"></bn-text>
+          <bn-text slot="node6" value="node6"></bn-text>
+        </bn-chart-tree>
+      </bn-body>
+    </bn-page>
+
     <!-- ROI Tree Example -->
     <bn-datasource name="ROI_Data">
       [

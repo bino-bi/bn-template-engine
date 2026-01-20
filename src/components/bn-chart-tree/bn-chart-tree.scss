@@ -17,7 +17,6 @@ bn-chart-tree {
     position: relative;
     z-index: 1;
     border: 1px solid #404040;
-    padding: 8px;
     background: white;
   }
 
@@ -32,7 +31,7 @@ bn-chart-tree {
 
   .operator-group {
     .operator-text {
-      font-size: 12px;
+      font-size: 12px; // DYnmosch? 
       font-weight: bold;
       fill: #404040;
     }

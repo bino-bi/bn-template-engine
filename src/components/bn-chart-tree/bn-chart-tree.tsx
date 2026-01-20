@@ -26,6 +26,7 @@ import {
   NodeRect,
   getNodeRect,
   getConnectionPoint,
+  getMultiParentConnectionPoint,
   generateEdgePath,
   calculateOperatorPosition,
   getEdgeSvgStyle
@@ -342,6 +343,14 @@ export class ChartTree {
     const paths: any[] = [];
     const operators: any[] = [];
 
+    // Build a map of child -> list of parents (to detect nodes with multiple parents)
+    const childToParents = new Map<string, string[]>();
+    for (const edge of this.treeConfig.edges) {
+      const parents = childToParents.get(edge.to) || [];
+      parents.push(edge.from);
+      childToParents.set(edge.to, parents);
+    }
+
     // Render edges connecting parents to children
     for (const edge of this.treeConfig.edges) {
       const fromRect = this.nodeRects.get(edge.from);
@@ -352,7 +361,17 @@ export class ChartTree {
       }
 
       const start = getConnectionPoint(fromRect, true, this.direction);
-      const end = getConnectionPoint(toRect, false, this.direction);
+
+      // For nodes with multiple parents, use offset connection points
+      const parents = childToParents.get(edge.to) || [];
+      let end: { x: number; y: number };
+      if (parents.length > 1) {
+        const parentIndex = parents.indexOf(edge.from);
+        end = getMultiParentConnectionPoint(toRect, this.direction, parentIndex, parents.length);
+      } else {
+        end = getConnectionPoint(toRect, false, this.direction);
+      }
+
       const { path } = generateEdgePath(start, end, this.edgeStyle, this.direction);
       const svgStyle = getEdgeSvgStyle(this.edgeColor, this.edgeWidth, edge.style);
 
