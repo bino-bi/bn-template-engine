@@ -7,10 +7,20 @@ export interface VarianceStyle {
   fillpattern?: string;  // Pattern type: 'solid', 'hatched', 'outlined'
 }
 
+export interface ScenarioStyles {
+  ac: VarianceStyle;
+  pp: VarianceStyle;
+  fc: VarianceStyle;
+  pl: VarianceStyle;
+}
+
 export interface CellBarChartStyles {
+  // Variance styles (for d_ and dr_ columns)
   positive: VarianceStyle;
   negative: VarianceStyle;
   neutral: VarianceStyle;
+  // Scenario styles (for ac, pp, fc, pl columns)
+  scenarios: ScenarioStyles;
   fontColor: string;
   fontSize: number;
   fontFamily: string;
@@ -35,6 +45,12 @@ const DEFAULT_STYLES: CellBarChartStyles = {
   positive: { stroke: '#008f96', fill: '#008f96', fillpattern: 'solid' },
   negative: { stroke: '#ff0000', fill: '#ff0000', fillpattern: 'solid' },
   neutral: { stroke: '#808080', fill: '#808080', fillpattern: 'outlined' },
+  scenarios: {
+    ac: { stroke: '#404040', fill: '#404040', fillpattern: 'solid' },
+    pp: { stroke: '#A6A6A6', fill: '#A6A6A6', fillpattern: 'solid' },
+    fc: { stroke: '#404040', fill: '#ffffff', fillpattern: 'hatched' },
+    pl: { stroke: '#404040', fill: '#ffffff', fillpattern: 'outlined' },
+  },
   fontColor: '#000000',
   fontSize: 11,
   fontFamily: "'Noto Sans', sans-serif",
@@ -112,6 +128,33 @@ function formatValue(value: number, isRelative: boolean, measureScale: number = 
 }
 
 /**
+ * Checks if the column is a scenario column (ac, pp, fc, pl) vs variance (d_, dr_).
+ */
+function isScenarioColumn(scenario: string): boolean {
+  const scenarioPrefix = scenario.slice(0, 2).toLowerCase();
+  return ['ac', 'pp', 'fc', 'pl'].includes(scenarioPrefix);
+}
+
+/**
+ * Gets the scenario type from the column name (ac, pp, fc, pl).
+ */
+function getScenarioType(scenario: string): 'ac' | 'pp' | 'fc' | 'pl' {
+  const scenarioPrefix = scenario.slice(0, 2).toLowerCase();
+  if (scenarioPrefix === 'pp') return 'pp';
+  if (scenarioPrefix === 'fc') return 'fc';
+  if (scenarioPrefix === 'pl') return 'pl';
+  return 'ac'; // default
+}
+
+/**
+ * Gets the style for a scenario column (ac, pp, fc, pl).
+ */
+function getScenarioStyle(scenario: string, styles: CellBarChartStyles): VarianceStyle {
+  const type = getScenarioType(scenario);
+  return styles.scenarios[type];
+}
+
+/**
  * Gets the variance style based on value and sentiment direction.
  * pos suffix = positive values are good (green), negative are bad (red)
  * neg suffix = negative values are good (green), positive are bad (red)
@@ -124,6 +167,18 @@ function getVarianceStyle(value: number, isPositiveGood: boolean, styles: CellBa
   } else {
     return isPositive ? styles.negative : styles.positive;
   }
+}
+
+/**
+ * Gets the appropriate style for a bar based on column type.
+ * Scenarios (ac, pp, fc, pl) use scenario styles.
+ * Variances (d_, dr_) use variance styles with pos/neg/neu coloring.
+ */
+function getBarStyle(scenario: string, value: number, isPositiveGood: boolean, styles: CellBarChartStyles): VarianceStyle {
+  if (isScenarioColumn(scenario)) {
+    return getScenarioStyle(scenario, styles);
+  }
+  return getVarianceStyle(value, isPositiveGood, styles);
 }
 
 /**
@@ -167,7 +222,7 @@ function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; strokeWid
  * Uses unitScaling to determine bar width (pixels per unit of measure).
  */
 const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
-  const { value, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
+  const { value, scenario, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
 
   const labelAreaWidth = 50; // Space for labels on each side
   const maxBarWidth = 40;    // Maximum bar width on each side of axis
@@ -187,10 +242,14 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const barX = isPositive ? axisX : axisX - barWidth;
   const barY = padding;
 
-  const varianceStyle = getVarianceStyle(value, isPositiveGood, styles);
-  const patternPrefix = isPositiveGood ? (isPositive ? 'pos' : 'neg') : (isPositive ? 'neg' : 'pos');
-  const fillValue = getBarFill(varianceStyle, patternPrefix);
-  const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(varianceStyle);
+  // Get style based on column type (scenario vs variance)
+  const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
+  // Pattern prefix for scenarios uses scenario type, for variances uses pos/neg
+  const patternPrefix = isScenarioColumn(scenario)
+    ? getScenarioType(scenario)
+    : (isPositiveGood ? (isPositive ? 'pos' : 'neg') : (isPositive ? 'neg' : 'pos'));
+  const fillValue = getBarFill(barStyle, patternPrefix);
+  const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
 
   const displayValue = formattedValue || formatValue(value, false, measureScale);
 
@@ -251,7 +310,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
  * Uses percentageScaling to determine pin length (pixels per percentage point).
  */
 const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
-  const { value, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
+  const { value, scenario, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
 
   const maxPinLength = 25;   // Maximum pin length on each side
   const pinAreaWidth = maxPinLength * 2 + 10; // Pin area with centered axis
@@ -270,7 +329,8 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const isPositive = value >= 0;
   const pinEndX = isPositive ? axisX + pinLength : axisX - pinLength;
 
-  const varianceStyle = getVarianceStyle(value, isPositiveGood, styles);
+  // Get style based on column type (scenario vs variance)
+  const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
   const dotRadius = 3;
 
   // Show arrow for extreme values (when pin would exceed max length)
@@ -303,13 +363,13 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         />
       )}
 
-      {/* Pin line - colored based on variance (green/red), on top of dot */}
+      {/* Pin line - colored based on column type, on top of dot */}
       <line
         x1={axisX}
         y1={centerY}
         x2={pinEndX}
         y2={centerY}
-        stroke={varianceStyle.fill}
+        stroke={barStyle.fill}
         stroke-width={2}
       />
 
@@ -317,7 +377,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
       {isExtreme && isPositive && (
         <polygon
           points={`${pinAreaWidth - 2},${centerY} ${pinAreaWidth - 8},${centerY - 3} ${pinAreaWidth - 8},${centerY + 3}`}
-          fill={varianceStyle.fill}
+          fill={barStyle.fill}
         />
       )}
 
@@ -325,7 +385,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
       {isExtreme && !isPositive && (
         <polygon
           points={`${2},${centerY} ${8},${centerY - 3} ${8},${centerY + 3}`}
-          fill={varianceStyle.fill}
+          fill={barStyle.fill}
         />
       )}
 
