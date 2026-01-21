@@ -210,15 +210,23 @@ export class IbcsTable {
    * Prepares bar chart styles from componentStyle store.
    * Uses the same variance styles as bn-chart-time for consistency.
    * Supports fillpattern for different visual treatments (solid, hatched, outlined).
+   * Scenario styles (ac, pp, fc, pl) use barStyles for IBCS-compliant grayscale coloring.
    */
   private prepareBarChartStyles(): CellBarChartStyles {
     return this.componentStyle($ => {
       const varianceStyles = $["bn-chart-time"]?.["varianceStyles"];
+      const barStyles = $["bn-chart-time"]?.["barStyles"];
 
       // Default variance styles with fillpattern
       const defaultPos = { stroke: '#008f96', fill: '#008f96', fillpattern: 'solid' };
       const defaultNeg = { stroke: '#ff0000', fill: '#ff0000', fillpattern: 'solid' };
       const defaultNeu = { stroke: '#808080', fill: '#808080', fillpattern: 'outlined' };
+
+      // Default scenario styles (IBCS grayscale)
+      const defaultAc = { stroke: '#404040', fill: '#404040', fillpattern: 'solid' };
+      const defaultPp = { stroke: '#A6A6A6', fill: '#A6A6A6', fillpattern: 'solid' };
+      const defaultFc = { stroke: '#404040', fill: '#ffffff', fillpattern: 'hatched' };
+      const defaultPl = { stroke: '#404040', fill: '#ffffff', fillpattern: 'outlined' };
 
       return {
         positive: {
@@ -235,6 +243,28 @@ export class IbcsTable {
           stroke: varianceStyles?.neu?.stroke || defaultNeu.stroke,
           fill: varianceStyles?.neu?.fill || defaultNeu.fill,
           fillpattern: (varianceStyles?.neu as any)?.fillpattern || defaultNeu.fillpattern
+        },
+        scenarios: {
+          ac: {
+            stroke: barStyles?.ac?.stroke || defaultAc.stroke,
+            fill: barStyles?.ac?.fill || defaultAc.fill,
+            fillpattern: (barStyles?.ac as any)?.fillpattern || defaultAc.fillpattern
+          },
+          pp: {
+            stroke: barStyles?.pp?.stroke || defaultPp.stroke,
+            fill: barStyles?.pp?.fill || defaultPp.fill,
+            fillpattern: (barStyles?.pp as any)?.fillpattern || defaultPp.fillpattern
+          },
+          fc: {
+            stroke: barStyles?.fc?.stroke || defaultFc.stroke,
+            fill: barStyles?.fc?.fill || defaultFc.fill,
+            fillpattern: (barStyles?.fc as any)?.fillpattern || defaultFc.fillpattern
+          },
+          pl: {
+            stroke: barStyles?.pl?.stroke || defaultPl.stroke,
+            fill: barStyles?.pl?.fill || defaultPl.fill,
+            fillpattern: (barStyles?.pl as any)?.fillpattern || defaultPl.fillpattern
+          }
         },
         fontColor: $["global"]?.["fontColor"] || '#000000',
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85, // Slightly smaller for table cells
