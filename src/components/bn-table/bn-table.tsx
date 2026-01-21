@@ -8,6 +8,7 @@ import {
   isValidInteger,
   isValidMeasureScale,
   isValidMeasureType,
+  isValidNumber,
   isValidTableType,
   validateColumnThereOfJsonStr,
   validateOrderList,
@@ -136,6 +137,85 @@ export class Table {
       this.errors.remove(errId);
     }
   }
+
+  /**
+   * List of variance column names to render as bar charts instead of numbers.
+   * <br /><br />
+   * Absolute variances (d_*) render as horizontal bar charts.
+   * Relative variances (dr_*) render as pin/dot charts.
+   * <br /><br />
+   * example:<br />
+   * ```dac1_pp1_pos,drac1_pp1_pos```
+   */
+  @Prop() readonly barColumns: string;
+
+  @Watch('barColumns')
+  validateBarColumns(newValue: string) {
+    const errId: string = 'ERR_barColumns';
+    if (isBlankInput(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
+    const invalidColumns: string[] = validateVariancesList(newValue);
+    if (invalidColumns.length > 0) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'barColumns: invalid value(s) \'' + JSON.stringify(invalidColumns) + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * Scaling for absolute variance bar charts (ΔPY).
+   * <br /><br />
+   * Name of the 'scaling-group' which the table uses.
+   * Scaling groups are maintained globally.
+   * <br /><br />
+   * Alternatively a number which represents pixels per unit of measure.
+   * <br /><br />
+   * Example: 0.01 means 1000 units = 10 pixels width.
+   * <br /><br />
+   * Default: 0.01
+   */
+  @Prop() unitScaling: string | number = 0.01;
+
+  @Watch('unitScaling')
+  validateUnitScaling(newValue: string | number) {
+    const errId: string = 'ERR_unitScaling';
+
+    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'unitScaling: invalid value \'' + newValue + '\' is not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * Scaling for relative variance pin charts (ΔPY%).
+   * <br /><br />
+   * Name of the 'scaling-group' which the table uses.
+   * Scaling groups are maintained globally.
+   * <br /><br />
+   * Alternatively a number which represents pixels per percentage point.
+   * <br /><br />
+   * Example: 0.5 means 100% = 50 pixels width.
+   * <br /><br />
+   * Default: 0.5
+   */
+  @Prop() percentageScaling: string | number = 0.5;
+
+  @Watch('percentageScaling')
+  validatePercentageScaling(newValue: string | number) {
+    const errId: string = 'ERR_percentageScaling';
+
+    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'percentageScaling: invalid value \'' + newValue + '\' is not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  // Global scaling groups map - can be populated externally for shared scaling across components
+  private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
   /**
    *  Defines the data unit type of the tables data.
@@ -534,6 +614,9 @@ export class Table {
     this.validateMeasureScale(this.measureScale);
     this.validateColumnThereOf(this.columnthereof);
     this.validateShowMeasureScale(this.showMeasureScale);
+    this.validateBarColumns(this.barColumns);
+    this.validateUnitScaling(this.unitScaling);
+    this.validatePercentageScaling(this.percentageScaling);
   }
 
   disconnectedCallback() {
@@ -701,6 +784,27 @@ export class Table {
     return this.filter;
   }
 
+  private prepareBarColumns(): string[] {
+    if (isBlankInput(this.barColumns)) {
+      return [];
+    }
+    return this.barColumns.split(',').map(col => col.trim());
+  }
+
+  private prepareUnitScaling(): number {
+    if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
+      return this.pixelPerUnitGroupMap.get(this.unitScaling as string)!;
+    }
+    return Number(this.unitScaling);
+  }
+
+  private preparePercentageScaling(): number {
+    if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
+      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string)!;
+    }
+    return Number(this.percentageScaling);
+  }
+
   public getDataStructure(): any {
     let dataSetStructure: any = {
       ITableDataRow: {
@@ -765,6 +869,9 @@ export class Table {
           measure-unit={this.prepareMeasureUnit()}
           showMeasureScale={this.prepareShowMeasureScale()}
           filter={this.prepareFilter()}
+          barColumns={this.prepareBarColumns()}
+          unitScaling={this.prepareUnitScaling()}
+          percentageScaling={this.preparePercentageScaling()}
         ></ibcs-table>
       </div>
     </Host>;

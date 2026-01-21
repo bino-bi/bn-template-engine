@@ -1,3 +1,11 @@
+// Mock MutationObserver for withComponentStyle mixin
+(global as any).MutationObserver = class {
+  constructor() {}
+  observe() {}
+  disconnect() {}
+  takeRecords() { return []; }
+};
+
 import {h} from '@stencil/core';
 import {newSpecPage} from '@stencil/core/testing';
 import {IbcsTable} from "./ibcs-table";

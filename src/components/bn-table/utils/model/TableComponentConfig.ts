@@ -37,6 +37,7 @@ export class TableComponentConfig {
   public measureType: MeasureType = MeasureType.VOLUME;
   public showMeasureScale: boolean = true;
   public filter: string = "";
+  public barColumns: string[] = [];
   constructor() { }
 
 }
@@ -122,6 +123,10 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isString(data.filter)) {
       config.filter = data.filter.trim();
+    }
+
+    if (CompareUtil.isArray(data.barColumns)) {
+      config.barColumns = data.barColumns;
     }
 
     return config;

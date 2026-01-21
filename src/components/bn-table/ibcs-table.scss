@@ -330,4 +330,30 @@ ibcs-table {
   .table-footer {
     font-size: 0.6em
   }
+
+  // Bar chart cell styles
+  .cell-bar-chart {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .bar-chart-empty {
+    color: #999;
+  }
+
+  td:has(.cell-bar-chart) {
+    padding: 0 0.25em;
+    vertical-align: middle;
+  }
+
+  // Remove the +/- prefix and % suffix for bar chart columns
+  td:has(.cell-bar-chart).pos_pos:before,
+  td:has(.cell-bar-chart).pos_neg:before,
+  td:has(.cell-bar-chart).pos_neu:before {
+    content: none;
+  }
+
+  td:has(.cell-bar-chart).variance:after {
+    content: none;
+  }
 }

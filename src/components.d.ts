@@ -559,6 +559,10 @@ export namespace Components {
     }
     interface BnTable {
         /**
+          * List of variance column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin/dot charts. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos```
+         */
+        "barColumns": string;
+        /**
           * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
           * @default 'w15'
          */
@@ -628,6 +632,11 @@ export namespace Components {
          */
         "partof": string;
         /**
+          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per percentage point. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
+          * @default 0.5
+         */
+        "percentageScaling": string | number;
+        /**
           * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios": string;
@@ -656,6 +665,11 @@ export namespace Components {
           * @default 'list'
          */
         "type": string;
+        /**
+          * Scaling for absolute variance bar charts (ΔPY). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per unit of measure. <br /><br /> Example: 0.01 means 1000 units = 10 pixels width. <br /><br /> Default: 0.01
+          * @default 0.01
+         */
+        "unitScaling": string | number;
         /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
          */
@@ -939,6 +953,10 @@ export namespace Components {
     }
     interface IbcsTable {
         /**
+          * @default []
+         */
+        "barColumns": string[];
+        /**
           * @default TableCategoryWidth.INF
          */
         "categoryWidth": TableCategoryWidth;
@@ -995,6 +1013,10 @@ export namespace Components {
          */
         "partof": TableDrillGroup[];
         /**
+          * @default 0.5
+         */
+        "percentageScaling": number;
+        /**
           * @default []
          */
         "scenarios": string[];
@@ -1022,6 +1044,10 @@ export namespace Components {
           * @default TableType.LIST
          */
         "type": TableType;
+        /**
+          * @default 0.01
+         */
+        "unitScaling": number;
     }
     interface IbcsTitle {
         /**
@@ -1877,6 +1903,10 @@ declare namespace LocalJSX {
     }
     interface BnTable {
         /**
+          * List of variance column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin/dot charts. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos```
+         */
+        "barColumns"?: string;
+        /**
           * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
           * @default 'w15'
          */
@@ -1946,6 +1976,11 @@ declare namespace LocalJSX {
          */
         "partof"?: string;
         /**
+          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per percentage point. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
+          * @default 0.5
+         */
+        "percentageScaling"?: string | number;
+        /**
           * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios"?: string;
@@ -1974,6 +2009,11 @@ declare namespace LocalJSX {
           * @default 'list'
          */
         "type"?: string;
+        /**
+          * Scaling for absolute variance bar charts (ΔPY). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per unit of measure. <br /><br /> Example: 0.01 means 1000 units = 10 pixels width. <br /><br /> Default: 0.01
+          * @default 0.01
+         */
+        "unitScaling"?: string | number;
         /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
          */
@@ -2254,6 +2294,10 @@ declare namespace LocalJSX {
     }
     interface IbcsTable {
         /**
+          * @default []
+         */
+        "barColumns"?: string[];
+        /**
           * @default TableCategoryWidth.INF
          */
         "categoryWidth"?: TableCategoryWidth;
@@ -2310,6 +2354,10 @@ declare namespace LocalJSX {
          */
         "partof"?: TableDrillGroup[];
         /**
+          * @default 0.5
+         */
+        "percentageScaling"?: number;
+        /**
           * @default []
          */
         "scenarios"?: string[];
@@ -2337,6 +2385,10 @@ declare namespace LocalJSX {
           * @default TableType.LIST
          */
         "type"?: TableType;
+        /**
+          * @default 0.01
+         */
+        "unitScaling"?: number;
     }
     interface IbcsTitle {
         /**

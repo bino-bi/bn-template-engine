@@ -17,7 +17,7 @@ import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style } from "../../stores/componentStyles";
-import { StructureChartDataRow } from "./utils/model";
+import { StructureChartDataRow} from "./utils/model";
 import { AggregationLevel } from "../../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 
@@ -27,7 +27,7 @@ import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 })
 export class Chart {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
-  @Element() private element: HTMLElement;
+    @Element() private element: HTMLElement;
 
   @State() data: StructureChartDataRow[] = []
 
@@ -245,46 +245,46 @@ export class Chart {
     }
   }
 
-  /**
-  *  Sets the SiPrefix of the Mesaurements and converts the
-  *  original value.
-  *  <br /><br />
-  *  values:  <br />
-  *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
-  *  <br /><br />
-  *  SiPrefix overview:
-  *  ```     "Y":  1E+24,```<br />
-  *  ```    "Z":  1E+21,```<br />
-  *  ```   "E":  1E+18,```<br />
-  *  ```     "P":  1E+15,```<br />
-  *  ```     "T":  1E+12,```<br />
-  *  ```     "G":  1000000000,```<br />
-  *  ```     "M":  1000000,```<br />
-  *  ```     "k":  1000,```<br />
-  *  <br />
-  *  ```     "m":  0.001,```<br />
-  *  ```    "μ":  0.000001,```<br />
-  *  ```     "n":  0.000000001,```<br />
-  *  ```     "p":  0.000000000001,```<br />
-  *  ```     "f":  0.000000000000001,```<br />
-  *  ```     "a":  0.000000000000000001,```<br />
-  *  ```     "z":  0.000000000000000000001,```<br />
-  *  ```     "y":  0.000000000000000000000001,```<br />
-  *  <br /><br />
-  * Special modes:
-  * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
-  * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
-  *<br /><br />
-  * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
-  *
-  *
-  */
+   /**
+   *  Sets the SiPrefix of the Mesaurements and converts the
+   *  original value.
+   *  <br /><br />
+   *  values:  <br />
+   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
+   *  <br /><br />
+   *  SiPrefix overview:
+   *  ```     "Y":  1E+24,```<br />
+   *  ```    "Z":  1E+21,```<br />
+   *  ```   "E":  1E+18,```<br />
+   *  ```     "P":  1E+15,```<br />
+   *  ```     "T":  1E+12,```<br />
+   *  ```     "G":  1000000000,```<br />
+   *  ```     "M":  1000000,```<br />
+   *  ```     "k":  1000,```<br />
+   *  <br />
+   *  ```     "m":  0.001,```<br />
+   *  ```    "μ":  0.000001,```<br />
+   *  ```     "n":  0.000000001,```<br />
+   *  ```     "p":  0.000000000001,```<br />
+   *  ```     "f":  0.000000000000001,```<br />
+   *  ```     "a":  0.000000000000000001,```<br />
+   *  ```     "z":  0.000000000000000000001,```<br />
+   *  ```     "y":  0.000000000000000000000001,```<br />
+   *  <br /><br />
+   * Special modes:
+   * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   *<br /><br />
+   * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+   *
+   *
+   */
   @Prop() measureScale: string = "greatest";
 
   @Watch('measureScale')
   validateMeasureScale(newValue: string) {
     const errId: string = 'ERR_measureScale';
-
+ 
     if (!isValidMeasureScale(newValue)) {
       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
     } else {
@@ -302,20 +302,20 @@ export class Chart {
 
   @Watch('showMeasureScale')
   validateShowMeasureScale(newValue: string) {
-    const errId: string = 'ERR_grouped';
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
-    } else {
-      this.errors.remove(errId);
-    }
+     const errId: string = 'ERR_grouped';
+     
+      if (!isValidBoolean(newValue)) {
+          this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      } else {
+          this.errors.remove(errId);
+      }
   }
 
-  /**
-  * measureUnit displayed in table.
-  */
+   /**
+   * measureUnit displayed in table.
+   */
   @Prop() measureUnit: string = "";
-
+   
 
 
 
@@ -370,7 +370,7 @@ export class Chart {
   }
 
 
-  private prepareHideCategories(idx: number): boolean {
+  private prepareHideCategories(idx: number): boolean {   
     return idx >= 1 || this.showCategories != "true";
   }
 
@@ -416,7 +416,7 @@ export class Chart {
   // TODO: FIXME:  Adapter pattenr doch noch verschieben?
   private prepareStyle(): any {
     return this.componentStyle($ => {
-
+     
       return {
         scaleFactors: {
           scenarioOffset: $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
@@ -524,23 +524,23 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx == 0 && this.showMeasureScale == "true";
+    return idx == 0 && this.showMeasureScale == "true";   
   }
   prepareMeasureUnit(): string {
-    if (this.measureUnit == "" || this.measureUnit == null) {
-      return "";
-    }
-    return this.measureUnit;
+      if (this.measureUnit == "" || this.measureUnit == null) {
+        return "";
+      }
+      return this.measureUnit;
   }
 
-  chartTemplate(localScenarioString: string, idx: number) {
+  chartTemplate(localScenarioString: string, idx: number) {   
 
     return <ibcs-chart-structure
       data={this.data}
       chartTitle={this.prepareChartTitle(idx)}
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
-      hideCategories={this.prepareHideCategories(idx)}
+      hideCategories={this.prepareHideCategories(idx) }
       pixelPerUnit={this.preparePixelPerUnit()}
       pixelPerPercentage={this.preparePixelPerPercentage()}
       limit={this.prepareLimit()}
@@ -552,14 +552,14 @@ export class Chart {
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
       showMeasureScale={this.prepareShowMeasureScale(idx)}
-
+ 
     ></ibcs-chart-structure>
   }
 
   render() {
     let scenariosArray = [''];
     let variancesArray = this.prepareVariances();
-
+    
     if (variancesArray.length > 0) {
       scenariosArray = [...scenariosArray, ...variancesArray];
     }

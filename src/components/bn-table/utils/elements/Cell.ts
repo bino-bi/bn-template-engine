@@ -5,6 +5,12 @@ import { DataFormatDigits } from "../../../../components";
 import { Formatter } from "../../../../utils";
 
 
+export interface ColumnStats {
+  min: number;
+  max: number;
+  absMax: number;
+}
+
 export class Cell {
   key: string;
   index: number;
@@ -15,7 +21,9 @@ export class Cell {
   type: string | null;
   mark: string | undefined;
   colSpan: number;
-  private measureScale: number;
+  isBarChart: boolean = false;
+  columnStats?: ColumnStats;
+  measureScale: number;
 
   constructor(scenario: string, index: number, value: number | string | null, cssStyle: string | null, type: string | null , prefix: string | null, prefixStyle: string | null, colSpan: number | null, measureScale: number | null | undefined) {
       this.key = scenario;
