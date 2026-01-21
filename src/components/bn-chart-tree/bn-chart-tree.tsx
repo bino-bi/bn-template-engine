@@ -40,6 +40,7 @@ import {
   shadow: false,
 })
 export class ChartTree {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
 
   @State() private treeConfig: TreeConfig | null = null;

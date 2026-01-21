@@ -7,6 +7,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
   styleUrl: 'bn-datasource.css',
 })
 export class Datasource {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   /**
    * Unique (template scope) name of the datasource
    */

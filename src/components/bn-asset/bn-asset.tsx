@@ -8,6 +8,8 @@ import withBodyObserver from '../../utils/withBodyObserver';
     styleUrl: 'bn-asset.css',
 })
 export class Asset {
+    // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+    @Element() private element: HTMLElement;
     /**
      * Unique (template scope) name of the asset
      */

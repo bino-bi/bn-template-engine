@@ -15,7 +15,8 @@ import { BinoChartSyles } from "../../utils/model/ChartStyles";
 
 
 export class Text {
-
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   constructor() {
     withStyled(this);
     withComponentStatus(this);

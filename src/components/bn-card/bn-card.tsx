@@ -14,7 +14,8 @@ export class Card {
     this.componentStyle = withComponentStyle(this);
   }
 
-  @Element() el: HTMLElement
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
 
   render() {
     return <Host style={this.prepareStyle()}>

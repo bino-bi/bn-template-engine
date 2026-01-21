@@ -301,25 +301,45 @@ export namespace Components {
     }
     interface BnGrid {
         /**
-          * @default "start"
+          * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
+          * @default '0px'
          */
-        "align": 'start' | 'end' | 'center' | 'stretch';
+        "cellGap": string;
         /**
-          * @default "space-between"
+          * Title displayed at top-left of the grid.
+          * @default ''
          */
-        "alignContent": 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
-        "columnGap": string;
-        "columns": number;
+        "chartTitle": string;
         /**
-          * @default "start"
+          * JSON array defining column headers. Simple format: '["Column 1", "Column 2"]' With IDs: '[{"label": "Column 1", "id": "c1"}, {"label": "Column 2", "id": "c2"}]'
+          * @default '[]'
          */
-        "justify": 'start' | 'end' | 'center' | 'stretch';
+        "columnHeaders": string;
         /**
-          * @default "space-between"
+          * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
+          * @default 'auto'
          */
-        "justifyContent": 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
-        "rowGap": string;
-        "rows": number;
+        "rowHeaderWidth": string;
+        /**
+          * JSON array defining row headers. Simple format: '["Row 1", "Row 2"]' With IDs: '[{"label": "Row 1", "id": "r1"}, {"label": "Row 2", "id": "r2"}]'
+          * @default '[]'
+         */
+        "rowHeaders": string;
+        /**
+          * Whether to display divider lines between cells.
+          * @default 'true'
+         */
+        "showBorders": string;
+        /**
+          * Whether to display column headers.
+          * @default 'true'
+         */
+        "showColumnHeaders": string;
+        /**
+          * Whether to display row headers.
+          * @default 'true'
+         */
+        "showRowHeaders": string;
     }
     interface BnImage {
         /**
@@ -1599,25 +1619,45 @@ declare namespace LocalJSX {
     }
     interface BnGrid {
         /**
-          * @default "start"
+          * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
+          * @default '0px'
          */
-        "align"?: 'start' | 'end' | 'center' | 'stretch';
+        "cellGap"?: string;
         /**
-          * @default "space-between"
+          * Title displayed at top-left of the grid.
+          * @default ''
          */
-        "alignContent"?: 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
-        "columnGap"?: string;
-        "columns"?: number;
+        "chartTitle"?: string;
         /**
-          * @default "start"
+          * JSON array defining column headers. Simple format: '["Column 1", "Column 2"]' With IDs: '[{"label": "Column 1", "id": "c1"}, {"label": "Column 2", "id": "c2"}]'
+          * @default '[]'
          */
-        "justify"?: 'start' | 'end' | 'center' | 'stretch';
+        "columnHeaders"?: string;
         /**
-          * @default "space-between"
+          * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
+          * @default 'auto'
          */
-        "justifyContent"?: 'start' | 'end' | 'center' | 'stretch' | 'space-around' | 'space-between' | 'space-evenly';
-        "rowGap"?: string;
-        "rows"?: number;
+        "rowHeaderWidth"?: string;
+        /**
+          * JSON array defining row headers. Simple format: '["Row 1", "Row 2"]' With IDs: '[{"label": "Row 1", "id": "r1"}, {"label": "Row 2", "id": "r2"}]'
+          * @default '[]'
+         */
+        "rowHeaders"?: string;
+        /**
+          * Whether to display divider lines between cells.
+          * @default 'true'
+         */
+        "showBorders"?: string;
+        /**
+          * Whether to display column headers.
+          * @default 'true'
+         */
+        "showColumnHeaders"?: string;
+        /**
+          * Whether to display row headers.
+          * @default 'true'
+         */
+        "showRowHeaders"?: string;
     }
     interface BnImage {
         /**

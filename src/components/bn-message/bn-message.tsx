@@ -8,6 +8,8 @@ import state from "../../stores/assets";
   assetsDirs: ['assets']
 })
 export class Footer {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   constructor() {
     withComponentStatus(this);
   }

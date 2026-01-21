@@ -7,7 +7,8 @@ import state from "../../stores/assets";
     shadow: true
 })
 export class LayoutCard {
-    @Element() el: HTMLElement
+    // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+    @Element() private element: HTMLElement;
 
     @Prop() styles?: string;
 

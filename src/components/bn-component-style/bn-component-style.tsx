@@ -9,13 +9,15 @@ import withComponentStatus from "../../utils/withComponentStatus";
   styleUrl: 'bn-component-style.scss'
 })
 export class ComponentStyle {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   @Prop() name: string = "_default";
 
   constructor() {
     withComponentStatus(this);
     withBodyObserver(this, (data) => {
       try {
-        const parsedData = JSON.parse(data);       
+        const parsedData = JSON.parse(data);
         set(this.name, parsedData as Style)
       } catch (e) {
         //TODO: add error chanel for JSON parsing errors

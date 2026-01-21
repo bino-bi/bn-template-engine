@@ -38,6 +38,8 @@ import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
   styleUrl: 'bn-title.scss',
 })
 export class Title {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   constructor() {
@@ -295,7 +297,7 @@ export class Title {
     return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries()]);
   }
 
-  private prepareI18nMode(): I18nMode {  
+  private prepareI18nMode(): I18nMode {
     return I18nMode.META;
   }
 

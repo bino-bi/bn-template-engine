@@ -9,6 +9,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
   styleUrl: 'bn-internationalization.scss'
 })
 export class Internationalization {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   constructor() {
     withComponentStatus(this);
     withBodyObserver(this, (data) => {

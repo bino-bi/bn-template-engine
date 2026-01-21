@@ -1,4 +1,4 @@
-import { Component, getAssetPath,  h, Host, Prop } from "@stencil/core";
+import { Component, getAssetPath, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
@@ -7,6 +7,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
   assetsDirs: ['assets']
 })
 export class Footer {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   constructor() {
     withComponentStatus(this);
   }
@@ -56,7 +58,7 @@ export class Footer {
   }
 
   render() {
-    return <Host id={(this.displayPageNumber || this.text  || this.code) ? "container-page-footer": "container"}>
+    return <Host id={(this.displayPageNumber || this.text || this.code) ? "container-page-footer" : "container"}>
       <div id="footer-text">
         {
           this.text != null ? <span class="note">{this.text}</span> : ""

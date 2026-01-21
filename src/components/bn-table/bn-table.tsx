@@ -49,6 +49,8 @@ import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
   styleUrl: 'bn-table.css'
 })
 export class Table {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   @State() data: TableDataRow[] = []
@@ -58,7 +60,7 @@ export class Table {
     withStyled(this);
     withComponentStatus(this);
     this.errors = withHasError(this);
-   
+
     withDataset(this, (_name, data) => {
       this.data = data || [];
     });
@@ -76,10 +78,10 @@ export class Table {
   filter: string = "";
 
 
- /**
-   * measureUnit displayed in table.
-   */
- @Prop() measureUnit: string = "";
+  /**
+    * measureUnit displayed in table.
+    */
+  @Prop() measureUnit: string = "";
 
 
   /** List of scenarios displayed in card header.
@@ -178,24 +180,24 @@ export class Table {
     }
   }
 
-    /**
-   *  Toggles display of measure units in table header
-   *  <br /><br />
-   *  values: <br />
-   *  ```true // false```
-   */
-    @Prop() showMeasureScale: string = 'false';
+  /**
+ *  Toggles display of measure units in table header
+ *  <br /><br />
+ *  values: <br />
+ *  ```true // false```
+ */
+  @Prop() showMeasureScale: string = 'false';
 
-    @Watch('showMeasureScale')
-    validateShowMeasureScale(newValue: string) {
-      const errId: string = 'ERR_grouped';
-  
-      if (!isValidBoolean(newValue)) {
-        this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
-      } else {
-        this.errors.remove(errId);
-      }
+  @Watch('showMeasureScale')
+  validateShowMeasureScale(newValue: string) {
+    const errId: string = 'ERR_grouped';
+
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
     }
+  }
 
 
   /**
@@ -312,7 +314,7 @@ export class Table {
   validatePartOf(newValue: string) {
     const errId: string = 'ERR_partof';
     const invalidElements: string[] = validatePartOfJsonStr(newValue);
-    
+
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'partof: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
     } else {
@@ -571,7 +573,7 @@ export class Table {
   private preparePartOf(): TableDrillGroup[] {
     if (this.partof == null || this.partof.trim() == '') {
       return [];
-    }    
+    }
     return JSON.parse(this.partof!) as TableDrillGroup[];
 
   }
@@ -685,10 +687,10 @@ export class Table {
     return (this.showMeasureScale == "true");
   }
   prepareMeasureUnit(): string {
-      if (this.measureUnit == "" || this.measureUnit == null) {
-        return "";
-      }
-      return this.measureUnit;
+    if (this.measureUnit == "" || this.measureUnit == null) {
+      return "";
+    }
+    return this.measureUnit;
   }
 
   private prepareFilter(): string {
@@ -767,5 +769,5 @@ export class Table {
       </div>
     </Host>;
   }
- 
+
 }

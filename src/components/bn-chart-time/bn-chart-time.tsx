@@ -57,6 +57,7 @@ enum AggregationLevel {
   styleUrl: "bn-chart-time.scss",
 })
 export class Chart {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
 
   @State() data: TimeChartDataRow[] = []
@@ -310,7 +311,7 @@ export class Chart {
    */
   @Prop() dateInterval!: string;
 
-  
+
 
   @Watch('dateInterval')
   validateDateInterval(newValue: string) {
@@ -327,77 +328,77 @@ export class Chart {
     }
   }
 
-   /** Chart Type
-   *  <br /><br />
-   *  values:<br />
-   *  ```bar// line / area```
-   */
-   @Prop() type: string = "bar";
+  /** Chart Type
+  *  <br /><br />
+  *  values:<br />
+  *  ```bar// line / area```
+  */
+  @Prop() type: string = "bar";
 
 
-   @Watch('type')
-   validateChartType(newValue: string) {
-     const errId: string = 'ERR_chartType';
-     console.log("newValue", newValue, errId);
-     /*if (!isValidateType(newValue)) {
-       this.errors.addOrReplace({
-         id: errId,
-         type: 'warning',
-         message: 'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'
-       });
-     } else {
-       this.errors.remove(errId);
-     }*/
-   }
+  @Watch('type')
+  validateChartType(newValue: string) {
+    const errId: string = 'ERR_chartType';
+    console.log("newValue", newValue, errId);
+    /*if (!isValidateType(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'
+      });
+    } else {
+      this.errors.remove(errId);
+    }*/
+  }
 
-   /** Chart Mode - controls how the chart is rendered
-   *  <br /><br />
-   *  values:<br />
-   *  ```bar // line // auto```
-   *  <br /><br />
-   *  When set to 'auto', the chart will switch to line mode
-   *  when the number of data points exceeds maxBars.
-   */
-   @Prop() chartMode: string = "bar";
+  /** Chart Mode - controls how the chart is rendered
+  *  <br /><br />
+  *  values:<br />
+  *  ```bar // line // auto```
+  *  <br /><br />
+  *  When set to 'auto', the chart will switch to line mode
+  *  when the number of data points exceeds maxBars.
+  */
+  @Prop() chartMode: string = "bar";
 
-   @Watch('chartMode')
-   validateChartMode(newValue: string) {
-     const errId: string = 'ERR_chartMode';
-     const validModes = ['bar', 'line', 'auto'];
+  @Watch('chartMode')
+  validateChartMode(newValue: string) {
+    const errId: string = 'ERR_chartMode';
+    const validModes = ['bar', 'line', 'auto'];
 
-     if (!validModes.includes(newValue?.toLowerCase())) {
-       this.errors.addOrReplace({
-         id: errId,
-         type: 'warning',
-         message: 'chartMode: invalid value \'' + newValue?.toString() + '\' is not supported. Valid values are: bar, line, auto.'
-       });
-     } else {
-       this.errors.remove(errId);
-     }
-   }
+    if (!validModes.includes(newValue?.toLowerCase())) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'chartMode: invalid value \'' + newValue?.toString() + '\' is not supported. Valid values are: bar, line, auto.'
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
 
-   /** Max Bars - threshold for auto-switching to line mode
-   *  <br /><br />
-   *  When chartMode is set to 'auto' and the number of data points
-   *  exceeds this value, the chart will render as a line chart.
-   */
-   @Prop() maxBars: number = 28;
+  /** Max Bars - threshold for auto-switching to line mode
+  *  <br /><br />
+  *  When chartMode is set to 'auto' and the number of data points
+  *  exceeds this value, the chart will render as a line chart.
+  */
+  @Prop() maxBars: number = 28;
 
-   @Watch('maxBars')
-   validateMaxBars(newValue: number) {
-     const errId: string = 'ERR_maxBars';
+  @Watch('maxBars')
+  validateMaxBars(newValue: number) {
+    const errId: string = 'ERR_maxBars';
 
-     if (!isValidInteger(newValue) || newValue < 1) {
-       this.errors.addOrReplace({
-         id: errId,
-         type: 'warning',
-         message: 'maxBars: invalid value \'' + newValue?.toString() + '\' is not supported. Must be a positive integer.'
-       });
-     } else {
-       this.errors.remove(errId);
-     }
-   }
- 
+    if (!isValidInteger(newValue) || newValue < 1) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'maxBars: invalid value \'' + newValue?.toString() + '\' is not supported. Must be a positive integer.'
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
 
   /** Max number of collumns
    *  is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
@@ -444,101 +445,101 @@ export class Chart {
   }
 
 
-    /**
-   *  Sets the SiPrefix of the Mesaurements and converts the
-   *  original value.
+  /**
+ *  Sets the SiPrefix of the Mesaurements and converts the
+ *  original value.
+ *  <br /><br />
+ *  values:  <br />
+ *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
+ *  <br /><br />
+ *  SiPrefix overview:
+ *  ```     "Y":  1E+24,```<br />
+ *  ```    "Z":  1E+21,```<br />
+ *  ```   "E":  1E+18,```<br />
+ *  ```     "P":  1E+15,```<br />
+ *  ```     "T":  1E+12,```<br />
+ *  ```     "G":  1000000000,```<br />
+ *  ```     "M":  1000000,```<br />
+ *  ```     "k":  1000,```<br />
+ *  <br />
+ *  ```     "m":  0.001,```<br />
+ *  ```    "μ":  0.000001,```<br />
+ *  ```     "n":  0.000000001,```<br />
+ *  ```     "p":  0.000000000001,```<br />
+ *  ```     "f":  0.000000000000001,```<br />
+ *  ```     "a":  0.000000000000000001,```<br />
+ *  ```     "z":  0.000000000000000000001,```<br />
+ *  ```     "y":  0.000000000000000000000001,```<br />
+ *  <br /><br />
+ * Special modes:
+ * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
+ * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
+ *<br /><br />
+ * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+ *
+ *
+ */
+  @Prop() measureScale: string = "greatest";
+
+  @Watch('measureScale')
+  validateMeasureScale(newValue: string) {
+    const errId: string = 'ERR_measureScale';
+
+    if (!isValidMeasureScale(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   *  Toggles display of measure units in table header
    *  <br /><br />
-   *  values:  <br />
-   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
-   *  <br /><br />
-   *  SiPrefix overview:
-   *  ```     "Y":  1E+24,```<br />
-   *  ```    "Z":  1E+21,```<br />
-   *  ```   "E":  1E+18,```<br />
-   *  ```     "P":  1E+15,```<br />
-   *  ```     "T":  1E+12,```<br />
-   *  ```     "G":  1000000000,```<br />
-   *  ```     "M":  1000000,```<br />
-   *  ```     "k":  1000,```<br />
-   *  <br />
-   *  ```     "m":  0.001,```<br />
-   *  ```    "μ":  0.000001,```<br />
-   *  ```     "n":  0.000000001,```<br />
-   *  ```     "p":  0.000000000001,```<br />
-   *  ```     "f":  0.000000000000001,```<br />
-   *  ```     "a":  0.000000000000000001,```<br />
-   *  ```     "z":  0.000000000000000000001,```<br />
-   *  ```     "y":  0.000000000000000000000001,```<br />
-   *  <br /><br />
-   * Special modes:
-   * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
-   * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
-   *<br /><br />
-   * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
-   *
-   *
+   *  values: <br />
+   *  ```true // false```
    */
-   @Prop() measureScale: string = "greatest";
+  @Prop() showMeasureScale: string = 'false';
 
-   @Watch('measureScale')
-   validateMeasureScale(newValue: string) {
-     const errId: string = 'ERR_measureScale';
-  
-     if (!isValidMeasureScale(newValue)) {
-       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
-     } else {
-       this.errors.remove(errId);
-     }
-   }
- 
-   /**
-    *  Toggles display of measure units in table header
-    *  <br /><br />
-    *  values: <br />
-    *  ```true // false```
-    */
-   @Prop() showMeasureScale: string = 'false';
- 
-   @Watch('showMeasureScale')
-   validateShowMeasureScale(newValue: string) {
-      const errId: string = 'ERR_grouped';
-      
-       if (!isValidBoolean(newValue)) {
-           this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
-       } else {
-           this.errors.remove(errId);
-       }
-   }
- 
+  @Watch('showMeasureScale')
+  validateShowMeasureScale(newValue: string) {
+    const errId: string = 'ERR_grouped';
 
-   @Prop() showOverlayAvg: string = 'true';
-   @Watch('showOverlayAvg')
-   validateShowOverlayAvg(newValue: string) {
-      const errId: string = 'ERR_grouped';
-      
-       if (!isValidBoolean(newValue)) {
-           this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayAvg: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
-       } else {
-           this.errors.remove(errId);
-       }
-   }
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
 
-   @Prop() showOverlayMedian: string = 'false';
-   @Watch('showOverlayMedian')
-   validateShowOverlayMedian(newValue: string) {
-      const errId: string = 'ERR_grouped';
-      
-       if (!isValidBoolean(newValue)) {
-           this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayMedian: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
-       } else {
-           this.errors.remove(errId);
-       }
-   }
- 
-    /**
-    * measureUnit displayed in table.
-    */
-   @Prop() measureUnit: string = "";
+
+  @Prop() showOverlayAvg: string = 'true';
+  @Watch('showOverlayAvg')
+  validateShowOverlayAvg(newValue: string) {
+    const errId: string = 'ERR_grouped';
+
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayAvg: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  @Prop() showOverlayMedian: string = 'false';
+  @Watch('showOverlayMedian')
+  validateShowOverlayMedian(newValue: string) {
+    const errId: string = 'ERR_grouped';
+
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayMedian: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+  * measureUnit displayed in table.
+  */
+  @Prop() measureUnit: string = "";
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
@@ -591,12 +592,12 @@ export class Chart {
   }
 
   private prepareAvg(): boolean {
- 
+
     return this.showOverlayAvg == "true";
   }
 
   private prepareMedian(): boolean {
- 
+
     return this.showOverlayMedian == "true";
   }
 
@@ -609,7 +610,7 @@ export class Chart {
 
 
   private prepareHideAxisLabels(idx: number): boolean {
-    return idx >= 1|| this.showCategories != "true";
+    return idx >= 1 || this.showCategories != "true";
   }
 
   private prepareI18n(): Map<string, string> {
@@ -694,8 +695,8 @@ export class Chart {
 
   private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: TimeChartStyle): number {
 
-    
-    if (this.syncSpaceLeft > -1) {     
+
+    if (this.syncSpaceLeft > -1) {
       return this.syncSpaceLeft;
     }
 
@@ -733,7 +734,7 @@ export class Chart {
     return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
 
-  
+
   private prepareFilter(): string {
     if (this.filter.length == 0) {
       return '';
@@ -803,14 +804,14 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx == 0 && this.showMeasureScale == "true";   
+    return idx == 0 && this.showMeasureScale == "true";
   }
 
   prepareMeasureUnit(): string {
-      if (this.measureUnit == "" || this.measureUnit == null) {
-        return "";
-      }
-      return this.measureUnit;
+    if (this.measureUnit == "" || this.measureUnit == null) {
+      return "";
+    }
+    return this.measureUnit;
   }
 
   private prepareChartMode(): ChartMode {
@@ -830,7 +831,7 @@ export class Chart {
   chartTemplate(localScenarioString: string, idx: number) {
     let preparedI18n: Map<string, string> = this.prepareI18n();
     let preparedStyle: TimeChartStyle = this.prepareStyle();
-   
+
     return <ibcs-chart-time
       data={this.data}
       chartTitle={this.prepareChartTitle(idx)}
@@ -848,7 +849,7 @@ export class Chart {
       dateInterval={this.prepareDateInterval()}
       intervalSpanLimit={this.prepareIntervalSpanLimit()}
       axisLabelsMode={this.prepareAxisLabelsMode()}
-    //  type={this.prepareChartType()}
+      //  type={this.prepareChartType()}
       filter={this.prepareFilter()}
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
@@ -859,7 +860,7 @@ export class Chart {
       maxBars={this.prepareMaxBars()}
     ></ibcs-chart-time>
   }
- 
+
 
   render() {
     let scenariosArray = [''];
