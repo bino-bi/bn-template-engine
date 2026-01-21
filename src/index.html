@@ -23,7 +23,7 @@
 <body>
   <bn-context locale="de">
 
-    <bn-component-style name="big">
+    <!-- <bn-component-style name="big">
       {
       "global": {
       "fontSizePx": 10
@@ -37,7 +37,7 @@
       "fontSizePx": 13.3333
       }
       }
-    </bn-component-style>
+    </bn-component-style> -->
 
 
     <bn-internationalization code="de" namespace="test">
@@ -326,7 +326,7 @@
       <bn-title business-unit='Grid Matrix Example' measures='[{"name": "Small Multiples", "unit": ""}]'></bn-title>
       <bn-body>
 
-        <bn-grid chart-title="Trends, in USD" row-headers='["ΔPY%", "ΔPY"]'
+        <bn-grid chart-title="Trends, in USD" row-headers='["ΔPY%", "ΔPY","Jens"]'
           column-headers='["Total Revenue", "Gross Profit"]' show-borders="true">
           <bn-chart-time slot="0-0" chart-mode="line" datasets='$Charts_Time' level='category' order='category'
             order-direction='asc' scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
@@ -336,10 +336,51 @@
             scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
           <bn-chart-time slot="1-1" datasets='$Charts_Time' level='category' order='category' order-direction='asc'
             scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
+          <bn-chart-time slot="2-0" datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+            scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
+          <bn-chart-time slot="2-1" datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+            scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
         </bn-grid>
 
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
+
+    <!-- Bar Chart Columns Example -->
+    <bn-page name="Bar_Columns_Example" format="a4" orientation="landscape">
+      <bn-title business-unit='Bar Chart Columns Example'
+        measures='[{"name": "IBCS Variance Bars", "unit": ""}]'></bn-title>
+      <bn-body>
+        <h3 style="margin: 20px;">Table with Bar Chart Columns - Variance Visualization</h3>
+        <p style="margin: 20px; font-size: 12px; color: #666;">
+          The columns ΔPY (absolute variance) and ΔPY% (relative variance) are rendered as inline bar charts instead of
+          numbers.
+        </p>
+
+        <!-- Table with bar-columns showing variance as bar charts -->
+        <!-- unit-scaling: pixels per unit (0.03 = 1000 units = 30px) -->
+        <!-- percentage-scaling: pixels per % point (0.4 = 100% = 40px) -->
+        <bn-table datasets='$Charts_Time' category-width='w15' data-format='decimal' data-format-digits-decimal='0'
+          data-format-digits-percent='1' grouped='false' measure-scale='_' measure-type='volume' order='category'
+          order-direction='asc' scenarios='ac1,pp1' variances='dac1_pp1_pos,drac1_pp1_neg'
+          bar-columns='dac1_pp1_pos,drac1_pp1_neg' table-title='Revenue by Category' type='sum' unit-scaling='0.03'
+          percentage-scaling='2'>
+        </bn-table>
+
+        <h3 style="margin: 20px; margin-top: 40px;">Comparison: Same Table without Bar Columns</h3>
+        <p style="margin: 20px; font-size: 12px; color: #666;">
+          Same data without bar-columns attribute - variances shown as numbers.
+        </p>
+
+        <!-- Same table without bar-columns for comparison -->
+        <bn-table datasets='$Charts_Time' category-width='w15' data-format='decimal' data-format-digits-decimal='0'
+          data-format-digits-percent='1' grouped='false' measure-scale='_' measure-type='volume' order='category'
+          order-direction='asc' scenarios='ac1,pp1' variances='dac1_pp1_pos,drac1_pp1_pos'
+          table-title='Revenue by Category (Numbers)' type='sum'>
+        </bn-table>
+
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH - Bar Columns Demo" code="bar"></bn-footer>
     </bn-page>
 
     <bn-page name="ROI_Tree_Example" format="a4" orientation="landscape">

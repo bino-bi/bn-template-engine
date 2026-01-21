@@ -6,6 +6,7 @@
 
 <!-- Auto Generated Below -->
 
+
 ## Properties
 
 | Property            | Attribute             | Description                                                                                                                                                      | Type     | Default  |
@@ -19,6 +20,7 @@
 | `showColumnHeaders` | `show-column-headers` | Whether to display column headers.                                                                                                                               | `string` | `'true'` |
 | `showRowHeaders`    | `show-row-headers`    | Whether to display row headers.                                                                                                                                  | `string` | `'true'` |
 
----
+
+----------------------------------------------
 
 developed by Bino Bi

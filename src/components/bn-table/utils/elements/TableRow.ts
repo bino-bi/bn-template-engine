@@ -1,6 +1,6 @@
 import { TableCategoryWidth } from "../../../../utils/constants";
 import {TableRowType} from "../model";
-import {Cell} from "./Cell";
+import {Cell, ColumnStats} from "./Cell";
 // import {TableCategoryWidth} from "@bino-bi/ibcs-component-interface";
 
 
@@ -50,7 +50,7 @@ export class TableRow {
     return this.elements;
   }
 
-  public createElement(value: string | number | null, scenario: string, columnType :string | null,  cellType: string | null, prefix: string  | null, cellStyle :string  | null, isSecondaryElement: boolean  | null, categoryWidth: TableCategoryWidth | null | undefined, measureScale: number  | null | undefined) {
+  public createElement(value: string | number | null, scenario: string, columnType :string | null,  cellType: string | null, prefix: string  | null, cellStyle :string  | null, isSecondaryElement: boolean  | null, categoryWidth: TableCategoryWidth | null | undefined, measureScale: number  | null | undefined, isBarChart: boolean = false, columnStats?: ColumnStats) {
     let cssStyle = cellStyle;
 
     if(scenario == 'category' && categoryWidth != null){
@@ -85,8 +85,10 @@ export class TableRow {
 
     cssStyle = `${cssStyle}  ${columnType}`;
 
-
-    this.elements.push(new Cell(scenario, this.elements.length, value, cssStyle, cellType, prefix, prefixStyle, 1, measureScale));
+    const cell = new Cell(scenario, this.elements.length, value, cssStyle, cellType, prefix, prefixStyle, 1, measureScale);
+    cell.isBarChart = isBarChart;
+    cell.columnStats = columnStats;
+    this.elements.push(cell);
   }
 
 }

@@ -29,7 +29,8 @@ describe('DQueryGroup Test', () => {
     measureType: MeasureType.VOLUME,
     measureUnit: "",
     showMeasureScale: false,
-    filter: ""
+    filter: "",
+    barColumns: []
   };
 
   it('should return noCategory array', () => {

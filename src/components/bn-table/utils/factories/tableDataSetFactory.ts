@@ -10,6 +10,7 @@ import { Formatter } from "../../../../utils";
 import { I18nMode, DataFormat, TableCategoryWidth } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
+import { ColumnStats } from "../elements/Cell";
 // import {SiPrefix} from "../../../../utils/model/SiPrefix";
 // import {DataFormat, I18nMode, TableCategoryWidth} from "@bino-bi/ibcs-component-interface";
 
@@ -101,14 +102,83 @@ export class TableDataSetFactory {
     let iGroupIndex: number = -1; // index used in detailRow JSON to count the current group
     let queryData = new DataQuery(config, i18n).execute(data); // collection of all query results
 
+    // Calculate column statistics for bar columns
+    const columnStatsMap = this.calculateColumnStatistics(queryData, config.barColumns);
+
     for (let groupData of queryData) {
       // groupData is a collection of dataRows, each group base on a query and represents a 'row' group
       iGroupIndex += 1;
       let iRowIndex: number = -1;
-      bodyRows.push(...this.createRow(config.i18n, i18n, config.scenariosUnitType, groupData, iGroupIndex, iRowIndex, config.categoryWidth, config.measureScale));
+      bodyRows.push(...this.createRow(config.i18n, i18n, config.scenariosUnitType, groupData, iGroupIndex, iRowIndex, config.categoryWidth, config.measureScale, config.barColumns, columnStatsMap));
     }
 
     return bodyRows;
+  }
+
+  /**
+   * Calculate min/max statistics for bar chart columns across all query data.
+   */
+  private calculateColumnStatistics(queryData: any[][], barColumns: string[]): Map<string, ColumnStats> {
+    const statsMap = new Map<string, ColumnStats>();
+
+    if (!barColumns || barColumns.length === 0) {
+      return statsMap;
+    }
+
+    // Initialize stats for each bar column
+    for (const column of barColumns) {
+      statsMap.set(column, { min: Infinity, max: -Infinity, absMax: 0 });
+    }
+
+    // Iterate through all groups and rows
+    for (const groupData of queryData) {
+      for (const row of groupData) {
+        for (const column of barColumns) {
+          const value = this.extractColumnValue(row, column);
+          if (value !== null && !isNaN(value)) {
+            const stats = statsMap.get(column)!;
+            stats.min = Math.min(stats.min, value);
+            stats.max = Math.max(stats.max, value);
+          }
+        }
+      }
+    }
+
+    // Finalize absMax values
+    for (const [column, stats] of statsMap) {
+      if (stats.min === Infinity || stats.max === -Infinity) {
+        stats.min = 0;
+        stats.max = 0;
+      }
+      stats.absMax = Math.max(Math.abs(stats.min), Math.abs(stats.max));
+      statsMap.set(column, stats);
+    }
+
+    return statsMap;
+  }
+
+  /**
+   * Extract a numeric value from a row for a given column name.
+   * Handles the various naming conventions used in the table data.
+   */
+  private extractColumnValue(row: any, column: string): number | null {
+    // Try direct access
+    if (row[column] !== undefined) {
+      const val = Number(row[column]);
+      return isNaN(val) ? null : val;
+    }
+
+    // Search for keys that match the column (handles scenario## prefix patterns)
+    for (const key of Object.keys(row)) {
+      if (key === column || key.endsWith('##' + column) || key === column + '##' + column) {
+        const val = Number(row[key]);
+        if (!isNaN(val)) {
+          return val;
+        }
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -124,8 +194,10 @@ export class TableDataSetFactory {
    * @param iRowIndex
    * @param categoryWidth
    * @param measureScale
+   * @param barColumns
+   * @param columnStatsMap
    */
-  private createRow(i18nMode: I18nMode | undefined, i18n: Map<string | number, string>, scenariosUnitType: DataFormat, groupData: any, iGroupIndex: number, iRowIndex: number, categoryWidth?: TableCategoryWidth, measureScale?: SiPrefix): TableRow[] {
+  private createRow(i18nMode: I18nMode | undefined, i18n: Map<string | number, string>, scenariosUnitType: DataFormat, groupData: any, iGroupIndex: number, iRowIndex: number, categoryWidth?: TableCategoryWidth, measureScale?: SiPrefix, barColumns?: string[], columnStatsMap?: Map<string, ColumnStats>): TableRow[] {
     let result: TableRow[] = [];
 
     for (let rawDataRow of groupData) {
@@ -140,6 +212,9 @@ export class TableDataSetFactory {
       for (let scenario of this.normalizedHeader) {
 
         let value = this.getRawDataRowElement(rawDataRow, scenario);
+        const isBarChart = barColumns?.includes(scenario.type) ?? false;
+        const columnStats = isBarChart ? columnStatsMap?.get(scenario.type) : undefined;
+
         detailsRow.createElement(this.translateSumCellLabel(i18nMode,i18n,value, groupName,subCategory, type, scenario.type),
                                  scenario.type,
                                  this.createColumnType(scenario),
@@ -148,7 +223,9 @@ export class TableDataSetFactory {
                                  this.translateScenarioCSS(scenario.type, value),
                                  isSecondElement,
                                  categoryWidth,
-                                 measureScale?.value);
+                                 measureScale?.value,
+                                 isBarChart,
+                                 columnStats);
       }
 
       result.push(detailsRow);
