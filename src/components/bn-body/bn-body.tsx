@@ -1,4 +1,4 @@
-import {Component, h, Host} from "@stencil/core";
+import { Component, h, Host } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
@@ -6,10 +6,12 @@ import withComponentStatus from "../../utils/withComponentStatus";
   styleUrl: 'bn-body.scss'
 })
 export class Body {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   constructor() {
     withComponentStatus(this);
   }
   render() {
-    return <Host/>
+    return <Host />
   }
 }

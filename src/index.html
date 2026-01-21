@@ -321,6 +321,27 @@
       SELECT * FROM ROI_Data WHERE rowGroup = 'Capital'
     </bn-dataset>
 
+    <!-- bn-grid Matrix Layout Example -->
+    <bn-page name="Grid_Example" format="a4" orientation="landscape">
+      <bn-title business-unit='Grid Matrix Example' measures='[{"name": "Small Multiples", "unit": ""}]'></bn-title>
+      <bn-body>
+
+        <bn-grid chart-title="Trends, in USD" row-headers='["ΔPY%", "ΔPY"]'
+          column-headers='["Total Revenue", "Gross Profit"]' show-borders="true">
+          <bn-chart-time slot="0-0" chart-mode="line" datasets='$Charts_Time' level='category' order='category'
+            order-direction='asc' scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
+          <bn-chart-time slot="0-1" chart-mode="line" datasets='$Charts_Time' level='category' order='category'
+            order-direction='asc' scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
+          <bn-chart-time slot="1-0" datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+            scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
+          <bn-chart-time slot="1-1" datasets='$Charts_Time' level='category' order='category' order-direction='asc'
+            scenarios='ac1,pp1' unit-scaling='0.054' date-interval="month"></bn-chart-time>
+        </bn-grid>
+
+      </bn-body>
+      <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
+    </bn-page>
+
     <bn-page name="ROI_Tree_Example" format="a4" orientation="landscape">
       <bn-title business-unit='ROI Tree Example' measures='[{"name": "ROI Analysis", "unit": "%"}]'></bn-title>
       <bn-body>

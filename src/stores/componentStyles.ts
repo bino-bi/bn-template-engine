@@ -14,12 +14,20 @@ export interface TreeChartStyle {
   operatorColor: string;
 }
 
+export interface GridStyle {
+  headerBackground: string;
+  borderColor: string;
+  borderWidth: number;
+  cellPadding: number;
+}
+
 export interface Style {
   global: GlobalStyle;
   "bn-text": TextStyle;
   "bn-chart-time": TimeChartStyle;
   "bn-chart-structure": StructureChartStyle;
   "bn-chart-tree": TreeChartStyle;
+  "bn-grid": GridStyle;
 }
 
 export interface GlobalStyle {
@@ -158,6 +166,12 @@ const { state, on, get, set } = createStore<{ [key: string]: Style }>(
         "operatorCircleRadius": 10,
         "operatorFontSizeScale": 0.9, // Relative to global.fontSizePx
         "operatorColor": "#404040",
+      },
+      "bn-grid": {
+        "headerBackground": "transparent",
+        "borderColor": "#A6A6A6",
+        "borderWidth": 1,
+        "cellPadding": 4,
       },
     }
   }

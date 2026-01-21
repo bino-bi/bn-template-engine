@@ -8,6 +8,9 @@ import state from "../../stores/assets";
     styleUrl: 'bn-image.scss'
 })
 export class Image {
+    // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+    @Element() private element: HTMLElement;
+
     constructor() {
         withStyled(this);
         withComponentStatus(this);

@@ -7,6 +7,8 @@ import withComponentStyle from "../../utils/withComponentStyle";
   styleUrl: 'bn-page.scss',
 })
 export class Page {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
 
   constructor() {
@@ -14,7 +16,6 @@ export class Page {
     this.componentStyle = withComponentStyle(this);
   }
 
-  @Element() el: HTMLElement
   /**
    * Defines the size of the page
    * <br /><br />

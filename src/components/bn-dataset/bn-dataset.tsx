@@ -10,6 +10,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
   styleUrl: 'bn-dataset.css',
 })
 export class Dataset {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
   constructor() {
     withComponentStatus(this);
     // @ts-ignore

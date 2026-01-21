@@ -6,7 +6,8 @@ import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
     shadow: true
 })
 export class LayoutPage {
-    @Element() el: HTMLElement
+    // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+    @Element() private element: HTMLElement;
 
     @Prop() styles?: string;
 
@@ -162,10 +163,10 @@ export class LayoutPage {
 
     componentDidUpdate() {
         // workaround for the render rotation issue
-        let renderOrientation = this.el.closest('bn-context').getAttribute('render-orientation')
+        let renderOrientation = this.element.closest('bn-context').getAttribute('render-orientation')
         if (renderOrientation && renderOrientation != this.pageOrientation) {
-            const page = this.el.shadowRoot.querySelector('bn-page');
-            const layout = this.el.closest('bn-layout-page')
+            const page = this.element.shadowRoot.querySelector('bn-page');
+            const layout = this.element.closest('bn-layout-page')
             if (layout && page) {
                 page.style.transform = 'rotate(-90deg) translate(-100%)'
                 page.style.transformOrigin = 'top left';

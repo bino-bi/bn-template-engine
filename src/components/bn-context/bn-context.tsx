@@ -11,7 +11,8 @@ export class Context {
     withComponentStatus(this);
   }
 
-  @Element() el: HTMLElement;
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
 
   @Prop() locale: string;
 
@@ -29,7 +30,7 @@ export class Context {
 
     this.currentPageUpdate = setTimeout(() => {
 
-      this.el.querySelectorAll('bn-page, bn-layout-page').forEach((page, index) => {
+      this.element.querySelectorAll('bn-page, bn-layout-page').forEach((page, index) => {
         if (page.localName === 'bn-layout-page') {
           page.setAttribute("page-number", (index + 1).toString());
         } else {
