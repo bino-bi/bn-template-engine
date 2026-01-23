@@ -24,6 +24,7 @@ import { Style } from "../../stores/componentStyles";
 @Component({
   tag: "ibcs-table",
   styleUrl: "ibcs-table.scss",
+  shadow: true
 })
 export class IbcsTable {
   // @ts-ignore - Required by withComponentStyle mixin

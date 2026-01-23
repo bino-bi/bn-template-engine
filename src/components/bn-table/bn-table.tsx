@@ -1,4 +1,4 @@
-import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isTableCategoryWidth,
@@ -22,6 +22,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import { globalLabelKeys } from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
+import withComponentStyle from "../../utils/withComponentStyle";
+import { Style } from "../../stores/componentStyles";
 
 
 /*import {
@@ -47,13 +49,15 @@ import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
 
 @Component({
   tag: 'bn-table',
-  styleUrl: 'bn-table.css'
+  styleUrl: 'bn-table.css',
+  shadow: true
 })
 export class Table {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   @State() data: TableDataRow[] = []
 
 
@@ -61,6 +65,7 @@ export class Table {
     withStyled(this);
     withComponentStatus(this);
     this.errors = withHasError(this);
+    this.componentStyle = withComponentStyle(this);
 
     withDataset(this, (_name, data) => {
       this.data = data || [];
@@ -844,8 +849,19 @@ export class Table {
   }
 
 
+  private getFontStyles(): { [key: string]: string } {
+    return this.componentStyle($ => ({
+      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    }));
+  }
+
   render() {
-    return <Host>
+    const fontStyles = this.getFontStyles();
+
+    return <Host style={fontStyles}>
       <div>
         <ibcs-table
           data={this.data}

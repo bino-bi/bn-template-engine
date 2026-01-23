@@ -292,6 +292,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      <mock:shadow-root>
     <table>
       <thead>
         <tr class=\"groupheader\">
@@ -1072,6 +1073,7 @@ describe("IBCS Table Test", () => {
         </tr>
       </tbody>
     </table>
+      </mock:shadow-root>
   </ibcs-table>`);
 
   });
@@ -1125,6 +1127,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      <mock:shadow-root>
     <table>
       <thead>
         <tr class=\"groupheader\">
@@ -1855,6 +1858,7 @@ describe("IBCS Table Test", () => {
         </tr>
       </tbody>
     </table>
+      </mock:shadow-root>
   </ibcs-table>`);
 
   });
@@ -1907,6 +1911,7 @@ describe("IBCS Table Test", () => {
       });
       
        expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+         <mock:shadow-root>
        <table>
          <thead>
            <tr class=\"groupheader\">
@@ -2281,10 +2286,11 @@ describe("IBCS Table Test", () => {
            </tr>
          </tbody>
        </table>
+         </mock:shadow-root>
      </ibcs-table>`);
   });
-  
-  
+
+
   it('should render OPT NO SUM table width colums and row dills and grouping', async () => {
         const page = await newSpecPage({
           components: [IbcsTable],
@@ -2333,6 +2339,7 @@ describe("IBCS Table Test", () => {
         });
 
         expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+          <mock:shadow-root>
         <table>
           <thead>
             <tr class=\"groupheader\">
@@ -2911,9 +2918,10 @@ describe("IBCS Table Test", () => {
             </tr>
           </tbody>
         </table>
-      </ibcs-table`);
+          </mock:shadow-root>
+      </ibcs-table>`);
 
-  });  
+  });
 
   describe("IBCS Table Test with incomplete Parameters", () => {
         let dataSet: any[] = [{
@@ -2998,9 +3006,11 @@ describe("IBCS Table Test", () => {
         });
 
         expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+          <mock:shadow-root>
         <p class=\"warning\">
           ==No Data==
         </p>
+          </mock:shadow-root>
       </ibcs-table>`);
       });
 
@@ -3054,6 +3064,7 @@ describe("IBCS Table Test", () => {
           });
 
           expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+            <mock:shadow-root>
           <table>
             <thead>
               <tr class=\"groupheader\">
@@ -3368,9 +3379,10 @@ describe("IBCS Table Test", () => {
               </tr>
             </tbody>
           </table>
+            </mock:shadow-root>
         </ibcs-table>`);
         });
-            
+
   });
 });
 
