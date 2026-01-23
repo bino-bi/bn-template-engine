@@ -1,21 +1,21 @@
-bn-card {
+:host {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 0.25em;
   margin: 0.5em;
   background-origin: content-box;
-
-  &.border{
-    /*outline: 0.1em solid #CCC;*/
-    box-sizing:border-box;
-    -webkit-box-sizing:border-box;
-    border: 0.1em solid #DDD;
-  }
-
-  div {
-    /*background-color: white;*/
-    color: black;
-  }
+  font-family: var(--bn-font-family, 'Noto Sans', sans-serif);
+  font-size: var(--bn-font-size, 13.3333px);
+  color: var(--bn-font-color, #000000);
 }
 
+:host(.border) {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border: 0.1em solid #DDD;
+}
+
+div {
+  color: var(--bn-font-color, black);
+}

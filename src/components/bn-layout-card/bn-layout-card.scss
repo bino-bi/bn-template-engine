@@ -1,26 +1,25 @@
 :host {
-  background: white;
-  //display: inline-flex;
+  background: var(--bn-font-background, white);
+  color: var(--bn-font-color, black);
+  font-family: var(--bn-font-family, 'Noto Sans', sans-serif);
+  font-size: var(--bn-font-size, 13.3333px);
   flex-direction: column;
-  //page-break-after: always;
   overflow: hidden;
   float: left;
   clear: left;
 }
 
-bn-card {
-  .cardtitle {
-     display: inline-flex;
-  }
-  .image {
-    margin-right: 0.5em;
-    margin-top: 0.5em;
-    z-index: 2;
-    background-color: transparent;
-    border: transparent;
-    height: 4em;
-    width:  auto;
-    display: inline;
-  }
+.cardtitle {
+  display: inline-flex;
 }
 
+.image {
+  margin-right: 0.5em;
+  margin-top: 0.5em;
+  z-index: 2;
+  background-color: transparent;
+  border: transparent;
+  height: 4em;
+  width: auto;
+  display: inline;
+}

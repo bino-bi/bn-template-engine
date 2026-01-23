@@ -1,8 +1,9 @@
-import { Component, h, Host, Prop } from "@stencil/core";
+import { Component, Element, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 
 @Component({
-  tag: 'bn-template'
+  tag: 'bn-template',
+  shadow: true
 })
 export class Template {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -16,6 +17,6 @@ export class Template {
   @Prop() templateId: string;
 
   render() {
-    return <Host />
+    return <Host><slot /></Host>
   }
 }

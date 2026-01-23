@@ -1,11 +1,15 @@
-ibcs-title {
-  .measure {
-    font-weight: bold;
-  }
+:host {
+  display: block;
+  font-family: var(--bn-font-family, 'Noto Sans', sans-serif);
+  font-size: var(--bn-font-size, 13.3333px);
+  color: var(--bn-font-color, #000000);
+}
 
-  div {
-    background-color: white;
-    color: black;
-    // font-family: NotoSans, Helvetica Neue, Helvetica;
-  }
+.measure {
+  font-weight: bold;
+}
+
+div {
+  background-color: var(--bn-font-background, white);
+  color: var(--bn-font-color, black);
 }

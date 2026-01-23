@@ -1,17 +1,17 @@
-bn-chart-time {
+:host {
   display: inline-block;
   position: relative;
   overflow: hidden;
+}
 
-  .container {
-    display: flex;
-    /* or inline-flex */
-    flex-direction: column-reverse;
-  }
+.container {
+  display: flex;
+  /* or inline-flex */
+  flex-direction: column-reverse;
+}
 
-  .background-image {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
+.background-image {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }

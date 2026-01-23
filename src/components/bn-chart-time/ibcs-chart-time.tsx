@@ -44,6 +44,7 @@ import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVaria
 @Component({
   tag: "ibcs-chart-time",
   styleUrl: "ibcs-chart-time.scss",
+  shadow: true
 })
 
 export class IbcsChartTime {

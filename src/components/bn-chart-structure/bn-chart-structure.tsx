@@ -24,6 +24,7 @@ import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 @Component({
   tag: 'bn-chart-structure',
   styleUrl: "bn-chart-structure.scss",
+  shadow: true
 })
 export class Chart {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -556,15 +557,26 @@ export class Chart {
     ></ibcs-chart-structure>
   }
 
+  private getFontStyles(): { [key: string]: string } {
+    return this.componentStyle($ => ({
+      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    }));
+  }
+
   render() {
     let scenariosArray = [''];
     let variancesArray = this.prepareVariances();
-    
+
     if (variancesArray.length > 0) {
       scenariosArray = [...scenariosArray, ...variancesArray];
     }
 
-    return <Host>
+    const fontStyles = this.getFontStyles();
+
+    return <Host style={fontStyles}>
       <div class="container">
         {scenariosArray.map(this.chartTemplate)}
       </div>

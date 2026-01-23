@@ -37,7 +37,7 @@ import {
 @Component({
   tag: 'bn-chart-tree',
   styleUrl: "bn-chart-tree.scss",
-  shadow: false,
+  shadow: true,
 })
 export class ChartTree {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -249,7 +249,7 @@ export class ChartTree {
   }
 
   private setupResizeObserver() {
-    this.gridContainer = this.element.querySelector('.tree-grid');
+    this.gridContainer = this.element.shadowRoot?.querySelector('.tree-grid');
 
     if (!this.gridContainer) {
       return;
@@ -464,10 +464,21 @@ export class ChartTree {
     ));
   }
 
+  private getFontStyles(): { [key: string]: string } {
+    return this.componentStyle($ => ({
+      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    }));
+  }
+
   render() {
+    const fontStyles = this.getFontStyles();
+
     if (!this.treeConfig || !this.layout) {
       return (
-        <Host>
+        <Host style={fontStyles}>
           <div class="tree-container tree-error">
             <slot />
           </div>
@@ -483,7 +494,7 @@ export class ChartTree {
     };
 
     return (
-      <Host>
+      <Host style={fontStyles}>
         <div class="tree-container">
           <div class="tree-grid" style={gridStyle}>
             {this.renderEdges()}

@@ -25,6 +25,7 @@ import { StringAdapter } from "../../../utils/helper/StringAdapter";
 @Component({
   tag: "ibcs-title",
   styleUrl: "ibcs-title.scss",
+  shadow: true
 })
 export class IbcsTitle {
 

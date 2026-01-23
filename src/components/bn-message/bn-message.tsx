@@ -1,17 +1,32 @@
-import { Component, h, Host, Prop } from "@stencil/core";
+import { Component, Element, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withComponentStyle from "../../utils/withComponentStyle";
+import { Style } from "../../stores/componentStyles";
 import state from "../../stores/assets";
 
 @Component({
   tag: 'bn-message',
   styleUrl: 'bn-message.scss',
-  assetsDirs: ['assets']
+  assetsDirs: ['assets'],
+  shadow: true
 })
 export class Footer {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+
   constructor() {
     withComponentStatus(this);
+    this.componentStyle = withComponentStyle(this);
+  }
+
+  private getFontStyles(): { [key: string]: string } {
+    return this.componentStyle($ => ({
+      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    }));
   }
 
   /**
@@ -47,7 +62,7 @@ export class Footer {
 
 
   render() {
-    return <Host id={(this.text || this.image) ? "container-page-message" : "container"}>
+    return <Host id={(this.text || this.image) ? "container-page-message" : "container"} style={this.getFontStyles()}>
       <div id="message-text">
         {
           this.text != null && this.text != "" ? <span class="note">{this.text}</span> : ""

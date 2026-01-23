@@ -1,7 +1,10 @@
-bn-image {
+:host {
   display: inline-block;
   position: relative;
   overflow: hidden;
 }
 
-
+img {
+  max-width: 100%;
+  height: auto;
+}

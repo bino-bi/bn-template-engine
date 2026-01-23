@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host } from '@stencil/core';
+import { Component, Element, Prop, h, Host } from '@stencil/core';
 import withComponentStatus from '../../utils/withComponentStatus';
 import { set } from '../../stores/assets';
 import withBodyObserver from '../../utils/withBodyObserver';
@@ -6,6 +6,7 @@ import withBodyObserver from '../../utils/withBodyObserver';
 @Component({
     tag: 'bn-asset',
     styleUrl: 'bn-asset.css',
+    shadow: true
 })
 export class Asset {
     // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)

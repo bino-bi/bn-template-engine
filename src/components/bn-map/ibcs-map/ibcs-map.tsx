@@ -16,6 +16,7 @@ import { ComponentStatus } from "../../../utils/componentRegister";
   tag: "ibcs-map",
   styleUrl: 'ibcs-map.scss',
   assetsDirs: ['assets'],
+  shadow: true
 })
 
 

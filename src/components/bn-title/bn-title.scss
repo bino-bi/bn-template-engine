@@ -1,10 +1,11 @@
-bn-title {
+:host {
   padding: 0.5em;
   margin-bottom: 0.5em;
-  /*border-bottom: #CCC solid 0.05em;
-  border-top: 0.1em solid #CCC;*/
-  box-sizing:border-box;
-  -webkit-box-sizing:border-box;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   width: 100%;
-
+  display: block;
+  font-family: var(--bn-font-family, 'Noto Sans', sans-serif);
+  font-size: var(--bn-font-size, 13.3333px);
+  color: var(--bn-font-color, #000000);
 }

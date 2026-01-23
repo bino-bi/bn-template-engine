@@ -1,4 +1,3 @@
-bn-asset {
-    display: none;
-  }
-  
+:host {
+  display: none;
+}

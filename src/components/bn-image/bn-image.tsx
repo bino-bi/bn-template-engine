@@ -1,19 +1,33 @@
-import { Component, h, Host, Prop } from "@stencil/core";
+import { Component, Element, h, Host, Prop } from "@stencil/core";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withComponentStyle from "../../utils/withComponentStyle";
+import { Style } from "../../stores/componentStyles";
 import state from "../../stores/assets";
 
 @Component({
     tag: 'bn-image',
-    styleUrl: 'bn-image.scss'
+    styleUrl: 'bn-image.scss',
+    shadow: true
 })
 export class Image {
     // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
     @Element() private element: HTMLElement;
+    private readonly componentStyle: <T>(q: (style: Style) => T) => T;
 
     constructor() {
         withStyled(this);
         withComponentStatus(this);
+        this.componentStyle = withComponentStyle(this);
+    }
+
+    private getFontStyles(): { [key: string]: string } {
+        return this.componentStyle($ => ({
+            '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+            '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+            '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+            '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+        }));
     }
 
     /**
@@ -41,7 +55,7 @@ export class Image {
     }
 
     render() {
-        return <Host>
+        return <Host style={this.getFontStyles()}>
             {this.source != null && this.source != "" ? <img src={this.prepareAssetUrl(this.source)} /> : ""}
         </Host>;
     }
