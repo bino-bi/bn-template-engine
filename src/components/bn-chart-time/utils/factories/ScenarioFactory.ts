@@ -2,7 +2,7 @@ import {G} from "@svgdotjs/svg.js";
 
 import {Column, Marker,} from "../elements";
 
-import {ElementPositions,} from "../helper";
+import {ElementPositions, LabelCollisionManager} from "../helper";
 
 import {DataPoint} from "../model";
 import {Needle} from "../elements/Needle";
@@ -13,7 +13,7 @@ import { Line } from "../elements/Line";
 import { LineSeries, LineSeriesDataPoint } from "../elements/LineSeries";
 
 export class ScenarioFactory {
-  
+
   styles: TimeChartStyle;
   svgGroups: {
     parent: G,
@@ -29,6 +29,7 @@ export class ScenarioFactory {
   pixelPerUnit: number = 1;
   elementCnt: number;
   private i18n: Map<string | number, string>;
+  private collisionManager: LabelCollisionManager | null = null;
 
   constructor(position: ElementPositions, scenariosGroupParent: G, styles: TimeChartStyle, elementCnt: number, i18n: Map<string | number, string>) {
     this.i18n = i18n;
@@ -158,6 +159,14 @@ export class ScenarioFactory {
     return 0 === index;
   }
 
+  /**
+   * Sets the collision manager for line series label collision detection.
+   * Should be called before creating line series to enable collision detection across all series.
+   */
+  public setCollisionManager(manager: LabelCollisionManager): void {
+    this.collisionManager = manager;
+  }
+
   public createLineSeries(dataPoints: LineSeriesDataPoint[], scenarioName: string): LineSeries {
     const lineSeriesGroup = this.svgGroups.parent.group().id("LineSeries_" + scenarioName);
     const labelGroup = this.svgGroups.scenario1Label.group().id("LineSeries_Label_" + scenarioName);
@@ -173,7 +182,8 @@ export class ScenarioFactory {
       labelGroup,
       scenarioName,
       scenarioLabel,
-      this.i18n
+      this.i18n,
+      this.collisionManager
     );
   }
 

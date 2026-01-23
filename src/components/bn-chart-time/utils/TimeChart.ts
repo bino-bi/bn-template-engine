@@ -6,6 +6,7 @@ import { DataPoint, Scenario } from "./model";
 
 import { Axis, HookLocation, Label, LineSeriesDataPoint } from "./elements";
 import { ScenarioFactory, } from "./factories";
+import { LabelCollisionManager } from "./helper";
 import alasql from "alasql";
 
 import CalculateSize from 'calculate-size';
@@ -785,7 +786,11 @@ export class TimeChart {
   private drawLineScenarios(dataModel: any, svgContainer: Svg): void {
     const lineGroup: G = svgContainer.group().id("LineScenarios");
 
+    // Create collision manager for label overlap detection across all line series
+    const collisionManager = new LabelCollisionManager();
+
     const scenarioFactory = new ScenarioFactory(this.position, lineGroup, this.styles, dataModel.length, this.i18n);
+    scenarioFactory.setCollisionManager(collisionManager);
 
     // Collect data points for each scenario
     const scenario1Points: LineSeriesDataPoint[] = [];
@@ -808,15 +813,11 @@ export class TimeChart {
       }
     });
 
-    // Draw line series for each scenario that has data
-    if (scenario1Points.length > 0 && scenario1Points.some(p => !p.dataPoint.isEmpty())) {
-      const scenarioName = scenario1Points[0]?.dataPoint?.scenario as string || "ac1";
-      scenarioFactory.createLineSeries(scenario1Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
-    }
-
-    if (scenario2Points.length > 0 && scenario2Points.some(p => !p.dataPoint.isEmpty())) {
-      const scenarioName = scenario2Points[0]?.dataPoint?.scenario as string || "pp1";
-      scenarioFactory.createLineSeries(scenario2Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    // Draw line series in reverse z-order: PL(4) → FC(3) → PP(2) → AC(1)
+    // This ensures AC (scenario1) is drawn last and appears on top
+    if (scenario4Points.length > 0 && scenario4Points.some(p => !p.dataPoint.isEmpty())) {
+      const scenarioName = scenario4Points[0]?.dataPoint?.scenario as string || "pl1";
+      scenarioFactory.createLineSeries(scenario4Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
     }
 
     if (scenario3Points.length > 0 && scenario3Points.some(p => !p.dataPoint.isEmpty())) {
@@ -824,9 +825,14 @@ export class TimeChart {
       scenarioFactory.createLineSeries(scenario3Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
     }
 
-    if (scenario4Points.length > 0 && scenario4Points.some(p => !p.dataPoint.isEmpty())) {
-      const scenarioName = scenario4Points[0]?.dataPoint?.scenario as string || "pl1";
-      scenarioFactory.createLineSeries(scenario4Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    if (scenario2Points.length > 0 && scenario2Points.some(p => !p.dataPoint.isEmpty())) {
+      const scenarioName = scenario2Points[0]?.dataPoint?.scenario as string || "pp1";
+      scenarioFactory.createLineSeries(scenario2Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    }
+
+    if (scenario1Points.length > 0 && scenario1Points.some(p => !p.dataPoint.isEmpty())) {
+      const scenarioName = scenario1Points[0]?.dataPoint?.scenario as string || "ac1";
+      scenarioFactory.createLineSeries(scenario1Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
     }
 
     this.scenariosArea = {

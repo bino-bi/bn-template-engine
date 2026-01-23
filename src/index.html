@@ -363,8 +363,8 @@
         <bn-table datasets='$Charts_Time' category-width='w15' data-format='decimal' data-format-digits-decimal='0'
           data-format-digits-percent='1' grouped='false' measure-scale='_' measure-type='volume' order='category'
           order-direction='asc' scenarios='ac1,pp1,pl1,fc1' variances='dac1_pp1_pos,drac1_pp1_neg'
-          bar-columns='ac1,pp1,pl1,fc1,dac1_pp1_pos,drac1_pp1_neg' table-title='Revenue by Category' type='sum'
-          unit-scaling='0.03' percentage-scaling='2'>
+          bar-columns='dac1_pp1_pos,drac1_pp1_neg' table-title='Revenue by Category' type='sum' unit-scaling='0.03'
+          percentage-scaling='2'>
         </bn-table>
 
         <h3 style="margin: 20px; margin-top: 40px;">Comparison: Same Table without Bar Columns</h3>
@@ -383,6 +383,135 @@
       <bn-footer text="© 2022 - BinoBI GmbH - Bar Columns Demo" code="bar"></bn-footer>
     </bn-page>
 
+    <!-- Line Chart Multi-Scenario Demo with Marker Shapes -->
+    <bn-datasource name="LineChart_MultiScenario">
+      [
+      {"date": "2023-01-01", "operation": "+", "category": "Jan", "ac1": 80, "ac2": 75, "ac3": 70, "pp1": 70, "pp2": 65,
+      "pp3": 60, "fc1": 85, "fc2": 80, "fc3": 75},
+      {"date": "2023-02-01", "operation": "+", "category": "Feb", "ac1": 95, "ac2": 90, "ac3": 85, "pp1": 85, "pp2": 80,
+      "pp3": 75, "fc1": 100, "fc2": 95, "fc3": 90},
+      {"date": "2023-03-01", "operation": "+", "category": "Mar", "ac1": 110, "ac2": 105, "ac3": 100, "pp1": 100, "pp2":
+      95, "pp3": 90, "fc1": 115, "fc2": 110, "fc3": 105},
+      {"date": "2023-04-01", "operation": "+", "category": "Apr", "ac1": 90, "ac2": 85, "ac3": 80, "pp1": 80, "pp2": 75,
+      "pp3": 70, "fc1": 95, "fc2": 90, "fc3": 85},
+      {"date": "2023-05-01", "operation": "+", "category": "May", "ac1": 125, "ac2": 120, "ac3": 115, "pp1": 115, "pp2":
+      110, "pp3": 105, "fc1": 130, "fc2": 125, "fc3": 120},
+      {"date": "2023-06-01", "operation": "+", "category": "Jun", "ac1": 140, "ac2": 135, "ac3": 130, "pp1": 130, "pp2":
+      125, "pp3": 120, "fc1": 145, "fc2": 140, "fc3": 135},
+      {"date": "2023-07-01", "operation": "+", "category": "Jul", "ac1": 120, "ac2": 115, "ac3": 110, "pp1": 110, "pp2":
+      105, "pp3": 100, "fc1": 125, "fc2": 120, "fc3": 115},
+      {"date": "2023-08-01", "operation": "+", "category": "Aug", "ac1": 135, "ac2": 130, "ac3": 125, "pp1": 125, "pp2":
+      120, "pp3": 115, "fc1": 140, "fc2": 135, "fc3": 130},
+      {"date": "2023-09-01", "operation": "+", "category": "Sep", "ac1": 155, "ac2": 150, "ac3": 145, "pp1": 145, "pp2":
+      140, "pp3": 135, "fc1": 160, "fc2": 155, "fc3": 150},
+      {"date": "2023-10-01", "operation": "+", "category": "Oct", "ac1": 145, "ac2": 140, "ac3": 135, "pp1": 135, "pp2":
+      130, "pp3": 125, "fc1": 150, "fc2": 145, "fc3": 140},
+      {"date": "2023-11-01", "operation": "+", "category": "Nov", "ac1": 170, "ac2": 165, "ac3": 160, "pp1": 160, "pp2":
+      155, "pp3": 150, "fc1": 175, "fc2": 170, "fc3": 165},
+      {"date": "2023-12-01", "operation": "+", "category": "Dec", "ac1": 190, "ac2": 185, "ac3": 180, "pp1": 180, "pp2":
+      175, "pp3": 170, "fc1": 195, "fc2": 190, "fc3": 185},
+      {"date": "2024-01-01", "operation": "+", "category": "Jan", "ac1": 120, "ac2": 115, "ac3": 110, "pp1": 100, "pp2":
+      95, "pp3": 90, "fc1": 130, "fc2": 125, "fc3": 120},
+      {"date": "2024-02-01", "operation": "+", "category": "Feb", "ac1": 150, "ac2": 145, "ac3": 140, "pp1": 130, "pp2":
+      125, "pp3": 120, "fc1": 160, "fc2": 155, "fc3": 150},
+      {"date": "2024-03-01", "operation": "+", "category": "Mar", "ac1": 180, "ac2": 175, "ac3": 165, "pp1": 160, "pp2":
+      150, "pp3": 145, "fc1": 190, "fc2": 185, "fc3": 175},
+      {"date": "2024-04-01", "operation": "+", "category": "Apr", "ac1": 140, "ac2": 135, "ac3": 130, "pp1": 120, "pp2":
+      115, "pp3": 110, "fc1": 155, "fc2": 150, "fc3": 145},
+      {"date": "2024-05-01", "operation": "+", "category": "May", "ac1": 200, "ac2": 190, "ac3": 185, "pp1": 180, "pp2":
+      175, "pp3": 170, "fc1": 210, "fc2": 205, "fc3": 195},
+      {"date": "2024-06-01", "operation": "+", "category": "Jun", "ac1": 220, "ac2": 215, "ac3": 205, "pp1": 200, "pp2":
+      195, "pp3": 185, "fc1": 230, "fc2": 225, "fc3": 215},
+      {"date": "2024-07-01", "operation": "+", "category": "Jul", "ac1": 190, "ac2": 185, "ac3": 175, "pp1": 170, "pp2":
+      165, "pp3": 160, "fc1": 200, "fc2": 195, "fc3": 185},
+      {"date": "2024-08-01", "operation": "+", "category": "Aug", "ac1": 210, "ac2": 200, "ac3": 195, "pp1": 190, "pp2":
+      185, "pp3": 175, "fc1": 220, "fc2": 210, "fc3": 205},
+      {"date": "2024-09-01", "operation": "+", "category": "Sep", "ac1": 250, "ac2": 245, "ac3": 235, "pp1": 230, "pp2":
+      225, "pp3": 215, "fc1": 260, "fc2": 255, "fc3": 245},
+      {"date": "2024-10-01", "operation": "+", "category": "Oct", "ac1": 230, "ac2": 225, "ac3": 215, "pp1": 210, "pp2":
+      200, "pp3": 195, "fc1": 240, "fc2": 235, "fc3": 225},
+      {"date": "2024-11-01", "operation": "+", "category": "Nov", "ac1": 270, "ac2": 265, "ac3": 255, "pp1": 250, "pp2":
+      245, "pp3": 235, "fc1": 280, "fc2": 275, "fc3": 265},
+      {"date": "2024-12-01", "operation": "+", "category": "Dec", "ac1": 300, "ac2": 290, "ac3": 280, "pp1": 280, "pp2":
+      270, "pp3": 260, "fc1": 310, "fc2": 305, "fc3": 295},
+      {"date": "2025-01-01", "operation": "+", "category": "Jan", "ac1": 160, "ac2": 155, "ac3": 150, "pp1": 140, "pp2":
+      135, "pp3": 130, "fc1": 170, "fc2": 165, "fc3": 160},
+      {"date": "2025-02-01", "operation": "+", "category": "Feb", "ac1": 195, "ac2": 190, "ac3": 185, "pp1": 175, "pp2":
+      170, "pp3": 165, "fc1": 205, "fc2": 200, "fc3": 195},
+      {"date": "2025-03-01", "operation": "+", "category": "Mar", "ac1": 230, "ac2": 225, "ac3": 215, "pp1": 210, "pp2":
+      200, "pp3": 195, "fc1": 240, "fc2": 235, "fc3": 225},
+      {"date": "2025-04-01", "operation": "+", "category": "Apr", "ac1": 185, "ac2": 180, "ac3": 175, "pp1": 165, "pp2":
+      160, "pp3": 155, "fc1": 200, "fc2": 195, "fc3": 190},
+      {"date": "2025-05-01", "operation": "+", "category": "May", "ac1": 260, "ac2": 250, "ac3": 245, "pp1": 240, "pp2":
+      235, "pp3": 230, "fc1": 275, "fc2": 270, "fc3": 260},
+      {"date": "2025-06-01", "operation": "+", "category": "Jun", "ac1": 285, "ac2": 280, "ac3": 270, "pp1": 265, "pp2":
+      260, "pp3": 250, "fc1": 300, "fc2": 295, "fc3": 285},
+      {"date": "2025-07-01", "operation": "+", "category": "Jul", "ac1": 250, "ac2": 245, "ac3": 235, "pp1": 230, "pp2":
+      225, "pp3": 220, "fc1": 265, "fc2": 260, "fc3": 250},
+      {"date": "2025-08-01", "operation": "+", "category": "Aug", "ac1": 275, "ac2": 265, "ac3": 260, "pp1": 255, "pp2":
+      250, "pp3": 240, "fc1": 290, "fc2": 280, "fc3": 275},
+      {"date": "2025-09-01", "operation": "+", "category": "Sep", "ac1": 325, "ac2": 320, "ac3": 310, "pp1": 305, "pp2":
+      300, "pp3": 290, "fc1": 340, "fc2": 335, "fc3": 325},
+      {"date": "2025-10-01", "operation": "+", "category": "Oct", "ac1": 305, "ac2": 300, "ac3": 290, "pp1": 285, "pp2":
+      275, "pp3": 270, "fc1": 320, "fc2": 315, "fc3": 305},
+      {"date": "2025-11-01", "operation": "+", "category": "Nov", "ac1": 355, "ac2": 350, "ac3": 340, "pp1": 335, "pp2":
+      330, "pp3": 320, "fc1": 370, "fc2": 365, "fc3": 355},
+      {"date": "2025-12-01", "operation": "+", "category": "Dec", "ac1": 395, "ac2": 385, "ac3": 375, "pp1": 375, "pp2":
+      365, "pp3": 355, "fc1": 410, "fc2": 405, "fc3": 395}
+      ]
+    </bn-datasource>
+
+    <bn-page name="LineChart_MultiScenario_Demo" format="a4" orientation="landscape">
+      <bn-title business-unit='Line Chart Multi-Scenario Demo'
+        measures='[{"name": "Marker Shapes & Z-Order", "unit": ""}]'></bn-title>
+      <bn-body>
+        <h3 style="margin: 20px;">Line Chart with Multiple Scenario Variants</h3>
+        <p style="margin: 20px; font-size: 12px; color: #666;">
+          Demonstrates: ■ Square markers (variant 1), ● Circle markers (variant 2), ▲ Triangle markers (variant 3)<br />
+          Z-order: AC (black) on top → PP (gray) → FC (dashed)
+        </p>
+
+        <!-- AC variants: ac1 (square), ac2 (circle), ac3 (triangle) -->
+        <h4 style="margin: 20px;">AC Scenarios (ac1=Square, ac2=Circle, ac3=Triangle)</h4>
+        <bn-chart-time chart-mode="line" datasets='$LineChart_MultiScenario' level='category' order='category'
+          order-direction='asc' scenarios='ac1,ac2,ac3' unit-scaling='0.3' date-interval="month"></bn-chart-time>
+
+        <!-- PP variants: pp1 (square), pp2 (circle), pp3 (triangle) -->
+        <h4 style="margin: 20px;">PP Scenarios (pp1=Square, pp2=Circle, pp3=Triangle)</h4>
+        <bn-chart-time chart-mode="line" datasets='$LineChart_MultiScenario' level='category' order='category'
+          order-direction='asc' scenarios='pp1,pp2,pp3' unit-scaling='0.3' date-interval="month"></bn-chart-time>
+
+        <!-- FC variants: fc1 (square), fc2 (circle), fc3 (triangle) -->
+        <h4 style="margin: 20px;">FC Scenarios (fc1=Square, fc2=Circle, fc3=Triangle)</h4>
+        <bn-chart-time chart-mode="line" datasets='$LineChart_MultiScenario' level='category' order='category'
+          order-direction='asc' scenarios='fc1,fc2,fc3' unit-scaling='0.3' date-interval="month"></bn-chart-time>
+
+        <!-- Mixed: AC, PP, FC variant 1 - demonstrating z-order -->
+        <h4 style="margin: 20px;">Mixed Scenarios - Z-Order Demo (AC on top, then PP, then FC)</h4>
+        <bn-chart-time chart-mode="line" datasets='$LineChart_MultiScenario' level='category' order='category'
+          order-direction='asc' scenarios='ac1,pp1,fc1' unit-scaling='0.3' date-interval="month"></bn-chart-time>
+
+        <!-- All variants combined -->
+        <h4 style="margin: 20px;">All Scenario Variants Combined (Label Collision Detection)</h4>
+        <bn-chart-time chart-mode="line" datasets='$LineChart_MultiScenario' level='category' order='category'
+          order-direction='asc' scenarios='ac1,pp1,fc1,ac2' unit-scaling='0.3' date-interval="month"></bn-chart-time>
+
+      </bn-body>
+      <bn-footer text="© 2024 - BinoBI GmbH - Line Chart Demo" code="bar"></bn-footer>
+    </bn-page>
+    <bn-page name="LineChart_MultiScenario_Demo" format="a4" orientation="landscape">
+      <bn-title business-unit='Line Chart Multi-Scenario Demo'
+        measures='[{"name": "Marker Shapes & Z-Order", "unit": ""}]'></bn-title>
+      <bn-body>
+
+        <bn-chart-time chart-mode="line" datasets='$LineChart_MultiScenario' level='category' order='category'
+          order-direction='asc' scenarios='ac1,pp1,fc1,ac2' unit-scaling='0.3' date-interval="month"></bn-chart-time>
+        <bn-chart-time chart-mode="bar" datasets='$LineChart_MultiScenario' level='category' order='category'
+          order-direction='asc' scenarios='ac1,pp1,fc1,ac2' unit-scaling='0.3' date-interval="month"></bn-chart-time>
+
+      </bn-body>
+      <bn-footer text="© 2024 - BinoBI GmbH - Line Chart Demo" code="bar"></bn-footer>
+    </bn-page>
     <bn-page name="ROI_Tree_Example" format="a4" orientation="landscape">
       <bn-title business-unit='ROI Tree Example' measures='[{"name": "ROI Analysis", "unit": "%"}]'></bn-title>
       <bn-body>
