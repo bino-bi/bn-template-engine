@@ -15,7 +15,7 @@ import {
 @Component({
   tag: 'bn-grid',
   styleUrl: 'bn-grid.scss',
-  shadow: false,
+  shadow: true,
 })
 export class Grid {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -341,6 +341,15 @@ export class Grid {
     return cells;
   }
 
+  private getFontStyles(): { [key: string]: string } {
+    return this.componentStyle($ => ({
+      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    }));
+  }
+
   render() {
     const gridContainerStyle: { [key: string]: string } = {
       'display': 'inline-grid',
@@ -350,7 +359,7 @@ export class Grid {
     };
 
     return (
-      <Host>
+      <Host style={this.getFontStyles()}>
         <div class="grid-container" style={gridContainerStyle}>
           {this.renderTitle()}
           {this.renderColumnHeaders()}

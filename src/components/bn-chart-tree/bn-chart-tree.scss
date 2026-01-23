@@ -1,41 +1,44 @@
-bn-chart-tree {
+:host {
   display: inline-block;
   position: relative;
+  font-family: var(--bn-font-family, 'Noto Sans', sans-serif);
+  font-size: var(--bn-font-size, 13.3333px);
+  color: var(--bn-font-color, #000000);
+}
 
-  .tree-container {
-    position: relative;
-    display: inline-block;
-  }
+.tree-container {
+  position: relative;
+  display: inline-block;
+}
 
-  .tree-grid {
-    position: relative;
-    display: grid;
-    align-items: center;
-  }
+.tree-grid {
+  position: relative;
+  display: grid;
+  align-items: center;
+}
 
-  .tree-node {
-    position: relative;
-    z-index: 1;
-    border: 1px solid #404040;
-    background: white;
-  }
+.tree-node {
+  position: relative;
+  z-index: 1;
+  border: 1px solid #404040;
+  background: var(--bn-font-background, white);
+}
 
-  .edge-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: visible;
-  }
+.edge-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
 
-  .operator-group {
-    // Styles are now set inline via componentStyle store
-  }
+.operator-group {
+  // Styles are now set inline via componentStyle store
+}
 
-  .tree-error {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
+.tree-error {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }

@@ -40,6 +40,7 @@ import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVaria
 @Component({
   tag: "ibcs-chart-structure",
   styleUrl: "bn-chart-structure.scss",
+  shadow: true
 })
 
 export class IbcsChartStructure {

@@ -1,4 +1,4 @@
-import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import withDataset from "../../utils/withDataset";
 import withTranslation from "../../utils/withTranslation";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -11,6 +11,7 @@ import { BinoChartSyles } from "../../utils/model/ChartStyles";
 @Component({
   tag: 'bn-text',
   styleUrl: 'bn-text.scss',
+  shadow: true
 })
 
 
@@ -65,11 +66,21 @@ export class Text {
     this.container.innerHTML = this.scopedEval({ data: this.data, t: this.t }, "`" + this.value + "`")
   }
 
+  private getFontStyles(): { [key: string]: string } {
+    return this.componentStyle($ => ({
+      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    }));
+  }
+
   render() {
     // TODO Stlye fuer etxgt noch setzen
     this.prepareStyle();
+    const fontStyles = this.getFontStyles();
 
-    return <Host>
+    return <Host style={fontStyles}>
       <div>
         <span class="container" ref={(el) => { this.container = el }}></span>
       </div>

@@ -1,5 +1,5 @@
 //import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
-import { Component, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 
 import {
   isBlankInput,
@@ -15,6 +15,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
+import withComponentStyle from "../../utils/withComponentStyle";
+import { Style } from "../../stores/componentStyles";
 /*import {
   DateDistance,
   DateLink,
@@ -36,18 +38,21 @@ import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
 @Component({
   tag: 'bn-title',
   styleUrl: 'bn-title.scss',
+  shadow: true
 })
 export class Title {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+
   constructor() {
     withStyled(this);
     withComponentStatus(this);
     this.t = withTranslation(this).t;
     this.errors = withHasError(this);
-
+    this.componentStyle = withComponentStyle(this);
   }
 
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
@@ -358,9 +363,19 @@ export class Title {
     return this.businessUnit;
   }
 
-  render() {
+  private getFontStyles(): { [key: string]: string } {
+    return this.componentStyle($ => ({
+      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    }));
+  }
 
-    return <Host>
+  render() {
+    const fontStyles = this.getFontStyles();
+
+    return <Host style={fontStyles}>
       <ibcs-title
         businessUnit={this.prepareBusinessUnit()}
         scenarios={this.prepareScenarios()}
