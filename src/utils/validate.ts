@@ -101,7 +101,8 @@ export function validateMeasureList(value: string): string[] {
     if (newObj instanceof Array) {
       return newObj.filter(elem => !(elem.hasOwnProperty('name') && elem.hasOwnProperty('unit')));
     }
-  } catch {
+  } catch (e) {
+    console.error("validateMeasureList: failed to parse JSON", e);
   }
 
   return ["Invalid JSON structure"]
@@ -221,6 +222,7 @@ export function validateThereOfJsonStr(value: string): string[] {
 
     }
   } catch (err) {
+    console.error("validateThereOfJsonStr: failed to parse JSON", err);
   }
   return ["Invalid JSON structure"]
 }
@@ -237,7 +239,8 @@ export function validatePartOfJsonStr(value: string): string[] {
       return jsonObject.filter(elem => !(elem.hasOwnProperty('rowGroup') && elem.hasOwnProperty('category')));
 
     }
-  } catch {
+  } catch (e) {
+    console.error("validatePartOfJsonStr: failed to parse JSON", e);
   }
   return ["Invalid JSON structure"]
 }
@@ -272,7 +275,9 @@ export function validateI18nString(value: string): string[]  {
       return errList;
     }
 
-  }catch{}
+  } catch (e) {
+    console.error("validateI18nString: failed to parse JSON", e);
+  }
 
   return ["Invalid JSON structure"]
 }
@@ -285,8 +290,9 @@ export function validateStylesString(value: string): string[] {
   try {
     JSON.parse(value);
     return [];
+  } catch (e) {
+    console.error("validateStylesString: failed to parse JSON", e);
   }
-  catch{}
 
   return ["Invalid JSON structure"];
 }
@@ -303,9 +309,11 @@ export function validateColumnThereOfJsonStr(value: string): string[] {
 
   try {
     const jsonObject = JSON.parse(value);
-    return jsonObject.filter(elem => !(elem.hasOwnProperty('scenario') && elem.hasOwnProperty('name') && elem.hasOwnProperty('subGroups')))   
-  } catch {}
-  
+    return jsonObject.filter(elem => !(elem.hasOwnProperty('scenario') && elem.hasOwnProperty('name') && elem.hasOwnProperty('subGroups')))
+  } catch (e) {
+    console.error("validateColumnThereOfJsonStr: failed to parse JSON", e);
+  }
+
   return ["Invalid JSON structure"];
 }
 
@@ -371,7 +379,8 @@ export function validateTreeEdgesJson(value: string): string[] {
     });
 
     return errors;
-  } catch {
+  } catch (e) {
+    console.error("validateTreeEdgesJson: failed to parse JSON", e);
     return ['edges: invalid JSON structure'];
   }
 }

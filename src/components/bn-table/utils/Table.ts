@@ -111,6 +111,7 @@ export class Table {
       try{
         this.data  = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
       } catch(e) {
+        console.error("Table: filter query failed, using unfiltered data", filter, e);
         this.data = data;
       }     
     } else {

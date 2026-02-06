@@ -54,7 +54,8 @@ export function parseTreeConfig(json: string): TreeConfig | null {
       rootNode,
       allNodes
     };
-  } catch {
+  } catch (e) {
+    console.error("parseTreeConfig: failed to parse tree configuration", e);
     return null;
   }
 }
