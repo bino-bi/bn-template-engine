@@ -235,6 +235,7 @@ export class TimeChart {
       try {
         this.preparedDataSet = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
       } catch (e) {
+        console.error("TimeChart: filter query failed, using unfiltered data", filter, e);
         this.preparedDataSet = data;
       }
     } else {

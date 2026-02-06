@@ -78,7 +78,7 @@ export class DataQuery {
       try {
         res.push(alasql(query, [data]));
       } catch (err) {
-        // error handled silently
+        console.error("DataQuery: SQL query execution failed", query, err);
       }
     });
 
@@ -155,6 +155,7 @@ export class DataQuery {
         try {
           drillItem[key] = drillItem[key] / rowGroupSumResultMap.get(drillItem[QueryColumnNames.ROWGROUP])[key];
         } catch (err) {
+          console.error("DataQuery: partOf drill row calculation failed", key, err);
           drillItem[key] = Number.NaN;
         }
       });
@@ -251,6 +252,7 @@ export class DataQuery {
           try {
             element[key] += drillItem[key];
           } catch (e) {
+            console.error("DataQuery: drill row aggregation failed", key, e);
           }
         });
       } else {

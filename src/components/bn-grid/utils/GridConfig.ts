@@ -55,7 +55,8 @@ export function parseHeaders(json: string): HeaderItem[] {
         id: String(index)
       };
     });
-  } catch {
+  } catch (e) {
+    console.error("parseHeaders: failed to parse JSON", e);
     return [];
   }
 }
@@ -124,7 +125,8 @@ export function validateHeadersJson(json: string): string[] {
     });
 
     return errors;
-  } catch {
+  } catch (e) {
+    console.error("validateHeadersJson: failed to parse JSON", e);
     return ['Invalid JSON structure'];
   }
 }
