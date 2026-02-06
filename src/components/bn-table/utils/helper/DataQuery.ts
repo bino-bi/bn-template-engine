@@ -74,12 +74,11 @@ export class DataQuery {
 
 
     // executes main queries
-    let self = this;
-    queries.forEach(function (query) {
+    queries.forEach((query) => {
       try {
         res.push(alasql(query, [data]));
       } catch (err) {
-        console.log("ERROR::", err, "QUERRY::", query, "CONFIG", self.config, "QUERRYS", queries)
+        // error handled silently
       }
     });
 

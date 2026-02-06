@@ -2,6 +2,7 @@ import { Component, Element, Prop, h, Host } from '@stencil/core';
 import withComponentStatus from '../../utils/withComponentStatus';
 import { set } from '../../stores/assets';
 import withBodyObserver from '../../utils/withBodyObserver';
+import withHasError, { ErrorDispatcher } from '../../utils/withHasError';
 
 @Component({
     tag: 'bn-asset',
@@ -16,8 +17,12 @@ export class Asset {
      */
     @Prop() name!: string;
 
+    // @ts-ignore - Initialized by withHasError mixin
+    private readonly errors: ErrorDispatcher;
+
     constructor() {
         withComponentStatus(this);
+        this.errors = withHasError(this);
         withBodyObserver(this, (data => {
             try {
                 const cleanData = data.replace(/\s/g, '');

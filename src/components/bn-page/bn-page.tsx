@@ -1,6 +1,7 @@
 import { Component, h, Host, Prop, Watch, Element } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-page',
@@ -11,9 +12,12 @@ export class Page {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
 
   constructor() {
     withComponentStatus(this);
+    this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
   }
 

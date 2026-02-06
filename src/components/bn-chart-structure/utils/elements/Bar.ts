@@ -132,7 +132,6 @@ export class Bar {
   private createDimensions(position: ElementPositions, dataPoint: DataPoint, index: number, isPrimaryBar: boolean): StructureChartDimension {
 
     if (dataPoint.getScaledUnit() < 0) {
-      console.log("createDimensions",dataPoint.getScaledUnit(), dataPoint.scenario ,dataPoint.value );
       return {
         clipped: false,
         barLength: Math.abs(dataPoint.getScaledUnit()),

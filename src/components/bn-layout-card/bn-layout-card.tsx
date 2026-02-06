@@ -1,5 +1,6 @@
 import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 import state from "../../stores/assets";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
     tag: 'bn-layout-card',
@@ -9,6 +10,13 @@ import state from "../../stores/assets";
 export class LayoutCard {
     // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
     @Element() private element: HTMLElement;
+
+    // @ts-ignore - Initialized by withHasError mixin
+    private readonly errors: ErrorDispatcher;
+
+    constructor() {
+        this.errors = withHasError(this);
+    }
 
     @Prop() styles?: string;
 

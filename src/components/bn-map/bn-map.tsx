@@ -5,7 +5,7 @@ import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
-import { ComponentRegister, ComponentStatus } from '../../utils/componentRegister';
+import { ComponentRegister } from '../../utils/componentRegister';
 import { generateUUID } from '../../utils/utils';
 import { Marker } from './ibcs-map/utils/model/Marker';
 //import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
@@ -328,7 +328,6 @@ export class BnMap {
 
   @Listen('stateUpdated')
   stateUpdated(status: any) {
-    console.log("stateUpdated", status.detail, ComponentStatus[status.detail as keyof typeof ComponentStatus]);
     ComponentRegister.updateStatus(this.uuid, status.detail);
   }
 

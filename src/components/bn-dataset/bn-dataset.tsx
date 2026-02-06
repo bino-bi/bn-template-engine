@@ -4,6 +4,7 @@ import withBodyObserver from "../../utils/withBodyObserver";
 import { set } from '../../stores/datasets';
 import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-dataset',
@@ -12,8 +13,13 @@ import withComponentStatus from "../../utils/withComponentStatus";
 export class Dataset {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
+
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
+
   constructor() {
     withComponentStatus(this);
+    this.errors = withHasError(this);
     // @ts-ignore
     this.database = new alasql.Database();
     withDatasource(this, (name, data) => {

@@ -1,6 +1,7 @@
 import { Component, h, Host, Element } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-card',
@@ -9,9 +10,12 @@ import withComponentStyle from "../../utils/withComponentStyle";
 })
 export class Card {
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
 
   constructor() {
     withComponentStatus(this);
+    this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
   }
 

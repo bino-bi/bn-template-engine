@@ -2,6 +2,7 @@ import { Component, Element, h, Host } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-body',
@@ -12,9 +13,12 @@ export class Body {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
 
   constructor() {
     withComponentStatus(this);
+    this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
   }
 

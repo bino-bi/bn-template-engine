@@ -77,8 +77,6 @@ export class TitleDataSetFactory implements Formatter {
       formatedTime = new DateStringFactory().getDateLinkString(time.start, time.end, time.link, time.format, spanLimit);
     }
 
-    console.log("formatedTime", formatedTime)
-
     let formatedScenarios: string =  scenarios.map((scenario) => {
       let orderString: string | undefined = "";
       if (order != null && order.hierarchy != null) {

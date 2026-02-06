@@ -26,7 +26,6 @@ const collectFiles = function(filePath) {
     // File destination.txt will be created or overwritten by default.
     fs.copyFile(filePath, target, (err) => {
       if (err) throw err;
-      console.log(filePath,' was copied to destination');
     });
 }
 const docTargetPath = process.argv[2];

@@ -584,7 +584,6 @@ export class Table {
 
   @Watch('columnthereof')
   validateColumnThereOf(newValue: string | null) {
-    console.log("columnthereof", newValue)
     const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
     const errId: string = 'ERR_categorythereof';
     if (invalidElements.length > 0) {
