@@ -3,6 +3,7 @@ import withBodyObserver from "../../utils/withBodyObserver";
 // @ts-ignore
 import state, { set, Style } from "../../stores/componentStyles";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-component-style',
@@ -13,8 +14,12 @@ export class ComponentStyle {
   @Element() private element: HTMLElement;
   @Prop() name: string = "_default";
 
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
+
   constructor() {
     withComponentStatus(this);
+    this.errors = withHasError(this);
     withBodyObserver(this, (data) => {
       try {
         const parsedData = JSON.parse(data);

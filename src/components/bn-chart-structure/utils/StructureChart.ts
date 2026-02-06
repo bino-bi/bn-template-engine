@@ -304,13 +304,6 @@ export class StructureChart {
     let orderStr = this.createOrderStr(level, sortOrder);
     let select = this.createSelectString(level, sortOrder);
     let groupByStr = this.createGroupByStr(level, sortOrder);
-    console.log("populateModel", `SELECT ${select} ${selectedScenarios.length > 0 ?
-      "," + selectedScenarios.map((scenario: string) => { return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt` }).join(",")
-      : ""}                          
-      FROM ?
-      GROUP BY ${groupByStr}
-      ORDER BY ${orderStr}`);
-
     let result = alasql<any[]>(`SELECT ${select} ${selectedScenarios.length > 0 ?
       "," + selectedScenarios.map((scenario: string) => { return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt` }).join(",")
       : ""}                          
@@ -616,7 +609,6 @@ export class StructureChart {
           textHook = HookLocation.Left;
           isPositive = false;
         }
-        console.log("drawAxisAndLabels", isPositive, textHook, elements.category);
         new Label(axisLabelGroup, this.position.getCategoryPositionX(isPositive), this.position.getBarCenterPositionY(index), '', elements.category, this.styles, HookLocation.Center, textHook).draw();
       });
     }

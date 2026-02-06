@@ -3,6 +3,7 @@ import withBodyObserver from "../../utils/withBodyObserver";
 import { get, set } from "../../stores/internationalization";
 import flattenObject from "../../utils/flattenObject";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-internationalization',
@@ -11,8 +12,13 @@ import withComponentStatus from "../../utils/withComponentStatus";
 export class Internationalization {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
+
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
+
   constructor() {
     withComponentStatus(this);
+    this.errors = withHasError(this);
     withBodyObserver(this, (data) => {
       try {
         const i18n = flattenObject(JSON.parse(data));

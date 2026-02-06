@@ -225,7 +225,6 @@ export class IbcsMap {
             weight: gpxOptions.weight,
           }
         }).on('loaded', (e: any) => {
-          console.log("GPX Loaded ",e);
           this.updateCumulatedBounds(e);
           if(  this._manualPosOverride == false) {
             this.lmap.fitBounds([this.cumlatedBounds.northEast, this.cumlatedBounds.southWest]);

@@ -338,9 +338,9 @@ export class Chart {
 
 
   @Watch('type')
+  // @ts-ignore - Watch handler parameter required by Stencil
   validateChartType(newValue: string) {
-    const errId: string = 'ERR_chartType';
-    console.log("newValue", newValue, errId);
+    // const errId: string = 'ERR_chartType';
     /*if (!isValidateType(newValue)) {
       this.errors.addOrReplace({
         id: errId,

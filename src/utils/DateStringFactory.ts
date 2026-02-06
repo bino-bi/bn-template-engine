@@ -245,19 +245,16 @@ export class DateStringFactory {
     // No Start/ End Date exists
     if (startDateTime == null && endDateTime == null) {
       // BinoSystem.warn('NO START AND END DATE SELECTED');
-      console.log("NO START NOR END DATE SELECTED");
       return "";
     }
 
     if (startDateTime == null && !( mode == DateLink.END || mode == DateLink.YTD)) {
       // BinoSystem.warn('NO START N SELECTED');
-      console.log("NO START  DATE SELECTED");
       return "";
     }
 
     if (endDateTime == null && (DateLink.INTERVAL === mode || DateLink.CUM === mode ||  DateLink.END  === mode || DateLink.YTD === mode)) {
       // BinoSystem.warn('NO END N SELECTED');
-      console.log("NO END DATE SELECTED");
       return "";
     }
 
@@ -281,12 +278,10 @@ export class DateStringFactory {
       // clean up visualisation if start and end (formated) ist identical
       if (dateString1 === dateString2 && mode === DateLink.INTERVAL ) {
         // BinoSystem.warn('CHANGED INTERVAL TO NONE; START AND END ARE IDENTICAL');
-        console.log("CHANGED INTERVAL TO NONE; START AND END ARE IDENTICAL");
         mode = DateLink.NONE;
       }
       if (dateString1 === dateString2 && mode == DateLink.AVG) {
         // BinoSystem.warn('CHANGED INTERVAL TO NONE; START AND END ARE IDENTICAL');
-        console.log("CHANGED INTERVAL TO NONE; START AND END ARE IDENTICAL"); 
         link = DateLink.NONE;
       }
 
@@ -320,8 +315,6 @@ export class DateStringFactory {
         }  
       }
     }
-
-    console.log("dateString1:", dateString1,"dateString2:",dateString2);
 
     return this.dateLinkFormat[mode as string].replace("[LINK]",  this.dateLinkFormat[link]).replace("[DATE]", dateString1).replace("[DATE2]", dateString2);
   }

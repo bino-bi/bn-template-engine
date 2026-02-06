@@ -309,13 +309,13 @@ export function validateColumnThereOfJsonStr(value: string): string[] {
   return ["Invalid JSON structure"];
 }
 
+// @ts-ignore - Parameter reserved for future validation
 export function isValidFontSize(value: string): boolean {
-  console.log("FontSize not yet validated", value);
   return true;
 }
 
+// @ts-ignore - Parameter reserved for future validation
 export function isValidFontFamily(value: string): boolean {
-  console.log("isValidFontFamily not yet validated", value);
   return true;
 }
 

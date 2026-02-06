@@ -1,6 +1,7 @@
 import { Component, h, Host, Element, Prop, Watch } from "@stencil/core";
 import state from '../../stores/context';
 import withComponentStatus from "../../utils/withComponentStatus";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
   tag: 'bn-context',
@@ -8,8 +9,12 @@ import withComponentStatus from "../../utils/withComponentStatus";
   shadow: true
 })
 export class Context {
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
+
   constructor() {
     withComponentStatus(this);
+    this.errors = withHasError(this);
   }
 
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)

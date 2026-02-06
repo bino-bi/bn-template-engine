@@ -452,7 +452,6 @@ export class TimeChart {
 
     const dataModel: any[] = this.createDataRows(result, selectedScenarios);
 
-    console.log("populateModel", dataModel);
     return dataModel;
   }
 
@@ -535,7 +534,6 @@ export class TimeChart {
                            GROUP BY ${"calcdate"} ${order}
                            ORDER BY ${"calcdate asc"}`, [this.preparedDataSet]);
 
-    console.log("queryDataSet", result);
     return result;
   }
 
@@ -556,7 +554,6 @@ export class TimeChart {
       //}
     });
 
-    console.log("createDataRows", dataModel);
     return dataModel;
   }
 
@@ -628,7 +625,6 @@ export class TimeChart {
         }
       }
     }
-    console.log("populateVarianceModel", varianceModel);
     return varianceModel;
   }
 

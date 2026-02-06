@@ -39,7 +39,7 @@ export namespace ComponentRegister {
       error: 0
     }
 
-    componentRegister.forEach((value: ComponentStatus, key: string) => {
+    componentRegister.forEach((value: ComponentStatus) => {
       switch (value) {
         case ComponentStatus.RUNNING: {
           result.running++;
@@ -51,7 +51,6 @@ export namespace ComponentRegister {
         }
         default: {
           result.error++;
-          console.log("Component failed ", key)
           break;
         }
       }

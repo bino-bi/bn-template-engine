@@ -4,6 +4,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 import state from "../../stores/assets";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
     tag: 'bn-image',
@@ -14,10 +15,13 @@ export class Image {
     // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
     @Element() private element: HTMLElement;
     private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+    // @ts-ignore - Initialized by withHasError mixin
+    private readonly errors: ErrorDispatcher;
 
     constructor() {
         withStyled(this);
         withComponentStatus(this);
+        this.errors = withHasError(this);
         this.componentStyle = withComponentStyle(this);
     }
 
