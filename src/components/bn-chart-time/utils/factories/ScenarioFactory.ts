@@ -167,6 +167,13 @@ export class ScenarioFactory {
     this.collisionManager = manager;
   }
 
+  /**
+   * Moves the label group to the front of the SVG tree so labels render on top of all geometry.
+   */
+  public moveLabelsToFront(): void {
+    this.svgGroups.scenario1Label.front();
+  }
+
   public createLineSeries(dataPoints: LineSeriesDataPoint[], scenarioName: string): LineSeries {
     const lineSeriesGroup = this.svgGroups.parent.group().id("LineSeries_" + scenarioName);
     const labelGroup = this.svgGroups.scenario1Label.group().id("LineSeries_Label_" + scenarioName);

@@ -2,6 +2,7 @@ import { G } from "@svgdotjs/svg.js";
 import { DataPoint } from "../model";
 import { HookLocation, Label } from "./Label";
 import { ElementPositions, LabelCollisionManager } from "../helper";
+import { LabelDirection } from "../helper/LabelCollisionManager";
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
@@ -40,8 +41,8 @@ export class LineSeries {
   private readonly ID_LINE_PREFIX: string = "LINE";
   private readonly ID_MARKER_PREFIX: string = "MARKER";
   private readonly ID_LABEL_PREFIX: string = "LABEL";
-  private readonly ESTIMATED_LABEL_WIDTH: number = 40;
-  private readonly ESTIMATED_LABEL_HEIGHT: number = 16;
+  private readonly ESTIMATED_LABEL_WIDTH: number = 56;
+  private readonly ESTIMATED_LABEL_HEIGHT: number = 24;
 
   private readonly scenarioGroup: G;
   private readonly labelGroup: G;
@@ -73,25 +74,41 @@ export class LineSeries {
     this.collisionManager = collisionManager;
   }
 
+  /**
+   * Backward-compatible: draws everything (geometry + labels) in one call.
+   */
   public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, measureScale: SiPrefix = new SiPrefix()): LineSeries {
+    this.drawGeometry();
+    this.drawLabels(dataFormatDigits, measureScale);
+    return this;
+  }
+
+  /**
+   * Phase 1: Draw only geometry (lines + markers). No labels.
+   */
+  public drawGeometry(): LineSeries {
     if (this.dataPoints.length === 0) {
       return this;
     }
 
     const lineStyle = this.getLineStyle();
-
-    // Draw connecting lines between data points
     this.drawLines(lineStyle);
-
-    // Draw markers at each data point
     this.drawMarkers(lineStyle);
+    return this;
+  }
 
-    // Draw value labels above each marker
-    this.drawValueLabels(dataFormatDigits, measureScale);
+  /**
+   * Phase 2: Draw only labels (value labels + scenario label).
+   * Call this after all series geometry is drawn, in priority order.
+   */
+  public drawLabels(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, measureScale: SiPrefix = new SiPrefix()): LineSeries {
+    if (this.dataPoints.length === 0) {
+      return this;
+    }
 
-    // Draw scenario label to the right of the last data point
+    // Draw scenario labels first (behind), then value labels on top
     this.drawScenarioLabel();
-
+    this.drawValueLabels(dataFormatDigits, measureScale);
     return this;
   }
 
@@ -212,39 +229,52 @@ export class LineSeries {
   }
 
   /**
-   * Determines the preferred label position based on line direction.
-   * - If line is increasing (going up), label should be on top (HookLocation.Bottom)
-   * - If line is decreasing (going down), label should be on bottom (HookLocation.Top)
-   *
-   * @param pointIndex The index within the dataPoints array
-   * @returns HookLocation.Bottom for label on top, HookLocation.Top for label on bottom
+   * Returns direction priority based on line direction at a given point.
+   * Default: Above. Only use Below first for true local minima
+   * (both neighbors higher than current point).
    */
-  private getLabelPreferredPosition(pointIndex: number): HookLocation {
+  private getLabelPositionPriority(pointIndex: number): LabelDirection[] {
     const current = this.dataPoints[pointIndex];
-    const next = this.dataPoints[pointIndex + 1];
-    const prev = this.dataPoints[pointIndex - 1];
 
-    // Check next point first (look forward)
-    if (next && !next.dataPoint.isEmpty()) {
-      // If next point is higher than current, line is increasing -> label on top
-      return next.dataPoint.getScaledUnit() > current.dataPoint.getScaledUnit()
-        ? HookLocation.Bottom  // Hook at bottom = label appears above
-        : HookLocation.Top;    // Hook at top = label appears below
+    // Find nearest non-empty neighbor forward
+    let next: LineSeriesDataPoint | null = null;
+    for (let j = pointIndex + 1; j < this.dataPoints.length; j++) {
+      if (!this.dataPoints[j].dataPoint.isEmpty()) {
+        next = this.dataPoints[j];
+        break;
+      }
     }
 
-    // Fall back to previous point if next doesn't exist
-    if (prev && !prev.dataPoint.isEmpty()) {
-      // If current is higher than previous, line was increasing -> label on top
-      return current.dataPoint.getScaledUnit() > prev.dataPoint.getScaledUnit()
-        ? HookLocation.Bottom
-        : HookLocation.Top;
+    // Find nearest non-empty neighbor backward
+    let prev: LineSeriesDataPoint | null = null;
+    for (let j = pointIndex - 1; j >= 0; j--) {
+      if (!this.dataPoints[j].dataPoint.isEmpty()) {
+        prev = this.dataPoints[j];
+        break;
+      }
     }
 
-    // Default: label on top
-    return HookLocation.Bottom;
+    // True local minimum: both neighbors exist and are higher
+    const currentVal = current.dataPoint.getScaledUnit();
+    const isLocalMin = prev && next
+      && prev.dataPoint.getScaledUnit() > currentVal
+      && next.dataPoint.getScaledUnit() > currentVal;
+
+    if (isLocalMin) {
+      return [LabelDirection.Below, LabelDirection.Left, LabelDirection.Right, LabelDirection.Above];
+    }
+
+    // Default: Above first
+    return [LabelDirection.Above, LabelDirection.Left, LabelDirection.Right, LabelDirection.Below];
+  }
+
+  private getScenarioType(): string {
+    return this.scenarioName?.slice(0, 2)?.toLowerCase() || "ac";
   }
 
   private drawValueLabels(dataFormatDigits: DataFormatDigits, measureScale: SiPrefix): void {
+    const scenarioType = this.getScenarioType();
+
     for (let i = 0; i < this.dataPoints.length; i++) {
       const point = this.dataPoints[i];
       if (point.dataPoint.isEmpty() || point.dataPoint.value === null) {
@@ -254,49 +284,49 @@ export class LineSeries {
       const centerX = this.position.getColumnCenterPositionX(point.index);
       const markerY = this.position.getColumnPositionY() - point.dataPoint.getScaledUnit();
 
-      // Determine preferred label hook location based on line direction
-      const preferredHook = this.getLabelPreferredPosition(i);
+      // Use collision manager with 4-direction placement if available
+      let labelX = centerX;
+      let labelY = markerY - (this.MARKER_SIZE / 2) - 2;
+      let verticalHook: HookLocation = HookLocation.Bottom;
+      let horizontalHook: HookLocation = HookLocation.Center;
 
-      // Use collision manager to find optimal position if available
-      let labelHook = preferredHook;
       if (this.collisionManager) {
-        labelHook = this.collisionManager.getOptimalHookLocation(
+        const directionPriority = this.getLabelPositionPriority(i);
+
+        const placement = this.collisionManager.getOptimalPlacement(
           centerX,
           markerY,
           this.ESTIMATED_LABEL_WIDTH,
           this.ESTIMATED_LABEL_HEIGHT,
           point.index,
-          preferredHook,
-          this.MARKER_SIZE
+          this.MARKER_SIZE,
+          scenarioType,
+          directionPriority
         );
 
-        // Register the label bounds for future collision detection
-        const bounds = this.collisionManager.calculateBounds(
-          centerX,
-          markerY,
-          this.ESTIMATED_LABEL_WIDTH,
-          this.ESTIMATED_LABEL_HEIGHT,
-          point.index,
-          labelHook,
-          this.MARKER_SIZE
-        );
+        if (placement === null) {
+          continue; // All positions collide with higher-priority labels — hide
+        }
+
+        labelX = placement.labelX;
+        labelY = placement.labelY;
+        verticalHook = placement.verticalHook;
+        horizontalHook = placement.horizontalHook;
+
+        // Register bounds with scenario type
+        const bounds = { ...placement.bounds, scenarioType };
         this.collisionManager.register(bounds);
       }
 
-      // Calculate label Y position based on hook location
-      const labelY = labelHook === HookLocation.Bottom
-        ? markerY - (this.MARKER_SIZE / 2) - 2  // Label on top
-        : markerY + (this.MARKER_SIZE / 2) + 2; // Label on bottom
-
       const label = new Label(
         this.labelGroup,
-        centerX,
+        labelX,
         labelY,
         this.ID_LABEL_PREFIX,
         point.dataPoint.value,
         this.styles,
-        labelHook,
-        HookLocation.Center
+        verticalHook,
+        horizontalHook
       );
 
       label.draw(true, dataFormatDigits, measureScale);
@@ -323,6 +353,15 @@ export class LineSeries {
 
     const lastX = this.position.getColumnCenterPositionX(lastValidPoint.index) + this.MARKER_SIZE + 4;
     const lastY = this.position.getColumnPositionY() - lastValidPoint.dataPoint.getScaledUnit();
+    const scenarioType = this.getScenarioType();
+
+    // Hide this scenario label if it's too close to a higher-priority one (e.g. AC)
+    if (this.collisionManager) {
+      if (this.collisionManager.shouldHideScenarioLabel(lastX, lastY, scenarioType)) {
+        return;
+      }
+      this.collisionManager.registerScenarioLabel(lastX, lastY, scenarioType);
+    }
 
     const scenarioLabelElement = new Label(
       this.labelGroup,
