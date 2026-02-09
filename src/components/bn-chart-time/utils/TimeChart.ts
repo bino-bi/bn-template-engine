@@ -4,9 +4,9 @@ import { ElementPositions, Padding, } from "./helper";
 
 import { DataPoint, Scenario } from "./model";
 
-import { Axis, HookLocation, Label, LineSeriesDataPoint } from "./elements";
+import { Axis, HookLocation, Label, LineSeries, LineSeriesDataPoint } from "./elements";
 import { ScenarioFactory, } from "./factories";
-import { LabelCollisionManager } from "./helper";
+import { LabelCollisionManager, SCENARIO_PRIORITY } from "./helper";
 import alasql from "alasql";
 
 import CalculateSize from 'calculate-size';
@@ -782,7 +782,6 @@ export class TimeChart {
 
   private drawLineScenarios(dataModel: any, svgContainer: Svg): void {
     const lineGroup: G = svgContainer.group().id("LineScenarios");
-
     // Create collision manager for label overlap detection across all line series
     const collisionManager = new LabelCollisionManager();
 
@@ -790,46 +789,62 @@ export class TimeChart {
     scenarioFactory.setCollisionManager(collisionManager);
 
     // Collect data points for each scenario
-    const scenario1Points: LineSeriesDataPoint[] = [];
-    const scenario2Points: LineSeriesDataPoint[] = [];
-    const scenario3Points: LineSeriesDataPoint[] = [];
-    const scenario4Points: LineSeriesDataPoint[] = [];
+    const slotDefaults = ["ac1", "pp1", "fc1", "pl1"];
+    const slotPoints: LineSeriesDataPoint[][] = [[], [], [], []];
 
     dataModel.forEach((elements: any, index: number) => {
-      if (elements["scenario1"]) {
-        scenario1Points.push({ dataPoint: elements["scenario1"], index });
-      }
-      if (elements["scenario2"]) {
-        scenario2Points.push({ dataPoint: elements["scenario2"], index });
-      }
-      if (elements["scenario3"]) {
-        scenario3Points.push({ dataPoint: elements["scenario3"], index });
-      }
-      if (elements["scenario4"]) {
-        scenario4Points.push({ dataPoint: elements["scenario4"], index });
-      }
+      const keys = ["scenario1", "scenario2", "scenario3", "scenario4"];
+      keys.forEach((key, slotIdx) => {
+        if (elements[key]) {
+          slotPoints[slotIdx].push({ dataPoint: elements[key], index });
+        }
+      });
     });
 
-    // Draw line series in reverse z-order: PL(4) → FC(3) → PP(2) → AC(1)
-    // This ensures AC (scenario1) is drawn last and appears on top
-    if (scenario4Points.length > 0 && scenario4Points.some(p => !p.dataPoint.isEmpty())) {
-      const scenarioName = scenario4Points[0]?.dataPoint?.scenario as string || "pl1";
-      scenarioFactory.createLineSeries(scenario4Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    // Build scenario info (only non-empty scenarios)
+    const scenarios: { points: LineSeriesDataPoint[]; scenarioName: string; scenarioType: string }[] = [];
+    for (let i = 0; i < slotPoints.length; i++) {
+      const points = slotPoints[i];
+      if (points.length > 0 && points.some(p => !p.dataPoint.isEmpty())) {
+        const scenarioName = points[0]?.dataPoint?.scenario as string || slotDefaults[i];
+        const scenarioType = scenarioName.slice(0, 2).toLowerCase();
+        scenarios.push({ points, scenarioName, scenarioType });
+      }
     }
 
-    if (scenario3Points.length > 0 && scenario3Points.some(p => !p.dataPoint.isEmpty())) {
-      const scenarioName = scenario3Points[0]?.dataPoint?.scenario as string || "fc1";
-      scenarioFactory.createLineSeries(scenario3Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    // Sort by z-order: lowest priority first so SVG groups are created in correct render order
+    // PL(4) → FC(3) → PP(2) → AC(1) — AC geometry on top of PP geometry
+    scenarios.sort((a, b) => {
+      const pa = SCENARIO_PRIORITY[a.scenarioType] || 99;
+      const pb = SCENARIO_PRIORITY[b.scenarioType] || 99;
+      return pb - pa;
+    });
+
+    // Create LineSeries in z-order (SVG group creation order = render order)
+    const seriesList: { series: LineSeries; scenarioType: string }[] = [];
+    for (const scenario of scenarios) {
+      const series = scenarioFactory.createLineSeries(scenario.points, scenario.scenarioName);
+      seriesList.push({ series, scenarioType: scenario.scenarioType });
     }
 
-    if (scenario2Points.length > 0 && scenario2Points.some(p => !p.dataPoint.isEmpty())) {
-      const scenarioName = scenario2Points[0]?.dataPoint?.scenario as string || "pp1";
-      scenarioFactory.createLineSeries(scenario2Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    // Phase 1: Draw geometry (groups already in correct z-order from creation)
+    for (const entry of seriesList) {
+      entry.series.drawGeometry();
     }
 
-    if (scenario1Points.length > 0 && scenario1Points.some(p => !p.dataPoint.isEmpty())) {
-      const scenarioName = scenario1Points[0]?.dataPoint?.scenario as string || "ac1";
-      scenarioFactory.createLineSeries(scenario1Points, scenarioName).draw(this.dataFormatDigits, this.measureScale);
+    // Move label group to front so labels render on top of all lines/markers
+    scenarioFactory.moveLabelsToFront();
+
+    // Phase 2: Draw labels in priority order (highest priority first)
+    // AC(1) → PP(2) → FC(3) → PL(4) so AC claims best label positions first
+    const labelOrder = [...seriesList].sort((a, b) => {
+      const pa = SCENARIO_PRIORITY[a.scenarioType] || 99;
+      const pb = SCENARIO_PRIORITY[b.scenarioType] || 99;
+      return pa - pb; // lowest priority number first (AC first)
+    });
+
+    for (const entry of labelOrder) {
+      entry.series.drawLabels(this.dataFormatDigits, this.measureScale);
     }
 
     this.scenariosArea = {

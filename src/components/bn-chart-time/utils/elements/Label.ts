@@ -161,7 +161,7 @@ export class Label {
     }
     else if (this.horizontalHookLocation == HookLocation.Center) {      
         labelAnchor = 'middle';
-        rectX = text.x() as number - ((boxWidth *0.9) / 2);     
+        rectX = text.x() as number - ((boxWidth + 2) / 2);     
     }    
     else if (this.horizontalHookLocation == HookLocation.Right) {
         labelAnchor = 'end';  
@@ -185,11 +185,11 @@ export class Label {
     text.move(textX, textY);
     text.font({ anchor: labelAnchor});
 
-    label.rect(boxWidth * 0.9, boxHeight * 0.8)
+    label.rect(boxWidth + 2, boxHeight * 0.8)
       .stroke(background)
       .fill(background)
-      .opacity(0.7)
-      .move(rectX, rectY )
+      .opacity(0.9)
+      .move(rectX - 1, rectY)
       .insertBefore(text);
 
     
