@@ -296,22 +296,23 @@ export class DateStringFactory {
         if (type === DateDistance.QUARTER){
           if( date1.quarter === date2.quarter && date1.year === date2.year ) {
               dateString2 = dateString2.replace(" " + date2.year, "");
-          } else {
+          } else if (date1.year === date2.year) {
               dateString1 = dateString1.replace(" " + date1.year, "");
-          }   
+          }
         }
         else if(type === DateDistance.MONTH){
-          if(date1.month === date2.month && date1.year === date2.year ) {         
+          if(date1.month === date2.month && date1.year === date2.year ) {
             dateString2 = dateString2.replace(" " + date2.year, "");
-          } else {
+          } else if (date1.year === date2.year) {
             dateString1 = dateString1.replace(" " + date1.year, "");
           }
-        }   
-        else if(type === DateDistance.WEEK)
+        }
+        else if(type === DateDistance.WEEK) {
           if(date1.weekNumber === date2.weekNumber && date1.year === date2.year ) {
-          dateString2 = dateString2.replace(" " + date2.year, "");
-        } else {
-          dateString1 = dateString1.replace(" " + date1.year, "");
+            dateString2 = dateString2.replace(" " + date2.year, "");
+          } else if (date1.year === date2.year) {
+            dateString1 = dateString1.replace(" " + date1.year, "");
+          }
         }  
       }
     }
