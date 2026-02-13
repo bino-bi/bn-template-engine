@@ -36,6 +36,7 @@ import {
 } from "@bino-bi/ibcs-component-interface";
 */
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
 //import {  AggregationLevel, AxisLabelsMode, DateDistance, Order } from "../../components";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
@@ -62,6 +63,7 @@ export class Chart {
   @Element() private element: HTMLElement;
 
   @State() data: TimeChartDataRow[] = []
+  @State() private datasetMeta: DatasetMeta | null = null;
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
@@ -526,6 +528,8 @@ export class Chart {
     withComponentStatus(this);
     withDataset(this, (_name, data) => {
       this.data = data || [];
+    }, (_name, meta) => {
+      this.datasetMeta = meta;
     });
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
@@ -558,14 +562,29 @@ export class Chart {
   }
 
   prepareDimension(): { height: number, width: number } {
-    this.canvasWidthSegmented = this.element.clientWidth / [...this.scenarios.split(','), ...this.variances.split(',')].length;
+    const scenariosList = this.prepareScenarios();
+    const variancesList = this.prepareVariances();
+    this.canvasWidthSegmented = this.element.clientWidth / (scenariosList.length + variancesList.length || 1);
     return { width: this.canvasWidthSegmented, height: this.element.clientHeight };
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios)) {
+    const isAuto = this.scenarios?.trim().toLowerCase() === 'auto';
+    if (isBlankInput(this.scenarios) || isAuto) {
+      if (this.datasetMeta?.availableScenarios?.length > 0) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_scenarios', type: 'warning',
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+          });
+        } else {
+          this.errors.remove('AUTO_scenarios');
+        }
+        return this.datasetMeta.availableScenarios;
+      }
       return [];
     }
+    this.errors.remove('AUTO_scenarios');
     return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
@@ -618,14 +637,50 @@ export class Chart {
   }
 
   private prepareLevel(): AggregationLevel {
+    const isAuto = this.level?.trim().toLowerCase() === 'auto';
+    if (isBlankInput(this.level) || isAuto) {
+      if (this.datasetMeta?.suggestedLevel) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_level', type: 'warning',
+            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`
+          });
+        } else {
+          this.errors.remove('AUTO_level');
+        }
+        return AggregationLevel[this.datasetMeta.suggestedLevel.toUpperCase() as keyof typeof AggregationLevel];
+      }
+      return undefined;
+    }
+    this.errors.remove('AUTO_level');
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
   private prepareOrder(): Order {
-    let entryValue = this.level;
-    if (this.order.toLocaleLowerCase() === "levelindex") {
-      entryValue += "Index";
+    const isLevelAuto = isBlankInput(this.level) || this.level?.trim().toLowerCase() === 'auto';
+    let entryValue = isLevelAuto && this.datasetMeta?.suggestedLevel
+      ? this.datasetMeta.suggestedLevel
+      : this.level;
+
+    const isOrderAuto = this.order?.trim().toLowerCase() === 'auto';
+    if (isBlankInput(this.order) || isOrderAuto) {
+      if (this.datasetMeta?.suggestedLevel) {
+        if (!isOrderAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_order', type: 'warning',
+            message: `order: not set, auto-detected: ${entryValue}`
+          });
+        } else {
+          this.errors.remove('AUTO_order');
+        }
+      }
+    } else {
+      this.errors.remove('AUTO_order');
+      if (this.order?.toLocaleLowerCase() === "levelindex") {
+        entryValue += "Index";
+      }
     }
+
     const tableOrder: Order = {
       hierarchy: [OrderColumn[entryValue?.toUpperCase() as keyof typeof OrderColumn]],
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
@@ -700,6 +755,22 @@ export class Chart {
   }
 
   private prepareDateInterval(): DateDistance {
+    const isAuto = this.dateInterval?.trim().toLowerCase() === 'auto';
+    if (isBlankInput(this.dateInterval) || isAuto) {
+      if (this.datasetMeta?.suggestedDateInterval) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_dateInterval', type: 'warning',
+            message: `dateInterval: not set, auto-detected: ${this.datasetMeta.suggestedDateInterval}`
+          });
+        } else {
+          this.errors.remove('AUTO_dateInterval');
+        }
+        return DateDistance[this.datasetMeta.suggestedDateInterval.toUpperCase() as keyof typeof DateDistance];
+      }
+      return isAuto ? DateDistance.AUTO : undefined;
+    }
+    this.errors.remove('AUTO_dateInterval');
     return DateDistance[this.dateInterval?.toUpperCase() as keyof typeof DateDistance];
   }
 

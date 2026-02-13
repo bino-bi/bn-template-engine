@@ -16,6 +16,7 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { Style } from "../../stores/componentStyles";
 import { StructureChartDataRow} from "./utils/model";
 import { AggregationLevel } from "../../utils/constants";
@@ -31,6 +32,7 @@ export class Chart {
     @Element() private element: HTMLElement;
 
   @State() data: StructureChartDataRow[] = []
+  @State() private datasetMeta: DatasetMeta | null = null;
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (style: Style) => T) => T;
@@ -329,6 +331,8 @@ export class Chart {
     withComponentStatus(this);
     withDataset(this, (_name, data) => {
       this.data = data || [];
+    }, (_name, meta) => {
+      this.datasetMeta = meta;
     });
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
@@ -357,9 +361,22 @@ export class Chart {
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios)) {
+    const isAuto = this.scenarios?.trim().toLowerCase() === 'auto';
+    if (isBlankInput(this.scenarios) || isAuto) {
+      if (this.datasetMeta?.availableScenarios?.length > 0) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_scenarios', type: 'warning',
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+          });
+        } else {
+          this.errors.remove('AUTO_scenarios');
+        }
+        return this.datasetMeta.availableScenarios;
+      }
       return [];
     }
+    this.errors.remove('AUTO_scenarios');
     return this.scenarios?.split(",").map(entry => entry.trim());
   }
 
@@ -403,12 +420,49 @@ export class Chart {
   }
 
   private prepareLevel(): AggregationLevel {
+    const isAuto = this.level?.trim().toLowerCase() === 'auto';
+    if (isBlankInput(this.level) || isAuto) {
+      if (this.datasetMeta?.suggestedLevel) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_level', type: 'warning',
+            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`
+          });
+        } else {
+          this.errors.remove('AUTO_level');
+        }
+        return AggregationLevel[this.datasetMeta.suggestedLevel.toUpperCase() as keyof typeof AggregationLevel];
+      }
+      return undefined;
+    }
+    this.errors.remove('AUTO_level');
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
   private prepareOrder(): Order {
+    const isAuto = this.order?.trim().toLowerCase() === 'auto';
+    let orderStr: string;
+    if (isBlankInput(this.order) || isAuto) {
+      if (this.datasetMeta?.suggestedOrder) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_order', type: 'warning',
+            message: `order: not set, auto-detected: ${this.datasetMeta.suggestedOrder}`
+          });
+        } else {
+          this.errors.remove('AUTO_order');
+        }
+        orderStr = this.datasetMeta.suggestedOrder;
+      } else {
+        orderStr = this.order;
+      }
+    } else {
+      this.errors.remove('AUTO_order');
+      orderStr = this.order;
+    }
+
     const tableOrder: Order = {
-      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      hierarchy: orderStr?.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
 

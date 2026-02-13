@@ -25,6 +25,10 @@ export function validateScenarioList(value: string): string[] {
     return [];
   }
 
+  if (value.trim().toLowerCase() === 'auto') {
+    return [];
+  }
+
   const invalidScenarios: string[] = value?.split(',')
     .filter(element => !(element.toUpperCase().trim() in Scenarios));
 
@@ -53,6 +57,10 @@ export function validateVariancesList(value: string): string[] {
 
 export function validateOrderList(value: string): string[] {
   if (isBlankInput(value)) {
+    return [];
+  }
+
+  if (value.trim().toLowerCase() === 'auto') {
     return [];
   }
 
@@ -88,6 +96,9 @@ export function isValidDirection(value: string): boolean {
 }
 
 export function isValidLevel(value: string): boolean {
+  if (value?.toLowerCase() === 'auto') {
+    return true;
+  }
   return value?.toUpperCase() in AggregationLevel;
 }
 

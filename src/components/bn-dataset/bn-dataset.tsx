@@ -2,6 +2,8 @@ import { Component, Prop, h, Host, Watch } from "@stencil/core";
 import withDatasource from "../../utils/withDatasource";
 import withBodyObserver from "../../utils/withBodyObserver";
 import { set } from '../../stores/datasets';
+import { set as setMeta } from '../../stores/datasetsMeta';
+import { calculateDatasetMeta } from '../../utils/datasetMetaCalculator';
 import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -69,6 +71,8 @@ export class Dataset {
         this.latestResult = result;
         // @ts-ignore
         set(this.name, result);
+        // @ts-ignore
+        setMeta(this.name, calculateDatasetMeta(result));
       }
     }
   }

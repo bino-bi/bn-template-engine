@@ -1,5 +1,7 @@
 import { on as onSet, get as getSet } from '../stores/datasets';
 import { on as onSource, get as getSource } from '../stores/datasources';
+import { on as onMeta, get as getMeta } from '../stores/datasetsMeta';
+import { DatasetMeta } from './model/DatasetMeta';
 
 import { runIfExisits } from "./utils";
 import { getElement } from "@stencil/core";
@@ -13,11 +15,20 @@ const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => 
   return [matches, nonMatches];
 };
 
-const withDataset = (component: any, onUpdate: (name: string, data: any) => void) => {
+const withDataset = (component: any, onUpdate: (name: string, data: any) => void, onMetaUpdate?: (name: string, meta: DatasetMeta) => void) => {
   let subscriptionSet: () => void;
   let subscriptionSource: () => void;
+  let subscriptionMeta: () => void;
   let datasets: string[] = [];
   let datasources: string[] = [];
+
+  const deliverMeta = (name: string) => {
+    if (onMetaUpdate) {
+      // @ts-ignore
+      const meta = getMeta(name);
+      if (meta) onMetaUpdate(name, meta);
+    }
+  };
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -26,6 +37,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
         datasets.forEach(name => {
           // @ts-ignore
           onUpdate(name, getSet(name));
+          deliverMeta(name);
         })
         datasources.forEach(name => {
           // @ts-ignore
@@ -42,6 +54,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     datasets.forEach(name => {
       // @ts-ignore
       onUpdate(name, getSet(name));
+      deliverMeta(name);
     })
     datasources.forEach(name => {
       // @ts-ignore
@@ -62,6 +75,13 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
       }
     })
 
+    if (onMetaUpdate) {
+      subscriptionMeta = onMeta("set", (key, newValue) => {
+        if (datasets.includes(key)) {
+          onMetaUpdate(key, newValue);
+        }
+      })
+    }
 
     runIfExisits(connectedCallback, component);
   };
@@ -71,6 +91,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     observer.disconnect();
     runIfExisits(subscriptionSet);
     runIfExisits(subscriptionSource);
+    runIfExisits(subscriptionMeta);
     runIfExisits(disconnectedCallback, component);
   };
 
@@ -79,6 +100,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     names.forEach(name => {
       // @ts-ignore
       onUpdate(name, getSet(name));
+      deliverMeta(name);
     })
   }
 }
