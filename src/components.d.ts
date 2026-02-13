@@ -205,11 +205,6 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * Chart Type <br /><br /> values:<br /> ```bar// line / area```
-          * @default "bar"
-         */
-        "type": string;
-        /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
         "unitScaling": string | number;
@@ -1548,11 +1543,6 @@ declare namespace LocalJSX {
           * @default -1
          */
         "syncSpaceLeft"?: number;
-        /**
-          * Chart Type <br /><br /> values:<br /> ```bar// line / area```
-          * @default "bar"
-         */
-        "type"?: string;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */

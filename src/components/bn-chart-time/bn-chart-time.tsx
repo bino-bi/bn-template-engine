@@ -329,29 +329,6 @@ export class Chart {
     }
   }
 
-  /** Chart Type
-  *  <br /><br />
-  *  values:<br />
-  *  ```bar// line / area```
-  */
-  @Prop() type: string = "bar";
-
-
-  @Watch('type')
-  // @ts-ignore - Watch handler parameter required by Stencil
-  validateChartType(newValue: string) {
-    // const errId: string = 'ERR_chartType';
-    /*if (!isValidateType(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: 'warning',
-        message: 'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'
-      });
-    } else {
-      this.errors.remove(errId);
-    }*/
-  }
-
   /** Chart Mode - controls how the chart is rendered
   *  <br /><br />
   *  values:<br />
@@ -570,7 +547,7 @@ export class Chart {
     this.validateLeftSync(this.syncSpaceLeft);
     this.validateDateInterval(this.dateInterval);
     this.validateAxisLabelsMode(this.axisLabelsMode);
-    this.validateChartType(this.type);
+
     this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
     this.validateShowMeasureScale(this.showMeasureScale);
@@ -746,9 +723,6 @@ export class Chart {
 
 
 
-  /*private prepareChartType() {
-    return this.type;
-  }*/
 
   public getDataStructure(): any {
     let dataSetStructure: any = {
@@ -850,7 +824,7 @@ export class Chart {
       dateInterval={this.prepareDateInterval()}
       intervalSpanLimit={this.prepareIntervalSpanLimit()}
       axisLabelsMode={this.prepareAxisLabelsMode()}
-      //  type={this.prepareChartType()}
+
       filter={this.prepareFilter()}
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
