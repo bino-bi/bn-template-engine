@@ -531,6 +531,40 @@
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>
 
+    <!-- DatasetMeta Auto-Detection Demo -->
+    <!-- Only datasets attribute needed — scenarios, level, order, dateInterval auto-detected from meta -->
+    <bn-dataset name="AutoDetectDemo" static="true">
+      [
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Hotels","categoryIndex":1,"subCategory":"Luxury","subCategoryIndex":1,"date":"2024-01-01","ac1":1200,"pp1":1000,"fc1":1100,"pl1":1050},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Hotels","categoryIndex":1,"subCategory":"Luxury","subCategoryIndex":1,"date":"2024-02-01","ac1":1350,"pp1":1100,"fc1":1250,"pl1":1150},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Hotels","categoryIndex":1,"subCategory":"Luxury","subCategoryIndex":1,"date":"2024-03-01","ac1":1500,"pp1":1200,"fc1":1400,"pl1":1300},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Restaurants","categoryIndex":2,"subCategory":"Fine Dining","subCategoryIndex":2,"date":"2024-01-01","ac1":800,"pp1":750,"fc1":780,"pl1":770},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Restaurants","categoryIndex":2,"subCategory":"Fine Dining","subCategoryIndex":2,"date":"2024-02-01","ac1":900,"pp1":820,"fc1":870,"pl1":850},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Restaurants","categoryIndex":2,"subCategory":"Fine Dining","subCategoryIndex":2,"date":"2024-03-01","ac1":1050,"pp1":900,"fc1":980,"pl1":950},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Spa","categoryIndex":3,"subCategory":"Wellness","subCategoryIndex":3,"date":"2024-01-01","ac1":400,"pp1":350,"fc1":380,"pl1":370},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Spa","categoryIndex":3,"subCategory":"Wellness","subCategoryIndex":3,"date":"2024-02-01","ac1":450,"pp1":400,"fc1":430,"pl1":420},
+        {"operation":"+","rowGroup":"Revenue","rowGroupIndex":1,"category":"Spa","categoryIndex":3,"subCategory":"Wellness","subCategoryIndex":3,"date":"2024-03-01","ac1":520,"pp1":460,"fc1":500,"pl1":480}
+      ]
+    </bn-dataset>
+
+    <bn-page name="AutoDetect" format="a4" orientation="landscape">
+      <bn-title business-unit='Auto-Detection Demo' date-end='2024-03-01' date-format='month' date-link='interval'
+        measures='[{"name": "Revenue", "unit": "EUR"}]'></bn-title>
+      <bn-body>
+        <!-- No scenarios, level, order, or dateInterval — all auto-detected from DatasetMeta -->
+        <bn-table datasets='AutoDetectDemo' category-width='w25' data-format='decimal' data-format-digits-decimal='0'
+          grouped='true' show-group-title='true' type='sum' measure-scale='_' measure-unit='EUR'>
+        </bn-table>
+
+        <bn-chart-time datasets='AutoDetectDemo' unit-scaling='0.14' percentage-scaling='50'>
+        </bn-chart-time>
+
+        <bn-chart-structure datasets='AutoDetectDemo' unit-scaling='0.3' percentage-scaling='50'>
+        </bn-chart-structure>
+      </bn-body>
+      <bn-footer text="Auto-detected scenarios, level, order from DatasetMeta" code="bar"></bn-footer>
+    </bn-page>
+
   </bn-context>
 
 </body>

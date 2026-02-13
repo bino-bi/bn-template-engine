@@ -40,6 +40,7 @@ import { Style } from "../../stores/componentStyles";
   TableType,
 } from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TableDataRow } from "./utils/model/TableDataRow";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
 import { TableType } from "./utils/model";
@@ -59,6 +60,7 @@ export class Table {
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   @State() data: TableDataRow[] = []
+  @State() private datasetMeta: DatasetMeta | null = null;
 
 
   constructor() {
@@ -69,6 +71,8 @@ export class Table {
 
     withDataset(this, (_name, data) => {
       this.data = data || [];
+    }, (_name, meta) => {
+      this.datasetMeta = meta;
     });
 
     this.t = withTranslation(this).t;
@@ -667,8 +671,14 @@ export class Table {
 
 
   private prepareOrder(): Order {
+    const isAuto = this.order?.trim().toLowerCase() === 'auto';
+    let orderStr = this.order;
+    if (isAuto && this.datasetMeta?.suggestedOrder) {
+      orderStr = this.datasetMeta.suggestedOrder;
+    }
+
     const tableOrder: Order = {
-      hierarchy: this.order.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      hierarchy: orderStr.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
       direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
     };
 
@@ -701,12 +711,38 @@ export class Table {
   }
 
   private prepareScenarios(): string[] {
-    if (isBlankInput(this.scenarios) && isBlankInput(this.variances)) {
+    const isAuto = this.scenarios?.trim().toLowerCase() === 'auto';
+    if ((isBlankInput(this.scenarios) || isAuto) && isBlankInput(this.variances)) {
+      if (this.datasetMeta?.availableScenarios?.length > 0) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_scenarios', type: 'warning',
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+          });
+        } else {
+          this.errors.remove('AUTO_scenarios');
+        }
+        return this.datasetMeta.availableScenarios;
+      }
       return [];
     }
+
     let scenarios = [];
 
-    if (this.scenarios?.trim().length > 0) {
+    if (isAuto || isBlankInput(this.scenarios)) {
+      if (this.datasetMeta?.availableScenarios?.length > 0) {
+        if (!isAuto) {
+          this.errors.addOrReplace({
+            id: 'AUTO_scenarios', type: 'warning',
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+          });
+        } else {
+          this.errors.remove('AUTO_scenarios');
+        }
+        scenarios = scenarios.concat(this.datasetMeta.availableScenarios);
+      }
+    } else {
+      this.errors.remove('AUTO_scenarios');
       scenarios = scenarios.concat(this.scenarios?.split(","));
     }
 

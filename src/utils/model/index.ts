@@ -1,5 +1,6 @@
 export * from "./VarianceScenario";
 export * from "./ChartStyles";
+export * from "./DatasetMeta";
 
 
 export enum QueryColumnNames {
