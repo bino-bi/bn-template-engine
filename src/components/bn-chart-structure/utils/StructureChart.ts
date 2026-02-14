@@ -2,17 +2,17 @@ import { G, Svg } from "@svgdotjs/svg.js";
 
 import { ElementPositions, FactoryState, Padding, VarianceType, } from "./helper";
 
-import { DataPoint, Scenario, StructureChartComponentConfig, StructureChartDataRow, StructureChartStyle } from "./model";
+import { DataPoint, Scenario, StackConfigParsed, StructureChartComponentConfig, StructureChartDataRow, StructureChartStyle } from "./model";
 
 // @ts-ignore
-import { Axis, Categories, HookLocation, Label } from "./elements";
+import { Axis, Categories, HookLocation, Label, StackedBar } from "./elements";
 import { ScenarioFactory, } from "./factories";
 // import { Formatter } from "../../../utils";
 import alasql from "alasql";
 
 import CalculateSize from 'calculate-size';
 import { Formatter } from "../../../utils";
-import { AggregationLevel } from "../../../utils/constants";
+import { AggregationLevel, StackBy } from "../../../utils/constants";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { Order, OrderColumn } from "../../../utils/model/Order";
@@ -58,6 +58,7 @@ export class StructureChart {
   private measureScale: SiPrefix = new SiPrefix();
   private measureUnit: string = "";
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
+  private stackConfig: StackConfigParsed | null = null;
 
   constructor(ruleSet: VisualisationRuleSet, config: StructureChartComponentConfig, styles: StructureChartStyle) {
     this.initSQLFunctions();
@@ -119,6 +120,7 @@ export class StructureChart {
     this.measureScale = config.measureScale;
     this.measureUnit = config.measureUnit;
     this.dataFormatDigits = config.dataFormatDigits;
+    this.stackConfig = config.stackConfig;
 
     this.updatePosition();
   }
@@ -243,7 +245,9 @@ export class StructureChart {
     if (this.variancesDataModel && this.variancesDataModel.length > 0) {
       this.drawVarianceScenario(this.variancesDataModel, svgContainer);
       this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
-
+    } else if (this.stackConfig != null) {
+      this.drawStackedScenarios(this.dataModel, svgContainer);
+      this.drawAxisAndLabels(this.dataModel, svgContainer);
     } else {
       this.drawScenarios(this.dataModel, svgContainer);
       this.drawAxisAndLabels(this.dataModel, svgContainer);
@@ -651,6 +655,75 @@ export class StructureChart {
     });
 
     return barsGroup;
+  }
+
+  /**
+   * Draw stacked horizontal bars. Supports stacking by scenario or by data dimension.
+   */
+  private drawStackedScenarios(dataModel: any[], svgContainer: Svg): void {
+    if (!this.stackConfig) return;
+
+    const stackGroup: G = svgContainer.group().id("StackedScenarios");
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+
+    dataModel.forEach((elements: any, index: number) => {
+      const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
+      const segments: { value: number; scenario: string; dataPoint: DataPoint }[] = [];
+
+      if (isScenarioStack) {
+        for (const key of scenarioKeys) {
+          const dp: DataPoint = elements[key];
+          if (dp && !dp.isEmpty() && dp.value != null) {
+            segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
+          }
+        }
+      } else {
+        const dp: DataPoint = elements["scenario1"];
+        if (dp && !dp.isEmpty() && dp.value != null) {
+          segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
+        }
+      }
+
+      if (segments.length === 0) return;
+
+      // Sort if requested
+      if (this.stackConfig!.order === 'asc') {
+        segments.sort((a, b) => a.value - b.value);
+      } else if (this.stackConfig!.order === 'desc') {
+        segments.sort((a, b) => b.value - a.value);
+      }
+
+      // Calculate total for this position
+      const total = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+
+      // Draw segments left-to-right (horizontal cumulative x-offsets)
+      let cumulativeValue = 0;
+      let lastBar: StackedBar | null = null;
+
+      segments.forEach((seg, segIdx) => {
+        const bar = new StackedBar(
+          this.position,
+          this.styles,
+          seg.dataPoint,
+          index,
+          cumulativeValue,
+          seg.scenario,
+          segIdx,
+          this.stackConfig!.mode,
+          total,
+          isScenarioStack,
+          stackGroup
+        );
+        bar.draw(this.dataFormatDigits, this.measureScale);
+        cumulativeValue += Math.abs(seg.value);
+        lastBar = bar;
+      });
+
+      // Draw total label to the right of the last segment
+      if (lastBar) {
+        lastBar.drawTotalLabel(this.dataFormatDigits, this.measureScale);
+      }
+    });
   }
 
   private getVarianceType() {

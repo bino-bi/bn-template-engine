@@ -328,6 +328,49 @@ export function validateColumnThereOfJsonStr(value: string): string[] {
   return ["Invalid JSON structure"];
 }
 
+export function validateStackConfig(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  try {
+    const config = JSON.parse(value);
+
+    if (typeof config !== 'object' || config === null || Array.isArray(config)) {
+      return ['stack: must be a JSON object'];
+    }
+
+    const errors: string[] = [];
+
+    if (!config.hasOwnProperty('by')) {
+      errors.push("stack: 'by' is required");
+    } else {
+      const validBy = ['scenario', 'category', 'subcategory', 'rowgroup'];
+      if (!validBy.includes(config.by)) {
+        errors.push(`stack: 'by' must be one of: ${validBy.join(', ')}`);
+      }
+    }
+
+    if (config.hasOwnProperty('mode')) {
+      const validModes = ['absolute', 'relative', 'absolute-relative'];
+      if (!validModes.includes(config.mode)) {
+        errors.push(`stack: 'mode' must be one of: ${validModes.join(', ')}`);
+      }
+    }
+
+    if (config.hasOwnProperty('order')) {
+      const validOrders = ['asc', 'desc', 'dataset'];
+      if (!validOrders.includes(config.order)) {
+        errors.push(`stack: 'order' must be one of: ${validOrders.join(', ')}`);
+      }
+    }
+
+    return errors;
+  } catch (e) {
+    return ['stack: invalid JSON'];
+  }
+}
+
 // @ts-ignore - Parameter reserved for future validation
 export function isValidFontSize(value: string): boolean {
   return true;

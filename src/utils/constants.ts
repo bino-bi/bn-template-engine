@@ -89,4 +89,22 @@ export enum ChartMode {
     AUTO = "auto",
 }
 
+export enum StackBy {
+    SCENARIO = "scenario",
+    CATEGORY = "category",
+    SUBCATEGORY = "subcategory",
+    ROWGROUP = "rowgroup",
+}
+
+export enum StackMode {
+    ABSOLUTE = "absolute",
+    RELATIVE = "relative",
+    ABSOLUTE_RELATIVE = "absolute-relative",
+}
+
+export enum StackOrder {
+    ASC = "asc",
+    DESC = "desc",
+    DATASET = "dataset",
+}
 

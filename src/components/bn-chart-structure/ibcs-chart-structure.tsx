@@ -14,6 +14,7 @@ import {
   StructureChartComponentConfigAdapter,
   StructureChartDataRow
 } from "./utils/model";
+import { StackConfigParsed } from "./utils/model/StructureChartComponentConfig";
 import { StructureChartDataRowAdapter } from "./utils/model";
 //import { StringAdapter } from "./utils/helper/StringAdapter";
 //import { OrderAdapter } from "../../utils/model/Order";
@@ -93,7 +94,10 @@ export class IbcsChartStructure {
 
   @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
-  
+
+  @Prop()
+  stackConfig: StackConfigParsed | null = null;
+
   private chart: StructureChart | undefined;
   private pattern: CustomPattern | undefined;;
 
@@ -188,7 +192,8 @@ export class IbcsChartStructure {
       "measureScale": this.measureScale,
       "measureUnit": this.measureUnit,     
       "showMeasureScale": this.showMeasureScale,
-      "dataFormatDigits":this.dataFormatDigits,    
+      "dataFormatDigits":this.dataFormatDigits,
+      "stackConfig": this.stackConfig,
     });
   }
 
