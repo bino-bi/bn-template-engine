@@ -15,7 +15,7 @@ import { CustomPattern } from "./utils/helper";
 */
 //import { Svg, SVG } from "@svgdotjs/svg.js";
 
-import { TimeChartComponentConfig, TimeChartComponentConfigAdapter } from "./utils/model/TimeChartComponentConfig";
+import { StackConfigParsed, TimeChartComponentConfig, TimeChartComponentConfigAdapter } from "./utils/model/TimeChartComponentConfig";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./utils/model/TimeChartDataRow";
 // import { OrderAdapter } from "../../utils/model/Order";
 // import { StringAdapter } from "../../utils/helper/StringAdapter";
@@ -113,6 +113,9 @@ export class IbcsChartTime {
 
   @Prop()
   maxBars: number = 28;
+
+  @Prop()
+  stackConfig: StackConfigParsed | null = null;
 
   @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
@@ -230,6 +233,7 @@ export class IbcsChartTime {
       "showOverlayAvg": this.showOverlayAvg,
       "chartMode": this.chartMode,
       "maxBars": this.maxBars,
+      "stackConfig": this.stackConfig,
     });
   }
 

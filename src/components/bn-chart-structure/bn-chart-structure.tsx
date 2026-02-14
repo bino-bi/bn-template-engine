@@ -6,6 +6,7 @@ import {
   isValidNumber,
   validateOrderList,
   validateScenarioList,
+  validateStackConfig,
   validateVariancesList
 } from "../../utils/validate";
 
@@ -19,7 +20,8 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { Style } from "../../stores/componentStyles";
 import { StructureChartDataRow} from "./utils/model";
-import { AggregationLevel } from "../../utils/constants";
+import { AggregationLevel, StackBy, StackMode, StackOrder } from "../../utils/constants";
+import { StackConfigParsed } from "./utils/model/StructureChartComponentConfig";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 
 @Component({
@@ -326,9 +328,32 @@ export class Chart {
    * measureUnit displayed in table.
    */
   @Prop() measureUnit: string = "";
-   
 
+  /**
+   * Stacking configuration for the chart as a JSON string.
+   *
+   * When set, bars are drawn stacked (additive layers) instead of side-by-side.
+   *
+   * @default '' (empty — no stacking)
+   * @example stack='{"by":"scenario"}'
+   */
+  @Prop() stack: string = '';
 
+  @Watch('stack')
+  validateStack(newValue: string) {
+    const errId: string = 'ERR_stack';
+    const errors = validateStackConfig(newValue);
+
+    if (errors.length > 0) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: errors.join('; ')
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
 
   private scenariosArray: string[];
   private canvasWidthSegmented: number;
@@ -361,6 +386,7 @@ export class Chart {
     this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
     this.validateShowMeasureScale(this.showMeasureScale);
+    this.validateStack(this.stack);
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -522,6 +548,22 @@ export class Chart {
     return this.chartTitle;
   }
 
+  private prepareStackConfig(): StackConfigParsed | null {
+    if (isBlankInput(this.stack)) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(this.stack);
+      return {
+        by: parsed.by as StackBy,
+        mode: (parsed.mode as StackMode) || StackMode.ABSOLUTE,
+        order: (parsed.order as StackOrder) || StackOrder.DATASET,
+      };
+    } catch {
+      return null;
+    }
+  }
+
   private prepareFilter(): string {
     if (this.filter.length == 0) {
       return '';
@@ -615,7 +657,7 @@ export class Chart {
       measure-scale={this.prepareMeasureScale()}
       measure-unit={this.prepareMeasureUnit()}
       showMeasureScale={this.prepareShowMeasureScale(idx)}
- 
+      stackConfig={this.prepareStackConfig()}
     ></ibcs-chart-structure>
   }
 

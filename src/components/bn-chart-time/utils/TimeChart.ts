@@ -4,7 +4,7 @@ import { ElementPositions, Padding, } from "./helper";
 
 import { DataPoint, Scenario } from "./model";
 
-import { Axis, HookLocation, Label, LineSeries, LineSeriesDataPoint } from "./elements";
+import { AreaFill, AreaPoint, Axis, HookLocation, Label, LineSeries, LineSeriesDataPoint, StackedColumn } from "./elements";
 import { ScenarioFactory, } from "./factories";
 import { LabelCollisionManager, SCENARIO_PRIORITY } from "./helper";
 import alasql from "alasql";
@@ -14,13 +14,13 @@ import CalculateSize from 'calculate-size';
 // import { Formatter } from "../../../utils";
 // import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 // import { Order } from "../../../utils/model/Order";
-import { TimeChartComponentConfig } from "./model/TimeChartComponentConfig";
+import { StackConfigParsed, TimeChartComponentConfig } from "./model/TimeChartComponentConfig";
 import { TimeChartStyle } from "./model/styles/TimeChartStyle";
 import { TimeChartDataRow } from "./model/TimeChartDataRow";
 //import { DateStringFactory } from "../../../utils/DateStringFactory";
 import { DateTime } from "luxon";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
-import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../../utils/constants";
+import { AggregationLevel, AxisLabelsMode, ChartMode, StackBy, StackMode } from "../../../utils/constants";
 import { DataFormatDigits, Order } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
@@ -107,6 +107,7 @@ export class TimeChart {
   private showOverlayAvg: boolean = false;
   private chartMode: ChartMode = ChartMode.BAR;
   private maxBars: number = 28;
+  private stackConfig: StackConfigParsed | null = null;
 
   constructor(ruleSet: VisualisationRuleSet, config: TimeChartComponentConfig, styles: TimeChartStyle) {
     this.initSQLFunctions();
@@ -179,7 +180,7 @@ export class TimeChart {
     this.showOverlayAvg = config.showOverlayAvg;
     this.chartMode = config.chartMode;
     this.maxBars = config.maxBars;
-
+    this.stackConfig = config.stackConfig;
 
   }
 
@@ -289,6 +290,15 @@ export class TimeChart {
     if (this.isVarianceChart()) {
       this.drawVarianceScenario(this.variancesDataModel, svgContainer);
       this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
+    } else if (this.stackConfig != null) {
+      const effectiveChartMode = this.determineEffectiveChartMode();
+      if (effectiveChartMode === ChartMode.LINE) {
+        this.drawStackedAreaScenarios(this.dataModel, svgContainer);
+        this.drawAxisAndLabelsForLineChart(this.dataModel, svgContainer);
+      } else {
+        this.drawStackedScenarios(this.dataModel, svgContainer);
+        this.drawAxisAndLabels(this.dataModel, svgContainer);
+      }
     } else {
       const effectiveChartMode = this.determineEffectiveChartMode();
 
@@ -970,6 +980,189 @@ export class TimeChart {
     };
 
     return columnGroup;
+  }
+
+  /**
+   * Draw stacked bar columns. Supports stacking by scenario or by data dimension.
+   */
+  private drawStackedScenarios(dataModel: any[], svgContainer: Svg): void {
+    if (!this.stackConfig) return;
+
+    const stackGroup: G = svgContainer.group().id("StackedScenarios");
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+
+    dataModel.forEach((elements: any, index: number) => {
+      const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
+      const segments: { value: number; scenario: string; dataPoint: DataPoint }[] = [];
+
+      if (isScenarioStack) {
+        // Collect non-empty scenario values as segments
+        for (const key of scenarioKeys) {
+          const dp: DataPoint = elements[key];
+          if (dp && !dp.isEmpty() && dp.value != null) {
+            segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
+          }
+        }
+      } else {
+        // For dimension stacking, scenario1 holds the primary value
+        // (dimension-based stacking requires data query changes not yet implemented;
+        //  for now, stack scenario1 as a single segment — the SQL decomposition
+        //  is handled separately when populateModel detects stackConfig.by as a dimension)
+        const dp: DataPoint = elements["scenario1"];
+        if (dp && !dp.isEmpty() && dp.value != null) {
+          segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
+        }
+      }
+
+      if (segments.length === 0) return;
+
+      // Sort if requested
+      if (this.stackConfig!.order === 'asc') {
+        segments.sort((a, b) => a.value - b.value);
+      } else if (this.stackConfig!.order === 'desc') {
+        segments.sort((a, b) => b.value - a.value);
+      }
+
+      // Calculate total for this position
+      const total = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+
+      // Draw segments bottom-to-top
+      let cumulativeValue = 0;
+      let lastColumn: StackedColumn | null = null;
+
+      segments.forEach((seg, segIdx) => {
+        const column = new StackedColumn(
+          this.position,
+          this.styles,
+          seg.dataPoint,
+          index,
+          cumulativeValue,
+          seg.scenario,
+          segIdx,
+          this.stackConfig!.mode,
+          total,
+          isScenarioStack,
+          stackGroup
+        );
+        column.draw(this.dataFormatDigits, this.measureScale);
+        cumulativeValue += Math.abs(seg.value);
+        lastColumn = column;
+      });
+
+      // Draw total label above topmost segment
+      if (lastColumn) {
+        lastColumn.drawTotalLabel(this.dataFormatDigits, this.measureScale);
+      }
+    });
+
+    this.scenariosArea = {
+      height: stackGroup.height() as number + this.styles.padding.top + this.styles.padding.bottom,
+      width: stackGroup.width() as number + this.position.spacings.columnWidth
+    };
+  }
+
+  /**
+   * Draw stacked area chart (line mode with stack).
+   * Computes cumulative y-values and draws AreaFill paths between layers.
+   */
+  private drawStackedAreaScenarios(dataModel: any[], svgContainer: Svg): void {
+    if (!this.stackConfig) return;
+
+    const areaGroup: G = svgContainer.group().id("StackedAreaScenarios");
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+    const stackMode = this.stackConfig.mode;
+    const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
+
+    // Determine how many layers we have
+    const layerCount = isScenarioStack
+      ? scenarioKeys.filter(key => dataModel.some((el: any) => el[key] && !el[key].isEmpty())).length
+      : 1;
+
+    if (layerCount === 0) return;
+
+    // Build cumulative values per layer
+    // cumulativePoints[layerIdx][dataIdx] = cumulative y-value at that point
+    const cumulativeValues: number[][] = [];
+    const layerScenarios: string[] = [];
+
+    // Identify active layers
+    const activeLayers: string[] = [];
+    for (const key of scenarioKeys) {
+      if (dataModel.some((el: any) => el[key] && !el[key].isEmpty())) {
+        activeLayers.push(key);
+      }
+    }
+
+    // Compute cumulative values
+    for (let layerIdx = 0; layerIdx < activeLayers.length; layerIdx++) {
+      const key = activeLayers[layerIdx];
+      const values: number[] = [];
+
+      for (let dataIdx = 0; dataIdx < dataModel.length; dataIdx++) {
+        const dp: DataPoint = dataModel[dataIdx][key];
+        const value = dp && !dp.isEmpty() && dp.value != null ? dp.value : 0;
+        const prevCumulative = layerIdx > 0 ? cumulativeValues[layerIdx - 1][dataIdx] : 0;
+
+        if (stackMode === StackMode.RELATIVE) {
+          // For relative: need total at each x position
+          const total = activeLayers.reduce((sum, k) => {
+            const d: DataPoint = dataModel[dataIdx][k];
+            return sum + (d && !d.isEmpty() && d.value != null ? Math.abs(d.value) : 0);
+          }, 0);
+          const proportion = total !== 0 ? Math.abs(value) / total : 0;
+          values.push(prevCumulative + proportion);
+        } else {
+          values.push(prevCumulative + value);
+        }
+      }
+
+      cumulativeValues.push(values);
+      const firstDp: DataPoint = dataModel[0][key];
+      layerScenarios.push(firstDp?.scenario as string || 'ac1');
+    }
+
+    // Convert cumulative values to pixel coordinates
+    const axisY = this.position.getColumnPositionY();
+    const pixelPerUnit = this.pixelPerUnit;
+
+    const toAreaPoints = (values: number[]): AreaPoint[] => {
+      return values.map((val, idx) => ({
+        x: this.position.getColumnCenterPositionX(idx),
+        y: axisY - (stackMode === StackMode.RELATIVE
+          ? val * pixelPerUnit  // pixelPerUnit acts as "height for 100%"
+          : val * pixelPerUnit)
+      }));
+    };
+
+    // Baseline (y = axis)
+    const baselinePoints: AreaPoint[] = dataModel.map((_: any, idx: number) => ({
+      x: this.position.getColumnCenterPositionX(idx),
+      y: axisY
+    }));
+
+    // Draw area fills bottom-to-top
+    for (let layerIdx = 0; layerIdx < cumulativeValues.length; layerIdx++) {
+      const upperPoints = toAreaPoints(cumulativeValues[layerIdx]);
+      const lowerPoints = layerIdx === 0 ? baselinePoints : toAreaPoints(cumulativeValues[layerIdx - 1]);
+
+      const scenarioType = isScenarioStack ? layerScenarios[layerIdx] : null;
+
+      const areaFill = new AreaFill(
+        areaGroup,
+        upperPoints,
+        lowerPoints,
+        scenarioType,
+        layerIdx,
+        isScenarioStack
+      );
+      areaFill.draw();
+      areaFill.drawBoundaryLine();
+    }
+
+    this.scenariosArea = {
+      height: areaGroup.height() as number + this.styles.padding.top + this.styles.padding.bottom,
+      width: areaGroup.width() as number + this.position.spacings.columnWidth
+    };
   }
 
   private drawOverlayLayer(dataModel: any, svgContainer: Svg) {

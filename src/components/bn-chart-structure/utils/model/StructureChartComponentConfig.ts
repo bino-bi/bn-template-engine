@@ -10,7 +10,7 @@
 // import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
-import { AggregationLevel } from "../../../../utils/constants";
+import { AggregationLevel, StackBy, StackMode, StackOrder } from "../../../../utils/constants";
 import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
 import { CompareUtil } from "../../../../utils/helper/CompareUtil";
@@ -20,6 +20,12 @@ import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../utils/mod
 import { Order, OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StructureChartDataRow, StructureChartDataRowAdapter } from "./StructureChartDataRow";
+
+export interface StackConfigParsed {
+  by: StackBy;
+  mode: StackMode;
+  order: StackOrder;
+}
 
 export class StructureChartComponentConfig {
   public variances: string[] = [];
@@ -35,6 +41,7 @@ export class StructureChartComponentConfig {
   public measureUnit: string = "";  
   public showMeasureScale: boolean = true;
   public dataFormatDigits: DataFormatDigits = {decimal: 1, percent: 2};
+  public stackConfig: StackConfigParsed | null = null;
 
   constructor(public data: StructureChartDataRow[],
     public scenarios: string[],
@@ -109,8 +116,9 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
       config.dataFormatDigits = this.dataFormatDigitsAdapter.adapt(data.dataFormatDigits);
     }
 
-
-
+    if (CompareUtil.isExisting(data.stackConfig)) {
+      config.stackConfig = data.stackConfig;
+    }
 
     return config;
   }

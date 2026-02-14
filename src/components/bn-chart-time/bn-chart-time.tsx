@@ -11,6 +11,7 @@ import {
   isValidNumber,
   validateOrderList,
   validateScenarioList,
+  validateStackConfig,
   validateVariancesList
 } from "../../utils/validate";
 
@@ -41,7 +42,8 @@ import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
 //import {  AggregationLevel, AxisLabelsMode, DateDistance, Order } from "../../components";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
-import { AxisLabelsMode, ChartMode } from "../../utils/constants";
+import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
+import { StackConfigParsed } from "./utils/model/TimeChartComponentConfig";
 import { DateDistance } from "../../utils/DateStringFactory";
 
 enum AggregationLevel {
@@ -390,6 +392,63 @@ export class Chart {
     }
   }
 
+  /**
+   * Stacking configuration for the chart as a JSON string.
+   *
+   * When set, bars/columns are drawn stacked (additive layers) instead of
+   * side-by-side. In line mode (`chart-mode="line"`), stacking produces a
+   * stacked area chart with filled regions between cumulative lines.
+   *
+   * **JSON schema:**
+   * ```json
+   * {
+   *   "by": "scenario" | "category" | "subcategory" | "rowgroup",
+   *   "mode": "absolute" | "relative" | "absolute-relative",
+   *   "order": "asc" | "desc" | "dataset"
+   * }
+   * ```
+   *
+   * - `by` (required): The dimension to stack.
+   *   - `"scenario"` — stack the scenarios from the `scenarios` prop as layers.
+   *   - `"category"` / `"subcategory"` / `"rowgroup"` — decompose a single
+   *     scenario by this data dimension. Must be finer than `level`.
+   * - `mode` (optional, default `"absolute"`):
+   *   - `"absolute"` — additive stacking, axis shows absolute units.
+   *   - `"relative"` — 100% stacking, axis shows 0%–100%.
+   *   - `"absolute-relative"` — bar height is absolute (real value), but
+   *     segment labels inside show percentages.
+   * - `order` (optional, default `"dataset"`): Segment order within each stack.
+   *   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the
+   *   original data/scenario order.
+   *
+   * @default '' (empty — no stacking)
+   *
+   * @example
+   * // Stack scenarios
+   * stack='{"by":"scenario"}'
+   *
+   * @example
+   * // Stack by category, relative mode
+   * stack='{"by":"category","mode":"relative"}'
+   */
+  @Prop() stack: string = '';
+
+  @Watch('stack')
+  validateStack(newValue: string) {
+    const errId: string = 'ERR_stack';
+    const errors = validateStackConfig(newValue);
+
+    if (errors.length > 0) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: errors.join('; ')
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
 
   /** Max number of collumns
    *  is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
@@ -570,6 +629,7 @@ export class Chart {
     this.validateShowOverlayMedian(this.showOverlayMedian);
     this.validateChartMode(this.chartMode);
     this.validateMaxBars(this.maxBars);
+    this.validateStack(this.stack);
   }
 
   prepareDimension(): { height: number, width: number } {
@@ -871,6 +931,22 @@ export class Chart {
     return this.measureUnit;
   }
 
+  private prepareStackConfig(): StackConfigParsed | null {
+    if (isBlankInput(this.stack)) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(this.stack);
+      return {
+        by: parsed.by as StackBy,
+        mode: (parsed.mode as StackMode) || StackMode.ABSOLUTE,
+        order: (parsed.order as StackOrder) || StackOrder.DATASET,
+      };
+    } catch {
+      return null;
+    }
+  }
+
   private prepareChartMode(): ChartMode {
     const mode = this.chartMode?.toLowerCase();
     if (mode === 'line') {
@@ -915,6 +991,7 @@ export class Chart {
       showMeasureScale={this.prepareShowMeasureScale(idx)}
       chartMode={this.prepareChartMode()}
       maxBars={this.prepareMaxBars()}
+      stackConfig={this.prepareStackConfig()}
     ></ibcs-chart-time>
   }
 

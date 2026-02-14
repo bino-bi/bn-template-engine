@@ -3,5 +3,4 @@ export * from "./Bar";
 export * from "./Marker";
 export * from "./Label";
 export * from "./Needle";
-
-
+export * from "./StackedBar";

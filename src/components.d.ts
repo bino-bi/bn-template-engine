@@ -12,9 +12,11 @@ import { StructureChartStyle } from "./components/bn-chart-structure/utils/model
 import { Order } from "./utils/model/Order";
 import { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
+import { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 import { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
+import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 import { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
 import { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
 import { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLayer";
@@ -30,9 +32,11 @@ export { StructureChartStyle } from "./components/bn-chart-structure/utils/model
 export { Order } from "./utils/model/Order";
 export { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
+export { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 export { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
+export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 export { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
 export { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
 export { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLayer";
@@ -106,6 +110,12 @@ export namespace Components {
           * @default 'false'
          */
         "showMeasureScale": string;
+        /**
+          * Stacking configuration for the chart as a JSON string.  When set, bars are drawn stacked (additive layers) instead of side-by-side.
+          * @default '' (empty — no stacking)
+          * @example stack='{"by":"scenario"}'
+         */
+        "stack": string;
         /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
@@ -200,6 +210,13 @@ export namespace Components {
           * @default 'false'
          */
         "showOverlayMedian": string;
+        /**
+          * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenario" | "category" | "subcategory" | "rowgroup",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): The dimension to stack.   - `"scenario"` — stack the scenarios from the `scenarios` prop as layers.   - `"category"` / `"subcategory"` / `"rowgroup"` — decompose a single     scenario by this data dimension. Must be finer than `level`. - `mode` (optional, default `"absolute"`):   - `"absolute"` — additive stacking, axis shows absolute units.   - `"relative"` — 100% stacking, axis shows 0%–100%.   - `"absolute-relative"` — bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
+          * @default '' (empty — no stacking)
+          * @example // Stack scenarios stack='{"by":"scenario"}'
+          * @example // Stack by category, relative mode stack='{"by":"category","mode":"relative"}'
+         */
+        "stack": string;
         /**
           * @default -1
          */
@@ -792,6 +809,10 @@ export namespace Components {
           * @default true
          */
         "showMeasureScale": boolean;
+        /**
+          * @default null
+         */
+        "stackConfig": StackConfigParsed | null;
         "styles": StructureChartStyle | undefined;
         /**
           * @default []
@@ -888,6 +909,10 @@ export namespace Components {
           * @default false
          */
         "showOverlayMedian": boolean;
+        /**
+          * @default null
+         */
+        "stackConfig": StackConfigParsed1 | null;
         "styles": TimeChartStyle | undefined;
         /**
           * @default []
@@ -1446,6 +1471,12 @@ declare namespace LocalJSX {
          */
         "showMeasureScale"?: string;
         /**
+          * Stacking configuration for the chart as a JSON string.  When set, bars are drawn stacked (additive layers) instead of side-by-side.
+          * @default '' (empty — no stacking)
+          * @example stack='{"by":"scenario"}'
+         */
+        "stack"?: string;
+        /**
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
          */
         "unitScaling": string | number;
@@ -1539,6 +1570,13 @@ declare namespace LocalJSX {
           * @default 'false'
          */
         "showOverlayMedian"?: string;
+        /**
+          * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenario" | "category" | "subcategory" | "rowgroup",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): The dimension to stack.   - `"scenario"` — stack the scenarios from the `scenarios` prop as layers.   - `"category"` / `"subcategory"` / `"rowgroup"` — decompose a single     scenario by this data dimension. Must be finer than `level`. - `mode` (optional, default `"absolute"`):   - `"absolute"` — additive stacking, axis shows absolute units.   - `"relative"` — 100% stacking, axis shows 0%–100%.   - `"absolute-relative"` — bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
+          * @default '' (empty — no stacking)
+          * @example // Stack scenarios stack='{"by":"scenario"}'
+          * @example // Stack by category, relative mode stack='{"by":"category","mode":"relative"}'
+         */
+        "stack"?: string;
         /**
           * @default -1
          */
@@ -2128,6 +2166,10 @@ declare namespace LocalJSX {
           * @default true
          */
         "showMeasureScale"?: boolean;
+        /**
+          * @default null
+         */
+        "stackConfig"?: StackConfigParsed | null;
         "styles"?: StructureChartStyle | undefined;
         /**
           * @default []
@@ -2224,6 +2266,10 @@ declare namespace LocalJSX {
           * @default false
          */
         "showOverlayMedian"?: boolean;
+        /**
+          * @default null
+         */
+        "stackConfig"?: StackConfigParsed1 | null;
         "styles"?: TimeChartStyle | undefined;
         /**
           * @default []

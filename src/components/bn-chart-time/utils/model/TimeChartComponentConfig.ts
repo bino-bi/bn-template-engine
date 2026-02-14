@@ -4,7 +4,7 @@
 // import { Order, OrderAdapter } from "../../../../utils/model/Order";
 // import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
 
-import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../../../utils/constants";
+import { AggregationLevel, AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../../../utils/constants";
 import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 import { DateDistance } from "../../../../utils/DateStringFactory";
 import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
@@ -19,6 +19,12 @@ import { TimeChartDataRow, TimeChartDataRowAdapter } from "./TimeChartDataRow";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 // import { DataFormatDigitsAdapter } from "../../../../utils/model/DataFormatDigits";
 //import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
+
+export interface StackConfigParsed {
+  by: StackBy;
+  mode: StackMode;
+  order: StackOrder;
+}
 
 export class TimeChartComponentConfig {
   public variances: string[] = [];
@@ -42,6 +48,7 @@ export class TimeChartComponentConfig {
   public showOverlayAvg: boolean = true;
   public chartMode: ChartMode = ChartMode.BAR;
   public maxBars: number = 28;
+  public stackConfig: StackConfigParsed | null = null;
   constructor(public data: TimeChartDataRow[],
     public scenarios: string[],
   ) {
@@ -145,6 +152,10 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isNumber(data.maxBars)) {
       config.maxBars = data.maxBars;
+    }
+
+    if (CompareUtil.isExisting(data.stackConfig)) {
+      config.stackConfig = data.stackConfig;
     }
 
     return config;
