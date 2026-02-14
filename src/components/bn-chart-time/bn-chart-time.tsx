@@ -87,8 +87,11 @@ export class Chart {
    * The first 4 scenarios in the list are used, the rest ignored.
    *
    *<br /> <br />
-   *  values:<br /> ```ac // fc // pp // pl  [1-4]```
+   *  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```
    *  example:<br /> ```ac1,ac2,ac3,ac4```
+   *<br /> <br />
+   *  When set to ```auto```, scenarios are detected from the dataset silently.
+   *  When left blank, scenarios are detected from the dataset with a warning.
    *
    */
   @Prop() scenarios!: string;
@@ -240,8 +243,10 @@ export class Chart {
    * <br /> <br />
    *
    * values:<br/>
-   * ``` rowcategory // category // subcategory ```
+   * ``` rowcategory // category // subcategory // auto```
    * <br /> <br />
+   *  When set to ```auto```, level is detected from the dataset silently.
+   *  When left blank, level is detected from the dataset with a warning.
    *
    */
   @Prop() level!: string;
@@ -265,7 +270,10 @@ export class Chart {
    *  If order is set to a scenario it has also exists in scenariolist
    *  <br /><br />
    *  values:<br />
-   *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
+   *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto```
+   *  <br /><br />
+   *  When set to ```auto```, order is detected from the dataset silently.
+   *  When left blank, order is detected from the dataset with a warning.
    */
   @Prop() order!: string;
 
@@ -310,7 +318,10 @@ export class Chart {
   /** Axis Date Interval
    *  <br /><br />
    *  values:<br />
-   *  ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
+   *  ```year // quarter // month // week // day // hour // minute // second // millisecond // auto```
+   *  <br /><br />
+   *  When set to ```auto```, dateInterval is detected from the dataset silently.
+   *  When left blank, dateInterval is detected from the dataset with a warning.
    */
   @Prop() dateInterval!: string;
 
