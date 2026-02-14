@@ -98,7 +98,10 @@ export class Table {
    *  <br /><br />
    *  If scenarios is empty string (`''` or `null`) the scenarios are omitted
    *  <br /><br />
-   *  values:<br /> ```ac // fc // py // pl // null```
+   *  values:<br /> ```ac // fc // py // pl // null // auto```
+   *  <br /><br />
+   *  When set to ```auto```, scenarios are detected from the dataset silently.
+   *  When left blank (and variances are also blank), scenarios are detected from the dataset with a warning.
    */
   @Prop() readonly scenarios: string;
 
@@ -416,7 +419,9 @@ export class Table {
    *  If order is set to a scenario it has also exists in scenariolist
    *  <br /><br />
    *  values: <br />
-   *  ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
+   *  ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto```
+   *  <br /><br />
+   *  When set to ```auto```, order is detected from the dataset silently.
    */
   @Prop() order: string = 'category';
 

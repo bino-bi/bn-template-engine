@@ -63,7 +63,7 @@ export namespace Components {
          */
         "filter": string;
         /**
-          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory // auto``` <br /> <br />  When set to ```auto```, level is detected from the dataset silently.  When left blank, level is detected from the dataset with a warning.
          */
         "level": string;
         /**
@@ -82,7 +82,7 @@ export namespace Components {
          */
         "measureUnit": string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently. When left blank, order is detected from the dataset with a warning.
          */
         "order": string;
         /**
@@ -94,7 +94,7 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
         /**
@@ -131,7 +131,7 @@ export namespace Components {
          */
         "chartTitle": string;
         /**
-          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
+          * Axis Date Interval <br /><br /> values:<br /> ```year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> When set to ```auto```, dateInterval is detected from the dataset silently. When left blank, dateInterval is detected from the dataset with a warning.
          */
         "dateInterval": string;
         /**
@@ -144,7 +144,7 @@ export namespace Components {
          */
         "intervalSpanLimit": number;
         /**
-          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory // auto``` <br /> <br />  When set to ```auto```, level is detected from the dataset silently.  When left blank, level is detected from the dataset with a warning.
          */
         "level": string;
         /**
@@ -168,7 +168,7 @@ export namespace Components {
          */
         "measureUnit": string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently. When left blank, order is detected from the dataset with a warning.
          */
         "order": string;
         /**
@@ -180,7 +180,7 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
         /**
@@ -612,7 +612,7 @@ export namespace Components {
          */
         "measureUnit": string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently.
           * @default 'category'
          */
         "order": string;
@@ -632,7 +632,7 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
-          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
+          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null // auto``` <br /><br /> When set to ```auto```, scenarios are detected from the dataset silently. When left blank (and variances are also blank), scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
         /**
@@ -1402,7 +1402,7 @@ declare namespace LocalJSX {
          */
         "filter"?: string;
         /**
-          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory // auto``` <br /> <br />  When set to ```auto```, level is detected from the dataset silently.  When left blank, level is detected from the dataset with a warning.
          */
         "level": string;
         /**
@@ -1421,7 +1421,7 @@ declare namespace LocalJSX {
          */
         "measureUnit"?: string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently. When left blank, order is detected from the dataset with a warning.
          */
         "order": string;
         /**
@@ -1433,7 +1433,7 @@ declare namespace LocalJSX {
          */
         "percentageScaling": string | number;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
         /**
@@ -1470,7 +1470,7 @@ declare namespace LocalJSX {
          */
         "chartTitle"?: string;
         /**
-          * Axis Date Interval <br /><br /> values:<br /> ```year// quarter // month // week // day // hour // minute // second // millisecond // auto```
+          * Axis Date Interval <br /><br /> values:<br /> ```year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> When set to ```auto```, dateInterval is detected from the dataset silently. When left blank, dateInterval is detected from the dataset with a warning.
          */
         "dateInterval": string;
         /**
@@ -1483,7 +1483,7 @@ declare namespace LocalJSX {
          */
         "intervalSpanLimit"?: number;
         /**
-          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory ``` <br /> <br />
+          * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory // auto``` <br /> <br />  When set to ```auto```, level is detected from the dataset silently.  When left blank, level is detected from the dataset with a warning.
          */
         "level": string;
         /**
@@ -1507,7 +1507,7 @@ declare namespace LocalJSX {
          */
         "measureUnit"?: string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] ```
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently. When left blank, order is detected from the dataset with a warning.
          */
         "order": string;
         /**
@@ -1519,7 +1519,7 @@ declare namespace LocalJSX {
          */
         "percentageScaling": string | number;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4]```  example:<br /> ```ac1,ac2,ac3,ac4```
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
         /**
@@ -1951,7 +1951,7 @@ declare namespace LocalJSX {
          */
         "measureUnit"?: string;
         /**
-          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4]```
+          * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently.
           * @default 'category'
          */
         "order"?: string;
@@ -1971,7 +1971,7 @@ declare namespace LocalJSX {
          */
         "percentageScaling"?: string | number;
         /**
-          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
+          * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null // auto``` <br /><br /> When set to ```auto```, scenarios are detected from the dataset silently. When left blank (and variances are also blank), scenarios are detected from the dataset with a warning.
          */
         "scenarios"?: string;
         /**
