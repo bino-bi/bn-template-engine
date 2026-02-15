@@ -12,7 +12,8 @@ import alasql from "alasql";
 
 import CalculateSize from 'calculate-size';
 import { Formatter } from "../../../utils";
-import { AggregationLevel, StackBy } from "../../../utils/constants";
+import { AggregationLevel, StackBy, StackMode } from "../../../utils/constants";
+import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { Order, OrderColumn } from "../../../utils/model/Order";
@@ -106,6 +107,11 @@ export class StructureChart {
     this.pixelPerPercentage = config.pixelPerPercentage || 100;
     this.setData([...config.data], config.filter);
     this.dataModel = this.populateModel(config.scenarios, config.level, config.sortOrder);
+
+    // Populate per-dimension stack segments when stacking by a data dimension
+    if (config.stackConfig && config.stackConfig.by !== StackBy.SCENARIO) {
+      this.populateDimensionStackSegments(config.scenarios, config.stackConfig, config.level);
+    }
 
     this.variancesDataModel = this.populateVarianceModel(config.variances, this.dataModel);
 
@@ -247,6 +253,7 @@ export class StructureChart {
       this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
     } else if (this.stackConfig != null) {
       this.drawStackedScenarios(this.dataModel, svgContainer);
+      this.drawStackedHeaders(this.dataModel, svgContainer);
       this.drawAxisAndLabels(this.dataModel, svgContainer);
     } else {
       this.drawScenarios(this.dataModel, svgContainer);
@@ -659,6 +666,9 @@ export class StructureChart {
 
   /**
    * Draw stacked horizontal bars. Supports stacking by scenario or by data dimension.
+   * When stacking by scenario with multiple scenario types (e.g. ac+pl),
+   * uses overlay mode: each type group is drawn from the same baseline,
+   * back-to-front per IBCS convention (PL behind, AC on top).
    */
   private drawStackedScenarios(dataModel: any[], svgContainer: Svg): void {
     if (!this.stackConfig) return;
@@ -686,44 +696,228 @@ export class StructureChart {
 
       if (segments.length === 0) return;
 
-      // Sort if requested
-      if (this.stackConfig!.order === 'asc') {
-        segments.sort((a, b) => a.value - b.value);
-      } else if (this.stackConfig!.order === 'desc') {
-        segments.sort((a, b) => b.value - a.value);
-      }
+      // Check if we have multiple scenario type groups for overlay mode
+      const prefixes = isScenarioStack
+        ? new Set(segments.map(s => getScenarioPrefix(s.scenario)))
+        : new Set<string>();
 
-      // Calculate total for this position
-      const total = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+      if (prefixes.size > 1) {
+        // Overlay mode: group by scenario prefix, draw each group from same baseline
+        const groupMap = new Map<string, typeof segments>();
+        for (const seg of segments) {
+          const prefix = getScenarioPrefix(seg.scenario);
+          if (!groupMap.has(prefix)) groupMap.set(prefix, []);
+          groupMap.get(prefix)!.push(seg);
+        }
 
-      // Draw segments left-to-right (horizontal cumulative x-offsets)
-      let cumulativeValue = 0;
-      let lastBar: StackedBar | null = null;
+        // Sort groups by IBCS layer order (back-to-front: pl, fc, pp, ac)
+        const groups: { prefix: string; segments: typeof segments }[] = [];
+        for (const prefix of IBCS_LAYER_ORDER) {
+          if (groupMap.has(prefix)) {
+            groups.push({ prefix, segments: groupMap.get(prefix)! });
+            groupMap.delete(prefix);
+          }
+        }
+        for (const [prefix, segs] of groupMap) {
+          groups.push({ prefix, segments: segs });
+        }
 
-      segments.forEach((seg, segIdx) => {
-        const bar = new StackedBar(
-          this.position,
-          this.styles,
-          seg.dataPoint,
-          index,
-          cumulativeValue,
-          seg.scenario,
-          segIdx,
-          this.stackConfig!.mode,
-          total,
-          isScenarioStack,
-          stackGroup
-        );
-        bar.draw(this.dataFormatDigits, this.measureScale);
-        cumulativeValue += Math.abs(seg.value);
-        lastBar = bar;
-      });
+        // Draw each group from baseline=0 (overlapping)
+        groups.forEach((group, groupIdx) => {
+          const groupTotal = group.segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+          const colorIndex = groups.length - 1 - groupIdx; // back=lighter, front=darker
+          let cumulativeValue = 0;
+          let lastBar: StackedBar | null = null;
 
-      // Draw total label to the right of the last segment
-      if (lastBar) {
-        lastBar.drawTotalLabel(this.dataFormatDigits, this.measureScale);
+          group.segments.forEach((seg) => {
+            const bar = new StackedBar(
+              this.position, this.styles, seg.dataPoint, index,
+              cumulativeValue, seg.scenario, colorIndex,
+              this.stackConfig!.mode, groupTotal, true, stackGroup
+            );
+            bar.draw(this.dataFormatDigits, this.measureScale);
+            cumulativeValue += Math.abs(seg.value);
+            lastBar = bar;
+          });
+
+          if (lastBar) {
+            lastBar.drawTotalLabel(this.dataFormatDigits, this.measureScale);
+          }
+        });
+      } else {
+        // Single group, scenario or dimension stacking
+        // For dimension stacking, use stackSegments if available
+        let finalSegments = segments;
+        if (!isScenarioStack && elements.stackSegments && elements.stackSegments.length > 0) {
+          finalSegments = elements.stackSegments.map((seg: any) => ({
+            value: seg.value,
+            scenario: seg.label,
+            dataPoint: seg.dataPoint,
+          }));
+        }
+
+        if (this.stackConfig!.order === 'asc') {
+          finalSegments.sort((a, b) => a.value - b.value);
+        } else if (this.stackConfig!.order === 'desc') {
+          finalSegments.sort((a, b) => b.value - a.value);
+        }
+
+        const total = finalSegments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+        let cumulativeValue = 0;
+        let lastBar: StackedBar | null = null;
+
+        finalSegments.forEach((seg, segIdx) => {
+          const bar = new StackedBar(
+            this.position, this.styles, seg.dataPoint, index,
+            cumulativeValue, seg.scenario, segIdx,
+            this.stackConfig!.mode, total, isScenarioStack, stackGroup
+          );
+          bar.draw(this.dataFormatDigits, this.measureScale);
+          cumulativeValue += Math.abs(seg.value);
+          lastBar = bar;
+        });
+
+        if (lastBar) {
+          lastBar.drawTotalLabel(this.dataFormatDigits, this.measureScale);
+        }
       }
     });
+  }
+
+  /**
+   * Draw column headers above stacked bars showing what each segment/group represents.
+   * For overlay mode (multiple scenario types): shows one header per group.
+   * For single-group scenario stacking: shows individual segment headers.
+   */
+  private drawStackedHeaders(dataModel: any[], svgContainer: Svg): void {
+    if (!this.stackConfig || dataModel.length === 0) return;
+
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+
+    const headerGroup: G = svgContainer.group().id("StackedHeaders");
+    const firstRow = dataModel[0];
+
+    // Dimension stacking: use stackSegments from first row for headers
+    if (!isScenarioStack) {
+      const stackSegs = firstRow.stackSegments;
+      if (!stackSegs || stackSegs.length === 0) return;
+
+      let orderedSegs = [...stackSegs];
+      if (this.stackConfig.order === 'asc') orderedSegs.sort((a: any, b: any) => a.value - b.value);
+      else if (this.stackConfig.order === 'desc') orderedSegs.sort((a: any, b: any) => b.value - a.value);
+
+      const total = orderedSegs.reduce((sum: number, s: any) => sum + Math.abs(s.value), 0);
+      const axisX = this.position.getBarPositionX();
+      const headerY = this.position.getAxisTitlePositionY();
+      let cumulativePixels = 0;
+
+      orderedSegs.forEach((seg: any) => {
+        const pixelPerUnit = seg.dataPoint.pixelPerUnit;
+        let segmentLength: number;
+        if (this.stackConfig!.mode === StackMode.RELATIVE) {
+          const proportion = total !== 0 ? Math.abs(seg.value) / total : 0;
+          segmentLength = proportion * pixelPerUnit;
+        } else {
+          segmentLength = Math.abs(seg.value * pixelPerUnit);
+        }
+
+        const centerX = axisX + cumulativePixels + segmentLength / 2;
+        const labelText = this.i18n.get(seg.label) || seg.label;
+
+        new Label(
+          headerGroup, centerX, headerY, 'STACK_HEADER',
+          labelText, this.styles,
+          HookLocation.Bottom, HookLocation.Center
+        ).draw();
+
+        cumulativePixels += segmentLength;
+      });
+
+      return;
+    }
+
+    const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
+    const segments: { value: number; scenario: string; dataPoint: DataPoint }[] = [];
+
+    for (const key of scenarioKeys) {
+      const dp: DataPoint = firstRow[key];
+      if (dp && !dp.isEmpty() && dp.value != null) {
+        segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
+      }
+    }
+
+    if (segments.length === 0) return;
+
+    const prefixes = new Set(segments.map(s => getScenarioPrefix(s.scenario)));
+    const axisX = this.position.getBarPositionX();
+    const headerY = this.position.getAxisTitlePositionY();
+
+    if (prefixes.size > 1) {
+      // Overlay mode: one header per group, centered on group's bar extent
+      const groupMap = new Map<string, typeof segments>();
+      for (const seg of segments) {
+        const prefix = getScenarioPrefix(seg.scenario);
+        if (!groupMap.has(prefix)) groupMap.set(prefix, []);
+        groupMap.get(prefix)!.push(seg);
+      }
+
+      const groups: { prefix: string; segments: typeof segments }[] = [];
+      for (const prefix of IBCS_LAYER_ORDER) {
+        if (groupMap.has(prefix)) {
+          groups.push({ prefix, segments: groupMap.get(prefix)! });
+          groupMap.delete(prefix);
+        }
+      }
+      for (const [prefix, segs] of groupMap) {
+        groups.push({ prefix, segments: segs });
+      }
+
+      groups.forEach((group) => {
+        const groupTotal = group.segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+        const pixelPerUnit = group.segments[0].dataPoint.pixelPerUnit;
+        const groupPixelLength = this.stackConfig!.mode === StackMode.RELATIVE
+          ? pixelPerUnit
+          : groupTotal * pixelPerUnit;
+        const centerX = axisX + groupPixelLength / 2;
+        const labelText = this.i18n.get(group.prefix + '1') || group.prefix.toUpperCase();
+
+        new Label(
+          headerGroup, centerX, headerY, 'STACK_HEADER',
+          labelText, this.styles,
+          HookLocation.Bottom, HookLocation.Center
+        ).draw();
+      });
+    } else {
+      // Single group: show individual segment headers
+      if (this.stackConfig.order === 'asc') segments.sort((a, b) => a.value - b.value);
+      else if (this.stackConfig.order === 'desc') segments.sort((a, b) => b.value - a.value);
+
+      const total = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+      let cumulativePixels = 0;
+
+      segments.forEach((seg) => {
+        const pixelPerUnit = seg.dataPoint.pixelPerUnit;
+        let segmentLength: number;
+
+        if (this.stackConfig!.mode === StackMode.RELATIVE) {
+          const proportion = total !== 0 ? Math.abs(seg.value) / total : 0;
+          segmentLength = proportion * pixelPerUnit;
+        } else {
+          segmentLength = Math.abs(seg.value * pixelPerUnit);
+        }
+
+        const centerX = axisX + cumulativePixels + segmentLength / 2;
+        const labelText = this.i18n.get(seg.scenario) || seg.scenario;
+
+        new Label(
+          headerGroup, centerX, headerY, 'STACK_HEADER',
+          labelText, this.styles,
+          HookLocation.Bottom, HookLocation.Center
+        ).draw();
+
+        cumulativePixels += segmentLength;
+      });
+    }
   }
 
   private getVarianceType() {
@@ -785,6 +979,58 @@ export class StructureChart {
     }
 
     return width;
+  }
+
+  /**
+   * For dimension stacking (by category, subcategory, or rowgroup), query the raw data
+   * at the stack dimension level and attach stackSegments to each dataModel row.
+   */
+  private populateDimensionStackSegments(scenarios: string[], stackConfig: StackConfigParsed, level: AggregationLevel): void {
+    if (this.preparedDataSet?.length === 0 || scenarios.length === 0) return;
+
+    // Map StackBy value to the actual data column name
+    const stackColumnMap: Record<string, string> = {
+      [StackBy.CATEGORY]: 'category',
+      [StackBy.SUBCATEGORY]: 'subCategory',
+      [StackBy.ROWGROUP]: 'rowGroup',
+    };
+    const stackColumn = stackColumnMap[stackConfig.by];
+    if (!stackColumn) return;
+
+    // The display level column (what each bar represents)
+    const displayColumn = level.toString(); // e.g. 'rowGroup', 'category', 'subCategory'
+    const scenario = scenarios[0]; // dimension stacking uses first scenario
+
+    const result = alasql<any[]>(
+      `SELECT [${displayColumn}] as displayGroup, [${stackColumn}] as stackLabel, ` +
+      `SUM([${scenario}] * transformOperator(operation)) as stackValue ` +
+      `FROM ? GROUP BY [${displayColumn}], [${stackColumn}]`,
+      [this.preparedDataSet]
+    );
+
+    // Group results by displayGroup
+    const groupMap = new Map<string, { label: string; value: number }[]>();
+    for (const row of result) {
+      const key = row.displayGroup;
+      if (!groupMap.has(key)) groupMap.set(key, []);
+      if (row.stackValue != null && row.stackLabel != null) {
+        groupMap.get(key)!.push({ label: row.stackLabel, value: row.stackValue });
+      }
+    }
+
+    // Attach stackSegments to each dataModel row
+    for (const row of this.dataModel) {
+      const segments = groupMap.get(row.category);
+      if (segments && segments.length > 0) {
+        row.stackSegments = segments.map((seg: { label: string; value: number }) => ({
+          label: seg.label,
+          value: seg.value,
+          dataPoint: new DataPoint(seg.value, scenario, this.pixelPerUnit, Scenario.NEU),
+        }));
+      } else {
+        row.stackSegments = [];
+      }
+    }
   }
 
   hasNoData() {

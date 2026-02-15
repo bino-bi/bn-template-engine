@@ -4,12 +4,8 @@ import { DataPoint, StructureChartStyle } from "../model";
 import { HookLocation, Label } from "./Label";
 import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
-import { SVGStyle } from "../../../../utils/model";
 import { StackMode } from "../../../../utils/constants";
-import { Formatter } from "../../../../utils";
-
-const GRAYSCALE_FILLS = ['#000000', '#555555', '#999999', '#bbbbbb', '#dddddd'];
-const GRAYSCALE_STROKES = ['#000000', '#333333', '#777777', '#999999', '#bbbbbb'];
+import { getStackFill, getStackStroke } from "../../../../utils/stackColors";
 
 /**
  * Renders a single horizontal stacked bar segment for the structure chart.
@@ -27,9 +23,6 @@ export class StackedBar {
   private readonly segmentIndex: number;
   private readonly stackMode: StackMode;
   private readonly totalValue: number;
-  private readonly isScenarioStack: boolean;
-  private readonly segmentLabel: string | null;
-
   private hasData: boolean = false;
 
   constructor(
@@ -38,11 +31,11 @@ export class StackedBar {
     dataPoint: DataPoint,
     index: number,
     baselineValue: number,
-    segmentLabel: string | null,
+    _segmentLabel: string | null,
     segmentIndex: number,
     stackMode: StackMode,
     totalValue: number,
-    isScenarioStack: boolean,
+    _isScenarioStack: boolean,
     parentGroup: G,
   ) {
     this.position = position;
@@ -50,11 +43,9 @@ export class StackedBar {
     this.dataPoint = dataPoint;
     this.index = index;
     this.baselineValue = baselineValue;
-    this.segmentLabel = segmentLabel;
     this.segmentIndex = segmentIndex;
     this.stackMode = stackMode;
     this.totalValue = totalValue;
-    this.isScenarioStack = isScenarioStack;
     this.group = parentGroup;
     this.barGroup = parentGroup.group().id(`stacked_bar_${index}_seg_${segmentIndex}`);
 
@@ -63,7 +54,7 @@ export class StackedBar {
     }
   }
 
-  public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, _measureScale: SiPrefix = new SiPrefix()): void {
+  public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, measureScale: SiPrefix = new SiPrefix()): void {
     if (!this.hasData || this.dataPoint.value == null) {
       return;
     }
@@ -90,19 +81,10 @@ export class StackedBar {
 
     const yPos = this.position.getBarPositionY(this.index, true);
 
-    // Get fill/stroke
-    let fillStyle: any;
-    let strokeStyle: any;
-
-    if (this.isScenarioStack) {
-      const scenarioStyle: SVGStyle = this.styles.barStyles.getSVGStyle(this.dataPoint.getScenario());
-      fillStyle = { color: scenarioStyle?.fill || '#000000' };
-      strokeStyle = { color: scenarioStyle?.stroke || '#000000' };
-    } else {
-      const colorIdx = Math.min(this.segmentIndex, GRAYSCALE_FILLS.length - 1);
-      fillStyle = { color: GRAYSCALE_FILLS[colorIdx] };
-      strokeStyle = { color: GRAYSCALE_STROKES[colorIdx], width: 0.5 };
-    }
+    // Unified IBCS 3-color palette for all stacking modes
+    const fillColor = getStackFill(this.segmentIndex);
+    const fillStyle = { color: fillColor };
+    const strokeStyle = { color: getStackStroke(this.segmentIndex), width: 0.5 };
 
     this.barGroup.rect(Math.max(segmentLength, 0.5), barWidth)
       .fill(fillStyle)
@@ -110,24 +92,27 @@ export class StackedBar {
       .cy(yPos)
       .x(xPos);
 
-    // Draw segment label if bar is wide enough
+    // Draw segment value label centered on bar if wide enough
     const MIN_SEGMENT_WIDTH_FOR_LABEL = 30;
-    if (segmentLength >= MIN_SEGMENT_WIDTH_FOR_LABEL && this.segmentLabel != null) {
+    if (segmentLength >= MIN_SEGMENT_WIDTH_FOR_LABEL) {
       const labelX = xPos + segmentLength / 2;
-      let labelValue: string;
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
         const pct = this.totalValue !== 0 ? (value / this.totalValue) * 100 : 0;
-        labelValue = pct.toFixed(dataFormatDigits.decimal) + '%';
+        const labelValue = pct.toFixed(dataFormatDigits.percent) + '%';
+        new Label(
+          this.group, labelX, yPos, 'STACK_SEG',
+          labelValue, this.styles,
+          HookLocation.Center, HookLocation.Center
+        ).setSegmentFill(fillColor).draw();
       } else {
-        labelValue = Formatter.number(value, 'decimal', dataFormatDigits.decimal, dataFormatDigits.decimal);
+        // Pass raw numeric value — Label.draw() formats with measureScale
+        new Label(
+          this.group, labelX, yPos, 'STACK_SEG',
+          value, this.styles,
+          HookLocation.Center, HookLocation.Center
+        ).setSegmentFill(fillColor).draw(dataFormatDigits, measureScale);
       }
-
-      new Label(
-        this.group, labelX, yPos, 'STACK_SEG',
-        labelValue, this.styles,
-        HookLocation.Center, HookLocation.Center
-      ).draw();
     }
   }
 
@@ -152,3 +137,4 @@ export class StackedBar {
     label.draw(dataFormatDigits, measureScale);
   }
 }
+
