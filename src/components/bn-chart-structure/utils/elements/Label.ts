@@ -3,6 +3,7 @@ import { StructureChartStyle } from "../model";
 import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { Formatter } from "../../../../utils/formatter";
+import { getContrastTextColor } from "../../../../utils/stackColors";
 
 // import {Formatter} from "../../../../utils";
 // import {StructureChartStyle} from "../model";
@@ -27,6 +28,7 @@ export class Label  {
   private styles: StructureChartStyle;
 
   private isVarianceLabel: boolean;
+  private segmentFillColor: string | null = null;
 
   readonly ID_SCENARIOLABEL: string  = "Label";
   readonly CSS_CATEGORIES: string = "categories";
@@ -63,6 +65,11 @@ export class Label  {
   public setToRelativeVarianceLabel(): Label {
     this.isVarianceLabel = true;
     this.isRelativeLabel = true;
+    return this;
+  }
+
+  public setSegmentFill(color: string): Label {
+    this.segmentFillColor = color;
     return this;
   }
 
@@ -146,12 +153,16 @@ export class Label  {
 
     text.font({ anchor: labelAnchor});
 
-    label?.rect(boxWidth, boxHeight * 0.9)
-                     .stroke(background)
-                     .fill(background)
-                     .opacity(0.7)
-                     .move(text.x(),  text.y()  as number + (boxHeight * 0.1))
-                     .insertBefore(text);
+    if (this.segmentFillColor != null) {
+      text.fill(getContrastTextColor(this.segmentFillColor));
+    } else {
+      label?.rect(boxWidth, boxHeight * 0.9)
+                       .stroke(background)
+                       .fill(background)
+                       .opacity(0.7)
+                       .move(text.x(),  text.y()  as number + (boxHeight * 0.1))
+                       .insertBefore(text);
+    }
 
     return this;
   }

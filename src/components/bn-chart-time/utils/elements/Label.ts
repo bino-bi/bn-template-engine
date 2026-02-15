@@ -4,6 +4,7 @@ import {TimeChartStyle} from "../model/styles/TimeChartStyle";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { Formatter } from "../../../../utils";
+import { getContrastTextColor } from "../../../../utils/stackColors";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
@@ -27,6 +28,7 @@ export class Label {
   private styles: TimeChartStyle;
   private isVarianceLabel: boolean;
   private isRelativeLabel: boolean = false;
+  private segmentFillColor: string | null = null;
   private verticalHookLocation: HookLocation;
   private horizontalHookLocation: HookLocation;
 
@@ -57,6 +59,11 @@ export class Label {
   public setToRelativeVarianceLabel(): Label {
     this.isVarianceLabel = true;
     this.isRelativeLabel = true;
+    return this;
+  }
+
+  public setSegmentFill(color: string): Label {
+    this.segmentFillColor = color;
     return this;
   }
 
@@ -185,14 +192,18 @@ export class Label {
     text.move(textX, textY);
     text.font({ anchor: labelAnchor});
 
-    label.rect(boxWidth + 2, boxHeight * 0.8)
-      .stroke(background)
-      .fill(background)
-      .opacity(0.9)
-      .move(rectX - 1, rectY)
-      .insertBefore(text);
+    if (this.segmentFillColor != null) {
+      text.fill(getContrastTextColor(this.segmentFillColor));
+    } else {
+      label.rect(boxWidth + 2, boxHeight * 0.8)
+        .stroke(background)
+        .fill(background)
+        .opacity(0.9)
+        .move(rectX - 1, rectY)
+        .insertBefore(text);
+    }
 
-    
+
     return text;
   }
 
