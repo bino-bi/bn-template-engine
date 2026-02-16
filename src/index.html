@@ -130,24 +130,13 @@
       {"setName":"de","date":"2022-06-01","operation":"+","rowGroup":"Rest","rowGroupIndex":5,"category":"Getraenke","categoryIndex":3,"subCategory":"E","subCategoryIndex":5,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":72,"ac1":108,"pl1":77,"fc1":95,"ac2":5,"pp2":8,"fc2":8,"pl2":6,"ac3":4,"pp3":6,"fc3":6,"pl3":5,"ac4":3,"pp4":5,"fc4":5,"pl4":4}
       ]
     </bn-datasource>
-    <bn-page>
+    <bn-page format="a5">
 
-      
+      <bn-table scale="auto" datasets='$Charts_Time' table-title='Revenue Overview' scenarios='ac1,pp1,fc1,pl1'
+        variances='dac1_pp1_pos,drac1_pp1_pos,dac1_pl1_pos,drac1_pl1_pos' bar-columns='dac1_pp1_pos,drac1_pp1_pos'
+        unit-scaling='0.02' percentage-scaling='0.5' grouped='true' type='sum' level='category' order='category'
+        order-direction='asc' measure-unit='EUR' show-measure-scale='true' category-width='w15'></bn-table>
 
-      <!-- <bn-chart-structure datasets='$Charts_Time' unit-scaling='0.06' scenarios='ac1' level='rowGroup'
-        stack='{"by":"category","mode":"absolute"}'>
-      </bn-chart-structure> -->
-
-      <!-- <bn-chart-time chart-mode="line" datasets='$Charts_Time' date-interval="month" level='rowGroup' scenarios='ac1'
-        unit-scaling='0.01' show-overlay-avg='false'
-        stack='{"by":"category","mode":"absolute-relative"}'></bn-chart-time> -->
-      <!-- <bn-chart-structure datasets='$Charts_Time' unit-scaling='0.06' scenarios='pp1,ac1' level='category'>
-      </bn-chart-structure> -->
-      <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1'
-        show-overlay-avg='false' unit-scaling='0.04'>
-      </bn-chart-time> -->
-
-      </bn-chart-time>
     </bn-page>
     <!-- <bn-page> -->
     <!--<bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" level='category' scenarios='ac1' 

@@ -40,6 +40,8 @@ import { Style } from "../../stores/componentStyles";
   TableType,
 } from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { getParentDimensions } from "../../utils/parentDimensions";
+import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TableDataRow } from "./utils/model/TableDataRow";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
@@ -61,7 +63,73 @@ export class Table {
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   @State() data: TableDataRow[] = []
   @State() private datasetMeta: DatasetMeta | null = null;
+  @State() private appliedScaleFactor: number = 1;
 
+  /**
+   * Controls proportional scaling of the entire table relative to the
+   * available parent width. All visual dimensions scale together: font size,
+   * em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii,
+   * pattern fills, axis strokes, and label offsets.
+   *
+   * Scaling is driven by a single factor applied to the base font size
+   * (`global.fontSizePx` from the component-style store, default 13.3333 px).
+   * Because the table's SCSS uses `em` units for padding, borders, and
+   * column widths, changing the font size cascades to all layout dimensions.
+   * SVG elements (bars, pins, patterns) receive the factor via the
+   * `scaleFactor` prop on `ibcs-table` and multiply every pixel constant
+   * by it, so they stay proportional to the surrounding text.
+   *
+   * | Value               | Behavior                                                                         |
+   * |---------------------|----------------------------------------------------------------------------------|
+   * | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor |
+   * | `"none"`            | No scaling (render at base font size regardless of available space)               |
+   * | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             |
+   * | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                     |
+   *
+   * **Auto-scale algorithm** (modes `""` and `"auto"`):
+   * 1. After each render, the CSS variable `--bn-font-size` is temporarily
+   *    reset to the unscaled base size and a synchronous reflow is forced.
+   * 2. The unscaled `scrollWidth` of the table container is compared against
+   *    the parent's content-box width (via `getParentDimensions`).
+   * 3. If the table overflows, `factor = parentWidth / unscaledScrollWidth`
+   *    is computed and applied to both the CSS variable and the
+   *    `appliedScaleFactor` state (which re-renders the SVG charts).
+   * 4. A guard flag (`_autoScaleGuard`) prevents the subsequent
+   *    state-triggered re-render from re-measuring, avoiding an infinite
+   *    measure → scale → fits → reset → overflow loop.
+   *
+   * Invalid values (negative numbers, non-numeric strings that are not
+   * `"none"` or `"auto"`) fall back to the default behaviour (auto + warning)
+   * and emit an `ERR_scale` warning.
+   *
+   * @example
+   * // Auto-scale to parent (silent)
+   * <bn-table scale="auto" ...></bn-table>
+   *
+   * // Fixed 50 % reduction
+   * <bn-table scale="0.5" ...></bn-table>
+   *
+   * // Double size
+   * <bn-table scale="2" ...></bn-table>
+   *
+   * // No scaling — always render at base font size
+   * <bn-table scale="none" ...></bn-table>
+   */
+  @Prop() scale?: string;
+
+  @Watch('scale')
+  validateScaling(newValue: string) {
+    if (newValue == null || newValue === '' || newValue === 'none' || newValue === 'auto') {
+      this.errors.remove('ERR_scale');
+      return;
+    }
+    const num = Number(newValue);
+    if (isNaN(num) || num <= 0) {
+      this.errors.addOrReplace({ id: 'ERR_scale', type: 'warning', message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.` });
+    } else {
+      this.errors.remove('ERR_scale');
+    }
+  }
 
   constructor() {
     withStyled(this);
@@ -630,10 +698,72 @@ export class Table {
     this.validateBarColumns(this.barColumns);
     this.validateUnitScaling(this.unitScaling);
     this.validatePercentageScaling(this.percentageScaling);
+    this.validateScaling(this.scale);
   }
 
   disconnectedCallback() {
     this.unsubscribe();
+  }
+
+  private _autoScaleGuard = false;
+
+  componentDidRender() {
+    const { mode } = parseScaling(this.scale);
+
+    // Only auto-scale for 'auto' and 'empty' (blank) modes
+    if (mode !== 'auto' && mode !== 'empty') {
+      this._autoScaleGuard = false;
+      return;
+    }
+
+    // Skip re-measurement after the state-triggered re-render
+    if (this._autoScaleGuard) {
+      this._autoScaleGuard = false;
+      return;
+    }
+
+    const host = this.element;
+    const { width: parentWidth } = getParentDimensions(host);
+    if (parentWidth <= 0) return;
+
+    // Measure at base (unscaled) font size to get true content width.
+    // This avoids the oscillation where scaled-down content fits → reset
+    // to 1 → overflows → scale down → fits → …
+    const baseFontSize = this.componentStyle($ => $["global"]?.["fontSizePx"] || 13.3333);
+    host.style.setProperty('--bn-font-size', `${baseFontSize}px`);
+
+    // Reading scrollWidth forces a synchronous reflow at base size
+    const div = host.shadowRoot?.querySelector('div');
+    const unscaledWidth = div?.scrollWidth ?? host.scrollWidth;
+
+    if (unscaledWidth <= parentWidth + 1) {
+      // Content fits at base size — no scaling needed
+      this.errors.remove('AUTO_scale');
+      if (this.appliedScaleFactor !== 1) {
+        this._autoScaleGuard = true;
+        this.appliedScaleFactor = 1;
+      }
+      return;
+    }
+
+    // Subtract 1px to account for sub-pixel rounding after scaling,
+    // preventing the right edge from being clipped by overflow:hidden.
+    const computedFactor = (parentWidth - 1) / unscaledWidth;
+
+    // Apply immediately via CSS var for smooth visual (before state re-render)
+    host.style.setProperty('--bn-font-size', `${baseFontSize * computedFactor}px`);
+
+    if (mode === 'empty') {
+      this.errors.addOrReplace({ id: 'AUTO_scale', type: 'warning', message: `Auto-scaled table by factor ${computedFactor.toFixed(3)}` });
+    } else {
+      this.errors.remove('AUTO_scale');
+    }
+
+    // Update state so bar charts re-render at the new scale
+    if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
+      this._autoScaleGuard = true;
+      this.appliedScaleFactor = computedFactor;
+    }
   }
 
   private prepareDataFormat(): DataFormat {
@@ -889,17 +1019,29 @@ export class Table {
   }
 
 
+  private getEffectiveScaleFactor(): number {
+    const { mode, factor } = parseScaling(this.scale);
+    if (mode === 'factor') return factor!;
+    if (mode === 'auto' || mode === 'empty') return this.appliedScaleFactor;
+    return 1;
+  }
+
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
-    }));
+    const effectiveFactor = this.getEffectiveScaleFactor();
+    return this.componentStyle($ => {
+      const baseFontSize = $["global"]?.["fontSizePx"] || 13.3333;
+      return {
+        '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+        '--bn-font-size': `${baseFontSize * effectiveFactor}px`,
+        '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+        '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+      };
+    });
   }
 
   render() {
     const fontStyles = this.getFontStyles();
+    const effectiveFactor = this.getEffectiveScaleFactor();
 
     return <Host style={fontStyles}>
       <div>
@@ -928,6 +1070,7 @@ export class Table {
           barColumns={this.prepareBarColumns()}
           unitScaling={this.prepareUnitScaling()}
           percentageScaling={this.preparePercentageScaling()}
+          scaleFactor={effectiveFactor}
         ></ibcs-table>
       </div>
     </Host>;

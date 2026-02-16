@@ -26,6 +26,7 @@ export interface CellBarChartStyles {
   fontFamily: string;
   unitScaling: number;       // Pixels per unit for absolute variance
   percentageScaling: number; // Pixels per percentage point for relative variance
+  scaleFactor: number;       // Proportional scaling factor for all pixel constants
 }
 
 export interface CellBarChartProps {
@@ -55,7 +56,8 @@ const DEFAULT_STYLES: CellBarChartStyles = {
   fontSize: 11,
   fontFamily: "'Noto Sans', sans-serif",
   unitScaling: 0.01,       // Default: 1000 units = 10 pixels
-  percentageScaling: 0.5   // Default: 100% = 50 pixels
+  percentageScaling: 0.5,  // Default: 100% = 50 pixels
+  scaleFactor: 1
 };
 
 const AXIS_COLOR = '#666666';
@@ -71,6 +73,8 @@ function getPatternId(prefix: string, color: string): string {
  * Renders SVG pattern definitions for hatched fills
  */
 const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = ({ styles }) => {
+  const s = styles.scaleFactor;
+  const patternSize = 6 * s;
   const patterns: { id: string; stroke: string; fill: string }[] = [
     { id: getPatternId('pos', styles.positive.stroke), stroke: styles.positive.stroke, fill: styles.positive.fill },
     { id: getPatternId('neg', styles.negative.stroke), stroke: styles.negative.stroke, fill: styles.negative.fill },
@@ -80,9 +84,9 @@ const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = ({ styl
   return (
     <defs>
       {patterns.map(p => (
-        <pattern id={p.id} patternUnits="userSpaceOnUse" width="6" height="6">
-          <rect width="6" height="6" fill="#ffffff" />
-          <line x1="0" y1="6" x2="6" y2="0" stroke={p.stroke} stroke-width="1.5" />
+        <pattern id={p.id} patternUnits="userSpaceOnUse" width={patternSize} height={patternSize}>
+          <rect width={patternSize} height={patternSize} fill="#ffffff" />
+          <line x1="0" y1={patternSize} x2={patternSize} y2="0" stroke={p.stroke} stroke-width={1.5 * s} />
         </pattern>
       ))}
     </defs>
@@ -206,7 +210,7 @@ function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; strokeWid
   const pattern = varianceStyle.fillpattern;
 
   if (pattern === 'outlined') {
-    return { stroke: varianceStyle.stroke, strokeWidth: 1.5 };
+    return { stroke: varianceStyle.stroke, strokeWidth: 1.5 };  // scaled by caller via * s
   }
 
   // Solid and hatched bars don't need visible stroke
@@ -223,19 +227,20 @@ function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; strokeWid
  */
 const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const { value, scenario, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
+  const s = styles.scaleFactor;
 
-  const labelAreaWidth = 50; // Space for labels on each side
-  const maxBarWidth = 40;    // Maximum bar width on each side of axis
+  const labelAreaWidth = 50 * s;
+  const maxBarWidth = 40 * s;
   const barAreaWidth = maxBarWidth * 2;
   const totalWidth = labelAreaWidth + barAreaWidth + labelAreaWidth;
 
-  const padding = 2;
+  const padding = 2 * s;
   const barHeight = height - padding * 2;
   const axisX = labelAreaWidth + maxBarWidth; // Axis in center of bar area
 
   // Calculate bar width using unitScaling (pixels per unit)
   // Clamp to maxBarWidth to prevent overflow
-  const scaledWidth = Math.abs(value) * styles.unitScaling;
+  const scaledWidth = Math.abs(value) * styles.unitScaling * s;
   const barWidth = Math.min(scaledWidth, maxBarWidth);
 
   const isPositive = value >= 0;
@@ -256,7 +261,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   // Label position: in the label area on the appropriate side
   // Positive values: label in right area, left-aligned
   // Negative values: label in left area, right-aligned
-  const labelX = isPositive ? axisX + barWidth + 4 : axisX - barWidth - 4;
+  const labelX = isPositive ? axisX + barWidth + 4 * s : axisX - barWidth - 4 * s;
   const labelAnchor = isPositive ? 'start' : 'end';
 
   return (
@@ -270,7 +275,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
         x2={axisX}
         y2={height}
         stroke={AXIS_COLOR}
-        stroke-width={1}
+        stroke-width={1 * s}
       />
 
       {/* Bar */}
@@ -282,7 +287,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
           height={barHeight}
           fill={fillValue}
           stroke={barStroke}
-          stroke-width={barStrokeWidth}
+          stroke-width={barStrokeWidth * s}
         />
       )}
 
@@ -311,10 +316,11 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
  */
 const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const { value, scenario, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
+  const s = styles.scaleFactor;
 
-  const maxPinLength = 25;   // Maximum pin length on each side
-  const pinAreaWidth = maxPinLength * 2 + 10; // Pin area with centered axis
-  const labelAreaWidth = 70; // Space for percentage labels
+  const maxPinLength = 25 * s;
+  const pinAreaWidth = maxPinLength * 2 + 10 * s;
+  const labelAreaWidth = 70 * s;
   const totalWidth = pinAreaWidth + labelAreaWidth;
 
   const axisX = pinAreaWidth / 2;
@@ -323,7 +329,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   // Calculate pin length using percentageScaling (pixels per percentage point)
   // Value is in decimal form (e.g., 0.5 = 50%), multiply by 100 to get percentage
   const percentValue = Math.abs(value) * 100;
-  const scaledLength = percentValue * styles.percentageScaling;
+  const scaledLength = percentValue * styles.percentageScaling * s;
   const pinLength = Math.min(scaledLength, maxPinLength);
 
   const isPositive = value >= 0;
@@ -331,7 +337,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
 
   // Get style based on column type (scenario vs variance)
   const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
-  const dotRadius = 3;
+  const dotRadius = 3 * s;
 
   // Show arrow for extreme values (when pin would exceed max length)
   const isExtreme = scaledLength > maxPinLength;
@@ -339,7 +345,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const displayValue = formattedValue || formatValue(value, true, measureScale);
 
   // Label always on the right side after the pin area
-  const labelX = pinAreaWidth + 4;
+  const labelX = pinAreaWidth + 4 * s;
 
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart relative-variance" style={{ overflow: 'visible' }}>
@@ -350,7 +356,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         x2={axisX}
         y2={height}
         stroke={AXIS_COLOR}
-        stroke-width={1}
+        stroke-width={1 * s}
       />
 
       {/* Dot at end - always black, only shown when NOT extreme, rendered first so line is on top */}
@@ -370,13 +376,13 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         x2={pinEndX}
         y2={centerY}
         stroke={barStyle.fill}
-        stroke-width={2}
+        stroke-width={2 * s}
       />
 
       {/* Arrow indicator for extreme positive values (pointing right) */}
       {isExtreme && isPositive && (
         <polygon
-          points={`${pinAreaWidth - 2},${centerY} ${pinAreaWidth - 8},${centerY - 3} ${pinAreaWidth - 8},${centerY + 3}`}
+          points={`${pinAreaWidth - 2 * s},${centerY} ${pinAreaWidth - 8 * s},${centerY - 3 * s} ${pinAreaWidth - 8 * s},${centerY + 3 * s}`}
           fill={barStyle.fill}
         />
       )}
@@ -384,7 +390,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
       {/* Arrow indicator for extreme negative values (pointing left) */}
       {isExtreme && !isPositive && (
         <polygon
-          points={`${2},${centerY} ${8},${centerY - 3} ${8},${centerY + 3}`}
+          points={`${2 * s},${centerY} ${8 * s},${centerY - 3 * s} ${8 * s},${centerY + 3 * s}`}
           fill={barStyle.fill}
         />
       )}
