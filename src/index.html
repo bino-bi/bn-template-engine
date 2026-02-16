@@ -131,28 +131,31 @@
       ]
     </bn-datasource>
     <bn-page>
-      <bn-chart-structure datasets='$Charts_Time' unit-scaling='0.06' scenarios='ac1' level='rowGroup'
+      <!-- <bn-chart-structure datasets='$Charts_Time' unit-scaling='0.06' scenarios='ac1' level='rowGroup'
         stack='{"by":"category","mode":"absolute"}'>
-      </bn-chart-structure>
+      </bn-chart-structure> -->
 
       <!-- <bn-chart-time chart-mode="line" datasets='$Charts_Time' date-interval="month" level='rowGroup' scenarios='ac1'
         unit-scaling='0.01' show-overlay-avg='false'
         stack='{"by":"category","mode":"absolute-relative"}'></bn-chart-time> -->
-      <bn-chart-structure datasets='$Charts_Time' unit-scaling='0.06' scenarios='pp1,ac1' level='category'>
-      </bn-chart-structure>
-      <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
-        unit-scaling='0.05' show-overlay-avg='false'></bn-chart-time> -->
+      <!-- <bn-chart-structure datasets='$Charts_Time' unit-scaling='0.06' scenarios='pp1,ac1' level='category'>
+      </bn-chart-structure> -->
+      <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1'
+        show-overlay-avg='false' unit-scaling='0.04'>
+      </bn-chart-time>
+
+      </bn-chart-time>
     </bn-page>
-    <bn-page>
-      <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" level='category' scenarios='ac1'
+    <!-- <bn-page> -->
+    <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" level='category' scenarios='ac1'
         unit-scaling='0.01' show-overlay-avg='false'
         stack='{"by":"subCategory","mode":"absolute-relative"}'></bn-chart-time> -->
-      <!-- <bn-chart-time chart-mode="line" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
+    <!-- <bn-chart-time chart-mode="line" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
         unit-scaling='0.1' show-overlay-avg='false'></bn-chart-time> -->
 
-      <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
+    <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
         unit-scaling='0.05' show-overlay-avg='false'></bn-chart-time> -->
-    </bn-page>
+    <!-- </bn-page> -->
   </bn-context>
 
 </body>

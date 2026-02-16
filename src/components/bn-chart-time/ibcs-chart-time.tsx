@@ -29,6 +29,7 @@ import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsT
 //import { AggregationLevel } from "../../../components";
 import { DateDistance } from "../../utils/DateStringFactory";
 import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../utils/constants";
+import { ParentDimensions } from "../../utils/parentDimensions";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
@@ -120,6 +121,9 @@ export class IbcsChartTime {
   @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
 
+  @Prop()
+  parentDimensions: ParentDimensions = { width: 0, height: 0 };
+
 
 
   drawElement: SVGElement | undefined;
@@ -162,11 +166,12 @@ export class IbcsChartTime {
 
     this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
     this.chart.setI18n(this.i18n);
-    this.pattern =  new CustomPattern(this.chart.styles);
+    this.autoFitScaling(config, styles);
+    this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
 
-  public async componentWillUpdate() {    
+  public async componentWillUpdate() {
     if (this.chart == null) {
       return;
     }
@@ -177,10 +182,46 @@ export class IbcsChartTime {
     this.chart.setI18n(this.i18n);
     this.chart.setStyles(styles);
     this.chart.setConfig(config);
-    
-    this.pattern =  new CustomPattern(this.chart.styles);
+    this.autoFitScaling(config, styles);
+    this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
+  }
 
+  /**
+   * Two-pass auto-fit: only when pixelPerUnit is 0 (auto mode).
+   * Explicit values are never overridden — the outer component warns
+   * about overflow via componentDidRender.
+   */
+  private autoFitScaling(config: TimeChartComponentConfig, styles: TimeChartStyle): void {
+    if (config.pixelPerUnit > 0) {
+      return; // Explicit value — respect it, do not override
+    }
+
+    const targetHeight = this.parentDimensions?.height;
+    if (!targetHeight || targetHeight <= 0) {
+      config.pixelPerUnit = 1; // No parent info — use fallback
+      this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
+      this.chart.setI18n(this.i18n);
+      return;
+    }
+
+    // First pass with pixelPerUnit=1 to measure the real SVG height
+    config.pixelPerUnit = 1;
+    this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
+    this.chart.setI18n(this.i18n);
+    this.chart.toString();
+    const svgHeight = this.chart.getAllocatedCanvasHeight();
+
+    if (svgHeight <= 0) {
+      return;
+    }
+
+    // Scale so the chart fits in ~90% of the available height
+    config.pixelPerUnit = (targetHeight * 0.9) / svgHeight;
+
+    // Second pass with the corrected scaling
+    this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
+    this.chart.setI18n(this.i18n);
   }
 
   public async componentWillRender() {

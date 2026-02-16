@@ -27,6 +27,7 @@ import { ScaleFactorsStructureChartAdapter } from "./utils/model";
 import { StructureChartStylesAdapter, StructureChartStyle } from "./utils/model/styles/StructureChartStyle";
 import { Order, OrderAdapter, OrderDirection } from "../../utils/model/Order";
 import { AggregationLevel } from "../../utils/constants";
+import { ParentDimensions } from "../../utils/parentDimensions";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
@@ -98,6 +99,9 @@ export class IbcsChartStructure {
   @Prop()
   stackConfig: StackConfigParsed | null = null;
 
+  @Prop()
+  parentDimensions: ParentDimensions = { width: 0, height: 0 };
+
   private chart: StructureChart | undefined;
   private pattern: CustomPattern | undefined;;
 
@@ -133,7 +137,8 @@ export class IbcsChartStructure {
 
     this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
     this.chart.setI18n(this.i18n);
-    this.pattern =  new CustomPattern(this.chart.styles);
+    this.autoFitScaling(config, styles);
+    this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
 
@@ -148,9 +153,47 @@ export class IbcsChartStructure {
     this.chart.setI18n(this.i18n);
     this.chart.setStyles(styles);
     this.chart.setConfig(config);
-    this.pattern =  new CustomPattern(this.chart.styles);
+    this.autoFitScaling(config, styles);
+    this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
-    
+  }
+
+  /**
+   * Two-pass auto-fit: only when pixelPerUnit is 0 (auto mode).
+   * Explicit values are never overridden — the outer component warns
+   * about overflow via componentDidRender.
+   * Structure charts grow horizontally, so we fit to width.
+   */
+  private autoFitScaling(config: StructureChartComponentConfig, styles: StructureChartStyle): void {
+    if (config.pixelPerUnit > 0) {
+      return; // Explicit value — respect it, do not override
+    }
+
+    const targetWidth = this.parentDimensions?.width;
+    if (!targetWidth || targetWidth <= 0) {
+      config.pixelPerUnit = 1;
+      this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
+      this.chart.setI18n(this.i18n);
+      return;
+    }
+
+    // First pass with pixelPerUnit=1 to measure the real SVG width
+    config.pixelPerUnit = 1;
+    this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
+    this.chart.setI18n(this.i18n);
+    this.chart.toString();
+    const svgWidth = this.chart.getAllocatedCanvasWidth();
+
+    if (svgWidth <= 0) {
+      return;
+    }
+
+    // Scale so the chart fits in ~90% of the available width
+    config.pixelPerUnit = (targetWidth * 0.9) / svgWidth;
+
+    // Second pass with the corrected scaling
+    this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
+    this.chart.setI18n(this.i18n);
   }
 
   public async componentWillRender() {
