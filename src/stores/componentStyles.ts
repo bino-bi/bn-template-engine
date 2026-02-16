@@ -38,6 +38,11 @@ export interface GlobalStyle {
 }
 
 export interface TextStyle {
+  fontFamily?: string;
+  fontSizePx?: number;
+  fontColor?: string;
+  fontBackgroundColor?: string;
+  leading?: number;
 }
 
 export interface TimeChartStyle {

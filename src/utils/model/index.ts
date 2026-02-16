@@ -1,5 +1,6 @@
 export * from "./VarianceScenario";
 export * from "./ChartStyles";
+export * from "./TextStyles";
 export * from "./DatasetMeta";
 
 
