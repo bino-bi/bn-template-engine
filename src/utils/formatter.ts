@@ -18,7 +18,7 @@ export class Formatter {
       useGrouping: true,
       maximumFractionDigits: digits,
       minimumFractionDigits: digitsMin
-    }).replace(/\s/g, this.postfixSeperator).replace(/\./g, this.tsdDelimiter);
+    }).replace(/\s+(%)/g, '$1').replace(/\s/g, this.postfixSeperator).replace(/\./g, this.tsdDelimiter);
   }
 
   static translateScenarioLabel(scenario: string | undefined, i18n: Map<string | number, string>): string {

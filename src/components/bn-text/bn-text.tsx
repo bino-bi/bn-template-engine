@@ -7,8 +7,7 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { BinoTextStyles } from "../../utils/model/TextStyles";
 import { getParentDimensions } from "../../utils/parentDimensions";
-
-type ScalingMode = 'empty' | 'none' | 'auto' | 'factor';
+import { parseScaling } from "../../utils/scaling";
 
 const ALLOWED_TAGS = new Set([
   'br', 'b', 'i', 'strong', 'em', 'span', 'p', 'div',
@@ -148,15 +147,6 @@ export class Text {
     this.validateScaling(this.scale);
   }
 
-  private parseScaling(): { mode: ScalingMode; factor?: number } {
-    if (this.scale == null || this.scale === '') return { mode: 'empty' };
-    if (this.scale === 'none') return { mode: 'none' };
-    if (this.scale === 'auto') return { mode: 'auto' };
-    const num = Number(this.scale);
-    if (!isNaN(num) && num > 0) return { mode: 'factor', factor: num };
-    return { mode: 'empty' };
-  }
-
   private evalTemplate(template: string): string {
     if (!template) return '';
     if (DANGEROUS_PATTERN.test(template)) {
@@ -201,7 +191,7 @@ export class Text {
 
   private applyScaling(baseFontSize: number) {
     const host = this.element;
-    const { mode, factor } = this.parseScaling();
+    const { mode, factor } = parseScaling(this.scale);
     const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
 
     const hostConstrained = host.scrollHeight > host.clientHeight + 1;
@@ -275,7 +265,7 @@ export class Text {
 
   render() {
     const { fontStyles } = this.prepareStyle();
-    const { mode, factor } = this.parseScaling();
+    const { mode, factor } = parseScaling(this.scale);
 
     const fontSize = mode === 'factor'
       ? `${fontStyles.size * factor}px`

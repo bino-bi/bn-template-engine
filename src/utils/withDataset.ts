@@ -15,6 +15,23 @@ const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => 
   return [matches, nonMatches];
 };
 
+const WARN_DATASOURCE_ID = 'WARN_use_dataset';
+
+const warnIfDatasource = (component: any, datasources: string[]) => {
+  const errors = component.errors;
+  if (!errors) return;
+  if (datasources.length > 0) {
+    const names = datasources.map(n => n.substring(1)).join(', ');
+    errors.addOrReplace({
+      id: WARN_DATASOURCE_ID,
+      type: 'warning',
+      message: `Using datasource(s) "${names}" directly. Prefer using a dataset (bn-dataset) for query support and metadata.`
+    });
+  } else {
+    errors.remove(WARN_DATASOURCE_ID);
+  }
+};
+
 const withDataset = (component: any, onUpdate: (name: string, data: any) => void, onMetaUpdate?: (name: string, meta: DatasetMeta) => void) => {
   let subscriptionSet: () => void;
   let subscriptionSource: () => void;
@@ -34,6 +51,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
     mutations.forEach((mutation) => {
       if (mutation.attributeName === 'datasets') {
         [datasources, datasets] = partition(s => s.startsWith("$"), getElement(component).getAttribute('datasets').split(","));
+        warnIfDatasource(component, datasources);
         datasets.forEach(name => {
           // @ts-ignore
           onUpdate(name, getSet(name));
@@ -51,6 +69,7 @@ const withDataset = (component: any, onUpdate: (name: string, data: any) => void
   component['connectedCallback'] = () => {
     const element = getElement(component);
     [datasources, datasets] = partition(s => s.startsWith("$"), (element.getAttribute('datasets') || "").split(","));
+    warnIfDatasource(component, datasources);
     datasets.forEach(name => {
       // @ts-ignore
       onUpdate(name, getSet(name));

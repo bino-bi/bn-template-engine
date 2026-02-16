@@ -651,6 +651,11 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
+          * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `ibcs-table` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the CSS variable `--bn-font-size` is temporarily    reset to the unscaled base size and a synchronous reflow is forced. 2. The unscaled `scrollWidth` of the table container is compared against    the parent's content-box width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledScrollWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.
+          * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling — always render at base font size <bn-table scale="none" ...></bn-table>
+         */
+        "scale"?: string;
+        /**
           * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null // auto``` <br /><br /> When set to ```auto```, scenarios are detected from the dataset silently. When left blank (and variances are also blank), scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
@@ -1054,6 +1059,10 @@ export namespace Components {
           * @default 0.5
          */
         "percentageScaling": number;
+        /**
+          * @default 1
+         */
+        "scaleFactor": number;
         /**
           * @default []
          */
@@ -2027,6 +2036,11 @@ declare namespace LocalJSX {
          */
         "percentageScaling"?: string | number;
         /**
+          * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `ibcs-table` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the CSS variable `--bn-font-size` is temporarily    reset to the unscaled base size and a synchronous reflow is forced. 2. The unscaled `scrollWidth` of the table container is compared against    the parent's content-box width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledScrollWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.
+          * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling — always render at base font size <bn-table scale="none" ...></bn-table>
+         */
+        "scale"?: string;
+        /**
           * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null // auto``` <br /><br /> When set to ```auto```, scenarios are detected from the dataset silently. When left blank (and variances are also blank), scenarios are detected from the dataset with a warning.
          */
         "scenarios"?: string;
@@ -2427,6 +2441,10 @@ declare namespace LocalJSX {
           * @default 0.5
          */
         "percentageScaling"?: number;
+        /**
+          * @default 1
+         */
+        "scaleFactor"?: number;
         /**
           * @default []
          */

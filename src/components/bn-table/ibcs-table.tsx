@@ -106,6 +106,9 @@ export class IbcsTable {
   @Prop()
   percentageScaling: number = 0.5;
 
+  @Prop()
+  scaleFactor: number = 1;
+
   private table: Table | undefined;
   private componentDataFormatDigits: DataFormatDigits = new DataFormatDigits();
   private barChartStyles: CellBarChartStyles;
@@ -145,7 +148,7 @@ export class IbcsTable {
                   value={cell.value as number}
                   scenario={cell.key}
                   columnStats={cell.columnStats}
-                  height={18}
+                  height={18 * this.scaleFactor}
                   isRelative={cell.key.startsWith('dr')}
                   isPositiveGood={cell.key.endsWith('_pos')}
                   measureScale={cell.measureScale}
@@ -268,10 +271,11 @@ export class IbcsTable {
           }
         },
         fontColor: $["global"]?.["fontColor"] || '#000000',
-        fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85, // Slightly smaller for table cells
+        fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor,
         fontFamily: $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
         unitScaling: this.unitScaling,
-        percentageScaling: this.percentageScaling
+        percentageScaling: this.percentageScaling,
+        scaleFactor: this.scaleFactor
       };
     });
   }
