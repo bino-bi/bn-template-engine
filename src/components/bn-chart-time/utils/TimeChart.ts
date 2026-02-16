@@ -859,8 +859,13 @@ export class TimeChart {
       entry.series.drawLabels(this.dataFormatDigits, this.measureScale);
     }
 
+    // In line mode the lines only span between data points (all above the axis),
+    // so lineGroup.height() does not extend to the axis like bar rects do.
+    // Use getColumnPositionY() (the axis baseline) as the minimum height
+    // so that axis date labels drawn below are not cut off.
+    const axisY = this.position.getColumnPositionY();
     this.scenariosArea = {
-      height: lineGroup.height() as number + this.styles.padding.top + this.styles.padding.bottom,
+      height: Math.max(lineGroup.height() as number + this.styles.padding.top, axisY) + this.styles.padding.bottom,
       width: lineGroup.width() as number + this.position.spacings.columnWidth
     };
   }

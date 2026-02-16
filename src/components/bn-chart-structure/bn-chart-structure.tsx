@@ -17,6 +17,7 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { Style } from "../../stores/componentStyles";
 import { StructureChartDataRow} from "./utils/model";
@@ -389,9 +390,24 @@ export class Chart {
     this.validateStack(this.stack);
   }
 
-  prepareDimension(): { height: number, width: number } {
-    this.canvasWidthSegmented = this.element.clientWidth / this.scenariosArray.length;
-    return { width: this.canvasWidthSegmented, height: this.element.clientHeight };
+  componentDidRender() {
+    const parent = getParentDimensions(this.element);
+    const errId = 'WARN_overflow';
+    if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: 'warning',
+        message: 'Chart exceeds available space and will be cut off. Check unit-scaling value.'
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  prepareDimension(): ParentDimensions {
+    const parent = getParentDimensions(this.element);
+    this.canvasWidthSegmented = parent.width / this.scenariosArray.length;
+    return { width: this.canvasWidthSegmented, height: parent.height };
   }
 
   private prepareScenarios(): string[] {
@@ -439,10 +455,29 @@ export class Chart {
 
   private preparePixelPerUnit(): number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
+      this.errors.remove('AUTO_unitScaling');
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
 
-    return Number(this.unitScaling);
+    // Explicit 'auto' → auto-calculate silently
+    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === 'auto') {
+      this.errors.remove('AUTO_unitScaling');
+      return 0;
+    }
+
+    const numeric = Number(this.unitScaling);
+    if (!isNaN(numeric) && numeric > 0) {
+      this.errors.remove('AUTO_unitScaling');
+      return numeric;
+    }
+
+    // Not set / invalid → auto-calculate with warning
+    this.errors.addOrReplace({
+      id: 'AUTO_unitScaling',
+      type: 'warning',
+      message: `unit-scaling: not set, auto-calculated to fit available space.`
+    });
+    return 0;
   }
 
   private preparePixelPerPercentage(): number {
@@ -658,6 +693,7 @@ export class Chart {
       measure-unit={this.prepareMeasureUnit()}
       showMeasureScale={this.prepareShowMeasureScale(idx)}
       stackConfig={this.prepareStackConfig()}
+      parentDimensions={this.prepareDimension()}
     ></ibcs-chart-structure>
   }
 

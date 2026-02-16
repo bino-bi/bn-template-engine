@@ -13,6 +13,7 @@ import { Order } from "./utils/model/Order";
 import { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
 import { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
+import { ParentDimensions } from "./utils/parentDimensions";
 import { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
@@ -33,6 +34,7 @@ export { Order } from "./utils/model/Order";
 export { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
 export { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
+export { ParentDimensions } from "./utils/parentDimensions";
 export { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
@@ -794,6 +796,10 @@ export namespace Components {
          */
         "order": Order;
         /**
+          * @default { width: 0, height: 0 }
+         */
+        "parentDimensions": ParentDimensions;
+        /**
           * @default 50
          */
         "pixelPerPercentage": number;
@@ -885,6 +891,10 @@ export namespace Components {
           * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
          */
         "order": Order;
+        /**
+          * @default { width: 0, height: 0 }
+         */
+        "parentDimensions": ParentDimensions;
         /**
           * @default 50
          */
@@ -2151,6 +2161,10 @@ declare namespace LocalJSX {
          */
         "order"?: Order;
         /**
+          * @default { width: 0, height: 0 }
+         */
+        "parentDimensions"?: ParentDimensions;
+        /**
           * @default 50
          */
         "pixelPerPercentage"?: number;
@@ -2242,6 +2256,10 @@ declare namespace LocalJSX {
           * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
          */
         "order"?: Order;
+        /**
+          * @default { width: 0, height: 0 }
+         */
+        "parentDimensions"?: ParentDimensions;
         /**
           * @default 50
          */
