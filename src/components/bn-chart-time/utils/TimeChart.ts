@@ -16,6 +16,7 @@ import CalculateSize from 'calculate-size';
 // import { Order } from "../../../utils/model/Order";
 import { StackConfigParsed, TimeChartComponentConfig } from "./model/TimeChartComponentConfig";
 import { TimeChartStyle } from "./model/styles/TimeChartStyle";
+import { ScaleFactorsTimeChart } from "./model/styles/ScaleFactorsTimeChart";
 import { TimeChartDataRow } from "./model/TimeChartDataRow";
 //import { DateStringFactory } from "../../../utils/DateStringFactory";
 import { DateTime } from "luxon";
@@ -109,12 +110,15 @@ export class TimeChart {
   private chartMode: ChartMode = ChartMode.BAR;
   private maxBars: number = 28;
   private stackConfig: StackConfigParsed | null = null;
+  private lineFullWidth: boolean = true;
+  private availableWidth: number = 0;
 
-  constructor(ruleSet: VisualisationRuleSet, config: TimeChartComponentConfig, styles: TimeChartStyle) {
+  constructor(ruleSet: VisualisationRuleSet, config: TimeChartComponentConfig, styles: TimeChartStyle, availableWidth: number = 0) {
     this.initSQLFunctions();
     this.ruleSet = ruleSet || new IBCSRuleSet();
     this.i18n = this.createI18n(new Map());
     this.styles = styles;
+    this.availableWidth = availableWidth;
     this.setConfig(config);
     this.position = this.createElementPosition(config.scenarios);
   }
@@ -140,6 +144,10 @@ export class TimeChart {
 
   public setStyles(newStyle: TimeChartStyle) {
     this.styles = newStyle;
+  }
+
+  public setAvailableWidth(w: number) {
+    this.availableWidth = w;
   }
 
   setConfig(config: TimeChartComponentConfig) {
@@ -175,13 +183,14 @@ export class TimeChart {
     this.measureUnit = config.measureUnit;
     this.dataFormatDigits = config.dataFormatDigits;
 
-    this.updatePosition(config.scenarios);
-
     this.showOverlayMedian = config.showOverlayMedian;
     this.showOverlayAvg = config.showOverlayAvg;
     this.chartMode = config.chartMode;
     this.maxBars = config.maxBars;
     this.stackConfig = config.stackConfig;
+    this.lineFullWidth = config.lineFullWidth;
+
+    this.updatePosition(config.scenarios);
 
   }
 
@@ -410,7 +419,40 @@ export class TimeChart {
       max = this.highestDataPointValue;
     }
 
-    return new ElementPositions(new Padding(this.styles.padding), this.styles.scaleFactors, this.styles.fontStyles, min, max, this.dataModel.length, maxLabelLengthLeft);
+    // In line mode with lineFullWidth enabled, override categoryWidth so data points
+    // are evenly distributed across the available container width.
+    let effectiveScaleFactors = this.styles.scaleFactors;
+    const effectiveMode = this.determineEffectiveChartMode();
+
+    if (this.lineFullWidth && this.availableWidth > 0 && this.dataModel.length > 0
+        && !this.isVarianceChart() && effectiveMode === ChartMode.LINE) {
+      const fontSize = this.styles.fontStyles.size;
+      const padding = this.styles.padding;
+      const sf = this.styles.scaleFactors;
+
+      // Fixed overhead: padding + scenarioOffset + leftSideLabels + half columnWidth (right margin)
+      const fixedOverhead = padding.left + padding.right
+        + (fontSize * sf.scenarioOffset)
+        + maxLabelLengthLeft
+        + (fontSize * sf.columnWidth);
+
+      const availableDataWidth = this.availableWidth - fixedOverhead;
+
+      if (availableDataWidth > 0) {
+        const customCategoryWidthFactor = availableDataWidth / this.dataModel.length / fontSize;
+        // Enforce minimum to prevent label overlap
+        const minFactor = sf.columnWidth * 1.2;
+        const finalFactor = Math.max(customCategoryWidthFactor, minFactor);
+
+        // Clone scaleFactors with overridden categoryWidth
+        const cloned = new ScaleFactorsTimeChart();
+        Object.assign(cloned, sf);
+        cloned.categoryWidth = finalFactor;
+        effectiveScaleFactors = cloned;
+      }
+    }
+
+    return new ElementPositions(new Padding(this.styles.padding), effectiveScaleFactors, this.styles.fontStyles, min, max, this.dataModel.length, maxLabelLengthLeft);
   }
 
   private calculateTitleLength(minWidth: number): number {
@@ -890,8 +932,22 @@ export class TimeChart {
           offset *= -1;
         }
 
-        // Get the date label
-        let datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
+        // Get the date label — use smart/short logic when full-width shows all labels
+        let datelabel: string;
+        if (this.lineFullWidth && this.availableWidth > 0) {
+          if (this.axisLabelsMode === AxisLabelsMode.SMART) {
+            datelabel = dateStringFactory.getSmartDateString(elements.date, this.dateInterval);
+            if (index === 0 && this.dateInterval !== DateDistance.YEAR) {
+              datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
+            }
+          } else if (this.axisLabelsMode === AxisLabelsMode.SHORT) {
+            datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
+          } else {
+            datelabel = dateStringFactory.getDateString(elements.date, this.dateInterval);
+          }
+        } else {
+          datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
+        }
 
         new Label(
           axisLabelGroup,
@@ -924,6 +980,11 @@ export class TimeChart {
   }
 
   private shouldShowLineChartAxisLabel(dataModel: any[], index: number): boolean {
+    // In full-width mode, every data point gets a label (enough horizontal space)
+    if (this.lineFullWidth && this.availableWidth > 0) {
+      return true;
+    }
+
     const lastIndex = dataModel.length - 1;
 
     // Always show first and last labels

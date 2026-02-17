@@ -119,6 +119,12 @@ export class IbcsChartTime {
   stackConfig: StackConfigParsed | null = null;
 
   @Prop()
+  lineFullWidth: boolean = true;
+
+  @Prop()
+  containerWidth: number = 0;
+
+  @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
 
   @Prop()
@@ -163,8 +169,9 @@ export class IbcsChartTime {
   public async componentWillLoad() {
     const config: TimeChartComponentConfig = this.prepareConfig();
     const styles: TimeChartStyle = this.prepareStyle();
+    const availableWidth = this.containerWidth || 0;
 
-    this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
+    this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
     this.autoFitScaling(config, styles);
     this.pattern = new CustomPattern(this.chart.styles);
@@ -181,6 +188,7 @@ export class IbcsChartTime {
 
     this.chart.setI18n(this.i18n);
     this.chart.setStyles(styles);
+    this.chart.setAvailableWidth(this.containerWidth || 0);
     this.chart.setConfig(config);
     this.autoFitScaling(config, styles);
     this.pattern = new CustomPattern(this.chart.styles);
@@ -198,16 +206,17 @@ export class IbcsChartTime {
     }
 
     const targetHeight = this.parentDimensions?.height;
+    const availableWidth = this.containerWidth || 0;
     if (!targetHeight || targetHeight <= 0) {
       config.pixelPerUnit = 1; // No parent info — use fallback
-      this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
+      this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
       this.chart.setI18n(this.i18n);
       return;
     }
 
     // First pass with pixelPerUnit=1 to measure the real SVG height
     config.pixelPerUnit = 1;
-    this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
+    this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
     this.chart.toString();
     const svgHeight = this.chart.getAllocatedCanvasHeight();
@@ -220,7 +229,7 @@ export class IbcsChartTime {
     config.pixelPerUnit = (targetHeight * 0.9) / svgHeight;
 
     // Second pass with the corrected scaling
-    this.chart = new TimeChart(new IBCSRuleSet(), config, styles);
+    this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
   }
 
@@ -275,6 +284,7 @@ export class IbcsChartTime {
       "chartMode": this.chartMode,
       "maxBars": this.maxBars,
       "stackConfig": this.stackConfig,
+      "lineFullWidth": this.lineFullWidth,
     });
   }
 
