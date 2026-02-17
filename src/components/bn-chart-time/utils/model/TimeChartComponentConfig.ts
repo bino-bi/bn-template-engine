@@ -49,6 +49,7 @@ export class TimeChartComponentConfig {
   public chartMode: ChartMode = ChartMode.BAR;
   public maxBars: number = 28;
   public stackConfig: StackConfigParsed | null = null;
+  public lineFullWidth: boolean = true;
   constructor(public data: TimeChartDataRow[],
     public scenarios: string[],
   ) {
@@ -156,6 +157,10 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isExisting(data.stackConfig)) {
       config.stackConfig = data.stackConfig;
+    }
+
+    if (CompareUtil.isBoolean(data.lineFullWidth)) {
+      config.lineFullWidth = data.lineFullWidth;
     }
 
     return config;

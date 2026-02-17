@@ -165,6 +165,11 @@ export namespace Components {
          */
         "limit": number;
         /**
+          * When true (default), line charts stretch to fill the full parent width instead of using fixed per-data-point spacing. Has no effect in bar mode. <br /><br /> values:<br /> ```true // false```
+          * @default 'true'
+         */
+        "lineFullWidth": string;
+        /**
           * Max Bars - threshold for auto-switching to line mode <br /><br /> When chartMode is set to 'auto' and the number of data points exceeds this value, the chart will render as a line chart.
           * @default 28
          */
@@ -849,6 +854,10 @@ export namespace Components {
         "chartMode": ChartMode;
         "chartTitle"?: string;
         /**
+          * @default 0
+         */
+        "containerWidth": number;
+        /**
           * @default []
          */
         "data": TimeChartDataRow[];
@@ -888,6 +897,10 @@ export namespace Components {
           * @default 0
          */
         "limit": number;
+        /**
+          * @default true
+         */
+        "lineFullWidth": boolean;
         /**
           * @default 28
          */
@@ -1549,6 +1562,11 @@ declare namespace LocalJSX {
           * @default 0
          */
         "limit"?: number;
+        /**
+          * When true (default), line charts stretch to fill the full parent width instead of using fixed per-data-point spacing. Has no effect in bar mode. <br /><br /> values:<br /> ```true // false```
+          * @default 'true'
+         */
+        "lineFullWidth"?: string;
         /**
           * Max Bars - threshold for auto-switching to line mode <br /><br /> When chartMode is set to 'auto' and the number of data points exceeds this value, the chart will render as a line chart.
           * @default 28
@@ -2231,6 +2249,10 @@ declare namespace LocalJSX {
         "chartMode"?: ChartMode;
         "chartTitle"?: string;
         /**
+          * @default 0
+         */
+        "containerWidth"?: number;
+        /**
           * @default []
          */
         "data"?: TimeChartDataRow[];
@@ -2270,6 +2292,10 @@ declare namespace LocalJSX {
           * @default 0
          */
         "limit"?: number;
+        /**
+          * @default true
+         */
+        "lineFullWidth"?: boolean;
         /**
           * @default 28
          */

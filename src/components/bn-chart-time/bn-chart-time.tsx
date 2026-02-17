@@ -482,6 +482,26 @@ export class Chart {
     }
   }
 
+  /** When true (default), line charts stretch to fill the full parent width
+   *  instead of using fixed per-data-point spacing.
+   *  Has no effect in bar mode.
+   *  <br /><br />
+   *  values:<br />
+   *  ```true // false```
+   */
+  @Prop() lineFullWidth: string = 'true';
+
+  @Watch('lineFullWidth')
+  validateLineFullWidth(newValue: string) {
+    const errId: string = 'ERR_lineFullWidth';
+
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'lineFullWidth: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
   @Prop() showCategories: string = 'true';
 
   @Watch('showCategories')
@@ -623,6 +643,7 @@ export class Chart {
     this.validateDateInterval(this.dateInterval);
     this.validateAxisLabelsMode(this.axisLabelsMode);
 
+    this.validateLineFullWidth(this.lineFullWidth);
     this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
     this.validateShowMeasureScale(this.showMeasureScale);
@@ -983,6 +1004,10 @@ export class Chart {
     }
   }
 
+  private prepareLineFullWidth(): boolean {
+    return this.lineFullWidth === 'true';
+  }
+
   private prepareChartMode(): ChartMode {
     const mode = this.chartMode?.toLowerCase();
     if (mode === 'line') {
@@ -1000,6 +1025,7 @@ export class Chart {
   chartTemplate(localScenarioString: string, idx: number) {
     let preparedI18n: Map<string, string> = this.prepareI18n();
     let preparedStyle: TimeChartStyle = this.prepareStyle();
+    const fullParentWidth = getParentDimensions(this.element).width;
 
     return <ibcs-chart-time
       data={this.data}
@@ -1028,6 +1054,8 @@ export class Chart {
       chartMode={this.prepareChartMode()}
       maxBars={this.prepareMaxBars()}
       stackConfig={this.prepareStackConfig()}
+      lineFullWidth={this.prepareLineFullWidth()}
+      containerWidth={fullParentWidth}
       parentDimensions={this.prepareDimension()}
     ></ibcs-chart-time>
   }
