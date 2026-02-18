@@ -38,6 +38,7 @@ import {
 */
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
+import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
 //import {  AggregationLevel, AxisLabelsMode, DateDistance, Order } from "../../components";
@@ -67,6 +68,7 @@ export class Chart {
 
   @State() data: TimeChartDataRow[] = []
   @State() private datasetMeta: DatasetMeta | null = null;
+  @State() private appliedScaleFactor: number = 1;
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (Style) => T) => T;
@@ -451,6 +453,32 @@ export class Chart {
   }
 
 
+  /**
+   * Controls proportional scaling of the chart to fit the available parent width.
+   *
+   * | Value               | Behavior                                                                          |
+   * |---------------------|-----------------------------------------------------------------------------------|
+   * | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor  |
+   * | `"none"`            | No scaling (render at base font size regardless of available space)                |
+   * | `"auto"`            | Auto-scale to fit parent width silently (no warning)                              |
+   * | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
+   */
+  @Prop() scale?: string;
+
+  @Watch('scale')
+  validateScaling(newValue: string) {
+    if (newValue == null || newValue === '' || newValue === 'none' || newValue === 'auto') {
+      this.errors.remove('ERR_scale');
+      return;
+    }
+    const num = Number(newValue);
+    if (isNaN(num) || num <= 0) {
+      this.errors.addOrReplace({ id: 'ERR_scale', type: 'warning', message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.` });
+    } else {
+      this.errors.remove('ERR_scale');
+    }
+  }
+
   /** Max number of collumns
    *  is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
    */
@@ -652,19 +680,77 @@ export class Chart {
     this.validateChartMode(this.chartMode);
     this.validateMaxBars(this.maxBars);
     this.validateStack(this.stack);
+    this.validateScaling(this.scale);
   }
 
+  private _autoScaleIterations = 0;
+  private static readonly MAX_SCALE_ITERATIONS = 3;
+
   componentDidRender() {
-    const parent = getParentDimensions(this.element);
-    const errId = 'WARN_overflow';
-    if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: 'warning',
-        message: 'Chart exceeds available space and will be cut off. Check unit-scaling value.'
-      });
+    const { mode } = parseScaling(this.scale);
+
+    if (mode !== 'auto' && mode !== 'empty') {
+      this._autoScaleIterations = 0;
+      // Keep existing width-based overflow warning for non-auto modes
+      const parent = getParentDimensions(this.element);
+      const errId = 'WARN_overflow';
+      if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
+        this.errors.addOrReplace({
+          id: errId,
+          type: 'warning',
+          message: 'Chart exceeds available space and will be cut off. Check unit-scaling value.'
+        });
+      } else {
+        this.errors.remove(errId);
+      }
+      return;
+    }
+
+    const host = this.element;
+    const { width: parentWidth } = getParentDimensions(host);
+    if (parentWidth <= 0) return;
+
+    const div = host.shadowRoot?.querySelector('.container');
+    const currentWidth = div?.scrollWidth ?? host.scrollWidth;
+    const baseFontSize = this.componentStyle($ => $["global"]?.["fontSizePx"] || 13.3333);
+
+    // Content fits — no scaling needed (or current scale is sufficient)
+    if (currentWidth <= parentWidth + 1) {
+      this._autoScaleIterations = 0;
+      this.errors.remove('AUTO_scale');
+      // If previously scaled but content now fits at base, reset to 1
+      if (this.appliedScaleFactor !== 1) {
+        // Try resetting — if that overflows, the next didRender will re-scale
+        this._autoScaleIterations = 1;
+        this.appliedScaleFactor = 1;
+        host.style.setProperty('--bn-font-size', `${baseFontSize}px`);
+      }
+      return;
+    }
+
+    // Prevent infinite loop
+    if (this._autoScaleIterations >= Chart.MAX_SCALE_ITERATIONS) {
+      this._autoScaleIterations = 0;
+      return;
+    }
+
+    // Content overflows — compute multiplicative correction
+    const correction = (parentWidth - 1) / currentWidth;
+    const newFactor = this.appliedScaleFactor * correction;
+
+    host.style.setProperty('--bn-font-size', `${baseFontSize * newFactor}px`);
+
+    if (mode === 'empty') {
+      this.errors.addOrReplace({ id: 'AUTO_scale', type: 'warning', message: `Auto-scaled chart by factor ${newFactor.toFixed(3)}` });
     } else {
-      this.errors.remove(errId);
+      this.errors.remove('AUTO_scale');
+    }
+
+    if (Math.abs(newFactor - this.appliedScaleFactor) > 0.001) {
+      this._autoScaleIterations++;
+      this.appliedScaleFactor = newFactor;
+    } else {
+      this._autoScaleIterations = 0;
     }
   }
 
@@ -818,7 +904,11 @@ export class Chart {
   }
 
   private prepareStyle(): TimeChartStyle {
+    const effectiveFactor = this.getEffectiveScaleFactor();
     return this.componentStyle($ => {
+      const baseFontSize = $["global"]['fontSizePx'];
+      const scaledFontSize = baseFontSize * effectiveFactor;
+
       return {
         scaleFactors: {
           scenarioOffset: $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
@@ -839,8 +929,8 @@ export class Chart {
           axisTickLength: $["bn-chart-time"]['scaleFactors']['axisTickLength'],
         },
         fontStyles: {
-          font: `${$["global"]['fontSizePx']}px ${$["global"]['fontFamily']}`,
-          size: $["global"]['fontSizePx'],
+          font: `${scaledFontSize}px ${$["global"]['fontFamily']}`,
+          size: scaledFontSize,
           color: $["global"]['fontColor'],
           background: $["global"]['fontBackgroundColor'],
           leading: 1.8,
@@ -1026,6 +1116,9 @@ export class Chart {
     let preparedI18n: Map<string, string> = this.prepareI18n();
     let preparedStyle: TimeChartStyle = this.prepareStyle();
     const fullParentWidth = getParentDimensions(this.element).width;
+    const effectiveFactor = this.getEffectiveScaleFactor();
+    const ppu = this.preparePixelPerUnit();
+    const ppp = this.preparePixelPerPercentage();
 
     return <ibcs-chart-time
       data={this.data}
@@ -1033,8 +1126,8 @@ export class Chart {
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
       hideAxisLabels={this.prepareHideAxisLabels(idx)}
-      pixelPerUnit={this.preparePixelPerUnit()}
-      pixelPerPercentage={this.preparePixelPerPercentage()}
+      pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
+      pixelPerPercentage={ppp > 0 ? ppp * effectiveFactor : 0}
       limit={this.prepareLimit()}
       leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
       styles={preparedStyle}
@@ -1061,13 +1154,24 @@ export class Chart {
   }
 
 
+  private getEffectiveScaleFactor(): number {
+    const { mode, factor } = parseScaling(this.scale);
+    if (mode === 'factor') return factor!;
+    if (mode === 'auto' || mode === 'empty') return this.appliedScaleFactor;
+    return 1;
+  }
+
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
-    }));
+    const effectiveFactor = this.getEffectiveScaleFactor();
+    return this.componentStyle($ => {
+      const baseFontSize = $["global"]?.["fontSizePx"] || 13.3333;
+      return {
+        '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+        '--bn-font-size': `${baseFontSize * effectiveFactor}px`,
+        '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+        '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+      };
+    });
   }
 
   render() {
