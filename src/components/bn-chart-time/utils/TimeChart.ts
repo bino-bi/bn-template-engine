@@ -328,30 +328,46 @@ export class TimeChart {
   }
 
   public getAllocatedCanvasWidth(): number {
-    if (this.axisCategoryArea.width > this.scenariosArea.width) {
-      return this.axisCategoryArea.width + this.position.leftSideLabelLength;
-    } else {
-      return this.scenariosArea.width + this.position.leftSideLabelLength;
-    }
+    // Analytical calculation — doesn't rely on text bbox (unreliable in detached SVGs)
+    const axisEnd = this.position.getAxisEndPositionX();
+    // Buffer for the last date label extending beyond axis end
+    const labelBuffer = this.styles.fontStyles.size * 3;
 
+    // Also consider bbox-based measurement as a fallback (works for rects)
+    const bboxWidth = Math.max(this.axisCategoryArea.width, this.scenariosArea.width);
+    const bboxTotal = bboxWidth > 0 ? bboxWidth + this.position.leftSideLabelLength : 0;
+
+    return Math.max(axisEnd + labelBuffer, bboxTotal);
   }
 
   public getAllocatedCanvasHeight(): number {
-    let isOnSameAxisSide: boolean;
-
     if (this.smallestVarianceDataPointValue.value == null || this.highestVarianceDataPointValue.value == null || this.smallestDataPointValue.value == null || this.highestDataPointValue.value == null) {
       return 0;
     }
 
-    isOnSameAxisSide = this.isOnSameAxisSide();
+    // Analytical calculation — doesn't rely on text bbox
+    const isRelative = this.isVarianceChart() && this.variancesDataModel.some((e: any) => e.type === VarianceType.RELATIVE);
+    const axisY = this.position.getAxisPositionY(isRelative);
+    // Space below axis: gap to date labels + date label height + bottom padding
+    const belowAxis = this.position.spacings.labelToAxis + this.position.dataLabelHeight + this.styles.padding.bottom;
 
-
-    if (isOnSameAxisSide) {
-      return this.axisCategoryArea.height + this.scenariosArea.height;
+    let analyticalHeight: number;
+    if (!this.isOnSameAxisSide()) {
+      // Bars extend below axis — account for negative bar + its data label
+      const min = this.isVarianceChart() ? this.smallestVarianceDataPointValue : this.smallestDataPointValue;
+      const minScaled = Math.abs(min.getScaledUnit());
+      analyticalHeight = axisY + minScaled + this.position.spacings.labelToColumn + this.position.dataLabelHeight + belowAxis;
     } else {
-      return this.scenariosArea.height;
+      analyticalHeight = axisY + belowAxis;
     }
 
+    // Also consider bbox-based measurement as a fallback
+    const isOnSameAxisSide = this.isOnSameAxisSide();
+    const bboxHeight = isOnSameAxisSide
+      ? this.axisCategoryArea.height + this.scenariosArea.height
+      : this.scenariosArea.height;
+
+    return Math.max(analyticalHeight, bboxHeight);
   }
 
   public toString(): string {
@@ -360,6 +376,7 @@ export class TimeChart {
     container.id("drawCanvas")
     container.width(this.getAllocatedCanvasWidth())
     container.height(this.getAllocatedCanvasHeight())
+    container.attr('overflow', 'visible')
     return container.svg();
   }
 

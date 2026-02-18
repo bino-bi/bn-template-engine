@@ -100,6 +100,10 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
+          * Controls proportional scaling of the chart to fit the available parent height.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
+         */
+        "scale"?: string;
+        /**
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
@@ -196,6 +200,10 @@ export namespace Components {
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per percentage.
          */
         "percentageScaling": string | number;
+        /**
+          * Controls proportional scaling of the chart to fit the available parent width.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor  | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                              | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
+         */
+        "scale"?: string;
         /**
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */
@@ -1498,6 +1506,10 @@ declare namespace LocalJSX {
          */
         "percentageScaling": string | number;
         /**
+          * Controls proportional scaling of the chart to fit the available parent height.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
+         */
+        "scale"?: string;
+        /**
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */
         "scenarios": string;
@@ -1594,6 +1606,10 @@ declare namespace LocalJSX {
           * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per percentage.
          */
         "percentageScaling": string | number;
+        /**
+          * Controls proportional scaling of the chart to fit the available parent width.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor  | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                              | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
+         */
+        "scale"?: string;
         /**
           * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
          */

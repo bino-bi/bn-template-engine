@@ -18,6 +18,7 @@ import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
+import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { Style } from "../../stores/componentStyles";
 import { StructureChartDataRow} from "./utils/model";
@@ -36,6 +37,7 @@ export class Chart {
 
   @State() data: StructureChartDataRow[] = []
   @State() private datasetMeta: DatasetMeta | null = null;
+  @State() private appliedScaleFactor: number = 1;
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T, >(q: (style: Style) => T) => T;
@@ -356,6 +358,32 @@ export class Chart {
     }
   }
 
+  /**
+   * Controls proportional scaling of the chart to fit the available parent height.
+   *
+   * | Value               | Behavior                                                                          |
+   * |---------------------|-----------------------------------------------------------------------------------|
+   * | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor |
+   * | `"none"`            | No scaling (render at base font size regardless of available space)                |
+   * | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             |
+   * | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
+   */
+  @Prop() scale?: string;
+
+  @Watch('scale')
+  validateScaling(newValue: string) {
+    if (newValue == null || newValue === '' || newValue === 'none' || newValue === 'auto') {
+      this.errors.remove('ERR_scale');
+      return;
+    }
+    const num = Number(newValue);
+    if (isNaN(num) || num <= 0) {
+      this.errors.addOrReplace({ id: 'ERR_scale', type: 'warning', message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.` });
+    } else {
+      this.errors.remove('ERR_scale');
+    }
+  }
+
   private scenariosArray: string[] = [''];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
@@ -388,19 +416,70 @@ export class Chart {
     this.validateMeasureScale(this.measureScale);
     this.validateShowMeasureScale(this.showMeasureScale);
     this.validateStack(this.stack);
+    this.validateScaling(this.scale);
   }
 
+  private _autoScaleGuard = false;
+
   componentDidRender() {
-    const parent = getParentDimensions(this.element);
-    const errId = 'WARN_overflow';
-    if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: 'warning',
-        message: 'Chart exceeds available space and will be cut off. Check unit-scaling value.'
-      });
+    const { mode } = parseScaling(this.scale);
+
+    if (mode !== 'auto' && mode !== 'empty') {
+      this._autoScaleGuard = false;
+      // Keep existing width-based overflow warning for non-auto modes
+      const parent = getParentDimensions(this.element);
+      const errId = 'WARN_overflow';
+      if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
+        this.errors.addOrReplace({
+          id: errId,
+          type: 'warning',
+          message: 'Chart exceeds available space and will be cut off. Check unit-scaling value.'
+        });
+      } else {
+        this.errors.remove(errId);
+      }
+      return;
+    }
+
+    if (this._autoScaleGuard) {
+      this._autoScaleGuard = false;
+      return;
+    }
+
+    const host = this.element;
+    const { height: parentHeight } = getParentDimensions(host);
+    if (parentHeight <= 0) return;
+
+    // Measure at base (unscaled) font size to get true content height
+    const baseFontSize = this.componentStyle($ => $["global"]?.["fontSizePx"] || 13.3333);
+    host.style.setProperty('--bn-font-size', `${baseFontSize}px`);
+
+    // Reading scrollHeight forces a synchronous reflow at base size
+    const div = host.shadowRoot?.querySelector('.container');
+    const unscaledHeight = div?.scrollHeight ?? host.scrollHeight;
+
+    if (unscaledHeight <= parentHeight + 1) {
+      this.errors.remove('AUTO_scale');
+      if (this.appliedScaleFactor !== 1) {
+        this._autoScaleGuard = true;
+        this.appliedScaleFactor = 1;
+      }
+      return;
+    }
+
+    const computedFactor = (parentHeight - 1) / unscaledHeight;
+
+    host.style.setProperty('--bn-font-size', `${baseFontSize * computedFactor}px`);
+
+    if (mode === 'empty') {
+      this.errors.addOrReplace({ id: 'AUTO_scale', type: 'warning', message: `Auto-scaled chart by factor ${computedFactor.toFixed(3)}` });
     } else {
-      this.errors.remove(errId);
+      this.errors.remove('AUTO_scale');
+    }
+
+    if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
+      this._autoScaleGuard = true;
+      this.appliedScaleFactor = computedFactor;
     }
   }
 
@@ -539,8 +618,11 @@ export class Chart {
   }
   // TODO: FIXME:  Adapter pattenr doch noch verschieben?
   private prepareStyle(): any {
+    const effectiveFactor = this.getEffectiveScaleFactor();
     return this.componentStyle($ => {
-     
+      const baseFontSize = $["global"]['fontSizePx'];
+      const scaledFontSize = baseFontSize * effectiveFactor;
+
       return {
         scaleFactors: {
           scenarioOffset: $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
@@ -560,8 +642,8 @@ export class Chart {
           axisTickLength: $["bn-chart-structure"]['scaleFactors']['axisTickLength'],
         },
         fontStyles: {
-          font: `${$["global"]['fontSizePx']}px ${$["global"]['fontFamily']}`,
-          size: $["global"]['fontSizePx'],
+          font: `${scaledFontSize}px ${$["global"]['fontFamily']}`,
+          size: scaledFontSize,
           color: $["global"]['fontColor'],
           background: $["global"]['fontBackgroundColor'],
           leading: 1.8,
@@ -673,7 +755,10 @@ export class Chart {
       return this.measureUnit;
   }
 
-  chartTemplate(localScenarioString: string, idx: number) {   
+  chartTemplate(localScenarioString: string, idx: number) {
+    const effectiveFactor = this.getEffectiveScaleFactor();
+    const ppu = this.preparePixelPerUnit();
+    const ppp = this.preparePixelPerPercentage();
 
     return <ibcs-chart-structure
       data={this.data}
@@ -681,8 +766,8 @@ export class Chart {
       scenarios={this.prepareScenarios()}
       variances={[localScenarioString]}
       hideCategories={this.prepareHideCategories(idx) }
-      pixelPerUnit={this.preparePixelPerUnit()}
-      pixelPerPercentage={this.preparePixelPerPercentage()}
+      pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
+      pixelPerPercentage={ppp > 0 ? ppp * effectiveFactor : 0}
       limit={this.prepareLimit()}
       styles={this.prepareStyle()}
       i18n={this.prepareI18n()}
@@ -697,13 +782,24 @@ export class Chart {
     ></ibcs-chart-structure>
   }
 
+  private getEffectiveScaleFactor(): number {
+    const { mode, factor } = parseScaling(this.scale);
+    if (mode === 'factor') return factor!;
+    if (mode === 'auto' || mode === 'empty') return this.appliedScaleFactor;
+    return 1;
+  }
+
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
-    }));
+    const effectiveFactor = this.getEffectiveScaleFactor();
+    return this.componentStyle($ => {
+      const baseFontSize = $["global"]?.["fontSizePx"] || 13.3333;
+      return {
+        '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+        '--bn-font-size': `${baseFontSize * effectiveFactor}px`,
+        '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
+        '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+      };
+    });
   }
 
   render() {
