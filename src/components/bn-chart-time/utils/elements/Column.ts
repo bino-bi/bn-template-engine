@@ -144,7 +144,6 @@ export class Column {
 
     const colWidth = this.position.getColumnWidth();
     const xLeft = this.dimensions.xPos - colWidth / 2;
-    const xRight = this.dimensions.xPos + colWidth / 2;
     const midY = baseY - breakGap / 2;
     const halfGap = breakGap * 0.35;
     const zigCount = 3;
