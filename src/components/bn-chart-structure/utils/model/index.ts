@@ -3,6 +3,7 @@ export * from "./DataPoint";
 export * from "./StructureChartDataRow";
 export * from "./styles/StructureChartStyle";
 export * from "./styles/ScaleFactorsStructureChart";
+export * from "./OverflowConfig";
 
 export interface Cell {
   value?: number | string;

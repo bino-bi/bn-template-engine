@@ -356,7 +356,7 @@ export class Chart {
     }
   }
 
-  private scenariosArray: string[];
+  private scenariosArray: string[] = [''];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 

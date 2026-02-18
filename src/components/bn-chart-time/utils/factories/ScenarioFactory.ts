@@ -11,6 +11,7 @@ import {TimeChartStyle} from "../model/styles/TimeChartStyle";
 import { SVGPolgonPattern } from "../../../../utils/model";
 import { Line } from "../elements/Line";
 import { LineSeries, LineSeriesDataPoint } from "../elements/LineSeries";
+import { OverflowConfig } from "../model/OverflowConfig";
 
 export class ScenarioFactory {
 
@@ -30,6 +31,7 @@ export class ScenarioFactory {
   elementCnt: number;
   private i18n: Map<string | number, string>;
   private collisionManager: LabelCollisionManager | null = null;
+  private overflowConfig: OverflowConfig | null = null;
 
   constructor(position: ElementPositions, scenariosGroupParent: G, styles: TimeChartStyle, elementCnt: number, i18n: Map<string | number, string>) {
     this.i18n = i18n;
@@ -52,6 +54,10 @@ export class ScenarioFactory {
     this.elementCnt = elementCnt;
 
 
+  }
+
+  public setOverflowConfig(config: OverflowConfig | null): void {
+    this.overflowConfig = config;
   }
 
   public createLine(name: string, dataPoint: any, previousDataPoint: any, index: number): Line {
@@ -80,7 +86,7 @@ export class ScenarioFactory {
       columnLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Column(this.position, this.styles, dataPoint, index, isPrimaryColumn, columnGroup, columnLabel).updateLabelGroup(labelGroup);
+    return new Column(this.position, this.styles, dataPoint, index, isPrimaryColumn, columnGroup, columnLabel, this.overflowConfig).updateLabelGroup(labelGroup);
   }
 
   public createVarianceBar(dataPoint: DataPoint, index: number): Column {
@@ -94,7 +100,7 @@ export class ScenarioFactory {
       columnLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Column(this.position, this.styles, dataPoint, index, isPrimaryColumn, columnGroup, columnLabel).updateLabelGroup(labelGroup).setAsVariance();
+    return new Column(this.position, this.styles, dataPoint, index, isPrimaryColumn, columnGroup, columnLabel, this.overflowConfig).updateLabelGroup(labelGroup).setAsVariance();
   }
 
   public createRelativeVarianceBar(dataPoint: DataPoint, index: number): Needle {
@@ -115,7 +121,7 @@ export class ScenarioFactory {
     }
 
 
-    return new Column(this.position, this.styles, dataPoint, index, isPrimaryBar, barGroup, columnLabel);
+    return new Column(this.position, this.styles, dataPoint, index, isPrimaryBar, barGroup, columnLabel, this.overflowConfig);
   }
 
   public createPrimaryMarker(dataPoint: DataPoint, index: number): Marker {

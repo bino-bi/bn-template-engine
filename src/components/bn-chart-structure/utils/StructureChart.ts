@@ -2,7 +2,7 @@ import { G, Svg } from "@svgdotjs/svg.js";
 
 import { ElementPositions, FactoryState, Padding, VarianceType, } from "./helper";
 
-import { DataPoint, Scenario, StackConfigParsed, StructureChartComponentConfig, StructureChartDataRow, StructureChartStyle } from "./model";
+import { DataPoint, Scenario, StackConfigParsed, StructureChartComponentConfig, StructureChartDataRow, StructureChartStyle, OverflowConfig } from "./model";
 
 // @ts-ignore
 import { Axis, Categories, HookLocation, Label, StackedBar } from "./elements";
@@ -60,6 +60,7 @@ export class StructureChart {
   private measureUnit: string = "";
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
   private stackConfig: StackConfigParsed | null = null;
+  private overflowConfig: OverflowConfig | null = null;
 
   constructor(ruleSet: VisualisationRuleSet, config: StructureChartComponentConfig, styles: StructureChartStyle) {
     this.initSQLFunctions();
@@ -638,6 +639,7 @@ export class StructureChart {
       .id("Scenarios");
 
     let scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
+    scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: any, index: number) => {
       scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
@@ -652,6 +654,7 @@ export class StructureChart {
       .id("Scenarios");
 
     let scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
+    scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: any, index: number) => {
       if (elements["type"] == VarianceType.RELATIVE) {
@@ -1035,5 +1038,84 @@ export class StructureChart {
 
   hasNoData() {
     return this.dataModel.length == 0;
+  }
+
+  public setAvailableWidth(availableWidth: number): void {
+    if (this.pixelPerUnit <= 0 || availableWidth <= 0) {
+      this.overflowConfig = null;
+      return;
+    }
+    if (this.stackConfig != null) {
+      this.overflowConfig = null;
+      return;
+    }
+
+    this.overflowConfig = this.calculateOverflowConfig(availableWidth);
+    if (this.overflowConfig) {
+      const { cutWidth, overdriveZoneWidth, breakGap } = this.overflowConfig;
+      const virtualWidth = cutWidth + overdriveZoneWidth + breakGap;
+
+      const isVariance = this.variancesDataModel && this.variancesDataModel.length > 0;
+
+      if (isVariance) {
+        if (this.highestVarianceDataPointValue.getScaledUnit() > cutWidth) {
+          this.highestVarianceDataPointValue = new DataPoint(virtualWidth, this.highestVarianceDataPointValue.scenario, 1, this.highestVarianceDataPointValue.variance);
+        }
+        if (this.smallestVarianceDataPointValue.value != null && Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) > cutWidth) {
+          this.smallestVarianceDataPointValue = new DataPoint(-virtualWidth, this.smallestVarianceDataPointValue.scenario, 1, this.smallestVarianceDataPointValue.variance);
+        }
+      } else {
+        if (this.highestDataPointValue.getScaledUnit() > cutWidth) {
+          this.highestDataPointValue = new DataPoint(virtualWidth, this.highestDataPointValue.scenario, 1, this.highestDataPointValue.variance);
+        }
+        if (this.smallestDataPointValue.value != null && Math.abs(this.smallestDataPointValue.getScaledUnit()) > cutWidth) {
+          this.smallestDataPointValue = new DataPoint(-virtualWidth, this.smallestDataPointValue.scenario, 1, this.smallestDataPointValue.variance);
+        }
+      }
+
+      this.updatePosition();
+    }
+  }
+
+  private calculateOverflowConfig(availableWidth: number): OverflowConfig | null {
+    const isVariance = this.variancesDataModel && this.variancesDataModel.length > 0;
+    const varianceType = this.getVarianceType();
+
+    // Don't apply to relative variance (Needle handles its own clipping at 145%)
+    if (varianceType === VarianceType.RELATIVE) return null;
+
+    const highest = isVariance ? this.highestVarianceDataPointValue : this.highestDataPointValue;
+    const smallest = isVariance ? this.smallestVarianceDataPointValue : this.smallestDataPointValue;
+    const highestScaledUnit = highest.getScaledUnit();
+    const smallestAbsScaledUnit = smallest.value != null ? Math.abs(smallest.getScaledUnit()) : 0;
+    const maxAbsScaledUnit = Math.max(highestScaledUnit, smallestAbsScaledUnit);
+
+    if (maxAbsScaledUnit <= 0) return null;
+
+    const fontSize = this.styles.fontStyles.size;
+    const labelToBar = fontSize * this.styles.scaleFactors.labelToBar;
+
+    // Available space on the right side of the axis
+    const axisX = this.position.getAxisPositionX();
+    // Match getAllocatedCanvasWidth() which adds padding.left + padding.right on top of axisX
+    const rightSideAvailable = availableWidth - axisX - this.styles.padding.left - this.styles.padding.right;
+
+    // Estimate the label width of the largest value
+    const maxLabelWidth = this.calculateTextBoxWidth(highest.value || 0);
+
+    const overdriveZoneWidth = fontSize * 1.5;
+    const breakGap = fontSize * 0.3;
+    const scenarioCutOffset = fontSize * 0.8;
+
+    const cutWidth = rightSideAvailable - labelToBar - maxLabelWidth - overdriveZoneWidth - breakGap;
+
+    if (cutWidth <= scenarioCutOffset) return null;
+
+    const lowestCutWidth = cutWidth - scenarioCutOffset;
+    if (maxAbsScaledUnit <= lowestCutWidth) return null;
+
+    const maxOverflow = maxAbsScaledUnit - lowestCutWidth;
+
+    return { cutWidth, overdriveZoneWidth, breakGap, maxOverflow, scenarioCutOffset };
   }
 }

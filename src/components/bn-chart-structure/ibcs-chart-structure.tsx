@@ -138,6 +138,7 @@ export class IbcsChartStructure {
     this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
     this.chart.setI18n(this.i18n);
     this.autoFitScaling(config, styles);
+    this.chart.setAvailableWidth(this.parentDimensions?.width || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
@@ -154,6 +155,7 @@ export class IbcsChartStructure {
     this.chart.setStyles(styles);
     this.chart.setConfig(config);
     this.autoFitScaling(config, styles);
+    this.chart.setAvailableWidth(this.parentDimensions?.width || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
