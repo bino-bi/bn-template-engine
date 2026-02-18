@@ -10,6 +10,7 @@ import {TimeChartStyle} from "../model/styles/TimeChartStyle";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { SVGStyle } from "../../../../utils/model";
+import { OverflowConfig } from "../model/OverflowConfig";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
@@ -33,6 +34,9 @@ export class Column {
   private scenarioLabel: Label | null = null;
   private columnGroup: G | null;
   private isVarianceColumn: boolean = false;
+  private overflowConfig: OverflowConfig | null = null;
+  private isOverflowing: boolean = false;
+  private overdriveHeight: number = 0;
 
   private dimensions: TimeChartDimension = {
     columnLength: 0,
@@ -46,12 +50,13 @@ export class Column {
 
   private hasData:  boolean = false;
 
-  constructor(position: ElementPositions, styles: TimeChartStyle, dataPoint: DataPoint, index: number, isPrimaryColumn: boolean, scenarioGroup: G, columnLabel: string | null) {
+  constructor(position: ElementPositions, styles: TimeChartStyle, dataPoint: DataPoint, index: number, isPrimaryColumn: boolean, scenarioGroup: G, columnLabel: string | null, overflowConfig: OverflowConfig | null = null) {
     this.dataPoint = dataPoint;
     this.index = index;
     this.isPrimaryColumn = isPrimaryColumn;
     this.position = position;
     this.columnBarStyles = styles.barStyles;
+    this.overflowConfig = overflowConfig;
 
     this.scenarioGroup = scenarioGroup;
     this.styles = styles;
@@ -91,39 +96,146 @@ export class Column {
     let fillStyle = this.getFillStyle(scenarioStyle);
 
     if(this.columnGroup != null) {
-      this.columnGroup.rect(this.position.getColumnWidth(), this.dimensions.columnLength)
-        .fill(fillStyle)
-        .stroke(strokeStyle)
-        .y(this.dimensions.yPos)
-        .cx(this.dimensions.xPos);
-
+      if (this.isOverflowing && this.overflowConfig) {
+        this.drawOverdriveBar(fillStyle, strokeStyle);
+      } else {
+        this.columnGroup.rect(this.position.getColumnWidth(), this.dimensions.columnLength)
+          .fill(fillStyle)
+          .stroke(strokeStyle)
+          .y(this.dimensions.yPos)
+          .cx(this.dimensions.xPos);
+      }
     }
     this.drawColumnDataLabel(dataFormatDigits, measureScale);
     this.drawScenarioLabel();
 
   }
 
-  public createDimensions(dataPoint: DataPoint, index: number, isPrimaryBar: boolean): TimeChartDimension {
+  private drawOverdriveBar(fillStyle: any, strokeStyle: any): void {
+    if (!this.columnGroup || !this.overflowConfig) return;
 
-    if (dataPoint.getScaledUnit() < 0) {
+    const axisY = this.position.getColumnPositionY();
+    const colWidth = this.position.getColumnWidth();
+    const effectiveCut = this.dimensions.columnLength; // scenario-aware cut height
+    const { breakGap } = this.overflowConfig;
+
+    // Base bar: from axis up to effective cut height
+    const baseY = axisY - effectiveCut;
+    this.columnGroup.rect(colWidth, effectiveCut)
+      .fill(fillStyle)
+      .stroke(strokeStyle)
+      .y(baseY)
+      .cx(this.dimensions.xPos);
+
+    // Overdrive bar: above the break gap
+    const overdriveY = baseY - breakGap - this.overdriveHeight;
+    this.columnGroup.rect(colWidth, this.overdriveHeight)
+      .fill(fillStyle)
+      .stroke(strokeStyle)
+      .y(overdriveY)
+      .cx(this.dimensions.xPos);
+
+    // Break indicator: zigzag lines across bar width
+    this.drawBreakIndicator(baseY, breakGap);
+  }
+
+  private drawBreakIndicator(baseY: number, breakGap: number): void {
+    if (!this.columnGroup) return;
+
+    const colWidth = this.position.getColumnWidth();
+    const xLeft = this.dimensions.xPos - colWidth / 2;
+    const xRight = this.dimensions.xPos + colWidth / 2;
+    const midY = baseY - breakGap / 2;
+    const halfGap = breakGap * 0.35;
+    const zigCount = 3;
+    const segWidth = colWidth / zigCount;
+
+    // Top zigzag line
+    let topPath = `M ${xLeft} ${midY - halfGap}`;
+    for (let i = 0; i < zigCount; i++) {
+      const x1 = xLeft + segWidth * (i + 0.5);
+      const x2 = xLeft + segWidth * (i + 1);
+      const yPeak = midY - halfGap - breakGap * 0.3;
+      topPath += ` L ${x1} ${yPeak} L ${x2} ${midY - halfGap}`;
+    }
+
+    // Bottom zigzag line
+    let bottomPath = `M ${xLeft} ${midY + halfGap}`;
+    for (let i = 0; i < zigCount; i++) {
+      const x1 = xLeft + segWidth * (i + 0.5);
+      const x2 = xLeft + segWidth * (i + 1);
+      const yPeak = midY + halfGap + breakGap * 0.3;
+      bottomPath += ` L ${x1} ${yPeak} L ${x2} ${midY + halfGap}`;
+    }
+
+    // White background to cover the bar behind the break
+    this.columnGroup.rect(colWidth + 2, breakGap)
+      .fill('#ffffff')
+      .stroke('none')
+      .y(baseY - breakGap)
+      .cx(this.dimensions.xPos);
+
+    this.columnGroup.path(topPath)
+      .fill('none')
+      .stroke({ color: '#000000', width: 1 });
+
+    this.columnGroup.path(bottomPath)
+      .fill('none')
+      .stroke({ color: '#000000', width: 1 });
+  }
+
+  public createDimensions(dataPoint: DataPoint, index: number, isPrimaryBar: boolean): TimeChartDimension {
+    const scaledUnit = dataPoint.getScaledUnit();
+
+    // Determine effective cut height: AC scenarios use full cutHeight, others break lower
+    if (this.overflowConfig && scaledUnit > 0) {
+      const isAC = dataPoint.getScenario() === 'ac';
+      const effectiveCut = isAC
+        ? this.overflowConfig.cutHeight
+        : this.overflowConfig.cutHeight - this.overflowConfig.scenarioCutOffset;
+
+      if (scaledUnit > effectiveCut) {
+        this.isOverflowing = true;
+        const { breakGap, overdriveZoneHeight, maxOverflow } = this.overflowConfig;
+        const overflowAmount = scaledUnit - effectiveCut;
+        this.overdriveHeight = maxOverflow > 0
+          ? (overflowAmount / maxOverflow) * overdriveZoneHeight
+          : 0;
+
+        const totalVisualHeight = effectiveCut + breakGap + this.overdriveHeight;
+        const axisY = this.position.getColumnPositionY();
+
+        return {
+          clipped: false,
+          columnLength: effectiveCut,
+          xPos: this.position.getColumnPositionX(index, isPrimaryBar),
+          yPos: axisY - effectiveCut,
+          labelYPos: axisY - totalVisualHeight - this.position.spacings.labelToColumn,
+          scenarioLabelXPos: this.position.getColumnPositionX(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
+          scenarioLabelYPos: axisY - (effectiveCut * 0.5)
+        };
+      }
+    }
+
+    if (scaledUnit < 0) {
       return {
         clipped: false,
-        columnLength: Math.abs(dataPoint.getScaledUnit()),
+        columnLength: Math.abs(scaledUnit),
         xPos: this.position.getColumnPositionX(index, isPrimaryBar),
         yPos: this.position.getColumnPositionY(),
-        labelYPos: this.position.getColumnDataLabelPositionY(dataPoint.getScaledUnit()),
+        labelYPos: this.position.getColumnDataLabelPositionY(scaledUnit),
         scenarioLabelXPos: this.position.getColumnPositionX(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
-        scenarioLabelYPos: this.position.getColumnPositionY() + (Math.abs(dataPoint.getScaledUnit()) * 0.5)
+        scenarioLabelYPos: this.position.getColumnPositionY() + (Math.abs(scaledUnit) * 0.5)
       };
     } else {
       return {
         clipped: false,
-        columnLength: dataPoint.getScaledUnit(),
+        columnLength: scaledUnit,
         xPos: this.position.getColumnPositionX(index, isPrimaryBar),
-        yPos: this.position.getColumnPositionY() - dataPoint.getScaledUnit(),
-        labelYPos: this.position.getColumnDataLabelPositionY(dataPoint.getScaledUnit()),
+        yPos: this.position.getColumnPositionY() - scaledUnit,
+        labelYPos: this.position.getColumnDataLabelPositionY(scaledUnit),
         scenarioLabelXPos: this.position.getColumnPositionX(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
-        scenarioLabelYPos: this.position.getColumnPositionY() - (Math.abs(dataPoint.getScaledUnit()) * 0.5)
+        scenarioLabelYPos: this.position.getColumnPositionY() - (Math.abs(scaledUnit) * 0.5)
       };
     }
   }
@@ -132,9 +244,13 @@ export class Column {
     let labelHook = HookLocation.Bottom;
     if (dataPoint.value != null && dataPoint.value < 0) {
       labelHook = HookLocation.Top;
-
     }
-    return new Label(this.scenarioGroup, this.position.getColumnCenterPositionX(this.index), this.position.getColumnDataLabelPositionY(this.dataPoint.getScaledUnit()), this.ID_DATA_PREFIX, dataPoint.value, this.styles, labelHook, HookLocation.Center);
+
+    const labelY = this.isOverflowing
+      ? this.dimensions.labelYPos
+      : this.position.getColumnDataLabelPositionY(this.dataPoint.getScaledUnit());
+
+    return new Label(this.scenarioGroup, this.position.getColumnCenterPositionX(this.index), labelY, this.ID_DATA_PREFIX, dataPoint.value, this.styles, labelHook, HookLocation.Center);
   }
 
   private getScenarioLabel(columnLabel: string | null) {

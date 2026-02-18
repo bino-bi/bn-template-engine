@@ -174,6 +174,7 @@ export class IbcsChartTime {
     this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
     this.autoFitScaling(config, styles);
+    this.chart.setAvailableHeight(this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
@@ -191,6 +192,7 @@ export class IbcsChartTime {
     this.chart.setAvailableWidth(this.containerWidth || 0);
     this.chart.setConfig(config);
     this.autoFitScaling(config, styles);
+    this.chart.setAvailableHeight(this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }

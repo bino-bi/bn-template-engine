@@ -2,7 +2,7 @@ import { G, Svg } from "@svgdotjs/svg.js";
 
 import { ElementPositions, Padding, } from "./helper";
 
-import { DataPoint, Scenario } from "./model";
+import { DataPoint, Scenario, OverflowConfig } from "./model";
 
 import { AreaFill, AreaPoint, Axis, HookLocation, Label, LineSeries, LineSeriesDataPoint, StackedColumn } from "./elements";
 import { ScenarioFactory, } from "./factories";
@@ -112,6 +112,8 @@ export class TimeChart {
   private stackConfig: StackConfigParsed | null = null;
   private lineFullWidth: boolean = true;
   private availableWidth: number = 0;
+  private overflowConfig: OverflowConfig | null = null;
+  private lastScenarios: string[] = [];
 
   constructor(ruleSet: VisualisationRuleSet, config: TimeChartComponentConfig, styles: TimeChartStyle, availableWidth: number = 0) {
     this.initSQLFunctions();
@@ -148,6 +150,76 @@ export class TimeChart {
 
   public setAvailableWidth(w: number) {
     this.availableWidth = w;
+  }
+
+  public setAvailableHeight(availableHeight: number): void {
+    // Only apply overdrive for manual scaling in bar mode
+    if (this.pixelPerUnit <= 0 || availableHeight <= 0) {
+      this.overflowConfig = null;
+      return;
+    }
+
+    if (this.stackConfig != null) {
+      this.overflowConfig = null;
+      return;
+    }
+
+    const effectiveMode = this.determineEffectiveChartMode();
+    if (effectiveMode !== ChartMode.BAR) {
+      this.overflowConfig = null;
+      return;
+    }
+
+    this.overflowConfig = this.calculateOverflowConfig(availableHeight);
+
+    // Rebuild position with virtual max so the coordinate system fits the container
+    if (this.overflowConfig) {
+      this.updatePosition(this.lastScenarios);
+    }
+  }
+
+  private calculateOverflowConfig(availableHeight: number): OverflowConfig | null {
+    const highest = this.isVarianceChart()
+      ? this.highestVarianceDataPointValue
+      : this.highestDataPointValue;
+    const highestScaledUnit = highest.getScaledUnit();
+    if (highestScaledUnit <= 0) return null;
+
+    const fontSize = this.styles.fontStyles.size;
+
+    // Non-bar overhead: everything except the bars themselves (labels, axis, padding)
+    const nonBarOverhead = this.position.dataLabelHeight
+      + this.position.spacings.labelToColumn
+      + this.position.padding.top
+      + this.position.padding.bottom
+      + this.position.spacings.labelToAxis
+      + fontSize; // axis labels approximate height
+
+    const overdriveZoneHeight = fontSize * 1.5;
+    const breakGap = fontSize * 0.3;
+    const cutHeight = availableHeight - nonBarOverhead - overdriveZoneHeight - breakGap;
+
+    // Non-AC scenarios break lower than AC by this offset
+    const scenarioCutOffset = fontSize * 0.8;
+
+    if (cutHeight <= scenarioCutOffset) return null;
+
+    // Use the lower (non-AC) cut height for overflow detection threshold
+    const lowestCutHeight = cutHeight - scenarioCutOffset;
+
+    // No bar exceeds even the lowest cut height → no overflow needed
+    if (highestScaledUnit <= lowestCutHeight) return null;
+
+    // maxOverflow based on lowest cut height so no bar exceeds overdriveZoneHeight
+    const maxOverflow = highestScaledUnit - lowestCutHeight;
+
+    return {
+      cutHeight,
+      overdriveZoneHeight,
+      breakGap,
+      maxOverflow,
+      scenarioCutOffset,
+    };
   }
 
   setConfig(config: TimeChartComponentConfig) {
@@ -189,6 +261,7 @@ export class TimeChart {
     this.maxBars = config.maxBars;
     this.stackConfig = config.stackConfig;
     this.lineFullWidth = config.lineFullWidth;
+    this.lastScenarios = config.scenarios;
 
     this.updatePosition(config.scenarios);
 
@@ -417,6 +490,16 @@ export class TimeChart {
     } else {
       min = this.smallestDataPointValue;
       max = this.highestDataPointValue;
+    }
+
+    // When overflow config is active, create a virtual max so the coordinate system
+    // allocates exactly cutHeight + breakGap + overdriveZoneHeight instead of the
+    // full (clipped) bar height.
+    if (this.overflowConfig) {
+      const { cutHeight, overdriveZoneHeight, breakGap } = this.overflowConfig;
+      const virtualHeight = cutHeight + overdriveZoneHeight + breakGap;
+      // Create a virtual DataPoint with pixelPerUnit=1 so getScaledUnit() returns virtualHeight directly
+      max = new DataPoint(virtualHeight, max.scenario, 1, max.variance);
     }
 
     // In line mode with lineFullWidth enabled, override categoryWidth so data points
@@ -803,6 +886,7 @@ export class TimeChart {
       .id("Scenarios");
 
     let scenarioFactory = new ScenarioFactory(this.position, columnGroup, this.styles, dataModel.length, this.i18n);
+    scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     let hasValidPrim: boolean = false;
 
@@ -1032,6 +1116,7 @@ export class TimeChart {
       .id("Scenarios");
 
     let scenarioFactory = new ScenarioFactory(this.position, columnGroup, this.styles, dataModel.length, this.i18n);
+    scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: any, index: number) => {
       if (elements["type"] == VarianceType.RELATIVE) {

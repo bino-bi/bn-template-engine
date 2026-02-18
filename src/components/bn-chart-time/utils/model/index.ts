@@ -3,6 +3,7 @@ export * from "./DataPoint";
 export * from "./TimeChartDataRow";
 export * from "./styles/TimeChartStyle";
 export * from "./styles/ScaleFactorsTimeChart";
+export * from "./OverflowConfig";
 export interface Cell {
   value?: number | string;
   cssStyle?: string;

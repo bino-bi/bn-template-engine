@@ -11,6 +11,7 @@ import {
 import {
   StructureChartStyle,
   DataPoint,
+  OverflowConfig,
 } from "../model";
 import {Needle} from "../elements";
 import { SVGPolgonPattern } from "../../../../utils/model";
@@ -31,6 +32,7 @@ export class ScenarioFactory {
   position: ElementPositions;
   elementCnt: number;
   private i18n: Map<string | number, string>;
+  private overflowConfig: OverflowConfig | null = null;
 
   constructor(position: ElementPositions, scenariosGroupParent: G, styles: StructureChartStyle, elementCnt: number, i18n: Map<string | number, string>){
 
@@ -55,6 +57,10 @@ export class ScenarioFactory {
 
   }
 
+  public setOverflowConfig(config: OverflowConfig | null): void {
+    this.overflowConfig = config;
+  }
+
   private isLastDataPoint(index: number): boolean {
     return  (this.elementCnt - 1) === index;
   }
@@ -74,7 +80,7 @@ export class ScenarioFactory {
       barLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Bar(this.position, this.styles, dataPoint, index, isPrimaryBar,  barGroup, barLabel).updateLabelGroup(labelGroup);
+    return new Bar(this.position, this.styles, dataPoint, index, isPrimaryBar,  barGroup, barLabel, this.overflowConfig).updateLabelGroup(labelGroup);
   }
 
   public createVarianceBar(dataPoint: DataPoint, index: number): Bar {
@@ -88,7 +94,7 @@ export class ScenarioFactory {
       barLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Bar(this.position, this.styles, dataPoint, index, isPrimaryBar, barGroup, barLabel).updateLabelGroup(labelGroup).setAsVariance();
+    return new Bar(this.position, this.styles, dataPoint, index, isPrimaryBar, barGroup, barLabel, this.overflowConfig).updateLabelGroup(labelGroup).setAsVariance();
   }
 
   public createRelativeVarianceBar(dataPoint: DataPoint, index: number): Needle {
@@ -107,7 +113,7 @@ export class ScenarioFactory {
       barLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Bar(this.position, this.styles, dataPoint, index, !isPrimaryBar, barGroup, barLabel);
+    return new Bar(this.position, this.styles, dataPoint, index, !isPrimaryBar, barGroup, barLabel, this.overflowConfig);
   }
 
   public createPrimaryMarker(dataPoint: DataPoint,  index: number): Marker {
