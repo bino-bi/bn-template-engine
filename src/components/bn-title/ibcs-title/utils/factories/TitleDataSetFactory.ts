@@ -1,12 +1,9 @@
-// import {Formatter} from "../../../../utils";
 import { I18nMode } from "../../../../../utils/constants";
 import { DateStringFactory } from "../../../../../utils/DateStringFactory";
 import { Formatter } from "../../../../../utils/formatter";
 import { Order } from "../../../../../utils/model/Order";
 import {MeasureEntry} from "../model/MeasureEntriy";
 import {TimePeriod} from "../model/TimePeriod";
-// import {DateStringFactory} from "../../../../utils/DateStringFactory";
-// import {I18nMode, IOrder} from "@bino-bi/ibcs-component-interface";
 
 // FIXME IOrder
 

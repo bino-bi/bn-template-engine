@@ -7,7 +7,6 @@ import { DataPoint, Scenario, StackConfigParsed, StructureChartComponentConfig, 
 // @ts-ignore
 import { Axis, Categories, HookLocation, Label, StackedBar } from "./elements";
 import { ScenarioFactory, } from "./factories";
-// import { Formatter } from "../../../utils";
 import alasql from "alasql";
 
 import CalculateSize from 'calculate-size';
@@ -20,12 +19,6 @@ import { Order, OrderColumn } from "../../../utils/model/Order";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
-// import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
-// import { Order } from "../../../utils/model/Order";
-// import { AggregationLevel, IDataFormatDigits, OrderColumn } from "@bino-bi/ibcs-component-interface";
-// import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
-// import { VisualisationRuleSet } from "../../ibcs-table/utils/model";
-// import { SiPrefix } from "../../../utils/model/SiPrefix";
 
 
 

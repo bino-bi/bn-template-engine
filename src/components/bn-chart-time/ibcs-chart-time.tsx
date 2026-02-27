@@ -2,31 +2,10 @@ import { Component, Element, h, Host, Prop } from "@stencil/core";
 import { TimeChart } from "./utils/TimeChart";
 import { CustomPattern } from "./utils/helper";
 
-/* import {
-  AggregationLevel,
-  AxisLabelsMode,
-  DateDistance,
-  IDataFormatDigits,
-  IOrder,
-  ITimeChartDataRow,
-  ITimeChartStyles,
-  OrderDirection
-} from "@bino-bi/ibcs-component-interface";
-*/
-//import { Svg, SVG } from "@svgdotjs/svg.js";
-
 import { StackConfigParsed, TimeChartComponentConfig, TimeChartComponentConfigAdapter } from "./utils/model/TimeChartComponentConfig";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./utils/model/TimeChartDataRow";
-// import { OrderAdapter } from "../../utils/model/Order";
-// import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { TimeChartStyle, TimeChartStylesAdapter } from "./utils/model/styles/TimeChartStyle";
-// import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
-// import { SVGStyleGroupAdapter } from "../../utils/model/styles/SVGStyleGroup";
-// import { SVGStyleAdapter } from "../../utils/model/styles/SVGStyle";
-// import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVariancesStyleGroup";
-// import { PaddingAdapter } from "../../utils/model/styles/Padding";
 import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsTimeChart";
-//import { AggregationLevel } from "../../../components";
 import { DateDistance } from "../../utils/DateStringFactory";
 import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../utils/constants";
 import { ParentDimensions } from "../../utils/parentDimensions";
@@ -39,8 +18,6 @@ import { PaddingAdapter } from "../../utils/model/styles/Padding";
 import { SVGStyleAdapter } from "../../utils/model/styles/SVGStyle";
 import { SVGStyleGroupAdapter } from "../../utils/model/styles/SVGStyleGroup";
 import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVariancesStyleGroup";
-// import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
-// import { DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 
 @Component({
   tag: "ibcs-chart-time",

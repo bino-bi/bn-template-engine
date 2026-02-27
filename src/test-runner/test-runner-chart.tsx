@@ -1,5 +1,3 @@
-//import {AggregationLevel, IOrder, OrderColumn, OrderDirection} from "@bino-bi/ibcs-component-interface";
-// import { AggregationLevel, OrderDirection } from "@bino-bi/ibcs-component-interface";
 import {Component, h} from "@stencil/core";
 import { OrderDirection } from "../utils/model/Order";
 import { AggregationLevel } from "../utils/constants";

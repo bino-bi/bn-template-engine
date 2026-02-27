@@ -1,7 +1,6 @@
 import { TableCategoryWidth } from "../../../../utils/constants";
 import {TableRowType} from "../model";
 import {Cell, ColumnStats} from "./Cell";
-// import {TableCategoryWidth} from "@bino-bi/ibcs-component-interface";
 
 
 export class TableRow {

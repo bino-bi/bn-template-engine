@@ -26,19 +26,6 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 
 
-/*import {
-  DataFormat,
-  I18nMode,
-  IDataFormatDigits,
-  IOrder,
-  ITableDataRow,
-  MeasureType,
-  OrderColumn,
-  OrderDirection,
-  TableCategoryWidth,
-  TableDrillGroup,
-  TableType,
-} from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { getParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";

@@ -1,5 +1,4 @@
 import {Component, h} from "@stencil/core";
-// import {DateDistance} from "@bino-bi/ibcs-component-interface";
 import {SVGPolgonPattern} from "../utils/model";
 import { DateDistance } from "../utils/DateStringFactory";
 

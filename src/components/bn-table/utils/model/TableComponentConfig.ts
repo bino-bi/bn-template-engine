@@ -8,15 +8,7 @@ import { StringAdapter } from "../../../../utils/helper/StringAdapter";
 import { OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TableType } from "./index";
-// import { IAdapter } from "../../../../utils/helper/IAdapter";
-// import { CompareUtil } from "../../../../utils/helper/CompareUtil";
-// import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
-// import { Order, OrderAdapter } from "../../../../utils/model/Order";
-// import { StringAdapter } from "../../../../utils/helper/StringAdapter";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./TableDrillGroup";
-// import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
-// import { SiPrefix } from "../../../../utils/model/SiPrefix";
-// import {DataFormat, I18nMode, MeasureType, TableCategoryWidth} from "@bino-bi/ibcs-component-interface";
 
 export class TableComponentConfig {
   public title: string = "";

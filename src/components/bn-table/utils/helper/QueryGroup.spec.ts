@@ -4,9 +4,6 @@ import {TableComponentConfig} from "../model/TableComponentConfig";
 import { Order } from "../../../../components";
 import { DataFormat, I18nMode, TableCategoryWidth, MeasureType } from "../../../../utils/constants";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
-// import {SiPrefix} from "../../../../utils/model/SiPrefix";
-//  {Order} from "../../../../utils/model/Order";
-// import {DataFormat, I18nMode, MeasureType, TableCategoryWidth} from "@bino-bi/ibcs-component-interface";
 
 
 describe('DQueryGroup Test', () => {

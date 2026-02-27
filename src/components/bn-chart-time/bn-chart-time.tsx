@@ -22,26 +22,11 @@ import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
-//import { Formatter } from "@bino-bi/ibcs-component/dist/collection/utils";
-
-/*
-import {
-  AggregationLevel,
-  AxisLabelsMode,
-  DateDistance,
-  IOrder,
-  ITimeChartDataRow,
-  ITimeChartStyles,
-  OrderColumn,
-  OrderDirection
-} from "@bino-bi/ibcs-component-interface";
-*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
-//import {  AggregationLevel, AxisLabelsMode, DateDistance, Order } from "../../components";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";

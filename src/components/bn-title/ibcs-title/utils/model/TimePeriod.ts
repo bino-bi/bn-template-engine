@@ -1,10 +1,7 @@
-// import { IAdapter } from "../../../../utils/helper/IAdapter";
-// import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 import {DateTime} from "luxon";
 import { DateDistance, DateLink } from "../../../../../utils/DateStringFactory";
 import { IAdapter } from "../../../../../utils/helper/IAdapter";
 import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
-// import {DateDistance, DateLink} from "@bino-bi/ibcs-component-interface";
 
 export class TimePeriod {
 

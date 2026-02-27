@@ -1,4 +1,3 @@
-//import { DateDistanceType, DateLinkType } from "@bino-bi/ibcs-component/dist/types/utils/model";
 import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 
 import {
@@ -17,22 +16,12 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
-/*import {
-  DateDistance,
-  DateLink,
-  I18nMode,
-  IMeasureEntry,
-  IOrder,
-  ITimePeriod,
-  OrderDirection
-} from "@bino-bi/ibcs-component-interface";*/
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { I18nMode } from "../../utils/constants";
 import { Order, OrderDirection } from "../../utils/model/Order";
 import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
 import { DateDistance, DateLink } from "../../utils/DateStringFactory";
 import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
-//import { MeasureEntry, MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
 
 
 @Component({
