@@ -7,6 +7,6 @@ export class StringAdapter implements IAdapter<string> {
   }
 
   default(): string {
-    return '';
+    return "";
   }
 }

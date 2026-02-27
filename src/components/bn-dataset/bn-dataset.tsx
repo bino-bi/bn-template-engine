@@ -1,16 +1,16 @@
 import { Component, Prop, h, Host, Watch } from "@stencil/core";
 import withDatasource from "../../utils/withDatasource";
 import withBodyObserver from "../../utils/withBodyObserver";
-import { set } from '../../stores/datasets';
-import { set as setMeta } from '../../stores/datasetsMeta';
-import { calculateDatasetMeta } from '../../utils/datasetMetaCalculator';
+import { set } from "../../stores/datasets";
+import { set as setMeta } from "../../stores/datasetsMeta";
+import { calculateDatasetMeta } from "../../utils/datasetMetaCalculator";
 import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-dataset',
-  styleUrl: 'bn-dataset.css',
+  tag: "bn-dataset",
+  styleUrl: "bn-dataset.css",
 })
 export class Dataset {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -29,10 +29,10 @@ export class Dataset {
       this.executeQuery();
     });
 
-    withBodyObserver(this, (data => {
+    withBodyObserver(this, (data) => {
       this.query = data;
       this.executeQuery();
-    }));
+    });
   }
   /**
    * Unique (template scope) name of the datasource
@@ -83,6 +83,6 @@ export class Dataset {
   }
 
   render() {
-    return <Host />
+    return <Host />;
   }
 }

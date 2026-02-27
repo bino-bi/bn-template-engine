@@ -2,44 +2,45 @@ import { IAdapter } from "../../helper/IAdapter";
 import { SVGStyle, SVGStyleAdapter } from "./SVGStyle";
 import { CompareUtil } from "../../helper/CompareUtil";
 
-
 export class SVGStyleGroup {
-  constructor(public ac: SVGStyle,
+  constructor(
+    public ac: SVGStyle,
     public fc: SVGStyle,
     public pp: SVGStyle,
-    public pl: SVGStyle) { }
+    public pl: SVGStyle,
+  ) {}
 
   getSVGStyle(scenario: string | undefined) {
-    if (scenario === 'ac') {
+    if (scenario === "ac") {
       return this.ac;
     }
 
-    if (scenario === 'fc') {
+    if (scenario === "fc") {
       return this.fc;
     }
 
-    if (scenario === 'pp') {
+    if (scenario === "pp") {
       return this.pp;
     }
 
-    if (scenario === 'pl') {
+    if (scenario === "pl") {
       return this.pl;
     }
 
     return this.ac;
   }
-
 }
 
 export class SVGStyleGroupAdapter implements IAdapter<SVGStyleGroup> {
-  constructor(private svgStyleAdapter: SVGStyleAdapter) {
-  }
+  constructor(private svgStyleAdapter: SVGStyleAdapter) {}
 
   adapt(data: any): SVGStyleGroup {
-    const styleGroup: SVGStyleGroup = new SVGStyleGroup(this.svgStyleAdapter.defaultAC(),
+    const styleGroup: SVGStyleGroup = new SVGStyleGroup(
+      this.svgStyleAdapter.defaultAC(),
       this.svgStyleAdapter.defaultFC(),
       this.svgStyleAdapter.defaultPP(),
-      this.svgStyleAdapter.defaultPL());
+      this.svgStyleAdapter.defaultPL(),
+    );
 
     if (CompareUtil.isExisting(data.ac)) {
       styleGroup.ac = this.svgStyleAdapter.adapt(data.ac);
@@ -61,9 +62,11 @@ export class SVGStyleGroupAdapter implements IAdapter<SVGStyleGroup> {
   }
 
   default(): SVGStyleGroup {
-    return new SVGStyleGroup(this.svgStyleAdapter.defaultAC(),
+    return new SVGStyleGroup(
+      this.svgStyleAdapter.defaultAC(),
       this.svgStyleAdapter.defaultFC(),
       this.svgStyleAdapter.defaultPP(),
-      this.svgStyleAdapter.defaultPL());
+      this.svgStyleAdapter.defaultPL(),
+    );
   }
 }

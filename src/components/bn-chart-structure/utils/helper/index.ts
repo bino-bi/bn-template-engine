@@ -9,10 +9,7 @@ export enum FactoryState {
 }
 
 export enum VarianceType {
-  RELATIVE ='dr',
-  ABSOLUTE ='d',
-  NONE     = '',
+  RELATIVE = "dr",
+  ABSOLUTE = "d",
+  NONE = "",
 }
-
-
-

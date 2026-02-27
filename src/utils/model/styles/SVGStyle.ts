@@ -2,13 +2,14 @@ import { IAdapter } from "../../helper/IAdapter";
 import { CompareUtil } from "../../helper/CompareUtil";
 
 export class SVGStyle {
-
   public fillpattern: string | undefined;
   public dasharray: string | undefined;
 
-  constructor(public stroke: string = "#000000",
+  constructor(
+    public stroke: string = "#000000",
     public fill: string = "#000000",
-    public width: number = 0.1) { }
+    public width: number = 0.1,
+  ) {}
 }
 
 export class SVGStyleAdapter implements IAdapter<SVGStyle> {

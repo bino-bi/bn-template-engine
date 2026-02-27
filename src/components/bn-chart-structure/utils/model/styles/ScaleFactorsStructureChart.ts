@@ -21,13 +21,10 @@ export class ScaleFactorsStructureChart {
   public categoryWidth: number = 1.9;
   public axisTickLength: number = 0.3;
 
-  constructor() {
-
-  }
+  constructor() {}
 }
 
 export class ScaleFactorsStructureChartAdapter implements IAdapter<ScaleFactorsStructureChart> {
-
   adapt(data: any): ScaleFactorsStructureChart {
     const scaleFactors: ScaleFactorsStructureChart = new ScaleFactorsStructureChart();
 

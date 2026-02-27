@@ -4,8 +4,8 @@ import { set } from "../../stores/datasources";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 @Component({
-  tag: 'bn-datasource',
-  styleUrl: 'bn-datasource.css',
+  tag: "bn-datasource",
+  styleUrl: "bn-datasource.css",
 })
 export class Datasource {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -21,7 +21,7 @@ export class Datasource {
   constructor() {
     withComponentStatus(this);
     this.errors = withHasError(this);
-    withBodyObserver(this, (data => {
+    withBodyObserver(this, (data) => {
       try {
         const json = JSON.parse(data);
         // @ts-ignore
@@ -31,12 +31,10 @@ export class Datasource {
         // @ts-ignore
         set(this.name, []);
       }
-
-
-    }));
+    });
   }
 
   render() {
-    return <Host />
+    return <Host />;
   }
 }

@@ -1,6 +1,4 @@
-import {
-  Box,
-} from "../model";
+import { Box } from "../model";
 
 export class Padding {
   public top: number;
@@ -8,11 +6,11 @@ export class Padding {
   public left: number;
   public right: number;
 
-  constructor(padding: { top: number, left: number, right: number, bottom: number}) {
-    this.top    = padding.top;
+  constructor(padding: { top: number; left: number; right: number; bottom: number }) {
+    this.top = padding.top;
     this.bottom = padding.bottom;
-    this.left   = padding.left;
-    this.right  = padding.right;
+    this.left = padding.left;
+    this.right = padding.right;
   }
 
   public addBoxTopLeft(addition: Box): Padding {

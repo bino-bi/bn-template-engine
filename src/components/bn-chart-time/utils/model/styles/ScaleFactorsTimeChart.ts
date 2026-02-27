@@ -21,14 +21,10 @@ export class ScaleFactorsTimeChart {
   public categoryWidth: number = 3.0;
   public axisTickLength: number = 0.3;
 
-  constructor() {
-
-  }
+  constructor() {}
 }
 
-
 export class ScaleFactorsTimeChartAdapter implements IAdapter<ScaleFactorsTimeChart> {
-
   adapt(data: any): ScaleFactorsTimeChart {
     const scaleFactors: ScaleFactorsTimeChart = new ScaleFactorsTimeChart();
 

@@ -39,7 +39,7 @@ export enum Scenario {
   PL1 = "pl1",
   AC2 = "ac2",
   PP2 = "pp2",
-  FC2= "fc2",
+  FC2 = "fc2",
   PL2 = "pl2",
   AC3 = "ac3",
   PP3 = "pp3",
@@ -59,7 +59,6 @@ export enum TableType {
   SUM = "SUM",
   OPT = "OPT",
 }
-
 
 export interface CollisionBox {
   x: number;
@@ -83,12 +82,12 @@ export interface Data {
   count: number;
 }
 
-export interface StructureChartDimension{
+export interface StructureChartDimension {
   barLength: number;
   xPos: number;
   yPos: number;
   labelXPos: number;
   scenarioLabelXPos: number;
-  scenarioLabelYPos:number;
+  scenarioLabelYPos: number;
   clipped: boolean;
-};
+}

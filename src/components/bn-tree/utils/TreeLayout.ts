@@ -3,9 +3,9 @@
  * Handles level assignment and grid positioning for tree nodes
  */
 
-import { TreeConfig } from './TreeParser';
+import { TreeConfig } from "./TreeParser";
 
-export type LayoutDirection = 'ltr' | 'rtl' | 'ttb' | 'btt';
+export type LayoutDirection = "ltr" | "rtl" | "ttb" | "btt";
 
 export interface NodePosition {
   nodeId: string;
@@ -31,15 +31,15 @@ export function calculateLayout(
   config: TreeConfig,
   direction: LayoutDirection,
   levelSpacing: number,
-  nodeSpacing: number
+  nodeSpacing: number,
 ): LayoutResult {
   if (!config.rootNode) {
     return {
       positions: new Map(),
-      gridTemplateColumns: '',
-      gridTemplateRows: '',
+      gridTemplateColumns: "",
+      gridTemplateRows: "",
       maxLevel: 0,
-      maxIndex: 0
+      maxIndex: 0,
     };
   }
 
@@ -54,14 +54,14 @@ export function calculateLayout(
 
   // Step 4: Generate CSS grid templates
   const maxLevel = Math.max(...Array.from(nodeLevels.values()));
-  const maxIndex = Math.max(...Array.from(nodeIndices.values()).map(ni => ni.endIndex));
+  const maxIndex = Math.max(...Array.from(nodeIndices.values()).map((ni) => ni.endIndex));
 
   const { gridTemplateColumns, gridTemplateRows } = generateGridTemplates(
     maxLevel,
     maxIndex,
     direction,
     levelSpacing,
-    nodeSpacing
+    nodeSpacing,
   );
 
   return {
@@ -69,7 +69,7 @@ export function calculateLayout(
     gridTemplateColumns,
     gridTemplateRows,
     maxLevel,
-    maxIndex
+    maxIndex,
   };
 }
 
@@ -116,9 +116,7 @@ interface NodeIndexInfo {
  * Calculate vertical indices for nodes, ensuring parent nodes span their children.
  * Handles DAG structures where a node may have multiple parents.
  */
-function calculateNodeIndices(
-  config: TreeConfig
-): Map<string, NodeIndexInfo> {
+function calculateNodeIndices(config: TreeConfig): Map<string, NodeIndexInfo> {
   const indices = new Map<string, NodeIndexInfo>();
 
   if (!config.rootNode) {
@@ -165,7 +163,6 @@ function calculateNodeIndices(
   return indices;
 }
 
-
 /**
  * Convert levels and indices to CSS grid positions based on direction
  */
@@ -173,7 +170,7 @@ function calculateGridPositions(
   config: TreeConfig,
   levels: Map<string, number>,
   indices: Map<string, NodeIndexInfo>,
-  direction: LayoutDirection
+  direction: LayoutDirection,
 ): Map<string, NodePosition> {
   const positions = new Map<string, NodePosition>();
   const maxLevel = Math.max(...Array.from(levels.values()));
@@ -187,28 +184,28 @@ function calculateGridPositions(
     let gridRowSpan: number;
 
     switch (direction) {
-      case 'ltr':
+      case "ltr":
         // Left to right: levels are columns, indices are rows
         gridColumn = level + 1; // CSS grid is 1-indexed
         gridRow = indexInfo.startIndex + 1;
         gridRowSpan = indexInfo.endIndex - indexInfo.startIndex + 1;
         break;
 
-      case 'rtl':
+      case "rtl":
         // Right to left: levels are reversed columns
         gridColumn = maxLevel - level + 1;
         gridRow = indexInfo.startIndex + 1;
         gridRowSpan = indexInfo.endIndex - indexInfo.startIndex + 1;
         break;
 
-      case 'ttb':
+      case "ttb":
         // Top to bottom: levels are rows, indices are columns
         gridRow = level + 1;
         gridColumn = indexInfo.startIndex + 1;
         gridRowSpan = 1;
         break;
 
-      case 'btt':
+      case "btt":
         // Bottom to top: levels are reversed rows
         gridRow = maxLevel - level + 1;
         gridColumn = indexInfo.startIndex + 1;
@@ -222,7 +219,7 @@ function calculateGridPositions(
       index: indexInfo.startIndex,
       gridColumn,
       gridRow,
-      gridRowSpan
+      gridRowSpan,
     });
   }
 
@@ -237,9 +234,9 @@ function generateGridTemplates(
   maxIndex: number,
   direction: LayoutDirection,
   levelSpacing: number,
-  nodeSpacing: number
+  nodeSpacing: number,
 ): { gridTemplateColumns: string; gridTemplateRows: string } {
-  const isHorizontal = direction === 'ltr' || direction === 'rtl';
+  const isHorizontal = direction === "ltr" || direction === "rtl";
   const numLevels = maxLevel + 1;
   const numNodes = maxIndex + 1;
 
@@ -247,7 +244,7 @@ function generateGridTemplates(
     // For horizontal layouts, columns represent levels, rows represent nodes
     const columns: string[] = [];
     for (let i = 0; i < numLevels; i++) {
-      columns.push('auto');
+      columns.push("auto");
       if (i < numLevels - 1) {
         columns.push(`${levelSpacing}px`); // Spacer column
       }
@@ -255,21 +252,21 @@ function generateGridTemplates(
 
     const rows: string[] = [];
     for (let i = 0; i < numNodes; i++) {
-      rows.push('auto');
+      rows.push("auto");
       if (i < numNodes - 1) {
         rows.push(`${nodeSpacing}px`); // Spacer row
       }
     }
 
     return {
-      gridTemplateColumns: columns.join(' '),
-      gridTemplateRows: rows.join(' ')
+      gridTemplateColumns: columns.join(" "),
+      gridTemplateRows: rows.join(" "),
     };
   } else {
     // For vertical layouts, rows represent levels, columns represent nodes
     const rows: string[] = [];
     for (let i = 0; i < numLevels; i++) {
-      rows.push('auto');
+      rows.push("auto");
       if (i < numLevels - 1) {
         rows.push(`${levelSpacing}px`); // Spacer row
       }
@@ -277,15 +274,15 @@ function generateGridTemplates(
 
     const columns: string[] = [];
     for (let i = 0; i < numNodes; i++) {
-      columns.push('auto');
+      columns.push("auto");
       if (i < numNodes - 1) {
         columns.push(`${nodeSpacing}px`); // Spacer column
       }
     }
 
     return {
-      gridTemplateColumns: columns.join(' '),
-      gridTemplateRows: rows.join(' ')
+      gridTemplateColumns: columns.join(" "),
+      gridTemplateRows: rows.join(" "),
     };
   }
 }

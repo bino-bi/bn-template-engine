@@ -8,7 +8,7 @@ export class FontStyle {
   public background: string = "#ffffff";
   public leading: number = 1.8;
 
-  constructor() { }
+  constructor() {}
 }
 
 export class FontStyleAdapter implements IAdapter<FontStyle> {

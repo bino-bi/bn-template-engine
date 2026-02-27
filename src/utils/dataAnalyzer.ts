@@ -1,5 +1,5 @@
 import alasql from "alasql";
-import {SiPrefix} from "./model/SiPrefix";
+import { SiPrefix } from "./model/SiPrefix";
 
 /*
 yotta	Y
@@ -26,11 +26,11 @@ yocto	y
     */
 
 export enum NumeralFigure {
-  "Y" = 1E+24,
-  "Z" = 1E+21,
-  "E" = 1E+18,
-  "P" = 1E+15,
-  "T" = 1E+12,
+  "Y" = 1e24,
+  "Z" = 1e21,
+  "E" = 1e18,
+  "P" = 1e15,
+  "T" = 1e12,
   "G" = 1000000000,
   "M" = 1000000,
   "k" = 1000,
@@ -46,17 +46,14 @@ export enum NumeralFigure {
   "a" = 0.000000000000000001,
   "z" = 0.000000000000000000001,
   "y" = 0.000000000000000000000001,
-};
+}
 
 export class DataAnalyzer {
+  private static unitsGreat = ["k", "M", "G", "T", "P", "E", "Z", "Y"];
+  private static unitsLeast = ["m", "my", "n", "p", "P", "f", "a", "z", "y"];
 
-
-  private static unitsGreat = ['k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
-  private static unitsLeast = ['m', 'my', 'n', 'p', 'P', 'f', 'a', 'z', 'y'];
-
-
-  static calculateMeasureScale(data: any[], scenarios: string[] , mode: string | null): SiPrefix {
-    if (mode === '_') {
+  static calculateMeasureScale(data: any[], scenarios: string[], mode: string | null): SiPrefix {
+    if (mode === "_") {
       return new SiPrefix();
     }
 
@@ -67,13 +64,19 @@ export class DataAnalyzer {
     }
 
     if (scenarios.length == 0) {
-       return new SiPrefix();
+      return new SiPrefix();
     }
 
     // filtering wordlenght == 3, so variances are not considered
-    const queryMax = `SELECT MAX(GREATEST(${scenarios.filter(word => word.length == 3).map(x => "ABS(" + x + ")").toString()})) as prefixvalue
+    const queryMax = `SELECT MAX(GREATEST(${scenarios
+      .filter((word) => word.length == 3)
+      .map((x) => "ABS(" + x + ")")
+      .toString()})) as prefixvalue
                       FROM ?`;
-    const queryMin = `SELECT MIN(LEAST(${scenarios.filter(word => word.length == 3).map(x => "ABS(" + x + ")").toString()})) as prefixvalue
+    const queryMin = `SELECT MIN(LEAST(${scenarios
+      .filter((word) => word.length == 3)
+      .map((x) => "ABS(" + x + ")")
+      .toString()})) as prefixvalue
                       FROM ?`;
 
     let query = queryMax;
@@ -82,35 +85,31 @@ export class DataAnalyzer {
       query = queryMin;
     }
 
-
-    let result = alasql(query, [data]);
-    let num = result[0]?.prefixvalue;
+    const result = alasql(query, [data]);
+    const num = result[0]?.prefixvalue;
 
     return this.determinePrefix(Math.abs(num));
   }
 
   private static determinePrefix(num: number): SiPrefix {
     if (num >= 1000) {
+      const floor = Math.floor(Math.floor(Math.abs(num)).toString().length / 3);
+      const value = +Math.pow(1000, floor);
 
-      let floor = Math.floor(Math.floor(Math.abs(num)).toString().length / 3);
-      let value = +(Math.pow(1000, floor))
-      
-      return  new SiPrefix(this.unitsGreat[floor - 1],value);
+      return new SiPrefix(this.unitsGreat[floor - 1], value);
     }
 
     if (num <= 0.001) {
-      let floor = Math.floor(Math.abs(num).toString().length / 3);
-      let value = +(1 / Math.pow(1000, floor))
+      const floor = Math.floor(Math.abs(num).toString().length / 3);
+      const value = +(1 / Math.pow(1000, floor));
 
-      return  new SiPrefix(this.unitsLeast[floor - 1], value);
+      return new SiPrefix(this.unitsLeast[floor - 1], value);
     }
 
     return new SiPrefix();
   }
 
   private static lookupPrefix(mode: string): SiPrefix {
-    return new SiPrefix( mode, NumeralFigure[mode as keyof typeof NumeralFigure]);
+    return new SiPrefix(mode, NumeralFigure[mode as keyof typeof NumeralFigure]);
   }
-
-
 }

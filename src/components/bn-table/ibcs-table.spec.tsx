@@ -3,288 +3,309 @@
   constructor() {}
   observe() {}
   disconnect() {}
-  takeRecords() { return []; }
+  takeRecords() {
+    return [];
+  }
 };
 
-import {h} from '@stencil/core';
-import {newSpecPage} from '@stencil/core/testing';
-import {IbcsTable} from "./ibcs-table";
-import {OrderDirection, TableType} from "./utils/model";
-import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from '../../utils/constants';
-import { Order, OrderColumn } from '../../utils/model/Order';
+import { h } from "@stencil/core";
+import { newSpecPage } from "@stencil/core/testing";
+import { IbcsTable } from "./ibcs-table";
+import { OrderDirection, TableType } from "./utils/model";
+import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
+import { Order, OrderColumn } from "../../utils/model/Order";
 
 describe("IBCS Table Test", () => {
   //FIXME: DataRow
-  let dataSet2: any[] = [{
-    "setName": "de",
-    "operation": "+",
-    "rowGroup": "Services",
-    "rowGroupIndex": 0,
-    "category": "Category A",
-    "categoryIndex": 1,
-    "subCategory": "Category - SUB 1",
-    "subCategoryIndex": 1,
-    "columnGroup": 'DE',
-    "columnGroupIndex": 1,
-    "columnSubGroup": 'Berlin',
-    "columnSubGroupIndex": 1,
-    "ac1": 1,
-    "pp1": 10,
-    "fc1": 3,
-    "pl1": 3,
-    "ac2": 1,
-    "pp2": 7,
-    "fc2": 7,
-    "pl2": 4,
-    "ac3": 1,
-    "pp3": 7,
-    "fc3": 7,
-    "pl3": 4,
-    "ac4": 1,
-    "pp4": 7,
-    "fc4": 7,
-    "pl4": 4
-  },
+  const dataSet2: any[] = [
     {
-      "setName": "de",
-      "operation": "+",
-      "rowGroup": "Product",
-      "rowGroupIndex": 0,
-      "category": "Category A",
-      "categoryIndex": 1,
-      "subCategory": "Category - SUB 1",
-      "subCategoryIndex": 1,
-      "columnGroup": 'DE',
-      "columnGroupIndex": 1,
-      "columnSubGroup": 'Berlin',
-      "columnSubGroupIndex": 1,
-      "ac1": 1,
-      "pp1": 10,
-      "fc1": 3,
-      "pl1": 3,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      setName: "de",
+      operation: "+",
+      rowGroup: "Services",
+      rowGroupIndex: 0,
+      category: "Category A",
+      categoryIndex: 1,
+      subCategory: "Category - SUB 1",
+      subCategoryIndex: 1,
+      columnGroup: "DE",
+      columnGroupIndex: 1,
+      columnSubGroup: "Berlin",
+      columnSubGroupIndex: 1,
+      ac1: 1,
+      pp1: 10,
+      fc1: 3,
+      pl1: 3,
+      ac2: 1,
+      pp2: 7,
+      fc2: 7,
+      pl2: 4,
+      ac3: 1,
+      pp3: 7,
+      fc3: 7,
+      pl3: 4,
+      ac4: 1,
+      pp4: 7,
+      fc4: 7,
+      pl4: 4,
     },
     {
-      "setName": "de",
-      "operation": "+",
-      "rowGroup": "Product",
-      "rowGroupIndex": 0,
-      "category": "Category A",
-      "categoryIndex": 1,
-      "subCategory": "Category - SUB 1",
-      "subCategoryIndex": 1,
-      "columnGroup": 'DE',
-      "columnGroupIndex": 1,
-      "columnSubGroup": 'Frankfurt',
-      "columnSubGroupIndex": 2,
-      "ac1": 1,
-      "pp1": 10,
-      "fc1": 3,
-      "pl1": 3,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      setName: "de",
+      operation: "+",
+      rowGroup: "Product",
+      rowGroupIndex: 0,
+      category: "Category A",
+      categoryIndex: 1,
+      subCategory: "Category - SUB 1",
+      subCategoryIndex: 1,
+      columnGroup: "DE",
+      columnGroupIndex: 1,
+      columnSubGroup: "Berlin",
+      columnSubGroupIndex: 1,
+      ac1: 1,
+      pp1: 10,
+      fc1: 3,
+      pl1: 3,
+      ac2: 1,
+      pp2: 7,
+      fc2: 7,
+      pl2: 4,
+      ac3: 1,
+      pp3: 7,
+      fc3: 7,
+      pl3: 4,
+      ac4: 1,
+      pp4: 7,
+      fc4: 7,
+      pl4: 4,
     },
     {
-      "setName": "de",
-      "operation": "+",
-      "rowGroup": "Product",
-      "rowGroupIndex": 0,
-      "category": "Category A",
-      "categoryIndex": 1,
-      "subCategory": "Category - SUB 2",
-      "subCategoryIndex": 2,
-      "columnGroup": 'UK',
-      "columnGroupIndex": 2,
-      "columnSubGroup": 'London',
-      "columnSubGroupIndex": 1,
-      "ac1": 2,
-      "pp1": 10,
-      "fc1": 3,
-      "pl1": 3,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
-    },
-
-    {
-      "setName": "de",
-      "operation": "+",
-      "rowGroup": "Services",
-      "rowGroupIndex": 0,
-      "category": "Category B",
-      "categoryIndex": 2,
-      "subCategory": "Category - SUB 1",
-      "subCategoryIndex": 1,
-      "columnGroup": 'DE',
-      "columnGroupIndex": 1,
-      "columnSubGroup": 'Berlin',
-      "columnSubGroupIndex": 1,
-      "ac1": 3,
-      "pp1": 10,
-      "fc1": 3,
-      "pl1": 3,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      setName: "de",
+      operation: "+",
+      rowGroup: "Product",
+      rowGroupIndex: 0,
+      category: "Category A",
+      categoryIndex: 1,
+      subCategory: "Category - SUB 1",
+      subCategoryIndex: 1,
+      columnGroup: "DE",
+      columnGroupIndex: 1,
+      columnSubGroup: "Frankfurt",
+      columnSubGroupIndex: 2,
+      ac1: 1,
+      pp1: 10,
+      fc1: 3,
+      pl1: 3,
+      ac2: 1,
+      pp2: 7,
+      fc2: 7,
+      pl2: 4,
+      ac3: 1,
+      pp3: 7,
+      fc3: 7,
+      pl3: 4,
+      ac4: 1,
+      pp4: 7,
+      fc4: 7,
+      pl4: 4,
     },
     {
-      "setName": "de",
-      "operation": "+",
-      "rowGroup": "Services",
-      "rowGroupIndex": 0,
-      "category": "Category B",
-      "categoryIndex": 2,
-      "subCategory": "Category - SUB 2",
-      "subCategoryIndex": 2,
-      "columnGroup": 'UK',
-      "columnGroupIndex": 2,
-      "columnSubGroup": 'London',
-      "columnSubGroupIndex": 1,
-      "ac1": 4,
-      "pp1": 10,
-      "fc1": 3,
-      "pl1": 3,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
-    },
-    {
-      "setName": "de",
-      "operation": "+",
-      "rowGroup": "Services",
-      "rowGroupIndex": 0,
-      "category": "Category C",
-      "categoryIndex": 2,
-      "subCategory": "Category - SUB 2",
-      "subCategoryIndex": 2,
-      "columnGroup": 'UK',
-      "columnGroupIndex": 2,
-      "columnSubGroup": 'London',
-      "columnSubGroupIndex": 1,
-      "ac1": 4,
-      "pp1": 10,
-      "fc1": 3,
-      "pl1": 3,
-      "ac2": 1,
-      "pp2": 7,
-      "fc2": 7,
-      "pl2": 4,
-      "ac3": 1,
-      "pp3": 7,
-      "fc3": 7,
-      "pl3": 4,
-      "ac4": 1,
-      "pp4": 7,
-      "fc4": 7,
-      "pl4": 4
+      setName: "de",
+      operation: "+",
+      rowGroup: "Product",
+      rowGroupIndex: 0,
+      category: "Category A",
+      categoryIndex: 1,
+      subCategory: "Category - SUB 2",
+      subCategoryIndex: 2,
+      columnGroup: "UK",
+      columnGroupIndex: 2,
+      columnSubGroup: "London",
+      columnSubGroupIndex: 1,
+      ac1: 2,
+      pp1: 10,
+      fc1: 3,
+      pl1: 3,
+      ac2: 1,
+      pp2: 7,
+      fc2: 7,
+      pl2: 4,
+      ac3: 1,
+      pp3: 7,
+      fc3: 7,
+      pl3: 4,
+      ac4: 1,
+      pp4: 7,
+      fc4: 7,
+      pl4: 4,
     },
 
+    {
+      setName: "de",
+      operation: "+",
+      rowGroup: "Services",
+      rowGroupIndex: 0,
+      category: "Category B",
+      categoryIndex: 2,
+      subCategory: "Category - SUB 1",
+      subCategoryIndex: 1,
+      columnGroup: "DE",
+      columnGroupIndex: 1,
+      columnSubGroup: "Berlin",
+      columnSubGroupIndex: 1,
+      ac1: 3,
+      pp1: 10,
+      fc1: 3,
+      pl1: 3,
+      ac2: 1,
+      pp2: 7,
+      fc2: 7,
+      pl2: 4,
+      ac3: 1,
+      pp3: 7,
+      fc3: 7,
+      pl3: 4,
+      ac4: 1,
+      pp4: 7,
+      fc4: 7,
+      pl4: 4,
+    },
+    {
+      setName: "de",
+      operation: "+",
+      rowGroup: "Services",
+      rowGroupIndex: 0,
+      category: "Category B",
+      categoryIndex: 2,
+      subCategory: "Category - SUB 2",
+      subCategoryIndex: 2,
+      columnGroup: "UK",
+      columnGroupIndex: 2,
+      columnSubGroup: "London",
+      columnSubGroupIndex: 1,
+      ac1: 4,
+      pp1: 10,
+      fc1: 3,
+      pl1: 3,
+      ac2: 1,
+      pp2: 7,
+      fc2: 7,
+      pl2: 4,
+      ac3: 1,
+      pp3: 7,
+      fc3: 7,
+      pl3: 4,
+      ac4: 1,
+      pp4: 7,
+      fc4: 7,
+      pl4: 4,
+    },
+    {
+      setName: "de",
+      operation: "+",
+      rowGroup: "Services",
+      rowGroupIndex: 0,
+      category: "Category C",
+      categoryIndex: 2,
+      subCategory: "Category - SUB 2",
+      subCategoryIndex: 2,
+      columnGroup: "UK",
+      columnGroupIndex: 2,
+      columnSubGroup: "London",
+      columnSubGroupIndex: 1,
+      ac1: 4,
+      pp1: 10,
+      fc1: 3,
+      pl1: 3,
+      ac2: 1,
+      pp2: 7,
+      fc2: 7,
+      pl2: 4,
+      ac3: 1,
+      pp3: 7,
+      fc3: 7,
+      pl3: 4,
+      ac4: 1,
+      pp4: 7,
+      fc4: 7,
+      pl4: 4,
+    },
   ];
 
-  it('should render table width colums and row dills and grouping in percent', async () => {
+  it("should render table width colums and row dills and grouping in percent", async () => {
     const page = await newSpecPage({
       components: [IbcsTable],
-      template: () => (<ibcs-table
-        table-title="Sven ist der Papa von Phineas und Max"
-        scenarios={["ac1", "pp1", "dac1_pp1_pos", "drac1_pp1_pos"]}
-        scenarios-data-format={ DataFormat.PERCENT}
-        measure-scale="_"
-        order={{
-          hierarchy: [OrderColumn.CATEGORY],
-          direction: OrderDirection.DESC
-        } as Order}
-        limit={2}
-        measure-type={MeasureType.VOLUME}
-        grouped={true}
-        type={TableType.OPT}
-        i18n={new Map([["SUM_TOTAL", "🤩"]])}
-        i18n-mode={I18nMode.META}
-        showGroupTitle={false}
-        show-measure-scale={true}
-        data={dataSet2}
-        category-width={TableCategoryWidth.W100}
-        thereof={[
-          {
-            "rowGroup": "Product",
-            "category": "Category A",
-            "subCategory": "Category - SUB 2",
-            partOf:""
-          }, {
-            "rowGroup": "",
-            "category": "Category B",
-            "subCategory": "",
-            partOf:""
-          }]}
-        partof={[
-          {
-            rowGroup: "Product",
-            category: "Category A",
-            subCategory: "",
-            partOf:""
+      template: () => (
+        <ibcs-table
+          table-title="Sven ist der Papa von Phineas und Max"
+          scenarios={["ac1", "pp1", "dac1_pp1_pos", "drac1_pp1_pos"]}
+          scenarios-data-format={DataFormat.PERCENT}
+          measure-scale="_"
+          order={
+            {
+              hierarchy: [OrderColumn.CATEGORY],
+              direction: OrderDirection.DESC,
+            } as Order
           }
-        ]}
-        categorythereof={new Map([[
-          "ac1", [{
-            "name": "DE",
-            "subGroups": ['Berlin']
-          }]
-        ], [
-          "pp1", [{
-            "name": "DE",
-            "subGroups": ['Berlin']
-          }]]])}
-      ></ibcs-table>),
+          limit={2}
+          measure-type={MeasureType.VOLUME}
+          grouped={true}
+          type={TableType.OPT}
+          i18n={new Map([["SUM_TOTAL", "🤩"]])}
+          i18n-mode={I18nMode.META}
+          showGroupTitle={false}
+          show-measure-scale={true}
+          data={dataSet2}
+          category-width={TableCategoryWidth.W100}
+          thereof={[
+            {
+              rowGroup: "Product",
+              category: "Category A",
+              subCategory: "Category - SUB 2",
+              partOf: "",
+            },
+            {
+              rowGroup: "",
+              category: "Category B",
+              subCategory: "",
+              partOf: "",
+            },
+          ]}
+          partof={[
+            {
+              rowGroup: "Product",
+              category: "Category A",
+              subCategory: "",
+              partOf: "",
+            },
+          ]}
+          categorythereof={
+            new Map([
+              [
+                "ac1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+              [
+                "pp1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+            ])
+          }
+        ></ibcs-table>
+      ),
     });
 
-    expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" table-title=\"Sven ist der Papa von Phineas und Max\">
+    expect(page.root)
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" table-title=\"Sven ist der Papa von Phineas und Max\">
       <mock:shadow-root>
     <table>
       <thead>
@@ -1068,58 +1089,74 @@ describe("IBCS Table Test", () => {
     </table>
       </mock:shadow-root>
   </ibcs-table>`);
-
   });
 
-  it('should render OPT table width colums and row dills and grouping', async () => {
+  it("should render OPT table width colums and row dills and grouping", async () => {
     const page = await newSpecPage({
       components: [IbcsTable],
-      template: () => (<ibcs-table
-        table-title="Sven ist der Papa von Phineas und Max"
-        scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
-        scenarios-data-format="decimal"
-        measure-scale="_"
-        order={{
-          hierarchy: [OrderColumn.CATEGORY],
-          direction: OrderDirection.DESC
-        } as Order}
-        limit={2}
-        measure-type={MeasureType.VOLUME}
-        grouped={true}
-        type={TableType.OPT}
-        i18n={new Map([["SUM_TOTAL", "🤩"]])}
-        i18n-mode={I18nMode.ALL}
-        showGroupTitle={true}
-        data={dataSet2}
-        category-width={TableCategoryWidth.W100}
-        thereof={[
-          {
-            "rowGroup": "Product",
-            "category": "Category A",
-            "subCategory": "Category - SUB 2",
-            "partOf": "",
-            
-          }, {
-            "rowGroup": "",
-            "category": "Category B",
-            "subCategory": "",
-            "partOf": "",
-            
-          }]}
-        categorythereof={new Map([[
-          "ac1", [{
-            "name": "DE",
-            "subGroups": ['Berlin']
-          }]
-        ], [
-          "pp1", [{
-            "name": "DE",
-            "subGroups": ['Berlin']
-          }]]])}
-      ></ibcs-table>),
+      template: () => (
+        <ibcs-table
+          table-title="Sven ist der Papa von Phineas und Max"
+          scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
+          scenarios-data-format="decimal"
+          measure-scale="_"
+          order={
+            {
+              hierarchy: [OrderColumn.CATEGORY],
+              direction: OrderDirection.DESC,
+            } as Order
+          }
+          limit={2}
+          measure-type={MeasureType.VOLUME}
+          grouped={true}
+          type={TableType.OPT}
+          i18n={new Map([["SUM_TOTAL", "🤩"]])}
+          i18n-mode={I18nMode.ALL}
+          showGroupTitle={true}
+          data={dataSet2}
+          category-width={TableCategoryWidth.W100}
+          thereof={[
+            {
+              rowGroup: "Product",
+              category: "Category A",
+              subCategory: "Category - SUB 2",
+              partOf: "",
+            },
+            {
+              rowGroup: "",
+              category: "Category B",
+              subCategory: "",
+              partOf: "",
+            },
+          ]}
+          categorythereof={
+            new Map([
+              [
+                "ac1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+              [
+                "pp1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+            ])
+          }
+        ></ibcs-table>
+      ),
     });
 
-    expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+    expect(page.root)
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
       <mock:shadow-root>
     <table>
       <thead>
@@ -1853,21 +1890,23 @@ describe("IBCS Table Test", () => {
     </table>
       </mock:shadow-root>
   </ibcs-table>`);
-
   });
 
-  it('should render LIST table width colums and row dills and grouping', async () => {
-      const page = await newSpecPage({
-        components: [IbcsTable],
-        template: () => (<ibcs-table
+  it("should render LIST table width colums and row dills and grouping", async () => {
+    const page = await newSpecPage({
+      components: [IbcsTable],
+      template: () => (
+        <ibcs-table
           table-title="Sven ist der Papa von Phineas und Max"
           scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
           scenarios-data-format="decimal"
           measure-scale="_"
-          order={{
-            hierarchy: [OrderColumn.CATEGORY],
-            direction: OrderDirection.DESC
-          } as Order}
+          order={
+            {
+              hierarchy: [OrderColumn.CATEGORY],
+              direction: OrderDirection.DESC,
+            } as Order
+          }
           limit={2}
           measure-type={MeasureType.VOLUME}
           grouped={false}
@@ -1879,31 +1918,46 @@ describe("IBCS Table Test", () => {
           category-width={TableCategoryWidth.W100}
           thereof={[
             {
-              "rowGroup": "Product",
-              "category": "Category A",
-              "subCategory": "Category - SUB 2",
-              "partOf": "",
-            
-            }, {
-              "rowGroup": "",
-              "category": "Category B",
-              "subCategory": "",
-              "partOf": "",
-            }]}
-          categorythereof={new Map([[
-            "ac1", [{
-              "name": "DE",
-              "subGroups": ['Berlin']
-            }]
-          ], [
-            "pp1", [{
-              "name": "DE",
-              "subGroups": ['Berlin']
-            }]]])}
-        ></ibcs-table>),
-      });
-      
-       expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+              rowGroup: "Product",
+              category: "Category A",
+              subCategory: "Category - SUB 2",
+              partOf: "",
+            },
+            {
+              rowGroup: "",
+              category: "Category B",
+              subCategory: "",
+              partOf: "",
+            },
+          ]}
+          categorythereof={
+            new Map([
+              [
+                "ac1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+              [
+                "pp1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+            ])
+          }
+        ></ibcs-table>
+      ),
+    });
+
+    expect(page.root)
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
          <mock:shadow-root>
        <table>
          <thead>
@@ -2283,55 +2337,72 @@ describe("IBCS Table Test", () => {
      </ibcs-table>`);
   });
 
-
-  it('should render OPT NO SUM table width colums and row dills and grouping', async () => {
-        const page = await newSpecPage({
-          components: [IbcsTable],
-          template: () => (<ibcs-table
-            table-title="Sven ist der Papa von Phineas und Max"
-            scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
-            scenarios-data-format="decimal"
-            measure-scale="_"
-            order={{
+  it("should render OPT NO SUM table width colums and row dills and grouping", async () => {
+    const page = await newSpecPage({
+      components: [IbcsTable],
+      template: () => (
+        <ibcs-table
+          table-title="Sven ist der Papa von Phineas und Max"
+          scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
+          scenarios-data-format="decimal"
+          measure-scale="_"
+          order={
+            {
               hierarchy: [OrderColumn.CATEGORY],
-              direction: OrderDirection.DESC
-            } as Order}
-            limit={2}
-            measure-type={MeasureType.VOLUME}
-            grouped={true}
-            type={TableType.OPTNOTOTAL}
-            i18n={new Map([["SUM_TOTAL", "🤩"]])}
-            i18n-mode={I18nMode.ALL}
-            showGroupTitle={true}
-            data={dataSet2}
-            category-width={TableCategoryWidth.W100}
-            thereof={[
-              {
-                "rowGroup": "Product",
-                "category": "Category A",
-                "subCategory": "Category - SUB 2",
-                "partOf": "",
-            
-              }, {
-                "rowGroup": "",
-                "category": "Category B",
-                "subCategory": "null",
-                "partOf": "",            
-              }]}
-            categorythereof={new Map([[
-              "ac1", [{
-                "name": "DE",
-                "subGroups": ['Berlin']
-              }]
-            ], [
-              "pp1", [{
-                "name": "DE",
-                "subGroups": ['Berlin']
-              }]]])}
-          ></ibcs-table>),
-        });
+              direction: OrderDirection.DESC,
+            } as Order
+          }
+          limit={2}
+          measure-type={MeasureType.VOLUME}
+          grouped={true}
+          type={TableType.OPTNOTOTAL}
+          i18n={new Map([["SUM_TOTAL", "🤩"]])}
+          i18n-mode={I18nMode.ALL}
+          showGroupTitle={true}
+          data={dataSet2}
+          category-width={TableCategoryWidth.W100}
+          thereof={[
+            {
+              rowGroup: "Product",
+              category: "Category A",
+              subCategory: "Category - SUB 2",
+              partOf: "",
+            },
+            {
+              rowGroup: "",
+              category: "Category B",
+              subCategory: "null",
+              partOf: "",
+            },
+          ]}
+          categorythereof={
+            new Map([
+              [
+                "ac1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+              [
+                "pp1",
+                [
+                  {
+                    name: "DE",
+                    subGroups: ["Berlin"],
+                  },
+                ],
+              ],
+            ])
+          }
+        ></ibcs-table>
+      ),
+    });
 
-        expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+    expect(page.root)
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
           <mock:shadow-root>
         <table>
           <thead>
@@ -2913,55 +2984,57 @@ describe("IBCS Table Test", () => {
         </table>
           </mock:shadow-root>
       </ibcs-table>`);
-
   });
 
   describe("IBCS Table Test with incomplete Parameters", () => {
-        let dataSet: any[] = [{
-          "setName": "de",
-          "operation": "+",
-          "rowGroup": "Services",
-          "rowGroupIndex": 0,
-          "category": "Category A",
-          "categoryIndex": 1,
-          "subCategory": "Category - SUB 1",
-          "subCategoryIndex": 1,
-          "columnGroup": 'DE',
-          "columnGroupIndex": 1,
-          "columnSubGroup": 'Berlin',
-          "columnSubGroupIndex": 1,
-          "ac1": 1,
-          "pp1": 10,
-          "fc1": 3,
-          "pl1": 3,
-          "ac2": 1,
-          "pp2": 7,
-          "fc2": 7,
-          "pl2": 4,
-          "ac3": 1,
-          "pp3": 7,
-          "fc3": 7,
-          "pl3": 4,
-          "ac4": 1,
-          "pp4": 7,
-          "fc4": 7,
-          "pl4": 4
-        }];
+    const dataSet: any[] = [
+      {
+        setName: "de",
+        operation: "+",
+        rowGroup: "Services",
+        rowGroupIndex: 0,
+        category: "Category A",
+        categoryIndex: 1,
+        subCategory: "Category - SUB 1",
+        subCategoryIndex: 1,
+        columnGroup: "DE",
+        columnGroupIndex: 1,
+        columnSubGroup: "Berlin",
+        columnSubGroupIndex: 1,
+        ac1: 1,
+        pp1: 10,
+        fc1: 3,
+        pl1: 3,
+        ac2: 1,
+        pp2: 7,
+        fc2: 7,
+        pl2: 4,
+        ac3: 1,
+        pp3: 7,
+        fc3: 7,
+        pl3: 4,
+        ac4: 1,
+        pp4: 7,
+        fc4: 7,
+        pl4: 4,
+      },
+    ];
 
-
-      it('should render empty tag because of missing dataset', async () => {
-
-        const page = await newSpecPage({
-          components: [IbcsTable],
-          template: () => (<ibcs-table
+    it("should render empty tag because of missing dataset", async () => {
+      const page = await newSpecPage({
+        components: [IbcsTable],
+        template: () => (
+          <ibcs-table
             table-title="Sven ist der Papa von Phineas und Max"
             scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
             scenarios-data-format="decimal"
             measure-scale="_"
-            order={{
-              hierarchy: [OrderColumn.CATEGORY],
-              direction: OrderDirection.DESC
-            } as Order}
+            order={
+              {
+                hierarchy: [OrderColumn.CATEGORY],
+                direction: OrderDirection.DESC,
+              } as Order
+            }
             limit={2}
             measure-type={MeasureType.VOLUME}
             grouped={true}
@@ -2973,90 +3046,120 @@ describe("IBCS Table Test", () => {
             category-width={TableCategoryWidth.W100}
             thereof={[
               {
-                "rowGroup": "Product",
-                "category": "Category A",
-                "subCategory": "Category - SUB 2",
-                "partOf": "",
-            
-              }, {
-                "rowGroup": "",
-                "category": "Category B",
-                "subCategory": "",
-                "partOf": "",
-            
-              }]}
-            categorythereof={new Map([[
-              "ac1", [{
-                "name": "DE",
-                "subGroups": ['Berlin']
-              }]
-            ], [
-              "pp1", [{
-                "name": "DE",
-                "subGroups": ['Berlin']
-              }]]])}
-          ></ibcs-table>),
-        });
+                rowGroup: "Product",
+                category: "Category A",
+                subCategory: "Category - SUB 2",
+                partOf: "",
+              },
+              {
+                rowGroup: "",
+                category: "Category B",
+                subCategory: "",
+                partOf: "",
+              },
+            ]}
+            categorythereof={
+              new Map([
+                [
+                  "ac1",
+                  [
+                    {
+                      name: "DE",
+                      subGroups: ["Berlin"],
+                    },
+                  ],
+                ],
+                [
+                  "pp1",
+                  [
+                    {
+                      name: "DE",
+                      subGroups: ["Berlin"],
+                    },
+                  ],
+                ],
+              ])
+            }
+          ></ibcs-table>
+        ),
+      });
 
-        expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      expect(page.root)
+        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
           <mock:shadow-root>
         <p class=\"warning\">
           ==No Data==
         </p>
           </mock:shadow-root>
       </ibcs-table>`);
+    });
+
+    it("should render despite incomplete order object", async () => {
+      const page = await newSpecPage({
+        components: [IbcsTable],
+        template: () => (
+          <ibcs-table
+            table-title="Sven ist der Papa von Phineas und Max"
+            scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
+            scenarios-data-format="decimal"
+            measure-scale="_"
+            order={
+              {
+                hierarchy: [OrderColumn.CATEGORY],
+                direction: OrderDirection.DESC,
+              } as Order
+            }
+            limit={2}
+            measure-type={MeasureType.VOLUME}
+            grouped={true}
+            type={TableType.SUM}
+            i18n={new Map([["SUM_TOTAL", "🤩"]])}
+            i18n-mode={I18nMode.ALL}
+            showGroupTitle={true}
+            data={dataSet}
+            category-width={TableCategoryWidth.W100}
+            thereof={[
+              {
+                rowGroup: "Product",
+                category: "Category A",
+                subCategory: "Category - SUB 2",
+                partOf: "",
+              },
+              {
+                rowGroup: "",
+                category: "Category B",
+                subCategory: "",
+                partOf: "",
+              },
+            ]}
+            categorythereof={
+              new Map([
+                [
+                  "ac1",
+                  [
+                    {
+                      name: "DE",
+                      subGroups: ["Berlin"],
+                    },
+                  ],
+                ],
+                [
+                  "pp1",
+                  [
+                    {
+                      name: "DE",
+                      subGroups: ["Berlin"],
+                    },
+                  ],
+                ],
+              ])
+            }
+          ></ibcs-table>
+        ),
       });
 
-      it('should render despite incomplete order object', async () => {
-
-          const page = await newSpecPage({
-            components: [IbcsTable],
-            template: () => (<ibcs-table
-              table-title="Sven ist der Papa von Phineas und Max"
-              scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
-              scenarios-data-format="decimal"
-              measure-scale="_"
-              order={{
-                hierarchy: [OrderColumn.CATEGORY],
-                direction: OrderDirection.DESC
-              } as Order}
-              limit={2}
-              measure-type={MeasureType.VOLUME}
-              grouped={true}
-              type={TableType.SUM}
-              i18n={new Map([["SUM_TOTAL", "🤩"]])}
-              i18n-mode={I18nMode.ALL}
-              showGroupTitle={true}
-              data={dataSet}
-              category-width={TableCategoryWidth.W100}
-              thereof={[
-                {
-                  "rowGroup": "Product",
-                  "category": "Category A",
-                  "subCategory": "Category - SUB 2",
-                  "partOf": "",
-            
-                }, {
-                  "rowGroup": "",
-                  "category": "Category B",
-                  "subCategory": "",
-                  "partOf": "",
-            
-                }]}
-              categorythereof={new Map([[
-                "ac1", [{
-                  "name": "DE",
-                  "subGroups": ['Berlin']
-                }]
-              ], [
-                "pp1", [{
-                  "name": "DE",
-                  "subGroups": ['Berlin']
-                }]]])}
-            ></ibcs-table>),
-          });
-
-          expect(page.root).toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      expect(page.root)
+        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
             <mock:shadow-root>
           <table>
             <thead>
@@ -3374,9 +3477,6 @@ describe("IBCS Table Test", () => {
           </table>
             </mock:shadow-root>
         </ibcs-table>`);
-        });
-
+    });
   });
 });
-
-  

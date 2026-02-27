@@ -12,7 +12,7 @@ export interface EdgeStyle {
 export interface TreeEdge {
   from: string;
   to: string;
-  operator?: '*' | '/' | '+' | '-' | 'x' | '÷' | 'none';
+  operator?: "*" | "/" | "+" | "-" | "x" | "÷" | "none";
   label?: string;
   style?: EdgeStyle;
 }
@@ -24,7 +24,7 @@ export interface TreeConfig {
   allNodes: Set<string>;
 }
 
-const VALID_OPERATORS = ['*', '/', '+', '-', 'x', '÷', 'none'];
+const VALID_OPERATORS = ["*", "/", "+", "-", "x", "÷", "none"];
 
 /**
  * Parse the JSON edges configuration string into a TreeConfig object
@@ -32,7 +32,7 @@ const VALID_OPERATORS = ['*', '/', '+', '-', 'x', '÷', 'none'];
  * @returns TreeConfig object or null if parsing fails
  */
 export function parseTreeConfig(json: string): TreeConfig | null {
-  if (!json || json.trim() === '') {
+  if (!json || json.trim() === "") {
     return null;
   }
 
@@ -52,7 +52,7 @@ export function parseTreeConfig(json: string): TreeConfig | null {
       edges,
       adjacencyList,
       rootNode,
-      allNodes
+      allNodes,
     };
   } catch (e) {
     console.error("parseTreeConfig: failed to parse tree configuration", e);
@@ -68,8 +68,8 @@ export function parseTreeConfig(json: string): TreeConfig | null {
 export function validateEdges(json: string): string[] {
   const errors: string[] = [];
 
-  if (!json || json.trim() === '') {
-    errors.push('edges: value is required');
+  if (!json || json.trim() === "") {
+    errors.push("edges: value is required");
     return errors;
   }
 
@@ -77,17 +77,17 @@ export function validateEdges(json: string): string[] {
   try {
     parsed = JSON.parse(json);
   } catch {
-    errors.push('edges: invalid JSON structure');
+    errors.push("edges: invalid JSON structure");
     return errors;
   }
 
   if (!Array.isArray(parsed)) {
-    errors.push('edges: must be an array');
+    errors.push("edges: must be an array");
     return errors;
   }
 
   if (parsed.length === 0) {
-    errors.push('edges: array must not be empty');
+    errors.push("edges: array must not be empty");
     return errors;
   }
 
@@ -95,20 +95,20 @@ export function validateEdges(json: string): string[] {
   const targetNodes = new Set<string>();
 
   parsed.forEach((edge, index) => {
-    if (typeof edge !== 'object' || edge === null) {
+    if (typeof edge !== "object" || edge === null) {
       errors.push(`edges[${index}]: must be an object`);
       return;
     }
 
     const typedEdge = edge as Record<string, unknown>;
 
-    if (typeof typedEdge.from !== 'string' || typedEdge.from.trim() === '') {
+    if (typeof typedEdge.from !== "string" || typedEdge.from.trim() === "") {
       errors.push(`edges[${index}]: 'from' is required and must be a non-empty string`);
     } else {
       allNodes.add(typedEdge.from);
     }
 
-    if (typeof typedEdge.to !== 'string' || typedEdge.to.trim() === '') {
+    if (typeof typedEdge.to !== "string" || typedEdge.to.trim() === "") {
       errors.push(`edges[${index}]: 'to' is required and must be a non-empty string`);
     } else {
       allNodes.add(typedEdge.to);
@@ -116,27 +116,27 @@ export function validateEdges(json: string): string[] {
     }
 
     if (typedEdge.operator !== undefined) {
-      if (typeof typedEdge.operator !== 'string' || !VALID_OPERATORS.includes(typedEdge.operator)) {
-        errors.push(`edges[${index}]: 'operator' must be one of: ${VALID_OPERATORS.join(', ')}`);
+      if (typeof typedEdge.operator !== "string" || !VALID_OPERATORS.includes(typedEdge.operator)) {
+        errors.push(`edges[${index}]: 'operator' must be one of: ${VALID_OPERATORS.join(", ")}`);
       }
     }
 
-    if (typedEdge.label !== undefined && typeof typedEdge.label !== 'string') {
+    if (typedEdge.label !== undefined && typeof typedEdge.label !== "string") {
       errors.push(`edges[${index}]: 'label' must be a string`);
     }
 
     if (typedEdge.style !== undefined) {
-      if (typeof typedEdge.style !== 'object' || typedEdge.style === null) {
+      if (typeof typedEdge.style !== "object" || typedEdge.style === null) {
         errors.push(`edges[${index}]: 'style' must be an object`);
       } else {
         const style = typedEdge.style as Record<string, unknown>;
-        if (style.color !== undefined && typeof style.color !== 'string') {
+        if (style.color !== undefined && typeof style.color !== "string") {
           errors.push(`edges[${index}]: 'style.color' must be a string`);
         }
-        if (style.width !== undefined && typeof style.width !== 'number') {
+        if (style.width !== undefined && typeof style.width !== "number") {
           errors.push(`edges[${index}]: 'style.width' must be a number`);
         }
-        if (style.dasharray !== undefined && typeof style.dasharray !== 'string') {
+        if (style.dasharray !== undefined && typeof style.dasharray !== "string") {
           errors.push(`edges[${index}]: 'style.dasharray' must be a string`);
         }
       }
@@ -144,11 +144,11 @@ export function validateEdges(json: string): string[] {
   });
 
   // Check for multiple roots (nodes that are not targets of any edge)
-  const rootNodes = Array.from(allNodes).filter(node => !targetNodes.has(node));
+  const rootNodes = Array.from(allNodes).filter((node) => !targetNodes.has(node));
   if (rootNodes.length === 0) {
-    errors.push('edges: tree has no root node (circular reference detected)');
+    errors.push("edges: tree has no root node (circular reference detected)");
   } else if (rootNodes.length > 1) {
-    errors.push(`edges: tree has multiple root nodes: ${rootNodes.join(', ')}`);
+    errors.push(`edges: tree has multiple root nodes: ${rootNodes.join(", ")}`);
   }
 
   return errors;
@@ -190,7 +190,7 @@ function findRootNode(edges: TreeEdge[], allNodes: Set<string>): string | null {
     targetNodes.add(edge.to);
   }
 
-  const rootNodes = Array.from(allNodes).filter(node => !targetNodes.has(node));
+  const rootNodes = Array.from(allNodes).filter((node) => !targetNodes.has(node));
   return rootNodes.length === 1 ? rootNodes[0] : null;
 }
 
@@ -199,20 +199,20 @@ function findRootNode(edges: TreeEdge[], allNodes: Set<string>): string | null {
  */
 export function getOperatorSymbol(operator: string | undefined): string {
   switch (operator) {
-    case '*':
-    case 'x':
-      return '×';
-    case '/':
-    case '÷':
-      return '÷';
-    case '+':
-      return '+';
-    case '-':
-      return '−';
-    case 'none':
-      return '';
+    case "*":
+    case "x":
+      return "×";
+    case "/":
+    case "÷":
+      return "÷";
+    case "+":
+      return "+";
+    case "-":
+      return "−";
+    case "none":
+      return "";
     default:
-      return '';
+      return "";
   }
 }
 
@@ -220,5 +220,5 @@ export function getOperatorSymbol(operator: string | undefined): string {
  * Get the edge connecting a parent to a specific child
  */
 export function getEdgeForChild(edges: TreeEdge[], parent: string, child: string): TreeEdge | undefined {
-  return edges.find(edge => edge.from === parent && edge.to === child);
+  return edges.find((edge) => edge.from === parent && edge.to === child);
 }

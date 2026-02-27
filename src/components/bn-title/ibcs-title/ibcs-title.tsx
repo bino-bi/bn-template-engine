@@ -1,6 +1,5 @@
 import { Component, h, Method, Prop } from "@stencil/core";
 
-
 import { Title } from "./utils/Title";
 import { TitleConifgAdapter, TitleConfig } from "./utils/model/TitleConfig";
 import { MeasureEntry, MeasureEntryAdapter } from "./utils/model/MeasureEntriy";
@@ -10,23 +9,20 @@ import { I18nMode } from "../../../utils/constants";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
 
-
-
 @Component({
   tag: "ibcs-title",
   styleUrl: "ibcs-title.scss",
-  shadow: true
+  shadow: true,
 })
 export class IbcsTitle {
-
   // sample fuer die chrome dev console:
   // document.querySelector("ibcs-title").setBusinessUnit("Sven")
   // document.querySelector("ibcs-title").setProps({businessUnit: "Lalal"})
 
-  @Prop({ mutable: true, reflect: true }) // Wichtig mutable muss true sein, reflect passt den dom an und updatet die poprs im html 
-  businessUnit: string = '';
+  @Prop({ mutable: true, reflect: true }) // Wichtig mutable muss true sein, reflect passt den dom an und updatet die poprs im html
+  businessUnit: string = "";
 
-  // so 
+  // so
   @Method()
   async setBusinessUnit(businessUnit: string) {
     this.businessUnit = businessUnit;
@@ -38,12 +34,11 @@ export class IbcsTitle {
     Object.keys(data).forEach((key) => {
       //@ts-ignore
       this[key] = data[key];
-    })
+    });
   }
 
   @Prop()
   scenarios: string[] = [];
-
 
   @Prop()
   measures: MeasureEntry[] = [];
@@ -72,7 +67,14 @@ export class IbcsTitle {
     return (
       <div>
         <div>{this.title.unit}</div>
-        <div>{this.title.measures.map((measure, index) => <span>{this.isFirstElement(index) ? this.title.i18n.get("SEPERATOR_WS") : ""}<span class="measure">{measure.name}</span> {measure.unit ? this.title.i18n.get("in") : ''} {measure.unit}</span>)}</div>
+        <div>
+          {this.title.measures.map((measure, index) => (
+            <span>
+              {this.isFirstElement(index) ? this.title.i18n.get("SEPERATOR_WS") : ""}
+              <span class="measure">{measure.name}</span> {measure.unit ? this.title.i18n.get("in") : ""} {measure.unit}
+            </span>
+          ))}
+        </div>
         <div>{this.title.dimension}</div>
       </div>
     );
@@ -81,7 +83,7 @@ export class IbcsTitle {
   componentWillLoad() {
     const config: TitleConfig = this.prepareConfig();
 
-    this.title = new Title(new IBCSRuleSet(),);
+    this.title = new Title(new IBCSRuleSet());
     this.title.setI18n(this.i18n);
     this.title.setConfig(config);
   }
@@ -91,7 +93,6 @@ export class IbcsTitle {
 
     this.title.setI18n(this.i18n);
     this.title.setConfig(config);
-
   }
 
   componentWillRender() {
@@ -99,21 +100,23 @@ export class IbcsTitle {
   }
 
   private isFirstElement(index: number) {
-    return index !== 0
+    return index !== 0;
   }
 
   private prepareConfig(): TitleConfig {
-    return new TitleConifgAdapter(new MeasureEntryAdapter(),
+    return new TitleConifgAdapter(
+      new MeasureEntryAdapter(),
       new TimePeriodAdapter(),
       new OrderAdapter(new StringAdapter()),
-      new StringAdapter()).adapt({
-        businessunit: this.businessUnit,
-        measures: this.measures,
-        scenarios: this.scenarios,
-        timeperiod: this.timeperiod,
-        intervalSpanLimit: this.intervalSpanLimit,
-        i18nMode: this.i18nMode,
-        order: this.order,
-      })
+      new StringAdapter(),
+    ).adapt({
+      businessunit: this.businessUnit,
+      measures: this.measures,
+      scenarios: this.scenarios,
+      timeperiod: this.timeperiod,
+      intervalSpanLimit: this.intervalSpanLimit,
+      i18nMode: this.i18nMode,
+      order: this.order,
+    });
   }
 }

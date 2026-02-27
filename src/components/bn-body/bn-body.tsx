@@ -5,9 +5,9 @@ import { Style } from "../../stores/componentStyles";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-body',
-  styleUrl: 'bn-body.scss',
-  shadow: true
+  tag: "bn-body",
+  styleUrl: "bn-body.scss",
+  shadow: true,
 })
 export class Body {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -23,15 +23,19 @@ export class Body {
   }
 
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    return this.componentStyle(($) => ({
+      "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      "--bn-font-size": `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+      "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
 
   render() {
-    return <Host style={this.getFontStyles()}><slot /></Host>
+    return (
+      <Host style={this.getFontStyles()}>
+        <slot />
+      </Host>
+    );
   }
 }

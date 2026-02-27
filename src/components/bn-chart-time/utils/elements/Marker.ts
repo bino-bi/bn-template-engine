@@ -1,14 +1,13 @@
-import {G} from "@svgdotjs/svg.js";
+import { G } from "@svgdotjs/svg.js";
 
-import {DataPoint, TimeChartDimension} from "../model";
-import {HookLocation, Label} from "./Label";
-import {ElementPositions} from "../helper";
+import { DataPoint, TimeChartDimension } from "../model";
+import { HookLocation, Label } from "./Label";
+import { ElementPositions } from "../helper";
 // import {SVGPolgonPattern} from "../../../../utils/model";
-import {TimeChartStyle} from "../model/styles/TimeChartStyle";
+import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGPolgonPattern } from "../../../../utils/model";
 
 export class Marker {
-
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";
   readonly FALLBACK_COLOUR: string = "#000000";
@@ -16,17 +15,35 @@ export class Marker {
   private readonly markerGroup: G;
   private markerPattern: SVGPolgonPattern;
   private styles: TimeChartStyle;
-  private scenarioLabel: Label| null = null;
+  private scenarioLabel: Label | null = null;
   private scenario: string | null;
 
   private readonly barStyles: any;
   private _defaultMarkerPattern: SVGPolgonPattern | null = null;
 
   private position: ElementPositions;
-  private dimensions: TimeChartDimension = { columnLength: 0, xPos: 0, yPos: 0, labelYPos: 0, scenarioLabelXPos: 0, scenarioLabelYPos:0, clipped: false };
+  private dimensions: TimeChartDimension = {
+    columnLength: 0,
+    xPos: 0,
+    yPos: 0,
+    labelYPos: 0,
+    scenarioLabelXPos: 0,
+    scenarioLabelYPos: 0,
+    clipped: false,
+  };
   private hasData: boolean = false;
 
-  constructor(position: ElementPositions, markerGroup: G, markerPattern: SVGPolgonPattern, scenario: string | null, styles: TimeChartStyle, dataPoint: DataPoint, index: number, labelText: string | null, isPrimaryMarker: boolean) {
+  constructor(
+    position: ElementPositions,
+    markerGroup: G,
+    markerPattern: SVGPolgonPattern,
+    scenario: string | null,
+    styles: TimeChartStyle,
+    dataPoint: DataPoint,
+    index: number,
+    labelText: string | null,
+    isPrimaryMarker: boolean,
+  ) {
     this.position = position;
     this.markerGroup = markerGroup || null;
     this.markerPattern = markerPattern || this._defaultMarkerPattern;
@@ -35,7 +52,7 @@ export class Marker {
 
     this.scenario = scenario;
 
-    if(dataPoint?.isEmpty() != true) {
+    if (dataPoint?.isEmpty() != true) {
       this.hasData = true;
       this.dimensions = this.createMarkerDimensions(dataPoint, index, isPrimaryMarker);
       this.scenarioLabel = this.getScenarioLabel(labelText, styles, isPrimaryMarker);
@@ -47,56 +64,63 @@ export class Marker {
       return this;
     }
 
-    let whiteBorder = "#ffffff";
-    let strokeStyle = this.convertToSVGStyle(this.barStyles[this.getScenario() as string], "stroke");
+    const whiteBorder = "#ffffff";
+    const strokeStyle = this.convertToSVGStyle(this.barStyles[this.getScenario() as string], "stroke");
     let fillStyle = this.convertToSVGStyle(this.barStyles[this.getScenario() as string], "fill");
-    let pattern = this.barStyles[this.getScenario() as string];
+    const pattern = this.barStyles[this.getScenario() as string];
 
     if (pattern != null && pattern.fillpattern) {
-      let polygonPattern = this.styles.pattern.get(pattern.fillpattern);
+      const polygonPattern = this.styles.pattern.get(pattern.fillpattern);
 
       if (polygonPattern != null) {
         fillStyle = polygonPattern.pattern;
       }
     }
 
-    this.markerGroup.polygon(this.markerPattern.background)
+    this.markerGroup
+      .polygon(this.markerPattern.background)
       .fill(whiteBorder)
       .cy(this.dimensions.yPos - this.dimensions.columnLength)
-      .cx(this.dimensions.xPos)
+      .cx(this.dimensions.xPos);
 
-    this.markerGroup.polygon(this.markerPattern.foreground)
+    this.markerGroup
+      .polygon(this.markerPattern.foreground)
       .fill(fillStyle)
       .stroke(strokeStyle)
       .cy(this.dimensions.yPos - this.dimensions.columnLength)
-      .cx(this.dimensions.xPos)
+      .cx(this.dimensions.xPos);
 
     if (this.scenarioLabel != null && !this.scenarioLabel.isEmpty()) {
-       this.scenarioLabel.setPos(this.dimensions.scenarioLabelXPos, this.dimensions.scenarioLabelYPos).draw();
+      this.scenarioLabel.setPos(this.dimensions.scenarioLabelXPos, this.dimensions.scenarioLabelYPos).draw();
     }
 
     return this;
   }
 
   public createMarkerDimensions(dataPoint: DataPoint, index: number, isPrimaryMarker: boolean): TimeChartDimension {
-
     if (dataPoint.getScaledUnit() < 0) {
       return {
-        clipped: false, labelYPos: 0,
+        clipped: false,
+        labelYPos: 0,
         columnLength: dataPoint.getScaledUnit(),
         xPos: this.position.getMarkerPositionX(index, isPrimaryMarker),
         yPos: this.position.getMarkerPositionY(),
-        scenarioLabelXPos: this.position.getMarkerPositionX(index, isPrimaryMarker) + this.position.getMarkerScenarioLabelPositionOffsetX(isPrimaryMarker),
-        scenarioLabelYPos: this.position.getMarkerPositionY() + (Math.abs(dataPoint.getScaledUnit()))
+        scenarioLabelXPos:
+          this.position.getMarkerPositionX(index, isPrimaryMarker) +
+          this.position.getMarkerScenarioLabelPositionOffsetX(isPrimaryMarker),
+        scenarioLabelYPos: this.position.getMarkerPositionY() + Math.abs(dataPoint.getScaledUnit()),
       };
     } else {
       return {
-        clipped: false, labelYPos: 0,
+        clipped: false,
+        labelYPos: 0,
         columnLength: dataPoint.getScaledUnit(),
         xPos: this.position.getMarkerPositionX(index, isPrimaryMarker),
         yPos: this.position.getMarkerPositionY(),
-        scenarioLabelXPos: this.position.getMarkerPositionX(index, isPrimaryMarker) + this.position.getMarkerScenarioLabelPositionOffsetX(isPrimaryMarker),
-        scenarioLabelYPos: this.position.getMarkerPositionY() - (Math.abs(dataPoint.getScaledUnit()))
+        scenarioLabelXPos:
+          this.position.getMarkerPositionX(index, isPrimaryMarker) +
+          this.position.getMarkerScenarioLabelPositionOffsetX(isPrimaryMarker),
+        scenarioLabelYPos: this.position.getMarkerPositionY() - Math.abs(dataPoint.getScaledUnit()),
       };
     }
   }
@@ -107,11 +131,28 @@ export class Marker {
     }
 
     if (isPrimaryMarker) {
-      return new Label(this.markerGroup, -1, -1, this.ID_DATA_PREFIX, labelText, styles, HookLocation.Center, HookLocation.Right);
+      return new Label(
+        this.markerGroup,
+        -1,
+        -1,
+        this.ID_DATA_PREFIX,
+        labelText,
+        styles,
+        HookLocation.Center,
+        HookLocation.Right,
+      );
     }
 
-    return new Label(this.markerGroup, -1, -1, this.ID_DATA_PREFIX, labelText, styles, HookLocation.Center, HookLocation.Left);
-
+    return new Label(
+      this.markerGroup,
+      -1,
+      -1,
+      this.ID_DATA_PREFIX,
+      labelText,
+      styles,
+      HookLocation.Center,
+      HookLocation.Left,
+    );
   }
 
   private convertToSVGStyle(style: any, mode: string): any {
@@ -119,7 +160,7 @@ export class Marker {
       style = [];
     }
     style["color"] = style[mode] || this.FALLBACK_COLOUR;
-    return {...style};
+    return { ...style };
   }
 
   private isEmpty(): boolean {
@@ -129,6 +170,4 @@ export class Marker {
   private getScenario() {
     return this.scenario?.slice(0, 2);
   }
-
-
 }

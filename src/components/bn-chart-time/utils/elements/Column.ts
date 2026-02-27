@@ -1,12 +1,12 @@
-import {DataPoint, TimeChartDimension,} from "../model";
-import {HookLocation, Label} from "./Label";
+import { DataPoint, TimeChartDimension } from "../model";
+import { HookLocation, Label } from "./Label";
 
-import {G} from "@svgdotjs/svg.js";
-import {ElementPositions,} from "../helper";
+import { G } from "@svgdotjs/svg.js";
+import { ElementPositions } from "../helper";
 // import {
 //   SVGStyle,
 // } from "../../../../utils/model";
-import {TimeChartStyle} from "../model/styles/TimeChartStyle";
+import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { SVGStyle } from "../../../../utils/model";
@@ -15,7 +15,6 @@ import { OverflowConfig } from "../model/OverflowConfig";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
 export class Column {
-
   private readonly ID_DATA_PREFIX: string = "DATA";
   private readonly ID_SCENARIO_PREFIX: string = "SCENARIO";
   private readonly ID_RECT: string = "RECT";
@@ -45,12 +44,21 @@ export class Column {
     labelYPos: 0,
     scenarioLabelXPos: 0,
     scenarioLabelYPos: 0,
-    clipped: false
+    clipped: false,
   };
 
-  private hasData:  boolean = false;
+  private hasData: boolean = false;
 
-  constructor(position: ElementPositions, styles: TimeChartStyle, dataPoint: DataPoint, index: number, isPrimaryColumn: boolean, scenarioGroup: G, columnLabel: string | null, overflowConfig: OverflowConfig | null = null) {
+  constructor(
+    position: ElementPositions,
+    styles: TimeChartStyle,
+    dataPoint: DataPoint,
+    index: number,
+    isPrimaryColumn: boolean,
+    scenarioGroup: G,
+    columnLabel: string | null,
+    overflowConfig: OverflowConfig | null = null,
+  ) {
     this.dataPoint = dataPoint;
     this.index = index;
     this.isPrimaryColumn = isPrimaryColumn;
@@ -63,7 +71,7 @@ export class Column {
 
     this.columnGroup = scenarioGroup.group().id(scenarioGroup.toString() + "_" + this.ID_RECT);
 
-    if(dataPoint?.isEmpty() != true) {
+    if (dataPoint?.isEmpty() != true) {
       this.hasData = true;
       this.dimensions = this.createDimensions(dataPoint, index, isPrimaryColumn);
       this.label = this.getDataLabel(dataPoint);
@@ -78,7 +86,7 @@ export class Column {
   }
 
   public updateLabelGroup(newGroup: G): Column {
-    if( this.isEmpty() ) {
+    if (this.isEmpty()) {
       return this;
     }
 
@@ -86,20 +94,25 @@ export class Column {
     return this;
   }
 
-  public draw(dataFormatDigits: DataFormatDigits = {percent: 2, decimal: 1}, measureScale: SiPrefix = new SiPrefix()) {  // TODE: JHE: Remove DataFOrmatDigits Type Duplicates
+  public draw(
+    dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
+    measureScale: SiPrefix = new SiPrefix(),
+  ) {
+    // TODE: JHE: Remove DataFOrmatDigits Type Duplicates
     if (this.isEmpty()) {
       return this;
     }
 
-    let scenarioStyle: SVGStyle | undefined = this.getScenarioStyle();
-    let strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
-    let fillStyle = this.getFillStyle(scenarioStyle);
+    const scenarioStyle: SVGStyle | undefined = this.getScenarioStyle();
+    const strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
+    const fillStyle = this.getFillStyle(scenarioStyle);
 
-    if(this.columnGroup != null) {
+    if (this.columnGroup != null) {
       if (this.isOverflowing && this.overflowConfig) {
         this.drawOverdriveBar(fillStyle, strokeStyle);
       } else {
-        this.columnGroup.rect(this.position.getColumnWidth(), this.dimensions.columnLength)
+        this.columnGroup
+          .rect(this.position.getColumnWidth(), this.dimensions.columnLength)
           .fill(fillStyle)
           .stroke(strokeStyle)
           .y(this.dimensions.yPos)
@@ -108,7 +121,6 @@ export class Column {
     }
     this.drawColumnDataLabel(dataFormatDigits, measureScale);
     this.drawScenarioLabel();
-
   }
 
   private drawOverdriveBar(fillStyle: any, strokeStyle: any): void {
@@ -121,15 +133,12 @@ export class Column {
 
     // Base bar: from axis up to effective cut height
     const baseY = axisY - effectiveCut;
-    this.columnGroup.rect(colWidth, effectiveCut)
-      .fill(fillStyle)
-      .stroke(strokeStyle)
-      .y(baseY)
-      .cx(this.dimensions.xPos);
+    this.columnGroup.rect(colWidth, effectiveCut).fill(fillStyle).stroke(strokeStyle).y(baseY).cx(this.dimensions.xPos);
 
     // Overdrive bar: above the break gap
     const overdriveY = baseY - breakGap - this.overdriveHeight;
-    this.columnGroup.rect(colWidth, this.overdriveHeight)
+    this.columnGroup
+      .rect(colWidth, this.overdriveHeight)
       .fill(fillStyle)
       .stroke(strokeStyle)
       .y(overdriveY)
@@ -168,19 +177,16 @@ export class Column {
     }
 
     // White background to cover the bar behind the break
-    this.columnGroup.rect(colWidth + 2, breakGap)
-      .fill('#ffffff')
-      .stroke('none')
+    this.columnGroup
+      .rect(colWidth + 2, breakGap)
+      .fill("#ffffff")
+      .stroke("none")
       .y(baseY - breakGap)
       .cx(this.dimensions.xPos);
 
-    this.columnGroup.path(topPath)
-      .fill('none')
-      .stroke({ color: '#000000', width: 1 });
+    this.columnGroup.path(topPath).fill("none").stroke({ color: "#000000", width: 1 });
 
-    this.columnGroup.path(bottomPath)
-      .fill('none')
-      .stroke({ color: '#000000', width: 1 });
+    this.columnGroup.path(bottomPath).fill("none").stroke({ color: "#000000", width: 1 });
   }
 
   public createDimensions(dataPoint: DataPoint, index: number, isPrimaryBar: boolean): TimeChartDimension {
@@ -188,7 +194,7 @@ export class Column {
 
     // Determine effective cut height: AC scenarios use full cutHeight, others break lower
     if (this.overflowConfig && scaledUnit > 0) {
-      const isAC = dataPoint.getScenario() === 'ac';
+      const isAC = dataPoint.getScenario() === "ac";
       const effectiveCut = isAC
         ? this.overflowConfig.cutHeight
         : this.overflowConfig.cutHeight - this.overflowConfig.scenarioCutOffset;
@@ -197,9 +203,7 @@ export class Column {
         this.isOverflowing = true;
         const { breakGap, overdriveZoneHeight, maxOverflow } = this.overflowConfig;
         const overflowAmount = scaledUnit - effectiveCut;
-        this.overdriveHeight = maxOverflow > 0
-          ? (overflowAmount / maxOverflow) * overdriveZoneHeight
-          : 0;
+        this.overdriveHeight = maxOverflow > 0 ? (overflowAmount / maxOverflow) * overdriveZoneHeight : 0;
 
         const totalVisualHeight = effectiveCut + breakGap + this.overdriveHeight;
         const axisY = this.position.getColumnPositionY();
@@ -210,8 +214,10 @@ export class Column {
           xPos: this.position.getColumnPositionX(index, isPrimaryBar),
           yPos: axisY - effectiveCut,
           labelYPos: axisY - totalVisualHeight - this.position.spacings.labelToColumn,
-          scenarioLabelXPos: this.position.getColumnPositionX(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
-          scenarioLabelYPos: axisY - (effectiveCut * 0.5)
+          scenarioLabelXPos:
+            this.position.getColumnPositionX(index, isPrimaryBar) +
+            this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
+          scenarioLabelYPos: axisY - effectiveCut * 0.5,
         };
       }
     }
@@ -223,8 +229,10 @@ export class Column {
         xPos: this.position.getColumnPositionX(index, isPrimaryBar),
         yPos: this.position.getColumnPositionY(),
         labelYPos: this.position.getColumnDataLabelPositionY(scaledUnit),
-        scenarioLabelXPos: this.position.getColumnPositionX(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
-        scenarioLabelYPos: this.position.getColumnPositionY() + (Math.abs(scaledUnit) * 0.5)
+        scenarioLabelXPos:
+          this.position.getColumnPositionX(index, isPrimaryBar) +
+          this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
+        scenarioLabelYPos: this.position.getColumnPositionY() + Math.abs(scaledUnit) * 0.5,
       };
     } else {
       return {
@@ -233,8 +241,10 @@ export class Column {
         xPos: this.position.getColumnPositionX(index, isPrimaryBar),
         yPos: this.position.getColumnPositionY() - scaledUnit,
         labelYPos: this.position.getColumnDataLabelPositionY(scaledUnit),
-        scenarioLabelXPos: this.position.getColumnPositionX(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
-        scenarioLabelYPos: this.position.getColumnPositionY() - (Math.abs(scaledUnit) * 0.5)
+        scenarioLabelXPos:
+          this.position.getColumnPositionX(index, isPrimaryBar) +
+          this.position.getScenarioLabelPositionOffsetX(isPrimaryBar),
+        scenarioLabelYPos: this.position.getColumnPositionY() - Math.abs(scaledUnit) * 0.5,
       };
     }
   }
@@ -249,15 +259,42 @@ export class Column {
       ? this.dimensions.labelYPos
       : this.position.getColumnDataLabelPositionY(this.dataPoint.getScaledUnit());
 
-    return new Label(this.scenarioGroup, this.position.getColumnCenterPositionX(this.index), labelY, this.ID_DATA_PREFIX, dataPoint.value, this.styles, labelHook, HookLocation.Center);
+    return new Label(
+      this.scenarioGroup,
+      this.position.getColumnCenterPositionX(this.index),
+      labelY,
+      this.ID_DATA_PREFIX,
+      dataPoint.value,
+      this.styles,
+      labelHook,
+      HookLocation.Center,
+    );
   }
 
   private getScenarioLabel(columnLabel: string | null) {
     if (this.isPrimaryColumn) {
-      return new Label(this.scenarioGroup, -1, -1, this.ID_SCENARIO_PREFIX, columnLabel, this.styles, HookLocation.Center, HookLocation.Left);
+      return new Label(
+        this.scenarioGroup,
+        -1,
+        -1,
+        this.ID_SCENARIO_PREFIX,
+        columnLabel,
+        this.styles,
+        HookLocation.Center,
+        HookLocation.Left,
+      );
     }
 
-    return new Label(this.scenarioGroup, -1, -1, this.ID_SCENARIO_PREFIX, columnLabel, this.styles, HookLocation.Center,  HookLocation.Right);
+    return new Label(
+      this.scenarioGroup,
+      -1,
+      -1,
+      this.ID_SCENARIO_PREFIX,
+      columnLabel,
+      this.styles,
+      HookLocation.Center,
+      HookLocation.Right,
+    );
   }
 
   private convertToSVGStyle(style: any, mode: string): any {
@@ -265,21 +302,21 @@ export class Column {
       style = [];
     }
     style["color"] = style[mode] || this.FALLBACK_COLOUR;
-    return {...style};
+    return { ...style };
   }
 
   private drawScenarioLabel() {
-    if (this.scenarioLabel != null &&  !this.scenarioLabel.isEmpty() && !this.isVarianceColumn) {
-     this.scenarioLabel.setPos(this.dimensions.scenarioLabelXPos, this.dimensions.scenarioLabelYPos).draw(true);
+    if (this.scenarioLabel != null && !this.scenarioLabel.isEmpty() && !this.isVarianceColumn) {
+      this.scenarioLabel.setPos(this.dimensions.scenarioLabelXPos, this.dimensions.scenarioLabelYPos).draw(true);
     }
   }
 
   private drawColumnDataLabel(dataFormatDigits: DataFormatDigits, measureScale: SiPrefix = new SiPrefix()) {
-     this.label?.draw(this.isPrimaryColumn, dataFormatDigits, measureScale);
+    this.label?.draw(this.isPrimaryColumn, dataFormatDigits, measureScale);
   }
 
   private getFillStyle(scenarioStyle: SVGStyle | undefined): any {
-    let pattern = this.columnBarStyles[this.dataPoint.getScenario() as string];
+    const pattern = this.columnBarStyles[this.dataPoint.getScenario() as string];
 
     if (pattern?.fillpattern && this.styles.pattern.get(pattern.fillpattern)?.pattern) {
       return this.styles?.pattern?.get(pattern.fillpattern)?.pattern;
@@ -288,7 +325,7 @@ export class Column {
     return this.convertToSVGStyle(scenarioStyle, "fill");
   }
 
-  private getScenarioStyle(): SVGStyle |  undefined {
+  private getScenarioStyle(): SVGStyle | undefined {
     if (this.isVarianceColumn) {
       return this.styles?.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle());
     }
@@ -296,7 +333,7 @@ export class Column {
     return this.columnBarStyles[this.dataPoint.getScenario() as string];
   }
 
-  private isEmpty(): boolean {   
+  private isEmpty(): boolean {
     return false === this.hasData || Number.isNaN(this.dataPoint.value);
   }
 }

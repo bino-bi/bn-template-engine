@@ -19,7 +19,7 @@ export class TableComponentConfig {
   public thereOf: TableDrillGroup[] = [];
   public categoryThereOf: Map<string, any> = new Map();
   public partOf: TableDrillGroup[] = [];
-  public order: Order = new OrderAdapter(new StringAdapter()).default();   // FIXME Rename to sortOrder
+  public order: Order = new OrderAdapter(new StringAdapter()).default(); // FIXME Rename to sortOrder
   public type: TableType = TableType.LIST;
   public limit: number = 0;
   public i18n: I18nMode = I18nMode.ALL;
@@ -30,16 +30,16 @@ export class TableComponentConfig {
   public showMeasureScale: boolean = true;
   public filter: string = "";
   public barColumns: string[] = [];
-  constructor() { }
-
+  constructor() {}
 }
 
 export class TableComponentConfigAdapter implements IAdapter<TableComponentConfig> {
-  constructor(private tableDrillGroupAdapter: TableDrillGroupAdapter,
+  constructor(
+    private tableDrillGroupAdapter: TableDrillGroupAdapter,
     private stringAdapter: StringAdapter,
     private orderAdapter: OrderAdapter,
-    private dataSet: any[]) {
-  }
+    private dataSet: any[],
+  ) {}
   adapt(data: any): TableComponentConfig {
     const config = new TableComponentConfig();
 
@@ -62,7 +62,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     if (CompareUtil.isBoolean(data.showGroupTitle)) {
       config.showGroupTitle = data.showGroupTitle;
     }
-    
+
     if (CompareUtil.isBoolean(data.showMeasureScale)) {
       config.showMeasureScale = data.showMeasureScale;
     }
@@ -75,11 +75,9 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
       config.categoryThereOf = data.categoryThereOf;
     }
 
-
     if (CompareUtil.isArray(data.partOf)) {
       config.partOf = AdapterUtils.adaptArray(data.partOf, this.tableDrillGroupAdapter);
     }
-
 
     if (CompareUtil.isExisting(data.order)) {
       config.order = this.orderAdapter.adapt(data.order);
@@ -90,7 +88,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     }
 
     if (CompareUtil.isNumber(data.limit)) {
-      config.limit = data.limit
+      config.limit = data.limit;
     }
 
     if (CompareUtil.isExisting(data.i18n)) {
@@ -127,5 +125,4 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
   default(): TableComponentConfig {
     return new TableComponentConfig();
   }
-
 }

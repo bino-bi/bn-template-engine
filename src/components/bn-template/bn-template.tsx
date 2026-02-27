@@ -3,8 +3,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-template',
-  shadow: true
+  tag: "bn-template",
+  shadow: true,
 })
 export class Template {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -22,6 +22,10 @@ export class Template {
   @Prop() templateId: string;
 
   render() {
-    return <Host><slot /></Host>
+    return (
+      <Host>
+        <slot />
+      </Host>
+    );
   }
 }

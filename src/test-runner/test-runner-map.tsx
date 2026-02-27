@@ -1,15 +1,12 @@
-import {Component, h} from "@stencil/core";
-import {SVGPolgonPattern} from "../utils/model";
-
-
+import { Component, h } from "@stencil/core";
+import { SVGPolgonPattern } from "../utils/model";
 
 @Component({
   tag: "test-runner-map",
 })
-
 export class TestRunnerChart {
   render() {
-    let style: any = {
+    const style: any = {
       scaleFactors: {
         scenarioOffset: 0.3,
         scenarioLabelToColumn: 0.3,
@@ -34,41 +31,41 @@ export class TestRunnerChart {
         background: "#ffffff",
         leading: 1.8,
       },
-      "axisStyles": {
-        ac: {stroke: "#121212", fill: "#121212", width: 0.1},
-        fc: {stroke: "#121212", fill: "#ffffff", width: 0.1, "dasharray": "10 5 5 5"},
-        pp: {stroke: "#606060", fill: "#606060", width: 0.1},
-        pl: {stroke: "#121212", fill: "#ffffff", width: 0.1},
+      axisStyles: {
+        ac: { stroke: "#121212", fill: "#121212", width: 0.1 },
+        fc: { stroke: "#121212", fill: "#ffffff", width: 0.1, dasharray: "10 5 5 5" },
+        pp: { stroke: "#606060", fill: "#606060", width: 0.1 },
+        pl: { stroke: "#121212", fill: "#ffffff", width: 0.1 },
       },
-      "barStyles": {
-        ac: {stroke: "#404040", fill: "#404040", width: 0.1},
-        fc: {stroke: "#404040", fill: "#ffffff", width: 0.5, fillpattern: "fc"},
-        pp: {stroke: "#A6A6A6", fill: "#A6A6A6", width: 0.1},
-        pl: {stroke: "#404040", fill: "#ffffff", width: 0.1},
+      barStyles: {
+        ac: { stroke: "#404040", fill: "#404040", width: 0.1 },
+        fc: { stroke: "#404040", fill: "#ffffff", width: 0.5, fillpattern: "fc" },
+        pp: { stroke: "#A6A6A6", fill: "#A6A6A6", width: 0.1 },
+        pl: { stroke: "#404040", fill: "#ffffff", width: 0.1 },
       },
-      "varianceStyles": {
-        pos: {stroke: "#008f96", fill: "#008f96", width: 0.1},
-        neg: {stroke: "#ff0000", fill: "#ff0000", width: 0.1},
-        neu: {stroke: "#808080", fill: "#808080", width: 0.1},
+      varianceStyles: {
+        pos: { stroke: "#008f96", fill: "#008f96", width: 0.1 },
+        neg: { stroke: "#ff0000", fill: "#ff0000", width: 0.1 },
+        neu: { stroke: "#808080", fill: "#808080", width: 0.1 },
       },
-      "padding": {
+      padding: {
         top: 10,
         left: 10,
         right: 10,
         bottom: 10,
       },
       pattern: new Map<string, SVGPolgonPattern>(),
-    }
+    };
 
-   let trans = new Map<string, string>();
-    trans.set('pp1', "PY");
-    trans.set('ac1', "AC");
-    trans.set('pl1', "PL");
-    trans.set('fc1', "FC");
+    const trans = new Map<string, string>();
+    trans.set("pp1", "PY");
+    trans.set("ac1", "AC");
+    trans.set("pl1", "PL");
+    trans.set("fc1", "FC");
 
-
-
-    const gpxExample = [{"file": `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+    const gpxExample = [
+      {
+        file: `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
     <gpx xmlns="http://www.topografix.com/GPX/1/1" creator="MapSource 6.16.3" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
     
       <metadata>
@@ -1614,17 +1611,17 @@ export class TestRunnerChart {
         </trkseg>
       </trk>                        
     </gpx>`,
-    "color": '#00ff00',
-    "opacity": 1,
-    "lineCap": "round",
-    "weight" : 3,
-    "startIconUrl": "http://localhost:3333/build/assets/icons/gpx-start.png')",
-    "endIconUrl": "http://localhost:3333/build/assets/icons/gpx-finish.png')",
-    "shadowUrl": "http://localhost:3333/build/assets/icons/gpx-shadow.png')"
-  }];
+        color: "#00ff00",
+        opacity: 1,
+        lineCap: "round",
+        weight: 3,
+        startIconUrl: "http://localhost:3333/build/assets/icons/gpx-start.png')",
+        endIconUrl: "http://localhost:3333/build/assets/icons/gpx-finish.png')",
+        shadowUrl: "http://localhost:3333/build/assets/icons/gpx-shadow.png')",
+      },
+    ];
 
-
-  const geoJsonExample = `[{file:{
+    const geoJsonExample = `[{file:{
     "type": "FeatureCollection",
     "features": [
       {
@@ -1899,29 +1896,34 @@ export class TestRunnerChart {
         }
       }
     ]
-  }}]`
+  }}]`;
 
-    
-
-    return (<div>
-        <div style={{fontFamily: style.fontStyles.font, fontSize: style.fontStyles.size + "px", width: "600px", height: "1000px", display: "block"}}>
+    return (
+      <div>
+        <div
+          style={{
+            fontFamily: style.fontStyles.font,
+            fontSize: style.fontStyles.size + "px",
+            width: "600px",
+            height: "1000px",
+            display: "block",
+          }}
+        >
           <div>T-0 1 Test Map GPX</div>
-          <ibcs-map customView = {true}
-                    latitude={51.137634}
-                    longitude={9.679129} 
-                    scale = {10}
-                    showScale = {false}
-                    showZoom = {false}
-                    attribution={"Jens ist Toll"}  
-                    gpxs = {gpxExample} 
-                    geojsons={geoJsonExample}
-                    markers = {`[]`}
-                    >           
-          </ibcs-map>
-  
+          <ibcs-map
+            customView={true}
+            latitude={51.137634}
+            longitude={9.679129}
+            scale={10}
+            showScale={false}
+            showZoom={false}
+            attribution={"Jens ist Toll"}
+            gpxs={gpxExample}
+            geojsons={geoJsonExample}
+            markers={`[]`}
+          ></ibcs-map>
         </div>
       </div>
-    )
+    );
   }
 }
-

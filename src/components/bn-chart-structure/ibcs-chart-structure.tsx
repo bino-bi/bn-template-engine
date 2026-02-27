@@ -4,7 +4,7 @@ import { CustomPattern } from "./utils/helper";
 import {
   StructureChartComponentConfig,
   StructureChartComponentConfigAdapter,
-  StructureChartDataRow
+  StructureChartDataRow,
 } from "./utils/model";
 import { StackConfigParsed } from "./utils/model/StructureChartComponentConfig";
 import { StructureChartDataRowAdapter } from "./utils/model";
@@ -32,11 +32,9 @@ import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVaria
 @Component({
   tag: "ibcs-chart-structure",
   styleUrl: "bn-chart-structure.scss",
-  shadow: true
+  shadow: true,
 })
-
 export class IbcsChartStructure {
-
   @Element() element: HTMLElement | undefined;
 
   @Prop() data: StructureChartDataRow[] = [];
@@ -56,7 +54,8 @@ export class IbcsChartStructure {
   @Prop() limit: number = 0;
 
   @Prop({ mutable: true })
-  @Prop() styles: StructureChartStyle | undefined;
+  @Prop()
+  styles: StructureChartStyle | undefined;
 
   @Prop({ mutable: true })
   i18n: Map<string, string> = new Map(); //  I18nMode;
@@ -70,7 +69,6 @@ export class IbcsChartStructure {
   @Prop()
   level: AggregationLevel = AggregationLevel.CATEGORY;
 
- 
   @Prop()
   filter: string = "";
 
@@ -93,29 +91,31 @@ export class IbcsChartStructure {
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
   private chart: StructureChart | undefined;
-  private pattern: CustomPattern | undefined;;
+  private pattern: CustomPattern | undefined;
 
-  constructor() {
-
-  }
+  constructor() {}
 
   public render() {
     if (this.chart == undefined) {
-      return (<Host />);
+      return <Host />;
     }
 
     if (this.chart.hasNoData()) {
       const errorMsg: string = this.i18n.get("NO_DATA") || "==No Data==";
-      return (<Host><p class="warning">{errorMsg}</p></Host>);
+      return (
+        <Host>
+          <p class="warning">{errorMsg}</p>
+        </Host>
+      );
     }
 
     return (
-      <Host>       
+      <Host>
         {/*<div ref={(el) => this.patternElement = el} id="pattern" class="hidePatternContainer" /> */}
-        <div innerHTML={this.pattern?.toString()} class="hidePatternContainer" /> 
-      
-        <div class={this.showMeasureScale? "footer": "footer-hide" }>{this.chart?.getFooter()}</div>
-        { /* <svg ref={(el) => this.drawElement = el} id="drawCanvas" width={this.chart.getAllocatedCanvasWidth()} height={this.chart.getAllocatedCanvasHeight()} />*/}
+        <div innerHTML={this.pattern?.toString()} class="hidePatternContainer" />
+
+        <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
+        {/* <svg ref={(el) => this.drawElement = el} id="drawCanvas" width={this.chart.getAllocatedCanvasWidth()} height={this.chart.getAllocatedCanvasHeight()} />*/}
         <div innerHTML={this.chart?.toString()}></div>
       </Host>
     );
@@ -212,31 +212,39 @@ export class IbcsChartStructure {
   }
 
   private prepareConfig(): StructureChartComponentConfig {
-    return new StructureChartComponentConfigAdapter(new StructureChartDataRowAdapter(), new OrderAdapter(new StringAdapter()), new StringAdapter(),  new DataFormatDigitsAdapter(), this.data).adapt({
-      "data": this.data,
-      "scenarios": this.scenarios,
-      "variances": this.variances,
-      "title": this.chartTitle,
-      "hideCategories": this.hideCategories,
-      "pixelPerUnit": this.pixelPerUnit,
-      "pixelPerPercentage": this.pixelPerPercentage,
-      "level": this.level,
-      "limit": this.limit,
-      "sortOrder": this.order,
-      "filter": this.filter,
-      "measureScale": this.measureScale,
-      "measureUnit": this.measureUnit,     
-      "showMeasureScale": this.showMeasureScale,
-      "dataFormatDigits":this.dataFormatDigits,
-      "stackConfig": this.stackConfig,
+    return new StructureChartComponentConfigAdapter(
+      new StructureChartDataRowAdapter(),
+      new OrderAdapter(new StringAdapter()),
+      new StringAdapter(),
+      new DataFormatDigitsAdapter(),
+      this.data,
+    ).adapt({
+      data: this.data,
+      scenarios: this.scenarios,
+      variances: this.variances,
+      title: this.chartTitle,
+      hideCategories: this.hideCategories,
+      pixelPerUnit: this.pixelPerUnit,
+      pixelPerPercentage: this.pixelPerPercentage,
+      level: this.level,
+      limit: this.limit,
+      sortOrder: this.order,
+      filter: this.filter,
+      measureScale: this.measureScale,
+      measureUnit: this.measureUnit,
+      showMeasureScale: this.showMeasureScale,
+      dataFormatDigits: this.dataFormatDigits,
+      stackConfig: this.stackConfig,
     });
   }
 
   private prepareStyle(): StructureChartStyle {
-    return new StructureChartStylesAdapter(new ScaleFactorsStructureChartAdapter(),
+    return new StructureChartStylesAdapter(
+      new ScaleFactorsStructureChartAdapter(),
       new FontStyleAdapter(),
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
-      new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter),
-      new PaddingAdapter()).adapt(this.styles);
+      new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
+      new PaddingAdapter(),
+    ).adapt(this.styles);
   }
 }

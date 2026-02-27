@@ -1,4 +1,4 @@
-import {Component, h} from "@stencil/core";
+import { Component, h } from "@stencil/core";
 
 import { MeasureType, I18nMode, TableCategoryWidth, TableType } from "../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../utils/model/Order";
@@ -6,10 +6,7 @@ import { Order, OrderColumn, OrderDirection } from "../utils/model/Order";
 @Component({
   tag: "test-runner-table",
 })
-
 export class TestRunnerTable {
-
-
   render() {
     /*let style: any = {
       fontStyles: {
@@ -20,7 +17,6 @@ export class TestRunnerTable {
         leading: 1.8,
       }
     };*/
-
 
     /*let dataSet: any[] = [{
       "setName": "de",
@@ -329,190 +325,176 @@ export class TestRunnerTable {
     ];
 
 */
-    let dataSet2: any[] =[
+    const dataSet2: any[] = [
       {
-        "setname": "de",
-        "date": "2021-03-31T00:00:00+01:00",
-        "operation": "+",
-        "rowGroup": "Firma_1",
-        "rowGroupIndex": 1,
-        "category": "Geschäftssparte_A",
-        "categoryIndex": 1,
-        "subCategory": "Produkt_a",
-        "subCategoryIndex": 1,
-        "columnGroup": "null",
-        "columnGroupIndex": "null",
-        "columnSubGroup": "null",
-        "columnSubGroupIndex": "null",
-        "pp1": 1438,
-        "ac1": 2100,
-        "fc1": null,
-        "pl1": null
+        setname: "de",
+        date: "2021-03-31T00:00:00+01:00",
+        operation: "+",
+        rowGroup: "Firma_1",
+        rowGroupIndex: 1,
+        category: "Geschäftssparte_A",
+        categoryIndex: 1,
+        subCategory: "Produkt_a",
+        subCategoryIndex: 1,
+        columnGroup: "null",
+        columnGroupIndex: "null",
+        columnSubGroup: "null",
+        columnSubGroupIndex: "null",
+        pp1: 1438,
+        ac1: 2100,
+        fc1: null,
+        pl1: null,
       },
       {
-        "setname": "de",
-        "date": "2021-03-31T00:00:00+01:00",
-        "operation": "+",
-        "rowGroup": "Firma_1",
-        "rowGroupIndex": 1,
-        "category": "Geschäftssparte_A",
-        "categoryIndex": 1,
-        "subCategory": "Produkt_b",
-        "subCategoryIndex": 2,
-        "columnGroup": "null",
-        "columnGroupIndex": "null",
-        "columnSubGroup": "null",
-        "columnSubGroupIndex": "null",
-        "pp1": 262,
-        "ac1": 485,
-        "fc1": null,
-        "pl1": null
+        setname: "de",
+        date: "2021-03-31T00:00:00+01:00",
+        operation: "+",
+        rowGroup: "Firma_1",
+        rowGroupIndex: 1,
+        category: "Geschäftssparte_A",
+        categoryIndex: 1,
+        subCategory: "Produkt_b",
+        subCategoryIndex: 2,
+        columnGroup: "null",
+        columnGroupIndex: "null",
+        columnSubGroup: "null",
+        columnSubGroupIndex: "null",
+        pp1: 262,
+        ac1: 485,
+        fc1: null,
+        pl1: null,
       },
       {
-        "setname": "de",
-        "date": "2021-03-31T00:00:00+01:00",
-        "operation": "+",
-        "rowGroup": "Firma_1",
-        "rowGroupIndex": 1,
-        "category": "Geschäftssparte_B",
-        "categoryIndex": 2,
-        "subCategory": "Produkt_c",
-        "subCategoryIndex": 3,
-        "columnGroup": "null",
-        "columnGroupIndex": "null",
-        "columnSubGroup": "null",
-        "columnSubGroupIndex": "null",
-        "pp1": 348,
-        "ac1": 1345,
-        "fc1": null,
-        "pl1": null
+        setname: "de",
+        date: "2021-03-31T00:00:00+01:00",
+        operation: "+",
+        rowGroup: "Firma_1",
+        rowGroupIndex: 1,
+        category: "Geschäftssparte_B",
+        categoryIndex: 2,
+        subCategory: "Produkt_c",
+        subCategoryIndex: 3,
+        columnGroup: "null",
+        columnGroupIndex: "null",
+        columnSubGroup: "null",
+        columnSubGroupIndex: "null",
+        pp1: 348,
+        ac1: 1345,
+        fc1: null,
+        pl1: null,
       },
       {
-        "setname": "de",
-        "date": "2021-03-31T00:00:00+01:00",
-        "operation": "+",
-        "rowGroup": "Firma_2",
-        "rowGroupIndex": 2,
-        "category": "Geschäftssparte_A",
-        "categoryIndex": 1,
-        "subCategory": "Produkt_a",
-        "subCategoryIndex": 1,
-        "columnGroup": "null",
-        "columnGroupIndex": "null",
-        "columnSubGroup": "null",
-        "columnSubGroupIndex": "null",
-        "pp1": -26,
-        "ac1": 277,
-        "fc1": null,
-        "pl1": null
+        setname: "de",
+        date: "2021-03-31T00:00:00+01:00",
+        operation: "+",
+        rowGroup: "Firma_2",
+        rowGroupIndex: 2,
+        category: "Geschäftssparte_A",
+        categoryIndex: 1,
+        subCategory: "Produkt_a",
+        subCategoryIndex: 1,
+        columnGroup: "null",
+        columnGroupIndex: "null",
+        columnSubGroup: "null",
+        columnSubGroupIndex: "null",
+        pp1: -26,
+        ac1: 277,
+        fc1: null,
+        pl1: null,
       },
       {
-        "setname": "de",
-        "date": "2021-03-31T00:00:00+01:00",
-        "operation": "+",
-        "rowGroup": "Firma_2",
-        "rowGroupIndex": 2,
-        "category": "Geschäftssparte_B",
-        "categoryIndex": 2,
-        "subCategory": "Produkt_d",
-        "subCategoryIndex": 4,
-        "columnGroup": "null",
-        "columnGroupIndex": "null",
-        "columnSubGroup": "null",
-        "columnSubGroupIndex": "null",
-        "pp1": -59,
-        "ac1": -100,
-        "fc1": null,
-        "pl1": null
+        setname: "de",
+        date: "2021-03-31T00:00:00+01:00",
+        operation: "+",
+        rowGroup: "Firma_2",
+        rowGroupIndex: 2,
+        category: "Geschäftssparte_B",
+        categoryIndex: 2,
+        subCategory: "Produkt_d",
+        subCategoryIndex: 4,
+        columnGroup: "null",
+        columnGroupIndex: "null",
+        columnSubGroup: "null",
+        columnSubGroupIndex: "null",
+        pp1: -59,
+        ac1: -100,
+        fc1: null,
+        pl1: null,
       },
       {
-        "setname": "de",
-        "date": "2021-03-31T00:00:00+01:00",
-        "operation": "+",
-        "rowGroup": "Firma_1",
-        "rowGroupIndex": 2,
-        "category": "Geschäftssparte_B",
-        "categoryIndex": 2,
-        "subCategory": "Produkt_d",
-        "subCategoryIndex": 4,
-        "columnGroup": "null",
-        "columnGroupIndex": "null",
-        "columnSubGroup": "null",
-        "columnSubGroupIndex": "null",
-        "pp1": -59,
-        "ac1": -100,
-        "fc1": null,
-        "pl1": null
+        setname: "de",
+        date: "2021-03-31T00:00:00+01:00",
+        operation: "+",
+        rowGroup: "Firma_1",
+        rowGroupIndex: 2,
+        category: "Geschäftssparte_B",
+        categoryIndex: 2,
+        subCategory: "Produkt_d",
+        subCategoryIndex: 4,
+        columnGroup: "null",
+        columnGroupIndex: "null",
+        columnSubGroup: "null",
+        columnSubGroupIndex: "null",
+        pp1: -59,
+        ac1: -100,
+        fc1: null,
+        pl1: null,
       },
       {
-        "setname": "de",
-        "date": "2021-03-31T00:00:00+01:00",
-        "operation": "+",
-        "rowGroup": "Firma_3",
-        "rowGroupIndex": 3,
-        "category": "Geschäftssparte_C",
-        "categoryIndex": 3,
-        "subCategory": "Produkt_e",
-        "subCategoryIndex": 5,
-        "columnGroup": "null",
-        "columnGroupIndex": "null",
-        "columnSubGroup": "null",
-        "columnSubGroupIndex": "null",
-        "pp1": 1786,
-        "ac1": 3445,
-        "fc1": null,
-        "pl1": null
-      }
+        setname: "de",
+        date: "2021-03-31T00:00:00+01:00",
+        operation: "+",
+        rowGroup: "Firma_3",
+        rowGroupIndex: 3,
+        category: "Geschäftssparte_C",
+        categoryIndex: 3,
+        subCategory: "Produkt_e",
+        subCategoryIndex: 5,
+        columnGroup: "null",
+        columnGroupIndex: "null",
+        columnSubGroup: "null",
+        columnSubGroupIndex: "null",
+        pp1: 1786,
+        ac1: 3445,
+        fc1: null,
+        pl1: null,
+      },
     ];
 
-    
-
-
-    return (<div>
-     <ibcs-table
-        table-title=""
-        scenarios={["drac1_fc1_pos","drac1_pl1_pos","drac1_pl2_pos","drac1_fc2_pos", "ac1", "pl1", "fc1"]}
-        scenarios-data-format="decimal"
-        measure-scale="k"
-        measure-unit=""
-        showMeasureScale={true}
-        order={{
-          hierarchy: [OrderColumn.AC1],
-          direction: OrderDirection.ASC
-        } as Order}
-        limit={0}
-        measure-type={MeasureType.VOLUME}
-        grouped={false}
-        type={TableType.LIST}
-        i18n={new Map([["SUM_TOTAL", "🤩"]])}
-        i18n-mode={I18nMode.ALL}
-        showGroupTitle={true}
-        data={dataSet2}
-        category-width={TableCategoryWidth.W25}
-        thereof={[{rowGroup: "Firma_1",
-                  category: "Geschäftssparte_A",
-                  subCategory: "",
-                  partOf:""},
-                  {rowGroup: "Firma_1",
-                  category: "Geschäftssparte_B",
-                  subCategory:"",
-                  partOf:"",
-                  },
-                  {rowGroup:"Firma_2",
-                  category:"Geschäftssparte_A",
-                  subCategory:"",
-                  partOf:""},
-                  {rowGroup:"Firma_2",
-                  category:"Geschäftssparte_B",
-                  subCategory:"",
-                  partOf:""},
-                  {rowGroup:"Firma_3",
-                  category:"Geschäftssparte_C",
-                  subCategory:"",
-                  partOf:""}]}      
-        categorythereof={new Map()}
-      ></ibcs-table>
-    </div>);
-
+    return (
+      <div>
+        <ibcs-table
+          table-title=""
+          scenarios={["drac1_fc1_pos", "drac1_pl1_pos", "drac1_pl2_pos", "drac1_fc2_pos", "ac1", "pl1", "fc1"]}
+          scenarios-data-format="decimal"
+          measure-scale="k"
+          measure-unit=""
+          showMeasureScale={true}
+          order={
+            {
+              hierarchy: [OrderColumn.AC1],
+              direction: OrderDirection.ASC,
+            } as Order
+          }
+          limit={0}
+          measure-type={MeasureType.VOLUME}
+          grouped={false}
+          type={TableType.LIST}
+          i18n={new Map([["SUM_TOTAL", "🤩"]])}
+          i18n-mode={I18nMode.ALL}
+          showGroupTitle={true}
+          data={dataSet2}
+          category-width={TableCategoryWidth.W25}
+          thereof={[
+            { rowGroup: "Firma_1", category: "Geschäftssparte_A", subCategory: "", partOf: "" },
+            { rowGroup: "Firma_1", category: "Geschäftssparte_B", subCategory: "", partOf: "" },
+            { rowGroup: "Firma_2", category: "Geschäftssparte_A", subCategory: "", partOf: "" },
+            { rowGroup: "Firma_2", category: "Geschäftssparte_B", subCategory: "", partOf: "" },
+            { rowGroup: "Firma_3", category: "Geschäftssparte_C", subCategory: "", partOf: "" },
+          ]}
+          categorythereof={new Map()}
+        ></ibcs-table>
+      </div>
+    );
   }
 }

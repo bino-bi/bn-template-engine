@@ -6,8 +6,10 @@ import {
   isValidDateFormat,
   isValidDateLink,
   isValidDirection,
-  validateMeasureList, validateOrderList,
-  validateScenarioList, validateVariancesList,
+  validateMeasureList,
+  validateOrderList,
+  validateScenarioList,
+  validateVariancesList,
 } from "../../utils/validate";
 import { DateTime } from "luxon";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -23,11 +25,10 @@ import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
 import { DateDistance, DateLink } from "../../utils/DateStringFactory";
 import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
 
-
 @Component({
-  tag: 'bn-title',
-  styleUrl: 'bn-title.scss',
-  shadow: true
+  tag: "bn-title",
+  styleUrl: "bn-title.scss",
+  shadow: true,
 })
 export class Title {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -45,8 +46,7 @@ export class Title {
   }
 
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
-  @Prop() readonly businessUnit: string = '';
-
+  @Prop() readonly businessUnit: string = "";
 
   /** List of scenarios displayed in card header.
    *  <br /><br />
@@ -56,14 +56,18 @@ export class Title {
    */
   @Prop() readonly scenarios: string;
 
-  @Watch('scenarios')
+  @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = 'ERR_scenarios';
+    const errId: string = "ERR_scenarios";
 
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "scenarios: invalid value(s) '" + invalidScenarios?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -88,19 +92,21 @@ export class Title {
    */
   @Prop() readonly variances: string;
 
-  @Watch('variances')
+  @Watch("variances")
   validateVariances(newValue: string) {
-    const errId: string = 'ERR_variances';
+    const errId: string = "ERR_variances";
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'variances: invalid value(s) \'' + invalidVariances?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "variances: invalid value(s) '" + invalidVariances?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
-
 
   /** List of the primary scenarios on which the order direction are applied.
    *  <br /><br />
@@ -109,38 +115,44 @@ export class Title {
    *  <br /><br />
    *  values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
    */
-  @Prop() readonly order: string = 'category';
+  @Prop() readonly order: string = "category";
 
-  @Watch('order')
+  @Watch("order")
   validateOrder(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
-    const errId: string = 'ERR_order';
+    const errId: string = "ERR_order";
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + invalidElements?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "order: invalid value(s) '" + invalidElements?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** Sets sorting order directon
    *  <br /><br />
    *  values:<br /> ``` asc // desc ```
    */
-  @Prop() readonly orderDirection: string = 'asc';
+  @Prop() readonly orderDirection: string = "asc";
 
-  @Watch('orderDirection')
+  @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = 'ERR_orderDirection';
+    const errId: string = "ERR_orderDirection";
 
     if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "orderDirection: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** Stringified Array of measure objects {name: string, unit: string}
    *  <br /><br />
@@ -151,13 +163,20 @@ export class Title {
    */
   @Prop() readonly measures: string;
 
-  @Watch('measures')
+  @Watch("measures")
   validateMeasures(newValue: string) {
-    const errId: string = 'ERR_measures';
+    const errId: string = "ERR_measures";
     const invalidMeasures: string[] = validateMeasureList(newValue);
 
     if (invalidMeasures.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measures: invalid value(s) \'' + invalidMeasures?.toString() + '\' are not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message:
+          "measures: invalid value(s) '" +
+          invalidMeasures?.toString() +
+          '\' are not supported. Valid format example: [{"name": "Bruttoumsatz", "unit": "mEUR"}]',
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -169,16 +188,19 @@ export class Title {
    */
   @Prop() readonly dateStart: string;
 
-  @Watch('dateStart')
+  @Watch("dateStart")
   validateDateStart(newValue: string) {
-    const errId: string = 'ERR_dateStart';
+    const errId: string = "ERR_dateStart";
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "dateStart: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** String of end date
    *  <br /><br />
@@ -186,12 +208,16 @@ export class Title {
    */
   @Prop() readonly dateEnd: string;
 
-  @Watch('dateEnd')
+  @Watch("dateEnd")
   validateDateEnd(newValue: string) {
-    const errId: string = 'ERR_dateEnd';
+    const errId: string = "ERR_dateEnd";
 
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateStart: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "dateStart: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -212,19 +238,22 @@ export class Title {
    *  ```none: "DD.MM.YYYY"```<br />
    *
    */
-  @Prop() readonly dateFormat: string = 'none';
+  @Prop() readonly dateFormat: string = "none";
 
-  @Watch('dateFormat')
+  @Watch("dateFormat")
   validateDateFormat(newValue: string) {
-    const errId: string = 'ERR_dateFormat';
+    const errId: string = "ERR_dateFormat";
 
     if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateFormat: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "dateFormat: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** Format in which the start and end date are linked.
    *  <br /><br />
@@ -245,19 +274,23 @@ export class Title {
    *  ```none: "[DATE]"```<br />
    *
    */
-  @Prop() readonly dateLink: string = 'none';
+  @Prop() readonly dateLink: string = "none";
 
-  @Watch('dateLink')
+  @Watch("dateLink")
   validateDateLink(newValue: string) {
-    const errId: string = 'ERR_dateLink';
+    const errId: string = "ERR_dateLink";
     if (!isValidDateLink(newValue) && !isBlankInput(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dateLink: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "dateLink: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-  @State() readonly datasource: any // TODO: is this needed?
+  @State() readonly datasource: any; // TODO: is this needed?
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
@@ -275,17 +308,17 @@ export class Title {
     try {
       return Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
     } catch (e) {
-      console.error("bn-text", e)
+      console.error("bn-text", e);
     }
-  }
+  };
 
   private prepareI18n(): Map<string, string> {
     const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system
-    let i18nMapSystemLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
-    let i18nMapSystemGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    const i18nMapSystemLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
+    const i18nMapSystemGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
     //let i18nMapCustom =
 
     return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries()]);
@@ -301,8 +334,8 @@ export class Title {
     }
 
     return {
-      hierarchy: this.order.split(",").map(entry => entry.trim()),
-      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
+      hierarchy: this.order.split(",").map((entry) => entry.trim()),
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection],
     };
   }
 
@@ -342,7 +375,7 @@ export class Title {
     if (this.variances?.trim().length > 0) {
       scenarios = scenarios.concat(this.variances?.split(","));
     }
-    return scenarios.map(entry => entry.trim());
+    return scenarios.map((entry) => entry.trim());
   }
 
   private prepareBusinessUnit(): string {
@@ -353,27 +386,29 @@ export class Title {
   }
 
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    return this.componentStyle(($) => ({
+      "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      "--bn-font-size": `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+      "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
 
   render() {
     const fontStyles = this.getFontStyles();
 
-    return <Host style={fontStyles}>
-      <ibcs-title
-        businessUnit={this.prepareBusinessUnit()}
-        scenarios={this.prepareScenarios()}
-        measures={this.prepareMeasures()}
-        timeperiod={this.prepareTitleTimePeriod()}
-        order={this.prepareTitleOrder()}
-        i18n={this.prepareI18n()}
-        i18n-mode={this.prepareI18nMode()}
-      ></ibcs-title>
-    </Host>
+    return (
+      <Host style={fontStyles}>
+        <ibcs-title
+          businessUnit={this.prepareBusinessUnit()}
+          scenarios={this.prepareScenarios()}
+          measures={this.prepareMeasures()}
+          timeperiod={this.prepareTitleTimePeriod()}
+          order={this.prepareTitleOrder()}
+          i18n={this.prepareI18n()}
+          i18n-mode={this.prepareI18nMode()}
+        ></ibcs-title>
+      </Host>
+    );
   }
 }

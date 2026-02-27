@@ -1,47 +1,43 @@
-import {G} from "@svgdotjs/svg.js";
+import { G } from "@svgdotjs/svg.js";
 
-import {
-Bar, Marker,
-} from "../elements";
+import { Bar, Marker } from "../elements";
 
-import {
-  ElementPositions,
-} from "../helper";
+import { ElementPositions } from "../helper";
 
-import {
-  StructureChartStyle,
-  DataPoint,
-  OverflowConfig,
-} from "../model";
-import {Needle} from "../elements";
+import { StructureChartStyle, DataPoint, OverflowConfig } from "../model";
+import { Needle } from "../elements";
 import { SVGPolgonPattern } from "../../../../utils/model";
 // import { SVGPolgonPattern} from "../../../../utils/model";
-
 
 export class ScenarioFactory {
   styles: StructureChartStyle;
   svgGroups: {
-    parent: G,
-    scenario1: G,
-    scenario2: G,
-    scenario3: G,
-    scenario4: G,
-    scenario1Label: G,
-  }
+    parent: G;
+    scenario1: G;
+    scenario2: G;
+    scenario3: G;
+    scenario4: G;
+    scenario1Label: G;
+  };
 
   position: ElementPositions;
   elementCnt: number;
   private i18n: Map<string | number, string>;
   private overflowConfig: OverflowConfig | null = null;
 
-  constructor(position: ElementPositions, scenariosGroupParent: G, styles: StructureChartStyle, elementCnt: number, i18n: Map<string | number, string>){
-
+  constructor(
+    position: ElementPositions,
+    scenariosGroupParent: G,
+    styles: StructureChartStyle,
+    elementCnt: number,
+    i18n: Map<string | number, string>,
+  ) {
     this.i18n = i18n;
-    let primScenario: G = scenariosGroupParent.group().id("Scenario1");
-    let secondScenario: G = scenariosGroupParent.group().id("Scenario2").insertBefore(primScenario);
+    const primScenario: G = scenariosGroupParent.group().id("Scenario1");
+    const secondScenario: G = scenariosGroupParent.group().id("Scenario2").insertBefore(primScenario);
 
     this.svgGroups = {
-      parent:    scenariosGroupParent,
+      parent: scenariosGroupParent,
       scenario1: primScenario,
       scenario2: secondScenario,
       scenario3: scenariosGroupParent.group().id("Scenario3"),
@@ -54,7 +50,6 @@ export class ScenarioFactory {
     this.position = position;
 
     this.elementCnt = elementCnt;
-
   }
 
   public setOverflowConfig(config: OverflowConfig | null): void {
@@ -62,17 +57,17 @@ export class ScenarioFactory {
   }
 
   private isLastDataPoint(index: number): boolean {
-    return  (this.elementCnt - 1) === index;
+    return this.elementCnt - 1 === index;
   }
 
   private isFirsttDataPoint(index: number): boolean {
-    return  0 === index;
+    return 0 === index;
   }
 
   public createPrimaryBar(dataPoint: DataPoint, index: number): Bar {
-    let isPrimaryBar = true;
-    let barGroup = this.svgGroups?.scenario1?.group().id("" + index);
-    let labelGroup  = this.svgGroups?.scenario1Label?.group().id("" + index);
+    const isPrimaryBar = true;
+    const barGroup = this.svgGroups?.scenario1?.group().id("" + index);
+    const labelGroup = this.svgGroups?.scenario1Label?.group().id("" + index);
 
     let barLabel: string | null = null;
 
@@ -80,76 +75,119 @@ export class ScenarioFactory {
       barLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Bar(this.position, this.styles, dataPoint, index, isPrimaryBar,  barGroup, barLabel, this.overflowConfig).updateLabelGroup(labelGroup);
+    return new Bar(
+      this.position,
+      this.styles,
+      dataPoint,
+      index,
+      isPrimaryBar,
+      barGroup,
+      barLabel,
+      this.overflowConfig,
+    ).updateLabelGroup(labelGroup);
   }
 
   public createVarianceBar(dataPoint: DataPoint, index: number): Bar {
-    let isPrimaryBar = true;
-    let barGroup = this.svgGroups?.scenario1?.group().id("" + index);
-    let labelGroup  = this.svgGroups?.scenario1Label?.group().id("" + index);
+    const isPrimaryBar = true;
+    const barGroup = this.svgGroups?.scenario1?.group().id("" + index);
+    const labelGroup = this.svgGroups?.scenario1Label?.group().id("" + index);
 
     let barLabel: string | null = null;
 
-    if (this.isLastDataPoint(index)){
+    if (this.isLastDataPoint(index)) {
       barLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Bar(this.position, this.styles, dataPoint, index, isPrimaryBar, barGroup, barLabel, this.overflowConfig).updateLabelGroup(labelGroup).setAsVariance();
+    return new Bar(this.position, this.styles, dataPoint, index, isPrimaryBar, barGroup, barLabel, this.overflowConfig)
+      .updateLabelGroup(labelGroup)
+      .setAsVariance();
   }
 
   public createRelativeVarianceBar(dataPoint: DataPoint, index: number): Needle {
-    let barGroup = this.svgGroups?.scenario1?.group().id("" + index);
-    let labelGroup  = this.svgGroups?.scenario1Label?.group().id("" + index);
+    const barGroup = this.svgGroups?.scenario1?.group().id("" + index);
+    const labelGroup = this.svgGroups?.scenario1Label?.group().id("" + index);
 
-    return new Needle(this.position, this.styles, dataPoint, index,  barGroup).updateLabelGroup(labelGroup);
+    return new Needle(this.position, this.styles, dataPoint, index, barGroup).updateLabelGroup(labelGroup);
   }
 
   public createSecondaryBar(dataPoint: DataPoint, index: number): Bar {
-    let isPrimaryBar = true;
-    let barGroup = this.svgGroups?.scenario2?.group().id("" + index);
+    const isPrimaryBar = true;
+    const barGroup = this.svgGroups?.scenario2?.group().id("" + index);
     let barLabel: string | null = null;
 
-    if(this.isFirsttDataPoint(index)) {
+    if (this.isFirsttDataPoint(index)) {
       barLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Bar(this.position, this.styles, dataPoint, index, !isPrimaryBar, barGroup, barLabel, this.overflowConfig);
+    return new Bar(
+      this.position,
+      this.styles,
+      dataPoint,
+      index,
+      !isPrimaryBar,
+      barGroup,
+      barLabel,
+      this.overflowConfig,
+    );
   }
 
-  public createPrimaryMarker(dataPoint: DataPoint,  index: number): Marker {
-    let markerGroup: G = this.svgGroups?.scenario3?.group().id("" + index);
-    let markerPattern: SVGPolgonPattern = this.styles.pattern.get("marker-down") || { foreground: "0,0 1,0 1,1 0,1", background: "0,0 1,0 1,1 0,1",  bgOffset: 0};
-    let isPrimaryMarker = true;
+  public createPrimaryMarker(dataPoint: DataPoint, index: number): Marker {
+    const markerGroup: G = this.svgGroups?.scenario3?.group().id("" + index);
+    const markerPattern: SVGPolgonPattern = this.styles.pattern.get("marker-down") || {
+      foreground: "0,0 1,0 1,1 0,1",
+      background: "0,0 1,0 1,1 0,1",
+      bgOffset: 0,
+    };
+    const isPrimaryMarker = true;
 
     let labelText: string | null = null;
 
-
-    if (this.isFirstDataPoint(index)){
+    if (this.isFirstDataPoint(index)) {
       labelText = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-    return new Marker(this.position, markerGroup, markerPattern, dataPoint.scenario as string, this.styles, dataPoint, index, labelText, isPrimaryMarker);
-
+    return new Marker(
+      this.position,
+      markerGroup,
+      markerPattern,
+      dataPoint.scenario as string,
+      this.styles,
+      dataPoint,
+      index,
+      labelText,
+      isPrimaryMarker,
+    );
   }
 
-  public createSecondaryMarker(dataPoint: DataPoint,  index: number): Marker {
-    let markerGroup: G = this.svgGroups?.scenario4?.group().id("" + index);
-    let markerPattern: SVGPolgonPattern = this.styles.pattern.get("marker-up") || { foreground: "0,0 1,0 1,1 0,1", background: "0,0 1,0 1,1 0,1",  bgOffset: 0};
-    let isPrimaryMarker = false;
+  public createSecondaryMarker(dataPoint: DataPoint, index: number): Marker {
+    const markerGroup: G = this.svgGroups?.scenario4?.group().id("" + index);
+    const markerPattern: SVGPolgonPattern = this.styles.pattern.get("marker-up") || {
+      foreground: "0,0 1,0 1,1 0,1",
+      background: "0,0 1,0 1,1 0,1",
+      bgOffset: 0,
+    };
+    const isPrimaryMarker = false;
 
     let labelText: string | null = null;
 
-    if (this.isLastDataPoint(index)){
+    if (this.isLastDataPoint(index)) {
       labelText = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 
-
-    return new Marker(this.position, markerGroup, markerPattern, dataPoint.scenario as string, this.styles, dataPoint, index, labelText, isPrimaryMarker);
-
+    return new Marker(
+      this.position,
+      markerGroup,
+      markerPattern,
+      dataPoint.scenario as string,
+      this.styles,
+      dataPoint,
+      index,
+      labelText,
+      isPrimaryMarker,
+    );
   }
 
   private isFirstDataPoint(index: number): boolean {
-    return  0 === index;
+    return 0 === index;
   }
-
 }

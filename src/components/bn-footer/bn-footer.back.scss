@@ -1,5 +1,4 @@
 bn-footer {
-
   %footer {
     position: relative;
     font-size: 0.5em;
@@ -10,11 +9,10 @@ bn-footer {
     grid-template-columns: 1.4fr 0.3fr 1.4fr;
     grid-template-rows: 1fr;
     gap: 0px 0px;
-    grid-template-areas:
-    "footer-text code page-number";
+    grid-template-areas: "footer-text code page-number";
     width: 100%;
     height: 1.3em;
-    text-align:  center;
+    text-align: center;
   }
 
   span.note {
@@ -27,15 +25,15 @@ bn-footer {
 
   div#container-page-footer {
     @extend %footer;
-    box-sizing:border-box;
-    -webkit-box-sizing:border-box;
-    border-top: 0.05em solid #CCC;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border-top: 0.05em solid #ccc;
   }
 
   div#footer-text {
     justify-self: start;
     grid-area: footer-text;
-    text-align:  center;
+    text-align: center;
   }
 
   div#code {
@@ -47,13 +45,5 @@ bn-footer {
   div#page-number {
     justify-self: end;
     grid-area: page-number;
-
   }
 }
-
-
-
-
-
-
-

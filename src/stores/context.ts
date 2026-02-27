@@ -1,11 +1,11 @@
 import { createStore } from "@stencil/store";
 
 export interface ContextStore {
-  locale: string
+  locale: string;
 }
 
 const { state, on, get, set } = createStore<ContextStore>({
-  locale: 'en',
+  locale: "en",
 });
 
 export { on, get, set };

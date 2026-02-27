@@ -2,7 +2,11 @@ import { Component, Element, h, Host, Prop } from "@stencil/core";
 import { TimeChart } from "./utils/TimeChart";
 import { CustomPattern } from "./utils/helper";
 
-import { StackConfigParsed, TimeChartComponentConfig, TimeChartComponentConfigAdapter } from "./utils/model/TimeChartComponentConfig";
+import {
+  StackConfigParsed,
+  TimeChartComponentConfig,
+  TimeChartComponentConfigAdapter,
+} from "./utils/model/TimeChartComponentConfig";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./utils/model/TimeChartDataRow";
 import { TimeChartStyle, TimeChartStylesAdapter } from "./utils/model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsTimeChart";
@@ -22,33 +26,32 @@ import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVaria
 @Component({
   tag: "ibcs-chart-time",
   styleUrl: "ibcs-chart-time.scss",
-  shadow: true
+  shadow: true,
 })
-
 export class IbcsChartTime {
-
   @Element() element: HTMLElement | undefined;
 
   // @Prop() dimension: { height: number, width: number } = {height: 400, width: 450};
 
   @Prop() data: TimeChartDataRow[] = [];
 
-  @Prop() chartTitle?: string;   // title cannot be used, is reserved
+  @Prop() chartTitle?: string; // title cannot be used, is reserved
 
   @Prop() scenarios: string[] = [];
 
-  @Prop() variances: string[] = [];  //["dfc_ac_neg"]
+  @Prop() variances: string[] = []; //["dfc_ac_neg"]
 
   @Prop() hideAxisLabels: boolean = false; //false
 
-  @Prop() pixelPerUnit: number = 2;  //2
+  @Prop() pixelPerUnit: number = 2; //2
 
-  @Prop() pixelPerPercentage: number = 50;  //2
+  @Prop() pixelPerPercentage: number = 50; //2
   @Prop() limit: number = 0;
 
   @Prop() leftSideOffsetForHorizontalSync: number = -1;
   @Prop({ mutable: true })
-  @Prop() styles: TimeChartStyle | undefined;
+  @Prop()
+  styles: TimeChartStyle | undefined;
 
   @Prop({ mutable: true })
   i18n: Map<string, string> = new Map(); //  I18nMode;
@@ -84,7 +87,7 @@ export class IbcsChartTime {
   showMeasureScale: boolean = true;
 
   @Prop() showOverlayMedian: boolean = false;
-  @Prop() showOverlayAvg: boolean =  false;
+  @Prop() showOverlayAvg: boolean = false;
 
   @Prop()
   chartMode: ChartMode = ChartMode.BAR;
@@ -107,35 +110,33 @@ export class IbcsChartTime {
   @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
-
-
   drawElement: SVGElement | undefined;
   patternElement: HTMLSpanElement | undefined;
 
   private chart: TimeChart | undefined;
   private pattern: CustomPattern | undefined;
 
-  constructor() {
-
-  }
+  constructor() {}
 
   render() {
-
     if (this.chart == undefined) {
-      return (<Host />);
+      return <Host />;
     }
 
     if (this.chart.hasNoData()) {
       const errorMsg: string = this.i18n.get("NO_DATA") || "==No Data==";
-      return (<Host><p class="warning">{errorMsg}</p></Host>);
+      return (
+        <Host>
+          <p class="warning">{errorMsg}</p>
+        </Host>
+      );
     }
-
 
     return (
       <Host>
-        <div innerHTML={this.pattern?.toString()} class="hidePatternContainer" />      
-        
-        <div class={this.showMeasureScale? "footer": "footer-hide" }>{this.chart?.getFooter()}</div>
+        <div innerHTML={this.pattern?.toString()} class="hidePatternContainer" />
+
+        <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
         {/* <svg ref={(el) => this.drawElement = el} id="drawCanvas" width={this.chart?.getAllocatedCanvasWidth()}
           height={this.chart?.getAllocatedCanvasHeight()}></svg> */}
         <div innerHTML={this.chart?.toString()}></div>
@@ -225,9 +226,7 @@ export class IbcsChartTime {
     // if (this.chart == null) {
     //   return;
     // }
-
     // this.chart.draw(SVG(this.drawElement) as Svg);
-
     // forceUpdate(getElement(this));
   }
 
@@ -238,40 +237,48 @@ export class IbcsChartTime {
   }
 
   private prepareConfig(): TimeChartComponentConfig {
-    return new TimeChartComponentConfigAdapter(new TimeChartDataRowAdapter(), new OrderAdapter(new StringAdapter()), new StringAdapter(), new DataFormatDigitsAdapter(), this.data).adapt({
-      "data": this.data,
-      "scenarios": this.scenarios,
-      "variances": this.variances,
-      "title": this.chartTitle,
-      "hideAxisLabels": this.hideAxisLabels,
-      "pixelPerUnit": this.pixelPerUnit,
-      "pixelPerPercentage": this.pixelPerPercentage,
-      "level": this.level,
-      "dateInterval": this.dateInterval,
-      "axisLabelsMode": this.axisLabelsMode,
-      "limit": this.limit,
-      "sortOrder": this.order,
-      "leftSideOffsetForHorizontalSync": this.leftSideOffsetForHorizontalSync,
-      "intervalSpanLimit": this.intervalSpanLimit,
-      "filter": this.filter,
-      "measureScale": this.measureScale,
-      "measureUnit": this.measureUnit,     
-      "showMeasureScale": this.showMeasureScale,
-      "dataFormatDigits":this.dataFormatDigits,
-      "showOverlayMedian": this.showOverlayMedian,
-      "showOverlayAvg": this.showOverlayAvg,
-      "chartMode": this.chartMode,
-      "maxBars": this.maxBars,
-      "stackConfig": this.stackConfig,
-      "lineFullWidth": this.lineFullWidth,
+    return new TimeChartComponentConfigAdapter(
+      new TimeChartDataRowAdapter(),
+      new OrderAdapter(new StringAdapter()),
+      new StringAdapter(),
+      new DataFormatDigitsAdapter(),
+      this.data,
+    ).adapt({
+      data: this.data,
+      scenarios: this.scenarios,
+      variances: this.variances,
+      title: this.chartTitle,
+      hideAxisLabels: this.hideAxisLabels,
+      pixelPerUnit: this.pixelPerUnit,
+      pixelPerPercentage: this.pixelPerPercentage,
+      level: this.level,
+      dateInterval: this.dateInterval,
+      axisLabelsMode: this.axisLabelsMode,
+      limit: this.limit,
+      sortOrder: this.order,
+      leftSideOffsetForHorizontalSync: this.leftSideOffsetForHorizontalSync,
+      intervalSpanLimit: this.intervalSpanLimit,
+      filter: this.filter,
+      measureScale: this.measureScale,
+      measureUnit: this.measureUnit,
+      showMeasureScale: this.showMeasureScale,
+      dataFormatDigits: this.dataFormatDigits,
+      showOverlayMedian: this.showOverlayMedian,
+      showOverlayAvg: this.showOverlayAvg,
+      chartMode: this.chartMode,
+      maxBars: this.maxBars,
+      stackConfig: this.stackConfig,
+      lineFullWidth: this.lineFullWidth,
     });
   }
 
   private prepareStyle(): TimeChartStyle {
-    return new TimeChartStylesAdapter(new ScaleFactorsTimeChartAdapter(),
+    return new TimeChartStylesAdapter(
+      new ScaleFactorsTimeChartAdapter(),
       new FontStyleAdapter(),
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
-      new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter),
-      new PaddingAdapter()).adapt(this.styles);
+      new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
+      new PaddingAdapter(),
+    ).adapt(this.styles);
   }
 }

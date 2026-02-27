@@ -4,7 +4,6 @@ import { ColumnStats } from "../elements/Cell";
  * Utility class to calculate min/max statistics per column for bar chart scaling.
  */
 export class ColumnStatistics {
-
   /**
    * Calculate min, max, and absMax for specified columns from query result data.
    *
@@ -60,7 +59,7 @@ export class ColumnStatistics {
     // Try the scenario column naming pattern
     // For variance columns, they might be stored with scenario## prefix
     for (const key of Object.keys(row)) {
-      if (key === column || key.endsWith('##' + column) || key.includes('##' + column)) {
+      if (key === column || key.endsWith("##" + column) || key.includes("##" + column)) {
         const val = Number(row[key]);
         if (!isNaN(val)) {
           return val;

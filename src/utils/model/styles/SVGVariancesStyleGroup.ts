@@ -2,47 +2,40 @@ import { IAdapter } from "../../helper/IAdapter";
 import { SVGStyle, SVGStyleAdapter } from "./SVGStyle";
 import { CompareUtil } from "../../helper/CompareUtil";
 
-
 export class SVGVariancesStyleGroup {
-
   public needleHeadColour: string = "#000000";
 
-  constructor(public pos: SVGStyle,
+  constructor(
+    public pos: SVGStyle,
     public neg: SVGStyle,
     public neu: SVGStyle,
-  ) { }
-
+  ) {}
 
   getSVGStyle(scenario: string | undefined): SVGStyle {
-    if (scenario === 'pos') {
+    if (scenario === "pos") {
       return this.pos;
     }
 
-    if (scenario === 'neg') {
+    if (scenario === "neg") {
       return this.neg;
     }
 
-    if (scenario === 'neu') {
+    if (scenario === "neu") {
       return this.neu;
     }
 
     return this.neu;
   }
-
-
-
 }
 
 export class SVGVariancesStyleGroupAdapter implements IAdapter<SVGVariancesStyleGroup> {
-
-
-  constructor(private svgStyleAdapter: SVGStyleAdapter) {
-  }
+  constructor(private svgStyleAdapter: SVGStyleAdapter) {}
 
   adapt(data: any): SVGVariancesStyleGroup {
-    const styleGroup: SVGVariancesStyleGroup = new SVGVariancesStyleGroup(this.svgStyleAdapter.defaultPos(),
+    const styleGroup: SVGVariancesStyleGroup = new SVGVariancesStyleGroup(
+      this.svgStyleAdapter.defaultPos(),
       this.svgStyleAdapter.defaultNeg(),
-      this.svgStyleAdapter.defaultNeu()
+      this.svgStyleAdapter.defaultNeu(),
     );
 
     if (CompareUtil.isExisting(data.pos)) {
@@ -61,12 +54,12 @@ export class SVGVariancesStyleGroupAdapter implements IAdapter<SVGVariancesStyle
       styleGroup.needleHeadColour = data.needleHeadColour;
     }
 
-
     return styleGroup;
   }
 
   default(): SVGVariancesStyleGroup {
-    return new SVGVariancesStyleGroup(this.svgStyleAdapter.defaultPos(),
+    return new SVGVariancesStyleGroup(
+      this.svgStyleAdapter.defaultPos(),
       this.svgStyleAdapter.defaultNeg(),
       this.svgStyleAdapter.defaultNeu(),
     );

@@ -1,9 +1,9 @@
-import {TableRow} from "../elements";
-import {TableRowType, TableType} from "../model";
-import {DataQuery} from "../helper"
+import { TableRow } from "../elements";
+import { TableRowType, TableType } from "../model";
+import { DataQuery } from "../helper";
 
-import {TableDataRow} from "../model/TableDataRow";
-import {TableComponentConfig} from "../model/TableComponentConfig";
+import { TableDataRow } from "../model/TableDataRow";
+import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Formatter } from "../../../../utils";
 import { I18nMode, DataFormat, TableCategoryWidth } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
@@ -11,12 +11,9 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
 
 export class TableDataSetFactory {
+  private normalizedHeader: { name: string; group: string; type: string; order: string | undefined }[] = [];
 
-  private normalizedHeader: {name: string, group: string, type: string, order: string | undefined}[] = [];
-
-  constructor() {
-
-  }
+  constructor() {}
 
   /**
    * Creates Tableheader based on the configured scenarios (in config)
@@ -26,21 +23,43 @@ export class TableDataSetFactory {
    * visualise grouping.
    * finally a seperator header row is created for the header underlining (border)
    */
-  public createHeader(type: TableType, scenarios: readonly {name: string, group: string, type:string, order: string | undefined }[], i18n: Map<string | number, string>,measureScale: SiPrefix, measureUnit: String, showMeasureScale: boolean): TableRow[] {
-    let header: TableRow[] = [];
+  public createHeader(
+    type: TableType,
+    scenarios: readonly { name: string; group: string; type: string; order: string | undefined }[],
+    i18n: Map<string | number, string>,
+    measureScale: SiPrefix,
+    measureUnit: string,
+    showMeasureScale: boolean,
+  ): TableRow[] {
+    const header: TableRow[] = [];
 
     this.normalizedHeader = this.normalizeHeader(type, scenarios);
-    let headerRow: TableRow = new TableRow( 0, 0,  TableRowType.HEADER);
-    let separatorRow: TableRow = new TableRow(1, 0,TableRowType.SEPERATORLINE);
+    const headerRow: TableRow = new TableRow(0, 0, TableRowType.HEADER);
+    const separatorRow: TableRow = new TableRow(1, 0, TableRowType.SEPERATORLINE);
 
-    for (let scenario of this.normalizedHeader) {     
-      headerRow.createElement(Formatter.translateScenarioLabel(scenario.name, i18n), 
-                              scenario.type, 
-                              this.createColumnType(scenario), 
-                              null, 
-                              this.setHeaderPrefix(scenario, i18n, measureScale, measureUnit, showMeasureScale),
-                              null,null,null,null);
-      separatorRow.createElement(null, scenario.type,  this.createColumnType(scenario),null,null,null,null,null,null);
+    for (const scenario of this.normalizedHeader) {
+      headerRow.createElement(
+        Formatter.translateScenarioLabel(scenario.name, i18n),
+        scenario.type,
+        this.createColumnType(scenario),
+        null,
+        this.setHeaderPrefix(scenario, i18n, measureScale, measureUnit, showMeasureScale),
+        null,
+        null,
+        null,
+        null,
+      );
+      separatorRow.createElement(
+        null,
+        scenario.type,
+        this.createColumnType(scenario),
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+      );
     }
 
     header.push(headerRow);
@@ -49,16 +68,22 @@ export class TableDataSetFactory {
     return header;
   }
 
-  private setHeaderPrefix(scenario: { name: string; group: string; type: string; order: string | undefined; }, i18n: Map<string | number, string>,measureScale: SiPrefix , measureUnit: String , showMeasureScale: boolean) {
+  private setHeaderPrefix(
+    scenario: { name: string; group: string; type: string; order: string | undefined },
+    i18n: Map<string | number, string>,
+    measureScale: SiPrefix,
+    measureUnit: string,
+    showMeasureScale: boolean,
+  ) {
     let prefix = "";
 
-    if(scenario.name == 'category' && showMeasureScale  ) {    
-      if( measureScale.prefix.length !== 0 || measureUnit.length !== 0 ){
-        prefix = Formatter.translateScenarioLabel("in" , i18n) + " " + measureScale.prefix + measureUnit;
-      }     
+    if (scenario.name == "category" && showMeasureScale) {
+      if (measureScale.prefix.length !== 0 || measureUnit.length !== 0) {
+        prefix = Formatter.translateScenarioLabel("in", i18n) + " " + measureScale.prefix + measureUnit;
+      }
     }
 
-    if (scenario.order) {      
+    if (scenario.order) {
       prefix += Formatter.translateScenarioLabel("ORDER_" + scenario.order, i18n);
     }
 
@@ -71,17 +96,36 @@ export class TableDataSetFactory {
    * depending of table type operation column is used (OPT) or not (SUM | LIST)
    * in addition the headers are sorted based on the ruleset and duplicates are removed
    */
-  private normalizeHeader(type: TableType, scenarios: readonly {name: string, group: string, type: string, order: string | undefined }[]): {name: string, group: string, type:string, order: string | undefined }[] {
-
-    let header: {name: string, group: string,  type:string , order: string | undefined}[] = [{  name: QueryColumnNames.CATEGORY,
-                                                                                                group: QueryColumnNames.CATEGORY,
-                                                                                                type: QueryColumnNames.CATEGORY,
-                                                                                                order: undefined}];
+  private normalizeHeader(
+    type: TableType,
+    scenarios: readonly { name: string; group: string; type: string; order: string | undefined }[],
+  ): { name: string; group: string; type: string; order: string | undefined }[] {
+    let header: { name: string; group: string; type: string; order: string | undefined }[] = [
+      {
+        name: QueryColumnNames.CATEGORY,
+        group: QueryColumnNames.CATEGORY,
+        type: QueryColumnNames.CATEGORY,
+        order: undefined,
+      },
+    ];
 
     if (TableType.OPT === type || TableType.OPTNOTOTAL === type) {
-      header = [{name: QueryColumnNames.OPERATION, group: QueryColumnNames.OPERATION,type: QueryColumnNames.OPERATION, order: undefined }, {name: QueryColumnNames.CATEGORY, group: QueryColumnNames.CATEGORY,type: QueryColumnNames.CATEGORY, order: undefined }];
+      header = [
+        {
+          name: QueryColumnNames.OPERATION,
+          group: QueryColumnNames.OPERATION,
+          type: QueryColumnNames.OPERATION,
+          order: undefined,
+        },
+        {
+          name: QueryColumnNames.CATEGORY,
+          group: QueryColumnNames.CATEGORY,
+          type: QueryColumnNames.CATEGORY,
+          order: undefined,
+        },
+      ];
     }
-    
+
     // NOTE: scenarios are already sorted in setConfig
     return [...header, ...scenarios];
   }
@@ -91,21 +135,37 @@ export class TableDataSetFactory {
    * eachh row consists of data columns and 'spacer' columns which are needed to seperate
    * the columns correctyl (IBCS style)
    */
-  public createBodyRows(config: TableComponentConfig, i18n: Map<string | number, string>, data: TableDataRow[]): TableRow[] {
-
-    let bodyRows: TableRow[] = [];
+  public createBodyRows(
+    config: TableComponentConfig,
+    i18n: Map<string | number, string>,
+    data: TableDataRow[],
+  ): TableRow[] {
+    const bodyRows: TableRow[] = [];
 
     let iGroupIndex: number = -1; // index used in detailRow JSON to count the current group
-    let queryData = new DataQuery(config, i18n).execute(data); // collection of all query results
+    const queryData = new DataQuery(config, i18n).execute(data); // collection of all query results
 
     // Calculate column statistics for bar columns
     const columnStatsMap = this.calculateColumnStatistics(queryData, config.barColumns);
 
-    for (let groupData of queryData) {
+    for (const groupData of queryData) {
       // groupData is a collection of dataRows, each group base on a query and represents a 'row' group
       iGroupIndex += 1;
-      let iRowIndex: number = -1;
-      bodyRows.push(...this.createRow(config.i18n, i18n, config.scenariosUnitType, groupData, iGroupIndex, iRowIndex, config.categoryWidth, config.measureScale, config.barColumns, columnStatsMap));
+      const iRowIndex: number = -1;
+      bodyRows.push(
+        ...this.createRow(
+          config.i18n,
+          i18n,
+          config.scenariosUnitType,
+          groupData,
+          iGroupIndex,
+          iRowIndex,
+          config.categoryWidth,
+          config.measureScale,
+          config.barColumns,
+          columnStatsMap,
+        ),
+      );
     }
 
     return bodyRows;
@@ -166,7 +226,7 @@ export class TableDataSetFactory {
 
     // Search for keys that match the column (handles scenario## prefix patterns)
     for (const key of Object.keys(row)) {
-      if (key === column || key.endsWith('##' + column) || key === column + '##' + column) {
+      if (key === column || key.endsWith("##" + column) || key === column + "##" + column) {
         const val = Number(row[key]);
         if (!isNaN(val)) {
           return val;
@@ -193,52 +253,64 @@ export class TableDataSetFactory {
    * @param barColumns
    * @param columnStatsMap
    */
-  private createRow(i18nMode: I18nMode | undefined, i18n: Map<string | number, string>, scenariosUnitType: DataFormat, groupData: any, iGroupIndex: number, iRowIndex: number, categoryWidth?: TableCategoryWidth, measureScale?: SiPrefix, barColumns?: string[], columnStatsMap?: Map<string, ColumnStats>): TableRow[] {
-    let result: TableRow[] = [];
+  private createRow(
+    i18nMode: I18nMode | undefined,
+    i18n: Map<string | number, string>,
+    scenariosUnitType: DataFormat,
+    groupData: any,
+    iGroupIndex: number,
+    iRowIndex: number,
+    categoryWidth?: TableCategoryWidth,
+    measureScale?: SiPrefix,
+    barColumns?: string[],
+    columnStatsMap?: Map<string, ColumnStats>,
+  ): TableRow[] {
+    const result: TableRow[] = [];
 
-    for (let rawDataRow of groupData) {
+    for (const rawDataRow of groupData) {
       iRowIndex += 1;
       // create next table row
-      let groupName = rawDataRow[QueryColumnNames.ROWGROUP];
-      let subCategory = rawDataRow[QueryColumnNames.SUBCATEGORY];
-      let type = rawDataRow[QueryColumnNames.TYPE];
-      let isSecondElement = rawDataRow[QueryColumnNames.ROWNR] >= 2;
+      const groupName = rawDataRow[QueryColumnNames.ROWGROUP];
+      const subCategory = rawDataRow[QueryColumnNames.SUBCATEGORY];
+      const type = rawDataRow[QueryColumnNames.TYPE];
+      const isSecondElement = rawDataRow[QueryColumnNames.ROWNR] >= 2;
 
-      let detailsRow: TableRow = this.createDetailRow(type, iRowIndex, iGroupIndex, groupData.length);
-      for (let scenario of this.normalizedHeader) {
-
-        let value = this.getRawDataRowElement(rawDataRow, scenario);
+      const detailsRow: TableRow = this.createDetailRow(type, iRowIndex, iGroupIndex, groupData.length);
+      for (const scenario of this.normalizedHeader) {
+        const value = this.getRawDataRowElement(rawDataRow, scenario);
         const isBarChart = barColumns?.includes(scenario.type) ?? false;
         const columnStats = isBarChart ? columnStatsMap?.get(scenario.type) : undefined;
 
-        detailsRow.createElement(this.translateSumCellLabel(i18nMode,i18n,value, groupName,subCategory, type, scenario.type),
-                                 scenario.type,
-                                 this.createColumnType(scenario),
-                                 this.setCellType(scenario.type, scenariosUnitType),
-                                 this.translateCellPrefix(i18n, type, scenario.type),
-                                 this.translateScenarioCSS(scenario.type, value),
-                                 isSecondElement,
-                                 categoryWidth,
-                                 measureScale?.value,
-                                 isBarChart,
-                                 columnStats);
+        detailsRow.createElement(
+          this.translateSumCellLabel(i18nMode, i18n, value, groupName, subCategory, type, scenario.type),
+          scenario.type,
+          this.createColumnType(scenario),
+          this.setCellType(scenario.type, scenariosUnitType),
+          this.translateCellPrefix(i18n, type, scenario.type),
+          this.translateScenarioCSS(scenario.type, value),
+          isSecondElement,
+          categoryWidth,
+          measureScale?.value,
+          isBarChart,
+          columnStats,
+        );
       }
 
       result.push(detailsRow);
     }
 
-    return result
+    return result;
   }
 
   private getRawDataRowElement(rawDataRow: any, scenario: { name: string; group: string; type: string }) {
-    if (scenario.name == scenario.group && scenario.name == scenario.type ){
+    if (scenario.name == scenario.group && scenario.name == scenario.type) {
       // Default Sum Scenario (e.g. AC)
-      return  rawDataRow[scenario.name];
-    } else if(scenario.name == scenario.group && scenario.name != scenario.type){
-      return  rawDataRow[scenario.type + "##" +scenario.name];
+      return rawDataRow[scenario.name];
+    } else if (scenario.name == scenario.group && scenario.name != scenario.type) {
+      return rawDataRow[scenario.type + "##" + scenario.name];
     }
 
-    return  rawDataRow[scenario.type + "##" + scenario.group  + "##" + scenario.name ];
+    return rawDataRow[scenario.type + "##" + scenario.group + "##" + scenario.name];
   }
 
   /**
@@ -251,7 +323,7 @@ export class TableDataSetFactory {
    * @param maxIndex  total number of rows
    */
   private createDetailRow(type: string, rowIndex: number, groupIndex: number, maxIndex: number): TableRow {
-     switch(type) {
+    switch (type) {
       case TableRowType.GROUPHEAD:
         return new TableRow(rowIndex, groupIndex, TableRowType.HEADER);
       case TableRowType.SUM:
@@ -260,15 +332,12 @@ export class TableDataSetFactory {
         return new TableRow(maxIndex + 2, groupIndex, TableRowType.SUM);
       case TableRowType.DRILLELEMENT:
         return new TableRow(maxIndex + 2, groupIndex, TableRowType.DRILLELEMENT);
-       case TableRowType.PARTELEMENT:
-         return new TableRow(maxIndex + 2, groupIndex, TableRowType.PARTELEMENT);
-      default :
+      case TableRowType.PARTELEMENT:
+        return new TableRow(maxIndex + 2, groupIndex, TableRowType.PARTELEMENT);
+      default:
         return new TableRow(rowIndex, groupIndex, TableRowType.STANDARD);
     }
   }
-
-
-
 
   /**
    * Translates Cell-Value (value) if possible,
@@ -282,51 +351,58 @@ export class TableDataSetFactory {
    * @param scenario
    * @param subCategory
    */
-  private translateSumCellLabel(i18nMode: I18nMode | undefined, i18n: Map<string | number, string>, value: string | number, rowGroup: string,subCategory:  string,  type: string, scenario: string): string | number {
+  private translateSumCellLabel(
+    i18nMode: I18nMode | undefined,
+    i18n: Map<string | number, string>,
+    value: string | number,
+    rowGroup: string,
+    subCategory: string,
+    type: string,
+    scenario: string,
+  ): string | number {
     if (Number.isNaN(Number(value)) == false) {
-        return value;
+      return value;
     }
 
-    if (this.isOperationColumn(scenario)){
+    if (this.isOperationColumn(scenario)) {
       return value;
     }
 
     if (this.isGroupHeadCategory(type, scenario)) {
-      if(i18nMode == I18nMode.ALL ) {
+      if (i18nMode == I18nMode.ALL) {
         return `${i18n.get(value) || value}`;
       }
 
       return value;
     }
 
-    if (this.isEntryCategory(type,  scenario)) {
-      if(i18nMode == I18nMode.ALL) {
+    if (this.isEntryCategory(type, scenario)) {
+      if (i18nMode == I18nMode.ALL) {
         return `${i18n.get(value) || value}`;
       }
 
       return value;
     }
 
-    if (this.isDrillElementCategory(type,  scenario)) {
-      if(i18nMode == I18nMode.ALL) {
+    if (this.isDrillElementCategory(type, scenario)) {
+      if (i18nMode == I18nMode.ALL) {
         return `${i18n.get(subCategory) || subCategory}`;
       }
 
       return `${subCategory}`;
     }
 
-    if (this.isPartElementCategory(type,  scenario)) {
-        // translate allways because of default sum symbol.
-      if(i18nMode == I18nMode.ALL || rowGroup === "SUM_TOTAL" ) {
-        return  `${i18n.get(rowGroup) || rowGroup}`;
+    if (this.isPartElementCategory(type, scenario)) {
+      // translate allways because of default sum symbol.
+      if (i18nMode == I18nMode.ALL || rowGroup === "SUM_TOTAL") {
+        return `${i18n.get(rowGroup) || rowGroup}`;
       }
       return `${rowGroup}`;
-
     }
 
-    if (this.isSumElementCategory(type,  scenario)) {
-      if(i18nMode == I18nMode.ALL || rowGroup === "SUM_TOTAL" ) {
-        return  `${i18n.get(rowGroup) || rowGroup}`;
+    if (this.isSumElementCategory(type, scenario)) {
+      if (i18nMode == I18nMode.ALL || rowGroup === "SUM_TOTAL") {
+        return `${i18n.get(rowGroup) || rowGroup}`;
       }
 
       return rowGroup;
@@ -336,19 +412,16 @@ export class TableDataSetFactory {
       return value;
     }
 
-    if (Number.isNaN(Number(value)) ) {
-      return '-'
-    }
-    else {
+    if (Number.isNaN(Number(value))) {
+      return "-";
+    } else {
       return Number(value);
     }
   }
 
-
   private isOperationColumn(scenario: string) {
     return scenario == "operation";
   }
-
 
   /**
    * converts Scenario to CSS class
@@ -357,43 +430,38 @@ export class TableDataSetFactory {
    * @param value
    */
   private translateScenarioCSS(scenario: string, value: number): string {
-    let scenarios = new VarianceScenario(scenario);
+    const scenarios = new VarianceScenario(scenario);
     let prefix = "pos";
 
-    if (value <  0) {
+    if (value < 0) {
       prefix = "neg";
     }
 
     if (scenarios.isValid) {
-      return prefix + "_" +scenarios.direction + (scenarios.type == 'dr' ? " relative_variance" : "");
+      return prefix + "_" + scenarios.direction + (scenarios.type == "dr" ? " relative_variance" : "");
     }
 
     return scenario;
-
   }
 
-
   private setCellType(scenario: string, scenariosUnitType: DataFormat) {
-
-    if( scenario === 'category'){
+    if (scenario === "category") {
       return "";
     }
 
     let unitType: string;
-    let scenarios  =new VarianceScenario(scenario);
+    const scenarios = new VarianceScenario(scenario);
 
-    if ( scenariosUnitType == DataFormat.PERCENT){
+    if (scenariosUnitType == DataFormat.PERCENT) {
       unitType = "percent";
 
-      if (scenarios.isValid && scenarios.type == 'd') {
+      if (scenarios.isValid && scenarios.type == "d") {
         unitType = "decimal";
       }
-    }
-
-    else {
+    } else {
       unitType = "decimal";
 
-      if (scenarios.isValid && scenarios.type == 'dr') {
+      if (scenarios.isValid && scenarios.type == "dr") {
         unitType = "percent";
       }
     }
@@ -401,31 +469,28 @@ export class TableDataSetFactory {
     return unitType;
   }
 
-
-  private isDrillElementCategory(type: string,   scenario: string) {
+  private isDrillElementCategory(type: string, scenario: string) {
     return "DRILLELEMENT" === type && "category" === scenario;
   }
 
-  private isPartElementCategory(type: string,  scenario: string) {
+  private isPartElementCategory(type: string, scenario: string) {
     return "PARTELEMENT" === type && "category" === scenario;
   }
 
-
-  private isSumElementCategory(type: string,  scenario: string) {
+  private isSumElementCategory(type: string, scenario: string) {
     return ("GROUP_SUM" === type || "SUM" === type) && "category" === scenario;
   }
-
 
   private isEntryCategory(type: string, scenario: string) {
     return "ENTRY" === type && "category" === scenario;
   }
 
-  private isGroupHeadCategory(type: string,  scenario: string) {
+  private isGroupHeadCategory(type: string, scenario: string) {
     return "GROUPHEAD" === type && "category" === scenario;
   }
 
   private translateCellPrefix(i18n: Map<string | number, string>, type: any, scenario: string) {
-    if (this.isOperationColumn(scenario)){
+    if (this.isOperationColumn(scenario)) {
       return null;
     }
 
@@ -433,33 +498,31 @@ export class TableDataSetFactory {
       return null;
     }
 
-    if (this.isEntryCategory(type,  scenario)) {
-     return null;
+    if (this.isEntryCategory(type, scenario)) {
+      return null;
     }
 
-    if (this.isDrillElementCategory(type,  scenario)) {
+    if (this.isDrillElementCategory(type, scenario)) {
       return `${i18n.get("there_of")} `;
     }
 
-    if (this.isPartElementCategory(type,  scenario)) {
+    if (this.isPartElementCategory(type, scenario)) {
       // translate allways because of default sum symbol.
-      return  `${i18n.get("part_of")} `;
+      return `${i18n.get("part_of")} `;
     }
 
     return null;
-
   }
 
   private createColumnType(scenario: { name: string; group: string; type: string }) {
-
     if (scenario.name == scenario.group && scenario.name == scenario.type) {
-      return "base"
+      return "base";
     }
 
     if (scenario.name == scenario.group) {
-      return "columnGroup"
+      return "columnGroup";
     }
 
-    return "columnSubGroup"
+    return "columnSubGroup";
   }
 }

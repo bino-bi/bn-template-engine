@@ -31,7 +31,6 @@ export enum TableType {
   OPT = "OPT",
 }
 
-
 export interface Scenario {
   name: string;
   group: string;
@@ -41,24 +40,23 @@ export interface Scenario {
 
 export interface DateFormat {
   [key: string]: any;
-  year:       string;
-  quarter:    string;
-  month:      string;
-  week:       string;
-  day:        string;
-  time:       string;
-  fallback:   string;
+  year: string;
+  quarter: string;
+  month: string;
+  week: string;
+  day: string;
+  time: string;
+  fallback: string;
 }
 
 export interface DateLinkFormat {
-  avg:        string;
-  interval:   string;
-  start:      string;
-  end:        string;
-  ytd:        string;
-  ytg:        string;
-  cum:        string;
-  mat:        string;
-  none:       string;
+  avg: string;
+  interval: string;
+  start: string;
+  end: string;
+  ytd: string;
+  ytg: string;
+  cum: string;
+  mat: string;
+  none: string;
 }
-

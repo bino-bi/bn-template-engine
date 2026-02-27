@@ -76,7 +76,7 @@ export class LabelCollisionManager {
    * Checks if a label at the given bounds would collide with any existing labels.
    */
   public hasCollision(bounds: LabelBounds): boolean {
-    return this.labels.some(existing => this.intersects(bounds, existing));
+    return this.labels.some((existing) => this.intersects(bounds, existing));
   }
 
   /**
@@ -101,7 +101,7 @@ export class LabelCollisionManager {
     pointIndex: number,
     markerSize: number,
     scenarioType: string,
-    priorityOrder: LabelDirection[]
+    priorityOrder: LabelDirection[],
   ): LabelPlacement | null {
     const priority = SCENARIO_PRIORITY[scenarioType] || 99;
     const gap = 8;
@@ -110,7 +110,14 @@ export class LabelCollisionManager {
     // Try each direction in the caller's preferred order
     for (const direction of priorityOrder) {
       const placement = this.calculatePlacementForDirection(
-        centerX, markerY, width, height, pointIndex, halfMarker, gap, direction
+        centerX,
+        markerY,
+        width,
+        height,
+        pointIndex,
+        halfMarker,
+        gap,
+        direction,
       );
       if (!this.hasCollision(placement.bounds)) {
         return placement;
@@ -122,7 +129,14 @@ export class LabelCollisionManager {
     // But to keep it simple: hide only if all positions collide with higher-priority labels.
     for (const direction of priorityOrder) {
       const placement = this.calculatePlacementForDirection(
-        centerX, markerY, width, height, pointIndex, halfMarker, gap, direction
+        centerX,
+        markerY,
+        width,
+        height,
+        pointIndex,
+        halfMarker,
+        gap,
+        direction,
       );
       if (!this.collidesWithHigherPriority(placement.bounds, priority)) {
         // This position only collides with equal or lower priority — claim it
@@ -145,7 +159,7 @@ export class LabelCollisionManager {
     pointIndex: number,
     halfMarker: number,
     gap: number,
-    direction: LabelDirection
+    direction: LabelDirection,
   ): LabelPlacement {
     let labelX: number;
     let labelY: number;
@@ -211,7 +225,7 @@ export class LabelCollisionManager {
    * Checks if bounds collide with any registered label that has higher priority.
    */
   private collidesWithHigherPriority(bounds: LabelBounds, priority: number): boolean {
-    return this.labels.some(existing => {
+    return this.labels.some((existing) => {
       if (!existing.scenarioType) return false;
       const existingPriority = SCENARIO_PRIORITY[existing.scenarioType] || 99;
       return existingPriority < priority && this.intersects(bounds, existing);
@@ -222,16 +236,11 @@ export class LabelCollisionManager {
    * Checks whether a scenario label at the end of a line should be hidden
    * because it's too close to a higher-priority scenario label.
    */
-  public shouldHideScenarioLabel(
-    x: number,
-    y: number,
-    scenarioType: string,
-    proximityThreshold: number = 20
-  ): boolean {
+  public shouldHideScenarioLabel(x: number, y: number, scenarioType: string, proximityThreshold: number = 20): boolean {
     const priority = SCENARIO_PRIORITY[scenarioType] || 99;
     if (priority <= 1) return false; // AC is never hidden
 
-    return this.scenarioLabels.some(existing => {
+    return this.scenarioLabels.some((existing) => {
       const existingPriority = SCENARIO_PRIORITY[existing.scenarioType] || 99;
       if (existingPriority >= priority) return false;
       const dy = Math.abs(y - existing.y);
@@ -252,10 +261,10 @@ export class LabelCollisionManager {
    */
   private intersects(a: LabelBounds, b: LabelBounds): boolean {
     return !(
-      a.x + a.width < b.x ||   // a is completely to the left of b
-      b.x + b.width < a.x ||   // b is completely to the left of a
-      a.y + a.height < b.y ||   // a is completely above b
-      b.y + b.height < a.y     // b is completely above a
+      a.x + a.width < b.x || // a is completely to the left of b
+      b.x + b.width < a.x || // b is completely to the left of a
+      a.y + a.height < b.y || // a is completely above b
+      b.y + b.height < a.y // b is completely above a
     );
   }
 

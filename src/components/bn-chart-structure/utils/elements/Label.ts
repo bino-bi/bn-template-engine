@@ -15,11 +15,10 @@ export enum HookLocation {
   Center,
   Right,
   Top,
-  Bottom
+  Bottom,
 }
 
-export class Label  {
-
+export class Label {
   private x: number;
   private y: number;
   private readonly value: number | string | null;
@@ -30,21 +29,29 @@ export class Label  {
   private isVarianceLabel: boolean;
   private segmentFillColor: string | null = null;
 
-  readonly ID_SCENARIOLABEL: string  = "Label";
+  readonly ID_SCENARIOLABEL: string = "Label";
   readonly CSS_CATEGORIES: string = "categories";
   private isRelativeLabel: boolean | undefined;
 
   private readonly verticalHookLocation: HookLocation;
   private readonly horizontalHookLocation: HookLocation;
 
-  constructor(parent: G | null, xPosition: number, yPosition: number, groupPrefix: string, value: number | string | null, styles: StructureChartStyle, verticalHookLocation: HookLocation, horizontalHookLocation: HookLocation) {
-    this.x     = xPosition;
-    this.y     = yPosition;
+  constructor(
+    parent: G | null,
+    xPosition: number,
+    yPosition: number,
+    groupPrefix: string,
+    value: number | string | null,
+    styles: StructureChartStyle,
+    verticalHookLocation: HookLocation,
+    horizontalHookLocation: HookLocation,
+  ) {
+    this.x = xPosition;
+    this.y = yPosition;
     this.value = value;
 
-    if( parent != null ){
-      this.group = parent.group()
-        .id(this.createElementID(parent.toString(), groupPrefix));
+    if (parent != null) {
+      this.group = parent.group().id(this.createElementID(parent.toString(), groupPrefix));
     }
 
     this.styles = styles;
@@ -79,96 +86,93 @@ export class Label  {
   }
 
   private createElementID(prefix: string, groupPrefix: string) {
-      return prefix + "_" + groupPrefix + "_" + this.ID_SCENARIOLABEL;
+    return prefix + "_" + groupPrefix + "_" + this.ID_SCENARIOLABEL;
   }
 
-  public draw(dataFormatDigits: DataFormatDigits = {percent: 2, decimal: 1}, measureScale: SiPrefix = new SiPrefix()): Label {
+  public draw(
+    dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
+    measureScale: SiPrefix = new SiPrefix(),
+  ): Label {
     if (this.isEmpty()) {
       return this;
     }
 
-    let label = this.group;
+    const label = this.group;
     let valueStr: string;
 
-    let background: string =  this.styles.fontStyles.background || "#ffffff";
+    const background: string = this.styles.fontStyles.background || "#ffffff";
 
     let prefix = "";
-    let labelAnchor = 'start';
+    let labelAnchor = "start";
 
-    if(Number.isNaN(Number(this.value)) == false){
-      
+    if (Number.isNaN(Number(this.value)) == false) {
       let digits = dataFormatDigits.percent;
       let digitsMin = dataFormatDigits.percent;
       let scale = 1;
-      let value = this.value;
-      let type = 'percent';
-      
-     
-      if(this.isRelativeLabel == false ) {        
-        digits =  dataFormatDigits.decimal;
+      const value = this.value;
+      let type = "percent";
+
+      if (this.isRelativeLabel == false) {
+        digits = dataFormatDigits.decimal;
         digitsMin = dataFormatDigits.decimal;
-        scale =  measureScale.value ;
-        type = 'decimal';    
-      }
-   
-      valueStr = Formatter.number(Number(value), type, digits, digitsMin, scale ); 
-                         
-      if(Number(this.value) < 0 ) {
-          labelAnchor = 'end';
+        scale = measureScale.value;
+        type = "decimal";
       }
 
-      if( this.isVarianceLabel && Number(this.value) >= 0 ){
+      valueStr = Formatter.number(Number(value), type, digits, digitsMin, scale);
+
+      if (Number(this.value) < 0) {
+        labelAnchor = "end";
+      }
+
+      if (this.isVarianceLabel && Number(this.value) >= 0) {
         prefix = "+";
-      }  
-      
-    }
-    else {
+      }
+    } else {
       valueStr = "" + this.value;
-      labelAnchor = 'start';
+      labelAnchor = "start";
     }
 
     // @ts-ignore
-    let text  = label.text(prefix + valueStr);
-    text.move(this.x,this.y);
+    const text = label.text(prefix + valueStr);
+    text.move(this.x, this.y);
 
+    const boxWidth: number = text.bbox().w;
+    const boxHeight: number = text.bbox().h;
 
-    let boxWidth: number  = text.bbox().w;
-    let boxHeight: number = text.bbox().h;
-
-    if(this.horizontalHookLocation == HookLocation.Right) {
-      labelAnchor = 'end';
-      text.move(text.x() as number - text.length(), text.y());
-    }
-    else if(this.horizontalHookLocation == HookLocation.Center){
-      labelAnchor = 'middle';
-      text.move(text.x() as number - (text.length()/ 2), text.y());
+    if (this.horizontalHookLocation == HookLocation.Right) {
+      labelAnchor = "end";
+      text.move((text.x() as number) - text.length(), text.y());
+    } else if (this.horizontalHookLocation == HookLocation.Center) {
+      labelAnchor = "middle";
+      text.move((text.x() as number) - text.length() / 2, text.y());
     }
 
-    if(this.verticalHookLocation == HookLocation.Center) {
-      text.move(text.x() as number, text.y() as number - (boxHeight / 2));
-    }
-    else if(this.verticalHookLocation == HookLocation.Bottom){
-      text.move(text.x() as number, text.y() as number - boxHeight);
+    if (this.verticalHookLocation == HookLocation.Center) {
+      text.move(text.x() as number, (text.y() as number) - boxHeight / 2);
+    } else if (this.verticalHookLocation == HookLocation.Bottom) {
+      text.move(text.x() as number, (text.y() as number) - boxHeight);
     }
 
-    text.font({ anchor: labelAnchor});
+    text.font({ anchor: labelAnchor });
 
     if (this.segmentFillColor != null) {
       text.fill(getContrastTextColor(this.segmentFillColor));
     } else {
-      label?.rect(boxWidth, boxHeight * 0.9)
-                       .stroke(background)
-                       .fill(background)
-                       .opacity(0.7)
-                       .move(text.x(),  text.y()  as number + (boxHeight * 0.1))
-                       .insertBefore(text);
+      label
+        ?.rect(boxWidth, boxHeight * 0.9)
+        .stroke(background)
+        .fill(background)
+        .opacity(0.7)
+        .move(text.x(), (text.y() as number) + boxHeight * 0.1)
+        .insertBefore(text);
     }
 
     return this;
   }
 
   public isEmpty(): boolean {
-    return  this.value == null || "" === this.value;
+    return this.value == null || "" === this.value;
   }
 
   public setPos(xPosition: number, yPosition: number): Label {
@@ -176,5 +180,4 @@ export class Label  {
     this.y = yPosition;
     return this;
   }
-
 }

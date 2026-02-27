@@ -11,7 +11,6 @@ import { getStackFill, getStackStroke } from "../../../../utils/stackColors";
  * Renders a single horizontal stacked bar segment for the structure chart.
  */
 export class StackedBar {
-
   private readonly position: ElementPositions;
   private readonly styles: StructureChartStyle;
   private readonly group: G;
@@ -54,7 +53,10 @@ export class StackedBar {
     }
   }
 
-  public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, measureScale: SiPrefix = new SiPrefix()): void {
+  public draw(
+    dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
+    measureScale: SiPrefix = new SiPrefix(),
+  ): void {
     if (!this.hasData || this.dataPoint.value == null) {
       return;
     }
@@ -86,11 +88,7 @@ export class StackedBar {
     const fillStyle = { color: fillColor };
     const strokeStyle = { color: getStackStroke(this.segmentIndex), width: 0.5 };
 
-    this.barGroup.rect(Math.max(segmentLength, 0.5), barWidth)
-      .fill(fillStyle)
-      .stroke(strokeStyle)
-      .cy(yPos)
-      .x(xPos);
+    this.barGroup.rect(Math.max(segmentLength, 0.5), barWidth).fill(fillStyle).stroke(strokeStyle).cy(yPos).x(xPos);
 
     // Draw segment value label centered on bar if wide enough
     const MIN_SEGMENT_WIDTH_FOR_LABEL = 30;
@@ -99,26 +97,31 @@ export class StackedBar {
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
         const pct = this.totalValue !== 0 ? (value / this.totalValue) * 100 : 0;
-        const labelValue = pct.toFixed(dataFormatDigits.percent) + '%';
+        const labelValue = pct.toFixed(dataFormatDigits.percent) + "%";
         new Label(
-          this.group, labelX, yPos, 'STACK_SEG',
-          labelValue, this.styles,
-          HookLocation.Center, HookLocation.Center
-        ).setSegmentFill(fillColor).draw();
+          this.group,
+          labelX,
+          yPos,
+          "STACK_SEG",
+          labelValue,
+          this.styles,
+          HookLocation.Center,
+          HookLocation.Center,
+        )
+          .setSegmentFill(fillColor)
+          .draw();
       } else {
         // Pass raw numeric value — Label.draw() formats with measureScale
-        new Label(
-          this.group, labelX, yPos, 'STACK_SEG',
-          value, this.styles,
-          HookLocation.Center, HookLocation.Center
-        ).setSegmentFill(fillColor).draw(dataFormatDigits, measureScale);
+        new Label(this.group, labelX, yPos, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
+          .setSegmentFill(fillColor)
+          .draw(dataFormatDigits, measureScale);
       }
     }
   }
 
   public drawTotalLabel(
     dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
-    measureScale: SiPrefix = new SiPrefix()
+    measureScale: SiPrefix = new SiPrefix(),
   ): void {
     if (this.stackMode === StackMode.RELATIVE) {
       return;
@@ -130,11 +133,15 @@ export class StackedBar {
     const yPos = this.position.getBarPositionY(this.index, true);
 
     const label = new Label(
-      this.group, labelX, yPos, 'STACK_TOTAL',
-      this.totalValue, this.styles,
-      HookLocation.Center, HookLocation.Left
+      this.group,
+      labelX,
+      yPos,
+      "STACK_TOTAL",
+      this.totalValue,
+      this.styles,
+      HookLocation.Center,
+      HookLocation.Left,
     );
     label.draw(dataFormatDigits, measureScale);
   }
 }
-

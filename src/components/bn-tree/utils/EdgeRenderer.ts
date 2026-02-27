@@ -3,10 +3,10 @@
  * Handles SVG path generation for connecting tree nodes
  */
 
-import { LayoutDirection } from './TreeLayout';
-import { EdgeStyle } from './TreeParser';
+import { LayoutDirection } from "./TreeLayout";
+import { EdgeStyle } from "./TreeParser";
 
-export type EdgeStyleType = 'straight' | 'orthogonal' | 'curved';
+export type EdgeStyleType = "straight" | "orthogonal" | "curved";
 
 export interface Point {
   x: number;
@@ -41,42 +41,30 @@ export function getNodeRect(element: HTMLElement, containerRect: DOMRect): NodeR
     width: rect.width,
     height: rect.height,
     centerX: left + rect.width / 2,
-    centerY: top + rect.height / 2
+    centerY: top + rect.height / 2,
   };
 }
 
 /**
  * Get the connection point on a node based on layout direction
  */
-export function getConnectionPoint(
-  rect: NodeRect,
-  isSource: boolean,
-  direction: LayoutDirection
-): Point {
+export function getConnectionPoint(rect: NodeRect, isSource: boolean, direction: LayoutDirection): Point {
   switch (direction) {
-    case 'ltr':
+    case "ltr":
       // Left to right: source connects from right, target from left
-      return isSource
-        ? { x: rect.left + rect.width, y: rect.centerY }
-        : { x: rect.left, y: rect.centerY };
+      return isSource ? { x: rect.left + rect.width, y: rect.centerY } : { x: rect.left, y: rect.centerY };
 
-    case 'rtl':
+    case "rtl":
       // Right to left: source connects from left, target from right
-      return isSource
-        ? { x: rect.left, y: rect.centerY }
-        : { x: rect.left + rect.width, y: rect.centerY };
+      return isSource ? { x: rect.left, y: rect.centerY } : { x: rect.left + rect.width, y: rect.centerY };
 
-    case 'ttb':
+    case "ttb":
       // Top to bottom: source connects from bottom, target from top
-      return isSource
-        ? { x: rect.centerX, y: rect.top + rect.height }
-        : { x: rect.centerX, y: rect.top };
+      return isSource ? { x: rect.centerX, y: rect.top + rect.height } : { x: rect.centerX, y: rect.top };
 
-    case 'btt':
+    case "btt":
       // Bottom to top: source connects from top, target from bottom
-      return isSource
-        ? { x: rect.centerX, y: rect.top }
-        : { x: rect.centerX, y: rect.top + rect.height };
+      return isSource ? { x: rect.centerX, y: rect.top } : { x: rect.centerX, y: rect.top + rect.height };
   }
 }
 
@@ -93,7 +81,7 @@ export function getMultiParentConnectionPoint(
   direction: LayoutDirection,
   parentIndex: number,
   totalParents: number,
-  spacing: number = 8
+  spacing: number = 8,
 ): Point {
   // Calculate offset from center for this parent
   // Parents are spread evenly around center with given spacing
@@ -101,19 +89,19 @@ export function getMultiParentConnectionPoint(
   const offset = -totalSpread / 2 + parentIndex * spacing;
 
   switch (direction) {
-    case 'ltr':
+    case "ltr":
       // Left to right: target connects from left, offset vertically
       return { x: rect.left, y: rect.centerY + offset };
 
-    case 'rtl':
+    case "rtl":
       // Right to left: target connects from right, offset vertically
       return { x: rect.left + rect.width, y: rect.centerY + offset };
 
-    case 'ttb':
+    case "ttb":
       // Top to bottom: target connects from top, offset horizontally
       return { x: rect.centerX + offset, y: rect.top };
 
-    case 'btt':
+    case "btt":
       // Bottom to top: target connects from bottom, offset horizontally
       return { x: rect.centerX + offset, y: rect.top + rect.height };
   }
@@ -122,20 +110,15 @@ export function getMultiParentConnectionPoint(
 /**
  * Generate an SVG path connecting two points with the specified style
  */
-export function generateEdgePath(
-  start: Point,
-  end: Point,
-  style: EdgeStyleType,
-  direction: LayoutDirection
-): EdgePath {
+export function generateEdgePath(start: Point, end: Point, style: EdgeStyleType, direction: LayoutDirection): EdgePath {
   switch (style) {
-    case 'straight':
+    case "straight":
       return generateStraightPath(start, end);
 
-    case 'curved':
+    case "curved":
       return generateCurvedPath(start, end, direction);
 
-    case 'orthogonal':
+    case "orthogonal":
     default:
       return generateOrthogonalPath(start, end, direction);
   }
@@ -148,7 +131,7 @@ function generateStraightPath(start: Point, end: Point): EdgePath {
   const path = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
   const midpoint: Point = {
     x: (start.x + end.x) / 2,
-    y: (start.y + end.y) / 2
+    y: (start.y + end.y) / 2,
   };
 
   return { path, midpoint };
@@ -158,7 +141,7 @@ function generateStraightPath(start: Point, end: Point): EdgePath {
  * Generate a curved bezier path
  */
 function generateCurvedPath(start: Point, end: Point, direction: LayoutDirection): EdgePath {
-  const isHorizontal = direction === 'ltr' || direction === 'rtl';
+  const isHorizontal = direction === "ltr" || direction === "rtl";
   let controlPoint1: Point;
   let controlPoint2: Point;
 
@@ -177,7 +160,7 @@ function generateCurvedPath(start: Point, end: Point, direction: LayoutDirection
   // Midpoint of a cubic bezier at t=0.5
   const midpoint: Point = {
     x: 0.125 * start.x + 0.375 * controlPoint1.x + 0.375 * controlPoint2.x + 0.125 * end.x,
-    y: 0.125 * start.y + 0.375 * controlPoint1.y + 0.375 * controlPoint2.y + 0.125 * end.y
+    y: 0.125 * start.y + 0.375 * controlPoint1.y + 0.375 * controlPoint2.y + 0.125 * end.y,
   };
 
   return { path, midpoint };
@@ -188,7 +171,7 @@ function generateCurvedPath(start: Point, end: Point, direction: LayoutDirection
  * The bend point is positioned closer to the children (70% of the way) for better visual balance
  */
 function generateOrthogonalPath(start: Point, end: Point, direction: LayoutDirection): EdgePath {
-  const isHorizontal = direction === 'ltr' || direction === 'rtl';
+  const isHorizontal = direction === "ltr" || direction === "rtl";
   let path: string;
   let midpoint: Point;
   const bendRatio = 0.7; // Position bend point 70% towards the end
@@ -216,52 +199,52 @@ export function calculateOperatorPosition(
   parentRect: NodeRect,
   sibling1Rect: NodeRect,
   sibling2Rect: NodeRect,
-  direction: LayoutDirection
+  direction: LayoutDirection,
 ): Point {
   const bendRatio = 0.7; // Must match the bendRatio in generateOrthogonalPath
 
   switch (direction) {
-    case 'ltr': {
+    case "ltr": {
       // T-junction: where parent's horizontal line meets the vertical split
       const parentRight = parentRect.left + parentRect.width;
       const childrenLeft = Math.min(sibling1Rect.left, sibling2Rect.left);
       const midX = parentRight + (childrenLeft - parentRight) * bendRatio;
       return {
         x: midX,
-        y: parentRect.centerY  // At parent's Y level (the T-junction)
+        y: parentRect.centerY, // At parent's Y level (the T-junction)
       };
     }
 
-    case 'rtl': {
+    case "rtl": {
       // T-junction for RTL
       const parentLeft = parentRect.left;
       const childrenRight = Math.max(sibling1Rect.left + sibling1Rect.width, sibling2Rect.left + sibling2Rect.width);
       const midX = childrenRight + (parentLeft - childrenRight) * bendRatio;
       return {
         x: midX,
-        y: parentRect.centerY
+        y: parentRect.centerY,
       };
     }
 
-    case 'ttb': {
+    case "ttb": {
       // T-junction for top-to-bottom
       const parentBottom = parentRect.top + parentRect.height;
       const childrenTop = Math.min(sibling1Rect.top, sibling2Rect.top);
       const midY = parentBottom + (childrenTop - parentBottom) * bendRatio;
       return {
-        x: parentRect.centerX,  // At parent's X level (the T-junction)
-        y: midY
+        x: parentRect.centerX, // At parent's X level (the T-junction)
+        y: midY,
       };
     }
 
-    case 'btt': {
+    case "btt": {
       // T-junction for bottom-to-top
       const parentTop = parentRect.top;
       const childrenBottom = Math.max(sibling1Rect.top + sibling1Rect.height, sibling2Rect.top + sibling2Rect.height);
       const midY = childrenBottom + (parentTop - childrenBottom) * bendRatio;
       return {
         x: parentRect.centerX,
-        y: midY
+        y: midY,
       };
     }
   }
@@ -273,11 +256,11 @@ export function calculateOperatorPosition(
 export function getEdgeSvgStyle(
   defaultColor: string,
   defaultWidth: number,
-  edgeStyle?: EdgeStyle
+  edgeStyle?: EdgeStyle,
 ): { stroke: string; strokeWidth: number; strokeDasharray?: string } {
   return {
     stroke: edgeStyle?.color ?? defaultColor,
     strokeWidth: edgeStyle?.width ?? defaultWidth,
-    ...(edgeStyle?.dasharray ? { strokeDasharray: edgeStyle.dasharray } : {})
+    ...(edgeStyle?.dasharray ? { strokeDasharray: edgeStyle.dasharray } : {}),
   };
 }

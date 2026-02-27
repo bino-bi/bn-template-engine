@@ -4,18 +4,18 @@ import { G } from "@svgdotjs/svg.js";
  * IBCS-style area fill colors for stacked area charts.
  */
 const SCENARIO_AREA_STYLES: Record<string, { fill: string; opacity: number; lineColor: string; dashArray?: string }> = {
-  ac: { fill: '#000000', opacity: 0.3, lineColor: '#000000' },
-  pp: { fill: '#999999', opacity: 0.3, lineColor: '#999999' },
-  fc: { fill: '#000000', opacity: 0.2, lineColor: '#000000', dashArray: '4,4' },
-  pl: { fill: '#000000', opacity: 0.1, lineColor: '#000000' },
+  ac: { fill: "#000000", opacity: 0.3, lineColor: "#000000" },
+  pp: { fill: "#999999", opacity: 0.3, lineColor: "#999999" },
+  fc: { fill: "#000000", opacity: 0.2, lineColor: "#000000", dashArray: "4,4" },
+  pl: { fill: "#000000", opacity: 0.1, lineColor: "#000000" },
 };
 
 const GRAYSCALE_AREA_STYLES = [
-  { fill: '#000000', opacity: 0.30 },
-  { fill: '#555555', opacity: 0.25 },
-  { fill: '#999999', opacity: 0.20 },
-  { fill: '#bbbbbb', opacity: 0.15 },
-  { fill: '#dddddd', opacity: 0.10 },
+  { fill: "#000000", opacity: 0.3 },
+  { fill: "#555555", opacity: 0.25 },
+  { fill: "#999999", opacity: 0.2 },
+  { fill: "#bbbbbb", opacity: 0.15 },
+  { fill: "#dddddd", opacity: 0.1 },
 ];
 
 export interface AreaPoint {
@@ -28,7 +28,6 @@ export interface AreaPoint {
  * and a lower boundary polyline — used for stacked area charts.
  */
 export class AreaFill {
-
   private readonly group: G;
   private readonly upperPoints: AreaPoint[];
   private readonly lowerPoints: AreaPoint[];
@@ -66,14 +65,14 @@ export class AreaFill {
     for (let i = this.lowerPoints.length - 1; i >= 0; i--) {
       pathStr += ` L ${this.lowerPoints[i].x},${this.lowerPoints[i].y}`;
     }
-    pathStr += ' Z';
+    pathStr += " Z";
 
     let fill: string;
     let opacity: number;
 
     if (this.isScenarioStack && this.scenarioType) {
       const prefix = this.scenarioType.slice(0, 2).toLowerCase();
-      const style = SCENARIO_AREA_STYLES[prefix] || SCENARIO_AREA_STYLES['ac'];
+      const style = SCENARIO_AREA_STYLES[prefix] || SCENARIO_AREA_STYLES["ac"];
       fill = style.fill;
       opacity = style.opacity;
     } else {
@@ -82,10 +81,7 @@ export class AreaFill {
       opacity = GRAYSCALE_AREA_STYLES[idx].opacity;
     }
 
-    this.group.path(pathStr)
-      .fill(fill)
-      .opacity(opacity)
-      .stroke('none');
+    this.group.path(pathStr).fill(fill).opacity(opacity).stroke("none");
   }
 
   /**
@@ -96,24 +92,23 @@ export class AreaFill {
       return;
     }
 
-    let lineColor = '#000000';
+    let lineColor = "#000000";
     let dashArray: string | undefined;
 
     if (this.isScenarioStack && this.scenarioType) {
       const prefix = this.scenarioType.slice(0, 2).toLowerCase();
-      const style = SCENARIO_AREA_STYLES[prefix] || SCENARIO_AREA_STYLES['ac'];
+      const style = SCENARIO_AREA_STYLES[prefix] || SCENARIO_AREA_STYLES["ac"];
       lineColor = style.lineColor;
       dashArray = style.dashArray;
     }
 
-    const polyline = this.group.polyline(
-      this.upperPoints.map(p => [p.x, p.y]) as any
-    )
-      .fill('none')
+    const polyline = this.group
+      .polyline(this.upperPoints.map((p) => [p.x, p.y]) as any)
+      .fill("none")
       .stroke({ color: lineColor, width: 1.5 });
 
     if (dashArray) {
-      polyline.attr('stroke-dasharray', dashArray);
+      polyline.attr("stroke-dasharray", dashArray);
     }
   }
 }

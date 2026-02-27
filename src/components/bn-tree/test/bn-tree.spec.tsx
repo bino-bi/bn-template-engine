@@ -23,8 +23,8 @@
 //   disconnect() {}
 // };
 
-describe('bn-tree component', () => {
-  it('should have utility tests in tree-utils.spec.ts', () => {
+describe("bn-tree component", () => {
+  it("should have utility tests in tree-utils.spec.ts", () => {
     // This is a placeholder test indicating that the actual utility tests
     // are in tree-utils.spec.ts which can run without the component import
     expect(true).toBe(true);

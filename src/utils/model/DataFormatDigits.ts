@@ -2,22 +2,22 @@ import { IAdapter } from "../helper/IAdapter";
 import { CompareUtil } from "../helper/CompareUtil";
 
 export class DataFormatDigits {
-  constructor(public percent: number = 2,
-    public decimal: number = 1) {
-  }
+  constructor(
+    public percent: number = 2,
+    public decimal: number = 1,
+  ) {}
 }
 
 export class DataFormatDigitsAdapter implements IAdapter<DataFormatDigits> {
-
   adapt(data: any): DataFormatDigits {
-    let prefix = new DataFormatDigits();
+    const prefix = new DataFormatDigits();
 
     if (CompareUtil.isNumber(data.percent)) {
-      prefix.percent = data.percent
+      prefix.percent = data.percent;
     }
 
     if (CompareUtil.isNumber(data.decimal)) {
-      prefix.decimal = data.decimal
+      prefix.decimal = data.decimal;
     }
 
     return prefix;
@@ -26,5 +26,4 @@ export class DataFormatDigitsAdapter implements IAdapter<DataFormatDigits> {
   default(): DataFormatDigits {
     return new DataFormatDigits();
   }
-
 }

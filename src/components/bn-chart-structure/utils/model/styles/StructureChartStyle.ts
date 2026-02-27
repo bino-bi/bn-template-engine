@@ -7,7 +7,10 @@ import { FontStyle, FontStyleAdapter } from "../../../../../utils/model/styles/F
 import { Padding, PaddingAdapter } from "../../../../../utils/model/styles/Padding";
 import { SVGStyleGroup, SVGStyleGroupAdapter } from "../../../../../utils/model/styles/SVGStyleGroup";
 
-import { SVGVariancesStyleGroup, SVGVariancesStyleGroupAdapter } from "../../../../../utils/model/styles/SVGVariancesStyleGroup";
+import {
+  SVGVariancesStyleGroup,
+  SVGVariancesStyleGroupAdapter,
+} from "../../../../../utils/model/styles/SVGVariancesStyleGroup";
 import { MarkerPattern } from "../../helper/MarkerPattern";
 // import { MarkerPattern, Padding } from "../../helper";
 // import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
@@ -21,23 +24,24 @@ import { ScaleFactorsStructureChart, ScaleFactorsStructureChartAdapter } from ".
 export class StructureChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
 
-  constructor(public scaleFactors: ScaleFactorsStructureChart,
+  constructor(
+    public scaleFactors: ScaleFactorsStructureChart,
     public fontStyles: FontStyle,
     public axisStyles: SVGStyleGroup,
     public barStyles: SVGStyleGroup,
     public varianceStyles: SVGVariancesStyleGroup,
-    public padding: Padding) {
-
-  }
+    public padding: Padding,
+  ) {}
 }
 
 export class StructureChartStylesAdapter implements IAdapter<StructureChartStyle> {
-  constructor(private scaleFactorsStructureChartAdapter: ScaleFactorsStructureChartAdapter,
+  constructor(
+    private scaleFactorsStructureChartAdapter: ScaleFactorsStructureChartAdapter,
     private fontStyleAdapter: FontStyleAdapter,
     private svgStyleGroupAdapter: SVGStyleGroupAdapter,
     private svgVariancesStyleGroupAdapter: SVGVariancesStyleGroupAdapter,
-    private paddingadapter: PaddingAdapter) {
-  }
+    private paddingadapter: PaddingAdapter,
+  ) {}
 
   adapt(data: any): StructureChartStyle {
     const styles: StructureChartStyle = new StructureChartStyle(
@@ -46,7 +50,8 @@ export class StructureChartStylesAdapter implements IAdapter<StructureChartStyle
       this.svgStyleGroupAdapter.default(),
       this.svgStyleGroupAdapter.default(),
       this.svgVariancesStyleGroupAdapter.default(),
-      this.paddingadapter.default());
+      this.paddingadapter.default(),
+    );
 
     if (CompareUtil.isExisting(data)) {
       if (CompareUtil.isExisting(data.scaleFactors)) {
@@ -85,7 +90,7 @@ export class StructureChartStylesAdapter implements IAdapter<StructureChartStyle
       this.svgStyleGroupAdapter.default(),
       this.svgStyleGroupAdapter.default(),
       this.svgVariancesStyleGroupAdapter.default(),
-      this.paddingadapter.default());
+      this.paddingadapter.default(),
+    );
   }
 }
-

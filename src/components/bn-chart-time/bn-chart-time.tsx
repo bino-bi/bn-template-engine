@@ -12,9 +12,8 @@ import {
   validateOrderList,
   validateScenarioList,
   validateStackConfig,
-  validateVariancesList
+  validateVariancesList,
 } from "../../utils/validate";
-
 
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -43,20 +42,20 @@ enum AggregationLevel {
 }
 
 @Component({
-  tag: 'bn-chart-time',
+  tag: "bn-chart-time",
   styleUrl: "bn-chart-time.scss",
-  shadow: true
+  shadow: true,
 })
 export class Chart {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
 
-  @State() data: TimeChartDataRow[] = []
+  @State() data: TimeChartDataRow[] = [];
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
 
   private readonly t: (key: string, data?: object) => string;
-  private readonly componentStyle: <T, >(q: (Style) => T) => T;
+  private readonly componentStyle: <T>(q: (Style) => T) => T;
   private readonly errors: ErrorDispatcher;
 
   /**
@@ -65,10 +64,8 @@ export class Chart {
   @Prop()
   chartTitle: string = "";
 
-
   @Prop()
   filter: string = "";
-
 
   /**
    * List of Scenarios Map.
@@ -85,13 +82,17 @@ export class Chart {
    *
    */
   @Prop() scenarios!: string;
-  @Watch('scenarios')
+  @Watch("scenarios")
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
-    const errId: string = 'ERR_scenarios';
+    const errId: string = "ERR_scenarios";
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + JSON.stringify(invalidScenarios) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "scenarios: invalid value(s) '" + JSON.stringify(invalidScenarios) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -121,17 +122,16 @@ export class Chart {
    */
   @Prop() variances!: string;
 
-  @Watch('variances')
+  @Watch("variances")
   validateVariances(newValue: string) {
-
-    const errIdVar: string = 'ERR_variances';
-    let invalidVariances: string[] = validateVariancesList(newValue);
+    const errIdVar: string = "ERR_variances";
+    const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
       this.errors.addOrReplace({
         id: errIdVar,
-        type: 'warning',
-        message: 'variances: invalid value(s) \'' + JSON.stringify(invalidVariances) + '\' are not supported.'
+        type: "warning",
+        message: "variances: invalid value(s) '" + JSON.stringify(invalidVariances) + "' are not supported.",
       });
     } else {
       this.errors.remove(errIdVar);
@@ -140,21 +140,20 @@ export class Chart {
 
   @Prop() syncSpaceLeft: number = -1;
 
-  @Watch('syncSpaceLeft')
+  @Watch("syncSpaceLeft")
   validateLeftSync(newValue: string | number) {
-    const errId: string = 'ERR_syncSpaceLeft';
+    const errId: string = "ERR_syncSpaceLeft";
 
     if (!isValidNumber(newValue as number)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'syncSpaceLeft: invalid value(s) \'' + newValue + '\' are not supported.'
+        type: "warning",
+        message: "syncSpaceLeft: invalid value(s) '" + newValue + "' are not supported.",
       });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    * Set the maximum number of columns stacks The value 0 means *no limit*
@@ -165,15 +164,15 @@ export class Chart {
    */
   @Prop() limit: number = 0;
 
-  @Watch('limit')
+  @Watch("limit")
   validateLimit(newValue: number) {
-    const errId: string = 'ERR_limit';
+    const errId: string = "ERR_limit";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'limit: invalid value \'' + newValue?.toString() + '\' is not supported.'
+        type: "warning",
+        message: "limit: invalid value '" + newValue?.toString() + "' is not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -189,15 +188,15 @@ export class Chart {
    */
   @Prop() unitScaling!: string | number;
 
-  @Watch('unitScaling')
+  @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = 'ERR_unitScaling';
+    const errId: string = "ERR_unitScaling";
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'unitScaling: invalid value(s) \'' + newValue + '\' are not supported.'
+        type: "warning",
+        message: "unitScaling: invalid value(s) '" + newValue + "' are not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -213,15 +212,15 @@ export class Chart {
    */
   @Prop() percentageScaling!: string | number;
 
-  @Watch('percentageScaling')
+  @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = 'ERR_percentageScaling';
+    const errId: string = "ERR_percentageScaling";
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'percentageScaling: invalid value(s) \'' + newValue + '\' are not supported.'
+        type: "warning",
+        message: "percentageScaling: invalid value(s) '" + newValue + "' are not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -241,15 +240,15 @@ export class Chart {
    */
   @Prop() level!: string;
 
-  @Watch('level')
+  @Watch("level")
   validateLevel(newValue: string) {
-    const errId: string = 'ERR_level';
+    const errId: string = "ERR_level";
 
     if (!isValidLevel(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'level: invalid value(s) \'' + newValue + '\' are not supported.'
+        type: "warning",
+        message: "level: invalid value(s) '" + newValue + "' are not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -267,21 +266,20 @@ export class Chart {
    */
   @Prop() order!: string;
 
-  @Watch('order')
+  @Watch("order")
   validateOrderList(newValue: string) {
-    const errId: string = 'ERR_order';
+    const errId: string = "ERR_order";
     const invalidElements: string[] = validateOrderList(newValue);
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'order: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.'
+        type: "warning",
+        message: "order: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
       });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** set sorting order direction
    *  <br /><br />
@@ -290,15 +288,15 @@ export class Chart {
    */
   @Prop() orderDirection!: string;
 
-  @Watch('orderDirection')
+  @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = 'ERR_orderDirection';
+    const errId: string = "ERR_orderDirection";
 
     if (!isValidDirection(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.'
+        type: "warning",
+        message: "orderDirection: invalid value '" + newValue?.toString() + "' is not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -315,17 +313,15 @@ export class Chart {
    */
   @Prop() dateInterval!: string;
 
-
-
-  @Watch('dateInterval')
+  @Watch("dateInterval")
   validateDateInterval(newValue: string) {
-    const errId: string = 'ERR_dateInterval';
+    const errId: string = "ERR_dateInterval";
 
     if (!isValidDateFormat(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'dateInterval: invalid value \'' + newValue?.toString() + '\' is not supported.'
+        type: "warning",
+        message: "dateInterval: invalid value '" + newValue?.toString() + "' is not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -333,25 +329,28 @@ export class Chart {
   }
 
   /** Chart Mode - controls how the chart is rendered
-  *  <br /><br />
-  *  values:<br />
-  *  ```bar // line // auto```
-  *  <br /><br />
-  *  When set to 'auto', the chart will switch to line mode
-  *  when the number of data points exceeds maxBars.
-  */
+   *  <br /><br />
+   *  values:<br />
+   *  ```bar // line // auto```
+   *  <br /><br />
+   *  When set to 'auto', the chart will switch to line mode
+   *  when the number of data points exceeds maxBars.
+   */
   @Prop() chartMode: string = "bar";
 
-  @Watch('chartMode')
+  @Watch("chartMode")
   validateChartMode(newValue: string) {
-    const errId: string = 'ERR_chartMode';
-    const validModes = ['bar', 'line', 'auto'];
+    const errId: string = "ERR_chartMode";
+    const validModes = ["bar", "line", "auto"];
 
     if (!validModes.includes(newValue?.toLowerCase())) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'chartMode: invalid value \'' + newValue?.toString() + '\' is not supported. Valid values are: bar, line, auto.'
+        type: "warning",
+        message:
+          "chartMode: invalid value '" +
+          newValue?.toString() +
+          "' is not supported. Valid values are: bar, line, auto.",
       });
     } else {
       this.errors.remove(errId);
@@ -359,21 +358,21 @@ export class Chart {
   }
 
   /** Max Bars - threshold for auto-switching to line mode
-  *  <br /><br />
-  *  When chartMode is set to 'auto' and the number of data points
-  *  exceeds this value, the chart will render as a line chart.
-  */
+   *  <br /><br />
+   *  When chartMode is set to 'auto' and the number of data points
+   *  exceeds this value, the chart will render as a line chart.
+   */
   @Prop() maxBars: number = 28;
 
-  @Watch('maxBars')
+  @Watch("maxBars")
   validateMaxBars(newValue: number) {
-    const errId: string = 'ERR_maxBars';
+    const errId: string = "ERR_maxBars";
 
     if (!isValidInteger(newValue) || newValue < 1) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'maxBars: invalid value \'' + newValue?.toString() + '\' is not supported. Must be a positive integer.'
+        type: "warning",
+        message: "maxBars: invalid value '" + newValue?.toString() + "' is not supported. Must be a positive integer.",
       });
     } else {
       this.errors.remove(errId);
@@ -419,24 +418,23 @@ export class Chart {
    * // Stack by category, relative mode
    * stack='{"by":"category","mode":"relative"}'
    */
-  @Prop() stack: string = '';
+  @Prop() stack: string = "";
 
-  @Watch('stack')
+  @Watch("stack")
   validateStack(newValue: string) {
-    const errId: string = 'ERR_stack';
+    const errId: string = "ERR_stack";
     const errors = validateStackConfig(newValue);
 
     if (errors.length > 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: errors.join('; ')
+        type: "warning",
+        message: errors.join("; "),
       });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    * Controls proportional scaling of the chart to fit the available parent width.
@@ -450,17 +448,21 @@ export class Chart {
    */
   @Prop() scale?: string;
 
-  @Watch('scale')
+  @Watch("scale")
   validateScaling(newValue: string) {
-    if (newValue == null || newValue === '' || newValue === 'none' || newValue === 'auto') {
-      this.errors.remove('ERR_scale');
+    if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
+      this.errors.remove("ERR_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
-      this.errors.addOrReplace({ id: 'ERR_scale', type: 'warning', message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.` });
+      this.errors.addOrReplace({
+        id: "ERR_scale",
+        type: "warning",
+        message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
+      });
     } else {
-      this.errors.remove('ERR_scale');
+      this.errors.remove("ERR_scale");
     }
   }
 
@@ -480,15 +482,15 @@ export class Chart {
    */
   @Prop() axisLabelsMode!: string;
 
-  @Watch('axisLabelsMode')
+  @Watch("axisLabelsMode")
   validateAxisLabelsMode(newValue: string) {
-    const errId: string = 'ERR_axisLabelsMode';
+    const errId: string = "ERR_axisLabelsMode";
 
     if (!isValidAxisLabelsMode(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'axisLabelsMode: invalid value \'' + newValue?.toString() + '\' is not supported.'
+        type: "warning",
+        message: "axisLabelsMode: invalid value '" + newValue?.toString() + "' is not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -502,75 +504,86 @@ export class Chart {
    *  values:<br />
    *  ```true // false```
    */
-  @Prop() lineFullWidth: string = 'true';
+  @Prop() lineFullWidth: string = "true";
 
-  @Watch('lineFullWidth')
+  @Watch("lineFullWidth")
   validateLineFullWidth(newValue: string) {
-    const errId: string = 'ERR_lineFullWidth';
+    const errId: string = "ERR_lineFullWidth";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'lineFullWidth: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "lineFullWidth: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-  @Prop() showCategories: string = 'true';
+  @Prop() showCategories: string = "true";
 
-  @Watch('showCategories')
+  @Watch("showCategories")
   validateShowCategories(newValue: string) {
-    const errId: string = 'ERR_showCategories';
+    const errId: string = "ERR_showCategories";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showCategories: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showCategories: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
- *  Sets the SiPrefix of the Mesaurements and converts the
- *  original value.
- *  <br /><br />
- *  values:  <br />
- *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
- *  <br /><br />
- *  SiPrefix overview:
- *  ```     "Y":  1E+24,```<br />
- *  ```    "Z":  1E+21,```<br />
- *  ```   "E":  1E+18,```<br />
- *  ```     "P":  1E+15,```<br />
- *  ```     "T":  1E+12,```<br />
- *  ```     "G":  1000000000,```<br />
- *  ```     "M":  1000000,```<br />
- *  ```     "k":  1000,```<br />
- *  <br />
- *  ```     "m":  0.001,```<br />
- *  ```    "μ":  0.000001,```<br />
- *  ```     "n":  0.000000001,```<br />
- *  ```     "p":  0.000000000001,```<br />
- *  ```     "f":  0.000000000000001,```<br />
- *  ```     "a":  0.000000000000000001,```<br />
- *  ```     "z":  0.000000000000000000001,```<br />
- *  ```     "y":  0.000000000000000000000001,```<br />
- *  <br /><br />
- * Special modes:
- * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
- * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
- *<br /><br />
- * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
- *
- *
- */
+   *  Sets the SiPrefix of the Mesaurements and converts the
+   *  original value.
+   *  <br /><br />
+   *  values:  <br />
+   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
+   *  <br /><br />
+   *  SiPrefix overview:
+   *  ```     "Y":  1E+24,```<br />
+   *  ```    "Z":  1E+21,```<br />
+   *  ```   "E":  1E+18,```<br />
+   *  ```     "P":  1E+15,```<br />
+   *  ```     "T":  1E+12,```<br />
+   *  ```     "G":  1000000000,```<br />
+   *  ```     "M":  1000000,```<br />
+   *  ```     "k":  1000,```<br />
+   *  <br />
+   *  ```     "m":  0.001,```<br />
+   *  ```    "μ":  0.000001,```<br />
+   *  ```     "n":  0.000000001,```<br />
+   *  ```     "p":  0.000000000001,```<br />
+   *  ```     "f":  0.000000000000001,```<br />
+   *  ```     "a":  0.000000000000000001,```<br />
+   *  ```     "z":  0.000000000000000000001,```<br />
+   *  ```     "y":  0.000000000000000000000001,```<br />
+   *  <br /><br />
+   * Special modes:
+   * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
+   *<br /><br />
+   * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+   *
+   *
+   */
   @Prop() measureScale: string = "greatest";
 
-  @Watch('measureScale')
+  @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = 'ERR_measureScale';
+    const errId: string = "ERR_measureScale";
 
     if (!isValidMeasureScale(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "measureScale: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -582,47 +595,58 @@ export class Chart {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() showMeasureScale: string = 'false';
+  @Prop() showMeasureScale: string = "false";
 
-  @Watch('showMeasureScale')
+  @Watch("showMeasureScale")
   validateShowMeasureScale(newValue: string) {
-    const errId: string = 'ERR_grouped';
+    const errId: string = "ERR_grouped";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-
-  @Prop() showOverlayAvg: string = 'true';
-  @Watch('showOverlayAvg')
+  @Prop() showOverlayAvg: string = "true";
+  @Watch("showOverlayAvg")
   validateShowOverlayAvg(newValue: string) {
-    const errId: string = 'ERR_grouped';
+    const errId: string = "ERR_grouped";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayAvg: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showOverlayAvg: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-  @Prop() showOverlayMedian: string = 'false';
-  @Watch('showOverlayMedian')
+  @Prop() showOverlayMedian: string = "false";
+  @Watch("showOverlayMedian")
   validateShowOverlayMedian(newValue: string) {
-    const errId: string = 'ERR_grouped';
+    const errId: string = "ERR_grouped";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showOverlayMedian: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showOverlayMedian: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
   /**
-  * measureUnit displayed in table.
-  */
+   * measureUnit displayed in table.
+   */
   @Prop() measureUnit: string = "";
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
@@ -630,18 +654,20 @@ export class Chart {
   constructor() {
     withStyled(this);
     withComponentStatus(this);
-    withDataset(this, (_name, data) => {
-      this.data = data || [];
-    }, (_name, meta) => {
-      this.datasetMeta = meta;
-    });
+    withDataset(
+      this,
+      (_name, data) => {
+        this.data = data || [];
+      },
+      (_name, meta) => {
+        this.datasetMeta = meta;
+      },
+    );
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
-
   }
-
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
@@ -674,16 +700,16 @@ export class Chart {
   componentDidRender() {
     const { mode } = parseScaling(this.scale);
 
-    if (mode !== 'auto' && mode !== 'empty') {
+    if (mode !== "auto" && mode !== "empty") {
       this._autoScaleIterations = 0;
       // Keep existing width-based overflow warning for non-auto modes
       const parent = getParentDimensions(this.element);
-      const errId = 'WARN_overflow';
+      const errId = "WARN_overflow";
       if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
         this.errors.addOrReplace({
           id: errId,
-          type: 'warning',
-          message: 'Chart exceeds available space and will be cut off. Check unit-scaling value.'
+          type: "warning",
+          message: "Chart exceeds available space and will be cut off. Check unit-scaling value.",
         });
       } else {
         this.errors.remove(errId);
@@ -695,20 +721,20 @@ export class Chart {
     const { width: parentWidth } = getParentDimensions(host);
     if (parentWidth <= 0) return;
 
-    const div = host.shadowRoot?.querySelector('.container');
+    const div = host.shadowRoot?.querySelector(".container");
     const currentWidth = div?.scrollWidth ?? host.scrollWidth;
-    const baseFontSize = this.componentStyle($ => $["global"]?.["fontSizePx"] || 13.3333);
+    const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
     // Content fits — no scaling needed (or current scale is sufficient)
     if (currentWidth <= parentWidth + 1) {
       this._autoScaleIterations = 0;
-      this.errors.remove('AUTO_scale');
+      this.errors.remove("AUTO_scale");
       // If previously scaled but content now fits at base, reset to 1
       if (this.appliedScaleFactor !== 1) {
         // Try resetting — if that overflows, the next didRender will re-scale
         this._autoScaleIterations = 1;
         this.appliedScaleFactor = 1;
-        host.style.setProperty('--bn-font-size', `${baseFontSize}px`);
+        host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
       }
       return;
     }
@@ -723,12 +749,16 @@ export class Chart {
     const correction = (parentWidth - 1) / currentWidth;
     const newFactor = this.appliedScaleFactor * correction;
 
-    host.style.setProperty('--bn-font-size', `${baseFontSize * newFactor}px`);
+    host.style.setProperty("--bn-font-size", `${baseFontSize * newFactor}px`);
 
-    if (mode === 'empty') {
-      this.errors.addOrReplace({ id: 'AUTO_scale', type: 'warning', message: `Auto-scaled chart by factor ${newFactor.toFixed(3)}` });
+    if (mode === "empty") {
+      this.errors.addOrReplace({
+        id: "AUTO_scale",
+        type: "warning",
+        message: `Auto-scaled chart by factor ${newFactor.toFixed(3)}`,
+      });
     } else {
-      this.errors.remove('AUTO_scale');
+      this.errors.remove("AUTO_scale");
     }
 
     if (Math.abs(newFactor - this.appliedScaleFactor) > 0.001) {
@@ -748,32 +778,31 @@ export class Chart {
   }
 
   private prepareScenarios(): string[] {
-    const isAuto = this.scenarios?.trim().toLowerCase() === 'auto';
+    const isAuto = this.scenarios?.trim().toLowerCase() === "auto";
     if (isBlankInput(this.scenarios) || isAuto) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_scenarios', type: 'warning',
-            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+            id: "AUTO_scenarios",
+            type: "warning",
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(",")}`,
           });
         } else {
-          this.errors.remove('AUTO_scenarios');
+          this.errors.remove("AUTO_scenarios");
         }
         return this.datasetMeta.availableScenarios;
       }
       return [];
     }
-    this.errors.remove('AUTO_scenarios');
-    return this.scenarios?.split(",").map(entry => entry.trim());
+    this.errors.remove("AUTO_scenarios");
+    return this.scenarios?.split(",").map((entry) => entry.trim());
   }
 
   private prepareAvg(): boolean {
-
     return this.showOverlayAvg == "true";
   }
 
   private prepareMedian(): boolean {
-
     return this.showOverlayMedian == "true";
   }
 
@@ -781,9 +810,8 @@ export class Chart {
     if (isBlankInput(this.variances)) {
       return [];
     }
-    return this.variances?.split(",").map(entry => entry.trim());
+    return this.variances?.split(",").map((entry) => entry.trim());
   }
-
 
   private prepareHideAxisLabels(idx: number): boolean {
     return idx >= 1 || this.showCategories != "true";
@@ -793,36 +821,35 @@ export class Chart {
     const i18nMetaLabelsLocal = [];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
-    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
+    const i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
 
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
-
   private preparePixelPerUnit(): number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
-      this.errors.remove('AUTO_unitScaling');
+      this.errors.remove("AUTO_unitScaling");
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
 
     // Explicit 'auto' → auto-calculate silently
-    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === 'auto') {
-      this.errors.remove('AUTO_unitScaling');
+    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === "auto") {
+      this.errors.remove("AUTO_unitScaling");
       return 0;
     }
 
     const numeric = Number(this.unitScaling);
     if (!isNaN(numeric) && numeric > 0) {
-      this.errors.remove('AUTO_unitScaling');
+      this.errors.remove("AUTO_unitScaling");
       return numeric;
     }
 
     // Not set / invalid → auto-calculate with warning
     this.errors.addOrReplace({
-      id: 'AUTO_unitScaling',
-      type: 'warning',
-      message: `unit-scaling: not set, auto-calculated to fit available space.`
+      id: "AUTO_unitScaling",
+      type: "warning",
+      message: `unit-scaling: not set, auto-calculated to fit available space.`,
     });
     return 0;
   }
@@ -836,45 +863,45 @@ export class Chart {
   }
 
   private prepareLevel(): AggregationLevel {
-    const isAuto = this.level?.trim().toLowerCase() === 'auto';
+    const isAuto = this.level?.trim().toLowerCase() === "auto";
     if (isBlankInput(this.level) || isAuto) {
       if (this.datasetMeta?.suggestedLevel) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_level', type: 'warning',
-            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`
+            id: "AUTO_level",
+            type: "warning",
+            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`,
           });
         } else {
-          this.errors.remove('AUTO_level');
+          this.errors.remove("AUTO_level");
         }
         return AggregationLevel[this.datasetMeta.suggestedLevel.toUpperCase() as keyof typeof AggregationLevel];
       }
       return undefined;
     }
-    this.errors.remove('AUTO_level');
+    this.errors.remove("AUTO_level");
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
   private prepareOrder(): Order {
-    const isLevelAuto = isBlankInput(this.level) || this.level?.trim().toLowerCase() === 'auto';
-    let entryValue = isLevelAuto && this.datasetMeta?.suggestedLevel
-      ? this.datasetMeta.suggestedLevel
-      : this.level;
+    const isLevelAuto = isBlankInput(this.level) || this.level?.trim().toLowerCase() === "auto";
+    let entryValue = isLevelAuto && this.datasetMeta?.suggestedLevel ? this.datasetMeta.suggestedLevel : this.level;
 
-    const isOrderAuto = this.order?.trim().toLowerCase() === 'auto';
+    const isOrderAuto = this.order?.trim().toLowerCase() === "auto";
     if (isBlankInput(this.order) || isOrderAuto) {
       if (this.datasetMeta?.suggestedLevel) {
         if (!isOrderAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_order', type: 'warning',
-            message: `order: not set, auto-detected: ${entryValue}`
+            id: "AUTO_order",
+            type: "warning",
+            message: `order: not set, auto-detected: ${entryValue}`,
           });
         } else {
-          this.errors.remove('AUTO_order');
+          this.errors.remove("AUTO_order");
         }
       }
     } else {
-      this.errors.remove('AUTO_order');
+      this.errors.remove("AUTO_order");
       if (this.order?.toLocaleLowerCase() === "levelindex") {
         entryValue += "Index";
       }
@@ -882,7 +909,7 @@ export class Chart {
 
     const tableOrder: Order = {
       hierarchy: [OrderColumn[entryValue?.toUpperCase() as keyof typeof OrderColumn]],
-      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection],
     };
 
     return tableOrder;
@@ -890,53 +917,55 @@ export class Chart {
 
   private prepareStyle(): TimeChartStyle {
     const effectiveFactor = this.getEffectiveScaleFactor();
-    return this.componentStyle($ => {
-      const baseFontSize = $["global"]['fontSizePx'];
+    return this.componentStyle(($) => {
+      const baseFontSize = $["global"]["fontSizePx"];
       const scaledFontSize = baseFontSize * effectiveFactor;
 
       return {
         scaleFactors: {
-          scenarioOffset: $["bn-chart-time"]['scaleFactors']['scenarioOffset'],
-          scenarioLabelToColumn: $["bn-chart-time"]['scaleFactors']['scenarioLabelToColumn'],
+          scenarioOffset: $["bn-chart-time"]["scaleFactors"]["scenarioOffset"],
+          scenarioLabelToColumn: $["bn-chart-time"]["scaleFactors"]["scenarioLabelToColumn"],
           labelToColumn: 0.3,
-          labelToColum: $["bn-chart-time"]['scaleFactors']['labelToColum'],
-          labelToAxis: $["bn-chart-time"]['scaleFactors']['labelToAxis'],
-          needleWidth: $["bn-chart-time"]['scaleFactors']['needleWidth'],
-          needleHeadWidth: $["bn-chart-time"]['scaleFactors']['needleHeadWidth'],
-          columnWidth: $["bn-chart-time"]['scaleFactors']['columnWidth'],
-          varianceAxisLineWidth: $["bn-chart-time"]['scaleFactors']['varianceAxisLineWidth'],
-          axisLineWidth: $["bn-chart-time"]['scaleFactors']['axisLineWidth'],
-          auxiliaryLineWidth: $["bn-chart-time"]['scaleFactors']['auxiliaryLineWidth'],
-          scenarioLineWidth: $["bn-chart-time"]['scaleFactors']['scenarioLineWidth'],
-          markerWidth: $["bn-chart-time"]['scaleFactors']['markerWidth'],
-          markerOffset: $["bn-chart-time"]['scaleFactors']['markerOffset'],
-          categoryWidth: $["bn-chart-time"]['scaleFactors']['categoryWidth'],
-          axisTickLength: $["bn-chart-time"]['scaleFactors']['axisTickLength'],
+          labelToColum: $["bn-chart-time"]["scaleFactors"]["labelToColum"],
+          labelToAxis: $["bn-chart-time"]["scaleFactors"]["labelToAxis"],
+          needleWidth: $["bn-chart-time"]["scaleFactors"]["needleWidth"],
+          needleHeadWidth: $["bn-chart-time"]["scaleFactors"]["needleHeadWidth"],
+          columnWidth: $["bn-chart-time"]["scaleFactors"]["columnWidth"],
+          varianceAxisLineWidth: $["bn-chart-time"]["scaleFactors"]["varianceAxisLineWidth"],
+          axisLineWidth: $["bn-chart-time"]["scaleFactors"]["axisLineWidth"],
+          auxiliaryLineWidth: $["bn-chart-time"]["scaleFactors"]["auxiliaryLineWidth"],
+          scenarioLineWidth: $["bn-chart-time"]["scaleFactors"]["scenarioLineWidth"],
+          markerWidth: $["bn-chart-time"]["scaleFactors"]["markerWidth"],
+          markerOffset: $["bn-chart-time"]["scaleFactors"]["markerOffset"],
+          categoryWidth: $["bn-chart-time"]["scaleFactors"]["categoryWidth"],
+          axisTickLength: $["bn-chart-time"]["scaleFactors"]["axisTickLength"],
         },
         fontStyles: {
-          font: `${scaledFontSize}px ${$["global"]['fontFamily']}`,
+          font: `${scaledFontSize}px ${$["global"]["fontFamily"]}`,
           size: scaledFontSize,
-          color: $["global"]['fontColor'],
-          background: $["global"]['fontBackgroundColor'],
+          color: $["global"]["fontColor"],
+          background: $["global"]["fontBackgroundColor"],
           leading: 1.8,
         },
-        axisStyles: $["bn-chart-time"]['axisStyles'],
-        barStyles: $["bn-chart-time"]['barStyles'],
-        varianceStyles: $["bn-chart-time"]['varianceStyles'],
-        padding: $["bn-chart-time"]['padding'],
-        pattern: null
-      }
+        axisStyles: $["bn-chart-time"]["axisStyles"],
+        barStyles: $["bn-chart-time"]["barStyles"],
+        varianceStyles: $["bn-chart-time"]["varianceStyles"],
+        padding: $["bn-chart-time"]["padding"],
+        pattern: null,
+      };
     });
   }
 
   private prepareLeftSideOffset(preparedI18n: Map<string, string>, preparedStyle: TimeChartStyle): number {
-
-
     if (this.syncSpaceLeft > -1) {
       return this.syncSpaceLeft;
     }
 
-    let leftSideOffset: number = Formatter.getMaxWidthOfArrayItems([...this.prepareVariances(), ...this.prepareScenarios(), this.chartTitle], preparedI18n, preparedStyle);
+    const leftSideOffset: number = Formatter.getMaxWidthOfArrayItems(
+      [...this.prepareVariances(), ...this.prepareScenarios(), this.chartTitle],
+      preparedI18n,
+      preparedStyle,
+    );
 
     //if(leftSideOffset < this.syncSpaceLeft) {
     //  return this.syncSpaceLeft;
@@ -947,7 +976,7 @@ export class Chart {
 
   private prepareChartTitle(idx: number): string {
     if (idx >= 1) {
-      return '';
+      return "";
     }
 
     return this.chartTitle;
@@ -958,22 +987,23 @@ export class Chart {
   }
 
   private prepareDateInterval(): DateDistance {
-    const isAuto = this.dateInterval?.trim().toLowerCase() === 'auto';
+    const isAuto = this.dateInterval?.trim().toLowerCase() === "auto";
     if (isBlankInput(this.dateInterval) || isAuto) {
       if (this.datasetMeta?.suggestedDateInterval) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_dateInterval', type: 'warning',
-            message: `dateInterval: not set, auto-detected: ${this.datasetMeta.suggestedDateInterval}`
+            id: "AUTO_dateInterval",
+            type: "warning",
+            message: `dateInterval: not set, auto-detected: ${this.datasetMeta.suggestedDateInterval}`,
           });
         } else {
-          this.errors.remove('AUTO_dateInterval');
+          this.errors.remove("AUTO_dateInterval");
         }
         return DateDistance[this.datasetMeta.suggestedDateInterval.toUpperCase() as keyof typeof DateDistance];
       }
       return isAuto ? DateDistance.AUTO : undefined;
     }
-    this.errors.remove('AUTO_dateInterval');
+    this.errors.remove("AUTO_dateInterval");
     return DateDistance[this.dateInterval?.toUpperCase() as keyof typeof DateDistance];
   }
 
@@ -981,25 +1011,20 @@ export class Chart {
     return this.intervalSpanLimit;
   }
 
-
   private prepareAxisLabelsMode(): AxisLabelsMode {
     return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
   }
 
-
   private prepareFilter(): string {
     if (this.filter.length == 0) {
-      return '';
+      return "";
     }
 
     return this.filter;
   }
 
-
-
-
   public getDataStructure(): any {
-    let dataSetStructure: any = {
+    const dataSetStructure: any = {
       ITimeChartDataRow: {
         setName: { type: "string", isOptional: false, description: "" },
         date: { type: "string", isOptional: false, description: "" },
@@ -1030,7 +1055,7 @@ export class Chart {
         pl2: { type: "number", isOptional: false, description: "" },
         pl3: { type: "number", isOptional: false, description: "" },
         pl4: { type: "number", isOptional: false, description: "" },
-      }
+      },
     };
 
     return dataSetStructure;
@@ -1041,11 +1066,15 @@ export class Chart {
       return "GREATEST";
     }
 
-    if (['_', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'm', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(this.measureScale.trim())) {
+    if (
+      ["_", "k", "M", "G", "T", "P", "E", "Z", "Y", "m", "μ", "n", "p", "P", "f", "a", "z", "y"].includes(
+        this.measureScale.trim(),
+      )
+    ) {
       return this.measureScale.trim();
     }
 
-    if (this.measureScale.trim().toUpperCase() === 'LEAST') {
+    if (this.measureScale.trim().toUpperCase() === "LEAST") {
       return this.measureScale.trim();
     }
 
@@ -1080,14 +1109,14 @@ export class Chart {
   }
 
   private prepareLineFullWidth(): boolean {
-    return this.lineFullWidth === 'true';
+    return this.lineFullWidth === "true";
   }
 
   private prepareChartMode(): ChartMode {
     const mode = this.chartMode?.toLowerCase();
-    if (mode === 'line') {
+    if (mode === "line") {
       return ChartMode.LINE;
-    } else if (mode === 'auto') {
+    } else if (mode === "auto") {
       return ChartMode.AUTO;
     }
     return ChartMode.BAR;
@@ -1098,82 +1127,80 @@ export class Chart {
   }
 
   chartTemplate(localScenarioString: string, idx: number) {
-    let preparedI18n: Map<string, string> = this.prepareI18n();
-    let preparedStyle: TimeChartStyle = this.prepareStyle();
+    const preparedI18n: Map<string, string> = this.prepareI18n();
+    const preparedStyle: TimeChartStyle = this.prepareStyle();
     const fullParentWidth = getParentDimensions(this.element).width;
     const effectiveFactor = this.getEffectiveScaleFactor();
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
 
-    return <ibcs-chart-time
-      data={this.data}
-      chartTitle={this.prepareChartTitle(idx)}
-      scenarios={this.prepareScenarios()}
-      variances={[localScenarioString]}
-      hideAxisLabels={this.prepareHideAxisLabels(idx)}
-      pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
-      pixelPerPercentage={ppp > 0 ? ppp * effectiveFactor : 0}
-      limit={this.prepareLimit()}
-      leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
-      styles={preparedStyle}
-      i18n={preparedI18n}
-      order={this.prepareOrder()}
-      level={this.prepareLevel()}
-      dateInterval={this.prepareDateInterval()}
-      intervalSpanLimit={this.prepareIntervalSpanLimit()}
-      axisLabelsMode={this.prepareAxisLabelsMode()}
-
-      filter={this.prepareFilter()}
-      measure-scale={this.prepareMeasureScale()}
-      measure-unit={this.prepareMeasureUnit()}
-      showOverlayAvg={this.prepareAvg()}
-      showOverlayMedian={this.prepareMedian()}
-      showMeasureScale={this.prepareShowMeasureScale(idx)}
-      chartMode={this.prepareChartMode()}
-      maxBars={this.prepareMaxBars()}
-      stackConfig={this.prepareStackConfig()}
-      lineFullWidth={this.prepareLineFullWidth()}
-      containerWidth={fullParentWidth}
-      parentDimensions={this.prepareDimension()}
-    ></ibcs-chart-time>
+    return (
+      <ibcs-chart-time
+        data={this.data}
+        chartTitle={this.prepareChartTitle(idx)}
+        scenarios={this.prepareScenarios()}
+        variances={[localScenarioString]}
+        hideAxisLabels={this.prepareHideAxisLabels(idx)}
+        pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
+        pixelPerPercentage={ppp > 0 ? ppp * effectiveFactor : 0}
+        limit={this.prepareLimit()}
+        leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
+        styles={preparedStyle}
+        i18n={preparedI18n}
+        order={this.prepareOrder()}
+        level={this.prepareLevel()}
+        dateInterval={this.prepareDateInterval()}
+        intervalSpanLimit={this.prepareIntervalSpanLimit()}
+        axisLabelsMode={this.prepareAxisLabelsMode()}
+        filter={this.prepareFilter()}
+        measure-scale={this.prepareMeasureScale()}
+        measure-unit={this.prepareMeasureUnit()}
+        showOverlayAvg={this.prepareAvg()}
+        showOverlayMedian={this.prepareMedian()}
+        showMeasureScale={this.prepareShowMeasureScale(idx)}
+        chartMode={this.prepareChartMode()}
+        maxBars={this.prepareMaxBars()}
+        stackConfig={this.prepareStackConfig()}
+        lineFullWidth={this.prepareLineFullWidth()}
+        containerWidth={fullParentWidth}
+        parentDimensions={this.prepareDimension()}
+      ></ibcs-chart-time>
+    );
   }
-
 
   private getEffectiveScaleFactor(): number {
     const { mode, factor } = parseScaling(this.scale);
-    if (mode === 'factor') return factor!;
-    if (mode === 'auto' || mode === 'empty') return this.appliedScaleFactor;
+    if (mode === "factor") return factor!;
+    if (mode === "auto" || mode === "empty") return this.appliedScaleFactor;
     return 1;
   }
 
   private getFontStyles(): { [key: string]: string } {
     const effectiveFactor = this.getEffectiveScaleFactor();
-    return this.componentStyle($ => {
+    return this.componentStyle(($) => {
       const baseFontSize = $["global"]?.["fontSizePx"] || 13.3333;
       return {
-        '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-        '--bn-font-size': `${baseFontSize * effectiveFactor}px`,
-        '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-        '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+        "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+        "--bn-font-size": `${baseFontSize * effectiveFactor}px`,
+        "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+        "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
       };
     });
   }
 
   render() {
-    let scenariosArray = [''];
-    let variancesArray = this.prepareVariances();
+    let scenariosArray = [""];
+    const variancesArray = this.prepareVariances();
     if (variancesArray.length > 0) {
       scenariosArray = [...scenariosArray, ...variancesArray];
     }
 
     const fontStyles = this.getFontStyles();
 
-    return <Host style={fontStyles}>
-      <div class="container">
-        {scenariosArray.map(this.chartTemplate)}
-      </div>
-    </Host>
+    return (
+      <Host style={fontStyles}>
+        <div class="container">{scenariosArray.map(this.chartTemplate)}</div>
+      </Host>
+    );
   }
-
-
 }

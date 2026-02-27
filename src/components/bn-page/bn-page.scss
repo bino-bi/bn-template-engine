@@ -15,7 +15,7 @@
   }
 }
 
-@mixin landscape($format, $width , $height) {
+@mixin landscape($format, $width, $height) {
   :host([format="#{$format}"]) {
     height: $height;
     width: $width;
@@ -32,11 +32,10 @@
   }
 }
 
-
 :host {
   background: var(--bn-font-background, white);
   color: var(--bn-font-color, black);
-  font-family: var(--bn-font-family, 'Noto Sans', sans-serif);
+  font-family: var(--bn-font-family, "Noto Sans", sans-serif);
   font-size: var(--bn-font-size, 13.3333px);
 
   height: 768px; // XGA is the deafult size

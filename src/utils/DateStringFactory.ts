@@ -1,4 +1,4 @@
-import {DateTime, DateTimeUnit, DurationLike} from "luxon";
+import { DateTime, DateTimeUnit, DurationLike } from "luxon";
 import { DateFormat, DateLinkFormat } from "../components/bn-chart-time/utils/model"; //TODO: JHE:  Merge Title und Cahrt DateFormat...
 //import {DateFormat, DateLinkFormat} from "../components/ibcs-chart-time/utils/model";
 
@@ -30,7 +30,6 @@ export enum DateLink {
 }
 
 export class DateStringFactory {
-
   private readonly _dateFormat: DateFormat = {
     year: "yyyy",
     quarter: "q'Q' yyyy",
@@ -74,7 +73,6 @@ export class DateStringFactory {
   private dateFormatShort: DateFormat;
   private locale: string = "de";
 
-
   constructor() {
     this.dateFormat = this._dateFormat;
     this.dateLinkFormat = this._dateLinkFormat;
@@ -102,13 +100,13 @@ export class DateStringFactory {
   }
 
   public setLocale(locale: string) {
-     this.locale = locale;
+    this.locale = locale;
   }
 
   /**
    * Converts date string based on dateFormatMap and  the selected Type
    *
-   * @param date 
+   * @param date
    * @param type?
    */
   public getDateString(date: DateTime, type?: DateDistance): string {
@@ -118,7 +116,7 @@ export class DateStringFactory {
   /**
    * Converts date string based on dateFormatMap and  the selected Type
    *
-   * @param date 
+   * @param date
    * @param type?
    */
   public getSmartDateString(date: DateTime, type: DateDistance): string {
@@ -153,47 +151,45 @@ export class DateStringFactory {
     }
   }
 
-  
   /**
    * Calulating best fitting DateDistance type between 2 dates
    *
    * @param start
    * @param end
    */
-  public calculateDistanceType(start: DateTime | number, end: DateTime | number | null, limit: number = 32): DateDistance {
+  public calculateDistanceType(
+    start: DateTime | number,
+    end: DateTime | number | null,
+    limit: number = 32,
+  ): DateDistance {
     if (end == null) {
-      return DateDistance.DAY
+      return DateDistance.DAY;
     }
 
-    
+    const mStart: DateTime = typeof start == "number" ? DateTime.fromMillis(start) : start;
+    const mEnd: DateTime = typeof end == "number" ? DateTime.fromMillis(end) : end;
 
-    let mStart: DateTime = typeof start == 'number'? DateTime.fromMillis(start): start;
-    let mEnd: DateTime = typeof end == 'number'? DateTime.fromMillis(end): end;
-
-   
-
-    if(mEnd.diff(mStart).as('milliseconds')  == 0 ){
-       return DateDistance.DAY;
-    }else if (mEnd.diff(mStart).as('milliseconds') < limit) {
-      return DateDistance.MILLISECOND;
-    } else if (mEnd.diff(mStart).as('seconds') < limit) {
-      return DateDistance.SECOND;
-    } else if (mEnd.diff(mStart).as('minutes') < limit) {
-      return DateDistance.MINUTE;
-    } else if (mEnd.diff(mStart).as('hours') < limit) {
-      return DateDistance.HOUR;
-    } else if (mEnd.diff(mStart).as('days') < limit) {
+    if (mEnd.diff(mStart).as("milliseconds") == 0) {
       return DateDistance.DAY;
-    } else if (mEnd.diff(mStart).as('weeks') < limit) {
+    } else if (mEnd.diff(mStart).as("milliseconds") < limit) {
+      return DateDistance.MILLISECOND;
+    } else if (mEnd.diff(mStart).as("seconds") < limit) {
+      return DateDistance.SECOND;
+    } else if (mEnd.diff(mStart).as("minutes") < limit) {
+      return DateDistance.MINUTE;
+    } else if (mEnd.diff(mStart).as("hours") < limit) {
+      return DateDistance.HOUR;
+    } else if (mEnd.diff(mStart).as("days") < limit) {
+      return DateDistance.DAY;
+    } else if (mEnd.diff(mStart).as("weeks") < limit) {
       return DateDistance.WEEK;
-    } else if (mEnd.diff(mStart).as('months') < limit) {
+    } else if (mEnd.diff(mStart).as("months") < limit) {
       return DateDistance.MONTH;
-    } else if (mEnd.diff(mStart).as('quarters') < limit) {
+    } else if (mEnd.diff(mStart).as("quarters") < limit) {
       return DateDistance.QUARTER;
     } else {
       return DateDistance.YEAR;
     }
-
   }
 
   /**
@@ -204,7 +200,6 @@ export class DateStringFactory {
    * @param spanLimit
    */
   public datesBetween(from: DateTime, to: DateTime, dateInterval: DateDistance, spanLimit: number): DateTime[] {
-
     const unit: DateTimeUnit = this.convertDateDistanceToMomentunitOfTime(dateInterval);
 
     const fromDate = from.startOf(unit);
@@ -215,7 +210,7 @@ export class DateStringFactory {
     const days = [];
 
     if (span >= spanLimit) {
-      console.warn('Clip Span from', span, 'to spanLimit', spanLimit);
+      console.warn("Clip Span from", span, "to spanLimit", spanLimit);
       span = spanLimit;
     }
 
@@ -224,7 +219,7 @@ export class DateStringFactory {
     do {
       days.push(currentDate);
       currentDate = currentDate.plus(this.createDiratonLike(unit, 1));
-    } while(currentDate <= toDate && days.length < span)
+    } while (currentDate <= toDate && days.length < span);
 
     return days;
   }
@@ -241,27 +236,34 @@ export class DateStringFactory {
    * @param mode
    * @param type
    */
-  public getDateLinkString(startDateTime: DateTime | null, endDateTime: DateTime | null, mode: DateLink, type: DateDistance, spanLimit: number): string {
+  public getDateLinkString(
+    startDateTime: DateTime | null,
+    endDateTime: DateTime | null,
+    mode: DateLink,
+    type: DateDistance,
+    spanLimit: number,
+  ): string {
     // No Start/ End Date exists
     if (startDateTime == null && endDateTime == null) {
       // BinoSystem.warn('NO START AND END DATE SELECTED');
       return "";
     }
 
-    if (startDateTime == null && !( mode == DateLink.END || mode == DateLink.YTD)) {
+    if (startDateTime == null && !(mode == DateLink.END || mode == DateLink.YTD)) {
       // BinoSystem.warn('NO START N SELECTED');
       return "";
     }
 
-    if (endDateTime == null && (DateLink.INTERVAL === mode || DateLink.CUM === mode ||  DateLink.END  === mode || DateLink.YTD === mode)) {
+    if (
+      endDateTime == null &&
+      (DateLink.INTERVAL === mode || DateLink.CUM === mode || DateLink.END === mode || DateLink.YTD === mode)
+    ) {
       // BinoSystem.warn('NO END N SELECTED');
       return "";
     }
 
-    let date1: DateTime = startDateTime || DateTime.now();
-    let date2: DateTime | null = endDateTime;
-
-    
+    const date1: DateTime = startDateTime || DateTime.now();
+    const date2: DateTime | null = endDateTime;
 
     // calculate type value aka. auto-mode
     if (type === DateDistance.AUTO) {
@@ -269,14 +271,14 @@ export class DateStringFactory {
     }
 
     let dateString1 = this.getDateString(date1, type);
-    let dateString2 = '';
+    let dateString2 = "";
     let link = DateLink.NONE;
 
-    if(date2 != null) {
+    if (date2 != null) {
       dateString2 = this.getDateString(date2, type);
       link = DateLink.INTERVAL;
       // clean up visualisation if start and end (formated) ist identical
-      if (dateString1 === dateString2 && mode === DateLink.INTERVAL ) {
+      if (dateString1 === dateString2 && mode === DateLink.INTERVAL) {
         // BinoSystem.warn('CHANGED INTERVAL TO NONE; START AND END ARE IDENTICAL');
         mode = DateLink.NONE;
       }
@@ -285,43 +287,44 @@ export class DateStringFactory {
         link = DateLink.NONE;
       }
 
-      if (( DateLink.END  === mode || DateLink.YTD === mode) ) {
+      if (DateLink.END === mode || DateLink.YTD === mode) {
         dateString1 = dateString2;
       }
 
       // clean up dateString1 if same year
-      if (mode === DateLink.INTERVAL || mode === DateLink.CUM || DateLink.AVG ) {
-
-       
-        if (type === DateDistance.QUARTER){
-          if( date1.quarter === date2.quarter && date1.year === date2.year ) {
-              dateString2 = dateString2.replace(" " + date2.year, "");
+      if (mode === DateLink.INTERVAL || mode === DateLink.CUM || DateLink.AVG) {
+        if (type === DateDistance.QUARTER) {
+          if (date1.quarter === date2.quarter && date1.year === date2.year) {
+            dateString2 = dateString2.replace(" " + date2.year, "");
           } else if (date1.year === date2.year) {
-              dateString1 = dateString1.replace(" " + date1.year, "");
+            dateString1 = dateString1.replace(" " + date1.year, "");
           }
-        }
-        else if(type === DateDistance.MONTH){
-          if(date1.month === date2.month && date1.year === date2.year ) {
+        } else if (type === DateDistance.MONTH) {
+          if (date1.month === date2.month && date1.year === date2.year) {
+            dateString2 = dateString2.replace(" " + date2.year, "");
+          } else if (date1.year === date2.year) {
+            dateString1 = dateString1.replace(" " + date1.year, "");
+          }
+        } else if (type === DateDistance.WEEK) {
+          if (date1.weekNumber === date2.weekNumber && date1.year === date2.year) {
             dateString2 = dateString2.replace(" " + date2.year, "");
           } else if (date1.year === date2.year) {
             dateString1 = dateString1.replace(" " + date1.year, "");
           }
         }
-        else if(type === DateDistance.WEEK) {
-          if(date1.weekNumber === date2.weekNumber && date1.year === date2.year ) {
-            dateString2 = dateString2.replace(" " + date2.year, "");
-          } else if (date1.year === date2.year) {
-            dateString1 = dateString1.replace(" " + date1.year, "");
-          }
-        }  
       }
     }
 
-    return this.dateLinkFormat[mode as string].replace("[LINK]",  this.dateLinkFormat[link]).replace("[DATE]", dateString1).replace("[DATE2]", dateString2);
+    return this.dateLinkFormat[mode as string]
+      .replace("[LINK]", this.dateLinkFormat[link])
+      .replace("[DATE]", dateString1)
+      .replace("[DATE2]", dateString2);
   }
 
   getShortDateString(date: DateTime, type: DateDistance) {
-    return date.setLocale(this.locale).toFormat(this.dateFormatShort[type as string] || this.dateFormatShort["fallback"]);
+    return date
+      .setLocale(this.locale)
+      .toFormat(this.dateFormatShort[type as string] || this.dateFormatShort["fallback"]);
   }
 
   private getFormatedDayDate(date: DateTime) {
@@ -337,7 +340,6 @@ export class DateStringFactory {
 
     return date.setLocale(this.locale).toFormat(format);
   }
-
 
   private getFormatedMonthDate(date: DateTime) {
     let format = this.dateFormatShort["month"];
@@ -409,7 +411,6 @@ export class DateStringFactory {
     return date.setLocale(this.locale).toFormat(format);
   }
 
-
   private isFirstInMonth(date: DateTime) {
     return date.day == 1;
   }
@@ -447,19 +448,19 @@ export class DateStringFactory {
 
     switch (dateInterval) {
       case DateDistance.YEAR:
-        unitOfTime = 'year';
+        unitOfTime = "year";
         break;
       case DateDistance.MONTH:
-        unitOfTime = 'month';
+        unitOfTime = "month";
         break;
       case DateDistance.QUARTER:
-        unitOfTime = 'quarter';
+        unitOfTime = "quarter";
         break;
       case DateDistance.WEEK:
-        unitOfTime = 'week';
+        unitOfTime = "week";
         break;
       case DateDistance.DAY:
-        unitOfTime = 'day';
+        unitOfTime = "day";
         break;
       case DateDistance.HOUR:
         unitOfTime = "hour";
@@ -474,45 +475,45 @@ export class DateStringFactory {
         unitOfTime = "millisecond";
         break;
       default:
-        unitOfTime = 'day';
+        unitOfTime = "day";
     }
 
     return unitOfTime;
   }
 
   private createDiratonLike(unit: DateTimeUnit, number: number): DurationLike {
-    let unitOfTime: DurationLike = {days: 0};
+    let unitOfTime: DurationLike = { days: 0 };
 
     switch (unit) {
-      case 'year':
-        unitOfTime =  {years: number};
+      case "year":
+        unitOfTime = { years: number };
         break;
-      case 'month':
-        unitOfTime =  {months: number};
+      case "month":
+        unitOfTime = { months: number };
         break;
-      case 'quarter':
-        unitOfTime = {quarters: number};
+      case "quarter":
+        unitOfTime = { quarters: number };
         break;
-      case 'week':
-        unitOfTime =  {weeks: number};
+      case "week":
+        unitOfTime = { weeks: number };
         break;
-      case 'day':
-        unitOfTime =  {days: number};
+      case "day":
+        unitOfTime = { days: number };
         break;
-      case 'hour':
-        unitOfTime =  {hours: number};
+      case "hour":
+        unitOfTime = { hours: number };
         break;
-      case 'minute':
-        unitOfTime = {minutes: number};
+      case "minute":
+        unitOfTime = { minutes: number };
         break;
-      case 'second':
-        unitOfTime = {seconds: number};
+      case "second":
+        unitOfTime = { seconds: number };
         break;
-      case 'millisecond':
-        unitOfTime =  {milliseconds: number};
+      case "millisecond":
+        unitOfTime = { milliseconds: number };
         break;
       default:
-        unitOfTime =  {days: number};
+        unitOfTime = { days: number };
     }
     return unitOfTime;
   }

@@ -6,8 +6,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-component-style',
-  styleUrl: 'bn-component-style.scss'
+  tag: "bn-component-style",
+  styleUrl: "bn-component-style.scss",
 })
 export class ComponentStyle {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -23,16 +23,15 @@ export class ComponentStyle {
     withBodyObserver(this, (data) => {
       try {
         const parsedData = JSON.parse(data);
-        set(this.name, parsedData as Style)
+        set(this.name, parsedData as Style);
       } catch (e) {
         //TODO: add error chanel for JSON parsing errors
-        console.error(e)
+        console.error(e);
       }
     });
   }
 
   render() {
-    return <Host />
+    return <Host />;
   }
 }
-

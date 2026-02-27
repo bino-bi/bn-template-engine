@@ -1,13 +1,16 @@
 import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
-  isBlankInput, isValidBoolean, isValidDirection, isValidInteger,
+  isBlankInput,
+  isValidBoolean,
+  isValidDirection,
+  isValidInteger,
   isValidLevel,
   isValidMeasureScale,
   isValidNumber,
   validateOrderList,
   validateScenarioList,
   validateStackConfig,
-  validateVariancesList
+  validateVariancesList,
 } from "../../utils/validate";
 
 import withDataset from "../../utils/withDataset";
@@ -21,26 +24,26 @@ import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensi
 import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { Style } from "../../stores/componentStyles";
-import { StructureChartDataRow} from "./utils/model";
+import { StructureChartDataRow } from "./utils/model";
 import { AggregationLevel, StackBy, StackMode, StackOrder } from "../../utils/constants";
 import { StackConfigParsed } from "./utils/model/StructureChartComponentConfig";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 
 @Component({
-  tag: 'bn-chart-structure',
+  tag: "bn-chart-structure",
   styleUrl: "bn-chart-structure.scss",
-  shadow: true
+  shadow: true,
 })
 export class Chart {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
-    @Element() private element: HTMLElement;
+  @Element() private element: HTMLElement;
 
-  @State() data: StructureChartDataRow[] = []
+  @State() data: StructureChartDataRow[] = [];
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
 
   private readonly t: (key: string, data?: object) => string;
-  private readonly componentStyle: <T, >(q: (style: Style) => T) => T;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private readonly errors: ErrorDispatcher;
 
   /**
@@ -51,7 +54,6 @@ export class Chart {
 
   @Prop()
   filter: string = "";
-
 
   /**
    * List of Scenarios Map.
@@ -68,13 +70,17 @@ export class Chart {
    *
    */
   @Prop() scenarios!: string;
-  @Watch('scenarios')
+  @Watch("scenarios")
   validateScenario(newValue: string) {
     const invalidScenarios: string[] = validateScenarioList(newValue);
-    const errId: string = 'ERR_scenarios';
+    const errId: string = "ERR_scenarios";
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + JSON.stringify(invalidScenarios) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "scenarios: invalid value(s) '" + JSON.stringify(invalidScenarios) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -102,21 +108,21 @@ export class Chart {
    *    example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
    */
   @Prop() variances!: string;
-  @Watch('variances')
+  @Watch("variances")
   validateVariances(newValue: string) {
-
-    const errIdVar: string = 'ERR_variances';
-    let invalidVariances: string[] = validateVariancesList(newValue);
+    const errIdVar: string = "ERR_variances";
+    const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errIdVar, type: 'warning', message: 'variances: invalid value(s) \'' + JSON.stringify(invalidVariances) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errIdVar,
+        type: "warning",
+        message: "variances: invalid value(s) '" + JSON.stringify(invalidVariances) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errIdVar);
     }
   }
-
-
-
 
   /**
    * Name of the 'scaling-group' which the chart uses
@@ -127,12 +133,16 @@ export class Chart {
    */
   @Prop() unitScaling!: string | number;
 
-  @Watch('unitScaling')
+  @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = 'ERR_unitScaling';
+    const errId: string = "ERR_unitScaling";
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'unitScaling: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "unitScaling: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -146,12 +156,16 @@ export class Chart {
    * pixel per percentage.
    */
   @Prop() percentageScaling!: string | number;
-  @Watch('percentageScaling')
+  @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = 'ERR_percentageScaling';
+    const errId: string = "ERR_percentageScaling";
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'percentageScaling: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "percentageScaling: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -170,12 +184,16 @@ export class Chart {
    */
   @Prop() level!: string;
 
-  @Watch('level')
+  @Watch("level")
   validateLevel(newValue: string) {
-    const errId: string = 'ERR_level';
+    const errId: string = "ERR_level";
 
     if (!isValidLevel(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'level: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "level: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -192,18 +210,21 @@ export class Chart {
    */
   @Prop() order!: string;
 
-  @Watch('order')
+  @Watch("order")
   validateOrderList(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
-    const errId: string = 'ERR_order';
+    const errId: string = "ERR_order";
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "order: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** set sorting order direction
    *  <br /><br />
@@ -211,16 +232,19 @@ export class Chart {
    *  ```asc // desc```
    */
   @Prop() orderDirection!: string;
-  @Watch('orderDirection')
+  @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = 'ERR_orderDirection';
+    const errId: string = "ERR_orderDirection";
 
     if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "orderDirection: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
-
   }
   /** set translaton mode.
    *  <br /><br />
@@ -237,31 +261,39 @@ export class Chart {
    */
   @Prop() limit: number = 0;
 
-  @Watch('limit')
+  @Watch("limit")
   validateLimit(newValue: number) {
-    const errId: string = 'ERR_limit';
+    const errId: string = "ERR_limit";
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'limit: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "limit: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-  @Prop() showCategories: string = 'true';
+  @Prop() showCategories: string = "true";
 
-  @Watch('showCategories')
+  @Watch("showCategories")
   validateShowCategories(newValue: string) {
-    const errId: string = 'ERR_showCategories';
+    const errId: string = "ERR_showCategories";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showCategories: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showCategories: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-   /**
+  /**
    *  Sets the SiPrefix of the Mesaurements and converts the
    *  original value.
    *  <br /><br />
@@ -297,12 +329,16 @@ export class Chart {
    */
   @Prop() measureScale: string = "greatest";
 
-  @Watch('measureScale')
+  @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = 'ERR_measureScale';
- 
+    const errId: string = "ERR_measureScale";
+
     if (!isValidMeasureScale(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "measureScale: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -314,20 +350,24 @@ export class Chart {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() showMeasureScale: string = 'false';
+  @Prop() showMeasureScale: string = "false";
 
-  @Watch('showMeasureScale')
+  @Watch("showMeasureScale")
   validateShowMeasureScale(newValue: string) {
-     const errId: string = 'ERR_grouped';
-     
-      if (!isValidBoolean(newValue)) {
-          this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
-      } else {
-          this.errors.remove(errId);
-      }
+    const errId: string = "ERR_grouped";
+
+    if (!isValidBoolean(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
   }
 
-   /**
+  /**
    * measureUnit displayed in table.
    */
   @Prop() measureUnit: string = "";
@@ -340,18 +380,18 @@ export class Chart {
    * @default '' (empty — no stacking)
    * @example stack='{"by":"scenario"}'
    */
-  @Prop() stack: string = '';
+  @Prop() stack: string = "";
 
-  @Watch('stack')
+  @Watch("stack")
   validateStack(newValue: string) {
-    const errId: string = 'ERR_stack';
+    const errId: string = "ERR_stack";
     const errors = validateStackConfig(newValue);
 
     if (errors.length > 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: errors.join('; ')
+        type: "warning",
+        message: errors.join("; "),
       });
     } else {
       this.errors.remove(errId);
@@ -370,39 +410,45 @@ export class Chart {
    */
   @Prop() scale?: string;
 
-  @Watch('scale')
+  @Watch("scale")
   validateScaling(newValue: string) {
-    if (newValue == null || newValue === '' || newValue === 'none' || newValue === 'auto') {
-      this.errors.remove('ERR_scale');
+    if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
+      this.errors.remove("ERR_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
-      this.errors.addOrReplace({ id: 'ERR_scale', type: 'warning', message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.` });
+      this.errors.addOrReplace({
+        id: "ERR_scale",
+        type: "warning",
+        message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
+      });
     } else {
-      this.errors.remove('ERR_scale');
+      this.errors.remove("ERR_scale");
     }
   }
 
-  private scenariosArray: string[] = [''];
+  private scenariosArray: string[] = [""];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
   constructor() {
     withStyled(this);
     withComponentStatus(this);
-    withDataset(this, (_name, data) => {
-      this.data = data || [];
-    }, (_name, meta) => {
-      this.datasetMeta = meta;
-    });
+    withDataset(
+      this,
+      (_name, data) => {
+        this.data = data || [];
+      },
+      (_name, meta) => {
+        this.datasetMeta = meta;
+      },
+    );
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
-
   }
-
 
   componentWillLoad() {
     this.validateScenario(this.scenarios);
@@ -424,16 +470,16 @@ export class Chart {
   componentDidRender() {
     const { mode } = parseScaling(this.scale);
 
-    if (mode !== 'auto' && mode !== 'empty') {
+    if (mode !== "auto" && mode !== "empty") {
       this._autoScaleGuard = false;
       // Keep existing width-based overflow warning for non-auto modes
       const parent = getParentDimensions(this.element);
-      const errId = 'WARN_overflow';
+      const errId = "WARN_overflow";
       if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
         this.errors.addOrReplace({
           id: errId,
-          type: 'warning',
-          message: 'Chart exceeds available space and will be cut off. Check unit-scaling value.'
+          type: "warning",
+          message: "Chart exceeds available space and will be cut off. Check unit-scaling value.",
         });
       } else {
         this.errors.remove(errId);
@@ -451,15 +497,15 @@ export class Chart {
     if (parentHeight <= 0) return;
 
     // Measure at base (unscaled) font size to get true content height
-    const baseFontSize = this.componentStyle($ => $["global"]?.["fontSizePx"] || 13.3333);
-    host.style.setProperty('--bn-font-size', `${baseFontSize}px`);
+    const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
+    host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
 
     // Reading scrollHeight forces a synchronous reflow at base size
-    const div = host.shadowRoot?.querySelector('.container');
+    const div = host.shadowRoot?.querySelector(".container");
     const unscaledHeight = div?.scrollHeight ?? host.scrollHeight;
 
     if (unscaledHeight <= parentHeight + 1) {
-      this.errors.remove('AUTO_scale');
+      this.errors.remove("AUTO_scale");
       if (this.appliedScaleFactor !== 1) {
         this._autoScaleGuard = true;
         this.appliedScaleFactor = 1;
@@ -469,12 +515,16 @@ export class Chart {
 
     const computedFactor = (parentHeight - 1) / unscaledHeight;
 
-    host.style.setProperty('--bn-font-size', `${baseFontSize * computedFactor}px`);
+    host.style.setProperty("--bn-font-size", `${baseFontSize * computedFactor}px`);
 
-    if (mode === 'empty') {
-      this.errors.addOrReplace({ id: 'AUTO_scale', type: 'warning', message: `Auto-scaled chart by factor ${computedFactor.toFixed(3)}` });
+    if (mode === "empty") {
+      this.errors.addOrReplace({
+        id: "AUTO_scale",
+        type: "warning",
+        message: `Auto-scaled chart by factor ${computedFactor.toFixed(3)}`,
+      });
     } else {
-      this.errors.remove('AUTO_scale');
+      this.errors.remove("AUTO_scale");
     }
 
     if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
@@ -490,34 +540,34 @@ export class Chart {
   }
 
   private prepareScenarios(): string[] {
-    const isAuto = this.scenarios?.trim().toLowerCase() === 'auto';
+    const isAuto = this.scenarios?.trim().toLowerCase() === "auto";
     if (isBlankInput(this.scenarios) || isAuto) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_scenarios', type: 'warning',
-            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+            id: "AUTO_scenarios",
+            type: "warning",
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(",")}`,
           });
         } else {
-          this.errors.remove('AUTO_scenarios');
+          this.errors.remove("AUTO_scenarios");
         }
         return this.datasetMeta.availableScenarios;
       }
       return [];
     }
-    this.errors.remove('AUTO_scenarios');
-    return this.scenarios?.split(",").map(entry => entry.trim());
+    this.errors.remove("AUTO_scenarios");
+    return this.scenarios?.split(",").map((entry) => entry.trim());
   }
 
   private prepareVariances(): string[] {
     if (isBlankInput(this.variances)) {
       return [];
     }
-    return this.variances?.split(",").map(entry => entry.trim());
+    return this.variances?.split(",").map((entry) => entry.trim());
   }
 
-
-  private prepareHideCategories(idx: number): boolean {   
+  private prepareHideCategories(idx: number): boolean {
     return idx >= 1 || this.showCategories != "true";
   }
 
@@ -525,36 +575,35 @@ export class Chart {
     const i18nMetaLabelsLocal = [];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
-    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
-    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
+    const i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
 
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
-
   private preparePixelPerUnit(): number {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
-      this.errors.remove('AUTO_unitScaling');
+      this.errors.remove("AUTO_unitScaling");
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
     }
 
     // Explicit 'auto' → auto-calculate silently
-    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === 'auto') {
-      this.errors.remove('AUTO_unitScaling');
+    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === "auto") {
+      this.errors.remove("AUTO_unitScaling");
       return 0;
     }
 
     const numeric = Number(this.unitScaling);
     if (!isNaN(numeric) && numeric > 0) {
-      this.errors.remove('AUTO_unitScaling');
+      this.errors.remove("AUTO_unitScaling");
       return numeric;
     }
 
     // Not set / invalid → auto-calculate with warning
     this.errors.addOrReplace({
-      id: 'AUTO_unitScaling',
-      type: 'warning',
-      message: `unit-scaling: not set, auto-calculated to fit available space.`
+      id: "AUTO_unitScaling",
+      type: "warning",
+      message: `unit-scaling: not set, auto-calculated to fit available space.`,
     });
     return 0;
   }
@@ -568,50 +617,52 @@ export class Chart {
   }
 
   private prepareLevel(): AggregationLevel {
-    const isAuto = this.level?.trim().toLowerCase() === 'auto';
+    const isAuto = this.level?.trim().toLowerCase() === "auto";
     if (isBlankInput(this.level) || isAuto) {
       if (this.datasetMeta?.suggestedLevel) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_level', type: 'warning',
-            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`
+            id: "AUTO_level",
+            type: "warning",
+            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`,
           });
         } else {
-          this.errors.remove('AUTO_level');
+          this.errors.remove("AUTO_level");
         }
         return AggregationLevel[this.datasetMeta.suggestedLevel.toUpperCase() as keyof typeof AggregationLevel];
       }
       return undefined;
     }
-    this.errors.remove('AUTO_level');
+    this.errors.remove("AUTO_level");
     return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
   }
 
   private prepareOrder(): Order {
-    const isAuto = this.order?.trim().toLowerCase() === 'auto';
+    const isAuto = this.order?.trim().toLowerCase() === "auto";
     let orderStr: string;
     if (isBlankInput(this.order) || isAuto) {
       if (this.datasetMeta?.suggestedOrder) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_order', type: 'warning',
-            message: `order: not set, auto-detected: ${this.datasetMeta.suggestedOrder}`
+            id: "AUTO_order",
+            type: "warning",
+            message: `order: not set, auto-detected: ${this.datasetMeta.suggestedOrder}`,
           });
         } else {
-          this.errors.remove('AUTO_order');
+          this.errors.remove("AUTO_order");
         }
         orderStr = this.datasetMeta.suggestedOrder;
       } else {
         orderStr = this.order;
       }
     } else {
-      this.errors.remove('AUTO_order');
+      this.errors.remove("AUTO_order");
       orderStr = this.order;
     }
 
     const tableOrder: Order = {
-      hierarchy: orderStr?.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
-      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
+      hierarchy: orderStr?.split(",").map((entry) => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection],
     };
 
     return tableOrder;
@@ -619,47 +670,47 @@ export class Chart {
   // TODO: FIXME:  Adapter pattenr doch noch verschieben?
   private prepareStyle(): any {
     const effectiveFactor = this.getEffectiveScaleFactor();
-    return this.componentStyle($ => {
-      const baseFontSize = $["global"]['fontSizePx'];
+    return this.componentStyle(($) => {
+      const baseFontSize = $["global"]["fontSizePx"];
       const scaledFontSize = baseFontSize * effectiveFactor;
 
       return {
         scaleFactors: {
-          scenarioOffset: $["bn-chart-structure"]['scaleFactors']['scenarioOffset'],
-          scenarioLabelToBar: $["bn-chart-structure"]['scaleFactors']['scenarioLabelToBar'],
-          labelToBar: $["bn-chart-structure"]['scaleFactors']['labelToBar'],
-          labelToAxis: $["bn-chart-structure"]['scaleFactors']['labelToAxis'],
-          needleWidth: $["bn-chart-structure"]['scaleFactors']['needleWidth'],
-          needleHeadWidth: $["bn-chart-structure"]['scaleFactors']['needleHeadWidth'],
-          barWidth: $["bn-chart-structure"]['scaleFactors']['barWidth'],
-          varianceAxisLineWidth: $["bn-chart-structure"]['scaleFactors']['varianceAxisLineWidth'],
-          axisLineWidth: $["bn-chart-structure"]['scaleFactors']['axisLineWidth'],
-          auxiliaryLineWidth: $["bn-chart-structure"]['scaleFactors']['auxiliaryLineWidth'],
-          scenarioLineWidth: $["bn-chart-structure"]['scaleFactors']['scenarioLineWidth'],
-          markerWidth: $["bn-chart-structure"]['scaleFactors']['markerWidth'],
-          markerOffset: $["bn-chart-structure"]['scaleFactors']['markerOffset'],
-          categoryWidth: $["bn-chart-structure"]['scaleFactors']['categoryWidth'],
-          axisTickLength: $["bn-chart-structure"]['scaleFactors']['axisTickLength'],
+          scenarioOffset: $["bn-chart-structure"]["scaleFactors"]["scenarioOffset"],
+          scenarioLabelToBar: $["bn-chart-structure"]["scaleFactors"]["scenarioLabelToBar"],
+          labelToBar: $["bn-chart-structure"]["scaleFactors"]["labelToBar"],
+          labelToAxis: $["bn-chart-structure"]["scaleFactors"]["labelToAxis"],
+          needleWidth: $["bn-chart-structure"]["scaleFactors"]["needleWidth"],
+          needleHeadWidth: $["bn-chart-structure"]["scaleFactors"]["needleHeadWidth"],
+          barWidth: $["bn-chart-structure"]["scaleFactors"]["barWidth"],
+          varianceAxisLineWidth: $["bn-chart-structure"]["scaleFactors"]["varianceAxisLineWidth"],
+          axisLineWidth: $["bn-chart-structure"]["scaleFactors"]["axisLineWidth"],
+          auxiliaryLineWidth: $["bn-chart-structure"]["scaleFactors"]["auxiliaryLineWidth"],
+          scenarioLineWidth: $["bn-chart-structure"]["scaleFactors"]["scenarioLineWidth"],
+          markerWidth: $["bn-chart-structure"]["scaleFactors"]["markerWidth"],
+          markerOffset: $["bn-chart-structure"]["scaleFactors"]["markerOffset"],
+          categoryWidth: $["bn-chart-structure"]["scaleFactors"]["categoryWidth"],
+          axisTickLength: $["bn-chart-structure"]["scaleFactors"]["axisTickLength"],
         },
         fontStyles: {
-          font: `${scaledFontSize}px ${$["global"]['fontFamily']}`,
+          font: `${scaledFontSize}px ${$["global"]["fontFamily"]}`,
           size: scaledFontSize,
-          color: $["global"]['fontColor'],
-          background: $["global"]['fontBackgroundColor'],
+          color: $["global"]["fontColor"],
+          background: $["global"]["fontBackgroundColor"],
           leading: 1.8,
         },
-        axisStyles: $["bn-chart-structure"]['axisStyles'],
-        barStyles: $["bn-chart-structure"]['barStyles'],
-        varianceStyles: $["bn-chart-structure"]['varianceStyles'],
-        padding: $["bn-chart-structure"]['padding'],
-        pattern: null
-      }
+        axisStyles: $["bn-chart-structure"]["axisStyles"],
+        barStyles: $["bn-chart-structure"]["barStyles"],
+        varianceStyles: $["bn-chart-structure"]["varianceStyles"],
+        padding: $["bn-chart-structure"]["padding"],
+        pattern: null,
+      };
     });
   }
 
   private prepareChartTitle(idx: number): string {
     if (idx >= 1) {
-      return '';
+      return "";
     }
 
     return this.chartTitle;
@@ -683,7 +734,7 @@ export class Chart {
 
   private prepareFilter(): string {
     if (this.filter.length == 0) {
-      return '';
+      return "";
     }
 
     return this.filter;
@@ -694,7 +745,7 @@ export class Chart {
   }
 
   public getDataStructure(): any {
-    let dataSetStructure: any = {
+    const dataSetStructure: any = {
       IStructureChartDataRow: {
         operation: { type: "string", isOptional: false, description: "" },
         rowGroup: { type: "string", isOptional: false, description: "" },
@@ -723,7 +774,7 @@ export class Chart {
         pl2: { type: "number", isOptional: false, description: "" },
         pl3: { type: "number", isOptional: false, description: "" },
         pl4: { type: "number", isOptional: false, description: "" },
-      }
+      },
     };
 
     return dataSetStructure;
@@ -734,11 +785,15 @@ export class Chart {
       return "GREATEST";
     }
 
-    if (['_', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'm', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(this.measureScale.trim())) {
+    if (
+      ["_", "k", "M", "G", "T", "P", "E", "Z", "Y", "m", "μ", "n", "p", "P", "f", "a", "z", "y"].includes(
+        this.measureScale.trim(),
+      )
+    ) {
       return this.measureScale.trim();
     }
 
-    if (this.measureScale.trim().toUpperCase() === 'LEAST') {
+    if (this.measureScale.trim().toUpperCase() === "LEAST") {
       return this.measureScale.trim();
     }
 
@@ -746,13 +801,13 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx == 0 && this.showMeasureScale == "true";   
+    return idx == 0 && this.showMeasureScale == "true";
   }
   prepareMeasureUnit(): string {
-      if (this.measureUnit == "" || this.measureUnit == null) {
-        return "";
-      }
-      return this.measureUnit;
+    if (this.measureUnit == "" || this.measureUnit == null) {
+      return "";
+    }
+    return this.measureUnit;
   }
 
   chartTemplate(localScenarioString: string, idx: number) {
@@ -760,51 +815,53 @@ export class Chart {
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
 
-    return <ibcs-chart-structure
-      data={this.data}
-      chartTitle={this.prepareChartTitle(idx)}
-      scenarios={this.prepareScenarios()}
-      variances={[localScenarioString]}
-      hideCategories={this.prepareHideCategories(idx) }
-      pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
-      pixelPerPercentage={ppp > 0 ? ppp * effectiveFactor : 0}
-      limit={this.prepareLimit()}
-      styles={this.prepareStyle()}
-      i18n={this.prepareI18n()}
-      order={this.prepareOrder()}
-      level={this.prepareLevel()}
-      filter={this.prepareFilter()}
-      measure-scale={this.prepareMeasureScale()}
-      measure-unit={this.prepareMeasureUnit()}
-      showMeasureScale={this.prepareShowMeasureScale(idx)}
-      stackConfig={this.prepareStackConfig()}
-      parentDimensions={this.prepareDimension()}
-    ></ibcs-chart-structure>
+    return (
+      <ibcs-chart-structure
+        data={this.data}
+        chartTitle={this.prepareChartTitle(idx)}
+        scenarios={this.prepareScenarios()}
+        variances={[localScenarioString]}
+        hideCategories={this.prepareHideCategories(idx)}
+        pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
+        pixelPerPercentage={ppp > 0 ? ppp * effectiveFactor : 0}
+        limit={this.prepareLimit()}
+        styles={this.prepareStyle()}
+        i18n={this.prepareI18n()}
+        order={this.prepareOrder()}
+        level={this.prepareLevel()}
+        filter={this.prepareFilter()}
+        measure-scale={this.prepareMeasureScale()}
+        measure-unit={this.prepareMeasureUnit()}
+        showMeasureScale={this.prepareShowMeasureScale(idx)}
+        stackConfig={this.prepareStackConfig()}
+        parentDimensions={this.prepareDimension()}
+      ></ibcs-chart-structure>
+    );
   }
 
   private getEffectiveScaleFactor(): number {
     const { mode, factor } = parseScaling(this.scale);
-    if (mode === 'factor') return factor!;
-    if (mode === 'auto' || mode === 'empty') return this.appliedScaleFactor;
+    if (mode === "factor") return factor!;
+    if (mode === "auto" || mode === "empty") return this.appliedScaleFactor;
     return 1;
   }
 
   private getFontStyles(): { [key: string]: string } {
     const effectiveFactor = this.getEffectiveScaleFactor();
-    return this.componentStyle($ => {
+    return this.componentStyle(($) => {
       const baseFontSize = $["global"]?.["fontSizePx"] || 13.3333;
       return {
-        '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-        '--bn-font-size': `${baseFontSize * effectiveFactor}px`,
-        '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-        '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+        "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+        "--bn-font-size": `${baseFontSize * effectiveFactor}px`,
+        "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+        "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
       };
     });
   }
 
   render() {
-    let scenariosArray = [''];
-    let variancesArray = this.prepareVariances();
+    let scenariosArray = [""];
+    const variancesArray = this.prepareVariances();
 
     if (variancesArray.length > 0) {
       scenariosArray = [...scenariosArray, ...variancesArray];
@@ -812,10 +869,10 @@ export class Chart {
 
     const fontStyles = this.getFontStyles();
 
-    return <Host style={fontStyles}>
-      <div class="container">
-        {scenariosArray.map(this.chartTemplate)}
-      </div>
-    </Host>
+    return (
+      <Host style={fontStyles}>
+        <div class="container">{scenariosArray.map(this.chartTemplate)}</div>
+      </Host>
+    );
   }
 }

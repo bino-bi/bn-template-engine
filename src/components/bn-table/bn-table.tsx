@@ -14,7 +14,8 @@ import {
   validateOrderList,
   validatePartOfJsonStr,
   validateScenarioList,
-  validateThereOfJsonStr, validateVariancesList
+  validateThereOfJsonStr,
+  validateVariancesList,
 } from "../../utils/validate";
 
 import withDataset from "../../utils/withDataset";
@@ -24,7 +25,6 @@ import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
-
 
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { getParentDimensions } from "../../utils/parentDimensions";
@@ -38,9 +38,9 @@ import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
 
 @Component({
-  tag: 'bn-table',
-  styleUrl: 'bn-table.css',
-  shadow: true
+  tag: "bn-table",
+  styleUrl: "bn-table.css",
+  shadow: true,
 })
 export class Table {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -48,7 +48,7 @@ export class Table {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
-  @State() data: TableDataRow[] = []
+  @State() data: TableDataRow[] = [];
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
 
@@ -104,17 +104,21 @@ export class Table {
    */
   @Prop() scale?: string;
 
-  @Watch('scale')
+  @Watch("scale")
   validateScaling(newValue: string) {
-    if (newValue == null || newValue === '' || newValue === 'none' || newValue === 'auto') {
-      this.errors.remove('ERR_scale');
+    if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
+      this.errors.remove("ERR_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
-      this.errors.addOrReplace({ id: 'ERR_scale', type: 'warning', message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.` });
+      this.errors.addOrReplace({
+        id: "ERR_scale",
+        type: "warning",
+        message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
+      });
     } else {
-      this.errors.remove('ERR_scale');
+      this.errors.remove("ERR_scale");
     }
   }
 
@@ -124,11 +128,15 @@ export class Table {
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
 
-    withDataset(this, (_name, data) => {
-      this.data = data || [];
-    }, (_name, meta) => {
-      this.datasetMeta = meta;
-    });
+    withDataset(
+      this,
+      (_name, data) => {
+        this.data = data || [];
+      },
+      (_name, meta) => {
+        this.datasetMeta = meta;
+      },
+    );
 
     this.t = withTranslation(this).t;
   }
@@ -138,16 +146,13 @@ export class Table {
    */
   @Prop() tableTitle: string = "";
 
-
   @Prop()
   filter: string = "";
 
-
   /**
-    * measureUnit displayed in table.
-    */
+   * measureUnit displayed in table.
+   */
   @Prop() measureUnit: string = "";
-
 
   /** List of scenarios displayed in card header.
    *  <br /><br />
@@ -160,19 +165,22 @@ export class Table {
    */
   @Prop() readonly scenarios: string;
 
-  @Watch('scenarios')
+  @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = 'ERR_scenarios';
+    const errId: string = "ERR_scenarios";
 
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
     if (invalidScenarios.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scenarios: invalid value(s) \'' + invalidScenarios?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "scenarios: invalid value(s) '" + invalidScenarios?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** <br /> <br />
    List of Variances
@@ -193,13 +201,17 @@ export class Table {
    */
   @Prop() readonly variances: string;
 
-  @Watch('variances')
+  @Watch("variances")
   validateVariances(newValue: string) {
-    const errId: string = 'ERR_variances';
+    const errId: string = "ERR_variances";
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'variances: invalid value(s) \'' + JSON.stringify(invalidVariances) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "variances: invalid value(s) '" + JSON.stringify(invalidVariances) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -216,16 +228,20 @@ export class Table {
    */
   @Prop() readonly barColumns: string;
 
-  @Watch('barColumns')
+  @Watch("barColumns")
   validateBarColumns(newValue: string) {
-    const errId: string = 'ERR_barColumns';
+    const errId: string = "ERR_barColumns";
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
     }
     const invalidColumns: string[] = validateVariancesList(newValue);
     if (invalidColumns.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'barColumns: invalid value(s) \'' + JSON.stringify(invalidColumns) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "barColumns: invalid value(s) '" + JSON.stringify(invalidColumns) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -245,12 +261,16 @@ export class Table {
    */
   @Prop() unitScaling: string | number = 0.01;
 
-  @Watch('unitScaling')
+  @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = 'ERR_unitScaling';
+    const errId: string = "ERR_unitScaling";
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'unitScaling: invalid value \'' + newValue + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "unitScaling: invalid value '" + newValue + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -270,12 +290,16 @@ export class Table {
    */
   @Prop() percentageScaling: string | number = 0.5;
 
-  @Watch('percentageScaling')
+  @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = 'ERR_percentageScaling';
+    const errId: string = "ERR_percentageScaling";
 
     if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'percentageScaling: invalid value \'' + newValue + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "percentageScaling: invalid value '" + newValue + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -293,19 +317,22 @@ export class Table {
    *  values: <br />
    *  ```percent  // decimal```
    */
-  @Prop() dataFormat: string = 'decimal';
+  @Prop() dataFormat: string = "decimal";
 
-  @Watch('dataFormat')
+  @Watch("dataFormat")
   validateDataFormat(newValue: string) {
-    const errId: string = 'ERR_dataFormat';
+    const errId: string = "ERR_dataFormat";
 
     if (!isValidDataFormat(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormat: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "dataFormat: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    *  Toggles of data should be grouped by
@@ -314,38 +341,45 @@ export class Table {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() grouped: string = 'false';
+  @Prop() grouped: string = "false";
 
-  @Watch('grouped')
+  @Watch("grouped")
   validateGrouped(newValue: string) {
-    const errId: string = 'ERR_grouped';
+    const errId: string = "ERR_grouped";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'grouped: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "grouped: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
   /**
- *  Toggles display of measure units in table header
- *  <br /><br />
- *  values: <br />
- *  ```true // false```
- */
-  @Prop() showMeasureScale: string = 'false';
+   *  Toggles display of measure units in table header
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
+   */
+  @Prop() showMeasureScale: string = "false";
 
-  @Watch('showMeasureScale')
+  @Watch("showMeasureScale")
   validateShowMeasureScale(newValue: string) {
-    const errId: string = 'ERR_grouped';
+    const errId: string = "ERR_grouped";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showMeasureScale: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    *  Toggles a title header for each (row-)group
@@ -355,19 +389,22 @@ export class Table {
    *  ```true // false```
    *
    */
-  @Prop() showGroupTitle: string = 'true';
+  @Prop() showGroupTitle: string = "true";
 
-  @Watch('showGroupTitle')
+  @Watch("showGroupTitle")
   validateShowGroupTitle(newValue: string) {
-    const errId: string = 'ERR_showGroupTitle';
+    const errId: string = "ERR_showGroupTitle";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showGroupTitle: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showGroupTitle: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    *  Set the table type
@@ -376,19 +413,22 @@ export class Table {
    *  ```list // sum // opt // sumnototal // optnototal```
    *
    */
-  @Prop() type: string = 'list';
+  @Prop() type: string = "list";
 
-  @Watch('type')
+  @Watch("type")
   validateType(newValue: string | boolean) {
-    const errId: string = 'ERR_type';
+    const errId: string = "ERR_type";
 
     if (!isValidTableType(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'type: invalid value(s) \'' + newValue?.toString() + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "type: invalid value(s) '" + newValue?.toString() + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    * Set the maximum number of rows for each
@@ -399,17 +439,20 @@ export class Table {
    */
   @Prop() limit: number = 0;
 
-  @Watch('limit')
+  @Watch("limit")
   validateLimit(newValue: number) {
-    const errId: string = 'ERR_limit';
+    const errId: string = "ERR_limit";
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "order: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    * Stringified Array of drilldown Objects {
@@ -427,15 +470,19 @@ export class Table {
    "subCategory": "Applications-A",
    },]```
    */
-  @Prop() thereof: string = '[]';
+  @Prop() thereof: string = "[]";
 
-  @Watch('thereof')
+  @Watch("thereof")
   validateThereOf(newValue: string) {
-    const errId: string = 'ERR_thereof';
+    const errId: string = "ERR_thereof";
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'ThereOf: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "ThereOf: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -455,20 +502,23 @@ export class Table {
    "category": "Applications",
    },]```
    */
-  @Prop() partof: string = '[]';
+  @Prop() partof: string = "[]";
 
-  @Watch('partof')
+  @Watch("partof")
   validatePartOf(newValue: string) {
-    const errId: string = 'ERR_partof';
+    const errId: string = "ERR_partof";
     const invalidElements: string[] = validatePartOfJsonStr(newValue);
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'partof: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "partof: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** List of the primary scenarios on which the order direction are applied  valid scenarios are
    *  If order is set to a scenario it has also exists in scenariolist
@@ -478,38 +528,44 @@ export class Table {
    *  <br /><br />
    *  When set to ```auto```, order is detected from the dataset silently.
    */
-  @Prop() order: string = 'category';
+  @Prop() order: string = "category";
 
-  @Watch('order')
+  @Watch("order")
   validateOrderList(newValue: string) {
-    const errId: string = 'ERR_order';
+    const errId: string = "ERR_order";
     const invalidElements: string[] = validateOrderList(newValue);
 
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'order: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "order: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /** Set sorting order direction
    *  <br /><br />
    *  values: <br />
    * ```asc  // desc```
    */
-  @Prop() orderDirection: string = 'asc';
+  @Prop() orderDirection: string = "asc";
 
-  @Watch('orderDirection')
+  @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = 'ERR_orderDirection';
+    const errId: string = "ERR_orderDirection";
 
     if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'orderDirection: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "orderDirection: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
-
   }
 
   /** Sets the Measure Type of the Table
@@ -522,12 +578,16 @@ export class Table {
    */
   @Prop() measureType: string = "volume";
 
-  @Watch('measureType')
+  @Watch("measureType")
   validateMeasureType(newValue: string) {
-    const errId: string = 'ERR_measureType';
+    const errId: string = "ERR_measureType";
 
     if (!isValidMeasureType(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureType: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "measureType: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -569,12 +629,16 @@ export class Table {
    */
   @Prop() measureScale: string = "greatest";
 
-  @Watch('measureScale')
+  @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = 'ERR_measureScale';
+    const errId: string = "ERR_measureScale";
 
     if (!isValidMeasureScale(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'measureScale: invalid value \'' + newValue?.toString() + '\' is not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "measureScale: invalid value '" + newValue?.toString() + "' is not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -585,12 +649,16 @@ export class Table {
    */
   @Prop() dataFormatDigitsDecimal: number = 1;
 
-  @Watch('dataFormatDigitsDecimal')
+  @Watch("dataFormatDigitsDecimal")
   validateDataFormatDigitsDecimal(newValue: number) {
-    const errId: string = 'ERR_dataFormatDigitsDecimal';
+    const errId: string = "ERR_dataFormatDigitsDecimal";
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormatDigitsDecimal: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "dataFormatDigitsDecimal: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -601,12 +669,16 @@ export class Table {
    */
   @Prop() dataFormatDigitsPercent: number = 2;
 
-  @Watch('dataFormatDigitsPercent')
+  @Watch("dataFormatDigitsPercent")
   validateDateFormatDigitsPercent(newValue: number) {
-    const errId: string = 'ERR_dataFormatDigitsPercent';
+    const errId: string = "ERR_dataFormatDigitsPercent";
 
     if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'dataFormatDigitsPercent: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "dataFormatDigitsPercent: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -620,14 +692,18 @@ export class Table {
    *  values:<br />
    *  ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
    */
-  @Prop() categoryWidth: string = 'w15';
+  @Prop() categoryWidth: string = "w15";
 
-  @Watch('categoryWidth')
+  @Watch("categoryWidth")
   validateCategoryWidth(newValue: string) {
-    const errId: string = 'ERR_categoryWidth';
+    const errId: string = "ERR_categoryWidth";
 
     if (!isTableCategoryWidth(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'categoryWidth: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "categoryWidth: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -646,19 +722,22 @@ export class Table {
    */
   @Prop() columnthereof: string | null = null;
 
-  @Watch('columnthereof')
+  @Watch("columnthereof")
   validateColumnThereOf(newValue: string | null) {
     const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
-    const errId: string = 'ERR_categorythereof';
+    const errId: string = "ERR_categorythereof";
     if (invalidElements.length > 0) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'columnthereof: invalid value(s) \'' + JSON.stringify(invalidElements) + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "columnthereof: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
 
-
-  unsubscribe: () => void
+  unsubscribe: () => void;
 
   componentWillLoad() {
     //this.datasouce = get("test");
@@ -698,7 +777,7 @@ export class Table {
     const { mode } = parseScaling(this.scale);
 
     // Only auto-scale for 'auto' and 'empty' (blank) modes
-    if (mode !== 'auto' && mode !== 'empty') {
+    if (mode !== "auto" && mode !== "empty") {
       this._autoScaleGuard = false;
       return;
     }
@@ -716,16 +795,16 @@ export class Table {
     // Measure at base (unscaled) font size to get true content width.
     // This avoids the oscillation where scaled-down content fits → reset
     // to 1 → overflows → scale down → fits → …
-    const baseFontSize = this.componentStyle($ => $["global"]?.["fontSizePx"] || 13.3333);
-    host.style.setProperty('--bn-font-size', `${baseFontSize}px`);
+    const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
+    host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
 
     // Reading scrollWidth forces a synchronous reflow at base size
-    const div = host.shadowRoot?.querySelector('div');
+    const div = host.shadowRoot?.querySelector("div");
     const unscaledWidth = div?.scrollWidth ?? host.scrollWidth;
 
     if (unscaledWidth <= parentWidth + 1) {
       // Content fits at base size — no scaling needed
-      this.errors.remove('AUTO_scale');
+      this.errors.remove("AUTO_scale");
       if (this.appliedScaleFactor !== 1) {
         this._autoScaleGuard = true;
         this.appliedScaleFactor = 1;
@@ -738,12 +817,16 @@ export class Table {
     const computedFactor = (parentWidth - 1) / unscaledWidth;
 
     // Apply immediately via CSS var for smooth visual (before state re-render)
-    host.style.setProperty('--bn-font-size', `${baseFontSize * computedFactor}px`);
+    host.style.setProperty("--bn-font-size", `${baseFontSize * computedFactor}px`);
 
-    if (mode === 'empty') {
-      this.errors.addOrReplace({ id: 'AUTO_scale', type: 'warning', message: `Auto-scaled table by factor ${computedFactor.toFixed(3)}` });
+    if (mode === "empty") {
+      this.errors.addOrReplace({
+        id: "AUTO_scale",
+        type: "warning",
+        message: `Auto-scaled table by factor ${computedFactor.toFixed(3)}`,
+      });
     } else {
-      this.errors.remove('AUTO_scale');
+      this.errors.remove("AUTO_scale");
     }
 
     // Update state so bar charts re-render at the new scale
@@ -758,12 +841,11 @@ export class Table {
   }
 
   private prepareGrouped(): boolean {
-    return (this.grouped == "true");
+    return this.grouped == "true";
   }
 
   private prepareShowGroupTitle(): boolean {
-
-    return (this.showGroupTitle == "true");
+    return this.showGroupTitle == "true";
   }
 
   private prepareTableType(): TableType {
@@ -775,33 +857,30 @@ export class Table {
   }
 
   private prepareThereOf(): TableDrillGroup[] {
-    if (this.thereof == null || this.thereof.trim() == '') {
+    if (this.thereof == null || this.thereof.trim() == "") {
       return [];
     }
 
     return JSON.parse(this.thereof!) as TableDrillGroup[];
-
   }
 
   private preparePartOf(): TableDrillGroup[] {
-    if (this.partof == null || this.partof.trim() == '') {
+    if (this.partof == null || this.partof.trim() == "") {
       return [];
     }
     return JSON.parse(this.partof!) as TableDrillGroup[];
-
   }
 
-
   private prepareOrder(): Order {
-    const isAuto = this.order?.trim().toLowerCase() === 'auto';
+    const isAuto = this.order?.trim().toLowerCase() === "auto";
     let orderStr = this.order;
     if (isAuto && this.datasetMeta?.suggestedOrder) {
       orderStr = this.datasetMeta.suggestedOrder;
     }
 
     const tableOrder: Order = {
-      hierarchy: orderStr.split(",").map(entry => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
-      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection]
+      hierarchy: orderStr.split(",").map((entry) => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection],
     };
 
     return tableOrder;
@@ -816,33 +895,33 @@ export class Table {
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system
-    let i18nMapLocal = new Map(i18nMetaLabelsLocal.map(key => [key, this.t(".".concat(key))]));
-    let i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map(key => [key, this.t("global.".concat(key))]));
+    const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
+    const i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
 
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
-
   private prepareDataFormatDigits(): DataFormatDigits {
     const formatDigits: DataFormatDigits = {
       percent: this.dataFormatDigitsPercent,
-      decimal: this.dataFormatDigitsDecimal
+      decimal: this.dataFormatDigitsDecimal,
     };
 
     return formatDigits;
   }
 
   private prepareScenarios(): string[] {
-    const isAuto = this.scenarios?.trim().toLowerCase() === 'auto';
+    const isAuto = this.scenarios?.trim().toLowerCase() === "auto";
     if ((isBlankInput(this.scenarios) || isAuto) && isBlankInput(this.variances)) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_scenarios', type: 'warning',
-            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+            id: "AUTO_scenarios",
+            type: "warning",
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(",")}`,
           });
         } else {
-          this.errors.remove('AUTO_scenarios');
+          this.errors.remove("AUTO_scenarios");
         }
         return this.datasetMeta.availableScenarios;
       }
@@ -855,23 +934,24 @@ export class Table {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
         if (!isAuto) {
           this.errors.addOrReplace({
-            id: 'AUTO_scenarios', type: 'warning',
-            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(',')}`
+            id: "AUTO_scenarios",
+            type: "warning",
+            message: `scenarios: not set, auto-detected: ${this.datasetMeta.availableScenarios.join(",")}`,
           });
         } else {
-          this.errors.remove('AUTO_scenarios');
+          this.errors.remove("AUTO_scenarios");
         }
         scenarios = scenarios.concat(this.datasetMeta.availableScenarios);
       }
     } else {
-      this.errors.remove('AUTO_scenarios');
+      this.errors.remove("AUTO_scenarios");
       scenarios = scenarios.concat(this.scenarios?.split(","));
     }
 
     if (this.variances?.trim().length > 0) {
       scenarios = scenarios.concat(this.variances?.split(","));
     }
-    return scenarios.map(entry => entry.trim());
+    return scenarios.map((entry) => entry.trim());
   }
 
   private prepareCategoryWidth(): TableCategoryWidth {
@@ -886,11 +966,15 @@ export class Table {
       return "GREATEST";
     }
 
-    if (['_', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'm', 'μ', 'n', 'p', 'P', 'f', 'a', 'z', 'y'].includes(this.measureScale.trim())) {
+    if (
+      ["_", "k", "M", "G", "T", "P", "E", "Z", "Y", "m", "μ", "n", "p", "P", "f", "a", "z", "y"].includes(
+        this.measureScale.trim(),
+      )
+    ) {
       return this.measureScale.trim();
     }
 
-    if (this.measureScale.trim().toUpperCase() === 'LEAST') {
+    if (this.measureScale.trim().toUpperCase() === "LEAST") {
       return this.measureScale.trim();
     }
 
@@ -905,11 +989,11 @@ export class Table {
   }
 
   private prepareColumnThereOf(): Map<string, any> {
-    if (this.columnthereof == null || this.columnthereof.trim() == '') {
+    if (this.columnthereof == null || this.columnthereof.trim() == "") {
       return new Map();
     }
-    let parsedString = JSON.parse(this.columnthereof);
-    let map = new Map();
+    const parsedString = JSON.parse(this.columnthereof);
+    const map = new Map();
 
     for (const [_key, value] of Object.entries(parsedString)) {
       if (map.has(value["scenario"]) == false) {
@@ -929,7 +1013,7 @@ export class Table {
   }
 
   prepareShowMeasureScale(): boolean {
-    return (this.showMeasureScale == "true");
+    return this.showMeasureScale == "true";
   }
   prepareMeasureUnit(): string {
     if (this.measureUnit == "" || this.measureUnit == null) {
@@ -940,7 +1024,7 @@ export class Table {
 
   private prepareFilter(): string {
     if (this.filter.length == 0) {
-      return '';
+      return "";
     }
 
     return this.filter;
@@ -950,7 +1034,7 @@ export class Table {
     if (isBlankInput(this.barColumns)) {
       return [];
     }
-    return this.barColumns.split(',').map(col => col.trim());
+    return this.barColumns.split(",").map((col) => col.trim());
   }
 
   private prepareUnitScaling(): number {
@@ -968,7 +1052,7 @@ export class Table {
   }
 
   public getDataStructure(): any {
-    let dataSetStructure: any = {
+    const dataSetStructure: any = {
       ITableDataRow: {
         setName: { type: "string", isOptional: false, description: "" },
         date: { type: "string", isOptional: false, description: "" },
@@ -998,30 +1082,29 @@ export class Table {
         pl1: { type: "number", isOptional: false, description: "" },
         pl2: { type: "number", isOptional: false, description: "" },
         pl3: { type: "number", isOptional: false, description: "" },
-        pl4: { type: "number", isOptional: false, description: "" }
-      }
+        pl4: { type: "number", isOptional: false, description: "" },
+      },
     };
 
     return dataSetStructure;
   }
 
-
   private getEffectiveScaleFactor(): number {
     const { mode, factor } = parseScaling(this.scale);
-    if (mode === 'factor') return factor!;
-    if (mode === 'auto' || mode === 'empty') return this.appliedScaleFactor;
+    if (mode === "factor") return factor!;
+    if (mode === "auto" || mode === "empty") return this.appliedScaleFactor;
     return 1;
   }
 
   private getFontStyles(): { [key: string]: string } {
     const effectiveFactor = this.getEffectiveScaleFactor();
-    return this.componentStyle($ => {
+    return this.componentStyle(($) => {
       const baseFontSize = $["global"]?.["fontSizePx"] || 13.3333;
       return {
-        '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-        '--bn-font-size': `${baseFontSize * effectiveFactor}px`,
-        '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-        '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+        "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+        "--bn-font-size": `${baseFontSize * effectiveFactor}px`,
+        "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+        "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
       };
     });
   }
@@ -1030,37 +1113,38 @@ export class Table {
     const fontStyles = this.getFontStyles();
     const effectiveFactor = this.getEffectiveScaleFactor();
 
-    return <Host style={fontStyles}>
-      <div>
-        <ibcs-table
-          data={this.data}
-          table-title={this.prepareTableTitle()}
-          scenarios={this.prepareScenarios()}
-          scenarios-data-format={this.prepareDataFormat()}
-          grouped={this.prepareGrouped()}
-          limit={this.prepareLimit()}
-          showGroupTitle={this.prepareShowGroupTitle()}
-          thereof={this.prepareThereOf()}
-          partof={this.preparePartOf()}
-          order={this.prepareOrder()}
-          categorythereof={this.prepareColumnThereOf()}
-          type={this.prepareTableType()}
-          category-width={this.prepareCategoryWidth()}
-          dataFormatDigits={this.prepareDataFormatDigits()}
-          i18n={this.prepareI18n()}
-          i18n-mode={this.prepareI18nMode()}
-          measure-scale={this.prepareMeasureScale()}
-          measure-type={this.prepareMeasureType()}
-          measure-unit={this.prepareMeasureUnit()}
-          showMeasureScale={this.prepareShowMeasureScale()}
-          filter={this.prepareFilter()}
-          barColumns={this.prepareBarColumns()}
-          unitScaling={this.prepareUnitScaling()}
-          percentageScaling={this.preparePercentageScaling()}
-          scaleFactor={effectiveFactor}
-        ></ibcs-table>
-      </div>
-    </Host>;
+    return (
+      <Host style={fontStyles}>
+        <div>
+          <ibcs-table
+            data={this.data}
+            table-title={this.prepareTableTitle()}
+            scenarios={this.prepareScenarios()}
+            scenarios-data-format={this.prepareDataFormat()}
+            grouped={this.prepareGrouped()}
+            limit={this.prepareLimit()}
+            showGroupTitle={this.prepareShowGroupTitle()}
+            thereof={this.prepareThereOf()}
+            partof={this.preparePartOf()}
+            order={this.prepareOrder()}
+            categorythereof={this.prepareColumnThereOf()}
+            type={this.prepareTableType()}
+            category-width={this.prepareCategoryWidth()}
+            dataFormatDigits={this.prepareDataFormatDigits()}
+            i18n={this.prepareI18n()}
+            i18n-mode={this.prepareI18nMode()}
+            measure-scale={this.prepareMeasureScale()}
+            measure-type={this.prepareMeasureType()}
+            measure-unit={this.prepareMeasureUnit()}
+            showMeasureScale={this.prepareShowMeasureScale()}
+            filter={this.prepareFilter()}
+            barColumns={this.prepareBarColumns()}
+            unitScaling={this.prepareUnitScaling()}
+            percentageScaling={this.preparePercentageScaling()}
+            scaleFactor={effectiveFactor}
+          ></ibcs-table>
+        </div>
+      </Host>
+    );
   }
-
 }

@@ -1,13 +1,18 @@
-import { Component, h, Host, Listen, Prop, State, Watch } from '@stencil/core';
-import { isValidBoolean, isValidNumber, validateGpxType, validateMarkerType, validateGeojsonType } from "../../utils/validate";
+import { Component, h, Host, Listen, Prop, State, Watch } from "@stencil/core";
+import {
+  isValidBoolean,
+  isValidNumber,
+  validateGpxType,
+  validateMarkerType,
+  validateGeojsonType,
+} from "../../utils/validate";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
-import { ComponentRegister } from '../../utils/componentRegister';
-import { generateUUID } from '../../utils/utils';
-import { Marker } from './ibcs-map/utils/model/Marker';
-
+import { ComponentRegister } from "../../utils/componentRegister";
+import { generateUUID } from "../../utils/utils";
+import { Marker } from "./ibcs-map/utils/model/Marker";
 
 type GpxParams = {
   file: string;
@@ -18,7 +23,7 @@ type GpxParams = {
   startIconUrl: string;
   endIconUrl: string;
   shadowUrl: string;
-}
+};
 
 type GeojsonParams = {
   file: string;
@@ -26,12 +31,11 @@ type GeojsonParams = {
   opacity: number;
   weight: number;
   lineCap: string;
-}
-
+};
 
 @Component({
-  tag: 'bn-map',
-  styleUrl: 'bn-map.css',
+  tag: "bn-map",
+  styleUrl: "bn-map.css",
   shadow: true,
 })
 export class BnMap {
@@ -41,8 +45,8 @@ export class BnMap {
   private readonly errors: ErrorDispatcher;
 
   private markerList: Marker[] = [];
-  private gpxList: GpxParams[] = []
-  private geojsonList: GeojsonParams[] = []
+  private gpxList: GpxParams[] = [];
+  private geojsonList: GeojsonParams[] = [];
 
   //  @State() gpxdata: GpxParams[] = [];
   @State() gpxData: GpxParams[] = [];
@@ -72,12 +76,16 @@ export class BnMap {
    * default: $markers
    */
   @Prop({ mutable: false }) markersDatasetName: string = "$markers";
-  @Watch('markersDatasetName')
+  @Watch("markersDatasetName")
   validateMarkerDatasetName(newValue: number) {
-    const errId: string = 'ERR_markersDatasetName';
+    const errId: string = "ERR_markersDatasetName";
 
-    if (typeof newValue !== 'string') {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'markerDatasetName: invalid value(s) \'' + newValue + '\' are not supported.' });
+    if (typeof newValue !== "string") {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "markerDatasetName: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -89,12 +97,16 @@ export class BnMap {
    * default: $gpxs
    */
   @Prop({ mutable: false }) gpxsDatasetName: string = "$gpxs";
-  @Watch('gpxsDatasetName')
+  @Watch("gpxsDatasetName")
   validateGpxsDatasetName(newValue: number) {
-    const errId: string = 'ERR_gpxsDatasetName';
+    const errId: string = "ERR_gpxsDatasetName";
 
-    if (typeof newValue !== 'string') {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'gpxsDatasetName: invalid value(s) \'' + newValue + '\' are not supported.' });
+    if (typeof newValue !== "string") {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "gpxsDatasetName: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -106,12 +118,16 @@ export class BnMap {
    */
   @Prop({ mutable: true }) latitude: number = 50.137634;
 
-  @Watch('latitude')
+  @Watch("latitude")
   validateLatitude(newValue: number) {
-    const errId: string = 'ERR_latitude';
+    const errId: string = "ERR_latitude";
 
     if (!isValidNumber(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'latitude: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "latitude: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -124,12 +140,16 @@ export class BnMap {
    */
   @Prop({ mutable: true }) longitude: number = 8.679129;
 
-  @Watch('longitude')
+  @Watch("longitude")
   validateLongitude(newValue: number) {
-    const errId: string = 'ERR_longitude';
+    const errId: string = "ERR_longitude";
 
     if (!isValidNumber(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'longitude: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "longitude: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -144,43 +164,53 @@ export class BnMap {
    */
   @Prop({ mutable: true }) scale: number = 11;
 
-  @Watch('scale')
+  @Watch("scale")
   validateScale(newValue: number) {
-    const errId: string = 'ERR_scale';
+    const errId: string = "ERR_scale";
 
     if (!isValidNumber(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'scale: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "scale: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   @Prop({ mutable: true }) manualPosOverride: boolean = true;
 
-  @Watch('manualPosOverride')
+  @Watch("manualPosOverride")
   validateManualPosOverride(newValue: boolean) {
-    const errId: string = 'ERR_scale';
+    const errId: string = "ERR_scale";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'manualPosOverride: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "manualPosOverride: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
   }
-
 
   /**
    * Activates/ Deactivates Map Scale
    */
   @Prop() showScale: boolean = false;
 
-  @Watch('showScale')
+  @Watch("showScale")
   validateShowScale(newValue: boolean) {
-    const errId: string = 'ERR_showScale';
+    const errId: string = "ERR_showScale";
 
     if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'showScale: invalid value(s) \'' + newValue + '\' are not supported.' });
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "showScale: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -189,17 +219,17 @@ export class BnMap {
   /**
    * Set Footer label
    */
-  @Prop() attribution: string = '';
+  @Prop() attribution: string = "";
 
-  @Watch('attribution')
+  @Watch("attribution")
   validateAttribution(newValue: string) {
-    const errId: string = 'ERR_attribution';
+    const errId: string = "ERR_attribution";
 
-    if (typeof newValue !== 'string') {
+    if (typeof newValue !== "string") {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: 'attribution: invalid value(s) \'' + newValue + '\' are not supported.'
+        type: "warning",
+        message: "attribution: invalid value(s) '" + newValue + "' are not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -210,14 +240,18 @@ export class BnMap {
    * URL for maplayer provider
    * example provers https://leaflet-extras.github.io/leaflet-providers/preview/
    */
-  @Prop() tileLayer: string = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
+  @Prop() tileLayer: string = "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png";
 
-  @Watch('tileLayer')
+  @Watch("tileLayer")
   validateTileLayer(newValue: string) {
-    const errId: string = 'ERR_tileLayer';
+    const errId: string = "ERR_tileLayer";
 
-    if (typeof newValue !== 'string') {
-      this.errors.addOrReplace({ id: errId, type: 'warning', message: 'tileLayer: invalid value(s) \'' + newValue + '\' are not supported.' });
+    if (typeof newValue !== "string") {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "tileLayer: invalid value(s) '" + newValue + "' are not supported.",
+      });
     } else {
       this.errors.remove(errId);
     }
@@ -234,19 +268,22 @@ export class BnMap {
    */
   @Prop() markers: string | null = null;
 
-  @Watch('markers')
+  @Watch("markers")
   validateMarkers(newValue: string | null) {
     if (!newValue) {
       return;
     }
-    const errId: string = 'ERR_markers';
-    const errIdJson: string = 'ERR_markersJSON';
+    const errId: string = "ERR_markers";
+    const errIdJson: string = "ERR_markersJSON";
     try {
       const invalidScenarios: string[] = validateMarkerType(newValue);
 
-
       if (invalidScenarios.length > 0) {
-        this.errors.addOrReplace({ id: errId, type: 'warning', message: 'Markers: invalid value(s) \'' + invalidScenarios + '\' are not supported.' });
+        this.errors.addOrReplace({
+          id: errId,
+          type: "warning",
+          message: "Markers: invalid value(s) '" + invalidScenarios + "' are not supported.",
+        });
       } else {
         this.errors.remove(errId);
       }
@@ -254,7 +291,11 @@ export class BnMap {
       this.markerList = JSON.parse(newValue);
       this.errors.remove(errIdJson);
     } catch (e) {
-      this.errors.addOrReplace({ id: errIdJson, type: 'warning', message: 'Markers: invalid value(s) \'' + newValue + '\' are not supported.:' + e.message });
+      this.errors.addOrReplace({
+        id: errIdJson,
+        type: "warning",
+        message: "Markers: invalid value(s) '" + newValue + "' are not supported.:" + e.message,
+      });
     }
   }
 
@@ -268,18 +309,21 @@ export class BnMap {
    *          */
   @Prop() gpxs: string | null = null;
 
-  @Watch('gpxs')
+  @Watch("gpxs")
   validateGpx(newValue: string | null) {
-
     if (!newValue) {
       return;
     }
-    const errId: string = 'ERR_gpxs';
-    const errIdJson: string = 'ERR_gpxsJSON';
+    const errId: string = "ERR_gpxs";
+    const errIdJson: string = "ERR_gpxsJSON";
     try {
       const invalidScenarios: string[] = validateGpxType(newValue);
       if (invalidScenarios.length > 0) {
-        this.errors.addOrReplace({ id: errId, type: 'warning', message: 'gpxs: invalid value(s) \'' + invalidScenarios + '\' are not supported.' });
+        this.errors.addOrReplace({
+          id: errId,
+          type: "warning",
+          message: "gpxs: invalid value(s) '" + invalidScenarios + "' are not supported.",
+        });
       } else {
         this.errors.remove(errId);
       }
@@ -287,24 +331,31 @@ export class BnMap {
       this.gpxList = JSON.parse(newValue);
       this.errors.remove(errIdJson);
     } catch (e) {
-      this.errors.addOrReplace({ id: errIdJson, type: 'warning', message: 'gpxs: invalid  \'' + newValue + '\' is not supported.:' + e.message });
+      this.errors.addOrReplace({
+        id: errIdJson,
+        type: "warning",
+        message: "gpxs: invalid  '" + newValue + "' is not supported.:" + e.message,
+      });
     }
   }
 
   @Prop() geojsons: string | null = null;
 
-  @Watch('geojsons')
+  @Watch("geojsons")
   validateGeojson(newValue: string | null) {
-
     if (!newValue) {
       return;
     }
-    const errId: string = 'ERR_geojsons';
-    const errIdJson: string = 'ERR_geojsons';
+    const errId: string = "ERR_geojsons";
+    const errIdJson: string = "ERR_geojsons";
     try {
       const invalidScenarios: string[] = validateGeojsonType(newValue);
       if (invalidScenarios.length > 0) {
-        this.errors.addOrReplace({ id: errId, type: 'warning', message: 'geojsons: invalid value(s) \'' + invalidScenarios + '\' are not supported.' });
+        this.errors.addOrReplace({
+          id: errId,
+          type: "warning",
+          message: "geojsons: invalid value(s) '" + invalidScenarios + "' are not supported.",
+        });
       } else {
         this.errors.remove(errId);
       }
@@ -312,7 +363,11 @@ export class BnMap {
       this.geojsonList = JSON.parse(newValue);
       this.errors.remove(errIdJson);
     } catch (e) {
-      this.errors.addOrReplace({ id: errIdJson, type: 'warning', message: 'geojsons: invalid  \'' + newValue + '\' is not supported.:' + e.message });
+      this.errors.addOrReplace({
+        id: errIdJson,
+        type: "warning",
+        message: "geojsons: invalid  '" + newValue + "' is not supported.:" + e.message,
+      });
     }
   }
 
@@ -321,14 +376,12 @@ export class BnMap {
   // @ts-ignore
   @Event() bnDragZoomEnded: EventEmitter<any>;
 
-
-
-  @Listen('stateUpdated')
+  @Listen("stateUpdated")
   stateUpdated(status: any) {
     ComponentRegister.updateStatus(this.uuid, status.detail);
   }
 
-  @Listen('dragZoomEnded')
+  @Listen("dragZoomEnded")
   dragZoomEnded(props: any) {
     this.bnDragZoomEnded.emit(props.detail);
   }
@@ -346,11 +399,11 @@ export class BnMap {
     this.validateManualPosOverride(this.manualPosOverride);
   }
 
-
   render() {
     return (
       <Host>
-        <ibcs-map tileLayer={this.tileLayer}
+        <ibcs-map
+          tileLayer={this.tileLayer}
           latitude={this.latitude}
           longitude={this.longitude}
           scale={this.scale}
@@ -361,13 +414,10 @@ export class BnMap {
           markers={this.prepareMarkerData()}
           geojsons={this.prepareGeojsonData()}
           manualPosOverride={this.manualPosOverride}
-
-        >
-        </ibcs-map>
+        ></ibcs-map>
       </Host>
     );
   }
-
 
   private prepareMarkerData() {
     return [...this.markerData, ...this.markerList];
@@ -381,9 +431,8 @@ export class BnMap {
     return [...this.geojsonData, ...this.geojsonList];
   }
 
-
   public getDataStructureGpxParams(): any {
-    let dataSetStructure: any = {
+    const dataSetStructure: any = {
       GpxParams: {
         file: { type: "string", isOptional: false, description: "" },
         color: { type: "string", isOptional: false, description: "" },
@@ -393,28 +442,28 @@ export class BnMap {
         startIconUrl: { type: "string", isOptional: false, description: "" },
         endIconUrl: { type: "string", isOptional: false, description: "" },
         shadowUrl: { type: "string", isOptional: false, description: "" },
-      }
+      },
     };
 
     return dataSetStructure;
   }
 
   public getDataStructureGeojsonParams(): any {
-    let dataSetStructure: any = {
+    const dataSetStructure: any = {
       GeojsonParams: {
         file: { type: "string", isOptional: false, description: "" },
         color: { type: "string", isOptional: false, description: "" },
         opacity: { type: "number", isOptional: false, description: "" },
         weight: { type: "number", isOptional: false, description: "" },
         lineCap: { type: "string", isOptional: false, description: "" },
-      }
+      },
     };
 
     return dataSetStructure;
   }
 
   public getDataStructureMarkerParams(): any {
-    let dataSetStructure: any = {
+    const dataSetStructure: any = {
       MarkerParams: {
         latitude: { type: "number", isOptional: false, description: "" },
         longitude: { type: "string", isOptional: false, description: "" },
@@ -422,7 +471,7 @@ export class BnMap {
         iconWidth: { type: "number", isOptional: false, description: "" },
         iconHeight: { type: "number", isOptional: false, description: "" },
         tile: { type: "string", isOptional: false, description: "" },
-      }
+      },
     };
 
     return dataSetStructure;

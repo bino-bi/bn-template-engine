@@ -1,4 +1,4 @@
 export interface IAdapter<T> {
-    adapt(data: any): T;
-    default(): T;
-}  
+  adapt(data: any): T;
+  default(): T;
+}

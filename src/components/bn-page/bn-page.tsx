@@ -4,14 +4,14 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-page',
-  styleUrl: 'bn-page.scss',
-  shadow: true
+  tag: "bn-page",
+  styleUrl: "bn-page.scss",
+  shadow: true,
 })
 export class Page {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
-  private readonly componentStyle: <T, >(q: (Style) => T) => T;
+  private readonly componentStyle: <T>(q: (Style) => T) => T;
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
 
@@ -42,35 +42,36 @@ export class Page {
    */
   @Prop() orientation: string;
 
-  @Watch('format')
+  @Watch("format")
   // @ts-ignore
   validateFormat(newValue: string, oldValue: string) {
     //TODO: add validation
   }
 
-  @Watch('orientation')
+  @Watch("orientation")
   // @ts-ignore
   validateOrientation(newValue: string, oldValue: string) {
     //TODO: add validation
   }
 
   render() {
-    return <Host format={this.format} orientation={this.orientation} style={this.prepareStyle()}>
-      <slot />
-    </Host>
+    return (
+      <Host format={this.format} orientation={this.orientation} style={this.prepareStyle()}>
+        <slot />
+      </Host>
+    );
   }
 
   private prepareStyle() {
-    let pageStyle = {
-      "font-family": this.componentStyle($ => $.global["fontFamily"]),
-      "font-size": `${this.componentStyle($ => $.global["fontSizePx"])}px`,
-      '--bn-font-family': this.componentStyle($ => $.global["fontFamily"]) || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${this.componentStyle($ => $.global["fontSizePx"]) || 13.3333}px`,
-      '--bn-font-color': this.componentStyle($ => $.global["fontColor"]) || '#000000',
-      '--bn-font-background': this.componentStyle($ => $.global["fontBackgroundColor"]) || '#ffffff',
+    const pageStyle = {
+      "font-family": this.componentStyle(($) => $.global["fontFamily"]),
+      "font-size": `${this.componentStyle(($) => $.global["fontSizePx"])}px`,
+      "--bn-font-family": this.componentStyle(($) => $.global["fontFamily"]) || "'Noto Sans', sans-serif",
+      "--bn-font-size": `${this.componentStyle(($) => $.global["fontSizePx"]) || 13.3333}px`,
+      "--bn-font-color": this.componentStyle(($) => $.global["fontColor"]) || "#000000",
+      "--bn-font-background": this.componentStyle(($) => $.global["fontBackgroundColor"]) || "#ffffff",
     };
 
     return pageStyle;
   }
-
 }

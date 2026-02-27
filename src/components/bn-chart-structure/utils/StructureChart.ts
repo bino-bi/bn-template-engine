@@ -1,15 +1,23 @@
 import { G, Svg } from "@svgdotjs/svg.js";
 
-import { ElementPositions, FactoryState, Padding, VarianceType, } from "./helper";
+import { ElementPositions, FactoryState, Padding, VarianceType } from "./helper";
 
-import { DataPoint, Scenario, StackConfigParsed, StructureChartComponentConfig, StructureChartDataRow, StructureChartStyle, OverflowConfig } from "./model";
+import {
+  DataPoint,
+  Scenario,
+  StackConfigParsed,
+  StructureChartComponentConfig,
+  StructureChartDataRow,
+  StructureChartStyle,
+  OverflowConfig,
+} from "./model";
 
 // @ts-ignore
 import { Axis, Categories, HookLocation, Label, StackedBar } from "./elements";
-import { ScenarioFactory, } from "./factories";
+import { ScenarioFactory } from "./factories";
 import alasql from "alasql";
 
-import CalculateSize from 'calculate-size';
+import CalculateSize from "calculate-size";
 import { Formatter } from "../../../utils";
 import { AggregationLevel, StackBy, StackMode } from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
@@ -20,15 +28,12 @@ import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 
-
-
 export class StructureChart {
-
   private dataModel: any[] = [];
   private variancesDataModel: any[] = [];
   private position: ElementPositions;
   public styles: StructureChartStyle;
-  private title: string = '';
+  private title: string = "";
   private smallestDataPointValue: DataPoint = new DataPoint(0, Scenario.AC1, 1, Scenario.NEU);
   private highestDataPointValue: DataPoint = new DataPoint(0, Scenario.AC1, 1, Scenario.NEU);
   private smallestVarianceDataPointValue: DataPoint = new DataPoint(0, Scenario.AC1, 1, Scenario.NEU);
@@ -71,25 +76,33 @@ export class StructureChart {
   private createElementPosition(): ElementPositions {
     this.titleLength = this.calculateTitleLength(0);
     let leftSideWidth = this.calculateLeftSideWidth(this.getVarianceType());
-    let categoryWidth = this.calculateCategoryWidth();
+    const categoryWidth = this.calculateCategoryWidth();
 
     if (this.titleLength > leftSideWidth) {
       leftSideWidth = this.titleLength;
     }
 
-    return new ElementPositions(new Padding(this.styles.padding), this.styles.scaleFactors, this.styles.fontStyles.size, this.dataModel.length, this.leftSideOffsetForHorizontalSync, this.titleLength, leftSideWidth, categoryWidth);
+    return new ElementPositions(
+      new Padding(this.styles.padding),
+      this.styles.scaleFactors,
+      this.styles.fontStyles.size,
+      this.dataModel.length,
+      this.leftSideOffsetForHorizontalSync,
+      this.titleLength,
+      leftSideWidth,
+      categoryWidth,
+    );
   }
 
   initSQLFunctions() {
     alasql.fn.transformOperator = function (a) {
-      return a == '-' ? -1 : 1;
+      return a == "-" ? -1 : 1;
     };
   }
 
   public setStyles(newStyle: StructureChartStyle) {
     this.styles = newStyle;
   }
-
 
   setConfig(config: StructureChartComponentConfig) {
     this.state = FactoryState.DIRTY;
@@ -125,14 +138,14 @@ export class StructureChart {
     this.updatePosition();
   }
 
-
   private sortScenariosbyVisualisationRules(config: StructureChartComponentConfig) {
-    let self = this;
-    config.scenarios.sort((n1, n2) => {
-      return self.ruleSet.getScenarioSorIndex(n1) - self.ruleSet.getScenarioSorIndex(n2);
-    }).reverse();
+    const self = this;
+    config.scenarios
+      .sort((n1, n2) => {
+        return self.ruleSet.getScenarioSorIndex(n1) - self.ruleSet.getScenarioSorIndex(n2);
+      })
+      .reverse();
   }
-
 
   /**
    * Init load of translation dictionary map
@@ -155,14 +168,35 @@ export class StructureChart {
     this.state = FactoryState.DIRTY;
 
     const defaultI18n: Map<string, string> = new Map<string, string>([
-      ["SEPERATOR_WS", ", "], ["in", "in"], ["ORDER_asc", "↑"], ["ORDER_desc", "↓"],
-      ["ac1", "AC"], ["pp1", "PY"], ["fc1", "FC"], ["pl1", "PL"],
-      ["ac2", "AC2"], ["pp2", "PY2"], ["fc2", "FC2"], ["pl2", "PL2"],
-      ["ac3", "AC3"], ["pp3", "PY3"], ["fc3", "FC3"], ["pl3", "PL3"],
-      ["ac4", "AC4"], ["pp4", "PY4"], ["fc4", "FC4"], ["pl4", "PL4"],
-      ["category", " "], ["operation", " "], ["there_of", "davon"], ["part_of", "in % von"], ["ibcssymbol_delta_ac", "Δ{%}"],
-      ["ibcssymbol_delta_generic", "Δ({%})"], ["ibcssymbol_delta_ac_relative", "Δ{%}%"],
-      ["ibcssymbol_delta_generic_relative", "Δ({%})%"], ["SUM_TOTAL", "❖"]
+      ["SEPERATOR_WS", ", "],
+      ["in", "in"],
+      ["ORDER_asc", "↑"],
+      ["ORDER_desc", "↓"],
+      ["ac1", "AC"],
+      ["pp1", "PY"],
+      ["fc1", "FC"],
+      ["pl1", "PL"],
+      ["ac2", "AC2"],
+      ["pp2", "PY2"],
+      ["fc2", "FC2"],
+      ["pl2", "PL2"],
+      ["ac3", "AC3"],
+      ["pp3", "PY3"],
+      ["fc3", "FC3"],
+      ["pl3", "PL3"],
+      ["ac4", "AC4"],
+      ["pp4", "PY4"],
+      ["fc4", "FC4"],
+      ["pl4", "PL4"],
+      ["category", " "],
+      ["operation", " "],
+      ["there_of", "davon"],
+      ["part_of", "in % von"],
+      ["ibcssymbol_delta_ac", "Δ{%}"],
+      ["ibcssymbol_delta_generic", "Δ({%})"],
+      ["ibcssymbol_delta_ac_relative", "Δ{%}%"],
+      ["ibcssymbol_delta_generic_relative", "Δ({%})%"],
+      ["SUM_TOTAL", "❖"],
     ]);
 
     return new Map([...defaultI18n, ...i18n]);
@@ -195,16 +229,15 @@ export class StructureChart {
     } else {
       this.preparedDataSet = data;
     }
-
   }
 
   public getAllocatedCanvasWidth(): number {
     //let columnLabelWidth = this.calculateCategoryWidth();
 
-    let leftSideWidth = this.position.getAxisPositionX(); //this.calculateLeftSideWidth(this.getVarianceType());
-    let rightSideWidth = this.calculateRightSideWidth(this.getVarianceType());
+    const leftSideWidth = this.position.getAxisPositionX(); //this.calculateLeftSideWidth(this.getVarianceType());
+    const rightSideWidth = this.calculateRightSideWidth(this.getVarianceType());
 
-    let width = leftSideWidth + rightSideWidth + + this.styles.padding.left + this.styles.padding.right;
+    let width = leftSideWidth + rightSideWidth + +this.styles.padding.left + this.styles.padding.right;
 
     if (rightSideWidth < this.titleLength / 2) {
       width += this.titleLength / 2;
@@ -214,24 +247,27 @@ export class StructureChart {
       width += this.titleLength / 2;
     }
 
-
-    return width
+    return width;
   }
 
   public getAllocatedCanvasHeight(): number {
-    return ((this.dataModel.length + 1) * this.position.spacings.categoryWidth) + this.styles.padding.top + this.styles.padding.bottom;
+    return (
+      (this.dataModel.length + 1) * this.position.spacings.categoryWidth +
+      this.styles.padding.top +
+      this.styles.padding.bottom
+    );
   }
 
   public patternToString(): string {
-    return "<svg></svg>"
+    return "<svg></svg>";
   }
 
   public toString(): string {
     const container = new Svg();
     this.draw(container);
-    container.id("drawCanvas")
-    container.width(this.getAllocatedCanvasWidth())
-    container.height(this.getAllocatedCanvasHeight())
+    container.id("drawCanvas");
+    container.width(this.getAllocatedCanvasWidth());
+    container.height(this.getAllocatedCanvasHeight());
     return container.svg();
   }
 
@@ -260,19 +296,17 @@ export class StructureChart {
   }
 
   private calculateTitleLength(minWidth: number): number {
+    const tmpTitle = "_______"; // default width if this.title  is sorther
 
-    let tmpTitle = "_______"; // default width if this.title  is sorther
-
-    let width = CalculateSize(this.title.length > tmpTitle.length ? this.title : tmpTitle, {
+    const width = CalculateSize(this.title.length > tmpTitle.length ? this.title : tmpTitle, {
       font: this.styles.fontStyles.font,
-      fontSize: this.styles.fontStyles.size + "px"
+      fontSize: this.styles.fontStyles.size + "px",
     }).width;
 
     if (width < minWidth) {
       return minWidth;
     }
     return width / 2;
-
   }
 
   public getFooter(): string {
@@ -283,11 +317,10 @@ export class StructureChart {
   }
 
   private setAxisScenario(scenarios: string[]): Scenario {
-
     let result: Scenario = Scenario.AC1;
 
     if (scenarios != null && scenarios.length > 0) {
-      let axis: VarianceScenario = new VarianceScenario(scenarios.toString());
+      const axis: VarianceScenario = new VarianceScenario(scenarios.toString());
       if (axis.isValid) {
         result = <Scenario>axis.delta;
       }
@@ -306,16 +339,26 @@ export class StructureChart {
       return [];
     }
 
-    let dataModel: any = [];
-    let orderStr = this.createOrderStr(level, sortOrder);
-    let select = this.createSelectString(level, sortOrder);
-    let groupByStr = this.createGroupByStr(level, sortOrder);
-    let result = alasql<any[]>(`SELECT ${select} ${selectedScenarios.length > 0 ?
-      "," + selectedScenarios.map((scenario: string) => { return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt` }).join(",")
-      : ""}                          
+    const dataModel: any = [];
+    const orderStr = this.createOrderStr(level, sortOrder);
+    const select = this.createSelectString(level, sortOrder);
+    const groupByStr = this.createGroupByStr(level, sortOrder);
+    const result = alasql<any[]>(
+      `SELECT ${select} ${
+        selectedScenarios.length > 0
+          ? "," +
+            selectedScenarios
+              .map((scenario: string) => {
+                return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
+              })
+              .join(",")
+          : ""
+      }                          
                          FROM ?
                          GROUP BY ${groupByStr}
-                         ORDER BY ${orderStr}`, [this.preparedDataSet]);
+                         ORDER BY ${orderStr}`,
+      [this.preparedDataSet],
+    );
 
     this.detectNaNCells(selectedScenarios, result);
 
@@ -327,9 +370,8 @@ export class StructureChart {
 
   private detectNaNCells(scenarios: any, res: any[]) {
     res.forEach((row) => {
-
       scenarios.forEach((scenario: any) => {
-        let varianceScenario = new VarianceScenario(scenario);
+        const varianceScenario = new VarianceScenario(scenario);
 
         if (varianceScenario.isValid == true) {
           if (row[varianceScenario.base + "_cnt"] == 0 || row[varianceScenario.delta + "_cnt"] == 0) {
@@ -351,26 +393,53 @@ export class StructureChart {
       return;
     }
 
-    let restDataModel: any[] = [];
-    let restResult = result.slice(this.limit, result.length);
+    const restDataModel: any[] = [];
+    const restResult = result.slice(this.limit, result.length);
     this.createDataRows(restResult, restDataModel, selectedScenarios);
 
-    let reducedRestRow = restDataModel.reduce(function (sum: any, current: any) {
-      let obj = {
-        id: sum.id, category: sum.category, type: sum.type,
-        scenario1: new DataPoint(sum.scenario1.value + current.scenario1.value, selectedScenarios[0], sum.scenario1.pixelPerUnit, Scenario.NEU),
-        scenario2: new DataPoint(sum.scenario2.value + current.scenario2.value, selectedScenarios[1], sum.scenario2.pixelPerUnit, Scenario.NEU),
-        scenario3: new DataPoint(sum.scenario3.value + current.scenario3.value, selectedScenarios[2], sum.scenario3.pixelPerUnit, Scenario.NEU),
-        scenario4: new DataPoint(sum.scenario4.value + current.scenario4.value, selectedScenarios[3], sum.scenario4.pixelPerUnit, Scenario.NEU),
-      }
-      return obj;
-    }, {
-      id: 9999, category: 'REST', type: VarianceType.NONE,
-      scenario1: new DataPoint(0, selectedScenarios[0], this.pixelPerUnit, Scenario.NEU),
-      scenario2: new DataPoint(0, selectedScenarios[1], this.pixelPerUnit, Scenario.NEU),
-      scenario3: new DataPoint(0, selectedScenarios[2], this.pixelPerUnit, Scenario.NEU),
-      scenario4: new DataPoint(0, selectedScenarios[3], this.pixelPerUnit, Scenario.NEU),
-    });
+    const reducedRestRow = restDataModel.reduce(
+      function (sum: any, current: any) {
+        const obj = {
+          id: sum.id,
+          category: sum.category,
+          type: sum.type,
+          scenario1: new DataPoint(
+            sum.scenario1.value + current.scenario1.value,
+            selectedScenarios[0],
+            sum.scenario1.pixelPerUnit,
+            Scenario.NEU,
+          ),
+          scenario2: new DataPoint(
+            sum.scenario2.value + current.scenario2.value,
+            selectedScenarios[1],
+            sum.scenario2.pixelPerUnit,
+            Scenario.NEU,
+          ),
+          scenario3: new DataPoint(
+            sum.scenario3.value + current.scenario3.value,
+            selectedScenarios[2],
+            sum.scenario3.pixelPerUnit,
+            Scenario.NEU,
+          ),
+          scenario4: new DataPoint(
+            sum.scenario4.value + current.scenario4.value,
+            selectedScenarios[3],
+            sum.scenario4.pixelPerUnit,
+            Scenario.NEU,
+          ),
+        };
+        return obj;
+      },
+      {
+        id: 9999,
+        category: "REST",
+        type: VarianceType.NONE,
+        scenario1: new DataPoint(0, selectedScenarios[0], this.pixelPerUnit, Scenario.NEU),
+        scenario2: new DataPoint(0, selectedScenarios[1], this.pixelPerUnit, Scenario.NEU),
+        scenario3: new DataPoint(0, selectedScenarios[2], this.pixelPerUnit, Scenario.NEU),
+        scenario4: new DataPoint(0, selectedScenarios[3], this.pixelPerUnit, Scenario.NEU),
+      },
+    );
 
     dataModel.push(reducedRestRow);
   }
@@ -428,36 +497,33 @@ export class StructureChart {
   }
 
   private calculateCategoryWidth() {
-
     if (this.hideCategories) {
       return 5;
     }
 
     let longestLength: number = 0;
 
-    for (let entry of this.dataModel) {
-
+    for (const entry of this.dataModel) {
       const columnLength = CalculateSize(entry.category, {
         font: this.styles.fontStyles.font,
-        fontSize: this.styles.fontStyles.size + "px"
-      })
+        fontSize: this.styles.fontStyles.size + "px",
+      });
 
       if (columnLength.width > longestLength) {
         longestLength = columnLength.width;
       }
-
     }
 
     // MagicNumber used to compensate differnet fontwidth rendered vs calculated
-    let magicNumber = 1.1125;
+    const magicNumber = 1.1125;
 
     return longestLength * magicNumber;
   }
 
   private findSmallestDataPointValue(dataModel: any[]): DataPoint {
     let smallestDataPoint: DataPoint = new DataPoint(0, "default", this.pixelPerUnit, null);
-    for (let entry of dataModel) {
-      for (let current of [entry.scenario1, entry.scenario2, entry.scenario3, entry.scenario4]) {
+    for (const entry of dataModel) {
+      for (const current of [entry.scenario1, entry.scenario2, entry.scenario3, entry.scenario4]) {
         if (current != null && smallestDataPoint.value != null) {
           if (current.value < smallestDataPoint.value) {
             smallestDataPoint = current;
@@ -470,8 +536,8 @@ export class StructureChart {
 
   private findHighestDataPointValue(dataModel: any[]): DataPoint {
     let highestDataPoint: DataPoint = new DataPoint(0, "default", this.pixelPerUnit, null);
-    for (let entry of dataModel) {
-      for (let current of [entry.scenario1, entry.scenario2, entry.scenario3, entry.scenario4]) {
+    for (const entry of dataModel) {
+      for (const current of [entry.scenario1, entry.scenario2, entry.scenario3, entry.scenario4]) {
         if (current != null && highestDataPoint.value != null) {
           if (current.value > highestDataPoint.value) {
             highestDataPoint = current;
@@ -483,7 +549,7 @@ export class StructureChart {
   }
 
   private populateVarianceModel(variancesConfig: string[], dataModel: any[]): any {
-    let varianceModel: any = [];
+    const varianceModel: any = [];
 
     if (variancesConfig.length === 0) {
       return varianceModel;
@@ -495,25 +561,29 @@ export class StructureChart {
       firstRow = dataModel[0];
     }
 
-    for (let varianceScenario in variancesConfig) {
-      let scenarios: VarianceScenario = new VarianceScenario(variancesConfig[varianceScenario]);
+    for (const varianceScenario in variancesConfig) {
+      const scenarios: VarianceScenario = new VarianceScenario(variancesConfig[varianceScenario]);
 
       if (scenarios.isValid) {
-        let scenariomap: Map<string, string> = this.mapScenarios(scenarios, firstRow);
-        let directon: string = scenarios.direction;
-
+        const scenariomap: Map<string, string> = this.mapScenarios(scenarios, firstRow);
+        const directon: string = scenarios.direction;
 
         let pixelPerUnit: number = this.pixelPerUnit;
-        if (scenarios.type == 'dr') {
+        if (scenarios.type == "dr") {
           pixelPerUnit = this.pixelPerPercentage;
         }
 
-        for (let index in dataModel) {
+        for (const index in dataModel) {
           varianceModel.push({
             id: index,
             category: dataModel[index].category,
-            type: scenarios.type == 'dr' ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
-            scenario1: new DataPoint(this.calculateVariance(scenarios, dataModel[index], scenariomap), scenarios.base, pixelPerUnit, directon),
+            type: scenarios.type == "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
+            scenario1: new DataPoint(
+              this.calculateVariance(scenarios, dataModel[index], scenariomap),
+              scenarios.base,
+              pixelPerUnit,
+              directon,
+            ),
             scenario3: new DataPoint(null, null, null, null),
             scenario4: new DataPoint(null, null, null, null),
           });
@@ -524,26 +594,29 @@ export class StructureChart {
     return varianceModel;
   }
 
-  private calculateVariance(scenarios: VarianceScenario, element: any, scenarioMap: Map<string, string>): number | null {
-    let scenarioBase = scenarioMap.get(scenarios.base);
-    let scenarioDelta = scenarioMap.get(scenarios.delta);
+  private calculateVariance(
+    scenarios: VarianceScenario,
+    element: any,
+    scenarioMap: Map<string, string>,
+  ): number | null {
+    const scenarioBase = scenarioMap.get(scenarios.base);
+    const scenarioDelta = scenarioMap.get(scenarios.delta);
 
     if (scenarioBase == null || scenarioDelta == null) {
       return null;
     }
 
-    let isRelativeVarianze = scenarios.type === VarianceType.RELATIVE;
+    const isRelativeVarianze = scenarios.type === VarianceType.RELATIVE;
 
     if (isRelativeVarianze) {
-      return ((element[scenarioBase].value - element[scenarioDelta].value) / element[scenarioDelta].value);
+      return (element[scenarioBase].value - element[scenarioDelta].value) / element[scenarioDelta].value;
     } else {
       return element[scenarioBase].value - element[scenarioDelta].value;
     }
   }
 
   private mapScenarios(scenarios: VarianceScenario, firstRow: any): Map<string, string> {
-
-    let varianceMap: Map<string, string> = new Map();
+    const varianceMap: Map<string, string> = new Map();
 
     if (firstRow == null) {
       return varianceMap;
@@ -555,16 +628,15 @@ export class StructureChart {
       } else if (firstRow[scenarioKey].scenario === scenarios.base) {
         varianceMap.set(scenarios.base, scenarioKey);
       }
-    },
-    );
+    });
 
     return varianceMap;
   }
 
   private calculateTextBoxWidth(value: number): number {
-    return CalculateSize(Formatter.number(value, 'decimal', 1, 0), {
+    return CalculateSize(Formatter.number(value, "decimal", 1, 0), {
       font: this.styles.fontStyles.font,
-      fontSize: this.styles.fontStyles.size + "px"
+      fontSize: this.styles.fontStyles.size + "px",
     }).width;
   }
 
@@ -575,63 +647,73 @@ export class StructureChart {
     if (value >= 0) {
       signWidth += CalculateSize("+", {
         font: this.styles.fontStyles.font,
-        fontSize: this.styles.fontStyles.size + "px"
+        fontSize: this.styles.fontStyles.size + "px",
       }).width;
     }
 
     signWidth += CalculateSize(" %", {
       font: this.styles.fontStyles.font,
-      fontSize: this.styles.fontStyles.size + "px"
+      fontSize: this.styles.fontStyles.size + "px",
     }).width;
 
-    labelWidth = CalculateSize(Formatter.number(value, 'decimal', 1, 1), {
-      font: this.styles.fontStyles.font,
-      fontSize: this.styles.fontStyles.size + "px"
-    }).width + signWidth;
+    labelWidth =
+      CalculateSize(Formatter.number(value, "decimal", 1, 1), {
+        font: this.styles.fontStyles.font,
+        fontSize: this.styles.fontStyles.size + "px",
+      }).width + signWidth;
 
     return labelWidth + signWidth;
   }
-
 
   private cleanSVGforRedraw(svgContainer: Svg) {
     svgContainer.clear();
   }
 
   private drawAxisAndLabels(dataModel: any[], svgContainer: Svg) {
-    let axisLabelGroup: G = svgContainer.group()
-      .id("AxisAndDateLables");
+    const axisLabelGroup: G = svgContainer.group().id("AxisAndDateLables");
 
     let isRelative = false;
     if (!this.hideCategories) {
       dataModel.forEach((elements: any, index: number) => {
-
         if (elements["type"] == VarianceType.RELATIVE) {
           isRelative = true;
         }
 
         let textHook = HookLocation.Right;
         let isPositive = true;
-        if (elements['scenario1'].value < 0) {
+        if (elements["scenario1"].value < 0) {
           textHook = HookLocation.Left;
           isPositive = false;
         }
-        new Label(axisLabelGroup, this.position.getCategoryPositionX(isPositive), this.position.getBarCenterPositionY(index), '', elements.category, this.styles, HookLocation.Center, textHook).draw();
+        new Label(
+          axisLabelGroup,
+          this.position.getCategoryPositionX(isPositive),
+          this.position.getBarCenterPositionY(index),
+          "",
+          elements.category,
+          this.styles,
+          HookLocation.Center,
+          textHook,
+        ).draw();
       });
     }
 
-    new Axis({
-      scenarioType: this.axisScenario,
-      labelText: this.title,
-      isRelative: isRelative
-    }, this.position, axisLabelGroup, this.styles).draw();
+    new Axis(
+      {
+        scenarioType: this.axisScenario,
+        labelText: this.title,
+        isRelative: isRelative,
+      },
+      this.position,
+      axisLabelGroup,
+      this.styles,
+    ).draw();
   }
 
   private drawScenarios(dataModel: any, svgContainer: Svg) {
+    const barsGroup: G = svgContainer.group().id("Scenarios");
 
-    let barsGroup: G = svgContainer.group()
-      .id("Scenarios");
-
-    let scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: any, index: number) => {
@@ -643,10 +725,9 @@ export class StructureChart {
   }
 
   private drawVarianceScenario(dataModel: any, svgContainer: Svg): G {
-    let barsGroup: G = svgContainer.group()
-      .id("Scenarios");
+    const barsGroup: G = svgContainer.group().id("Scenarios");
 
-    let scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: any, index: number) => {
@@ -694,7 +775,7 @@ export class StructureChart {
 
       // Check if we have multiple scenario type groups for overlay mode
       const prefixes = isScenarioStack
-        ? new Set(segments.map(s => getScenarioPrefix(s.scenario)))
+        ? new Set(segments.map((s) => getScenarioPrefix(s.scenario)))
         : new Set<string>();
 
       if (prefixes.size > 1) {
@@ -727,9 +808,17 @@ export class StructureChart {
 
           group.segments.forEach((seg) => {
             const bar = new StackedBar(
-              this.position, this.styles, seg.dataPoint, index,
-              cumulativeValue, seg.scenario, colorIndex,
-              this.stackConfig!.mode, groupTotal, true, stackGroup
+              this.position,
+              this.styles,
+              seg.dataPoint,
+              index,
+              cumulativeValue,
+              seg.scenario,
+              colorIndex,
+              this.stackConfig!.mode,
+              groupTotal,
+              true,
+              stackGroup,
             );
             bar.draw(this.dataFormatDigits, this.measureScale);
             cumulativeValue += Math.abs(seg.value);
@@ -752,9 +841,9 @@ export class StructureChart {
           }));
         }
 
-        if (this.stackConfig!.order === 'asc') {
+        if (this.stackConfig!.order === "asc") {
           finalSegments.sort((a, b) => a.value - b.value);
-        } else if (this.stackConfig!.order === 'desc') {
+        } else if (this.stackConfig!.order === "desc") {
           finalSegments.sort((a, b) => b.value - a.value);
         }
 
@@ -764,9 +853,17 @@ export class StructureChart {
 
         finalSegments.forEach((seg, segIdx) => {
           const bar = new StackedBar(
-            this.position, this.styles, seg.dataPoint, index,
-            cumulativeValue, seg.scenario, segIdx,
-            this.stackConfig!.mode, total, isScenarioStack, stackGroup
+            this.position,
+            this.styles,
+            seg.dataPoint,
+            index,
+            cumulativeValue,
+            seg.scenario,
+            segIdx,
+            this.stackConfig!.mode,
+            total,
+            isScenarioStack,
+            stackGroup,
           );
           bar.draw(this.dataFormatDigits, this.measureScale);
           cumulativeValue += Math.abs(seg.value);
@@ -798,9 +895,9 @@ export class StructureChart {
       const stackSegs = firstRow.stackSegments;
       if (!stackSegs || stackSegs.length === 0) return;
 
-      let orderedSegs = [...stackSegs];
-      if (this.stackConfig.order === 'asc') orderedSegs.sort((a: any, b: any) => a.value - b.value);
-      else if (this.stackConfig.order === 'desc') orderedSegs.sort((a: any, b: any) => b.value - a.value);
+      const orderedSegs = [...stackSegs];
+      if (this.stackConfig.order === "asc") orderedSegs.sort((a: any, b: any) => a.value - b.value);
+      else if (this.stackConfig.order === "desc") orderedSegs.sort((a: any, b: any) => b.value - a.value);
 
       const total = orderedSegs.reduce((sum: number, s: any) => sum + Math.abs(s.value), 0);
       const axisX = this.position.getBarPositionX();
@@ -821,9 +918,14 @@ export class StructureChart {
         const labelText = this.i18n.get(seg.label) || seg.label;
 
         new Label(
-          headerGroup, centerX, headerY, 'STACK_HEADER',
-          labelText, this.styles,
-          HookLocation.Bottom, HookLocation.Center
+          headerGroup,
+          centerX,
+          headerY,
+          "STACK_HEADER",
+          labelText,
+          this.styles,
+          HookLocation.Bottom,
+          HookLocation.Center,
         ).draw();
 
         cumulativePixels += segmentLength;
@@ -844,7 +946,7 @@ export class StructureChart {
 
     if (segments.length === 0) return;
 
-    const prefixes = new Set(segments.map(s => getScenarioPrefix(s.scenario)));
+    const prefixes = new Set(segments.map((s) => getScenarioPrefix(s.scenario)));
     const axisX = this.position.getBarPositionX();
     const headerY = this.position.getAxisTitlePositionY();
 
@@ -871,22 +973,26 @@ export class StructureChart {
       groups.forEach((group) => {
         const groupTotal = group.segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
         const pixelPerUnit = group.segments[0].dataPoint.pixelPerUnit;
-        const groupPixelLength = this.stackConfig!.mode === StackMode.RELATIVE
-          ? pixelPerUnit
-          : groupTotal * pixelPerUnit;
+        const groupPixelLength =
+          this.stackConfig!.mode === StackMode.RELATIVE ? pixelPerUnit : groupTotal * pixelPerUnit;
         const centerX = axisX + groupPixelLength / 2;
-        const labelText = this.i18n.get(group.prefix + '1') || group.prefix.toUpperCase();
+        const labelText = this.i18n.get(group.prefix + "1") || group.prefix.toUpperCase();
 
         new Label(
-          headerGroup, centerX, headerY, 'STACK_HEADER',
-          labelText, this.styles,
-          HookLocation.Bottom, HookLocation.Center
+          headerGroup,
+          centerX,
+          headerY,
+          "STACK_HEADER",
+          labelText,
+          this.styles,
+          HookLocation.Bottom,
+          HookLocation.Center,
         ).draw();
       });
     } else {
       // Single group: show individual segment headers
-      if (this.stackConfig.order === 'asc') segments.sort((a, b) => a.value - b.value);
-      else if (this.stackConfig.order === 'desc') segments.sort((a, b) => b.value - a.value);
+      if (this.stackConfig.order === "asc") segments.sort((a, b) => a.value - b.value);
+      else if (this.stackConfig.order === "desc") segments.sort((a, b) => b.value - a.value);
 
       const total = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
       let cumulativePixels = 0;
@@ -906,9 +1012,14 @@ export class StructureChart {
         const labelText = this.i18n.get(seg.scenario) || seg.scenario;
 
         new Label(
-          headerGroup, centerX, headerY, 'STACK_HEADER',
-          labelText, this.styles,
-          HookLocation.Bottom, HookLocation.Center
+          headerGroup,
+          centerX,
+          headerY,
+          "STACK_HEADER",
+          labelText,
+          this.styles,
+          HookLocation.Bottom,
+          HookLocation.Center,
         ).draw();
 
         cumulativePixels += segmentLength;
@@ -925,20 +1036,27 @@ export class StructureChart {
 
   private calculateLeftSideWidth(varianceType: VarianceType): number {
     let width = 0;
-    let labelToBar = this.styles.fontStyles.size * (this.styles.scaleFactors).labelToBar;
+    const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
 
-    if (VarianceType.NONE == varianceType && this.smallestDataPointValue?.value != null && this.smallestDataPointValue.value < 0) {
-
+    if (
+      VarianceType.NONE == varianceType &&
+      this.smallestDataPointValue?.value != null &&
+      this.smallestDataPointValue.value < 0
+    ) {
       const sizeLabelValue = this.calculateTextBoxWidth(this.smallestDataPointValue.value);
       width = Math.abs(this.smallestDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
-
-    } else if (VarianceType.RELATIVE == varianceType && this.smallestVarianceDataPointValue?.value != null && this.smallestVarianceDataPointValue.value < 0) {
-
+    } else if (
+      VarianceType.RELATIVE == varianceType &&
+      this.smallestVarianceDataPointValue?.value != null &&
+      this.smallestVarianceDataPointValue.value < 0
+    ) {
       const sizeLabelValue = this.calculatePercentageTextBoxWidth(this.smallestVarianceDataPointValue.value);
       width = Math.abs(this.smallestVarianceDataPointValue.getScaledPercentUnit()) + labelToBar + sizeLabelValue;
-
-    } else if (VarianceType.ABSOLUTE == varianceType && this.smallestVarianceDataPointValue?.value != null && this.smallestVarianceDataPointValue.value < 0) {
-
+    } else if (
+      VarianceType.ABSOLUTE == varianceType &&
+      this.smallestVarianceDataPointValue?.value != null &&
+      this.smallestVarianceDataPointValue.value < 0
+    ) {
       const sizeLabelValue = this.calculateTextBoxWidth(this.smallestVarianceDataPointValue.value);
       width = Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
@@ -952,20 +1070,27 @@ export class StructureChart {
 
   private calculateRightSideWidth(varianceType: VarianceType): number {
     let width = 0;
-    let labelToBar = this.styles.fontStyles.size * (this.styles.scaleFactors).labelToBar;
+    const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
 
-    if (VarianceType.NONE == varianceType && this.highestDataPointValue?.value != null && this.highestDataPointValue.value >= 0) {
-
+    if (
+      VarianceType.NONE == varianceType &&
+      this.highestDataPointValue?.value != null &&
+      this.highestDataPointValue.value >= 0
+    ) {
       const sizeLabelValue = this.calculateTextBoxWidth(this.highestDataPointValue.value);
       width = Math.abs(this.highestDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
-
-    } else if (VarianceType.RELATIVE == varianceType && this.highestVarianceDataPointValue?.value != null && this.highestVarianceDataPointValue.value >= 0) {
-
+    } else if (
+      VarianceType.RELATIVE == varianceType &&
+      this.highestVarianceDataPointValue?.value != null &&
+      this.highestVarianceDataPointValue.value >= 0
+    ) {
       const sizeLabelValue = this.calculatePercentageTextBoxWidth(this.highestVarianceDataPointValue.value);
       width = Math.abs(this.highestVarianceDataPointValue.getScaledPercentUnit()) + labelToBar + sizeLabelValue;
-
-    } else if (VarianceType.ABSOLUTE == varianceType && this.highestVarianceDataPointValue?.value != null && this.highestVarianceDataPointValue.value >= 0) {
-
+    } else if (
+      VarianceType.ABSOLUTE == varianceType &&
+      this.highestVarianceDataPointValue?.value != null &&
+      this.highestVarianceDataPointValue.value >= 0
+    ) {
       const sizeLabelValue = this.calculateTextBoxWidth(this.highestVarianceDataPointValue.value);
       width = Math.abs(this.highestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
@@ -981,14 +1106,18 @@ export class StructureChart {
    * For dimension stacking (by category, subcategory, or rowgroup), query the raw data
    * at the stack dimension level and attach stackSegments to each dataModel row.
    */
-  private populateDimensionStackSegments(scenarios: string[], stackConfig: StackConfigParsed, level: AggregationLevel): void {
+  private populateDimensionStackSegments(
+    scenarios: string[],
+    stackConfig: StackConfigParsed,
+    level: AggregationLevel,
+  ): void {
     if (this.preparedDataSet?.length === 0 || scenarios.length === 0) return;
 
     // Map StackBy value to the actual data column name
     const stackColumnMap: Record<string, string> = {
-      [StackBy.CATEGORY]: 'category',
-      [StackBy.SUBCATEGORY]: 'subCategory',
-      [StackBy.ROWGROUP]: 'rowGroup',
+      [StackBy.CATEGORY]: "category",
+      [StackBy.SUBCATEGORY]: "subCategory",
+      [StackBy.ROWGROUP]: "rowGroup",
     };
     const stackColumn = stackColumnMap[stackConfig.by];
     if (!stackColumn) return;
@@ -999,9 +1128,9 @@ export class StructureChart {
 
     const result = alasql<any[]>(
       `SELECT [${displayColumn}] as displayGroup, [${stackColumn}] as stackLabel, ` +
-      `SUM([${scenario}] * transformOperator(operation)) as stackValue ` +
-      `FROM ? GROUP BY [${displayColumn}], [${stackColumn}]`,
-      [this.preparedDataSet]
+        `SUM([${scenario}] * transformOperator(operation)) as stackValue ` +
+        `FROM ? GROUP BY [${displayColumn}], [${stackColumn}]`,
+      [this.preparedDataSet],
     );
 
     // Group results by displayGroup
@@ -1052,17 +1181,43 @@ export class StructureChart {
 
       if (isVariance) {
         if (this.highestVarianceDataPointValue.getScaledUnit() > cutWidth) {
-          this.highestVarianceDataPointValue = new DataPoint(virtualWidth, this.highestVarianceDataPointValue.scenario, 1, this.highestVarianceDataPointValue.variance);
+          this.highestVarianceDataPointValue = new DataPoint(
+            virtualWidth,
+            this.highestVarianceDataPointValue.scenario,
+            1,
+            this.highestVarianceDataPointValue.variance,
+          );
         }
-        if (this.smallestVarianceDataPointValue.value != null && Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) > cutWidth) {
-          this.smallestVarianceDataPointValue = new DataPoint(-virtualWidth, this.smallestVarianceDataPointValue.scenario, 1, this.smallestVarianceDataPointValue.variance);
+        if (
+          this.smallestVarianceDataPointValue.value != null &&
+          Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) > cutWidth
+        ) {
+          this.smallestVarianceDataPointValue = new DataPoint(
+            -virtualWidth,
+            this.smallestVarianceDataPointValue.scenario,
+            1,
+            this.smallestVarianceDataPointValue.variance,
+          );
         }
       } else {
         if (this.highestDataPointValue.getScaledUnit() > cutWidth) {
-          this.highestDataPointValue = new DataPoint(virtualWidth, this.highestDataPointValue.scenario, 1, this.highestDataPointValue.variance);
+          this.highestDataPointValue = new DataPoint(
+            virtualWidth,
+            this.highestDataPointValue.scenario,
+            1,
+            this.highestDataPointValue.variance,
+          );
         }
-        if (this.smallestDataPointValue.value != null && Math.abs(this.smallestDataPointValue.getScaledUnit()) > cutWidth) {
-          this.smallestDataPointValue = new DataPoint(-virtualWidth, this.smallestDataPointValue.scenario, 1, this.smallestDataPointValue.variance);
+        if (
+          this.smallestDataPointValue.value != null &&
+          Math.abs(this.smallestDataPointValue.getScaledUnit()) > cutWidth
+        ) {
+          this.smallestDataPointValue = new DataPoint(
+            -virtualWidth,
+            this.smallestDataPointValue.scenario,
+            1,
+            this.smallestDataPointValue.variance,
+          );
         }
       }
 

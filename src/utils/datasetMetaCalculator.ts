@@ -1,16 +1,28 @@
-import { DatasetMeta, DimensionMeta, ScenarioMeta, DateRangeMeta } from './model/DatasetMeta';
+import { DatasetMeta, DimensionMeta, ScenarioMeta, DateRangeMeta } from "./model/DatasetMeta";
 
 const SCENARIO_KEYS = [
-  'ac1', 'ac2', 'ac3', 'ac4',
-  'pp1', 'pp2', 'pp3', 'pp4',
-  'fc1', 'fc2', 'fc3', 'fc4',
-  'pl1', 'pl2', 'pl3', 'pl4',
+  "ac1",
+  "ac2",
+  "ac3",
+  "ac4",
+  "pp1",
+  "pp2",
+  "pp3",
+  "pp4",
+  "fc1",
+  "fc2",
+  "fc3",
+  "fc4",
+  "pl1",
+  "pl2",
+  "pl3",
+  "pl4",
 ];
 
-const DIMENSION_FIELDS = ['rowGroup', 'category', 'subCategory', 'columnGroup', 'columnSubGroup'] as const;
+const DIMENSION_FIELDS = ["rowGroup", "category", "subCategory", "columnGroup", "columnSubGroup"] as const;
 
 function isNumericValue(val: any): val is number {
-  return typeof val === 'number' && !isNaN(val) && isFinite(val);
+  return typeof val === "number" && !isNaN(val) && isFinite(val);
 }
 
 function buildDimensionMeta(values: Set<string>): DimensionMeta {
@@ -45,7 +57,7 @@ export function calculateDatasetMeta(data: any[]): DatasetMeta {
 
     for (const field of DIMENSION_FIELDS) {
       const val = row[field];
-      if (val != null && val !== '') {
+      if (val != null && val !== "") {
         dimensionSets[field].add(String(val));
       }
     }
@@ -60,8 +72,8 @@ export function calculateDatasetMeta(data: any[]): DatasetMeta {
       }
     }
 
-    const dateVal = row['date'];
-    if (dateVal != null && dateVal !== '') {
+    const dateVal = row["date"];
+    if (dateVal != null && dateVal !== "") {
       const dateStr = String(dateVal);
       dateSeen.add(dateStr);
       if (dateMin === null || dateStr < dateMin) dateMin = dateStr;
@@ -69,20 +81,20 @@ export function calculateDatasetMeta(data: any[]): DatasetMeta {
     }
   }
 
-  const scenarios: ScenarioMeta[] = SCENARIO_KEYS.map(key => ({
+  const scenarios: ScenarioMeta[] = SCENARIO_KEYS.map((key) => ({
     key,
     hasData: scenarioStats[key].hasData,
     min: scenarioStats[key].min,
     max: scenarioStats[key].max,
   }));
 
-  const availableScenarios = scenarios.filter(s => s.hasData).map(s => s.key);
+  const availableScenarios = scenarios.filter((s) => s.hasData).map((s) => s.key);
 
-  const rowGroup = buildDimensionMeta(dimensionSets['rowGroup']);
-  const category = buildDimensionMeta(dimensionSets['category']);
-  const subCategory = buildDimensionMeta(dimensionSets['subCategory']);
-  const columnGroup = buildDimensionMeta(dimensionSets['columnGroup']);
-  const columnSubGroup = buildDimensionMeta(dimensionSets['columnSubGroup']);
+  const rowGroup = buildDimensionMeta(dimensionSets["rowGroup"]);
+  const category = buildDimensionMeta(dimensionSets["category"]);
+  const subCategory = buildDimensionMeta(dimensionSets["subCategory"]);
+  const columnGroup = buildDimensionMeta(dimensionSets["columnGroup"]);
+  const columnSubGroup = buildDimensionMeta(dimensionSets["columnSubGroup"]);
 
   const dateRange: DateRangeMeta = {
     min: dateMin,
@@ -91,17 +103,17 @@ export function calculateDatasetMeta(data: any[]): DatasetMeta {
     distinctCount: dateSeen.size,
   };
 
-  let suggestedLevel = 'category';
+  let suggestedLevel = "category";
   if (subCategory.hasData) {
-    suggestedLevel = 'subCategory';
+    suggestedLevel = "subCategory";
   } else if (category.hasData) {
-    suggestedLevel = 'category';
+    suggestedLevel = "category";
   } else if (rowGroup.hasData) {
-    suggestedLevel = 'rowGroup';
+    suggestedLevel = "rowGroup";
   }
 
   const suggestedOrder = suggestedLevel;
-  const suggestedDateInterval = dateRange.hasData ? 'auto' : null;
+  const suggestedDateInterval = dateRange.hasData ? "auto" : null;
 
   return {
     rowCount: rows.length,
