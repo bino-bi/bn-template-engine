@@ -42,7 +42,7 @@ export class Order {
 export class OrderAdapter implements IAdapter<Order> {
   constructor(private stringAdapter: StringAdapter) {}
 
-  adapt(data: any): Order {
+  adapt(data: Record<string, unknown>): Order {
     const hierarchy: string[] = AdapterUtils.adaptArray(data.hierarchy, this.stringAdapter);
 
     const order: OrderDirection =

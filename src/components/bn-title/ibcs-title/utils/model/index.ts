@@ -39,7 +39,7 @@ export interface Scenario {
 }
 
 export interface DateFormat {
-  [key: string]: any;
+  [key: string]: unknown;
   year: string;
   quarter: string;
   month: string;

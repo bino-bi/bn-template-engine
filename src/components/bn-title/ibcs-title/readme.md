@@ -9,7 +9,7 @@
 
 | Property            | Attribute             | Description | Type                            | Default                                                       |
 | ------------------- | --------------------- | ----------- | ------------------------------- | ------------------------------------------------------------- |
-| `businessUnit`      | `business-unit`       |             | `string`                        | `''`                                                          |
+| `businessUnit`      | `business-unit`       |             | `string`                        | `""`                                                          |
 | `i18n`              | --                    |             | `Map<string, string>`           | `new Map<string, string>()`                                   |
 | `i18nMode`          | `i18n-mode`           |             | `I18nMode.ALL \| I18nMode.META` | `I18nMode.ALL`                                                |
 | `intervalSpanLimit` | `interval-span-limit` |             | `number`                        | `28`                                                          |

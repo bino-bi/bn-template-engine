@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, h, Host, Method, Prop, Watch, Event, EventEmitter } from "@stencil/core";
 // @ts-ignore
 import * as L from "leaflet-gpx";

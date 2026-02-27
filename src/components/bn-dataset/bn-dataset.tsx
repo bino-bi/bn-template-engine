@@ -51,12 +51,13 @@ export class Dataset {
   @Prop() static: boolean = false;
 
   private query: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private database: any;
-  private latestResult: any;
+  private latestResult: unknown;
 
   executeQuery() {
     if (!!this.query && !!this.name) {
-      let result: any;
+      let result: unknown;
       if (this.static) {
         try {
           result = JSON.parse(this.query);

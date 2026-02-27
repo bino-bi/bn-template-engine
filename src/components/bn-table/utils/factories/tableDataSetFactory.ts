@@ -9,6 +9,7 @@ import { I18nMode, DataFormat, TableCategoryWidth } from "../../../../utils/cons
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
+import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 
 export class TableDataSetFactory {
   private normalizedHeader: { name: string; group: string; type: string; order: string | undefined }[] = [];
@@ -174,7 +175,7 @@ export class TableDataSetFactory {
   /**
    * Calculate min/max statistics for bar chart columns across all query data.
    */
-  private calculateColumnStatistics(queryData: any[][], barColumns: string[]): Map<string, ColumnStats> {
+  private calculateColumnStatistics(queryData: DataQueryResultRow[][], barColumns: string[]): Map<string, ColumnStats> {
     const statsMap = new Map<string, ColumnStats>();
 
     if (!barColumns || barColumns.length === 0) {
@@ -217,7 +218,7 @@ export class TableDataSetFactory {
    * Extract a numeric value from a row for a given column name.
    * Handles the various naming conventions used in the table data.
    */
-  private extractColumnValue(row: any, column: string): number | null {
+  private extractColumnValue(row: DataQueryResultRow, column: string): number | null {
     // Try direct access
     if (row[column] !== undefined) {
       const val = Number(row[column]);
@@ -257,7 +258,7 @@ export class TableDataSetFactory {
     i18nMode: I18nMode | undefined,
     i18n: Map<string | number, string>,
     scenariosUnitType: DataFormat,
-    groupData: any,
+    groupData: DataQueryResultRow[],
     iGroupIndex: number,
     iRowIndex: number,
     categoryWidth?: TableCategoryWidth,
@@ -302,7 +303,10 @@ export class TableDataSetFactory {
     return result;
   }
 
-  private getRawDataRowElement(rawDataRow: any, scenario: { name: string; group: string; type: string }) {
+  private getRawDataRowElement(
+    rawDataRow: DataQueryResultRow,
+    scenario: { name: string; group: string; type: string },
+  ) {
     if (scenario.name == scenario.group && scenario.name == scenario.type) {
       // Default Sum Scenario (e.g. AC)
       return rawDataRow[scenario.name];
@@ -489,7 +493,7 @@ export class TableDataSetFactory {
     return "GROUPHEAD" === type && "category" === scenario;
   }
 
-  private translateCellPrefix(i18n: Map<string | number, string>, type: any, scenario: string) {
+  private translateCellPrefix(i18n: Map<string | number, string>, type: string, scenario: string) {
     if (this.isOperationColumn(scenario)) {
       return null;
     }

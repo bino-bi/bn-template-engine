@@ -9,7 +9,7 @@ export class DataFormatDigits {
 }
 
 export class DataFormatDigitsAdapter implements IAdapter<DataFormatDigits> {
-  adapt(data: any): DataFormatDigits {
+  adapt(data: Record<string, unknown>): DataFormatDigits {
     const prefix = new DataFormatDigits();
 
     if (CompareUtil.isNumber(data.percent)) {

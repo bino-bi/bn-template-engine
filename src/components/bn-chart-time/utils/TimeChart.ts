@@ -69,11 +69,22 @@ type TimeChartResponseRow = {
   isEmpty: boolean;
 };
 
+type TimeChartDataModelEntry = {
+  id: number;
+  category: string | null;
+  type: VarianceType;
+  date: DateTime;
+  scenario1: DataPoint;
+  scenario2: DataPoint;
+  scenario3: DataPoint;
+  scenario4: DataPoint;
+};
+
 export class TimeChart {
   public styles: TimeChartStyle;
   readonly CSS_CATEGORIES: string = "categories";
-  private dataModel: any[] = [];
-  private variancesDataModel: any[] = [];
+  private dataModel: TimeChartDataModelEntry[] = [];
+  private variancesDataModel: TimeChartDataModelEntry[] = [];
   private position: ElementPositions;
   private title: string = "";
   private smallestDataPointValue: DataPoint = new DataPoint(0, Scenario.AC1, 1, Scenario.NEU);
@@ -84,7 +95,7 @@ export class TimeChart {
   private pixelPerPercentage: number = 1;
   private hideAxisLabels: boolean = false;
   private axisScenario: Scenario = Scenario.AC1;
-  private preparedDataSet: any = [];
+  private preparedDataSet: TimeChartDataRow[] = [];
 
   private axisCategoryArea: { width: number; height: number } = { width: 0, height: 0 };
   private scenariosArea: { width: number; height: number } = { width: 0, height: 0 };
@@ -356,7 +367,8 @@ export class TimeChart {
 
     // Analytical calculation — doesn't rely on text bbox
     const isRelative =
-      this.isVarianceChart() && this.variancesDataModel.some((e: any) => e.type === VarianceType.RELATIVE);
+      this.isVarianceChart() &&
+      this.variancesDataModel.some((e: TimeChartDataModelEntry) => e.type === VarianceType.RELATIVE);
     const axisY = this.position.getAxisPositionY(isRelative);
     // Space below axis: gap to date labels + date label height + bottom padding
     const belowAxis = this.position.spacings.labelToAxis + this.position.dataLabelHeight + this.styles.padding.bottom;
@@ -653,7 +665,7 @@ export class TimeChart {
     dateInterval: DateDistance,
     _level: AggregationLevel,
     _sortOrder: Order,
-  ): any {
+  ): TimeChartDataModelEntry[] {
     if (this.preparedDataSet?.length === 0) {
       return [];
     }
@@ -666,14 +678,14 @@ export class TimeChart {
 
     result = this.leftOuterJoinDates(result, dateInterval);
 
-    const dataModel: any[] = this.createDataRows(result, selectedScenarios);
+    const dataModel: TimeChartDataModelEntry[] = this.createDataRows(result, selectedScenarios);
 
     return dataModel;
   }
 
-  private detectNaNCells(scenarios: any, res: any[]) {
+  private detectNaNCells(scenarios: string[], res: TimeChartResponseRow[]) {
     res.forEach((row) => {
-      scenarios.forEach((scenario: any) => {
+      scenarios.forEach((scenario: string) => {
         const varianceScenario = new VarianceScenario(scenario);
 
         if (varianceScenario.isValid == true) {
@@ -710,11 +722,12 @@ export class TimeChart {
     return localDateInterval;
   }
 
-  private queryMinMaxDates(): any[] {
+  private queryMinMaxDates(): { mindate: DateTime | null; maxdate: DateTime | null }[] {
     //let result: any[] = [];
-    const result = alasql<any[]>(`SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ?`, [
-      this.preparedDataSet,
-    ]);
+    const result = alasql<TimeChartResponseRow[]>(
+      `SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ?`,
+      [this.preparedDataSet],
+    );
 
     if (result[0]?.mindate != null) {
       result[0].mindate = DateTime.fromMillis(result[0]?.mindate);
@@ -746,7 +759,7 @@ export class TimeChart {
       "pl4",
     ];
     const dateSelect = `normalizeDate([date], '${dateInterval}' , '${this.locale}') as  calcdate`;
-    const result = alasql<any[]>(
+    const result = alasql<TimeChartResponseRow[]>(
       `SELECT ${"p.calcdate"}                                ${select},
                           ${scenarios
                             .map((scenario: string) => {
@@ -780,10 +793,10 @@ export class TimeChart {
     return result;
   }
 
-  private createDataRows(result: TimeChartResponseRow[], selectedScenarios: string[]): any[] {
-    const dataModel: any[] = [];
+  private createDataRows(result: TimeChartResponseRow[], selectedScenarios: string[]): TimeChartDataModelEntry[] {
+    const dataModel: TimeChartDataModelEntry[] = [];
 
-    result.forEach((element: any, index: number) => {
+    result.forEach((element: TimeChartResponseRow, index: number) => {
       dataModel.push({
         id: index,
         category: element.category,
@@ -800,7 +813,7 @@ export class TimeChart {
     return dataModel;
   }
 
-  private findSmallestDataPointValue(dataModel: any[]): DataPoint {
+  private findSmallestDataPointValue(dataModel: TimeChartDataModelEntry[]): DataPoint {
     const pixel = this.isVarianceChart() ? this.pixelPerPercentage : this.pixelPerUnit;
     let smallestDataPoint: DataPoint = new DataPoint(0, "default", pixel, Scenario.NEU);
 
@@ -817,7 +830,7 @@ export class TimeChart {
     return smallestDataPoint;
   }
 
-  private findHighestDataPointValue(dataModel: any[]): DataPoint {
+  private findHighestDataPointValue(dataModel: TimeChartDataModelEntry[]): DataPoint {
     const pixel = this.isVarianceChart() ? this.pixelPerPercentage : this.pixelPerUnit;
     let highestDataPoint: DataPoint = new DataPoint(0, "default", pixel, Scenario.NEU);
 
@@ -833,8 +846,11 @@ export class TimeChart {
     return highestDataPoint;
   }
 
-  private populateVarianceModel(variancesConfig: string[], dataModel: any[]): any {
-    const varianceModel: any = [];
+  private populateVarianceModel(
+    variancesConfig: string[],
+    dataModel: TimeChartDataModelEntry[],
+  ): TimeChartDataModelEntry[] {
+    const varianceModel: TimeChartDataModelEntry[] = [];
 
     if (variancesConfig == null || variancesConfig.length === 0) {
       return varianceModel;
@@ -878,7 +894,7 @@ export class TimeChart {
 
   private calculateVariance(
     scenarios: VarianceScenario,
-    element: any,
+    element: TimeChartDataModelEntry,
     scenarioMap: Map<string, string>,
   ): number | null {
     const scenarioBase = scenarioMap.get(scenarios.base);
@@ -901,7 +917,7 @@ export class TimeChart {
     }
   }
 
-  private mapScenarios(scenarios: VarianceScenario, firstRow: any): Map<string, string> {
+  private mapScenarios(scenarios: VarianceScenario, firstRow: TimeChartDataModelEntry | null): Map<string, string> {
     const varianceMap: Map<string, string> = new Map();
 
     if (firstRow == null) {
@@ -932,7 +948,7 @@ export class TimeChart {
     return factory;
   }
 
-  private drawAxisAndLabels(dataModel: any[], svgContainer: Svg) {
+  private drawAxisAndLabels(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
     const dateStringFactory: DateStringFactory = this.createDateFactory();
 
     const axisLabelGroup: G = svgContainer.group().id("AxisAndDateLables");
@@ -940,7 +956,7 @@ export class TimeChart {
     let isRelative: boolean = false;
 
     if (this.hideAxisLabels === false) {
-      dataModel.forEach((elements: any, index: number) => {
+      dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
         let hookLocation: HookLocation = HookLocation.Top;
         let offset = this.position.spacings.labelToAxis;
         if (elements["scenario1"]["value"] < 0) {
@@ -996,7 +1012,7 @@ export class TimeChart {
     };
   }
 
-  private drawScenarios(dataModel: any, svgContainer: Svg) {
+  private drawScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
     const columnGroup: G = svgContainer.group().id("Scenarios");
 
     const scenarioFactory = new ScenarioFactory(this.position, columnGroup, this.styles, dataModel.length, this.i18n);
@@ -1004,7 +1020,7 @@ export class TimeChart {
 
     let hasValidPrim: boolean = false;
 
-    dataModel.forEach((elements: any, index: number) => {
+    dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
       scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
       scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
@@ -1030,7 +1046,7 @@ export class TimeChart {
     };
   }
 
-  private drawLineScenarios(dataModel: any, svgContainer: Svg): void {
+  private drawLineScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     const lineGroup: G = svgContainer.group().id("LineScenarios");
     // Create collision manager for label overlap detection across all line series
     const collisionManager = new LabelCollisionManager();
@@ -1042,7 +1058,7 @@ export class TimeChart {
     const slotDefaults = ["ac1", "pp1", "fc1", "pl1"];
     const slotPoints: LineSeriesDataPoint[][] = [[], [], [], []];
 
-    dataModel.forEach((elements: any, index: number) => {
+    dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
       const keys = ["scenario1", "scenario2", "scenario3", "scenario4"];
       keys.forEach((key, slotIdx) => {
         if (elements[key]) {
@@ -1108,14 +1124,14 @@ export class TimeChart {
     };
   }
 
-  private drawAxisAndLabelsForLineChart(dataModel: any[], svgContainer: Svg): void {
+  private drawAxisAndLabelsForLineChart(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     const dateStringFactory: DateStringFactory = this.createDateFactory();
     const axisLabelGroup: G = svgContainer.group().id("AxisAndDateLabelsLine");
     const isRelative: boolean = false;
     const lastIndex = dataModel.length - 1;
 
     if (this.hideAxisLabels === false) {
-      dataModel.forEach((elements: any, index: number) => {
+      dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
         // Only show labels for first, last, and year change points
         if (!this.shouldShowLineChartAxisLabel(dataModel, index)) {
           return;
@@ -1179,7 +1195,7 @@ export class TimeChart {
     };
   }
 
-  private shouldShowLineChartAxisLabel(dataModel: any[], index: number): boolean {
+  private shouldShowLineChartAxisLabel(dataModel: TimeChartDataModelEntry[], index: number): boolean {
     // In full-width mode, every data point gets a label (enough horizontal space)
     if (this.lineFullWidth && this.availableWidth > 0) {
       return true;
@@ -1196,7 +1212,7 @@ export class TimeChart {
     return this.isYearChange(dataModel, index);
   }
 
-  private isYearChange(dataModel: any[], index: number): boolean {
+  private isYearChange(dataModel: TimeChartDataModelEntry[], index: number): boolean {
     if (index === 0) {
       return false;
     }
@@ -1231,13 +1247,13 @@ export class TimeChart {
       .attr("stroke-dasharray", "4,4");
   }
 
-  private drawVarianceScenario(dataModel: any, svgContainer: Svg): G {
+  private drawVarianceScenario(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): G {
     const columnGroup: G = svgContainer.group().id("Scenarios");
 
     const scenarioFactory = new ScenarioFactory(this.position, columnGroup, this.styles, dataModel.length, this.i18n);
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
-    dataModel.forEach((elements: any, index: number) => {
+    dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
       if (elements["type"] == VarianceType.RELATIVE) {
         scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw();
       } else {
@@ -1259,13 +1275,13 @@ export class TimeChart {
    * uses overlay mode: each type group is drawn from the same baseline,
    * back-to-front per IBCS convention (PL behind, AC on top).
    */
-  private drawStackedScenarios(dataModel: any[], svgContainer: Svg): void {
+  private drawStackedScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig) return;
 
     const stackGroup: G = svgContainer.group().id("StackedScenarios");
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
 
-    dataModel.forEach((elements: any, index: number) => {
+    dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
       const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
       const segments: { value: number; scenario: string; dataPoint: DataPoint }[] = [];
 
@@ -1388,7 +1404,7 @@ export class TimeChart {
    * For overlay mode (multiple scenario types): shows one header per group.
    * For single-group: shows individual segment headers.
    */
-  private drawStackedHeaders(dataModel: any[], svgContainer: Svg): void {
+  private drawStackedHeaders(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig || dataModel.length === 0) return;
 
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
@@ -1494,7 +1510,7 @@ export class TimeChart {
    * Draw stacked area chart (line mode with stack).
    * Computes cumulative y-values and draws AreaFill paths between layers.
    */
-  private drawStackedAreaScenarios(dataModel: any[], svgContainer: Svg): void {
+  private drawStackedAreaScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig) return;
 
     const areaGroup: G = svgContainer.group().id("StackedAreaScenarios");
@@ -1504,7 +1520,8 @@ export class TimeChart {
 
     // Determine how many layers we have
     const layerCount = isScenarioStack
-      ? scenarioKeys.filter((key) => dataModel.some((el: any) => el[key] && !el[key].isEmpty())).length
+      ? scenarioKeys.filter((key) => dataModel.some((el: TimeChartDataModelEntry) => el[key] && !el[key].isEmpty()))
+          .length
       : 1;
 
     if (layerCount === 0) return;
@@ -1517,7 +1534,7 @@ export class TimeChart {
     // Identify active layers
     const activeLayers: string[] = [];
     for (const key of scenarioKeys) {
-      if (dataModel.some((el: any) => el[key] && !el[key].isEmpty())) {
+      if (dataModel.some((el: TimeChartDataModelEntry) => el[key] && !el[key].isEmpty())) {
         activeLayers.push(key);
       }
     }
@@ -1566,7 +1583,7 @@ export class TimeChart {
     };
 
     // Baseline (y = axis)
-    const baselinePoints: AreaPoint[] = dataModel.map((_: any, idx: number) => ({
+    const baselinePoints: AreaPoint[] = dataModel.map((_: TimeChartDataModelEntry, idx: number) => ({
       x: this.position.getColumnCenterPositionX(idx),
       y: axisY,
     }));
@@ -1589,7 +1606,7 @@ export class TimeChart {
     };
   }
 
-  private drawOverlayLayer(dataModel: any, svgContainer: Svg) {
+  private drawOverlayLayer(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
     const overlayGroup: G = svgContainer.group().id("Overlay");
 
     const scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);
@@ -1599,7 +1616,7 @@ export class TimeChart {
 
       const avgDataModel = tranformToAvgDataModel(dataModel);
 
-      avgDataModel.forEach((elements: any, index: number) => {
+      avgDataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
         if (previousDataPoint != null) {
           scenarioFactory
             .createLine(
@@ -1619,7 +1636,7 @@ export class TimeChart {
 
       const medianDataModel = tranformToMedianDataModel(dataModel);
 
-      medianDataModel.forEach((elements: any, index: number) => {
+      medianDataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
         if (previousDataPoint != null) {
           scenarioFactory
             .createLine(
@@ -1711,12 +1728,14 @@ export class TimeChart {
     return Array.from(dateRangeEntries.values());
   }
 }
-function tranformToAvgDataModel(dataModel: any) {
-  const total = dataModel.reduce((sum: number, elements: any) => {
+function tranformToAvgDataModel(dataModel: TimeChartDataModelEntry[]) {
+  const total = dataModel.reduce((sum: number, elements: TimeChartDataModelEntry) => {
     return sum + (elements["scenario1"]?.value || 0); // Sum up the values of scenario1
   }, 0);
 
-  const count = dataModel.filter((elements: any) => elements["scenario1"]?.value !== undefined).length; // Count valid scenario1 values
+  const count = dataModel.filter(
+    (elements: TimeChartDataModelEntry) => elements["scenario1"]?.value !== undefined,
+  ).length; // Count valid scenario1 values
 
   const average = count > 0 ? total / count : 0; // Calculate the average, avoid division by zero
 
@@ -1745,7 +1764,7 @@ function tranformToAvgDataModel(dataModel: any) {
   // Add the new first and last elements to the transformed data model
   return [
     firstElement,
-    ...dataModel.map((elements: any) => {
+    ...dataModel.map((elements: TimeChartDataModelEntry) => {
       return {
         ...elements,
         scenario1: new DataPoint(
@@ -1760,9 +1779,9 @@ function tranformToAvgDataModel(dataModel: any) {
   ];
 }
 
-function tranformToMedianDataModel(dataModel: any) {
+function tranformToMedianDataModel(dataModel: TimeChartDataModelEntry[]) {
   const values = dataModel
-    .map((elements: any) => elements["scenario1"]?.value)
+    .map((elements: TimeChartDataModelEntry) => elements["scenario1"]?.value)
     .filter((value: number | undefined) => value !== undefined)
     .sort((a: number, b: number) => a - b);
 
@@ -1796,7 +1815,7 @@ function tranformToMedianDataModel(dataModel: any) {
   // Add the new first and last elements to the transformed data model
   return [
     firstElement,
-    ...dataModel.map((elements: any) => {
+    ...dataModel.map((elements: TimeChartDataModelEntry) => {
       return {
         ...elements,
         scenario1: new DataPoint(

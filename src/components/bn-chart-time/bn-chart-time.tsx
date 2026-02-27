@@ -1023,8 +1023,9 @@ export class Chart {
     return this.filter;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public getDataStructure(): any {
-    const dataSetStructure: any = {
+    const dataSetStructure: Record<string, unknown> = {
       ITimeChartDataRow: {
         setName: { type: "string", isOptional: false, description: "" },
         date: { type: "string", isOptional: false, description: "" },

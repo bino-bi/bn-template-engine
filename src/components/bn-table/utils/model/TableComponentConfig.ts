@@ -17,7 +17,7 @@ export class TableComponentConfig {
   public grouped: boolean = false;
   public showGroupTitle: boolean = true;
   public thereOf: TableDrillGroup[] = [];
-  public categoryThereOf: Map<string, any> = new Map();
+  public categoryThereOf: Map<string, Record<string, unknown>[]> = new Map();
   public partOf: TableDrillGroup[] = [];
   public order: Order = new OrderAdapter(new StringAdapter()).default(); // FIXME Rename to sortOrder
   public type: TableType = TableType.LIST;
@@ -38,9 +38,9 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     private tableDrillGroupAdapter: TableDrillGroupAdapter,
     private stringAdapter: StringAdapter,
     private orderAdapter: OrderAdapter,
-    private dataSet: any[],
+    private dataSet: Record<string, unknown>[],
   ) {}
-  adapt(data: any): TableComponentConfig {
+  adapt(data: Record<string, unknown>): TableComponentConfig {
     const config = new TableComponentConfig();
 
     if (CompareUtil.isString(data.title)) {

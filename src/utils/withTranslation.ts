@@ -3,6 +3,7 @@ import { default as locales, on } from "../stores/internationalization";
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withTranslation = (component: any) => {
   let subscription: () => void;
   let namespace: string | undefined = undefined;

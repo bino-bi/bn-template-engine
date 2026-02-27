@@ -325,8 +325,8 @@ export class ChartTree {
     }
 
     const treeStyle = this.getTreeStyle();
-    const paths: any[] = [];
-    const operators: any[] = [];
+    const paths: string[] = [];
+    const operators: string[] = [];
 
     // Build a map of child -> list of parents (to detect nodes with multiple parents)
     const childToParents = new Map<string, string[]>();

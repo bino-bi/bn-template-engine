@@ -16,7 +16,7 @@ export class TableDrillGroup {
 export class TableDrillGroupAdapter implements IAdapter<TableDrillGroup> {
   constructor() {}
 
-  adapt(data: any): TableDrillGroup {
+  adapt(data: Record<string, unknown>): TableDrillGroup {
     const group: TableDrillGroup = new TableDrillGroup();
 
     if (CompareUtil.isString(data.rowGroup)) {

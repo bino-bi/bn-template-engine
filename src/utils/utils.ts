@@ -2,6 +2,7 @@ export function format(first: string, middle: string, last: string): string {
   return (first || "") + (middle ? ` ${middle}` : "") + (last ? ` ${last}` : "");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const runIfExisits = (fn: unknown, context: any = undefined) => {
   if (typeof fn === "function") {
     if (context) {

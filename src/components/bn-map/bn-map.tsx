@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, h, Host, Listen, Prop, State, Watch } from "@stencil/core";
 import {
   isValidBoolean,

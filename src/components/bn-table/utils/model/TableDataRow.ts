@@ -64,7 +64,7 @@ export class TableDataRow {
 export class TableDataRowAdapter implements IAdapter<TableDataRow> {
   constructor() {}
 
-  adapt(data: any): TableDataRow {
+  adapt(data: Record<string, unknown>): TableDataRow {
     const dataRow: TableDataRow = new TableDataRow();
 
     if (CompareUtil.isOperator(data.operation)) {
@@ -103,7 +103,7 @@ export class TableDataRowAdapter implements IAdapter<TableDataRow> {
     return new TableDataRow();
   }
 
-  private setActualValues(data: any, dataRow: TableDataRow) {
+  private setActualValues(data: Record<string, unknown>, dataRow: TableDataRow) {
     if (CompareUtil.isNumber(data.ac1)) {
       dataRow.ac1 = data.ac1;
     }
@@ -121,7 +121,7 @@ export class TableDataRowAdapter implements IAdapter<TableDataRow> {
     }
   }
 
-  private setPlanValues(data: any, dataRow: TableDataRow) {
+  private setPlanValues(data: Record<string, unknown>, dataRow: TableDataRow) {
     if (CompareUtil.isNumber(data.pp1)) {
       dataRow.pp1 = data.pp1;
     }
@@ -139,7 +139,7 @@ export class TableDataRowAdapter implements IAdapter<TableDataRow> {
     }
   }
 
-  private setPreviousPeriodValues(data: any, dataRow: TableDataRow) {
+  private setPreviousPeriodValues(data: Record<string, unknown>, dataRow: TableDataRow) {
     if (CompareUtil.isNumber(data.pl1)) {
       dataRow.pl1 = data.pl1;
     }
@@ -157,7 +157,7 @@ export class TableDataRowAdapter implements IAdapter<TableDataRow> {
     }
   }
 
-  private setForecastValues(data: any, dataRow: TableDataRow) {
+  private setForecastValues(data: Record<string, unknown>, dataRow: TableDataRow) {
     if (CompareUtil.isNumber(data.fc1)) {
       dataRow.fc1 = data.fc1;
     }

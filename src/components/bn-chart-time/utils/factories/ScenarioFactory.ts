@@ -63,7 +63,7 @@ export class ScenarioFactory {
     this.overflowConfig = config;
   }
 
-  public createLine(name: string, dataPoint: any, previousDataPoint: any, index: number): Line {
+  public createLine(name: string, dataPoint: DataPoint, previousDataPoint: DataPoint, index: number): Line {
     const isPrimaryColumn = false;
     const columnGroup = this.svgGroups.scenario1.group().id("" + index);
     const labelGroup = this.svgGroups.scenario1Label.group().id("" + index);

@@ -823,8 +823,8 @@ export namespace Components {
         "showOperators": string;
     }
     interface EditorCompanion {
-        "getDistinctFromDataSource": (dataSourceName: string, key: string) => Promise<any[]>;
-        "getDistinctFromDataset": (datasetName: string, key: string) => Promise<any[]>;
+        "getDistinctFromDataSource": (dataSourceName: string, key: string) => Promise<unknown[]>;
+        "getDistinctFromDataset": (datasetName: string, key: string) => Promise<unknown[]>;
         "internationalizationKeys": () => Promise<string[]>;
     }
     interface IbcsChartStructure {
@@ -1078,7 +1078,7 @@ export namespace Components {
         /**
           * @default new Map()
          */
-        "categorythereof": Map<string, any>;
+        "categorythereof": Map<string, Record<string, unknown>[]>;
         /**
           * @default []
          */
@@ -2539,7 +2539,7 @@ declare namespace LocalJSX {
         /**
           * @default new Map()
          */
-        "categorythereof"?: Map<string, any>;
+        "categorythereof"?: Map<string, Record<string, unknown>[]>;
         /**
           * @default []
          */

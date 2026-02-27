@@ -43,7 +43,7 @@ export class StructureChartStylesAdapter implements IAdapter<StructureChartStyle
     private paddingadapter: PaddingAdapter,
   ) {}
 
-  adapt(data: any): StructureChartStyle {
+  adapt(data: Record<string, unknown>): StructureChartStyle {
     const styles: StructureChartStyle = new StructureChartStyle(
       this.scaleFactorsStructureChartAdapter.default(),
       this.fontStyleAdapter.default(),

@@ -45,7 +45,7 @@ export class TimeChartStylesAdapter implements IAdapter<TimeChartStyle> {
     private paddingadapter: PaddingAdapter,
   ) {}
 
-  adapt(data: any): TimeChartStyle {
+  adapt(data: Record<string, unknown>): TimeChartStyle {
     const styles: TimeChartStyle = new TimeChartStyle(
       this.scaleFactorsStructureChartAdapter.default(),
       this.fontStyleAdapter.default(),

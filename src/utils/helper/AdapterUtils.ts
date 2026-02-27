@@ -2,7 +2,7 @@ import { CompareUtil } from "./CompareUtil";
 import { IAdapter } from "./IAdapter";
 
 export class AdapterUtils {
-  public static adaptDefaultString(data: any): string {
+  public static adaptDefaultString(data: unknown): string {
     if (CompareUtil.isString(data)) {
       return data.trim();
     }
@@ -10,12 +10,12 @@ export class AdapterUtils {
     return "";
   }
 
-  public static adaptArray<T>(data: any, adapter: IAdapter<T>): T[] {
-    const targetArray: any = [];
+  public static adaptArray<T>(data: unknown, adapter: IAdapter<T>): T[] {
+    const targetArray: T[] = [];
 
     if (CompareUtil.isArray(data)) {
-      data.forEach((b: any) => {
-        targetArray.push(adapter.adapt(b));
+      data.forEach((b: unknown) => {
+        targetArray.push(adapter.adapt(b as Record<string, unknown>));
       });
     }
 

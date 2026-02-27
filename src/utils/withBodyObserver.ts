@@ -1,6 +1,7 @@
 import { getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withBodyObserver = (component: any, onUpdate: (data: string) => void) => {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {

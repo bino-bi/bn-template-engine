@@ -25,7 +25,7 @@ export class ScaleFactorsStructureChart {
 }
 
 export class ScaleFactorsStructureChartAdapter implements IAdapter<ScaleFactorsStructureChart> {
-  adapt(data: any): ScaleFactorsStructureChart {
+  adapt(data: Record<string, unknown>): ScaleFactorsStructureChart {
     const scaleFactors: ScaleFactorsStructureChart = new ScaleFactorsStructureChart();
 
     if (CompareUtil.isNumber(data.scenarioOffset)) {

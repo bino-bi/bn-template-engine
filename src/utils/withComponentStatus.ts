@@ -1,6 +1,7 @@
 import { generateUUID, runIfExisits } from "./utils";
 import { ComponentRegister, ComponentStatus } from "./componentRegister";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withComponentStatus = (component: any) => {
   const uuid: string = generateUUID();
   const connectedCallback = component["connectedCallback"];

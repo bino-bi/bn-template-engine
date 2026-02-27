@@ -9,7 +9,7 @@ export class SiPrefix {
 }
 
 export class SiPrefixAdapter implements IAdapter<SiPrefix> {
-  adapt(data: any): SiPrefix {
+  adapt(data: Record<string, unknown>): SiPrefix {
     const prefix = new SiPrefix();
 
     if (CompareUtil.isString(data.prefix)) {

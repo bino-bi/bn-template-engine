@@ -12,7 +12,7 @@ import {
 import { DateDistance, DateLink } from "./DateStringFactory";
 import { OrderColumn, OrderDirection } from "./model/Order";
 
-export function isBlankInput(value: any): boolean {
+export function isBlankInput(value: unknown): boolean {
   return value === null || value === undefined || value === "" || value == "null";
 }
 
@@ -177,7 +177,7 @@ export function validateGeojsonType(value: string): string[] {
   return ["Invalid JSON structure"];
 }
 
-export function isValidDate(value: any): boolean {
+export function isValidDate(value: string): boolean {
   const newDate: number = Date.parse(value);
   return Number.isInteger(newDate);
 }
@@ -201,16 +201,16 @@ export function isValidDataFormat(value: string): boolean {
   return value?.toUpperCase() in DataFormat;
 }
 
-export function isValidBoolean(value: any): boolean {
+export function isValidBoolean(value: unknown): boolean {
   if (isBlankInput(value)) {
     return false;
   }
 
-  const validValues: any[] = ["true", "false", true, false];
+  const validValues: (string | boolean)[] = ["true", "false", true, false];
   return validValues.some((elem) => elem == value);
 }
 
-export function isValidTableType(value: any): boolean {
+export function isValidTableType(value: string): boolean {
   if (isBlankInput(value)) {
     return false;
   }

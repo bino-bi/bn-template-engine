@@ -9,7 +9,7 @@ export class Padding {
 }
 
 export class PaddingAdapter implements IAdapter<Padding> {
-  adapt(data: any): Padding {
+  adapt(data: Record<string, unknown>): Padding {
     const padding = new Padding();
 
     if (CompareUtil.isNumber(data.top)) {

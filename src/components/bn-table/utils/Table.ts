@@ -191,7 +191,7 @@ export class Table {
 
   private normalizeScenarios(
     scenarios: string[],
-    categoryThereOf: Map<string, any>,
+    categoryThereOf: Map<string, Record<string, unknown>[]>,
     order: Order,
   ): { name: string; group: string; type: string; order: string | undefined }[] {
     const normalizedScenarios: { name: string; group: string; type: string; order: string | undefined }[] = [];

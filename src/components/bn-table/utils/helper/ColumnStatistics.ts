@@ -1,4 +1,5 @@
 import { ColumnStats } from "../elements/Cell";
+import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 
 /**
  * Utility class to calculate min/max statistics per column for bar chart scaling.
@@ -11,7 +12,7 @@ export class ColumnStatistics {
    * @param columns - Array of column names to calculate statistics for
    * @returns Map of column name to statistics
    */
-  public calculate(data: any[], columns: string[]): Map<string, ColumnStats> {
+  public calculate(data: DataQueryResultRow[][], columns: string[]): Map<string, ColumnStats> {
     const statsMap = new Map<string, ColumnStats>();
 
     if (!columns || columns.length === 0 || !data || data.length === 0) {
@@ -49,7 +50,7 @@ export class ColumnStatistics {
    * Handles both direct column access and the special naming conventions
    * used in the table (e.g., "dr##ac1_pp1_pos").
    */
-  private extractValue(row: any, column: string): number | null {
+  private extractValue(row: DataQueryResultRow, column: string): number | null {
     // Try direct access first
     if (row[column] !== undefined) {
       const val = Number(row[column]);

@@ -7,7 +7,7 @@
 
 ## Methods
 
-### `getDistinctFromDataSource(dataSourceName: string, key: string) => Promise<any[]>`
+### `getDistinctFromDataSource(dataSourceName: string, key: string) => Promise<unknown[]>`
 
 
 
@@ -20,11 +20,11 @@
 
 #### Returns
 
-Type: `Promise<any[]>`
+Type: `Promise<unknown[]>`
 
 
 
-### `getDistinctFromDataset(datasetName: string, key: string) => Promise<any[]>`
+### `getDistinctFromDataset(datasetName: string, key: string) => Promise<unknown[]>`
 
 
 
@@ -37,7 +37,7 @@ Type: `Promise<any[]>`
 
 #### Returns
 
-Type: `Promise<any[]>`
+Type: `Promise<unknown[]>`
 
 
 

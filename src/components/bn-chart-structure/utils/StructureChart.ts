@@ -28,9 +28,20 @@ import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 
+type StructureChartDataModelEntry = {
+  id: number;
+  category: string;
+  type: string;
+  scenario1: DataPoint;
+  scenario2: DataPoint;
+  scenario3: DataPoint;
+  scenario4: DataPoint;
+  stackSegments?: { label: string; value: number; dataPoint: DataPoint }[];
+};
+
 export class StructureChart {
-  private dataModel: any[] = [];
-  private variancesDataModel: any[] = [];
+  private dataModel: StructureChartDataModelEntry[] = [];
+  private variancesDataModel: StructureChartDataModelEntry[] = [];
   private position: ElementPositions;
   public styles: StructureChartStyle;
   private title: string = "";
@@ -44,7 +55,7 @@ export class StructureChart {
   private hideCategories: boolean = false;
   private axisScenario: Scenario = Scenario.AC1;
   readonly CSS_CATEGORIES: string = "categories";
-  private preparedDataSet: any = [];
+  private preparedDataSet: StructureChartDataRow[] = [];
   private state: FactoryState = FactoryState.DIRTY;
   private i18n: Map<string | number, string>;
 
@@ -334,16 +345,20 @@ export class StructureChart {
     return result;
   }
 
-  private populateModel(selectedScenarios: string[], level: AggregationLevel, sortOrder: Order): any {
+  private populateModel(
+    selectedScenarios: string[],
+    level: AggregationLevel,
+    sortOrder: Order,
+  ): StructureChartDataModelEntry[] {
     if (this.preparedDataSet?.length === 0) {
       return [];
     }
 
-    const dataModel: any = [];
+    const dataModel: StructureChartDataModelEntry[] = [];
     const orderStr = this.createOrderStr(level, sortOrder);
     const select = this.createSelectString(level, sortOrder);
     const groupByStr = this.createGroupByStr(level, sortOrder);
-    const result = alasql<any[]>(
+    const result = alasql<Record<string, unknown>[]>(
       `SELECT ${select} ${
         selectedScenarios.length > 0
           ? "," +
@@ -368,9 +383,9 @@ export class StructureChart {
     return dataModel;
   }
 
-  private detectNaNCells(scenarios: any, res: any[]) {
+  private detectNaNCells(scenarios: string[], res: Record<string, unknown>[]) {
     res.forEach((row) => {
-      scenarios.forEach((scenario: any) => {
+      scenarios.forEach((scenario: string) => {
         const varianceScenario = new VarianceScenario(scenario);
 
         if (varianceScenario.isValid == true) {
@@ -388,17 +403,21 @@ export class StructureChart {
     });
   }
 
-  private crateRESTRow(result: any, selectedScenarios: string[], dataModel: any) {
+  private crateRESTRow(
+    result: Record<string, unknown>[],
+    selectedScenarios: string[],
+    dataModel: StructureChartDataModelEntry[],
+  ) {
     if (this.limit == 0 || this.limit > result.length) {
       return;
     }
 
-    const restDataModel: any[] = [];
+    const restDataModel: StructureChartDataModelEntry[] = [];
     const restResult = result.slice(this.limit, result.length);
     this.createDataRows(restResult, restDataModel, selectedScenarios);
 
     const reducedRestRow = restDataModel.reduce(
-      function (sum: any, current: any) {
+      function (sum: StructureChartDataModelEntry, current: StructureChartDataModelEntry) {
         const obj = {
           id: sum.id,
           category: sum.category,
@@ -444,14 +463,18 @@ export class StructureChart {
     dataModel.push(reducedRestRow);
   }
 
-  private createDataRows(result: any, dataModel: any[], selectedScenarios: string[]) {
+  private createDataRows(
+    result: Record<string, unknown>[],
+    dataModel: StructureChartDataModelEntry[],
+    selectedScenarios: string[],
+  ) {
     let primaryResult = result;
 
     if (this.limit > 0) {
       primaryResult = result.slice(0, this.limit);
     }
 
-    primaryResult.forEach((element: any, index: number) => {
+    primaryResult.forEach((element: Record<string, unknown>, index: number) => {
       dataModel.push({
         id: index,
         category: element.category,
@@ -520,7 +543,7 @@ export class StructureChart {
     return longestLength * magicNumber;
   }
 
-  private findSmallestDataPointValue(dataModel: any[]): DataPoint {
+  private findSmallestDataPointValue(dataModel: StructureChartDataModelEntry[]): DataPoint {
     let smallestDataPoint: DataPoint = new DataPoint(0, "default", this.pixelPerUnit, null);
     for (const entry of dataModel) {
       for (const current of [entry.scenario1, entry.scenario2, entry.scenario3, entry.scenario4]) {
@@ -534,7 +557,7 @@ export class StructureChart {
     return smallestDataPoint;
   }
 
-  private findHighestDataPointValue(dataModel: any[]): DataPoint {
+  private findHighestDataPointValue(dataModel: StructureChartDataModelEntry[]): DataPoint {
     let highestDataPoint: DataPoint = new DataPoint(0, "default", this.pixelPerUnit, null);
     for (const entry of dataModel) {
       for (const current of [entry.scenario1, entry.scenario2, entry.scenario3, entry.scenario4]) {
@@ -548,8 +571,11 @@ export class StructureChart {
     return highestDataPoint;
   }
 
-  private populateVarianceModel(variancesConfig: string[], dataModel: any[]): any {
-    const varianceModel: any = [];
+  private populateVarianceModel(
+    variancesConfig: string[],
+    dataModel: StructureChartDataModelEntry[],
+  ): StructureChartDataModelEntry[] {
+    const varianceModel: StructureChartDataModelEntry[] = [];
 
     if (variancesConfig.length === 0) {
       return varianceModel;
@@ -596,7 +622,7 @@ export class StructureChart {
 
   private calculateVariance(
     scenarios: VarianceScenario,
-    element: any,
+    element: StructureChartDataModelEntry,
     scenarioMap: Map<string, string>,
   ): number | null {
     const scenarioBase = scenarioMap.get(scenarios.base);
@@ -615,7 +641,10 @@ export class StructureChart {
     }
   }
 
-  private mapScenarios(scenarios: VarianceScenario, firstRow: any): Map<string, string> {
+  private mapScenarios(
+    scenarios: VarianceScenario,
+    firstRow: StructureChartDataModelEntry | null,
+  ): Map<string, string> {
     const varianceMap: Map<string, string> = new Map();
 
     if (firstRow == null) {
@@ -669,12 +698,12 @@ export class StructureChart {
     svgContainer.clear();
   }
 
-  private drawAxisAndLabels(dataModel: any[], svgContainer: Svg) {
+  private drawAxisAndLabels(dataModel: StructureChartDataModelEntry[], svgContainer: Svg) {
     const axisLabelGroup: G = svgContainer.group().id("AxisAndDateLables");
 
     let isRelative = false;
     if (!this.hideCategories) {
-      dataModel.forEach((elements: any, index: number) => {
+      dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
         if (elements["type"] == VarianceType.RELATIVE) {
           isRelative = true;
         }
@@ -710,13 +739,13 @@ export class StructureChart {
     ).draw();
   }
 
-  private drawScenarios(dataModel: any, svgContainer: Svg) {
+  private drawScenarios(dataModel: StructureChartDataModelEntry[], svgContainer: Svg) {
     const barsGroup: G = svgContainer.group().id("Scenarios");
 
     const scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
-    dataModel.forEach((elements: any, index: number) => {
+    dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
       scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
@@ -724,13 +753,13 @@ export class StructureChart {
     });
   }
 
-  private drawVarianceScenario(dataModel: any, svgContainer: Svg): G {
+  private drawVarianceScenario(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): G {
     const barsGroup: G = svgContainer.group().id("Scenarios");
 
     const scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
-    dataModel.forEach((elements: any, index: number) => {
+    dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       if (elements["type"] == VarianceType.RELATIVE) {
         scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw();
       } else {
@@ -747,13 +776,13 @@ export class StructureChart {
    * uses overlay mode: each type group is drawn from the same baseline,
    * back-to-front per IBCS convention (PL behind, AC on top).
    */
-  private drawStackedScenarios(dataModel: any[], svgContainer: Svg): void {
+  private drawStackedScenarios(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig) return;
 
     const stackGroup: G = svgContainer.group().id("StackedScenarios");
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
 
-    dataModel.forEach((elements: any, index: number) => {
+    dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
       const segments: { value: number; scenario: string; dataPoint: DataPoint }[] = [];
 
@@ -834,7 +863,7 @@ export class StructureChart {
         // For dimension stacking, use stackSegments if available
         let finalSegments = segments;
         if (!isScenarioStack && elements.stackSegments && elements.stackSegments.length > 0) {
-          finalSegments = elements.stackSegments.map((seg: any) => ({
+          finalSegments = elements.stackSegments.map((seg: { label: string; value: number; dataPoint: DataPoint }) => ({
             value: seg.value,
             scenario: seg.label,
             dataPoint: seg.dataPoint,
@@ -882,7 +911,7 @@ export class StructureChart {
    * For overlay mode (multiple scenario types): shows one header per group.
    * For single-group scenario stacking: shows individual segment headers.
    */
-  private drawStackedHeaders(dataModel: any[], svgContainer: Svg): void {
+  private drawStackedHeaders(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig || dataModel.length === 0) return;
 
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
@@ -896,15 +925,17 @@ export class StructureChart {
       if (!stackSegs || stackSegs.length === 0) return;
 
       const orderedSegs = [...stackSegs];
-      if (this.stackConfig.order === "asc") orderedSegs.sort((a: any, b: any) => a.value - b.value);
-      else if (this.stackConfig.order === "desc") orderedSegs.sort((a: any, b: any) => b.value - a.value);
+      if (this.stackConfig.order === "asc")
+        orderedSegs.sort((a: { value: number }, b: { value: number }) => a.value - b.value);
+      else if (this.stackConfig.order === "desc")
+        orderedSegs.sort((a: { value: number }, b: { value: number }) => b.value - a.value);
 
-      const total = orderedSegs.reduce((sum: number, s: any) => sum + Math.abs(s.value), 0);
+      const total = orderedSegs.reduce((sum: number, s: { value: number }) => sum + Math.abs(s.value), 0);
       const axisX = this.position.getBarPositionX();
       const headerY = this.position.getAxisTitlePositionY();
       let cumulativePixels = 0;
 
-      orderedSegs.forEach((seg: any) => {
+      orderedSegs.forEach((seg: { label: string; value: number; dataPoint: DataPoint }) => {
         const pixelPerUnit = seg.dataPoint.pixelPerUnit;
         let segmentLength: number;
         if (this.stackConfig!.mode === StackMode.RELATIVE) {
@@ -1126,7 +1157,7 @@ export class StructureChart {
     const displayColumn = level.toString(); // e.g. 'rowGroup', 'category', 'subCategory'
     const scenario = scenarios[0]; // dimension stacking uses first scenario
 
-    const result = alasql<any[]>(
+    const result = alasql<Record<string, unknown>[]>(
       `SELECT [${displayColumn}] as displayGroup, [${stackColumn}] as stackLabel, ` +
         `SUM([${scenario}] * transformOperator(operation)) as stackValue ` +
         `FROM ? GROUP BY [${displayColumn}], [${stackColumn}]`,

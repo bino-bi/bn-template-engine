@@ -15,7 +15,7 @@ export class TimePeriod {
 export class TimePeriodAdapter implements IAdapter<TimePeriod> {
   construnctor() {}
 
-  adapt(data: any): TimePeriod {
+  adapt(data: Record<string, unknown>): TimePeriod {
     const entry: TimePeriod = new TimePeriod();
 
     if (CompareUtil.isDate(data.start)) {

@@ -66,7 +66,7 @@ export class StructureChartDataRow {
 export class StructureChartDataRowAdapter implements IAdapter<StructureChartDataRow> {
   constructor() {}
 
-  adapt(data: any): StructureChartDataRow {
+  adapt(data: Record<string, unknown>): StructureChartDataRow {
     const dataRow: StructureChartDataRow = new StructureChartDataRow();
 
     if (CompareUtil.isOperator(data.operation)) {
@@ -105,7 +105,7 @@ export class StructureChartDataRowAdapter implements IAdapter<StructureChartData
     return new StructureChartDataRow();
   }
 
-  private setActualValues(data: any, dataRow: StructureChartDataRow) {
+  private setActualValues(data: Record<string, unknown>, dataRow: StructureChartDataRow) {
     if (CompareUtil.isNumber(data.ac1)) {
       dataRow.ac1 = data.ac1;
     }
@@ -123,7 +123,7 @@ export class StructureChartDataRowAdapter implements IAdapter<StructureChartData
     }
   }
 
-  private setPlanValues(data: any, dataRow: StructureChartDataRow) {
+  private setPlanValues(data: Record<string, unknown>, dataRow: StructureChartDataRow) {
     if (CompareUtil.isNumber(data.pl1)) {
       dataRow.pl1 = data.pl1;
     }
@@ -141,7 +141,7 @@ export class StructureChartDataRowAdapter implements IAdapter<StructureChartData
     }
   }
 
-  private setPreviousPeriodValues(data: any, dataRow: StructureChartDataRow) {
+  private setPreviousPeriodValues(data: Record<string, unknown>, dataRow: StructureChartDataRow) {
     if (CompareUtil.isNumber(data.pp1)) {
       dataRow.pp1 = data.pp1;
     }
@@ -159,7 +159,7 @@ export class StructureChartDataRowAdapter implements IAdapter<StructureChartData
     }
   }
 
-  private setForecastValues(data: any, dataRow: StructureChartDataRow) {
+  private setForecastValues(data: Record<string, unknown>, dataRow: StructureChartDataRow) {
     if (CompareUtil.isNumber(data.fc1)) {
       dataRow.fc1 = data.fc1;
     }

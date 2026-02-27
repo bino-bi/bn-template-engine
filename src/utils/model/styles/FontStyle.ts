@@ -12,7 +12,7 @@ export class FontStyle {
 }
 
 export class FontStyleAdapter implements IAdapter<FontStyle> {
-  adapt(data: any): FontStyle {
+  adapt(data: Record<string, unknown>): FontStyle {
     const fontStyle: FontStyle = new FontStyle();
 
     if (CompareUtil.isString(data.font)) {

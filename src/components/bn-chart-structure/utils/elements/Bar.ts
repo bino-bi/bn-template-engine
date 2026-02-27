@@ -156,6 +156,7 @@ export class Bar {
     this.drawScenarioLabel();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private drawOverdriveBar(fillStyle: any, strokeStyle: any): void {
     if (!this.barGroup || !this.overflowConfig) return;
 
@@ -319,6 +320,7 @@ export class Bar {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private convertToSVGStyle(style: any, mode: string): any {
     if (style == null) {
       style = [];

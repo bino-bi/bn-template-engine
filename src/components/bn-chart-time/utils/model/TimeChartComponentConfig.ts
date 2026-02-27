@@ -65,10 +65,10 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     private orderAdapter: OrderAdapter,
     private stringAdapter: StringAdapter,
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
-    private dataSet: any[],
+    private dataSet: Record<string, unknown>[],
   ) {}
 
-  adapt(data: any): TimeChartComponentConfig {
+  adapt(data: Record<string, unknown>): TimeChartComponentConfig {
     const dataSet: TimeChartDataRow[] = AdapterUtils.adaptArray(data.data, this.dataRowAdapter);
     const scenarios: string[] = AdapterUtils.adaptArray(data.scenarios, this.stringAdapter);
 

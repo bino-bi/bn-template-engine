@@ -17,6 +17,7 @@ const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => 
 
 const WARN_DATASOURCE_ID = "WARN_use_dataset";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const warnIfDatasource = (component: any, datasources: string[]) => {
   const errors = component.errors;
   if (!errors) return;
@@ -33,8 +34,9 @@ const warnIfDatasource = (component: any, datasources: string[]) => {
 };
 
 const withDataset = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: any,
-  onUpdate: (name: string, data: any) => void,
+  onUpdate: (name: string, data: unknown) => void,
   onMetaUpdate?: (name: string, meta: DatasetMeta) => void,
 ) => {
   let subscriptionSet: () => void;

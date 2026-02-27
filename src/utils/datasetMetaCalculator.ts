@@ -21,7 +21,7 @@ const SCENARIO_KEYS = [
 
 const DIMENSION_FIELDS = ["rowGroup", "category", "subCategory", "columnGroup", "columnSubGroup"] as const;
 
-function isNumericValue(val: any): val is number {
+function isNumericValue(val: unknown): val is number {
   return typeof val === "number" && !isNaN(val) && isFinite(val);
 }
 
@@ -34,7 +34,7 @@ function buildDimensionMeta(values: Set<string>): DimensionMeta {
   };
 }
 
-export function calculateDatasetMeta(data: any[]): DatasetMeta {
+export function calculateDatasetMeta(data: Record<string, unknown>[]): DatasetMeta {
   const dimensionSets: Record<string, Set<string>> = {};
   for (const field of DIMENSION_FIELDS) {
     dimensionSets[field] = new Set<string>();
