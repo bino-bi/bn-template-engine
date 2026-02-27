@@ -4,7 +4,14 @@
 // import { Order, OrderAdapter } from "../../../../utils/model/Order";
 // import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
 
-import { AggregationLevel, AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../../../utils/constants";
+import {
+  AggregationLevel,
+  AxisLabelsMode,
+  ChartMode,
+  StackBy,
+  StackMode,
+  StackOrder,
+} from "../../../../utils/constants";
 import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 import { DateDistance } from "../../../../utils/DateStringFactory";
 import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
@@ -24,7 +31,7 @@ export interface StackConfigParsed {
 
 export class TimeChartComponentConfig {
   public variances: string[] = [];
-  public title: string = '';
+  public title: string = "";
   public hideAxisLabels: boolean = false;
   public pixelPerUnit: number = 10;
   public pixelPerPercentage: number = 50;
@@ -37,29 +44,29 @@ export class TimeChartComponentConfig {
   public intervalSpanLimit: number = 28;
   public filter: string = "";
   public measureScale: SiPrefix = new SiPrefix();
-  public measureUnit: string = "";  
+  public measureUnit: string = "";
   public showMeasureScale: boolean = true;
-  public dataFormatDigits: DataFormatDigits = {decimal: 1, percent: 2};
+  public dataFormatDigits: DataFormatDigits = { decimal: 1, percent: 2 };
   public showOverlayMedian: boolean = true;
   public showOverlayAvg: boolean = true;
   public chartMode: ChartMode = ChartMode.BAR;
   public maxBars: number = 28;
   public stackConfig: StackConfigParsed | null = null;
   public lineFullWidth: boolean = true;
-  constructor(public data: TimeChartDataRow[],
+  constructor(
+    public data: TimeChartDataRow[],
     public scenarios: string[],
-  ) {
-
-  }
+  ) {}
 }
 
 export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartComponentConfig> {
-  constructor(private dataRowAdapter: TimeChartDataRowAdapter,
+  constructor(
+    private dataRowAdapter: TimeChartDataRowAdapter,
     private orderAdapter: OrderAdapter,
     private stringAdapter: StringAdapter,
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
-    private dataSet: any[]) {
-  }
+    private dataSet: any[],
+  ) {}
 
   adapt(data: any): TimeChartComponentConfig {
     const dataSet: TimeChartDataRow[] = AdapterUtils.adaptArray(data.data, this.dataRowAdapter);
@@ -76,19 +83,19 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     if (CompareUtil.isBoolean(data.hideAxisLabels)) {
-      config.hideAxisLabels = data.hideAxisLabels
+      config.hideAxisLabels = data.hideAxisLabels;
     }
 
     if (CompareUtil.isNumber(data.pixelPerUnit)) {
-      config.pixelPerUnit = data.pixelPerUnit
+      config.pixelPerUnit = data.pixelPerUnit;
     }
 
     if (CompareUtil.isNumber(data.pixelPerPercentage)) {
-      config.pixelPerPercentage = data.pixelPerPercentage
+      config.pixelPerPercentage = data.pixelPerPercentage;
     }
 
     if (CompareUtil.isNumber(data.limit)) {
-      config.limit = data.limit
+      config.limit = data.limit;
     }
 
     if (CompareUtil.isExisting(data.sortOrder)) {
@@ -128,13 +135,13 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     if (CompareUtil.isBoolean(data.showMeasureScale)) {
-      config.showMeasureScale = data.showMeasureScale
+      config.showMeasureScale = data.showMeasureScale;
     }
 
     if (CompareUtil.isExisting(data.dataFormatDigits)) {
       config.dataFormatDigits = this.dataFormatDigitsAdapter.adapt(data.dataFormatDigits);
     }
-    
+
     if (CompareUtil.isBoolean(data.showOverlayAvg)) {
       config.showOverlayAvg = data.showOverlayAvg;
     }

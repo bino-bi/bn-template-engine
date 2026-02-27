@@ -6,13 +6,7 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style } from "../../stores/componentStyles";
 
-import {
-  TreeConfig,
-  parseTreeConfig,
-  validateEdges,
-  getOperatorSymbol,
-  getEdgeForChild
-} from "./utils/TreeParser";
+import { TreeConfig, parseTreeConfig, validateEdges, getOperatorSymbol, getEdgeForChild } from "./utils/TreeParser";
 
 import {
   LayoutDirection,
@@ -20,7 +14,7 @@ import {
   calculateLayout,
   getActualGridColumn,
   getActualGridRow,
-  getActualGridRowSpan
+  getActualGridRowSpan,
 } from "./utils/TreeLayout";
 
 import {
@@ -31,11 +25,11 @@ import {
   getMultiParentConnectionPoint,
   generateEdgePath,
   calculateOperatorPosition,
-  getEdgeSvgStyle
+  getEdgeSvgStyle,
 } from "./utils/EdgeRenderer";
 
 @Component({
-  tag: 'bn-tree',
+  tag: "bn-tree",
   styleUrl: "bn-tree.scss",
   shadow: true,
 })
@@ -69,16 +63,16 @@ export class ChartTree {
    */
   @Prop() edges!: string;
 
-  @Watch('edges')
+  @Watch("edges")
   validateEdgesProp(newValue: string) {
-    const errId = 'ERR_edges';
+    const errId = "ERR_edges";
     const validationErrors = validateEdges(newValue);
 
     if (validationErrors.length > 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'error',
-        message: `edges: ${validationErrors.join('; ')}`
+        type: "error",
+        message: `edges: ${validationErrors.join("; ")}`,
       });
       this.treeConfig = null;
     } else {
@@ -96,18 +90,18 @@ export class ChartTree {
    * - 'ttb': top to bottom (root on top)
    * - 'btt': bottom to top (root on bottom)
    */
-  @Prop() direction: LayoutDirection = 'ltr';
+  @Prop() direction: LayoutDirection = "ltr";
 
-  @Watch('direction')
+  @Watch("direction")
   validateDirection(newValue: string) {
-    const errId = 'ERR_direction';
-    const validValues = ['ltr', 'rtl', 'ttb', 'btt'];
+    const errId = "ERR_direction";
+    const validValues = ["ltr", "rtl", "ttb", "btt"];
 
     if (!validValues.includes(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `direction: invalid value '${newValue}', must be one of: ${validValues.join(', ')}`
+        type: "warning",
+        message: `direction: invalid value '${newValue}', must be one of: ${validValues.join(", ")}`,
       });
     } else {
       this.errors.remove(errId);
@@ -119,17 +113,17 @@ export class ChartTree {
   /**
    * Spacing between hierarchy levels in pixels.
    */
-  @Prop({ attribute: 'level-spacing' }) levelSpacing: number = 60;
+  @Prop({ attribute: "level-spacing" }) levelSpacing: number = 60;
 
-  @Watch('levelSpacing')
+  @Watch("levelSpacing")
   validateLevelSpacing(newValue: number) {
-    const errId = 'ERR_levelSpacing';
+    const errId = "ERR_levelSpacing";
 
     if (!isValidNumber(newValue) || newValue < 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `level-spacing: invalid value '${newValue}', must be a non-negative number`
+        type: "warning",
+        message: `level-spacing: invalid value '${newValue}', must be a non-negative number`,
       });
     } else {
       this.errors.remove(errId);
@@ -141,17 +135,17 @@ export class ChartTree {
   /**
    * Spacing between sibling nodes in pixels.
    */
-  @Prop({ attribute: 'node-spacing' }) nodeSpacing: number = 20;
+  @Prop({ attribute: "node-spacing" }) nodeSpacing: number = 20;
 
-  @Watch('nodeSpacing')
+  @Watch("nodeSpacing")
   validateNodeSpacing(newValue: number) {
-    const errId = 'ERR_nodeSpacing';
+    const errId = "ERR_nodeSpacing";
 
     if (!isValidNumber(newValue) || newValue < 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `node-spacing: invalid value '${newValue}', must be a non-negative number`
+        type: "warning",
+        message: `node-spacing: invalid value '${newValue}', must be a non-negative number`,
       });
     } else {
       this.errors.remove(errId);
@@ -166,18 +160,18 @@ export class ChartTree {
    * - 'orthogonal': right-angle lines (default)
    * - 'curved': smooth bezier curves
    */
-  @Prop({ attribute: 'edge-style' }) edgeStyle: EdgeStyleType = 'orthogonal';
+  @Prop({ attribute: "edge-style" }) edgeStyle: EdgeStyleType = "orthogonal";
 
-  @Watch('edgeStyle')
+  @Watch("edgeStyle")
   validateEdgeStyle(newValue: string) {
-    const errId = 'ERR_edgeStyle';
-    const validValues = ['straight', 'orthogonal', 'curved'];
+    const errId = "ERR_edgeStyle";
+    const validValues = ["straight", "orthogonal", "curved"];
 
     if (!validValues.includes(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `edge-style: invalid value '${newValue}', must be one of: ${validValues.join(', ')}`
+        type: "warning",
+        message: `edge-style: invalid value '${newValue}', must be one of: ${validValues.join(", ")}`,
       });
     } else {
       this.errors.remove(errId);
@@ -187,17 +181,17 @@ export class ChartTree {
   /**
    * Show operator labels between sibling nodes.
    */
-  @Prop({ attribute: 'show-operators' }) showOperators: string = 'true';
+  @Prop({ attribute: "show-operators" }) showOperators: string = "true";
 
-  @Watch('showOperators')
+  @Watch("showOperators")
   validateShowOperators(newValue: string) {
-    const errId = 'ERR_showOperators';
+    const errId = "ERR_showOperators";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `show-operators: invalid value '${newValue}', must be 'true' or 'false'`
+        type: "warning",
+        message: `show-operators: invalid value '${newValue}', must be 'true' or 'false'`,
       });
     } else {
       this.errors.remove(errId);
@@ -215,14 +209,14 @@ export class ChartTree {
    * Get tree chart styles from component style store
    */
   private getTreeStyle() {
-    return this.componentStyle($ => {
+    return this.componentStyle(($) => {
       const baseFontSize = $["global"].fontSizePx;
       return {
         edgeColor: $["bn-tree"].edgeColor,
         edgeWidth: $["bn-tree"].edgeWidth,
         operatorCircleRadius: $["bn-tree"].operatorCircleRadius,
         operatorFontSize: baseFontSize * $["bn-tree"].operatorFontSizeScale,
-        operatorColor: $["bn-tree"].operatorColor
+        operatorColor: $["bn-tree"].operatorColor,
       };
     });
   }
@@ -249,7 +243,7 @@ export class ChartTree {
   }
 
   private setupResizeObserver() {
-    this.gridContainer = this.element.shadowRoot?.querySelector('.tree-grid');
+    this.gridContainer = this.element.shadowRoot?.querySelector(".tree-grid");
 
     if (!this.gridContainer) {
       return;
@@ -263,8 +257,8 @@ export class ChartTree {
     this.resizeObserver.observe(this.gridContainer);
 
     // Observe all slotted elements
-    const slots = this.element.querySelectorAll('[slot]');
-    slots.forEach(slot => {
+    const slots = this.element.querySelectorAll("[slot]");
+    slots.forEach((slot) => {
       this.resizeObserver!.observe(slot);
     });
   }
@@ -275,12 +269,7 @@ export class ChartTree {
       return;
     }
 
-    this.layout = calculateLayout(
-      this.treeConfig,
-      this.direction,
-      this.levelSpacing,
-      this.nodeSpacing
-    );
+    this.layout = calculateLayout(this.treeConfig, this.direction, this.levelSpacing, this.nodeSpacing);
   }
 
   private updateNodeRects() {
@@ -313,19 +302,19 @@ export class ChartTree {
       return {};
     }
 
-    const isHorizontal = this.direction === 'ltr' || this.direction === 'rtl';
+    const isHorizontal = this.direction === "ltr" || this.direction === "rtl";
 
     if (isHorizontal) {
       return {
-        'grid-column': String(getActualGridColumn(position.gridColumn)),
-        'grid-row': `${getActualGridRow(position.gridRow)} / span ${getActualGridRowSpan(position.gridRowSpan)}`,
-        'align-self': 'center'
+        "grid-column": String(getActualGridColumn(position.gridColumn)),
+        "grid-row": `${getActualGridRow(position.gridRow)} / span ${getActualGridRowSpan(position.gridRowSpan)}`,
+        "align-self": "center",
       };
     } else {
       return {
-        'grid-row': String(getActualGridRow(position.gridRow)),
-        'grid-column': String(getActualGridColumn(position.gridColumn)),
-        'justify-self': 'center'
+        "grid-row": String(getActualGridRow(position.gridRow)),
+        "grid-column": String(getActualGridColumn(position.gridColumn)),
+        "justify-self": "center",
       };
     }
   }
@@ -379,12 +368,12 @@ export class ChartTree {
           stroke={svgStyle.stroke}
           stroke-width={svgStyle.strokeWidth}
           stroke-dasharray={svgStyle.strokeDasharray}
-        />
+        />,
       );
     }
 
     // Render operators between siblings
-    if (this.showOperators === 'true') {
+    if (this.showOperators === "true") {
       for (const [parent, children] of this.treeConfig.adjacencyList.entries()) {
         const parentRect = this.nodeRects.get(parent);
         if (!parentRect) {
@@ -396,7 +385,7 @@ export class ChartTree {
           const nextChild = children[i + 1];
           const edge = getEdgeForChild(this.treeConfig.edges, parent, child);
 
-          if (!edge?.operator || edge.operator === 'none') {
+          if (!edge?.operator || edge.operator === "none") {
             continue;
           }
 
@@ -425,11 +414,15 @@ export class ChartTree {
                 y={position.y}
                 text-anchor="middle"
                 dominant-baseline="central"
-                style={{ fontSize: `${treeStyle.operatorFontSize}px`, fill: treeStyle.operatorColor, fontWeight: 'bold' }}
+                style={{
+                  fontSize: `${treeStyle.operatorFontSize}px`,
+                  fill: treeStyle.operatorColor,
+                  fontWeight: "bold",
+                }}
               >
                 {operatorSymbol}
               </text>
-            </g>
+            </g>,
           );
         }
       }
@@ -440,7 +433,7 @@ export class ChartTree {
         class="edge-layer"
         width={this.svgWidth}
         height={this.svgHeight}
-        style={{ position: 'absolute', top: '0', left: '0', pointerEvents: 'none' }}
+        style={{ position: "absolute", top: "0", left: "0", pointerEvents: "none" }}
       >
         {paths}
         {operators}
@@ -453,23 +446,19 @@ export class ChartTree {
       return null;
     }
 
-    return Array.from(this.treeConfig.allNodes).map(nodeId => (
-      <div
-        key={nodeId}
-        class="tree-node"
-        style={this.getSlotStyle(nodeId)}
-      >
+    return Array.from(this.treeConfig.allNodes).map((nodeId) => (
+      <div key={nodeId} class="tree-node" style={this.getSlotStyle(nodeId)}>
         <slot name={nodeId} />
       </div>
     ));
   }
 
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    return this.componentStyle(($) => ({
+      "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      "--bn-font-size": `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+      "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
 
@@ -487,10 +476,10 @@ export class ChartTree {
     }
 
     const gridStyle = {
-      display: 'grid',
-      'grid-template-columns': this.layout.gridTemplateColumns,
-      'grid-template-rows': this.layout.gridTemplateRows,
-      position: 'relative'
+      display: "grid",
+      "grid-template-columns": this.layout.gridTemplateColumns,
+      "grid-template-rows": this.layout.gridTemplateRows,
+      position: "relative",
     };
 
     return (

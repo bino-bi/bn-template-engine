@@ -6,12 +6,11 @@ ibcs-chart-structure {
     text-align: right;
     font-size: 1em;
     // font-family: NotoSans, Helvetica Neue, Helvetica;
-
   }
 
   .label-bg {
     fill: white;
-    opacity: 0.7
+    opacity: 0.7;
   }
 
   .label-text {
@@ -24,7 +23,6 @@ ibcs-chart-structure {
     text-align: center;
     //font-family: NotoSans, Helvetica Neue, Helvetica;
   }
-
 
   .axis-ac {
     stroke: black;
@@ -47,7 +45,6 @@ ibcs-chart-structure {
     stroke-width: 0.1em;
     outline-offset: 0em;
     outline: 0.1em solid black;
-
   }
 
   canvas {
@@ -72,24 +69,21 @@ ibcs-chart-structure {
 
   div {
     float: left;
-
   }
 
   .warning {
-
     font-size: 0.8em;
     font-style: italic;
   }
 
   .footer {
     margin: 0.2em;
-    font-size: 0.6em;  
+    font-size: 0.6em;
   }
 
-  .footer-hide{
+  .footer-hide {
     margin: 0.2em;
-    font-size: 0.6em;  
+    font-size: 0.6em;
     opacity: 0;
   }
 }
-

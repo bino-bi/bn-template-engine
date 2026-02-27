@@ -8,7 +8,7 @@ import { MeasureEntry, MeasureEntryAdapter } from "./MeasureEntriy";
 import { TimePeriod, TimePeriodAdapter } from "./TimePeriod";
 
 export class TitleConfig {
-  businessunit: string = '';
+  businessunit: string = "";
   measures: MeasureEntry[] = [];
   scenarios: string[] = [];
   timeperiod: TimePeriod | undefined;
@@ -16,16 +16,16 @@ export class TitleConfig {
   order?: Order | undefined;
   intervalSpanLimit: number = 32;
 
-  constructor() {
-  }
+  constructor() {}
 }
 
 export class TitleConifgAdapter implements IAdapter<TitleConfig> {
-  constructor(private measureEntryAdapter: MeasureEntryAdapter,
+  constructor(
+    private measureEntryAdapter: MeasureEntryAdapter,
     private timePeriodAdapter: TimePeriodAdapter,
     private orderAdapter: OrderAdapter,
-    private stringAdapter: StringAdapter) {
-  }
+    private stringAdapter: StringAdapter,
+  ) {}
 
   adapt(data: any): TitleConfig {
     const config: TitleConfig = new TitleConfig();
@@ -42,16 +42,13 @@ export class TitleConifgAdapter implements IAdapter<TitleConfig> {
       config.scenarios = AdapterUtils.adaptArray(data.scenarios, this.stringAdapter);
     }
 
-
     if (CompareUtil.isExisting(data.timeperiod)) {
       config.timeperiod = this.timePeriodAdapter.adapt(data.timeperiod);
     }
 
     if (CompareUtil.isNumber(data.intervalSpanLimit)) {
-      config.intervalSpanLimit = (data.intervalSpanLimit);
+      config.intervalSpanLimit = data.intervalSpanLimit;
     }
-
-
 
     if (CompareUtil.isExisting(data.i18nMode)) {
       config.i18nMode = data.i18nMode;

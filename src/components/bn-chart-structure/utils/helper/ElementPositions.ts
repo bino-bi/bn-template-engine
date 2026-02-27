@@ -1,9 +1,9 @@
-import {Box, DataPoint, Point2D, ScaleFactorsStructureChart,} from "../model";
+import { Box, DataPoint, Point2D, ScaleFactorsStructureChart } from "../model";
 
-import {Padding,} from "./Padding";
+import { Padding } from "./Padding";
 
 export class ElementPositions {
-  categoryPosition: Point2D = {x: 0, y: 0,};
+  categoryPosition: Point2D = { x: 0, y: 0 };
   axisPosition: Point2D;
 
   padding: Padding;
@@ -39,12 +39,20 @@ export class ElementPositions {
 
   // private smallestDataPoint: DataPoint;
 
-
-  constructor(padding: Padding, scaleFactors: ScaleFactorsStructureChart, fontSize: number, numberOfColumns: number, leftSideLengthSync: number, titleLength: number, leftSideWidth: number, categoryWidth: number) {
+  constructor(
+    padding: Padding,
+    scaleFactors: ScaleFactorsStructureChart,
+    fontSize: number,
+    numberOfColumns: number,
+    leftSideLengthSync: number,
+    titleLength: number,
+    leftSideWidth: number,
+    categoryWidth: number,
+  ) {
     this.padding = padding;
     this.scaleFactors = scaleFactors;
     this.fontSize = fontSize;
-    this.axisPosition = {x: 0, y: 0};
+    this.axisPosition = { x: 0, y: 0 };
     this.numberOfColumns = numberOfColumns;
     this.leftSideLengthSync = leftSideLengthSync;
     this.topSideLabelHeight = titleLength > 0 ? this.fontSize : 0;
@@ -60,12 +68,12 @@ export class ElementPositions {
   }
 
   public getBarCenterPositionY(index: number): number {
-    return this.categoryPosition.y + this.spacings.scenarioOffset + (index * this.spacings.categoryWidth);
+    return this.categoryPosition.y + this.spacings.scenarioOffset + index * this.spacings.categoryWidth;
   }
 
   public getBarPositionY(index: number, isPrimaryMarker: boolean): number {
     if (isPrimaryMarker) {
-      return this.getBarCenterPositionY(index)
+      return this.getBarCenterPositionY(index);
     }
 
     return this.getBarCenterPositionY(index) - this.spacings.scenarioOffset;
@@ -106,16 +114,18 @@ export class ElementPositions {
     this.calculateAxisPosition();
   }
 
-  public addOffsetByNegativeDataPoints(smallestDataPoint: DataPoint, boxWidth: number, isPercent: boolean, titleLength: number) {
-
-    if (smallestDataPoint != null && smallestDataPoint.value != null ) {
+  public addOffsetByNegativeDataPoints(
+    smallestDataPoint: DataPoint,
+    boxWidth: number,
+    isPercent: boolean,
+    titleLength: number,
+  ) {
+    if (smallestDataPoint != null && smallestDataPoint.value != null) {
       if (smallestDataPoint.value < 0) {
-
         if (isPercent && smallestDataPoint.isClipped()) {
-
-          this.axisPosition.x += Math.abs((smallestDataPoint.getClippedValue() * smallestDataPoint.pixelPerUnit));
+          this.axisPosition.x += Math.abs(smallestDataPoint.getClippedValue() * smallestDataPoint.pixelPerUnit);
         } else {
-          this.axisPosition.x += Math.abs((smallestDataPoint.value * smallestDataPoint.pixelPerUnit));
+          this.axisPosition.x += Math.abs(smallestDataPoint.value * smallestDataPoint.pixelPerUnit);
         }
 
         this.axisPosition.x += boxWidth;
@@ -150,12 +160,11 @@ export class ElementPositions {
   }
 
   public getCategoryToBottomSpaceing(): number {
-
     return this.spacings.scenarioOffset; // this.categoryOffset;
   }
 
   getAxisEndPositionY() {
-    return this.getAxisPositionY() + ((this.numberOfColumns + 1 / 2) * this.spacings.categoryWidth);
+    return this.getAxisPositionY() + (this.numberOfColumns + 1 / 2) * this.spacings.categoryWidth;
   }
 
   getScenarioLabelPositionOffsetY(isPrimaryBar: boolean) {
@@ -183,10 +192,10 @@ export class ElementPositions {
 
   getMarkerScenarioLabelPositionOffsetY(isPrimaryColumn: boolean) {
     if (isPrimaryColumn) {
-      return -((this.spacings.markerWidth * 0.5) + this.spacings.scenarioLabelToBar);
+      return -(this.spacings.markerWidth * 0.5 + this.spacings.scenarioLabelToBar);
     }
 
-    return this.spacings.scenarioLabelToBar + (this.spacings.markerWidth * 0.5);
+    return this.spacings.scenarioLabelToBar + this.spacings.markerWidth * 0.5;
   }
 
   getAxisEndPositionX() {
@@ -211,7 +220,6 @@ export class ElementPositions {
       categoryWidth: this.fontSize * this.scaleFactors.categoryWidth,
       axisTickLength: this.fontSize * this.scaleFactors.axisTickLength,
     };
-
   }
 
   private calculateCategoryPosition() {
@@ -242,7 +250,7 @@ export class ElementPositions {
     if (this.leftSideLengthSync) {
       return this.leftSideLengthSync;
     }
-    let leftSideTitleLength = titleLength / 2;
+    const leftSideTitleLength = titleLength / 2;
     let sideLabelLength = leftSideWidth;
 
     if (leftSideTitleLength > sideLabelLength) {

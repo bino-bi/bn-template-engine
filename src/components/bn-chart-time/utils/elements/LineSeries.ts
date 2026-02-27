@@ -62,7 +62,7 @@ export class LineSeries {
     scenarioName: string,
     scenarioLabel: string | null,
     _i18n: Map<string | number, string>,
-    collisionManager: LabelCollisionManager | null = null
+    collisionManager: LabelCollisionManager | null = null,
   ) {
     this.position = position;
     this.styles = styles;
@@ -77,7 +77,10 @@ export class LineSeries {
   /**
    * Backward-compatible: draws everything (geometry + labels) in one call.
    */
-  public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, measureScale: SiPrefix = new SiPrefix()): LineSeries {
+  public draw(
+    dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
+    measureScale: SiPrefix = new SiPrefix(),
+  ): LineSeries {
     this.drawGeometry();
     this.drawLabels(dataFormatDigits, measureScale);
     return this;
@@ -101,7 +104,10 @@ export class LineSeries {
    * Phase 2: Draw only labels (value labels + scenario label).
    * Call this after all series geometry is drawn, in priority order.
    */
-  public drawLabels(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, measureScale: SiPrefix = new SiPrefix()): LineSeries {
+  public drawLabels(
+    dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
+    measureScale: SiPrefix = new SiPrefix(),
+  ): LineSeries {
     if (this.dataPoints.length === 0) {
       return this;
     }
@@ -131,7 +137,8 @@ export class LineSeries {
    */
   private drawSquareMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
     const halfSize = this.MARKER_SIZE / 2;
-    group.rect(this.MARKER_SIZE, this.MARKER_SIZE)
+    group
+      .rect(this.MARKER_SIZE, this.MARKER_SIZE)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 })
       .move(cx - halfSize, cy - halfSize);
@@ -141,7 +148,8 @@ export class LineSeries {
    * Draws a circle marker (variant 2: ac2, pp2, fc2, pl2)
    */
   private drawCircleMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
-    group.circle(this.MARKER_SIZE)
+    group
+      .circle(this.MARKER_SIZE)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 })
       .center(cx, cy);
@@ -152,7 +160,8 @@ export class LineSeries {
    */
   private drawTriangleMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
     const s = this.MARKER_SIZE / 2;
-    group.polygon(`${cx},${cy - s} ${cx - s},${cy + s} ${cx + s},${cy + s}`)
+    group
+      .polygon(`${cx},${cy - s} ${cx - s},${cy + s} ${cx + s},${cy + s}`)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 });
   }
@@ -162,7 +171,8 @@ export class LineSeries {
    */
   private drawDiamondMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
     const s = this.MARKER_SIZE / 2;
-    group.polygon(`${cx},${cy - s} ${cx + s},${cy} ${cx},${cy + s} ${cx - s},${cy}`)
+    group
+      .polygon(`${cx},${cy - s} ${cx + s},${cy} ${cx},${cy + s} ${cx - s},${cy}`)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 });
   }
@@ -184,16 +194,20 @@ export class LineSeries {
       const currX = this.position.getColumnCenterPositionX(currPoint.index);
       const currY = this.position.getColumnPositionY() - currPoint.dataPoint.getScaledUnit();
 
-      const line = lineGroup.line([[prevX, prevY], [currX, currY]])
+      const line = lineGroup
+        .line([
+          [prevX, prevY],
+          [currX, currY],
+        ])
         .stroke({
           color: lineStyle.lineColor,
           width: this.LINE_WIDTH,
-          linecap: 'round'
+          linecap: "round",
         })
-        .fill('none');
+        .fill("none");
 
       if (lineStyle.lineDashArray) {
-        line.attr('stroke-dasharray', lineStyle.lineDashArray);
+        line.attr("stroke-dasharray", lineStyle.lineDashArray);
       }
     }
   }
@@ -256,9 +270,8 @@ export class LineSeries {
 
     // True local minimum: both neighbors exist and are higher
     const currentVal = current.dataPoint.getScaledUnit();
-    const isLocalMin = prev && next
-      && prev.dataPoint.getScaledUnit() > currentVal
-      && next.dataPoint.getScaledUnit() > currentVal;
+    const isLocalMin =
+      prev && next && prev.dataPoint.getScaledUnit() > currentVal && next.dataPoint.getScaledUnit() > currentVal;
 
     if (isLocalMin) {
       return [LabelDirection.Below, LabelDirection.Left, LabelDirection.Right, LabelDirection.Above];
@@ -286,7 +299,7 @@ export class LineSeries {
 
       // Use collision manager with 4-direction placement if available
       let labelX = centerX;
-      let labelY = markerY - (this.MARKER_SIZE / 2) - 2;
+      let labelY = markerY - this.MARKER_SIZE / 2 - 2;
       let verticalHook: HookLocation = HookLocation.Bottom;
       let horizontalHook: HookLocation = HookLocation.Center;
 
@@ -301,7 +314,7 @@ export class LineSeries {
           point.index,
           this.MARKER_SIZE,
           scenarioType,
-          directionPriority
+          directionPriority,
         );
 
         if (placement === null) {
@@ -326,7 +339,7 @@ export class LineSeries {
         point.dataPoint.value,
         this.styles,
         verticalHook,
-        horizontalHook
+        horizontalHook,
       );
 
       label.draw(true, dataFormatDigits, measureScale);
@@ -371,7 +384,7 @@ export class LineSeries {
       this.scenarioLabel,
       this.styles,
       HookLocation.Center,
-      HookLocation.Left
+      HookLocation.Left,
     );
 
     scenarioLabelElement.forceStringTypeDraw();

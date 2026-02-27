@@ -7,7 +7,7 @@ table {
   background-color: var(--bn-font-background, white);
   font-size: var(--bn-font-size, 1em);
   color: var(--bn-font-color, black);
-  font-family: var(--bn-font-family, 'Noto Sans', 'Helvetica Neue', Helvetica, sans-serif);
+  font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
   border-spacing: 0.3em 0;
 }
 
@@ -103,7 +103,7 @@ th.columnGroup {
 td.columnSubGroup,
 th.columnSubGroup {
   font-size: 0.6em;
-  border-spacing: 0.0em 0;
+  border-spacing: 0em 0;
   font-style: italic;
 }
 
@@ -132,14 +132,14 @@ th.ofit td,
 tr.ofit td,
 th.partof td,
 tr.partof td {
-  border-top: 0.0em solid black;
+  border-top: 0em solid black;
   padding-left: 1em;
 }
 
 th.ofit share,
 th.partof share,
 tr.share td {
-  border-top: 0.0em solid black;
+  border-top: 0em solid black;
 }
 
 th.share,
@@ -150,13 +150,13 @@ td.share {
 }
 
 th.filler {
-  border-bottom: .0em solid black;
+  border-bottom: 0em solid black;
   text-align: right;
 }
 
 td.filler {
-  border-top: 0.0em none !important;
-  border-bottom: 0.0em none;
+  border-top: 0em none !important;
+  border-bottom: 0em none;
   text-align: right;
 }
 
@@ -166,12 +166,12 @@ th.group {
 }
 
 th.headerlabel {
-  border-bottom: 0.0em none black;
+  border-bottom: 0em none black;
   padding-bottom: 0em;
 }
 
 td.variance:after {
-  content: '%';
+  content: "%";
 }
 
 td.relative_variance {
@@ -263,23 +263,23 @@ tr.sum td {
 }
 
 tr.groupheader td {
-  border-top: 0.0em dotted #ddd;
+  border-top: 0em dotted #ddd;
   padding-top: 0.5em;
   font-weight: bold;
   font-style: italic;
 }
 
 tr.begingroup td {
-  border-top: 0.0em dotted #ddd;
+  border-top: 0em dotted #ddd;
   padding-top: 0.5em;
 }
 
 th.begin-group {
-  padding-left: 0.75em
+  padding-left: 0.75em;
 }
 
 th.end-group {
-  padding-left: 0.75em
+  padding-left: 0.75em;
 }
 
 td {
@@ -294,7 +294,7 @@ td {
 }
 
 .table-footer {
-  font-size: 0.6em
+  font-size: 0.6em;
 }
 
 // Bar chart cell styles

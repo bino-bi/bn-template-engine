@@ -5,14 +5,14 @@ import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../../utils/helper/IAdapter";
 
 export class MeasureEntry {
-  constructor(public name: string = '',
-    public unit: string = '') {
-  }
+  constructor(
+    public name: string = "",
+    public unit: string = "",
+  ) {}
 }
 
 export class MeasureEntryAdapter implements IAdapter<MeasureEntry> {
-  construnctor() {
-  }
+  construnctor() {}
 
   adapt(data: any): MeasureEntry {
     const entry: MeasureEntry = new MeasureEntry();
@@ -29,6 +29,6 @@ export class MeasureEntryAdapter implements IAdapter<MeasureEntry> {
   }
 
   default(): MeasureEntry {
-    return new MeasureEntry('', '');
+    return new MeasureEntry("", "");
   }
 }

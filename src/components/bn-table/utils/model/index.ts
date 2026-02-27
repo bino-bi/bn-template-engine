@@ -1,4 +1,4 @@
-import {TableRow} from "../elements";
+import { TableRow } from "../elements";
 
 export interface VisualisationRuleSet {
   getScenario(scenarioName: string): Scenario;
@@ -11,7 +11,6 @@ export interface VisualisationRuleSet {
 
   // getDateFormatter(type: DateDistanceType, modus: DateDistanceMode): string;
 }
-
 
 export enum GroupSelection {
   ALL = -1,
@@ -35,13 +34,12 @@ export interface TableDataSet {
   details: TableRow[];
 }
 
-
 export enum TableType {
   LIST = "list",
   SUM = "sum",
   SUMNOTOTAL = "sumnototal",
   OPT = "opt",
-  OPTNOTOTAL = "optnototal"
+  OPTNOTOTAL = "optnototal",
 }
 
 export enum OrderDirection {
@@ -58,11 +56,8 @@ export enum TableRowType {
   DRILLELEMENT = "DRILLELEMENT",
   STANDARD = "STANDARD",
   PARTELEMENT = "PARTELEMENT",
-  ENTRY = "ENTRY"
+  ENTRY = "ENTRY",
 }
-
-
-
 
 export interface ColumnNameMap {
   currentRow: string;
@@ -95,12 +90,9 @@ export interface ColumnNameMap {
   pl4: string;
 }
 
-
 export interface Scenario {
   name: string;
   group: string;
   colorIndex: number;
   sortIndex: number;
 }
-
-

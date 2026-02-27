@@ -1,24 +1,20 @@
-import {
-  VisualisationRuleSet,
-  FactoryState,
-} from "./model";
+import { VisualisationRuleSet, FactoryState } from "./model";
 // import {IBCSRuleSet} from "../../../utils/ibcsRuleSet";
-import {TableDataSetFactory} from "./factories/tableDataSetFactory";
-import {TableRow} from "./elements";
-import {TableComponentConfig} from "./model/TableComponentConfig";
-import {TableDataRow} from "./model/TableDataRow";
+import { TableDataSetFactory } from "./factories/tableDataSetFactory";
+import { TableRow } from "./elements";
+import { TableComponentConfig } from "./model/TableComponentConfig";
+import { TableDataRow } from "./model/TableDataRow";
 // import { Order } from "../../../utils/model/Order";
 import alasql from "alasql";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { Order } from "../../../components";
 
 export class Table {
-
   private ruleSet: VisualisationRuleSet;
   private config: TableComponentConfig;
   private dataSetFactory: TableDataSetFactory;
   private i18n: Map<string | number, string>;
-  private state: FactoryState;                 // is uesed to track if dataset has to be reenerated (true) or if the stored one is still valid (false)
+  private state: FactoryState; // is uesed to track if dataset has to be reenerated (true) or if the stored one is still valid (false)
 
   private data: TableDataRow[] = [];
   private headerRows: TableRow[] = [];
@@ -35,7 +31,7 @@ export class Table {
     this.dataSetFactory = new TableDataSetFactory();
 
     this.config = this.initConfig(config);
-    this.i18n   = this.initI18n(new Map<string, string>());
+    this.i18n = this.initI18n(new Map<string, string>());
     this.setData(data, config.filter);
     this.state = FactoryState.DIRTY;
   }
@@ -54,41 +50,62 @@ export class Table {
    * @param i18n
    */
   public setI18n(i18n: Map<string, string>) {
-    this.i18n   = this.initI18n(i18n);
+    this.i18n = this.initI18n(i18n);
   }
 
-  private initI18n(i18n: Map<string, string>):  Map<string, string> {
+  private initI18n(i18n: Map<string, string>): Map<string, string> {
     const defaultI18n: Map<string, string> = new Map<string, string>([
-      ["", ""], ["SEPERATOR_WS", ", "], ["in", "in"], ["ORDER_asc", "↑"], ["ORDER_desc", "↓"],
-      ["ac1", "AC"],  ["pp1", "PY"],  ["fc1", "FC"],  ["pl1", "PL"],
-      ["ac2", "AC2"], ["pp2", "PY2"], ["fc2", "FC2"], ["pl2", "PL2"],
-      ["ac3", "AC3"], ["pp3", "PY3"], ["fc3", "FC3"], ["pl3", "PL3"],
-      ["ac4", "AC4"], ["pp4", "PY4"], ["fc4", "FC4"], ["pl4", "PL4"],
+      ["", ""],
+      ["SEPERATOR_WS", ", "],
       ["in", "in"],
-      ["category", " "], ["operation", " "], ["there_of", "davon"], ["part_of", "in % von"], ["ibcssymbol_delta_ac", "Δ{%}"],
-      ["ibcssymbol_delta_generic", "Δ({%})"], ["ibcssymbol_delta_ac_relative", "Δ{%}%"],
-      ["ibcssymbol_delta_generic_relative", "Δ({%})%"], ["SUM_TOTAL", "❖"]
+      ["ORDER_asc", "↑"],
+      ["ORDER_desc", "↓"],
+      ["ac1", "AC"],
+      ["pp1", "PY"],
+      ["fc1", "FC"],
+      ["pl1", "PL"],
+      ["ac2", "AC2"],
+      ["pp2", "PY2"],
+      ["fc2", "FC2"],
+      ["pl2", "PL2"],
+      ["ac3", "AC3"],
+      ["pp3", "PY3"],
+      ["fc3", "FC3"],
+      ["pl3", "PL3"],
+      ["ac4", "AC4"],
+      ["pp4", "PY4"],
+      ["fc4", "FC4"],
+      ["pl4", "PL4"],
+      ["in", "in"],
+      ["category", " "],
+      ["operation", " "],
+      ["there_of", "davon"],
+      ["part_of", "in % von"],
+      ["ibcssymbol_delta_ac", "Δ{%}"],
+      ["ibcssymbol_delta_generic", "Δ({%})"],
+      ["ibcssymbol_delta_ac_relative", "Δ{%}%"],
+      ["ibcssymbol_delta_generic_relative", "Δ({%})%"],
+      ["SUM_TOTAL", "❖"],
     ]);
 
     this.state = FactoryState.DIRTY; // mark dataSet for update
-    return new Map([...defaultI18n, ...i18n || new Map<string, string>()]);
+    return new Map([...defaultI18n, ...(i18n || new Map<string, string>())]);
   }
 
   private initConfig(config: TableComponentConfig): TableComponentConfig {
     this.state = FactoryState.DIRTY; // mark dataSet for update
-    let tmpConfig: TableComponentConfig = config ;
+    const tmpConfig: TableComponentConfig = config;
 
     // this.checkConfigIfValidElseSetDefaultOrder(config.order);
     // sorting scenario order based on Ruleset
-    let self = this;
-    
-    config.scenarios.sort((n1, n2) => {     
+    const self = this;
+
+    config.scenarios.sort((n1, n2) => {
       return self.ruleSet.getScenarioSorIndex(n1) - self.ruleSet.getScenarioSorIndex(n2);
     });
-  
+
     return tmpConfig;
   }
-
 
   /**
    * loads and varifies configuration which describes
@@ -99,7 +116,7 @@ export class Table {
    * @param config
    */
   public setConfig(config: TableComponentConfig) {
-      this.config = this.initConfig(config);
+    this.config = this.initConfig(config);
   }
 
   public setData(data: TableDataRow[], filter: string) {
@@ -107,30 +124,51 @@ export class Table {
       return;
     }
 
-    if(filter != null && filter.length > 0 ) {
-      try{
-        this.data  = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
-      } catch(e) {
+    if (filter != null && filter.length > 0) {
+      try {
+        this.data = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
+      } catch (e) {
         console.error("Table: filter query failed, using unfiltered data", filter, e);
         this.data = data;
-      }     
+      }
     } else {
       this.data = data;
     }
 
-    let normalizedScenarios = this.normalizeScenarios(this.config.scenarios, this.config.categoryThereOf, this.config.order );
-    
-      
-    this.headerRows = this.dataSetFactory.createHeader(this.config.type, normalizedScenarios, this.i18n, this.config.measureScale, this.config.measureUnit,this.config.showMeasureScale);
-    
+    const normalizedScenarios = this.normalizeScenarios(
+      this.config.scenarios,
+      this.config.categoryThereOf,
+      this.config.order,
+    );
+
+    this.headerRows = this.dataSetFactory.createHeader(
+      this.config.type,
+      normalizedScenarios,
+      this.i18n,
+      this.config.measureScale,
+      this.config.measureUnit,
+      this.config.showMeasureScale,
+    );
+
     this.bodyRows = this.dataSetFactory.createBodyRows(this.config, this.i18n, this.data);
     this.state = FactoryState.UP_TO_DATE;
   }
 
   public update() {
-    let normalizedScenarios = this.normalizeScenarios(this.config.scenarios, this.config.categoryThereOf, this.config.order);
+    const normalizedScenarios = this.normalizeScenarios(
+      this.config.scenarios,
+      this.config.categoryThereOf,
+      this.config.order,
+    );
 
-    this.headerRows = this.dataSetFactory.createHeader(this.config.type, normalizedScenarios, this.i18n, this.config.measureScale, this.config.measureUnit, this.config.showMeasureScale);
+    this.headerRows = this.dataSetFactory.createHeader(
+      this.config.type,
+      normalizedScenarios,
+      this.i18n,
+      this.config.measureScale,
+      this.config.measureUnit,
+      this.config.showMeasureScale,
+    );
     this.bodyRows = this.dataSetFactory.createBodyRows(this.config, this.i18n, this.data);
     this.state = FactoryState.UP_TO_DATE;
   }
@@ -144,7 +182,6 @@ export class Table {
   }
 
   public getBody(): TableRow[] {
-
     if (this.state === FactoryState.DIRTY) {
       this.update();
     }
@@ -152,28 +189,41 @@ export class Table {
     return this.bodyRows;
   }
 
-  private normalizeScenarios(scenarios: string[], categoryThereOf: Map<string, any>, order: Order): { name: string, group: string, type: string, order: string | undefined }[] {
-    let normalizedScenarios: { name: string, group: string, type: string, order: string | undefined}[] = [];
- 
-    for (let scenario of scenarios) {
+  private normalizeScenarios(
+    scenarios: string[],
+    categoryThereOf: Map<string, any>,
+    order: Order,
+  ): { name: string; group: string; type: string; order: string | undefined }[] {
+    const normalizedScenarios: { name: string; group: string; type: string; order: string | undefined }[] = [];
+
+    for (const scenario of scenarios) {
       if (categoryThereOf?.has(scenario)) {
-        let categoryDrills = categoryThereOf.get(scenario);
-        for (let drillElement of categoryDrills) {
-          normalizedScenarios.push({name: drillElement.name, group: drillElement.name, type: scenario, order: undefined});
-          for (let drillSubElement of drillElement.subGroups) {
-            normalizedScenarios.push({name: drillSubElement, group: drillElement.name, type: scenario, order: undefined});
+        const categoryDrills = categoryThereOf.get(scenario);
+        for (const drillElement of categoryDrills) {
+          normalizedScenarios.push({
+            name: drillElement.name,
+            group: drillElement.name,
+            type: scenario,
+            order: undefined,
+          });
+          for (const drillSubElement of drillElement.subGroups) {
+            normalizedScenarios.push({
+              name: drillSubElement,
+              group: drillElement.name,
+              type: scenario,
+              order: undefined,
+            });
           }
         }
-        normalizedScenarios.push({name: 'REST', group: 'REST', type: scenario, order: undefined});
-
-      }
-      
-      let orderDirection = undefined
-      if (order?.hierarchy?.at(0) == scenario){
-        orderDirection = order.direction 
+        normalizedScenarios.push({ name: "REST", group: "REST", type: scenario, order: undefined });
       }
 
-      normalizedScenarios.push({name: scenario, group: scenario, type: scenario, order: orderDirection});
+      let orderDirection = undefined;
+      if (order?.hierarchy?.at(0) == scenario) {
+        orderDirection = order.direction;
+      }
+
+      normalizedScenarios.push({ name: scenario, group: scenario, type: scenario, order: orderDirection });
     }
     return normalizedScenarios;
   }
@@ -182,4 +232,3 @@ export class Table {
     return this.data.length == 0;
   }
 }
-

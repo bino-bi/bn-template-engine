@@ -1,4 +1,3 @@
-
 import { AggregationLevel, StackBy, StackMode, StackOrder } from "../../../../utils/constants";
 import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
@@ -18,7 +17,7 @@ export interface StackConfigParsed {
 
 export class StructureChartComponentConfig {
   public variances: string[] = [];
-  public title: string = '';
+  public title: string = "";
   public hideCategories: boolean = false;
   public pixelPerUnit: number = 10;
   public pixelPerPercentage: number = 50;
@@ -27,25 +26,25 @@ export class StructureChartComponentConfig {
   public level: AggregationLevel = AggregationLevel.CATEGORY;
   public filter: string = "";
   public measureScale: SiPrefix = new SiPrefix();
-  public measureUnit: string = "";  
+  public measureUnit: string = "";
   public showMeasureScale: boolean = true;
-  public dataFormatDigits: DataFormatDigits = {decimal: 1, percent: 2};
+  public dataFormatDigits: DataFormatDigits = { decimal: 1, percent: 2 };
   public stackConfig: StackConfigParsed | null = null;
 
-  constructor(public data: StructureChartDataRow[],
+  constructor(
+    public data: StructureChartDataRow[],
     public scenarios: string[],
-  ) {
-
-  }
+  ) {}
 }
 
 export class StructureChartComponentConfigAdapter implements IAdapter<StructureChartComponentConfig> {
-  constructor(private dataRowAdapter: StructureChartDataRowAdapter,
+  constructor(
+    private dataRowAdapter: StructureChartDataRowAdapter,
     private orderAdapter: OrderAdapter,
     private stringAdapter: StringAdapter,
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
-    private dataSet: any[]) {
-  }
+    private dataSet: any[],
+  ) {}
 
   adapt(data: any): StructureChartComponentConfig {
     const dataSet: StructureChartDataRow[] = AdapterUtils.adaptArray(data.data, this.dataRowAdapter);
@@ -62,19 +61,20 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     }
 
     if (CompareUtil.isBoolean(data.hideCategories)) {
-      config.hideCategories = data.hideCategories
+      config.hideCategories = data.hideCategories;
     }
 
     if (CompareUtil.isNumber(data.pixelPerUnit)) {
-      config.pixelPerUnit = data.pixelPerUnit
-    } 3
+      config.pixelPerUnit = data.pixelPerUnit;
+    }
+    3;
 
     if (CompareUtil.isNumber(data.pixelPerPercentage)) {
-      config.pixelPerPercentage = data.pixelPerPercentage
+      config.pixelPerPercentage = data.pixelPerPercentage;
     }
 
     if (CompareUtil.isNumber(data.limit)) {
-      config.limit = data.limit
+      config.limit = data.limit;
     }
 
     if (CompareUtil.isExisting(data.sortOrder)) {
@@ -98,7 +98,7 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     }
 
     if (CompareUtil.isBoolean(data.showMeasureScale)) {
-      config.showMeasureScale = data.showMeasureScale
+      config.showMeasureScale = data.showMeasureScale;
     }
 
     if (CompareUtil.isExisting(data.dataFormatDigits)) {

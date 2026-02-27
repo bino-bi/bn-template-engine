@@ -1,8 +1,8 @@
-import {Title} from "../Title";
-import {TitleConfig, TitleConifgAdapter} from "../model/TitleConfig";
-import {MeasureEntryAdapter} from "../model/MeasureEntriy";
-import {TimePeriodAdapter} from "../model/TimePeriod";
-import {DateTime} from "luxon";
+import { Title } from "../Title";
+import { TitleConfig, TitleConifgAdapter } from "../model/TitleConfig";
+import { MeasureEntryAdapter } from "../model/MeasureEntriy";
+import { TimePeriodAdapter } from "../model/TimePeriod";
+import { DateTime } from "luxon";
 import { OrderAdapter, OrderDirection } from "../../../../../utils/model/Order";
 import { StringAdapter } from "../../../../../utils/helper/StringAdapter";
 import { I18nMode } from "../../../../../utils/constants";
@@ -11,42 +11,47 @@ import { IBCSRuleSet } from "../../../../../utils/ibcsRuleSet";
 // import { IBCSRuleSet } from "../../../../utils/ibcsRuleSet";
 
 // Test i18n data
-let i18n: Map<string, string> = new Map();
+const i18n: Map<string, string> = new Map();
 
-[{key: "SEPERATOR_WS", value: ", "},
-  {key: "in", value: "in"},
-  {key: "ORDER_asc", value: "↑"},
-  {key: "ORDER_desc", value: "↓"},
-  {key: "title1", value: "Beispiel Daten"},
-  {key: "ac", value: "AC"},
-  {key: "py", value: "PY"},
-  {key: "fc", value: "FC"},
-  {key: "pl", value: "PL"},
-  {key: "category", value: " "},
-  {key: "operation", value: " "},
-  {key: "thereof", value: "davon"},
-  {key: "ibcssymbol_delta_ac", value: "Δ{%}"},
-  {key: "ibcssymbol_delta_generic", value: "Δ({%})"}].forEach(function (entry) {
+[
+  { key: "SEPERATOR_WS", value: ", " },
+  { key: "in", value: "in" },
+  { key: "ORDER_asc", value: "↑" },
+  { key: "ORDER_desc", value: "↓" },
+  { key: "title1", value: "Beispiel Daten" },
+  { key: "ac", value: "AC" },
+  { key: "py", value: "PY" },
+  { key: "fc", value: "FC" },
+  { key: "pl", value: "PL" },
+  { key: "category", value: " " },
+  { key: "operation", value: " " },
+  { key: "thereof", value: "davon" },
+  { key: "ibcssymbol_delta_ac", value: "Δ{%}" },
+  { key: "ibcssymbol_delta_generic", value: "Δ({%})" },
+].forEach(function (entry) {
   i18n.set(entry.key, entry.value);
 });
 
-
 function craeteConfig(data: any): TitleConfig {
-    return new TitleConifgAdapter(new MeasureEntryAdapter(),
-      new TimePeriodAdapter(),
-      new OrderAdapter(new StringAdapter()),
-      new StringAdapter()).adapt(data);
+  return new TitleConifgAdapter(
+    new MeasureEntryAdapter(),
+    new TimePeriodAdapter(),
+    new OrderAdapter(new StringAdapter()),
+    new StringAdapter(),
+  ).adapt(data);
 }
-
 
 /**
  *   Test Case 01 Simple Table List
  */
 describe("Test Title Good Cases", () => {
-  let config: TitleConfig = craeteConfig({
+  const config: TitleConfig = craeteConfig({
     i18n: I18nMode.ALL,
     businessunit: "BinoBi Racing",
-    measures: [{name: "Nettoumsatz", unit: "mEUR"}, {name: "Bruttoumsatz", unit: "mEUR"}],
+    measures: [
+      { name: "Nettoumsatz", unit: "mEUR" },
+      { name: "Bruttoumsatz", unit: "mEUR" },
+    ],
     scenarios: ["pp1", "pl1", "ac1", "fc1", "dac1_fc1_pos", "dfc1_pl1_pos"],
     timeperiod: {
       start: DateTime.fromISO("2020-01-12T02:00:00+02:00"),
@@ -57,72 +62,69 @@ describe("Test Title Good Cases", () => {
     order: {
       hierarchy: ["fc1"],
       direction: OrderDirection.ASC,
-    }
+    },
   });
 
-
-
   // Init Factory; setup MetaData
-  let titleDataSetFactory: Title = new Title(new IBCSRuleSet());
+  const titleDataSetFactory: Title = new Title(new IBCSRuleSet());
 
   titleDataSetFactory.setConfig(config);
 
   let data = titleDataSetFactory.update();
 
   it("should create a correctly filled dimension string", () => {
-    let expectedDimension = "Jan..Mai 2020 PY, PL, FC↑, AC, Δ(FC - PL), ΔFC";
+    const expectedDimension = "Jan..Mai 2020 PY, PL, FC↑, AC, Δ(FC - PL), ΔFC";
     expect(data.dimension).toEqual(expectedDimension);
   });
 
   it("should create a correctly filled business unit string", () => {
-    let expectedUnit = "BinoBi Racing";
+    const expectedUnit = "BinoBi Racing";
     expect(data.unit).toEqual(expectedUnit);
   });
 
   it("should create a correctly filled business unit string after update", () => {
-    let expectedUnit = "BinoBi Racing";
-    data = titleDataSetFactory.update()
+    const expectedUnit = "BinoBi Racing";
+    data = titleDataSetFactory.update();
     expect(data.unit).toEqual(expectedUnit);
   });
-
 });
 
 describe("Test Title without config", () => {
-  let config: TitleConfig  = craeteConfig({});
+  const config: TitleConfig = craeteConfig({});
 
   // Init Factory; setup MetaData
-  let titleDataSetFactory: Title = new Title(new IBCSRuleSet());
+  const titleDataSetFactory: Title = new Title(new IBCSRuleSet());
 
   titleDataSetFactory.setConfig(config);
 
   let data = titleDataSetFactory.update();
 
-
   it("should create a empty dimension string", () => {
-    let expectedDimension = "";
+    const expectedDimension = "";
     expect(data.dimension).toEqual(expectedDimension);
   });
 
-
   it("should create a empty business unit string", () => {
-    let expectedUnit = "";
+    const expectedUnit = "";
     expect(data.unit).toEqual(expectedUnit);
   });
 
   it("should create a empty business unit string after update", () => {
-    let expectedUnit = "";
-    data = titleDataSetFactory.update()
+    const expectedUnit = "";
+    data = titleDataSetFactory.update();
     expect(data.unit).toEqual(expectedUnit);
   });
-
 });
 
 describe("Test order object", () => {
   describe("Config with descending order object", () => {
-    let config: TitleConfig = craeteConfig({
+    const config: TitleConfig = craeteConfig({
       i18n: I18nMode.ALL,
       businessunit: "BinoBi Racing",
-      measures: [{name: "Nettoumsatz", unit: "mEUR"}, {name: "Bruttoumsatz", unit: "mEUR"}],
+      measures: [
+        { name: "Nettoumsatz", unit: "mEUR" },
+        { name: "Bruttoumsatz", unit: "mEUR" },
+      ],
       scenarios: ["pp1", "pl1", "ac1", "fc1", "dac1_fc1_pos", "dpl1_fc1_pos"],
       timeperiod: {
         start: DateTime.fromISO("2020-01-12T02:00:00+02:00"),
@@ -130,29 +132,31 @@ describe("Test order object", () => {
         format: DateDistance.MONTH,
         link: DateLink.INTERVAL,
       },
-      order: undefined
+      order: undefined,
     });
 
     // Init Factory; setup MetaData
-    let titleDataSetFactory: Title = new Title(new IBCSRuleSet());
+    const titleDataSetFactory: Title = new Title(new IBCSRuleSet());
 
     titleDataSetFactory.setConfig(config);
 
-    let data = titleDataSetFactory.update();
-    let expectedDimension = "Jan..Mai 2020 PY, PL, FC, AC, ΔFC, Δ(PL - FC)";
+    const data = titleDataSetFactory.update();
+    const expectedDimension = "Jan..Mai 2020 PY, PL, FC, AC, ΔFC, Δ(PL - FC)";
 
     it("should display no order", () => {
       config.order = undefined;
       expect(data.dimension).toEqual(expectedDimension);
     });
-
   });
 
   describe("Config with descending order object", () => {
-    let config: TitleConfig = craeteConfig({
+    const config: TitleConfig = craeteConfig({
       i18n: I18nMode.ALL,
       businessunit: "BinoBi Racing",
-      measures: [{name: "Nettoumsatz", unit: "mEUR"}, {name: "Bruttoumsatz", unit: "mEUR"}],
+      measures: [
+        { name: "Nettoumsatz", unit: "mEUR" },
+        { name: "Bruttoumsatz", unit: "mEUR" },
+      ],
       scenarios: ["pp1", "pl1", "ac1", "fc1", "dac1_fc1_pos", "dpl1_fc1_pos"],
       timeperiod: {
         start: DateTime.fromISO("2020-01-12T02:00:00+02:00"),
@@ -163,16 +167,16 @@ describe("Test order object", () => {
       order: {
         hierarchy: ["fc1"],
         direction: OrderDirection.DESC,
-      }
+      },
     });
 
     // Init Factory; setup MetaData
-    let titleDataSetFactory: Title = new Title(new IBCSRuleSet());
+    const titleDataSetFactory: Title = new Title(new IBCSRuleSet());
 
     titleDataSetFactory.setConfig(config);
 
-    let data = titleDataSetFactory.update();
-    let expectedDimension = "Jan..Mai 2020 PY, PL, FC↓, AC, ΔFC, Δ(PL - FC)";
+    const data = titleDataSetFactory.update();
+    const expectedDimension = "Jan..Mai 2020 PY, PL, FC↓, AC, ΔFC, Δ(PL - FC)";
 
     it("should display descending order", () => {
       expect(data.dimension).toEqual(expectedDimension);
@@ -180,10 +184,13 @@ describe("Test order object", () => {
   });
 
   describe("Config with ascending order object", () => {
-    let config: TitleConfig = craeteConfig({
+    const config: TitleConfig = craeteConfig({
       i18n: I18nMode.ALL,
       businessunit: "BinoBi Racing",
-      measures: [{name: "Nettoumsatz", unit: "mEUR"}, {name: "Bruttoumsatz", unit: "mEUR"}],
+      measures: [
+        { name: "Nettoumsatz", unit: "mEUR" },
+        { name: "Bruttoumsatz", unit: "mEUR" },
+      ],
       scenarios: ["pp1", "pl1", "ac1", "fc1", "dac1_fc1_pos", "dpl1_fc1_pos"],
       timeperiod: {
         start: DateTime.fromISO("2020-01-12T02:00:00+02:00"),
@@ -194,29 +201,28 @@ describe("Test order object", () => {
       order: {
         hierarchy: ["fc1"],
         direction: OrderDirection.ASC,
-      }
+      },
     });
 
     // Init Factory; setup MetaData
-    let titleDataSetFactory: Title = new Title(new IBCSRuleSet());
+    const titleDataSetFactory: Title = new Title(new IBCSRuleSet());
 
     titleDataSetFactory.setConfig(config);
 
-    let data = titleDataSetFactory.update();
-    let expectedDimension = "Jan..Mai 2020 PY, PL, FC↑, AC, ΔFC, Δ(PL - FC)";
+    const data = titleDataSetFactory.update();
+    const expectedDimension = "Jan..Mai 2020 PY, PL, FC↑, AC, ΔFC, Δ(PL - FC)";
 
     it("should display ascending order", () => {
       expect(data.dimension).toEqual(expectedDimension);
     });
   });
-
 });
 
 describe("Scenarios Label Translation", () => {
   describe("custom scenario", () => {
-    let config: TitleConfig = craeteConfig({
+    const config: TitleConfig = craeteConfig({
       i18n: I18nMode.ALL,
-      businessunit:  null,
+      businessunit: null,
       measures: [],
       scenarios: ["custom"],
       timeperiod: {
@@ -229,12 +235,12 @@ describe("Scenarios Label Translation", () => {
     });
 
     // Init Factory; setup MetaData
-    let titleDataSetFactory: Title = new Title(new IBCSRuleSet());
+    const titleDataSetFactory: Title = new Title(new IBCSRuleSet());
 
     titleDataSetFactory.setConfig(config);
 
-    let data = titleDataSetFactory.update();
-    let expectedDimension = "Jan..Mai 2020 custom";
+    const data = titleDataSetFactory.update();
+    const expectedDimension = "Jan..Mai 2020 custom";
 
     it("should display custom string which is not translated", () => {
       expect(data.dimension).toEqual(expectedDimension);
@@ -242,7 +248,7 @@ describe("Scenarios Label Translation", () => {
   });
 
   describe("scenario is null", () => {
-    let config: TitleConfig = craeteConfig({
+    const config: TitleConfig = craeteConfig({
       i18n: I18nMode.ALL,
       businessunit: null,
       measures: [],
@@ -257,12 +263,12 @@ describe("Scenarios Label Translation", () => {
     });
 
     // Init Factory; setup MetaData
-    let titleDataSetFactory: Title = new Title(new IBCSRuleSet());
+    const titleDataSetFactory: Title = new Title(new IBCSRuleSet());
 
     titleDataSetFactory.setConfig(config);
 
-    let data = titleDataSetFactory.update();
-    let expectedDimension = "Jan..Mai 2020";
+    const data = titleDataSetFactory.update();
+    const expectedDimension = "Jan..Mai 2020";
 
     it("should display custom string which is not translated", () => {
       expect(data.dimension).toEqual(expectedDimension);

@@ -1,16 +1,15 @@
-
 export enum ComponentStatus {
   RUNNING,
   SUCCESSFUL,
-  ERROR
+  ERROR,
 }
 
 export namespace ComponentRegister {
   var currentTimeOutId: NodeJS.Timeout = undefined;
-  let componentRegister = new Map<string, ComponentStatus>();
-  let statusIntervall = setInterval(() => {
-    console.log("Component status rdy: " + componentRegisterIsRendered())
-  }, 100)
+  const componentRegister = new Map<string, ComponentStatus>();
+  const statusIntervall = setInterval(() => {
+    console.log("Component status rdy: " + componentRegisterIsRendered());
+  }, 100);
 
   // TODO: improve that make it faster Sven
   export const updateStatus = (uuid: string, status: ComponentStatus) => {
@@ -20,24 +19,23 @@ export namespace ComponentRegister {
     componentRegister.set(uuid, status);
     currentTimeOutId = setTimeout(() => {
       // @ts-ignore
-      window.componentRegisterIsRenderedResult = componentRegisterIsRendered()
+      window.componentRegisterIsRenderedResult = componentRegisterIsRendered();
       // @ts-ignore
-      console.log("componentRegisterIsRendered:", window.componentRegisterIsRenderedResult)
+      console.log("componentRegisterIsRendered:", window.componentRegisterIsRenderedResult);
       clearInterval(statusIntervall);
     }, 500);
-  }
+  };
 
   export const componentRegisterIsRendered = () => {
     return componentRegisterStatus().running == 0;
-  }
+  };
 
   export const componentRegisterStatus = () => {
-
-    let result = {
+    const result = {
       successful: 0,
       running: 0,
-      error: 0
-    }
+      error: 0,
+    };
 
     componentRegister.forEach((value: ComponentStatus) => {
       switch (value) {
@@ -54,11 +52,8 @@ export namespace ComponentRegister {
           break;
         }
       }
-
     });
 
     return result;
-  }
-
+  };
 }
-

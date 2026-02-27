@@ -1,14 +1,13 @@
 // import { IAdapter } from "../../../../utils/helper/IAdapter";
 // import { CompareUtil } from "../../../../utils/helper/CompareUtil";
-import {DateTime} from "luxon";
+import { DateTime } from "luxon";
 import { IAdapter } from "../../../../utils/helper/IAdapter";
 import { CompareUtil } from "../../../../utils/helper/CompareUtil";
-
 
 export class TimeChartDataRow {
   // public setName: string;
   public date: DateTime | undefined;
-  public operation: string = '+';
+  public operation: string = "+";
   public rowGroup: string | null | undefined;
   public rowGroupIndex: number | null | undefined;
   public category: string | null | undefined;
@@ -36,9 +35,7 @@ export class TimeChartDataRow {
   public pl3: number | null | undefined;
   public pl4: number | null | undefined;
 
-  constructor() {
-
-  }
+  constructor() {}
 
   public addRowGroup(name: string, index: number) {
     this.rowGroup = name;
@@ -67,8 +64,7 @@ export class TimeChartDataRow {
 }
 
 export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
-  constructor() {
-  }
+  constructor() {}
 
   adapt(data: any): TimeChartDataRow {
     const dataRow: TimeChartDataRow = new TimeChartDataRow();
@@ -88,23 +84,23 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
     }
 
     if (CompareUtil.isNumber(data.rowGroupIndex) && CompareUtil.isString(data.rowGroup)) {
-      dataRow.addRowGroup(data.rowGroup, data.rowGroupIndex)
+      dataRow.addRowGroup(data.rowGroup, data.rowGroupIndex);
     }
 
     if (CompareUtil.isNumber(data.categoryIndex) && CompareUtil.isString(data.category)) {
-      dataRow.addCategory(data.category, data.categoryIndex)
+      dataRow.addCategory(data.category, data.categoryIndex);
     }
 
     if (CompareUtil.isNumber(data.subCategoryIndex) && CompareUtil.isString(data.subCategory)) {
-      dataRow.addSubCategory(data.subCategory, data.subCategoryIndex)
+      dataRow.addSubCategory(data.subCategory, data.subCategoryIndex);
     }
 
     if (CompareUtil.isNumber(data.columnGroupIndex) && CompareUtil.isString(data.columnGroup)) {
-      dataRow.addColumnGroup(data.columnGroup, data.columnGroupIndex)
+      dataRow.addColumnGroup(data.columnGroup, data.columnGroupIndex);
     }
 
     if (CompareUtil.isNumber(data.columnSubGroupIndex) && CompareUtil.isString(data.columnSubGroup)) {
-      dataRow.addSubColumnGroup(data.columnSubGroup, data.columnSubGroupIndex)
+      dataRow.addSubColumnGroup(data.columnSubGroup, data.columnSubGroupIndex);
     }
 
     this.setActualValues(data, dataRow);
@@ -117,14 +113,13 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
 
   private parseDateString(date: any): DateTime | undefined {
     //FIXME: TODO: JHE: Check was passiert bei invalid date...
-    let timestamp = DateTime.fromISO(date);
+    const timestamp = DateTime.fromISO(date);
 
     if (timestamp.isValid) {
       return timestamp;
     }
 
     return undefined;
-
   }
 
   default(): TimeChartDataRow {

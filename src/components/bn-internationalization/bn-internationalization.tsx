@@ -6,8 +6,8 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-internationalization',
-  styleUrl: 'bn-internationalization.scss'
+  tag: "bn-internationalization",
+  styleUrl: "bn-internationalization.scss",
 })
 export class Internationalization {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -23,15 +23,14 @@ export class Internationalization {
       try {
         const i18n = flattenObject(JSON.parse(data));
 
-        // @ts-ignore     
-        let namespace = { ...get(this.namespace) };
+        // @ts-ignore
+        const namespace = { ...get(this.namespace) };
         namespace[this.code] = i18n;
 
-        // @ts-ignore      
+        // @ts-ignore
         set(this.namespace, namespace);
-
       } catch (e) {
-        console.error(e)
+        console.error(e);
       }
     });
   }
@@ -40,7 +39,6 @@ export class Internationalization {
   @Prop() namespace: string;
 
   render() {
-    return <Host />
+    return <Host />;
   }
 }
-

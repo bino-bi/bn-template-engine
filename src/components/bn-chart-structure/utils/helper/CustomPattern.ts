@@ -1,10 +1,9 @@
 import { G, Pattern, Svg } from "@svgdotjs/svg.js";
-import {StructureChartStyle} from "../model";
+import { StructureChartStyle } from "../model";
 import { SVGPolgonPattern } from "../../../../utils/model";
 // import { SVGPolgonPattern } from "../../../../utils/model";
 
 export class CustomPattern {
-
   bgOffset: number;
   styles: StructureChartStyle;
   pattern: Pattern;
@@ -15,8 +14,8 @@ export class CustomPattern {
     this.pattern = this.createFCPattern(this.container.group(), styles);
 
     this.styles = styles;
-    let backgroundFactor = 1;
-    let foregroundFactor = 0.7;
+    const backgroundFactor = 1;
+    const foregroundFactor = 0.7;
 
     let fontSize = 10;
 
@@ -24,33 +23,32 @@ export class CustomPattern {
       fontSize = styles.fontStyles.size;
     }
 
-    let maxBg = fontSize * backgroundFactor;
-    let maxFg = fontSize * foregroundFactor;
+    const maxBg = fontSize * backgroundFactor;
+    const maxFg = fontSize * foregroundFactor;
 
     this.bgOffset = (maxBg - maxFg) / 2;
-
   }
 
-  private createFCPattern(group: G, styles: StructureChartStyle): Pattern {  
-    let _styles = styles;
-    return group.pattern(10, 10, function(add) {
+  private createFCPattern(group: G, styles: StructureChartStyle): Pattern {
+    const _styles = styles;
+    return group
+      .pattern(10, 10, function (add) {
         add.rect(10, 10).fill(_styles.barStyles.fc.fill);
-        add.line(0, 5, 5, 0).stroke({ width: _styles.barStyles.fc.width, color: _styles.barStyles.fc.stroke, linecap: "square" });
-        add.line(5, 10, 10, 5).stroke({ width: _styles.barStyles.fc.width, color: _styles.barStyles.fc.stroke, linecap: "square" });
-    }).id("pattern-structure-fc");
-
+        add
+          .line(0, 5, 5, 0)
+          .stroke({ width: _styles.barStyles.fc.width, color: _styles.barStyles.fc.stroke, linecap: "square" });
+        add
+          .line(5, 10, 10, 5)
+          .stroke({ width: _styles.barStyles.fc.width, color: _styles.barStyles.fc.stroke, linecap: "square" });
+      })
+      .id("pattern-structure-fc");
   }
 
   public getFCPolygonPattern(): SVGPolgonPattern {
-    return  {background: "",
-             foreground: "",
-             bgOffset: 0,
-             pattern: this.pattern  };
+    return { background: "", foreground: "", bgOffset: 0, pattern: this.pattern };
   }
 
-  public toString(){      
+  public toString() {
     return this.container.svg();
   }
-
-
 }

@@ -1,0 +1,9 @@
+dist/
+loader/
+www/
+.stencil/
+node_modules/
+storybook-static/
+src/components.d.ts
+*.bak
+*.md

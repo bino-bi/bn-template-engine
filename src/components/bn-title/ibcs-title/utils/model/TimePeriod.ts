@@ -1,22 +1,19 @@
-import {DateTime} from "luxon";
+import { DateTime } from "luxon";
 import { DateDistance, DateLink } from "../../../../../utils/DateStringFactory";
 import { IAdapter } from "../../../../../utils/helper/IAdapter";
 import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
 
 export class TimePeriod {
-
-
-
-  constructor(public start: DateTime = DateTime.now(),
+  constructor(
+    public start: DateTime = DateTime.now(),
     public end: DateTime = DateTime.now(),
     public format: DateDistance = DateDistance.AUTO,
-    public link: DateLink = DateLink.AUTO) {
-  }
+    public link: DateLink = DateLink.AUTO,
+  ) {}
 }
 
 export class TimePeriodAdapter implements IAdapter<TimePeriod> {
-  construnctor() {
-  }
+  construnctor() {}
 
   adapt(data: any): TimePeriod {
     const entry: TimePeriod = new TimePeriod();
@@ -32,7 +29,6 @@ export class TimePeriodAdapter implements IAdapter<TimePeriod> {
     if (CompareUtil.isExisting(data.format)) {
       entry.format = data.format;
     }
-
 
     if (CompareUtil.isExisting(data.format)) {
       entry.link = data.link;

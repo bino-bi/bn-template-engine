@@ -24,7 +24,7 @@ export interface GridConfig {
  * @returns Array of HeaderItem objects
  */
 export function parseHeaders(json: string): HeaderItem[] {
-  if (!json || json.trim() === '' || json === '[]') {
+  if (!json || json.trim() === "" || json === "[]") {
     return [];
   }
 
@@ -36,13 +36,13 @@ export function parseHeaders(json: string): HeaderItem[] {
     }
 
     return parsed.map((item, index) => {
-      if (typeof item === 'string') {
+      if (typeof item === "string") {
         // Simple string - use index as ID
         return {
           label: item,
-          id: String(index)
+          id: String(index),
         };
-      } else if (typeof item === 'object' && item !== null) {
+      } else if (typeof item === "object" && item !== null) {
         // Object with label and optional id
         const label = item.label ?? item.name ?? String(index);
         const id = item.id ?? String(index);
@@ -52,7 +52,7 @@ export function parseHeaders(json: string): HeaderItem[] {
       // Fallback for unexpected types
       return {
         label: String(item),
-        id: String(index)
+        id: String(index),
       };
     });
   } catch (e) {
@@ -71,7 +71,7 @@ export function parseHeaders(json: string): HeaderItem[] {
 export function parseGridConfig(rowHeaders: string, columnHeaders: string): GridConfig {
   return {
     rows: parseHeaders(rowHeaders),
-    columns: parseHeaders(columnHeaders)
+    columns: parseHeaders(columnHeaders),
   };
 }
 
@@ -94,7 +94,7 @@ export function getSlotName(row: HeaderItem, col: HeaderItem): string {
  * @returns Array of validation error messages (empty if valid)
  */
 export function validateHeadersJson(json: string): string[] {
-  if (!json || json.trim() === '' || json === '[]') {
+  if (!json || json.trim() === "" || json === "[]") {
     return [];
   }
 
@@ -102,15 +102,15 @@ export function validateHeadersJson(json: string): string[] {
     const parsed = JSON.parse(json);
 
     if (!Array.isArray(parsed)) {
-      return ['Headers must be an array'];
+      return ["Headers must be an array"];
     }
 
     const errors: string[] = [];
     const ids = new Set<string>();
 
     parsed.forEach((item, index) => {
-      if (typeof item === 'object' && item !== null && item.id !== undefined) {
-        if (typeof item.id !== 'string') {
+      if (typeof item === "object" && item !== null && item.id !== undefined) {
+        if (typeof item.id !== "string") {
           errors.push(`Header[${index}]: 'id' must be a string`);
         } else if (ids.has(item.id)) {
           errors.push(`Header[${index}]: duplicate id '${item.id}'`);
@@ -118,7 +118,7 @@ export function validateHeadersJson(json: string): string[] {
           ids.add(item.id);
         }
 
-        if (item.label !== undefined && typeof item.label !== 'string') {
+        if (item.label !== undefined && typeof item.label !== "string") {
           errors.push(`Header[${index}]: 'label' must be a string`);
         }
       }
@@ -127,6 +127,6 @@ export function validateHeadersJson(json: string): string[] {
     return errors;
   } catch (e) {
     console.error("validateHeadersJson: failed to parse JSON", e);
-    return ['Invalid JSON structure'];
+    return ["Invalid JSON structure"];
   }
 }

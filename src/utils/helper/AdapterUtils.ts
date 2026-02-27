@@ -7,7 +7,7 @@ export class AdapterUtils {
       return data.trim();
     }
 
-    return '';
+    return "";
   }
 
   public static adaptArray<T>(data: any, adapter: IAdapter<T>): T[] {
@@ -16,10 +16,9 @@ export class AdapterUtils {
     if (CompareUtil.isArray(data)) {
       data.forEach((b: any) => {
         targetArray.push(adapter.adapt(b));
-      })
+      });
     }
 
     return targetArray;
   }
-
 }

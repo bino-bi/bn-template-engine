@@ -1,8 +1,8 @@
-import {StructureChartStyle, DataPoint, StructureChartDimension, OverflowConfig} from "../model";
-import {HookLocation, Label} from "./Label";
+import { StructureChartStyle, DataPoint, StructureChartDimension, OverflowConfig } from "../model";
+import { HookLocation, Label } from "./Label";
 
-import {G} from "@svgdotjs/svg.js";
-import {ElementPositions,} from "../helper";
+import { G } from "@svgdotjs/svg.js";
+import { ElementPositions } from "../helper";
 import { SVGPolgonPattern, SVGStyle } from "../../../../utils/model";
 import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
@@ -14,7 +14,6 @@ import { SVGStyleGroup } from "../../../../utils/model/styles/SVGStyleGroup";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
 export class Bar {
-
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";
   readonly ID_RECT: string = "RECT";
@@ -43,11 +42,20 @@ export class Bar {
     labelXPos: 0,
     scenarioLabelXPos: 0,
     scenarioLabelYPos: 0,
-    clipped: false
+    clipped: false,
   };
   private hasData: boolean = false;
 
-  constructor(position: ElementPositions, styles: StructureChartStyle, dataPoint: DataPoint, index: number, isPrimaryBar: boolean, scenarioGroup: G, barLabel: string | null, overflowConfig: OverflowConfig | null = null) {
+  constructor(
+    position: ElementPositions,
+    styles: StructureChartStyle,
+    dataPoint: DataPoint,
+    index: number,
+    isPrimaryBar: boolean,
+    scenarioGroup: G,
+    barLabel: string | null,
+    overflowConfig: OverflowConfig | null = null,
+  ) {
     this.dataPoint = dataPoint;
     this.index = index;
     this.isPrimaryBar = isPrimaryBar;
@@ -58,18 +66,27 @@ export class Bar {
     this.scenarioGroup = scenarioGroup;
     this.styles = styles;
 
-    if(scenarioGroup != null){
+    if (scenarioGroup != null) {
       this.barGroup = scenarioGroup.group().id(scenarioGroup.toString() + "_" + this.ID_RECT);
     }
-    
+
     if (dataPoint?.isEmpty() != true && dataPoint.value != null) {
       this.hasData = true;
-      let textLabelHook = HookLocation.Left
+      let textLabelHook = HookLocation.Left;
       if (dataPoint.value < 0) {
         textLabelHook = HookLocation.Right;
       }
       this.dimensions = this.createDimensions(position, dataPoint, index, isPrimaryBar);
-      this.label = new Label(this.scenarioGroup, this.dimensions.labelXPos, this.dimensions.yPos, this.ID_DATA_PREFIX, dataPoint.value, this.styles, HookLocation.Center, textLabelHook);
+      this.label = new Label(
+        this.scenarioGroup,
+        this.dimensions.labelXPos,
+        this.dimensions.yPos,
+        this.ID_DATA_PREFIX,
+        dataPoint.value,
+        this.styles,
+        HookLocation.Center,
+        textLabelHook,
+      );
       this.scenarioLabel = this.getScenarioLabel(barLabel);
     }
   }
@@ -97,35 +114,38 @@ export class Bar {
     return this;
   }
 
-  public draw(dataFormatDigits: DataFormatDigits = {percent: 2, decimal: 1}, measureScale: SiPrefix = new SiPrefix()) {
+  public draw(
+    dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
+    measureScale: SiPrefix = new SiPrefix(),
+  ) {
     if (this.isEmpty() || this.dataPoint.getScenario() == null) {
       return this;
     }
 
-    let scenarioStyle: SVGStyle = this.barStyles.getSVGStyle(this.dataPoint.getScenario()) ; //TODO: JHE: Fix Class? nicht die richitge
+    let scenarioStyle: SVGStyle = this.barStyles.getSVGStyle(this.dataPoint.getScenario()); //TODO: JHE: Fix Class? nicht die richitge
 
     if (this.isVarianceBar) {
       scenarioStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle());
     }
 
-    let strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
+    const strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
     let fillStyle = this.convertToSVGStyle(scenarioStyle, "fill");
-    let fillPattern: string | undefined= this.barStyles.getSVGStyle(this.dataPoint.getScenario()).fillpattern;
+    const fillPattern: string | undefined = this.barStyles.getSVGStyle(this.dataPoint.getScenario()).fillpattern;
 
-    if (fillPattern != null ) {
-     
-      let polygonPattern: SVGPolgonPattern | undefined = this.styles.pattern.get(fillPattern);
-     
+    if (fillPattern != null) {
+      const polygonPattern: SVGPolgonPattern | undefined = this.styles.pattern.get(fillPattern);
+
       if (polygonPattern != null) {
         fillStyle = polygonPattern.pattern;
       }
     }
 
-    if(this.barGroup != null) {
+    if (this.barGroup != null) {
       if (this.isOverflowing && this.overflowConfig) {
         this.drawOverdriveBar(fillStyle, strokeStyle);
       } else {
-        this.barGroup.rect(this.dimensions.barLength, this.position.getBarWidth())
+        this.barGroup
+          .rect(this.dimensions.barLength, this.position.getBarWidth())
           .fill(fillStyle)
           .stroke(strokeStyle)
           .cy(this.dimensions.yPos)
@@ -147,27 +167,34 @@ export class Bar {
 
     if (isNegative) {
       // Base bar: from axis leftward
-      this.barGroup.rect(effectiveCut, barHeight)
-        .fill(fillStyle).stroke(strokeStyle)
-        .x(axisX - effectiveCut).cy(this.dimensions.yPos);
+      this.barGroup
+        .rect(effectiveCut, barHeight)
+        .fill(fillStyle)
+        .stroke(strokeStyle)
+        .x(axisX - effectiveCut)
+        .cy(this.dimensions.yPos);
 
       // Overdrive bar: further left past the break gap
-      this.barGroup.rect(this.overdriveWidth, barHeight)
-        .fill(fillStyle).stroke(strokeStyle)
-        .x(axisX - effectiveCut - breakGap - this.overdriveWidth).cy(this.dimensions.yPos);
+      this.barGroup
+        .rect(this.overdriveWidth, barHeight)
+        .fill(fillStyle)
+        .stroke(strokeStyle)
+        .x(axisX - effectiveCut - breakGap - this.overdriveWidth)
+        .cy(this.dimensions.yPos);
 
       // Break indicator covers the full gap on top
       this.drawBreakIndicator(axisX - effectiveCut - breakGap, breakGap);
     } else {
       // Base bar: from axis rightward
-      this.barGroup.rect(effectiveCut, barHeight)
-        .fill(fillStyle).stroke(strokeStyle)
-        .x(axisX).cy(this.dimensions.yPos);
+      this.barGroup.rect(effectiveCut, barHeight).fill(fillStyle).stroke(strokeStyle).x(axisX).cy(this.dimensions.yPos);
 
       // Overdrive bar: further right past the break gap
-      this.barGroup.rect(this.overdriveWidth, barHeight)
-        .fill(fillStyle).stroke(strokeStyle)
-        .x(axisX + effectiveCut + breakGap).cy(this.dimensions.yPos);
+      this.barGroup
+        .rect(this.overdriveWidth, barHeight)
+        .fill(fillStyle)
+        .stroke(strokeStyle)
+        .x(axisX + effectiveCut + breakGap)
+        .cy(this.dimensions.yPos);
 
       // Break indicator covers the full gap on top
       this.drawBreakIndicator(axisX + effectiveCut, breakGap);
@@ -203,28 +230,30 @@ export class Bar {
     }
 
     // White background covers the full break gap (bar edges provide background for peaks)
-    this.barGroup.rect(breakGap, barHeight + 2)
-      .fill('#ffffff')
-      .stroke('none')
+    this.barGroup
+      .rect(breakGap, barHeight + 2)
+      .fill("#ffffff")
+      .stroke("none")
       .x(breakX)
       .cy(this.dimensions.yPos);
 
-    this.barGroup.path(leftPath)
-      .fill('none')
-      .stroke({ color: '#000000', width: 1 });
+    this.barGroup.path(leftPath).fill("none").stroke({ color: "#000000", width: 1 });
 
-    this.barGroup.path(rightPath)
-      .fill('none')
-      .stroke({ color: '#000000', width: 1 });
+    this.barGroup.path(rightPath).fill("none").stroke({ color: "#000000", width: 1 });
   }
 
-  private createDimensions(position: ElementPositions, dataPoint: DataPoint, index: number, isPrimaryBar: boolean): StructureChartDimension {
+  private createDimensions(
+    position: ElementPositions,
+    dataPoint: DataPoint,
+    index: number,
+    isPrimaryBar: boolean,
+  ): StructureChartDimension {
     const scaledUnit = dataPoint.getScaledUnit();
     const absScaledUnit = Math.abs(scaledUnit);
 
     // Check for overdrive overflow
     if (this.overflowConfig && absScaledUnit > 0) {
-      const isAC = dataPoint.getScenario() === 'ac';
+      const isAC = dataPoint.getScenario() === "ac";
       const effectiveCut = isAC
         ? this.overflowConfig.cutWidth
         : this.overflowConfig.cutWidth - this.overflowConfig.scenarioCutOffset;
@@ -233,9 +262,7 @@ export class Bar {
         this.isOverflowing = true;
         const { breakGap, overdriveZoneWidth, maxOverflow } = this.overflowConfig;
         const overflowAmount = absScaledUnit - effectiveCut;
-        this.overdriveWidth = maxOverflow > 0
-          ? (overflowAmount / maxOverflow) * overdriveZoneWidth
-          : 0;
+        this.overdriveWidth = maxOverflow > 0 ? (overflowAmount / maxOverflow) * overdriveZoneWidth : 0;
 
         const totalVisualWidth = effectiveCut + breakGap + this.overdriveWidth;
 
@@ -246,8 +273,9 @@ export class Bar {
             xPos: position.getBarPositionX() - effectiveCut,
             yPos: position.getBarPositionY(index, isPrimaryBar),
             labelXPos: position.getLabelPositionX(-totalVisualWidth),
-            scenarioLabelXPos: position.getBarPositionX() - (effectiveCut * 0.5),
-            scenarioLabelYPos: position.getBarPositionY(index, isPrimaryBar) + position.getScenarioLabelPositionOffsetY(isPrimaryBar)
+            scenarioLabelXPos: position.getBarPositionX() - effectiveCut * 0.5,
+            scenarioLabelYPos:
+              position.getBarPositionY(index, isPrimaryBar) + position.getScenarioLabelPositionOffsetY(isPrimaryBar),
           };
         } else {
           return {
@@ -256,8 +284,9 @@ export class Bar {
             xPos: position.getBarPositionX(),
             yPos: position.getBarPositionY(index, isPrimaryBar),
             labelXPos: position.getLabelPositionX(totalVisualWidth),
-            scenarioLabelXPos: position.getBarPositionX() + (effectiveCut * 0.5),
-            scenarioLabelYPos: position.getBarPositionY(index, isPrimaryBar) + position.getScenarioLabelPositionOffsetY(isPrimaryBar)
+            scenarioLabelXPos: position.getBarPositionX() + effectiveCut * 0.5,
+            scenarioLabelYPos:
+              position.getBarPositionY(index, isPrimaryBar) + position.getScenarioLabelPositionOffsetY(isPrimaryBar),
           };
         }
       }
@@ -270,8 +299,10 @@ export class Bar {
         xPos: position.getBarPositionX() + scaledUnit,
         yPos: position.getBarPositionY(index, isPrimaryBar),
         labelXPos: this.position.getLabelPositionX(scaledUnit),
-        scenarioLabelXPos: this.position.getBarPositionX() - (absScaledUnit * 0.5),
-        scenarioLabelYPos: this.position.getBarPositionY(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetY(isPrimaryBar)
+        scenarioLabelXPos: this.position.getBarPositionX() - absScaledUnit * 0.5,
+        scenarioLabelYPos:
+          this.position.getBarPositionY(index, isPrimaryBar) +
+          this.position.getScenarioLabelPositionOffsetY(isPrimaryBar),
       };
     } else {
       return {
@@ -280,8 +311,10 @@ export class Bar {
         xPos: position.getBarPositionX(),
         yPos: position.getBarPositionY(index, isPrimaryBar),
         labelXPos: this.position.getLabelPositionX(scaledUnit),
-        scenarioLabelXPos: this.position.getBarPositionX() + (absScaledUnit * 0.5),
-        scenarioLabelYPos: this.position.getBarPositionY(index, isPrimaryBar) + this.position.getScenarioLabelPositionOffsetY(isPrimaryBar)
+        scenarioLabelXPos: this.position.getBarPositionX() + absScaledUnit * 0.5,
+        scenarioLabelYPos:
+          this.position.getBarPositionY(index, isPrimaryBar) +
+          this.position.getScenarioLabelPositionOffsetY(isPrimaryBar),
       };
     }
   }
@@ -291,7 +324,7 @@ export class Bar {
       style = [];
     }
     style["color"] = style[mode] || this.FALLBACK_COLOUR;
-    return {...style};
+    return { ...style };
   }
 
   private drawScenarioLabel() {
@@ -306,18 +339,33 @@ export class Bar {
     }
   }
 
-  private isEmpty(): boolean {   
+  private isEmpty(): boolean {
     return false === this.hasData || Number.isNaN(this.dataPoint.value);
   }
 
   private getScenarioLabel(barLabel: string | null) {
     if (this.isPrimaryBar) {
-      return new Label(this.scenarioGroup, -1, -1, this.ID_SCENARIO_PREFIX, barLabel, this.styles, HookLocation.Top, HookLocation.Center);
+      return new Label(
+        this.scenarioGroup,
+        -1,
+        -1,
+        this.ID_SCENARIO_PREFIX,
+        barLabel,
+        this.styles,
+        HookLocation.Top,
+        HookLocation.Center,
+      );
     }
 
-    return new Label(this.scenarioGroup, -1, -1, this.ID_SCENARIO_PREFIX, barLabel, this.styles, HookLocation.Bottom, HookLocation.Center);
+    return new Label(
+      this.scenarioGroup,
+      -1,
+      -1,
+      this.ID_SCENARIO_PREFIX,
+      barLabel,
+      this.styles,
+      HookLocation.Bottom,
+      HookLocation.Center,
+    );
   }
-
-
 }
-

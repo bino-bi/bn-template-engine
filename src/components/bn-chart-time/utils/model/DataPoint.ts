@@ -1,13 +1,17 @@
-import {Scenario} from './index';
+import { Scenario } from "./index";
 
 export class DataPoint {
-
   public value: number | null;
   public scenario: Scenario | string | null;
   public pixelPerUnit: number;
   public variance: Scenario | string;
 
-  constructor(value: number | null, scenario: Scenario | string | null, pixelPerUnit: number | null, variance: Scenario | string | null) {
+  constructor(
+    value: number | null,
+    scenario: Scenario | string | null,
+    pixelPerUnit: number | null,
+    variance: Scenario | string | null,
+  ) {
     this.value = value;
     this.scenario = scenario;
     this.pixelPerUnit = pixelPerUnit || 1;
@@ -38,7 +42,6 @@ export class DataPoint {
       return 0;
     }
 
-
     if (this.value > 1.45) {
       return 1.45 * this.pixelPerUnit;
     }
@@ -51,8 +54,8 @@ export class DataPoint {
   }
 
   public getVarianceStyle(): Scenario | string {
-    if(this.value == null ){
-      return this.variance as Scenario
+    if (this.value == null) {
+      return this.variance as Scenario;
     }
 
     if (this.value >= 0) {
@@ -70,7 +73,7 @@ export class DataPoint {
   }
 
   isClipped(): boolean {
-    if (this.value == null){
+    if (this.value == null) {
       return false;
     }
 

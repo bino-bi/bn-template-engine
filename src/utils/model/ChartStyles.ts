@@ -1,26 +1,26 @@
-import {Pattern} from "@svgdotjs/svg.js";
+import { Pattern } from "@svgdotjs/svg.js";
 import { ScaleFactorsStructureChart } from "../../components/bn-chart-structure/utils/model";
 import { ScaleFactorsTimeChart } from "../../components/bn-chart-time/utils/model";
 
 export interface BinoChartSyles {
-  "scaleFactors": ScaleFactorsTimeChart | ScaleFactorsStructureChart | null;
-  "fontStyles": {
-    font: string,
-    size: number,
-    color: string,
-    background: string,
-    leading: number,
+  scaleFactors: ScaleFactorsTimeChart | ScaleFactorsStructureChart | null;
+  fontStyles: {
+    font: string;
+    size: number;
+    color: string;
+    background: string;
+    leading: number;
   };
-  "axisStyles": SVGStyleGroup;
-  "barStyles": SVGStyleGroup;
-  "varianceStyles": SVGVariancesStyleGroup;
-  "padding": {
-    top: number,
-    left: number,
-    right: number,
-    bottom: number,
+  axisStyles: SVGStyleGroup;
+  barStyles: SVGStyleGroup;
+  varianceStyles: SVGVariancesStyleGroup;
+  padding: {
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
   };
-  "pattern": Map<string, SVGPolgonPattern>;
+  pattern: Map<string, SVGPolgonPattern>;
 }
 
 export interface SVGStyleGroup {

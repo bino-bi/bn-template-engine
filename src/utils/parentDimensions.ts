@@ -18,9 +18,7 @@ export function getParentDimensions(element: HTMLElement): ParentDimensions {
   }
 
   const parentStyle = getComputedStyle(parent);
-  const width = parent.clientWidth
-    - parseFloat(parentStyle.paddingLeft)
-    - parseFloat(parentStyle.paddingRight);
+  const width = parent.clientWidth - parseFloat(parentStyle.paddingLeft) - parseFloat(parentStyle.paddingRight);
 
   const height = findConstrainedHeight(element);
 
@@ -40,20 +38,15 @@ function findConstrainedHeight(element: HTMLElement): number {
     const overflow = style.overflowY;
 
     // An ancestor that clips / scrolls its content has a meaningful height
-    if (overflow === 'hidden' || overflow === 'scroll' || overflow === 'auto') {
-      return current.clientHeight
-        - parseFloat(style.paddingTop)
-        - parseFloat(style.paddingBottom);
+    if (overflow === "hidden" || overflow === "scroll" || overflow === "auto") {
+      return current.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
     }
 
     // An explicit max-height constrains the available space
-    if (style.maxHeight !== 'none') {
+    if (style.maxHeight !== "none") {
       const mh = parseFloat(style.maxHeight);
       if (!isNaN(mh) && mh > 0) {
-        return Math.min(
-          mh,
-          current.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
-        );
+        return Math.min(mh, current.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom));
       }
     }
 
@@ -61,5 +54,5 @@ function findConstrainedHeight(element: HTMLElement): number {
   }
 
   // No constrained ancestor found — use viewport
-  return typeof window !== 'undefined' ? window.innerHeight : 0;
+  return typeof window !== "undefined" ? window.innerHeight : 0;
 }

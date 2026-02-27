@@ -19,25 +19,25 @@
 .categories {
   text-align: right;
   font-size: var(--bn-font-size, 1em);
-  font-family: var(--bn-font-family, 'Noto Sans', 'Helvetica Neue', Helvetica, sans-serif);
+  font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
   color: var(--bn-font-color, black);
 }
 
 .label-bg {
   fill: var(--bn-font-background, white);
-  opacity: 0.7
+  opacity: 0.7;
 }
 
 .label-text {
   text-align: right;
   font-size: var(--bn-font-size, 1em);
-  font-family: var(--bn-font-family, 'Noto Sans', 'Helvetica Neue', Helvetica, sans-serif);
+  font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
   color: var(--bn-font-color, black);
 }
 
 .axis-title {
   text-align: center;
-  font-family: var(--bn-font-family, 'Noto Sans', 'Helvetica Neue', Helvetica, sans-serif);
+  font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
   color: var(--bn-font-color, black);
 }
 

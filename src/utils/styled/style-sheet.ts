@@ -1,4 +1,4 @@
-import {ClassStyle} from "./attributes";
+import { ClassStyle } from "./attributes";
 
 class StyleSheet {
   private readonly tag: Element;
@@ -9,17 +9,19 @@ class StyleSheet {
   }
 
   private static makeStyleTag(): Element {
-    const tag = document.createElement('style');
-    tag.type = 'text/css';
-    tag.setAttribute('data-bn-computed-style', '');
-    tag.append(document.createTextNode(''));
-    (document.head || document.querySelector('head')).append(tag);
-    return tag
+    const tag = document.createElement("style");
+    tag.type = "text/css";
+    tag.setAttribute("data-bn-computed-style", "");
+    tag.append(document.createTextNode(""));
+    (document.head || document.querySelector("head")).append(tag);
+    return tag;
   }
 
   apply(data: Map<string, ClassStyle>) {
-    data.forEach(value => this.cache.set(value.className, value.style));
-    this.tag.innerHTML = Array.from(this.cache.values()).map(value => value).join("\n");
+    data.forEach((value) => this.cache.set(value.className, value.style));
+    this.tag.innerHTML = Array.from(this.cache.values())
+      .map((value) => value)
+      .join("\n");
   }
 }
 

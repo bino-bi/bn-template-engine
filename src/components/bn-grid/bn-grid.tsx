@@ -5,16 +5,11 @@ import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style, GridStyle } from "../../stores/componentStyles";
-import {
-  GridConfig,
-  parseGridConfig,
-  getSlotName,
-  validateHeadersJson
-} from "./utils/GridConfig";
+import { GridConfig, parseGridConfig, getSlotName, validateHeadersJson } from "./utils/GridConfig";
 
 @Component({
-  tag: 'bn-grid',
-  styleUrl: 'bn-grid.scss',
+  tag: "bn-grid",
+  styleUrl: "bn-grid.scss",
   shadow: true,
 })
 export class Grid {
@@ -29,25 +24,25 @@ export class Grid {
   /**
    * Title displayed at top-left of the grid.
    */
-  @Prop({ attribute: 'chart-title' }) chartTitle: string = '';
+  @Prop({ attribute: "chart-title" }) chartTitle: string = "";
 
   /**
    * JSON array defining row headers.
    * Simple format: '["Row 1", "Row 2"]'
    * With IDs: '[{"label": "Row 1", "id": "r1"}, {"label": "Row 2", "id": "r2"}]'
    */
-  @Prop({ attribute: 'row-headers' }) rowHeaders: string = '[]';
+  @Prop({ attribute: "row-headers" }) rowHeaders: string = "[]";
 
-  @Watch('rowHeaders')
+  @Watch("rowHeaders")
   validateRowHeaders(newValue: string) {
-    const errId = 'ERR_rowHeaders';
+    const errId = "ERR_rowHeaders";
     const validationErrors = validateHeadersJson(newValue);
 
     if (validationErrors.length > 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'error',
-        message: `row-headers: ${validationErrors.join('; ')}`
+        type: "error",
+        message: `row-headers: ${validationErrors.join("; ")}`,
       });
     } else {
       this.errors.remove(errId);
@@ -61,18 +56,18 @@ export class Grid {
    * Simple format: '["Column 1", "Column 2"]'
    * With IDs: '[{"label": "Column 1", "id": "c1"}, {"label": "Column 2", "id": "c2"}]'
    */
-  @Prop({ attribute: 'column-headers' }) columnHeaders: string = '[]';
+  @Prop({ attribute: "column-headers" }) columnHeaders: string = "[]";
 
-  @Watch('columnHeaders')
+  @Watch("columnHeaders")
   validateColumnHeaders(newValue: string) {
-    const errId = 'ERR_columnHeaders';
+    const errId = "ERR_columnHeaders";
     const validationErrors = validateHeadersJson(newValue);
 
     if (validationErrors.length > 0) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'error',
-        message: `column-headers: ${validationErrors.join('; ')}`
+        type: "error",
+        message: `column-headers: ${validationErrors.join("; ")}`,
       });
     } else {
       this.errors.remove(errId);
@@ -84,17 +79,17 @@ export class Grid {
   /**
    * Whether to display row headers.
    */
-  @Prop({ attribute: 'show-row-headers' }) showRowHeaders: string = 'true';
+  @Prop({ attribute: "show-row-headers" }) showRowHeaders: string = "true";
 
-  @Watch('showRowHeaders')
+  @Watch("showRowHeaders")
   validateShowRowHeaders(newValue: string) {
-    const errId = 'ERR_showRowHeaders';
+    const errId = "ERR_showRowHeaders";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `show-row-headers: invalid value '${newValue}', must be 'true' or 'false'`
+        type: "warning",
+        message: `show-row-headers: invalid value '${newValue}', must be 'true' or 'false'`,
       });
     } else {
       this.errors.remove(errId);
@@ -104,17 +99,17 @@ export class Grid {
   /**
    * Whether to display column headers.
    */
-  @Prop({ attribute: 'show-column-headers' }) showColumnHeaders: string = 'true';
+  @Prop({ attribute: "show-column-headers" }) showColumnHeaders: string = "true";
 
-  @Watch('showColumnHeaders')
+  @Watch("showColumnHeaders")
   validateShowColumnHeaders(newValue: string) {
-    const errId = 'ERR_showColumnHeaders';
+    const errId = "ERR_showColumnHeaders";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `show-column-headers: invalid value '${newValue}', must be 'true' or 'false'`
+        type: "warning",
+        message: `show-column-headers: invalid value '${newValue}', must be 'true' or 'false'`,
       });
     } else {
       this.errors.remove(errId);
@@ -124,17 +119,17 @@ export class Grid {
   /**
    * Whether to display divider lines between cells.
    */
-  @Prop({ attribute: 'show-borders' }) showBorders: string = 'true';
+  @Prop({ attribute: "show-borders" }) showBorders: string = "true";
 
-  @Watch('showBorders')
+  @Watch("showBorders")
   validateShowBorders(newValue: string) {
-    const errId = 'ERR_showBorders';
+    const errId = "ERR_showBorders";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
         id: errId,
-        type: 'warning',
-        message: `show-borders: invalid value '${newValue}', must be 'true' or 'false'`
+        type: "warning",
+        message: `show-borders: invalid value '${newValue}', must be 'true' or 'false'`,
       });
     } else {
       this.errors.remove(errId);
@@ -144,12 +139,12 @@ export class Grid {
   /**
    * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
    */
-  @Prop({ attribute: 'row-header-width' }) rowHeaderWidth: string = 'auto';
+  @Prop({ attribute: "row-header-width" }) rowHeaderWidth: string = "auto";
 
   /**
    * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
    */
-  @Prop({ attribute: 'cell-gap' }) cellGap: string = '0px';
+  @Prop({ attribute: "cell-gap" }) cellGap: string = "0px";
 
   constructor() {
     withStyled(this);
@@ -162,7 +157,7 @@ export class Grid {
    * Get grid styles from component style store
    */
   private getGridStyle(): GridStyle {
-    return this.componentStyle($ => $["bn-grid"]);
+    return this.componentStyle(($) => $["bn-grid"]);
   }
 
   componentWillLoad() {
@@ -178,15 +173,15 @@ export class Grid {
   }
 
   private shouldShowRowHeaders(): boolean {
-    return this.showRowHeaders === 'true' && this.gridConfig.rows.length > 0;
+    return this.showRowHeaders === "true" && this.gridConfig.rows.length > 0;
   }
 
   private shouldShowColumnHeaders(): boolean {
-    return this.showColumnHeaders === 'true' && this.gridConfig.columns.length > 0;
+    return this.showColumnHeaders === "true" && this.gridConfig.columns.length > 0;
   }
 
   private shouldShowBorders(): boolean {
-    return this.showBorders === 'true';
+    return this.showBorders === "true";
   }
 
   private getGridTemplateColumns(): string {
@@ -199,10 +194,10 @@ export class Grid {
     // Add columns for each data column (auto-size to content)
     const numCols = this.gridConfig.columns.length || 1;
     for (let i = 0; i < numCols; i++) {
-      cols.push('auto');
+      cols.push("auto");
     }
 
-    return cols.join(' ');
+    return cols.join(" ");
   }
 
   private getGridTemplateRows(): string {
@@ -210,21 +205,21 @@ export class Grid {
 
     // Title row (if title exists)
     if (this.chartTitle) {
-      rows.push('auto');
+      rows.push("auto");
     }
 
     // Column headers row
     if (this.shouldShowColumnHeaders()) {
-      rows.push('auto');
+      rows.push("auto");
     }
 
     // Add rows for each data row (auto-size to content)
     const numRows = this.gridConfig.rows.length || 1;
     for (let i = 0; i < numRows; i++) {
-      rows.push('auto');
+      rows.push("auto");
     }
 
-    return rows.join(' ');
+    return rows.join(" ");
   }
 
   private renderTitle() {
@@ -238,8 +233,8 @@ export class Grid {
       <div
         class="grid-title"
         style={{
-          'grid-column': `1 / span ${totalCols}`,
-          'grid-row': '1'
+          "grid-column": `1 / span ${totalCols}`,
+          "grid-row": "1",
         }}
       >
         {this.chartTitle}
@@ -253,9 +248,7 @@ export class Grid {
     }
 
     const style = this.getGridStyle();
-    const borderStyle = this.shouldShowBorders()
-      ? `${style.borderWidth}px solid ${style.borderColor}`
-      : 'none';
+    const borderStyle = this.shouldShowBorders() ? `${style.borderWidth}px solid ${style.borderColor}` : "none";
     const startCol = this.shouldShowRowHeaders() ? 2 : 1;
     const headerRow = this.chartTitle ? 2 : 1;
 
@@ -267,11 +260,11 @@ export class Grid {
           key={`col-header-${col.id}`}
           class="grid-header grid-header-col"
           style={{
-            'grid-column': String(startCol + index),
-            'grid-row': String(headerRow),
-            'border-left': isNotFirstCol ? borderStyle : 'none',
-            'padding': `${style.cellPadding}px`,
-            'padding-left': isNotFirstCol ? `${style.cellPadding + 4}px` : `${style.cellPadding}px`
+            "grid-column": String(startCol + index),
+            "grid-row": String(headerRow),
+            "border-left": isNotFirstCol ? borderStyle : "none",
+            padding: `${style.cellPadding}px`,
+            "padding-left": isNotFirstCol ? `${style.cellPadding + 4}px` : `${style.cellPadding}px`,
           }}
         >
           {col.label}
@@ -282,9 +275,7 @@ export class Grid {
 
   private renderDataCells() {
     const style = this.getGridStyle();
-    const borderStyle = this.shouldShowBorders()
-      ? `${style.borderWidth}px solid ${style.borderColor}`
-      : 'none';
+    const borderStyle = this.shouldShowBorders() ? `${style.borderWidth}px solid ${style.borderColor}` : "none";
     const startCol = this.shouldShowRowHeaders() ? 2 : 1;
     const startRow = (this.chartTitle ? 1 : 0) + (this.shouldShowColumnHeaders() ? 1 : 0) + 1;
 
@@ -300,15 +291,15 @@ export class Grid {
               key={`row-header-${row.id}`}
               class="grid-header grid-header-row"
               style={{
-                'grid-column': '1',
-                'grid-row': String(startRow + rowIndex),
-                'border-top': isNotFirstRow ? borderStyle : 'none',
-                'padding': `${style.cellPadding}px`,
-                'padding-top': isNotFirstRow ? `${style.cellPadding + 4}px` : `${style.cellPadding}px`
+                "grid-column": "1",
+                "grid-row": String(startRow + rowIndex),
+                "border-top": isNotFirstRow ? borderStyle : "none",
+                padding: `${style.cellPadding}px`,
+                "padding-top": isNotFirstRow ? `${style.cellPadding + 4}px` : `${style.cellPadding}px`,
               }}
             >
               {row.label}
-            </div>
+            </div>,
           );
         }
 
@@ -323,16 +314,16 @@ export class Grid {
               key={`cell-${slotName}`}
               class="grid-cell"
               style={{
-                'grid-column': String(startCol + colIndex),
-                'grid-row': String(startRow + rowIndex),
-                'border-left': isNotFirstCol ? borderStyle : 'none',
-                'border-top': isNotFirstRow ? borderStyle : 'none',
-                'padding-left': isNotFirstCol ? `${style.cellPadding + 4}px` : '0',
-                'padding-top': isNotFirstRow ? `${style.cellPadding + 4}px` : '0'
+                "grid-column": String(startCol + colIndex),
+                "grid-row": String(startRow + rowIndex),
+                "border-left": isNotFirstCol ? borderStyle : "none",
+                "border-top": isNotFirstRow ? borderStyle : "none",
+                "padding-left": isNotFirstCol ? `${style.cellPadding + 4}px` : "0",
+                "padding-top": isNotFirstRow ? `${style.cellPadding + 4}px` : "0",
               }}
             >
               <slot name={slotName} />
-            </div>
+            </div>,
           );
         });
       });
@@ -342,20 +333,20 @@ export class Grid {
   }
 
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    return this.componentStyle(($) => ({
+      "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      "--bn-font-size": `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+      "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
 
   render() {
     const gridContainerStyle: { [key: string]: string } = {
-      'display': 'inline-grid',
-      'grid-template-columns': this.getGridTemplateColumns(),
-      'grid-template-rows': this.getGridTemplateRows(),
-      'gap': this.cellGap
+      display: "inline-grid",
+      "grid-template-columns": this.getGridTemplateColumns(),
+      "grid-template-rows": this.getGridTemplateRows(),
+      gap: this.cellGap,
     };
 
     return (

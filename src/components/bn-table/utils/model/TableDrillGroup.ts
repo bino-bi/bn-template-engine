@@ -5,22 +5,19 @@ import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../utils/helper/IAdapter";
 
 export class TableDrillGroup {
-
   public rowGroup: string = "";
   public category: string = "";
   public subCategory: string = "";
   public partOf: string = "";
 
-  constructor() {
-  }
+  constructor() {}
 }
 
 export class TableDrillGroupAdapter implements IAdapter<TableDrillGroup> {
-  constructor() {
-  }
+  constructor() {}
 
   adapt(data: any): TableDrillGroup {
-    let group: TableDrillGroup = new TableDrillGroup();
+    const group: TableDrillGroup = new TableDrillGroup();
 
     if (CompareUtil.isString(data.rowGroup)) {
       group.rowGroup = data.rowGroup;
@@ -43,6 +40,4 @@ export class TableDrillGroupAdapter implements IAdapter<TableDrillGroup> {
   default(): TableDrillGroup {
     return new TableDrillGroup();
   }
-
 }
-

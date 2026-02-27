@@ -9,7 +9,6 @@ import { StackMode } from "../../../../utils/constants";
 import { getStackFill, getStackStroke } from "../../../../utils/stackColors";
 
 export class StackedColumn {
-
   private readonly position: ElementPositions;
   private readonly styles: TimeChartStyle;
   private readonly group: G;
@@ -53,7 +52,10 @@ export class StackedColumn {
     }
   }
 
-  public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }, measureScale: SiPrefix = new SiPrefix()): void {
+  public draw(
+    dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
+    measureScale: SiPrefix = new SiPrefix(),
+  ): void {
     if (!this.hasData || this.dataPoint.value == null) {
       return;
     }
@@ -89,7 +91,8 @@ export class StackedColumn {
     const strokeStyle = { color: getStackStroke(this.segmentIndex), width: 0.5 };
 
     // Draw rectangle
-    this.columnGroup.rect(columnWidth, Math.max(segmentHeight, 0.5))
+    this.columnGroup
+      .rect(columnWidth, Math.max(segmentHeight, 0.5))
       .fill(fillStyle)
       .stroke(strokeStyle)
       .y(yPos)
@@ -102,19 +105,24 @@ export class StackedColumn {
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
         const pct = this.totalValue !== 0 ? (value / this.totalValue) * 100 : 0;
-        const labelValue = pct.toFixed(dataFormatDigits.percent) + '%';
+        const labelValue = pct.toFixed(dataFormatDigits.percent) + "%";
         new Label(
-          this.group, xPos, labelY, 'STACK_SEG',
-          labelValue, this.styles,
-          HookLocation.Center, HookLocation.Center
-        ).setSegmentFill(fillColor).forceStringTypeDraw();
+          this.group,
+          xPos,
+          labelY,
+          "STACK_SEG",
+          labelValue,
+          this.styles,
+          HookLocation.Center,
+          HookLocation.Center,
+        )
+          .setSegmentFill(fillColor)
+          .forceStringTypeDraw();
       } else {
         // Pass raw numeric value — Label.draw() formats with measureScale
-        new Label(
-          this.group, xPos, labelY, 'STACK_SEG',
-          value, this.styles,
-          HookLocation.Center, HookLocation.Center
-        ).setSegmentFill(fillColor).draw(true, dataFormatDigits, measureScale);
+        new Label(this.group, xPos, labelY, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
+          .setSegmentFill(fillColor)
+          .draw(true, dataFormatDigits, measureScale);
       }
     }
   }
@@ -124,7 +132,7 @@ export class StackedColumn {
    */
   public drawTotalLabel(
     dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
-    measureScale: SiPrefix = new SiPrefix()
+    measureScale: SiPrefix = new SiPrefix(),
   ): void {
     if (this.stackMode === StackMode.RELATIVE) {
       // Don't show total for 100% stacked (always 100%)
@@ -137,11 +145,15 @@ export class StackedColumn {
     const labelY = axisY - totalPixels - this.position.spacings.labelToColumn;
 
     const label = new Label(
-      this.group, xPos, labelY, 'STACK_TOTAL',
-      this.totalValue, this.styles,
-      HookLocation.Bottom, HookLocation.Center
+      this.group,
+      xPos,
+      labelY,
+      "STACK_TOTAL",
+      this.totalValue,
+      this.styles,
+      HookLocation.Bottom,
+      HookLocation.Center,
     );
     label.draw(true, dataFormatDigits, measureScale);
   }
-
 }

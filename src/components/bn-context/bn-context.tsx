@@ -1,12 +1,12 @@
 import { Component, h, Host, Element, Prop, Watch } from "@stencil/core";
-import state from '../../stores/context';
+import state from "../../stores/context";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-context',
-  styleUrl: 'bn-context.css',
-  shadow: true
+  tag: "bn-context",
+  styleUrl: "bn-context.css",
+  shadow: true,
 })
 export class Context {
   // @ts-ignore - Initialized by withHasError mixin
@@ -22,12 +22,12 @@ export class Context {
 
   @Prop() locale: string;
 
-  @Watch('locale')
+  @Watch("locale")
   setLocale(newValue: string) {
     state.locale = newValue;
   }
 
-  currentPageUpdate = undefined
+  currentPageUpdate = undefined;
 
   connectedCallback() {
     if (this.locale) {
@@ -35,9 +35,8 @@ export class Context {
     }
 
     this.currentPageUpdate = setTimeout(() => {
-
-      this.element.querySelectorAll('bn-page, bn-layout-page').forEach((page, index) => {
-        if (page.localName === 'bn-layout-page') {
+      this.element.querySelectorAll("bn-page, bn-layout-page").forEach((page, index) => {
+        if (page.localName === "bn-layout-page") {
           page.setAttribute("page-number", (index + 1).toString());
         } else {
           const footer = page.querySelector("bn-footer");
@@ -46,13 +45,13 @@ export class Context {
             footer.setAttribute("page-number", (index + 1).toString());
           }
         }
-      })
-    }, 250)
+      });
+    }, 250);
   }
 
   disconnectedCallback() {
     if (this.currentPageUpdate) {
-      clearTimeout(this.currentPageUpdate)
+      clearTimeout(this.currentPageUpdate);
     }
   }
 
@@ -60,22 +59,23 @@ export class Context {
     // stencil needs one componenet implementing all lifecycle steps to get mixing working
   }
 
-  componentDidLoad() { }
+  componentDidLoad() {}
 
-  componentShouldUpdate() { }
+  componentShouldUpdate() {}
 
-  componentWillRender() { }
+  componentWillRender() {}
 
-  componentDidRender() { }
+  componentDidRender() {}
 
-  componentWillUpdate() { }
+  componentWillUpdate() {}
 
-  componentDidUpdate() { }
+  componentDidUpdate() {}
 
   render() {
     return (
-      <Host >
+      <Host>
         <slot />
-      </Host>);
+      </Host>
+    );
   }
 }

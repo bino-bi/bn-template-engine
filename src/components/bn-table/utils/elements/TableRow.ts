@@ -1,7 +1,6 @@
 import { TableCategoryWidth } from "../../../../utils/constants";
-import {TableRowType} from "../model";
-import {Cell, ColumnStats} from "./Cell";
-
+import { TableRowType } from "../model";
+import { Cell, ColumnStats } from "./Cell";
 
 export class TableRow {
   index: number;
@@ -9,7 +8,6 @@ export class TableRow {
   type: TableRowType;
   cssStyle: string;
   elements: Cell[];
-
 
   constructor(index: number, groupIndex: number, type: TableRowType) {
     this.index = index;
@@ -49,11 +47,23 @@ export class TableRow {
     return this.elements;
   }
 
-  public createElement(value: string | number | null, scenario: string, columnType :string | null,  cellType: string | null, prefix: string  | null, cellStyle :string  | null, isSecondaryElement: boolean  | null, categoryWidth: TableCategoryWidth | null | undefined, measureScale: number  | null | undefined, isBarChart: boolean = false, columnStats?: ColumnStats) {
+  public createElement(
+    value: string | number | null,
+    scenario: string,
+    columnType: string | null,
+    cellType: string | null,
+    prefix: string | null,
+    cellStyle: string | null,
+    isSecondaryElement: boolean | null,
+    categoryWidth: TableCategoryWidth | null | undefined,
+    measureScale: number | null | undefined,
+    isBarChart: boolean = false,
+    columnStats?: ColumnStats,
+  ) {
     let cssStyle = cellStyle;
 
-    if(scenario == 'category' && categoryWidth != null){
-       cssStyle = `category-${categoryWidth.toString()}`;
+    if (scenario == "category" && categoryWidth != null) {
+      cssStyle = `category-${categoryWidth.toString()}`;
     }
 
     if (this.type == TableRowType.HEADER) {
@@ -63,31 +73,39 @@ export class TableRow {
     }
 
     if (this.type == TableRowType.PARTELEMENT) {
-
-      if (cellType == 'percent' ) {
-        value = '-';
+      if (cellType == "percent") {
+        value = "-";
       }
-      if (scenario != 'category' && scenario != 'operation') {
-        cellType = "percent"
-        cssStyle = ""
+      if (scenario != "category" && scenario != "operation") {
+        cellType = "percent";
+        cssStyle = "";
       }
     }
 
-    if(value == "-"){
-      cssStyle = ""
+    if (value == "-") {
+      cssStyle = "";
     }
 
     let prefixStyle = "prefix-first";
-    if(isSecondaryElement){
+    if (isSecondaryElement) {
       prefixStyle = "prefix-second";
     }
 
     cssStyle = `${cssStyle}  ${columnType}`;
 
-    const cell = new Cell(scenario, this.elements.length, value, cssStyle, cellType, prefix, prefixStyle, 1, measureScale);
+    const cell = new Cell(
+      scenario,
+      this.elements.length,
+      value,
+      cssStyle,
+      cellType,
+      prefix,
+      prefixStyle,
+      1,
+      measureScale,
+    );
     cell.isBarChart = isBarChart;
     cell.columnStats = columnStats;
     this.elements.push(cell);
   }
-
 }

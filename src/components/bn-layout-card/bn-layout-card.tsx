@@ -3,180 +3,204 @@ import state from "../../stores/assets";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-    tag: 'bn-layout-card',
-    styleUrl: 'bn-layout-card.scss',
-    shadow: true
+  tag: "bn-layout-card",
+  styleUrl: "bn-layout-card.scss",
+  shadow: true,
 })
 export class LayoutCard {
-    // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
-    @Element() private element: HTMLElement;
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
+  @Element() private element: HTMLElement;
 
-    // @ts-ignore - Initialized by withHasError mixin
-    private readonly errors: ErrorDispatcher;
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
 
-    constructor() {
-        this.errors = withHasError(this);
+  constructor() {
+    this.errors = withHasError(this);
+  }
+
+  @Prop() styles?: string;
+
+  @Prop() titleImage: string = "";
+
+  @Prop() titleBusinessUnit: string = "";
+  @Prop() titleScenarios?: string;
+  @Prop() titleVariances?: string;
+  @Prop() titleOrder: string = "category";
+  @Prop() titleOrderDirection: string = "asc";
+  @Prop() titleMeasures?: string;
+  @Prop() titleDateStart?: string;
+  @Prop() titleDateEnd?: string;
+  @Prop() titleDateFormat: string = "none";
+  @Prop() titleDateLink: string = "none";
+  @Prop() titleNamespace: string = "_system";
+
+  @Prop() footerText?: string = "";
+
+  @Prop() cardLayout:
+    | "full"
+    | "split-vertical"
+    | "split-horizontal"
+    | "2x2"
+    | "3x3"
+    | "4x4"
+    | "1-over-2"
+    | "1-over-3"
+    | "2-over-1"
+    | "3-over-1"
+    | "custom-template" = "full";
+  @Prop() cardCustomTemplate: string = '"a b" "c d"';
+  @Prop() cardGridGap: string = "0";
+  @Prop() cardFitToContent: boolean = true;
+  @Prop() cardShowBorder: boolean = true;
+
+  private templateMap = new Map([
+    ["split-vertical", '"a  b"'],
+    ["split-horizontal", '"a" "b"'],
+    ["2x2", '"a b" "c d"'],
+    ["3x3", '"a b c" "d e f" "g h i"'],
+    ["4x4", '"a b c d" "e f g h" "i j k l" "m n o p"'],
+    ["1-over-2", '"a a" "b c"'],
+    ["2-over-1", '"a b" "c c"'],
+    ["1-over-3", '"a a a " "b c d"'],
+    ["3-over-1", '"a b c" "d d d"'],
+    ["custom-template", '"a b" "c c c"'],
+    ["gold3", '"a c" "b c"'],
+    ["gold4", '"a b c c" "d d c c"'],
+  ]);
+
+  private getCommonStyles() {
+    let height = "100%";
+    let width = "100%";
+
+    if (this.cardFitToContent === true) {
+      width = "fit-content";
+      height = "fit-content";
     }
 
-    @Prop() styles?: string;
+    return {
+      display: "grid",
+      height: height,
+      width: width,
+      gap: this.cardGridGap + "px",
+    };
+  }
 
-    @Prop() titleImage: string = '';
+  private getLayoutStyle() {
+    return {
+      ...this.getCommonStyles(),
+      "grid-template-areas": this.getTemplatePattern(this.cardLayout),
+    };
+  }
 
-    @Prop() titleBusinessUnit: string = '';
-    @Prop() titleScenarios?: string;
-    @Prop() titleVariances?: string;
-    @Prop() titleOrder: string = 'category';
-    @Prop() titleOrderDirection: string = 'asc';
-    @Prop() titleMeasures?: string;
-    @Prop() titleDateStart?: string;
-    @Prop() titleDateEnd?: string;
-    @Prop() titleDateFormat: string = 'none';
-    @Prop() titleDateLink: string = 'none';
-    @Prop() titleNamespace: string = '_system';
+  private createDivAreaStyles(elements: string[]) {
+    return elements.map((x) => ({
+      overflow: "hidden",
+      "grid-area": x,
+    }));
+  }
 
-    @Prop() footerText?: string = '';
+  private getSlots(slotNames: string[]) {
+    const items = this.createDivAreaStyles(slotNames);
 
-    @Prop() cardLayout: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template' = 'full'
-    @Prop() cardCustomTemplate: string = "\"a b\" \"c d\"";
-    @Prop() cardGridGap: string = "0";
-    @Prop() cardFitToContent: boolean = true;
-    @Prop() cardShowBorder: boolean = true;
-
-    private templateMap = new Map([['split-vertical', "\"a  b\""],
-    ['split-horizontal', "\"a\" \"b\""],
-    ['2x2', "\"a b\" \"c d\""],
-    ['3x3', "\"a b c\" \"d e f\" \"g h i\""],
-    ['4x4', "\"a b c d\" \"e f g h\" \"i j k l\" \"m n o p\""],
-    ['1-over-2', "\"a a\" \"b c\""],
-    ['2-over-1', "\"a b\" \"c c\""],
-    ['1-over-3', "\"a a a \" \"b c d\""],
-    ['3-over-1', "\"a b c\" \"d d d\""],
-    ['custom-template', "\"a b\" \"c c c\""],
-    ['gold3', "\"a c\" \"b c\""],
-    ['gold4', "\"a b c c\" \"d d c c\""]
-    ]);
-
-    private getCommonStyles() {
-        let height = "100%";
-        let width = "100%";
-
-        if (this.cardFitToContent === true) {
-            width = "fit-content";
-            height = "fit-content";
-        }
-
-        return {
-            display: "grid",
-            height: height,
-            width: width,
-            gap: this.cardGridGap + "px"
-        };
-    }
-
-    private getLayoutStyle() {
-        return {
-            ...this.getCommonStyles(),
-            "grid-template-areas": this.getTemplatePattern(this.cardLayout),
-        };
-    }
-
-    private createDivAreaStyles(elements: string[]) {
-        return elements.map(x => (
-            {
-                "overflow": "hidden",
-                "grid-area": x,
-            }));
-    }
-
-    private getSlots(slotNames: string[]) {
-
-        const items = this.createDivAreaStyles(slotNames);
-
-        return <Fragment>
-            {items.map((value, index) => {
-                return <div style={value}>
-                    <slot name={'card-slot-' + index}></slot>
-                </div>
-            })}
-        </Fragment>
-    }
-
-    private extractSlotNames(styleElement: string | null) {
-        if (styleElement == null) {
-            return [];
-        }
-
-        const words = styleElement.match(/\b\w+\b/g);
-        if (!words) {
-            return [];
-        }
-
-        return Array.from(new Set(words));
-    }
-
-    private getTemplatePattern(name: string): string {
-        console.dir({ name: name })
-        if (this.templateMap.has(name) == false && name != 'custom-template') {
-            return "\"a\"";
-        }
-
-        if (name == 'custom-template') {
-            return this.cardCustomTemplate;
-        }
-
-        return this.templateMap.get(name);
-    }
-
-
-    @Method()
-    async getNumberOfSlot(name: string) {
-        let template = this.getTemplatePattern(name);
-        return this.extractSlotNames(template).length;
-    }
-
-    componentDidUpdate() {
-        // workaround for the render rotation issue       
-    }
-
-    setCardClass(): string {
-        if (this.cardShowBorder == true) {
-            return "card_box border";
-        }
-        return "card_box"
-    }
-
-    prepareTitleImage(value: string) {
-        if (value == null || value == "") {
-            return "";
-        }
-        // for backward compatibility deprecated "asset:" prefix
-        if (value.startsWith("asset:")) {
-            return state[value.substring(6)] // TODO: will not work with IE11 (state proxie is not available) )
-        }
-
-        return state[value] || value;
-    }
-
-    render() {
-        let style = this.getLayoutStyle();
-        let arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
-        // @ts-ignore
-        return <bn-card styles={this.styles} class={this.setCardClass()}>
-            <div class="cardtitle">
-                <bn-title   // @ts-ignore 
-                    namespace={this.titleNamespace} business-unit={this.titleBusinessUnit} scenarios={this.titleScenarios} variances={this.titleVariances} order={this.titleOrder} order-direction={this.titleOrderDirection} measures={this.titleMeasures} date-start={this.titleDateStart} date-end={this.titleDateEnd} date-format={this.titleDateFormat} date-link={this.titleDateLink} >
-                </bn-title>
-                {
-                    this.titleImage != null && this.titleImage != "" ? <img class="image" src={this.prepareTitleImage(this.titleImage)} /> : ""
-                }
+    return (
+      <Fragment>
+        {items.map((value, index) => {
+          return (
+            <div style={value}>
+              <slot name={"card-slot-" + index}></slot>
             </div>
-            <bn-body>
-                <div style={style}>
-                    {this.getSlots(arrOfSlots)}
-                </div>
-            </bn-body>
-            <bn-footer text={this.footerText} page-number={0} display-page-number={"false"}></bn-footer>
-        </bn-card>
-    }
-}
+          );
+        })}
+      </Fragment>
+    );
+  }
 
+  private extractSlotNames(styleElement: string | null) {
+    if (styleElement == null) {
+      return [];
+    }
+
+    const words = styleElement.match(/\b\w+\b/g);
+    if (!words) {
+      return [];
+    }
+
+    return Array.from(new Set(words));
+  }
+
+  private getTemplatePattern(name: string): string {
+    console.dir({ name: name });
+    if (this.templateMap.has(name) == false && name != "custom-template") {
+      return '"a"';
+    }
+
+    if (name == "custom-template") {
+      return this.cardCustomTemplate;
+    }
+
+    return this.templateMap.get(name);
+  }
+
+  @Method()
+  async getNumberOfSlot(name: string) {
+    const template = this.getTemplatePattern(name);
+    return this.extractSlotNames(template).length;
+  }
+
+  componentDidUpdate() {
+    // workaround for the render rotation issue
+  }
+
+  setCardClass(): string {
+    if (this.cardShowBorder == true) {
+      return "card_box border";
+    }
+    return "card_box";
+  }
+
+  prepareTitleImage(value: string) {
+    if (value == null || value == "") {
+      return "";
+    }
+    // for backward compatibility deprecated "asset:" prefix
+    if (value.startsWith("asset:")) {
+      return state[value.substring(6)]; // TODO: will not work with IE11 (state proxie is not available) )
+    }
+
+    return state[value] || value;
+  }
+
+  render() {
+    const style = this.getLayoutStyle();
+    const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
+    // @ts-ignore
+    return (
+      <bn-card styles={this.styles} class={this.setCardClass()}>
+        <div class="cardtitle">
+          <bn-title // @ts-ignore
+            namespace={this.titleNamespace}
+            business-unit={this.titleBusinessUnit}
+            scenarios={this.titleScenarios}
+            variances={this.titleVariances}
+            order={this.titleOrder}
+            order-direction={this.titleOrderDirection}
+            measures={this.titleMeasures}
+            date-start={this.titleDateStart}
+            date-end={this.titleDateEnd}
+            date-format={this.titleDateFormat}
+            date-link={this.titleDateLink}
+          ></bn-title>
+          {this.titleImage != null && this.titleImage != "" ? (
+            <img class="image" src={this.prepareTitleImage(this.titleImage)} />
+          ) : (
+            ""
+          )}
+        </div>
+        <bn-body>
+          <div style={style}>{this.getSlots(arrOfSlots)}</div>
+        </bn-body>
+        <bn-footer text={this.footerText} page-number={0} display-page-number={"false"}></bn-footer>
+      </bn-card>
+    );
+  }
+}

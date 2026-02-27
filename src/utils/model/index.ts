@@ -3,7 +3,6 @@ export * from "./ChartStyles";
 export * from "./TextStyles";
 export * from "./DatasetMeta";
 
-
 export enum QueryColumnNames {
   OPERATION = "operation",
   ROWGROUP = "rowGroup",
@@ -37,4 +36,3 @@ export enum QueryColumnNames {
   ROWNR = "rowNr",
   TYPE = "type",
 }
-

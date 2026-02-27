@@ -108,12 +108,12 @@ export namespace Components {
          */
         "scenarios": string;
         /**
-          * @default 'true'
+          * @default "true"
          */
         "showCategories": string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "showMeasureScale": string;
         /**
@@ -170,7 +170,7 @@ export namespace Components {
         "limit": number;
         /**
           * When true (default), line charts stretch to fill the full parent width instead of using fixed per-data-point spacing. Has no effect in bar mode. <br /><br /> values:<br /> ```true // false```
-          * @default 'true'
+          * @default "true"
          */
         "lineFullWidth": string;
         /**
@@ -209,20 +209,20 @@ export namespace Components {
          */
         "scenarios": string;
         /**
-          * @default 'true'
+          * @default "true"
          */
         "showCategories": string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "showMeasureScale": string;
         /**
-          * @default 'true'
+          * @default "true"
          */
         "showOverlayAvg": string;
         /**
-          * @default 'false'
+          * @default "false"
          */
         "showOverlayMedian": string;
         /**
@@ -329,42 +329,42 @@ export namespace Components {
     interface BnGrid {
         /**
           * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
-          * @default '0px'
+          * @default "0px"
          */
         "cellGap": string;
         /**
           * Title displayed at top-left of the grid.
-          * @default ''
+          * @default ""
          */
         "chartTitle": string;
         /**
           * JSON array defining column headers. Simple format: '["Column 1", "Column 2"]' With IDs: '[{"label": "Column 1", "id": "c1"}, {"label": "Column 2", "id": "c2"}]'
-          * @default '[]'
+          * @default "[]"
          */
         "columnHeaders": string;
         /**
           * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
-          * @default 'auto'
+          * @default "auto"
          */
         "rowHeaderWidth": string;
         /**
           * JSON array defining row headers. Simple format: '["Row 1", "Row 2"]' With IDs: '[{"label": "Row 1", "id": "r1"}, {"label": "Row 2", "id": "r2"}]'
-          * @default '[]'
+          * @default "[]"
          */
         "rowHeaders": string;
         /**
           * Whether to display divider lines between cells.
-          * @default 'true'
+          * @default "true"
          */
         "showBorders": string;
         /**
           * Whether to display column headers.
-          * @default 'true'
+          * @default "true"
          */
         "showColumnHeaders": string;
         /**
           * Whether to display row headers.
-          * @default 'true'
+          * @default "true"
          */
         "showRowHeaders": string;
     }
@@ -380,7 +380,7 @@ export namespace Components {
     }
     interface BnLayoutCard {
         /**
-          * @default "\"a b\" \"c d\""
+          * @default '"a b" "c d"'
          */
         "cardCustomTemplate": string;
         /**
@@ -392,48 +392,58 @@ export namespace Components {
          */
         "cardGridGap": string;
         /**
-          * @default 'full'
+          * @default "full"
          */
-        "cardLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "cardLayout": | "full"
+    | "split-vertical"
+    | "split-horizontal"
+    | "2x2"
+    | "3x3"
+    | "4x4"
+    | "1-over-2"
+    | "1-over-3"
+    | "2-over-1"
+    | "3-over-1"
+    | "custom-template";
         /**
           * @default true
          */
         "cardShowBorder": boolean;
         /**
-          * @default ''
+          * @default ""
          */
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         "styles"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "titleBusinessUnit": string;
         "titleDateEnd"?: string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateFormat": string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateLink": string;
         "titleDateStart"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "titleImage": string;
         "titleMeasures"?: string;
         /**
-          * @default '_system'
+          * @default "_system"
          */
         "titleNamespace": string;
         /**
-          * @default 'category'
+          * @default "category"
          */
         "titleOrder": string;
         /**
-          * @default 'asc'
+          * @default "asc"
          */
         "titleOrderDirection": string;
         "titleScenarios"?: string;
@@ -447,15 +457,15 @@ export namespace Components {
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         /**
-          * @default ''
+          * @default ""
          */
         "messageImage": string;
         /**
-          * @default ''
+          * @default ""
          */
         "messageText": string;
         /**
-          * @default "\"a b\" \"c d\""
+          * @default '"a b" "c d"'
          */
         "pageCustomTemplate": string;
         /**
@@ -468,37 +478,47 @@ export namespace Components {
          */
         "pageGridGap": string;
         /**
-          * @default 'full'
+          * @default "full"
          */
-        "pageLayout": 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "pageLayout": | "full"
+    | "split-vertical"
+    | "split-horizontal"
+    | "2x2"
+    | "3x3"
+    | "4x4"
+    | "1-over-2"
+    | "1-over-3"
+    | "2-over-1"
+    | "3-over-1"
+    | "custom-template";
         "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "titleBusinessUnit": string;
         "titleDateEnd"?: string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateFormat": string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateLink": string;
         "titleDateStart"?: string;
         "titleMeasures"?: string;
         /**
-          * @default '_system'
+          * @default "_system"
          */
         "titleNamespace": string;
         /**
-          * @default 'category'
+          * @default "category"
          */
         "titleOrder": string;
         /**
-          * @default 'asc'
+          * @default "asc"
          */
         "titleOrderDirection": string;
         "titleScenarios"?: string;
@@ -507,7 +527,7 @@ export namespace Components {
     interface BnMap {
         /**
           * Set Footer label
-          * @default ''
+          * @default ""
          */
         "attribution": string;
         /**
@@ -560,7 +580,7 @@ export namespace Components {
         "showScale": boolean;
         /**
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
-          * @default 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'
+          * @default "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
          */
         "tileLayer": string;
     }
@@ -591,7 +611,7 @@ export namespace Components {
         "barColumns": string;
         /**
           * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
-          * @default 'w15'
+          * @default "w15"
          */
         "categoryWidth": string;
         /**
@@ -601,7 +621,7 @@ export namespace Components {
         "columnthereof": string | null;
         /**
           * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
-          * @default 'decimal'
+          * @default "decimal"
          */
         "dataFormat": string;
         /**
@@ -620,7 +640,7 @@ export namespace Components {
         "filter": string;
         /**
           * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "grouped": string;
         /**
@@ -645,17 +665,17 @@ export namespace Components {
         "measureUnit": string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently.
-          * @default 'category'
+          * @default "category"
          */
         "order": string;
         /**
           * Set sorting order direction <br /><br /> values: <br /> ```asc  // desc```
-          * @default 'asc'
+          * @default "asc"
          */
         "orderDirection": string;
         /**
           * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
-          * @default '[]'
+          * @default "[]"
          */
         "partof": string;
         /**
@@ -674,12 +694,12 @@ export namespace Components {
         "scenarios": string;
         /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
-          * @default 'true'
+          * @default "true"
          */
         "showGroupTitle": string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "showMeasureScale": string;
         /**
@@ -689,12 +709,12 @@ export namespace Components {
         "tableTitle": string;
         /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
-          * @default '[]'
+          * @default "[]"
          */
         "thereof": string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
-          * @default 'list'
+          * @default "list"
          */
         "type": string;
         /**
@@ -727,7 +747,7 @@ export namespace Components {
     interface BnTitle {
         /**
           * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
-          * @default ''
+          * @default ""
          */
         "businessUnit": string;
         /**
@@ -736,12 +756,12 @@ export namespace Components {
         "dateEnd": string;
         /**
           * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
-          * @default 'none'
+          * @default "none"
          */
         "dateFormat": string;
         /**
           * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
-          * @default 'none'
+          * @default "none"
          */
         "dateLink": string;
         /**
@@ -754,12 +774,12 @@ export namespace Components {
         "measures": string;
         /**
           * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
-          * @default 'category'
+          * @default "category"
          */
         "order": string;
         /**
           * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
-          * @default 'asc'
+          * @default "asc"
          */
         "orderDirection": string;
         /**
@@ -774,12 +794,12 @@ export namespace Components {
     interface BnTree {
         /**
           * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
-          * @default 'ltr'
+          * @default "ltr"
          */
         "direction": LayoutDirection;
         /**
           * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
-          * @default 'orthogonal'
+          * @default "orthogonal"
          */
         "edgeStyle": EdgeStyleType;
         /**
@@ -798,7 +818,7 @@ export namespace Components {
         "nodeSpacing": number;
         /**
           * Show operator labels between sibling nodes.
-          * @default 'true'
+          * @default "true"
          */
         "showOperators": string;
     }
@@ -1150,7 +1170,7 @@ export namespace Components {
     }
     interface IbcsTitle {
         /**
-          * @default ''
+          * @default ""
          */
         "businessUnit": string;
         /**
@@ -1552,12 +1572,12 @@ declare namespace LocalJSX {
          */
         "scenarios": string;
         /**
-          * @default 'true'
+          * @default "true"
          */
         "showCategories"?: string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "showMeasureScale"?: string;
         /**
@@ -1614,7 +1634,7 @@ declare namespace LocalJSX {
         "limit"?: number;
         /**
           * When true (default), line charts stretch to fill the full parent width instead of using fixed per-data-point spacing. Has no effect in bar mode. <br /><br /> values:<br /> ```true // false```
-          * @default 'true'
+          * @default "true"
          */
         "lineFullWidth"?: string;
         /**
@@ -1653,20 +1673,20 @@ declare namespace LocalJSX {
          */
         "scenarios": string;
         /**
-          * @default 'true'
+          * @default "true"
          */
         "showCategories"?: string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "showMeasureScale"?: string;
         /**
-          * @default 'true'
+          * @default "true"
          */
         "showOverlayAvg"?: string;
         /**
-          * @default 'false'
+          * @default "false"
          */
         "showOverlayMedian"?: string;
         /**
@@ -1773,42 +1793,42 @@ declare namespace LocalJSX {
     interface BnGrid {
         /**
           * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
-          * @default '0px'
+          * @default "0px"
          */
         "cellGap"?: string;
         /**
           * Title displayed at top-left of the grid.
-          * @default ''
+          * @default ""
          */
         "chartTitle"?: string;
         /**
           * JSON array defining column headers. Simple format: '["Column 1", "Column 2"]' With IDs: '[{"label": "Column 1", "id": "c1"}, {"label": "Column 2", "id": "c2"}]'
-          * @default '[]'
+          * @default "[]"
          */
         "columnHeaders"?: string;
         /**
           * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
-          * @default 'auto'
+          * @default "auto"
          */
         "rowHeaderWidth"?: string;
         /**
           * JSON array defining row headers. Simple format: '["Row 1", "Row 2"]' With IDs: '[{"label": "Row 1", "id": "r1"}, {"label": "Row 2", "id": "r2"}]'
-          * @default '[]'
+          * @default "[]"
          */
         "rowHeaders"?: string;
         /**
           * Whether to display divider lines between cells.
-          * @default 'true'
+          * @default "true"
          */
         "showBorders"?: string;
         /**
           * Whether to display column headers.
-          * @default 'true'
+          * @default "true"
          */
         "showColumnHeaders"?: string;
         /**
           * Whether to display row headers.
-          * @default 'true'
+          * @default "true"
          */
         "showRowHeaders"?: string;
     }
@@ -1824,7 +1844,7 @@ declare namespace LocalJSX {
     }
     interface BnLayoutCard {
         /**
-          * @default "\"a b\" \"c d\""
+          * @default '"a b" "c d"'
          */
         "cardCustomTemplate"?: string;
         /**
@@ -1836,47 +1856,57 @@ declare namespace LocalJSX {
          */
         "cardGridGap"?: string;
         /**
-          * @default 'full'
+          * @default "full"
          */
-        "cardLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "cardLayout"?: | "full"
+    | "split-vertical"
+    | "split-horizontal"
+    | "2x2"
+    | "3x3"
+    | "4x4"
+    | "1-over-2"
+    | "1-over-3"
+    | "2-over-1"
+    | "3-over-1"
+    | "custom-template";
         /**
           * @default true
          */
         "cardShowBorder"?: boolean;
         /**
-          * @default ''
+          * @default ""
          */
         "footerText"?: string;
         "styles"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "titleBusinessUnit"?: string;
         "titleDateEnd"?: string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateFormat"?: string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateLink"?: string;
         "titleDateStart"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "titleImage"?: string;
         "titleMeasures"?: string;
         /**
-          * @default '_system'
+          * @default "_system"
          */
         "titleNamespace"?: string;
         /**
-          * @default 'category'
+          * @default "category"
          */
         "titleOrder"?: string;
         /**
-          * @default 'asc'
+          * @default "asc"
          */
         "titleOrderDirection"?: string;
         "titleScenarios"?: string;
@@ -1889,15 +1919,15 @@ declare namespace LocalJSX {
         "footerDisplayPageNumber"?: boolean;
         "footerText"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "messageImage"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "messageText"?: string;
         /**
-          * @default "\"a b\" \"c d\""
+          * @default '"a b" "c d"'
          */
         "pageCustomTemplate"?: string;
         /**
@@ -1910,37 +1940,47 @@ declare namespace LocalJSX {
          */
         "pageGridGap"?: string;
         /**
-          * @default 'full'
+          * @default "full"
          */
-        "pageLayout"?: 'full' | 'split-vertical' | 'split-horizontal' | '2x2' | '3x3' | '4x4' | '1-over-2' | '1-over-3' | '2-over-1' | '3-over-1' | 'custom-template';
+        "pageLayout"?: | "full"
+    | "split-vertical"
+    | "split-horizontal"
+    | "2x2"
+    | "3x3"
+    | "4x4"
+    | "1-over-2"
+    | "1-over-3"
+    | "2-over-1"
+    | "3-over-1"
+    | "custom-template";
         "pageNumber"?: string;
         "pageOrientation"?: string;
         "styles"?: string;
         /**
-          * @default ''
+          * @default ""
          */
         "titleBusinessUnit"?: string;
         "titleDateEnd"?: string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateFormat"?: string;
         /**
-          * @default 'none'
+          * @default "none"
          */
         "titleDateLink"?: string;
         "titleDateStart"?: string;
         "titleMeasures"?: string;
         /**
-          * @default '_system'
+          * @default "_system"
          */
         "titleNamespace"?: string;
         /**
-          * @default 'category'
+          * @default "category"
          */
         "titleOrder"?: string;
         /**
-          * @default 'asc'
+          * @default "asc"
          */
         "titleOrderDirection"?: string;
         "titleScenarios"?: string;
@@ -1949,7 +1989,7 @@ declare namespace LocalJSX {
     interface BnMap {
         /**
           * Set Footer label
-          * @default ''
+          * @default ""
          */
         "attribution"?: string;
         /**
@@ -2004,7 +2044,7 @@ declare namespace LocalJSX {
         "showScale"?: boolean;
         /**
           * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
-          * @default 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'
+          * @default "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
          */
         "tileLayer"?: string;
     }
@@ -2035,7 +2075,7 @@ declare namespace LocalJSX {
         "barColumns"?: string;
         /**
           * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
-          * @default 'w15'
+          * @default "w15"
          */
         "categoryWidth"?: string;
         /**
@@ -2045,7 +2085,7 @@ declare namespace LocalJSX {
         "columnthereof"?: string | null;
         /**
           * Defines the data unit type of the tables data. <br /><br /> If percent is chosen all data values are converted into percent (0.02 ->  2%) <br /><br /> values: <br /> ```percent  // decimal```
-          * @default 'decimal'
+          * @default "decimal"
          */
         "dataFormat"?: string;
         /**
@@ -2064,7 +2104,7 @@ declare namespace LocalJSX {
         "filter"?: string;
         /**
           * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "grouped"?: string;
         /**
@@ -2089,17 +2129,17 @@ declare namespace LocalJSX {
         "measureUnit"?: string;
         /**
           * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently.
-          * @default 'category'
+          * @default "category"
          */
         "order"?: string;
         /**
           * Set sorting order direction <br /><br /> values: <br /> ```asc  // desc```
-          * @default 'asc'
+          * @default "asc"
          */
         "orderDirection"?: string;
         /**
           * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
-          * @default '[]'
+          * @default "[]"
          */
         "partof"?: string;
         /**
@@ -2118,12 +2158,12 @@ declare namespace LocalJSX {
         "scenarios"?: string;
         /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
-          * @default 'true'
+          * @default "true"
          */
         "showGroupTitle"?: string;
         /**
           * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-          * @default 'false'
+          * @default "false"
          */
         "showMeasureScale"?: string;
         /**
@@ -2133,12 +2173,12 @@ declare namespace LocalJSX {
         "tableTitle"?: string;
         /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
-          * @default '[]'
+          * @default "[]"
          */
         "thereof"?: string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
-          * @default 'list'
+          * @default "list"
          */
         "type"?: string;
         /**
@@ -2171,7 +2211,7 @@ declare namespace LocalJSX {
     interface BnTitle {
         /**
           * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
-          * @default ''
+          * @default ""
          */
         "businessUnit"?: string;
         /**
@@ -2180,12 +2220,12 @@ declare namespace LocalJSX {
         "dateEnd"?: string;
         /**
           * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
-          * @default 'none'
+          * @default "none"
          */
         "dateFormat"?: string;
         /**
           * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
-          * @default 'none'
+          * @default "none"
          */
         "dateLink"?: string;
         /**
@@ -2198,12 +2238,12 @@ declare namespace LocalJSX {
         "measures"?: string;
         /**
           * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
-          * @default 'category'
+          * @default "category"
          */
         "order"?: string;
         /**
           * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
-          * @default 'asc'
+          * @default "asc"
          */
         "orderDirection"?: string;
         /**
@@ -2218,12 +2258,12 @@ declare namespace LocalJSX {
     interface BnTree {
         /**
           * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
-          * @default 'ltr'
+          * @default "ltr"
          */
         "direction"?: LayoutDirection;
         /**
           * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
-          * @default 'orthogonal'
+          * @default "orthogonal"
          */
         "edgeStyle"?: EdgeStyleType;
         /**
@@ -2242,7 +2282,7 @@ declare namespace LocalJSX {
         "nodeSpacing"?: number;
         /**
           * Show operator labels between sibling nodes.
-          * @default 'true'
+          * @default "true"
          */
         "showOperators"?: string;
     }
@@ -2591,7 +2631,7 @@ declare namespace LocalJSX {
     }
     interface IbcsTitle {
         /**
-          * @default ''
+          * @default ""
          */
         "businessUnit"?: string;
         /**

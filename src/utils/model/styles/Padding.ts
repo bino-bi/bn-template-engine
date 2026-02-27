@@ -34,6 +34,4 @@ export class PaddingAdapter implements IAdapter<Padding> {
   default(): Padding {
     return new Padding();
   }
-
-
 }

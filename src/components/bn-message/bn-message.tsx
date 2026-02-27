@@ -6,10 +6,10 @@ import state from "../../stores/assets";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-message',
-  styleUrl: 'bn-message.scss',
-  assetsDirs: ['assets'],
-  shadow: true
+  tag: "bn-message",
+  styleUrl: "bn-message.scss",
+  assetsDirs: ["assets"],
+  shadow: true,
 })
 export class Footer {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -25,18 +25,18 @@ export class Footer {
   }
 
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    return this.componentStyle(($) => ({
+      "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      "--bn-font-size": `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+      "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
 
   /**
-  *  Message text.
-  *  <br />If empty string (`''` or `null`) the footer row is omitted
-  */
+   *  Message text.
+   *  <br />If empty string (`''` or `null`) the footer row is omitted
+   */
   @Prop({ mutable: true })
   text: string;
 
@@ -58,27 +58,21 @@ export class Footer {
     }
     // for backward compatibility deprecated "asset:" prefix
     if (value.startsWith("asset:")) {
-      return state[value.substring(6)] // TODO: will not work with IE11 (state proxie is not available) )
+      return state[value.substring(6)]; // TODO: will not work with IE11 (state proxie is not available) )
     }
 
     return state[value] || value;
   }
 
-
   render() {
-    return <Host id={(this.text || this.image) ? "container-page-message" : "container"} style={this.getFontStyles()}>
-      <div id="message-text">
-        {
-          this.text != null && this.text != "" ? <span class="note">{this.text}</span> : ""
-        }
-      </div>
-      <div id="page-image">
-        {
-          this.image != null && this.image != "" ? <img class="image" src={this.prepareAssetUrl(this.image)} /> : ""
-        }
-      </div>
-      {/* </div> */}
-    </Host>
+    return (
+      <Host id={this.text || this.image ? "container-page-message" : "container"} style={this.getFontStyles()}>
+        <div id="message-text">{this.text != null && this.text != "" ? <span class="note">{this.text}</span> : ""}</div>
+        <div id="page-image">
+          {this.image != null && this.image != "" ? <img class="image" src={this.prepareAssetUrl(this.image)} /> : ""}
+        </div>
+        {/* </div> */}
+      </Host>
+    );
   }
-
 }

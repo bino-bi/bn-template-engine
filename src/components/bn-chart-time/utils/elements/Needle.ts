@@ -1,15 +1,14 @@
-import {DataPoint, TimeChartDimension,} from "../model";
-import {HookLocation, Label} from "./Label";
+import { DataPoint, TimeChartDimension } from "../model";
+import { HookLocation, Label } from "./Label";
 
-import {G} from "@svgdotjs/svg.js";
-import {ElementPositions,} from "../helper";
+import { G } from "@svgdotjs/svg.js";
+import { ElementPositions } from "../helper";
 
-import {TimeChartStyle} from "../model/styles/TimeChartStyle";
+import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGVariancesStyleGroup } from "../../../../utils/model";
 // import {SVGVariancesStyleGroup} from "../../../../utils/model/styles/SVGVariancesStyleGroup";
 
 export class Needle {
-
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";
   readonly ID_RECT: string = "RECT";
@@ -19,18 +18,32 @@ export class Needle {
   // @ts-ignore
   private index: number;
   private position: ElementPositions;
-  private dataLabel: Label | null = null ;
+  private dataLabel: Label | null = null;
   private readonly scenarioGroup: G;
   private readonly barStyles: any;
 
   private readonly styles: TimeChartStyle;
   private barGroup: G;
 
-  private dimensions: TimeChartDimension =  { columnLength: 0, xPos: 0, yPos: 0, labelYPos: 0, scenarioLabelXPos: 0, scenarioLabelYPos:0, clipped: false };
+  private dimensions: TimeChartDimension = {
+    columnLength: 0,
+    xPos: 0,
+    yPos: 0,
+    labelYPos: 0,
+    scenarioLabelXPos: 0,
+    scenarioLabelYPos: 0,
+    clipped: false,
+  };
 
   private hasData: boolean = false;
 
-  constructor(position: ElementPositions, styles: TimeChartStyle, dataPoint: DataPoint, index: number, scenarioGroup: G) {
+  constructor(
+    position: ElementPositions,
+    styles: TimeChartStyle,
+    dataPoint: DataPoint,
+    index: number,
+    scenarioGroup: G,
+  ) {
     this.dataPoint = dataPoint;
     this.index = index;
     this.position = position;
@@ -45,14 +58,22 @@ export class Needle {
     if (dataPoint?.isEmpty() != true) {
       this.hasData = true;
       this.dimensions = this.createDimensions(position, dataPoint, index);
-      this.dataLabel = new Label(this.scenarioGroup, this.position.getColumnCenterPositionX(this.index), this.position.getNeedleDataLabelPositionY(this.dataPoint.getScaledPercentUnit()), this.ID_DATA_PREFIX, dataPoint.value, this.styles, HookLocation.Center, HookLocation.Center);
+      this.dataLabel = new Label(
+        this.scenarioGroup,
+        this.position.getColumnCenterPositionX(this.index),
+        this.position.getNeedleDataLabelPositionY(this.dataPoint.getScaledPercentUnit()),
+        this.ID_DATA_PREFIX,
+        dataPoint.value,
+        this.styles,
+        HookLocation.Center,
+        HookLocation.Center,
+      );
       this.dataLabel.setToRelativeVarianceLabel();
     }
-
   }
 
   public updateLabelGroup(newGroup: G): Needle {
-    if( this.isEmpty() ) {
+    if (this.isEmpty()) {
       return this;
     }
 
@@ -65,16 +86,22 @@ export class Needle {
       return this;
     }
 
-    let scenarioStyle = this.styles.varianceStyles[this.dataPoint.getVarianceStyle() as keyof  SVGVariancesStyleGroup];
+    const scenarioStyle = this.styles.varianceStyles[this.dataPoint.getVarianceStyle() as keyof SVGVariancesStyleGroup];
 
-    let strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
+    const strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
     let fillStyle = this.convertToSVGStyle(scenarioStyle, "fill");
-    let strokeStyleHead = this.convertToSVGStyle(this.styles.varianceStyles['ac' as keyof  SVGVariancesStyleGroup], "stroke");
-    let fillStyleHead = this.convertToSVGStyle(this.styles.varianceStyles['ac' as keyof  SVGVariancesStyleGroup], "fill");
-    let pattern = this.barStyles[this.dataPoint.getScenario() as string];
+    const strokeStyleHead = this.convertToSVGStyle(
+      this.styles.varianceStyles["ac" as keyof SVGVariancesStyleGroup],
+      "stroke",
+    );
+    const fillStyleHead = this.convertToSVGStyle(
+      this.styles.varianceStyles["ac" as keyof SVGVariancesStyleGroup],
+      "fill",
+    );
+    const pattern = this.barStyles[this.dataPoint.getScenario() as string];
 
     if (pattern != null && pattern.fillpattern) {
-      let polygonPattern = this.styles.pattern.get(pattern.fillpattern);
+      const polygonPattern = this.styles.pattern.get(pattern.fillpattern);
 
       if (polygonPattern != null) {
         fillStyle = polygonPattern.pattern;
@@ -87,7 +114,8 @@ export class Needle {
       this.createNeedleHead(strokeStyleHead, fillStyleHead);
     }
 
-    this.barGroup.rect(this.position.getNeedleWidth(), this.dimensions.columnLength)
+    this.barGroup
+      .rect(this.position.getNeedleWidth(), this.dimensions.columnLength)
       .cx(this.dimensions.xPos)
       .y(this.dimensions.yPos)
       .fill(fillStyle)
@@ -97,16 +125,15 @@ export class Needle {
   }
 
   private createDimensions(position: ElementPositions, dataPoint: DataPoint, index: number): TimeChartDimension {
-
     if (dataPoint.getScaledPercentUnit() < 0) {
       return {
-        labelYPos: 0, 
-        scenarioLabelXPos: 0, 
+        labelYPos: 0,
+        scenarioLabelXPos: 0,
         scenarioLabelYPos: 0,
         columnLength: Math.abs(dataPoint.getScaledPercentUnit()),
         xPos: position.getColumnCenterPositionX(index),
         yPos: position.getNeedlePositionY(),
-        clipped: dataPoint.isClipped()
+        clipped: dataPoint.isClipped(),
       };
     } else {
       return {
@@ -116,7 +143,7 @@ export class Needle {
         labelYPos: 0,
         scenarioLabelXPos: 0,
         scenarioLabelYPos: 0,
-        clipped: dataPoint.isClipped()
+        clipped: dataPoint.isClipped(),
       };
     }
   }
@@ -126,13 +153,14 @@ export class Needle {
       style = [];
     }
     style["color"] = style[mode] || this.FALLBACK_COLOUR;
-    return {...style};
+    return { ...style };
   }
 
   private createClippedNeedleHead(fillStyle: string, strokeStyle: string) {
-    const arrowUp = '0,0 5,9 -5,9 0,0 0,5 5,13 -5,13 0,5';
+    const arrowUp = "0,0 5,9 -5,9 0,0 0,5 5,13 -5,13 0,5";
 
-    let head = this.barGroup.polygon(arrowUp)
+    const head = this.barGroup
+      .polygon(arrowUp)
       .fill(fillStyle)
       .cx(this.dimensions.xPos)
       .cy(this.getHeadYPosition())
@@ -144,15 +172,16 @@ export class Needle {
     }
   }
 
-  private createNeedleHead(strokeStyleHead: string , fillStyleHead: string) {
-    this.barGroup.rect(2 * this.position.getNeedleWidth(), this.position.getNeedleHeadWidth())
+  private createNeedleHead(strokeStyleHead: string, fillStyleHead: string) {
+    this.barGroup
+      .rect(2 * this.position.getNeedleWidth(), this.position.getNeedleHeadWidth())
       .cx(this.dimensions.xPos)
       .cy(this.getHeadYPosition())
       .fill(strokeStyleHead)
       .stroke(fillStyleHead);
   }
 
-  private isEmpty(): boolean {   
+  private isEmpty(): boolean {
     return false === this.hasData || Number.isNaN(this.dataPoint.value);
   }
 
@@ -165,5 +194,4 @@ export class Needle {
 
     return yPosition;
   }
-
 }

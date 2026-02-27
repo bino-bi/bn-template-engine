@@ -20,11 +20,10 @@ import { Cell } from "./utils/elements/Cell";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 
-
 @Component({
   tag: "ibcs-table",
   styleUrl: "ibcs-table.scss",
-  shadow: true
+  shadow: true,
 })
 export class IbcsTable {
   // @ts-ignore - Required by withComponentStyle mixin
@@ -118,7 +117,6 @@ export class IbcsTable {
   }
 
   render() {
-
     const helper = () => {
       if (this.table == undefined) {
         return;
@@ -126,46 +124,72 @@ export class IbcsTable {
 
       if (this.table.hasNoData()) {
         const errorMsg: string = this.i18n.get("NO_DATA") || "==No Data==";
-        return (<p class="warning">{errorMsg}</p>);
+        return <p class="warning">{errorMsg}</p>;
       }
 
-      return (<table>
-        <thead>
-          {this.table.getHeader().map((row: TableRow) =>
-            <tr class={row.cssStyle}>{row.getCells().map((cell) => <th colSpan={cell.colSpan}
-              class={cell.cssStyle}>{cell.getAsHeaderList().map((line, i, arr) =>
-                <span>{i === (arr.length - 1) ? <span class={line === " "? "table-footer": ""}>{line}{cell.drawPrefix()} </span> : <span>{line}{cell.drawPrefix()}<br /></span>}</span>)}</th>)}</tr>,
-          )}
-        </thead>
-        <tbody>
-          {this.table.getBody().map((row: TableRow) =>
-            <tr class={row.cssStyle}>{row?.getCells().map((cell: Cell) => <td colSpan={cell.colSpan} class={cell.cssStyle + " " + cell.type}>
-              {cell.prefix != null ?
-                <span
-                  class={cell.cssStyle + " " + cell.prefixStyle}>{cell.drawPrefix()}</span> : ''}
-              {cell.isBarChart && cell.columnStats ? (
-                <CellBarChart
-                  value={cell.value as number}
-                  scenario={cell.key}
-                  columnStats={cell.columnStats}
-                  height={18 * this.scaleFactor}
-                  isRelative={cell.key.startsWith('dr')}
-                  isPositiveGood={cell.key.endsWith('_pos')}
-                  measureScale={cell.measureScale}
-                  styles={this.barChartStyles}
-                />
-              ) : (
-                cell.draw(this.componentDataFormatDigits)
-              )}</td>)}</tr>,
-          )}
-        </tbody>
-      </table>)
-    }
+      return (
+        <table>
+          <thead>
+            {this.table.getHeader().map((row: TableRow) => (
+              <tr class={row.cssStyle}>
+                {row.getCells().map((cell) => (
+                  <th colSpan={cell.colSpan} class={cell.cssStyle}>
+                    {cell.getAsHeaderList().map((line, i, arr) => (
+                      <span>
+                        {i === arr.length - 1 ? (
+                          <span class={line === " " ? "table-footer" : ""}>
+                            {line}
+                            {cell.drawPrefix()}{" "}
+                          </span>
+                        ) : (
+                          <span>
+                            {line}
+                            {cell.drawPrefix()}
+                            <br />
+                          </span>
+                        )}
+                      </span>
+                    ))}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {this.table.getBody().map((row: TableRow) => (
+              <tr class={row.cssStyle}>
+                {row?.getCells().map((cell: Cell) => (
+                  <td colSpan={cell.colSpan} class={cell.cssStyle + " " + cell.type}>
+                    {cell.prefix != null ? (
+                      <span class={cell.cssStyle + " " + cell.prefixStyle}>{cell.drawPrefix()}</span>
+                    ) : (
+                      ""
+                    )}
+                    {cell.isBarChart && cell.columnStats ? (
+                      <CellBarChart
+                        value={cell.value as number}
+                        scenario={cell.key}
+                        columnStats={cell.columnStats}
+                        height={18 * this.scaleFactor}
+                        isRelative={cell.key.startsWith("dr")}
+                        isPositiveGood={cell.key.endsWith("_pos")}
+                        measureScale={cell.measureScale}
+                        styles={this.barChartStyles}
+                      />
+                    ) : (
+                      cell.draw(this.componentDataFormatDigits)
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    };
 
-
-    return <Host>{helper()}</Host>
+    return <Host>{helper()}</Host>;
   }
-
 
   componentWillRender() {
     const config: TableComponentConfig = this.prepareConfig();
@@ -178,10 +202,13 @@ export class IbcsTable {
     this.table.setI18n(this.i18n);
   }
 
-
-
   private prepareConfig(): TableComponentConfig {
-    let config = new TableComponentConfigAdapter(new TableDrillGroupAdapter(), new StringAdapter(), new OrderAdapter(new StringAdapter()), this.data).adapt({
+    const config = new TableComponentConfigAdapter(
+      new TableDrillGroupAdapter(),
+      new StringAdapter(),
+      new OrderAdapter(new StringAdapter()),
+      this.data,
+    ).adapt({
       title: this.tableTitle,
       scenarios: this.scenarios,
       scenariosUnitType: this.scenariosDataFormat,
@@ -200,7 +227,7 @@ export class IbcsTable {
       measureType: this.measureType,
       showMeasureScale: this.showMeasureScale,
       filter: this.filter,
-      barColumns: this.barColumns
+      barColumns: this.barColumns,
     });
 
     return config;
@@ -217,67 +244,66 @@ export class IbcsTable {
    * Scenario styles (ac, pp, fc, pl) use barStyles for IBCS-compliant grayscale coloring.
    */
   private prepareBarChartStyles(): CellBarChartStyles {
-    return this.componentStyle($ => {
+    return this.componentStyle(($) => {
       const varianceStyles = $["bn-chart-time"]?.["varianceStyles"];
       const barStyles = $["bn-chart-time"]?.["barStyles"];
 
       // Default variance styles with fillpattern
-      const defaultPos = { stroke: '#008f96', fill: '#008f96', fillpattern: 'solid' };
-      const defaultNeg = { stroke: '#ff0000', fill: '#ff0000', fillpattern: 'solid' };
-      const defaultNeu = { stroke: '#808080', fill: '#808080', fillpattern: 'outlined' };
+      const defaultPos = { stroke: "#008f96", fill: "#008f96", fillpattern: "solid" };
+      const defaultNeg = { stroke: "#ff0000", fill: "#ff0000", fillpattern: "solid" };
+      const defaultNeu = { stroke: "#808080", fill: "#808080", fillpattern: "outlined" };
 
       // Default scenario styles (IBCS grayscale)
-      const defaultAc = { stroke: '#404040', fill: '#404040', fillpattern: 'solid' };
-      const defaultPp = { stroke: '#A6A6A6', fill: '#A6A6A6', fillpattern: 'solid' };
-      const defaultFc = { stroke: '#404040', fill: '#ffffff', fillpattern: 'hatched' };
-      const defaultPl = { stroke: '#404040', fill: '#ffffff', fillpattern: 'outlined' };
+      const defaultAc = { stroke: "#404040", fill: "#404040", fillpattern: "solid" };
+      const defaultPp = { stroke: "#A6A6A6", fill: "#A6A6A6", fillpattern: "solid" };
+      const defaultFc = { stroke: "#404040", fill: "#ffffff", fillpattern: "hatched" };
+      const defaultPl = { stroke: "#404040", fill: "#ffffff", fillpattern: "outlined" };
 
       return {
         positive: {
           stroke: varianceStyles?.pos?.stroke || defaultPos.stroke,
           fill: varianceStyles?.pos?.fill || defaultPos.fill,
-          fillpattern: (varianceStyles?.pos as any)?.fillpattern || defaultPos.fillpattern
+          fillpattern: (varianceStyles?.pos as any)?.fillpattern || defaultPos.fillpattern,
         },
         negative: {
           stroke: varianceStyles?.neg?.stroke || defaultNeg.stroke,
           fill: varianceStyles?.neg?.fill || defaultNeg.fill,
-          fillpattern: (varianceStyles?.neg as any)?.fillpattern || defaultNeg.fillpattern
+          fillpattern: (varianceStyles?.neg as any)?.fillpattern || defaultNeg.fillpattern,
         },
         neutral: {
           stroke: varianceStyles?.neu?.stroke || defaultNeu.stroke,
           fill: varianceStyles?.neu?.fill || defaultNeu.fill,
-          fillpattern: (varianceStyles?.neu as any)?.fillpattern || defaultNeu.fillpattern
+          fillpattern: (varianceStyles?.neu as any)?.fillpattern || defaultNeu.fillpattern,
         },
         scenarios: {
           ac: {
             stroke: barStyles?.ac?.stroke || defaultAc.stroke,
             fill: barStyles?.ac?.fill || defaultAc.fill,
-            fillpattern: (barStyles?.ac as any)?.fillpattern || defaultAc.fillpattern
+            fillpattern: (barStyles?.ac as any)?.fillpattern || defaultAc.fillpattern,
           },
           pp: {
             stroke: barStyles?.pp?.stroke || defaultPp.stroke,
             fill: barStyles?.pp?.fill || defaultPp.fill,
-            fillpattern: (barStyles?.pp as any)?.fillpattern || defaultPp.fillpattern
+            fillpattern: (barStyles?.pp as any)?.fillpattern || defaultPp.fillpattern,
           },
           fc: {
             stroke: barStyles?.fc?.stroke || defaultFc.stroke,
             fill: barStyles?.fc?.fill || defaultFc.fill,
-            fillpattern: (barStyles?.fc as any)?.fillpattern || defaultFc.fillpattern
+            fillpattern: (barStyles?.fc as any)?.fillpattern || defaultFc.fillpattern,
           },
           pl: {
             stroke: barStyles?.pl?.stroke || defaultPl.stroke,
             fill: barStyles?.pl?.fill || defaultPl.fill,
-            fillpattern: (barStyles?.pl as any)?.fillpattern || defaultPl.fillpattern
-          }
+            fillpattern: (barStyles?.pl as any)?.fillpattern || defaultPl.fillpattern,
+          },
         },
-        fontColor: $["global"]?.["fontColor"] || '#000000',
+        fontColor: $["global"]?.["fontColor"] || "#000000",
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor,
         fontFamily: $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
         unitScaling: this.unitScaling,
         percentageScaling: this.percentageScaling,
-        scaleFactor: this.scaleFactor
+        scaleFactor: this.scaleFactor,
       };
     });
   }
 }
-

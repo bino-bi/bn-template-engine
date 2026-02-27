@@ -2,16 +2,13 @@ import { I18nMode } from "../../../../../utils/constants";
 import { DateStringFactory } from "../../../../../utils/DateStringFactory";
 import { Formatter } from "../../../../../utils/formatter";
 import { Order } from "../../../../../utils/model/Order";
-import {MeasureEntry} from "../model/MeasureEntriy";
-import {TimePeriod} from "../model/TimePeriod";
+import { MeasureEntry } from "../model/MeasureEntriy";
+import { TimePeriod } from "../model/TimePeriod";
 
 // FIXME IOrder
 
-
 export class TitleDataSetFactory implements Formatter {
-
-  constructor() {
-  }
+  constructor() {}
 
   /**
    * Creates  measures, adds i18n to each element
@@ -21,13 +18,12 @@ export class TitleDataSetFactory implements Formatter {
    */
   createMeasures(measures: MeasureEntry[], i18n: Map<string, string>, i18nMode: I18nMode): MeasureEntry[] {
     if (this.allMeasuresUseSameUnit(measures)) {
-      let amountOfMeasures: number = measures.length;
+      const amountOfMeasures: number = measures.length;
       let measureName: string = "";
       let unit: string = "";
 
       for (let i = 0; i < amountOfMeasures; i++) {
-
-        let separator: string | undefined = '';
+        let separator: string | undefined = "";
         if (i > 0) {
           separator = i18n.get("SEPERATOR_WS");
         }
@@ -36,8 +32,9 @@ export class TitleDataSetFactory implements Formatter {
         }
 
         if (i18nMode == I18nMode.ALL) {
-          measureName = (i18n.get(measureName) || measureName) + separator + (i18n.get(measures[i].name) || measures[i].name);
-          unit = (i18n.get(measures[i].unit as string) || measures[i].unit as string);
+          measureName =
+            (i18n.get(measureName) || measureName) + separator + (i18n.get(measures[i].name) || measures[i].name);
+          unit = i18n.get(measures[i].unit as string) || (measures[i].unit as string);
         } else {
           measureName = measureName + separator + measures[i].name;
           unit = measures[i].unit as string;
@@ -48,13 +45,11 @@ export class TitleDataSetFactory implements Formatter {
         {
           name: measureName,
           unit: unit,
-        }
+        },
       ];
     } else {
-
-      return measures as MeasureEntry[] ;
+      return measures as MeasureEntry[];
     }
-
   }
 
   /**
@@ -66,40 +61,45 @@ export class TitleDataSetFactory implements Formatter {
    * @param order
    * @param i18n
    */
-  public createDimension(scenarios: string[], time: TimePeriod | undefined, order: Order | null | undefined, i18n: Map<string, string>, spanLimit: number): string {
+  public createDimension(
+    scenarios: string[],
+    time: TimePeriod | undefined,
+    order: Order | null | undefined,
+    i18n: Map<string, string>,
+    spanLimit: number,
+  ): string {
+    let formatedTime: string = "";
 
-    let formatedTime :string = "";
-
-    if(time != undefined) {
+    if (time != undefined) {
       formatedTime = new DateStringFactory().getDateLinkString(time.start, time.end, time.link, time.format, spanLimit);
     }
 
-    let formatedScenarios: string =  scenarios.map((scenario) => {
-      let orderString: string | undefined = "";
-      if (order != null && order.hierarchy != null) {
-        if (order.hierarchy.find((x) => x === scenario)) {
-          if (order.direction == "asc") {
-            orderString = i18n.get("ORDER_asc");
-          } else {
-            orderString = i18n.get("ORDER_desc");
+    const formatedScenarios: string = scenarios
+      .map((scenario) => {
+        let orderString: string | undefined = "";
+        if (order != null && order.hierarchy != null) {
+          if (order.hierarchy.find((x) => x === scenario)) {
+            if (order.direction == "asc") {
+              orderString = i18n.get("ORDER_asc");
+            } else {
+              orderString = i18n.get("ORDER_desc");
+            }
           }
         }
-      }
-      return "".concat(" ", Formatter.translateScenarioLabel(scenario, i18n), <string>orderString);
-    }).toString();
+        return "".concat(" ", Formatter.translateScenarioLabel(scenario, i18n), <string>orderString);
+      })
+      .toString();
 
     return formatedTime + formatedScenarios;
   }
 
   private allMeasuresUseSameUnit(measures: MeasureEntry[]) {
-    let units: Map<string, boolean> = new Map();
+    const units: Map<string, boolean> = new Map();
     measures.forEach(function (entry) {
       units.set(entry.unit as string, true);
     });
 
-    let hasOneUnit = units.size == 1;
+    const hasOneUnit = units.size == 1;
     return hasOneUnit;
   }
-
-
 }

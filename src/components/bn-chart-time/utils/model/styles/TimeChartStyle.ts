@@ -7,7 +7,10 @@ import { FontStyle, FontStyleAdapter } from "../../../../../utils/model/styles/F
 import { Padding, PaddingAdapter } from "../../../../../utils/model/styles/Padding";
 
 import { SVGStyleGroup, SVGStyleGroupAdapter } from "../../../../../utils/model/styles/SVGStyleGroup";
-import { SVGVariancesStyleGroup, SVGVariancesStyleGroupAdapter } from "../../../../../utils/model/styles/SVGVariancesStyleGroup";
+import {
+  SVGVariancesStyleGroup,
+  SVGVariancesStyleGroupAdapter,
+} from "../../../../../utils/model/styles/SVGVariancesStyleGroup";
 import { MarkerPattern } from "../../helper/MarkerPattern";
 
 // import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
@@ -21,25 +24,26 @@ import { ScaleFactorsTimeChart, ScaleFactorsTimeChartAdapter } from "./ScaleFact
 // import { SVGPolgonPattern } from "../../../../../utils/model";
 
 export class TimeChartStyle {
-   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
+  public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
 
-  constructor(public scaleFactors: ScaleFactorsTimeChart,
+  constructor(
+    public scaleFactors: ScaleFactorsTimeChart,
     public fontStyles: FontStyle,
     public axisStyles: SVGStyleGroup,
     public barStyles: SVGStyleGroup,
     public varianceStyles: SVGVariancesStyleGroup,
-    public padding: Padding) {
-
-  }
+    public padding: Padding,
+  ) {}
 }
 
 export class TimeChartStylesAdapter implements IAdapter<TimeChartStyle> {
-  constructor(private scaleFactorsStructureChartAdapter: ScaleFactorsTimeChartAdapter,
+  constructor(
+    private scaleFactorsStructureChartAdapter: ScaleFactorsTimeChartAdapter,
     private fontStyleAdapter: FontStyleAdapter,
     private svgStyleGroupAdapter: SVGStyleGroupAdapter,
     private svgVariancesStyleGroupAdapter: SVGVariancesStyleGroupAdapter,
-    private paddingadapter: PaddingAdapter) {
-  }
+    private paddingadapter: PaddingAdapter,
+  ) {}
 
   adapt(data: any): TimeChartStyle {
     const styles: TimeChartStyle = new TimeChartStyle(
@@ -48,7 +52,8 @@ export class TimeChartStylesAdapter implements IAdapter<TimeChartStyle> {
       this.svgStyleGroupAdapter.default(),
       this.svgStyleGroupAdapter.default(),
       this.svgVariancesStyleGroupAdapter.default(),
-      this.paddingadapter.default());
+      this.paddingadapter.default(),
+    );
 
     if (CompareUtil.isExisting(data)) {
       if (CompareUtil.isExisting(data.scaleFactors)) {
@@ -87,6 +92,7 @@ export class TimeChartStylesAdapter implements IAdapter<TimeChartStyle> {
       this.svgStyleGroupAdapter.default(),
       this.svgStyleGroupAdapter.default(),
       this.svgVariancesStyleGroupAdapter.default(),
-      this.paddingadapter.default());
+      this.paddingadapter.default(),
+    );
   }
 }

@@ -4,10 +4,8 @@
 import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../utils/helper/IAdapter";
 
-
 export class TableDataRow {
-
-  public operation: string = '+';
+  public operation: string = "+";
   public rowGroup: string | null | undefined;
   public rowGroupIndex: number | null | undefined;
   public category: string | null | undefined;
@@ -35,10 +33,7 @@ export class TableDataRow {
   public pl3: number | null | undefined;
   public pl4: number | null | undefined;
 
-
-  constructor() {
-  }
-
+  constructor() {}
 
   public addRowGroup(name: string, index: number) {
     this.rowGroup = name;
@@ -66,10 +61,8 @@ export class TableDataRow {
   }
 }
 
-
 export class TableDataRowAdapter implements IAdapter<TableDataRow> {
-  constructor() {
-  }
+  constructor() {}
 
   adapt(data: any): TableDataRow {
     const dataRow: TableDataRow = new TableDataRow();
@@ -79,23 +72,23 @@ export class TableDataRowAdapter implements IAdapter<TableDataRow> {
     }
 
     if (CompareUtil.isNumber(data.rowGroupIndex) && CompareUtil.isString(data.rowGroup)) {
-      dataRow.addRowGroup(data.rowGroup, data.rowGroupIndex)
+      dataRow.addRowGroup(data.rowGroup, data.rowGroupIndex);
     }
 
     if (CompareUtil.isNumber(data.categoryIndex) && CompareUtil.isString(data.category)) {
-      dataRow.addCategory(data.category, data.categoryIndex)
+      dataRow.addCategory(data.category, data.categoryIndex);
     }
 
     if (CompareUtil.isNumber(data.subCategoryIndex) && CompareUtil.isString(data.subCategory)) {
-      dataRow.addSubCategory(data.subCategory, data.subCategoryIndex)
+      dataRow.addSubCategory(data.subCategory, data.subCategoryIndex);
     }
 
     if (CompareUtil.isNumber(data.columnGroupIndex) && CompareUtil.isString(data.columnGroup)) {
-      dataRow.addColumnGroup(data.columnGroup, data.columnGroupIndex)
+      dataRow.addColumnGroup(data.columnGroup, data.columnGroupIndex);
     }
 
     if (CompareUtil.isNumber(data.columnSubGroupIndex) && CompareUtil.isString(data.columnSubGroup)) {
-      dataRow.addSubColumnGroup(data.columnSubGroup, data.columnSubGroupIndex)
+      dataRow.addSubColumnGroup(data.columnSubGroup, data.columnSubGroupIndex);
     }
 
     this.setActualValues(data, dataRow);
@@ -109,7 +102,6 @@ export class TableDataRowAdapter implements IAdapter<TableDataRow> {
   default(): TableDataRow {
     return new TableDataRow();
   }
-
 
   private setActualValues(data: any, dataRow: TableDataRow) {
     if (CompareUtil.isNumber(data.ac1)) {

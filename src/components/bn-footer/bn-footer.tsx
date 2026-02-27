@@ -5,10 +5,10 @@ import { Style } from "../../stores/componentStyles";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
-  tag: 'bn-footer',
-  styleUrl: 'bn-footer.scss',
-  assetsDirs: ['assets'],
-  shadow: true
+  tag: "bn-footer",
+  styleUrl: "bn-footer.scss",
+  assetsDirs: ["assets"],
+  shadow: true,
 })
 export class Footer {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
@@ -24,11 +24,11 @@ export class Footer {
   }
 
   private getFontStyles(): { [key: string]: string } {
-    return this.componentStyle($ => ({
-      '--bn-font-family': $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      '--bn-font-size': `${$["global"]?.["fontSizePx"] || 13.3333}px`,
-      '--bn-font-color': $["global"]?.["fontColor"] || '#000000',
-      '--bn-font-background': $["global"]?.["fontBackgroundColor"] || '#ffffff',
+    return this.componentStyle(($) => ({
+      "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+      "--bn-font-size": `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
+      "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
 
@@ -71,30 +71,24 @@ export class Footer {
 
   prepareAssetUrl(imgUrl: string) {
     if (this.isValidHttpUrl(imgUrl)) {
-      return imgUrl
+      return imgUrl;
     }
-    return `./assets/${imgUrl}.png`
+    return `./assets/${imgUrl}.png`;
   }
 
   render() {
-    return <Host id={(this.displayPageNumber || this.text || this.code) ? "container-page-footer" : "container"} style={this.getFontStyles()}>
-      <div id="footer-text">
-        {
-          this.text != null ? <span class="note">{this.text}</span> : ""
-        }
-      </div>
-      <div id="code">
-        {
-          this.code != null ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.code)}`)} /> : ""
-        }
-      </div>
-      <div id="page-number">
-        {
-          this.displayPageNumber ? <span class="page">{this.pageNumber}</span> : ""
-        }
-      </div>
-      {/* </div> */}
-    </Host>
+    return (
+      <Host
+        id={this.displayPageNumber || this.text || this.code ? "container-page-footer" : "container"}
+        style={this.getFontStyles()}
+      >
+        <div id="footer-text">{this.text != null ? <span class="note">{this.text}</span> : ""}</div>
+        <div id="code">
+          {this.code != null ? <img class="image" src={getAssetPath(`${this.prepareAssetUrl(this.code)}`)} /> : ""}
+        </div>
+        <div id="page-number">{this.displayPageNumber ? <span class="page">{this.pageNumber}</span> : ""}</div>
+        {/* </div> */}
+      </Host>
+    );
   }
-
 }

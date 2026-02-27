@@ -1,5 +1,5 @@
-import { createButton } from './Button';
-import './header.css';
+import { createButton } from "./Button";
+import "./header.css";
 
 export interface HeaderProps {
   user?: { name: string };
@@ -9,10 +9,10 @@ export interface HeaderProps {
 }
 
 export const createHeader = ({ user, onLogout, onLogin, onCreateAccount }: HeaderProps) => {
-  const header = document.createElement('header');
+  const header = document.createElement("header");
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'storybook-header';
+  const wrapper = document.createElement("div");
+  wrapper.className = "storybook-header";
 
   const logo = `<div>
     <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -29,22 +29,22 @@ export const createHeader = ({ user, onLogout, onLogin, onCreateAccount }: Heade
     <h1>Acme</h1>
   </div>`;
 
-  wrapper.insertAdjacentHTML('afterbegin', logo);
+  wrapper.insertAdjacentHTML("afterbegin", logo);
 
-  const account = document.createElement('div');
+  const account = document.createElement("div");
   if (user) {
     const welcomeMessage = `<span class="welcome">Welcome, <b>${user.name}</b>!</span>`;
     account.innerHTML = welcomeMessage;
-    account.appendChild(createButton({ size: 'small', label: 'Log out', onClick: onLogout }));
+    account.appendChild(createButton({ size: "small", label: "Log out", onClick: onLogout }));
   } else {
-    account.appendChild(createButton({ size: 'small', label: 'Log in', onClick: onLogin }));
+    account.appendChild(createButton({ size: "small", label: "Log in", onClick: onLogin }));
     account.appendChild(
       createButton({
-        size: 'small',
-        label: 'Sign up',
+        size: "small",
+        label: "Sign up",
         onClick: onCreateAccount,
         primary: true,
-      })
+      }),
     );
   }
   wrapper.appendChild(account);

@@ -1,14 +1,12 @@
-import {QueryGroups} from "./QueryGroup";
-import {TableType} from "../model";
-import {TableComponentConfig} from "../model/TableComponentConfig";
+import { QueryGroups } from "./QueryGroup";
+import { TableType } from "../model";
+import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Order } from "../../../../components";
 import { DataFormat, I18nMode, TableCategoryWidth, MeasureType } from "../../../../utils/constants";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
-
-describe('DQueryGroup Test', () => {
-
-  let config: TableComponentConfig = {
+describe("DQueryGroup Test", () => {
+  const config: TableComponentConfig = {
     title: "",
     scenarios: [],
     scenariosUnitType: DataFormat.DECIMAL,
@@ -27,27 +25,23 @@ describe('DQueryGroup Test', () => {
     measureUnit: "",
     showMeasureScale: false,
     filter: "",
-    barColumns: []
+    barColumns: [],
   };
 
-  it('should return noCategory array', () => {
-    let queryGroup = new QueryGroups(config);
-    expect(queryGroup.noCategory()).toEqual( [ "operation", "categoryIndex", "rowGroup", "rowGroupIndex"] );
-
+  it("should return noCategory array", () => {
+    const queryGroup = new QueryGroups(config);
+    expect(queryGroup.noCategory()).toEqual(["operation", "categoryIndex", "rowGroup", "rowGroupIndex"]);
   });
 
-  it('should return array', () => {
-    let queryGroup = new QueryGroups(config);
+  it("should return array", () => {
+    const queryGroup = new QueryGroups(config);
 
-    expect(queryGroup.toArray()).toEqual( ["operation", "category", "categoryIndex","rowGroup", "rowGroupIndex"]
-    );
-
+    expect(queryGroup.toArray()).toEqual(["operation", "category", "categoryIndex", "rowGroup", "rowGroupIndex"]);
   });
 
-  it('should return string', () => {
-    let queryGroup = new QueryGroups(config);
+  it("should return string", () => {
+    const queryGroup = new QueryGroups(config);
 
-    expect(queryGroup.toString()).toEqual( "operation,category,categoryIndex,rowGroup,rowGroupIndex"    );
-
+    expect(queryGroup.toString()).toEqual("operation,category,categoryIndex,rowGroup,rowGroupIndex");
   });
 });

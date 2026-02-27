@@ -31,8 +31,6 @@ export interface Row {
   elements: Element[];
 }
 
-
-
 export enum Scenario {
   AC1 = "ac1",
   PP1 = "pp1",
@@ -40,7 +38,7 @@ export enum Scenario {
   PL1 = "pl1",
   AC2 = "ac2",
   PP2 = "pp2",
-  FC2= "fc2",
+  FC2 = "fc2",
   PL2 = "pl2",
   AC3 = "ac3",
   PP3 = "pp3",
@@ -60,7 +58,6 @@ export enum TableType {
   SUM = "SUM",
   OPT = "OPT",
 }
-
 
 export interface CollisionBox {
   x: number;
@@ -85,40 +82,40 @@ export interface Data {
 }
 
 export interface DateFormat {
-  year:       string;
-  quarter:    string;
-  month:      string;
-  week:       string;
-  day:        string;
-  hour:       string;
-  minute:     string;
-  second:     string;
-  millisecond:string;
-  fallback:   string;
+  year: string;
+  quarter: string;
+  month: string;
+  week: string;
+  day: string;
+  hour: string;
+  minute: string;
+  second: string;
+  millisecond: string;
+  fallback: string;
 
   [index: string]: string;
 }
 
 export interface DateLinkFormat {
-  avg:        string;
-  interval:   string;
-  start:      string;
-  end:        string;
-  ytd:        string;
-  ytg:        string;
-  cum:        string;
-  mat:        string;
-  none:       string;
+  avg: string;
+  interval: string;
+  start: string;
+  end: string;
+  ytd: string;
+  ytg: string;
+  cum: string;
+  mat: string;
+  none: string;
 
   [index: string]: string;
 }
 
-export interface TimeChartDimension{
+export interface TimeChartDimension {
   columnLength: number;
   xPos: number;
   yPos: number;
   labelYPos: number;
   scenarioLabelXPos: number;
-  scenarioLabelYPos:number;
+  scenarioLabelYPos: number;
   clipped: boolean;
-};
+}

@@ -2,7 +2,6 @@ import { StringAdapter } from "../helper/StringAdapter";
 import { IAdapter } from "../helper/IAdapter";
 import { AdapterUtils } from "../helper/AdapterUtils";
 
-
 export enum OrderDirection {
   ASC = "asc",
   DESC = "desc",
@@ -34,23 +33,28 @@ export enum OrderColumn {
 }
 
 export class Order {
-
-  constructor(public hierarchy: string[] = ['category'], public direction: OrderDirection = OrderDirection.ASC) { }
+  constructor(
+    public hierarchy: string[] = ["category"],
+    public direction: OrderDirection = OrderDirection.ASC,
+  ) {}
 }
 
 export class OrderAdapter implements IAdapter<Order> {
-  constructor(private stringAdapter: StringAdapter) {
-  }
+  constructor(private stringAdapter: StringAdapter) {}
 
   adapt(data: any): Order {
-    const hierarchy: string[] =  AdapterUtils.adaptArray(data.hierarchy, this.stringAdapter);
-                                   
-    const order: OrderDirection = OrderDirection[data.direction?.toUpperCase() as keyof typeof OrderDirection] || OrderDirection.ASC; 
+    const hierarchy: string[] = AdapterUtils.adaptArray(data.hierarchy, this.stringAdapter);
 
-    return new Order(hierarchy.map(str =>  OrderColumn[str.toUpperCase() as keyof typeof OrderColumn] || OrderColumn.CATEGORY), order);
+    const order: OrderDirection =
+      OrderDirection[data.direction?.toUpperCase() as keyof typeof OrderDirection] || OrderDirection.ASC;
+
+    return new Order(
+      hierarchy.map((str) => OrderColumn[str.toUpperCase() as keyof typeof OrderColumn] || OrderColumn.CATEGORY),
+      order,
+    );
   }
 
   default(): Order {
-    return new Order(['category'], OrderDirection.ASC);
+    return new Order(["category"], OrderDirection.ASC);
   }
 }
