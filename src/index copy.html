@@ -217,7 +217,7 @@
       <bn-title namespace="_system" business-unit="" order-direction="asc" date-start="2022-01-01" date-end="2024-12-31"
         date-format="quarter" date-link="interval" scenarios="ac1,ac2,ac3" order="ac1"></bn-title>
       <bn-body>
-        <bn-chart-tree edges='[
+        <bn-tree edges='[
             {"from":"node1","to":"node2", "operator":"x"},
             {"from":"node1","to":"node3"},
             {"from":"node2","to":"node4", "operator":"+"},
@@ -232,7 +232,7 @@
           <bn-text slot="node4" value="node4"></bn-text>
           <bn-text slot="node5" value="node5"></bn-text>
           <bn-text slot="node6" value="node6"></bn-text>
-        </bn-chart-tree>
+        </bn-tree>
       </bn-body>
     </bn-page>
 
@@ -495,9 +495,9 @@
     <bn-page name="ROI_Tree_Example" format="a4" orientation="landscape">
       <bn-title business-unit='ROI Tree Example' measures='[{"name": "ROI Analysis", "unit": "%"}]'></bn-title>
       <bn-body>
-        <h3 style="margin: 20px;">ROI Tree - bn-chart-tree Component Demo</h3>
+        <h3 style="margin: 20px;">ROI Tree - bn-tree Component Demo</h3>
 
-        <bn-chart-tree edges='[
+        <bn-tree edges='[
             {"from":"roi","to":"ros","operator":"x"},
             {"from":"roi","to":"capital-turnover"},
             {"from":"ros","to":"return","operator":"/"},
@@ -542,7 +542,7 @@
             date-interval="month"
             overlay='[{"name": "ÁVG", "type": "avg", scenarios: "ac1"}, {"name": "median", "type": "median", scenarios: "ac1"}], {"name": "Benchmark", "type": "benchmark", scenarios: "pl1"}'
             show-overlay-avg='false' percentage-scaling='50'></bn-chart-time>
-        </bn-chart-tree>
+        </bn-tree>
       </bn-body>
       <bn-footer text="© 2022 - BinoBI GmbH" code="bar"></bn-footer>
     </bn-page>

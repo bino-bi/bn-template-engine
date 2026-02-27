@@ -35,8 +35,8 @@ import {
 } from "./utils/EdgeRenderer";
 
 @Component({
-  tag: 'bn-chart-tree',
-  styleUrl: "bn-chart-tree.scss",
+  tag: 'bn-tree',
+  styleUrl: "bn-tree.scss",
   shadow: true,
 })
 export class ChartTree {
@@ -218,11 +218,11 @@ export class ChartTree {
     return this.componentStyle($ => {
       const baseFontSize = $["global"].fontSizePx;
       return {
-        edgeColor: $["bn-chart-tree"].edgeColor,
-        edgeWidth: $["bn-chart-tree"].edgeWidth,
-        operatorCircleRadius: $["bn-chart-tree"].operatorCircleRadius,
-        operatorFontSize: baseFontSize * $["bn-chart-tree"].operatorFontSizeScale,
-        operatorColor: $["bn-chart-tree"].operatorColor
+        edgeColor: $["bn-tree"].edgeColor,
+        edgeWidth: $["bn-tree"].edgeWidth,
+        operatorCircleRadius: $["bn-tree"].operatorCircleRadius,
+        operatorFontSize: baseFontSize * $["bn-tree"].operatorFontSizeScale,
+        operatorColor: $["bn-tree"].operatorColor
       };
     });
   }

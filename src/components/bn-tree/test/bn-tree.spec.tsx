@@ -1,5 +1,5 @@
 /**
- * Component tests for bn-chart-tree
+ * Component tests for bn-tree
  *
  * Note: Full component rendering tests are disabled due to project-level
  * test infrastructure issues with ESM modules (nanoid). The utility functions
@@ -23,7 +23,7 @@
 //   disconnect() {}
 // };
 
-describe('bn-chart-tree component', () => {
+describe('bn-tree component', () => {
   it('should have utility tests in tree-utils.spec.ts', () => {
     // This is a placeholder test indicating that the actual utility tests
     // are in tree-utils.spec.ts which can run without the component import
@@ -36,10 +36,10 @@ describe('bn-chart-tree component', () => {
   //   const page = await newSpecPage({
   //     components: [ChartTree],
   //     template: () => (
-  //       <bn-chart-tree edges='[{"from":"root","to":"child"}]'>
+  //       <bn-tree edges='[{"from":"root","to":"child"}]'>
   //         <div slot="root">Root</div>
   //         <div slot="child">Child</div>
-  //       </bn-chart-tree>
+  //       </bn-tree>
   //     ),
   //   });
   //   expect(page.root).toBeTruthy();
