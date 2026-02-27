@@ -21,7 +21,7 @@ export default tseslint.config(
   eslintConfigPrettier,
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
@@ -43,8 +43,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.spec.ts", "**/*.spec.tsx"],
+    files: ["**/*.spec.ts", "**/*.spec.tsx", "src/test-runner/**"],
     rules: {
+      "@typescript-eslint/no-explicit-any": "off",
       "no-useless-escape": "off",
     },
   },

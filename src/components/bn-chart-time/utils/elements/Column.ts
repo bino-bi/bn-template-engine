@@ -21,6 +21,7 @@ export class Column {
   private readonly FALLBACK_COLOUR: string = "#000000";
   private readonly isPrimaryColumn: boolean;
   private readonly scenarioGroup: G;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private readonly columnBarStyles: any;
   private dataPoint: DataPoint;
   private readonly styles: TimeChartStyle;
@@ -123,6 +124,7 @@ export class Column {
     this.drawScenarioLabel();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private drawOverdriveBar(fillStyle: any, strokeStyle: any): void {
     if (!this.columnGroup || !this.overflowConfig) return;
 
@@ -297,6 +299,7 @@ export class Column {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private convertToSVGStyle(style: any, mode: string): any {
     if (style == null) {
       style = [];
@@ -315,6 +318,7 @@ export class Column {
     this.label?.draw(this.isPrimaryColumn, dataFormatDigits, measureScale);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getFillStyle(scenarioStyle: SVGStyle | undefined): any {
     const pattern = this.columnBarStyles[this.dataPoint.getScenario() as string];
 

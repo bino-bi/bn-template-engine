@@ -31,6 +31,7 @@ export class Axis {
       text = "";
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const title: any = group.text(text).addClass(this.CSS_AXIS_TITLE).attr("text-anchor", "middle");
 
     title.move(this.position.getAxisTitlePositionX(group), this.position.getAxisTitlePositionY(true, this.isRelative));

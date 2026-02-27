@@ -668,6 +668,7 @@ export class Chart {
     return tableOrder;
   }
   // TODO: FIXME:  Adapter pattenr doch noch verschieben?
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private prepareStyle(): any {
     const effectiveFactor = this.getEffectiveScaleFactor();
     return this.componentStyle(($) => {
@@ -744,8 +745,9 @@ export class Chart {
     return Math.floor(Number(this.limit) || 0);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public getDataStructure(): any {
-    const dataSetStructure: any = {
+    const dataSetStructure: Record<string, unknown> = {
       IStructureChartDataRow: {
         operation: { type: "string", isOptional: false, description: "" },
         rowGroup: { type: "string", isOptional: false, description: "" },

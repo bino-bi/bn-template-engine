@@ -988,7 +988,7 @@ export class Table {
     return MeasureType[this.measureType?.toUpperCase() as keyof typeof MeasureType];
   }
 
-  private prepareColumnThereOf(): Map<string, any> {
+  private prepareColumnThereOf(): Map<string, Record<string, unknown>[]> {
     if (this.columnthereof == null || this.columnthereof.trim() == "") {
       return new Map();
     }
@@ -1051,8 +1051,9 @@ export class Table {
     return Number(this.percentageScaling);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public getDataStructure(): any {
-    const dataSetStructure: any = {
+    const dataSetStructure: Record<string, unknown> = {
       ITableDataRow: {
         setName: { type: "string", isOptional: false, description: "" },
         date: { type: "string", isOptional: false, description: "" },

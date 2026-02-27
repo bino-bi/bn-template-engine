@@ -18,6 +18,7 @@ export class Marker {
   private scenarioLabel: Label | null = null;
   private scenario: string | null;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private readonly barStyles: any;
   private _defaultMarkerPattern: SVGPolgonPattern | null = null;
 
@@ -155,6 +156,7 @@ export class Marker {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private convertToSVGStyle(style: any, mode: string): any {
     if (style == null) {
       style = [];

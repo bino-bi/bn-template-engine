@@ -66,7 +66,7 @@ export class TimeChartDataRow {
 export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
   constructor() {}
 
-  adapt(data: any): TimeChartDataRow {
+  adapt(data: Record<string, unknown>): TimeChartDataRow {
     const dataRow: TimeChartDataRow = new TimeChartDataRow();
 
     if (CompareUtil.isString(data.date)) {
@@ -111,7 +111,7 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
     return dataRow;
   }
 
-  private parseDateString(date: any): DateTime | undefined {
+  private parseDateString(date: unknown): DateTime | undefined {
     //FIXME: TODO: JHE: Check was passiert bei invalid date...
     const timestamp = DateTime.fromISO(date);
 
@@ -126,7 +126,7 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
     return new TimeChartDataRow();
   }
 
-  private setActualValues(data: any, dataRow: TimeChartDataRow) {
+  private setActualValues(data: Record<string, unknown>, dataRow: TimeChartDataRow) {
     if (CompareUtil.isNumber(data.ac1)) {
       dataRow.ac1 = data.ac1;
     }
@@ -144,7 +144,7 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
     }
   }
 
-  private setPlanValues(data: any, dataRow: TimeChartDataRow) {
+  private setPlanValues(data: Record<string, unknown>, dataRow: TimeChartDataRow) {
     if (CompareUtil.isNumber(data.pl1)) {
       dataRow.pl1 = data.pl1;
     }
@@ -162,7 +162,7 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
     }
   }
 
-  private setPreviousPeriodValues(data: any, dataRow: TimeChartDataRow) {
+  private setPreviousPeriodValues(data: Record<string, unknown>, dataRow: TimeChartDataRow) {
     if (CompareUtil.isNumber(data.pp1)) {
       dataRow.pp1 = data.pp1;
     }
@@ -180,7 +180,7 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
     }
   }
 
-  private setForecastValues(data: any, dataRow: TimeChartDataRow) {
+  private setForecastValues(data: Record<string, unknown>, dataRow: TimeChartDataRow) {
     if (CompareUtil.isNumber(data.fc1)) {
       dataRow.fc1 = data.fc1;
     }

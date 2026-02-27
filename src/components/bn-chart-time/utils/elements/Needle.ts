@@ -20,6 +20,7 @@ export class Needle {
   private position: ElementPositions;
   private dataLabel: Label | null = null;
   private readonly scenarioGroup: G;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private readonly barStyles: any;
 
   private readonly styles: TimeChartStyle;
@@ -148,6 +149,7 @@ export class Needle {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private convertToSVGStyle(style: any, mode: string): any {
     if (style == null) {
       style = [];

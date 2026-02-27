@@ -20,6 +20,7 @@ export class Line {
   private readonly FALLBACK_COLOUR: string = "#000000";
   private readonly isPrimaryLine: boolean;
   private readonly scenarioGroup: G;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private readonly LineBarStyles: any;
   private dataPoint: DataPoint;
   //  private previousDataPoint: DataPoint;
@@ -173,6 +174,7 @@ export class Line {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private convertToSVGStyle(style: any, mode: string): any {
     if (style == null) {
       style = [];
@@ -191,6 +193,7 @@ export class Line {
     this.label?.draw(this.isPrimaryLine, dataFormatDigits, measureScale);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getFillStyle(scenarioStyle: SVGStyle | undefined): any {
     const pattern = this.LineBarStyles[this.dataPoint.getScenario() as string];
 

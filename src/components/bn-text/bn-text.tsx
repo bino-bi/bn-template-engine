@@ -145,7 +145,7 @@ export class Text {
    */
   @Prop() scale?: string;
 
-  @State() data: any = {};
+  @State() data: Record<string, unknown> = {};
 
   private readonly componentStyle: <T>(q: (Style) => T) => T;
   private readonly t: (key: string, data?: object) => string;

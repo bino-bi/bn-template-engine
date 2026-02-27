@@ -17,6 +17,7 @@ export interface ErrorDispatcher {
   remove: (id: string) => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withHasError = (component: any) => {
   const { set, modify } = ref<ErrorItem[]>([], (items) => {
     const elm = getElement(component);

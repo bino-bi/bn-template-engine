@@ -2,7 +2,8 @@ import { on, get } from "../stores/datasources";
 import { runIfExisits } from "./utils";
 import { getElement } from "@stencil/core";
 
-const withDatasource = (component: any, onUpdate: (name: string, data: any) => void) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const withDatasource = (component: any, onUpdate: (name: string, data: unknown) => void) => {
   let subscription: () => void;
   let datasources: string[] = [];
 

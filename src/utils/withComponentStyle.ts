@@ -3,6 +3,7 @@ import state, { Style, on } from "../stores/componentStyles";
 import { runIfExisits } from "./utils";
 import { merge } from "@corex/deepmerge";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withComponentStyle = (component: any) => {
   let subscription: () => void;
 

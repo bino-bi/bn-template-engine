@@ -103,6 +103,7 @@ export class AreaFill {
     }
 
     const polyline = this.group
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .polyline(this.upperPoints.map((p) => [p.x, p.y]) as any)
       .fill("none")
       .stroke({ color: lineColor, width: 1.5 });

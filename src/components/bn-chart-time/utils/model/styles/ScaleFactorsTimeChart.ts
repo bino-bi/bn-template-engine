@@ -25,7 +25,7 @@ export class ScaleFactorsTimeChart {
 }
 
 export class ScaleFactorsTimeChartAdapter implements IAdapter<ScaleFactorsTimeChart> {
-  adapt(data: any): ScaleFactorsTimeChart {
+  adapt(data: Record<string, unknown>): ScaleFactorsTimeChart {
     const scaleFactors: ScaleFactorsTimeChart = new ScaleFactorsTimeChart();
 
     if (CompareUtil.isNumber(data.scenarioOffset)) {

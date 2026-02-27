@@ -7,6 +7,7 @@ import { TableDataRow } from "../model/TableDataRow";
 import { Order } from "../../../../components";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 // import {Order} from "../../../../utils/model/Order"; // FIXME IOrder
+import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
 
 export class DataQuery {
   private readonly config: TableComponentConfig;
@@ -21,14 +22,14 @@ export class DataQuery {
   /**
    * prepares and queries Data based on the config.
    */
-  public execute(data: TableDataRow[]): any {
+  public execute(data: TableDataRow[]): DataQueryResultRow[][] {
     if (data.length == 0) {
       return [];
     }
 
-    const queries: any[] = [];
-    const sumGroupQueries: any[] = [];
-    const res: any[] = [];
+    const queries: string[] = [];
+    const sumGroupQueries: string[] = [];
+    const res: DataQueryResultRow[][] = [];
 
     const scenarios = this.config.scenarios
       .map((s) => this.translateScenarioSQL(s, false, this.config.type))
@@ -50,7 +51,7 @@ export class DataQuery {
 
     // meta defines groups and the number detail rows in each group
     // Bsp:  0: Object { totalrowcnt: 7, rowgroup: "Umsatz" }
-    const meta = alasql<any[]>(
+    const meta = alasql<DataQueryResultRow[]>(
       `SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated : ""}
                        FROM ? ${groupsAggregated.length > 0 ? "GROUP BY " + groupsAggregated : ""}  
                        ORDER BY ${order[0]}`,
@@ -58,7 +59,7 @@ export class DataQuery {
     );
 
     // Creates DataSelection for LIST
-    meta.forEach((rowGroupEntry: any) => {
+    meta.forEach((rowGroupEntry: DataQueryMetaRow) => {
       // the following variables are 'helper sections' which are used to constuct dynamicly the sql statement depending of the given config
       // is grouping active?
       const queryWhereSection: string =
@@ -100,10 +101,10 @@ export class DataQuery {
     return res;
   }
 
-  detectNaNCells(scenarios: any, res: any[]) {
+  detectNaNCells(scenarios: string[], res: DataQueryResultRow[][]) {
     res.forEach((group) => {
-      group.map((row: any) => {
-        scenarios.forEach((scenario: any) => {
+      group.map((row: DataQueryResultRow) => {
+        scenarios.forEach((scenario: string) => {
           const varianceScenario = new VarianceScenario(scenario);
 
           if (varianceScenario.isValid == true) {
@@ -124,9 +125,9 @@ export class DataQuery {
   createPartOfDrillRows(
     scenarios: string,
     order: [string, string],
-    sumGroupQueries: any[],
+    sumGroupQueries: string[],
     data: TableDataRow[],
-    res: any[],
+    res: DataQueryResultRow[][],
   ) {
     if (
       this.config.partOf == null ||
@@ -139,7 +140,7 @@ export class DataQuery {
     }
 
     let drillQueries = [];
-    let resDrill: any[] = []; // set of drill (subquery result injected into resultset)
+    let resDrill: DataQueryResultRow[] = []; // set of drill (subquery result injected into resultset)
 
     if (this.config.type == TableType.OPT || this.config.type == TableType.OPTNOTOTAL) {
       drillQueries = this.createPartOfQuery(scenarios, order);
@@ -148,17 +149,17 @@ export class DataQuery {
     }
 
     drillQueries.forEach(function (query) {
-      resDrill.push(...alasql<any[]>(query, [data]));
+      resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
     });
 
     const scenarioNames = this.exctractScenarioNames(scenarios);
-    const rowGroupSumResultRows: any[] = [];
+    const rowGroupSumResultRows: DataQueryResultRow[] = [];
 
     sumGroupQueries.forEach(function (query) {
-      rowGroupSumResultRows.push(...alasql<any[]>(query, [data]));
+      rowGroupSumResultRows.push(...alasql<DataQueryResultRow[]>(query, [data]));
     });
 
-    const rowGroupSumResultMap = new Map<string, any>();
+    const rowGroupSumResultMap = new Map<string, DataQueryResultRow>();
 
     rowGroupSumResultRows.forEach((row) => rowGroupSumResultMap.set(row[QueryColumnNames.ROWGROUP], row));
 
@@ -179,8 +180,8 @@ export class DataQuery {
   }
 
   private createRestRow(
-    rowGroupEntry: any,
-    querys: any[],
+    rowGroupEntry: DataQueryMetaRow,
+    querys: string[],
     groups: QueryGroups,
     scenarios: string,
     queryWhereSection: string,
@@ -199,8 +200,8 @@ export class DataQuery {
   }
 
   private createDataRow(
-    querys: any[],
-    rowGroupEntry: any,
+    querys: string[],
+    rowGroupEntry: DataQueryMetaRow,
     groups: QueryGroups,
     scenarios: string,
     queryWhereSection: string,
@@ -219,7 +220,7 @@ export class DataQuery {
                  ORDER BY ${order[0]} ${queryLimitSection}`);
   }
 
-  private createGroupHeaderRow(rowGroupEntry: any, querys: any[]) {
+  private createGroupHeaderRow(rowGroupEntry: DataQueryMetaRow, querys: string[]) {
     // Generates GroupHeader Row
     if (true === this.config.grouped) {
       const groupTitle: string = this.config.showGroupTitle
@@ -235,9 +236,9 @@ export class DataQuery {
   }
 
   private createGroupSumRow(
-    querys: any[],
-    groupSumQuery: any[],
-    rowGroupEntry: any,
+    querys: string[],
+    groupSumQuery: string[],
+    rowGroupEntry: DataQueryMetaRow,
     scenariosSUMQuery: string,
     order: [string, string],
   ) {
@@ -268,7 +269,7 @@ export class DataQuery {
     }
   }
 
-  private createTotalSumRow(querys: any[], sumGroupQueries: any, scenariosSUMQuery: string) {
+  private createTotalSumRow(querys: string[], sumGroupQueries: string[], scenariosSUMQuery: string) {
     if (TableType.SUM === this.config.type || TableType.OPT === this.config.type) {
       const title = `${this.hasPartOf && this.config.grouped == false ? `${this.i18n.get("SUM_TOTAL") || "SUM_TOTAL"} ` : ""}${this.config.title}`;
 
@@ -285,7 +286,7 @@ export class DataQuery {
                           FROM ?  `);
   }
 
-  private reduceResDrillByCategoryGroups(resDrill: any[], scenarioNames: string[]) {
+  private reduceResDrillByCategoryGroups(resDrill: DataQueryResultRow[], scenarioNames: string[]) {
     // This is workarround because alasql is not merging the rows as expected.
     const tmpSumMap = new Map();
     resDrill.forEach(function (drillItem) {
@@ -307,7 +308,7 @@ export class DataQuery {
     return [...tmpSumMap.values()];
   }
 
-  private injectDrillRowsToResultRows(resDrill: any[], res: any[]) {
+  private injectDrillRowsToResultRows(resDrill: DataQueryResultRow[], res: DataQueryResultRow[][]) {
     // resDrill = resDrill.reverse();
     const numberOfElement = new Map<string, number>();
     if (this.config.grouped === true) {
@@ -315,7 +316,7 @@ export class DataQuery {
       resDrill.forEach(function (drillItem) {
         res.forEach(function (resSegment) {
           const index = resSegment.findIndex(
-            (e: any) => e.category === drillItem.category && e.rowGroup === drillItem.rowGroup,
+            (e: DataQueryResultRow) => e.category === drillItem.category && e.rowGroup === drillItem.rowGroup,
           );
 
           if (index >= 0) {
@@ -337,7 +338,9 @@ export class DataQuery {
 
       resDrill.forEach(function (drillItem) {
         res.forEach(function (resSegment) {
-          const index = resSegment.findIndex((e: any) => e.category != null && e.category === drillItem.category);
+          const index = resSegment.findIndex(
+            (e: DataQueryResultRow) => e.category != null && e.category === drillItem.category,
+          );
 
           if (index >= 0) {
             if (numberOfElement.has(`${drillItem.category}`)) {
@@ -360,7 +363,12 @@ export class DataQuery {
     }
   }
 
-  private createThereOfDrillRows(scenarios: string, order: [string, string], data: TableDataRow[], res: any[]) {
+  private createThereOfDrillRows(
+    scenarios: string,
+    order: [string, string],
+    data: TableDataRow[],
+    res: DataQueryResultRow[][],
+  ) {
     // adds drill rows if setup in config
     // if there of is set drilldown row is displayed with absolute numbers,
     // if part of is also not null a relative percenatage based of the selected basis is displayed
@@ -369,8 +377,8 @@ export class DataQuery {
       return;
     }
 
-    const drillQueries: any[] = [];
-    const resDrill: any[] = []; // set of drill (subquery result injected into resultset)
+    const drillQueries: string[] = [];
+    const resDrill: DataQueryResultRow[] = []; // set of drill (subquery result injected into resultset)
     // let rollgroups = ['category']; // frage wo kommt das her ?
     // create drill queryies based on config
 
@@ -414,15 +422,15 @@ export class DataQuery {
     //drillQueries.push(`SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, null as operation, 'DRILLELEMENT' as ${QueryColumnNames.TYPE}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, ${QueryColumnNames.ROWGROUP}  as ${QueryColumnNames.ROWGROUP} , ${scenarios} FROM ? WHERE ${fromString} GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}  ORDER BY ${order[1]}`);
 
     drillQueries.forEach(function (query) {
-      resDrill.push(...alasql<any[]>(query, [data]));
+      resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
     });
 
     this.injectDrillRowsToResultRows(resDrill, res);
   }
 
-  private calculateRelativeVariances(res: any[], relativeScenarios: Map<any, any>) {
+  private calculateRelativeVariances(res: DataQueryResultRow[][], relativeScenarios: Map<string, string>) {
     res.forEach((group) => {
-      group.forEach((row: { [x: string]: any }) => {
+      group.forEach((row: DataQueryResultRow) => {
         if (row[QueryColumnNames.TYPE] !== "GROUPHEAD") {
           relativeScenarios.forEach((value: string, key: string) => {
             row[key] = row[key] / row[value];
@@ -432,12 +440,15 @@ export class DataQuery {
     });
   }
 
-  private calculateColumnGroupRest(res: any[], categoryThereOf: Map<string, any>) {
+  private calculateColumnGroupRest(
+    res: DataQueryResultRow[][],
+    categoryThereOf: Map<string, Record<string, unknown>[]>,
+  ) {
     if (categoryThereOf == null || categoryThereOf.size == 0) {
       return;
     }
-    const scenarioRestMap: Map<string, any> = new Map();
-    const scenarioRestHasValuesMap: Map<string, any> = new Map();
+    const scenarioRestMap: Map<string, string[]> = new Map();
+    const scenarioRestHasValuesMap: Map<string, boolean> = new Map();
 
     categoryThereOf.forEach((value, key) => {
       const categoryDrills = value;
@@ -450,11 +461,11 @@ export class DataQuery {
     });
 
     res.forEach((group) => {
-      group.forEach((row: { [x: string]: any }) => {
+      group.forEach((row: DataQueryResultRow) => {
         if (row[QueryColumnNames.TYPE] !== "GROUPHEAD") {
           scenarioRestMap.forEach((values, key) => {
             let minuent = 0;
-            values.forEach((value: any) => {
+            values.forEach((value: string) => {
               if (row[value] != undefined) {
                 minuent += row[value];
               }
@@ -474,7 +485,7 @@ export class DataQuery {
       .map(([key]) => key);
 
     res.forEach((group) => {
-      group.forEach((row: { [x: string]: any }) => {
+      group.forEach((row: DataQueryResultRow) => {
         for (const deleteColumn of emptyRestColumns) {
           delete row[deleteColumn];
         }
@@ -561,7 +572,7 @@ export class DataQuery {
     return scenarioNames;
   }
 
-  private findDuplicateSubCategories(resDrill: any[]): string[] {
+  private findDuplicateSubCategories(resDrill: DataQueryResultRow[]): string[] {
     const uniq = resDrill
       .map((element) => {
         return {
@@ -569,7 +580,7 @@ export class DataQuery {
           subCategory: element.subCategory,
         };
       })
-      .reduce((a: any, b: any) => {
+      .reduce((a: Record<string, number>, b: { subCategory: string; count: number }) => {
         a[b.subCategory] = (a[b.subCategory] || 0) + b.count;
         return a;
       }, {});
@@ -620,17 +631,21 @@ export class DataQuery {
     return true;
   }
 
-  private createThereOfDrillColumns(categoryThereOf: Map<string, any>, data: TableDataRow[], res: any[]) {
+  private createThereOfDrillColumns(
+    categoryThereOf: Map<string, Record<string, unknown>[]>,
+    data: TableDataRow[],
+    res: DataQueryResultRow[][],
+  ) {
     if (categoryThereOf == null || categoryThereOf.size == 0) {
       return;
     }
 
-    const drillQueries: any[] = [];
-    const resDrill: any[] = [];
+    const drillQueries: string[] = [];
+    const resDrill: DataQueryResultRow[] = [];
 
     categoryThereOf.forEach((value, key) => {
       let whereClause = "1 <> 1 ";
-      value.forEach((drillColumn: { name: any }) => {
+      value.forEach((drillColumn: Record<string, unknown>) => {
         whereClause += ` or columnGroup = '${drillColumn.name}' `;
       });
 
@@ -720,13 +735,13 @@ export class DataQuery {
     });
 
     for (const query of drillQueries) {
-      resDrill.push(...alasql<any[]>(query, [data]));
+      resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
     }
 
     this.injectDrillColumnsToResultRows(resDrill, res);
   }
 
-  private injectDrillColumnsToResultRows(resDrill: any[], res: any[]) {
+  private injectDrillColumnsToResultRows(resDrill: DataQueryResultRow[], res: DataQueryResultRow[][]) {
     const separator = "##";
     for (const drillElement of resDrill) {
       for (const tableSegment of res) {

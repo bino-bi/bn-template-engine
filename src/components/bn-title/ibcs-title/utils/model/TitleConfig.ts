@@ -27,7 +27,7 @@ export class TitleConifgAdapter implements IAdapter<TitleConfig> {
     private stringAdapter: StringAdapter,
   ) {}
 
-  adapt(data: any): TitleConfig {
+  adapt(data: Record<string, unknown>): TitleConfig {
     const config: TitleConfig = new TitleConfig();
 
     if (CompareUtil.isString(data.businessunit)) {

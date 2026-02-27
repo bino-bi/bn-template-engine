@@ -290,6 +290,7 @@ export class Title {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @State() readonly datasource: any; // TODO: is this needed?
 
   componentWillLoad() {

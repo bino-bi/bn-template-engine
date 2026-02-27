@@ -34,7 +34,7 @@ export class SVGStyleGroup {
 export class SVGStyleGroupAdapter implements IAdapter<SVGStyleGroup> {
   constructor(private svgStyleAdapter: SVGStyleAdapter) {}
 
-  adapt(data: any): SVGStyleGroup {
+  adapt(data: Record<string, unknown>): SVGStyleGroup {
     const styleGroup: SVGStyleGroup = new SVGStyleGroup(
       this.svgStyleAdapter.defaultAC(),
       this.svgStyleAdapter.defaultFC(),

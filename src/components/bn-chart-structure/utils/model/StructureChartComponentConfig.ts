@@ -43,10 +43,10 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     private orderAdapter: OrderAdapter,
     private stringAdapter: StringAdapter,
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
-    private dataSet: any[],
+    private dataSet: Record<string, unknown>[],
   ) {}
 
-  adapt(data: any): StructureChartComponentConfig {
+  adapt(data: Record<string, unknown>): StructureChartComponentConfig {
     const dataSet: StructureChartDataRow[] = AdapterUtils.adaptArray(data.data, this.dataRowAdapter);
     const scenarios: string[] = AdapterUtils.adaptArray(data.scenarios, this.stringAdapter);
 

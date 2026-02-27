@@ -14,14 +14,14 @@ export class EditorCompanion {
   }
 
   @Method()
-  getDistinctFromDataSource(dataSourceName: string, key: string): Promise<any[]> {
+  getDistinctFromDataSource(dataSourceName: string, key: string): Promise<unknown[]> {
     // TODO: add caching
     // @ts-ignore
     return Promise.resolve(this.distinct(getDataSource(dataSourceName) || [], key));
   }
 
   @Method()
-  getDistinctFromDataset(datasetName: string, key: string): Promise<any[]> {
+  getDistinctFromDataset(datasetName: string, key: string): Promise<unknown[]> {
     // TODO: add caching
     // @ts-ignore
     return Promise.resolve(this.distinct(getDataset(datasetName) || [], key));
@@ -31,7 +31,7 @@ export class EditorCompanion {
     return <Fragment></Fragment>;
   }
 
-  private distinct(data: object[], key: string): any[] {
+  private distinct(data: object[], key: string): unknown[] {
     return [...new Set(data.map((d) => d[key]))].filter(Boolean); // TODO: refine filter ("", 0 also removed
   }
 }

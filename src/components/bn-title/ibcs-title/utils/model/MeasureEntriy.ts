@@ -14,7 +14,7 @@ export class MeasureEntry {
 export class MeasureEntryAdapter implements IAdapter<MeasureEntry> {
   construnctor() {}
 
-  adapt(data: any): MeasureEntry {
+  adapt(data: Record<string, unknown>): MeasureEntry {
     const entry: MeasureEntry = new MeasureEntry();
 
     if (CompareUtil.isString(data.name)) {

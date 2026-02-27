@@ -279,7 +279,7 @@ export class Grid {
     const startCol = this.shouldShowRowHeaders() ? 2 : 1;
     const startRow = (this.chartTitle ? 1 : 0) + (this.shouldShowColumnHeaders() ? 1 : 0) + 1;
 
-    const cells: any[] = [];
+    const cells: HTMLElement[] = [];
 
     if (this.gridConfig.rows.length > 0 && this.gridConfig.columns.length > 0) {
       this.gridConfig.rows.forEach((row, rowIndex) => {

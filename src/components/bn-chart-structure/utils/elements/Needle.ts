@@ -18,6 +18,7 @@ export class Needle {
   private position: ElementPositions;
   private label: Label | null = null;
   private scenarioGroup: G;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private barStyles: any;
   private styles: StructureChartStyle;
   private barGroup: G;
@@ -91,6 +92,7 @@ export class Needle {
     const scenarioStyle: SVGStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle()); // TODO: JHE: Fix duplicates
 
     const strokeStyle = scenarioStyle.stroke;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let fillStyle: any = scenarioStyle.fill;
 
     const pattern = this.barStyles[this.dataPoint.getScenario() as string];
@@ -138,6 +140,7 @@ export class Needle {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private drawNeedleHead(fillStyle: any, strokeStyle: string) {
     if (this.dimensions === null) {
       return;

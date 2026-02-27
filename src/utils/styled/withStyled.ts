@@ -32,6 +32,7 @@ const subscribe = (el: HTMLElement) => {
   observer.observe(el, { attributes: true, attributeFilter: attributesNames, childList: false, subtree: false });
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const withStyled = (component: any) => {
   const cstrConnectedCallback = component["connectedCallback"];
   const cstrDisconnectedCallback = component["disconnectedCallback"];

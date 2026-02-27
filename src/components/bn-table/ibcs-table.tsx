@@ -64,7 +64,7 @@ export class IbcsTable {
   };
 
   @Prop()
-  categorythereof: Map<string, any> = new Map();
+  categorythereof: Map<string, Record<string, unknown>[]> = new Map();
 
   @Prop()
   type: TableType = TableType.LIST;
@@ -259,6 +259,7 @@ export class IbcsTable {
       const defaultFc = { stroke: "#404040", fill: "#ffffff", fillpattern: "hatched" };
       const defaultPl = { stroke: "#404040", fill: "#ffffff", fillpattern: "outlined" };
 
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       return {
         positive: {
           stroke: varianceStyles?.pos?.stroke || defaultPos.stroke,
@@ -297,6 +298,7 @@ export class IbcsTable {
             fillpattern: (barStyles?.pl as any)?.fillpattern || defaultPl.fillpattern,
           },
         },
+        /* eslint-enable @typescript-eslint/no-explicit-any */
         fontColor: $["global"]?.["fontColor"] || "#000000",
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor,
         fontFamily: $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",

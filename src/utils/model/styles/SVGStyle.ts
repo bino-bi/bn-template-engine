@@ -13,7 +13,7 @@ export class SVGStyle {
 }
 
 export class SVGStyleAdapter implements IAdapter<SVGStyle> {
-  adapt(data: any): SVGStyle {
+  adapt(data: Record<string, unknown>): SVGStyle {
     const style = new SVGStyle(data.stroke, data.fill, data.width);
 
     if (CompareUtil.isString(data.fillpattern)) {

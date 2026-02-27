@@ -1,5 +1,5 @@
 export class DataUriUtil {
-  public static dataURItoObject(dataURI: string): any {
+  public static dataURItoObject(dataURI: string): unknown {
     // Split the Data URI into its parts
     const parts = dataURI.split(",");
     // Check if Data URI is in correct format

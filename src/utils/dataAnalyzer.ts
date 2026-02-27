@@ -52,7 +52,7 @@ export class DataAnalyzer {
   private static unitsGreat = ["k", "M", "G", "T", "P", "E", "Z", "Y"];
   private static unitsLeast = ["m", "my", "n", "p", "P", "f", "a", "z", "y"];
 
-  static calculateMeasureScale(data: any[], scenarios: string[], mode: string | null): SiPrefix {
+  static calculateMeasureScale(data: Record<string, unknown>[], scenarios: string[], mode: string | null): SiPrefix {
     if (mode === "_") {
       return new SiPrefix();
     }
