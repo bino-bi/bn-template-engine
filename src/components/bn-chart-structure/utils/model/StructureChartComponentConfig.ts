@@ -1,15 +1,4 @@
 
-// import { IAdapter } from "../../../../utils/helper/IAdapter";
-// import { CompareUtil } from "../../../../utils/helper/CompareUtil";
-// import { StringAdapter } from "../../../../utils/helper/StringAdapter";
-// import { Order, OrderAdapter } from "../../../../utils/model/Order";
-// import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
-// import { StructureChartDataRow, StructureChartDataRowAdapter } from "./StructureChartDataRow";
-// import {AggregationLevel, IDataFormatDigits} from "@bino-bi/ibcs-component-interface";
-// import { DataFormatDigitsAdapter } from "../../../../utils/model/DataFormatDigits";
-// import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
-// import { SiPrefix } from "../../../../utils/model/SiPrefix";
-
 import { AggregationLevel, StackBy, StackMode, StackOrder } from "../../../../utils/constants";
 import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";

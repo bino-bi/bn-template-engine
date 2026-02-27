@@ -46,7 +46,6 @@
     "jest": "^29.7.0",
     "jest-cli": "^29.7.0",
     "puppeteer": "23.7.1",
-    "sonarqube-scanner": "^4.3.2",
     "standard-version": "^9.5.0",
     "storybook": "^8.4.5",
     "typescript": "^5.9.3"
@@ -56,12 +55,10 @@
     "@corex/deepmerge": "^4.0.43",
     "@emotion/hash": "^0.9.2",
     "@svgdotjs/svg.js": "^3.2.5",
-    "@types/lodash": "^4.17.21",
     "alasql": "^4.16.0",
     "calculate-size": "^1.1.1",
     "leaflet": "^1.9.4",
     "leaflet-gpx": "^2.2.0",
-    "lodash": "^4.17.21",
     "luxon": "^3.7.2",
     "nanoid": "^5.1.6",
     "xlsx": "^0.18.5"

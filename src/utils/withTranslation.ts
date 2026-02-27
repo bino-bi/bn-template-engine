@@ -1,6 +1,5 @@
 import { default as context } from "../stores/context"
 import { default as locales, on } from "../stores/internationalization"
-import * as _ from "lodash";
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 
@@ -54,7 +53,8 @@ const withTranslation = (component: any) => {
       currentNamespace = "_system";
     }
 
-    return _.template(locales[currentNamespace][context.locale][key], { interpolate: /{{([\s\S]+?)}}/g })(data);
+    const tpl = locales[currentNamespace][context.locale][key];
+    return tpl.replace(/{{([\s\S]+?)}}/g, (_: string, k: string) => data?.[k.trim()] ?? '');
   };
 
   return { t }

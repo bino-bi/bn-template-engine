@@ -2,8 +2,6 @@ import {TableRow} from "../elements";
 import {TableRowType, TableType} from "../model";
 import {DataQuery} from "../helper"
 
-// import {QueryColumnNames, VarianceScenario} from "../../../../utils/model";
-// import {Formatter} from "../../../../utils";
 import {TableDataRow} from "../model/TableDataRow";
 import {TableComponentConfig} from "../model/TableComponentConfig";
 import { Formatter } from "../../../../utils";
@@ -11,8 +9,6 @@ import { I18nMode, DataFormat, TableCategoryWidth } from "../../../../utils/cons
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
-// import {SiPrefix} from "../../../../utils/model/SiPrefix";
-// import {DataFormat, I18nMode, TableCategoryWidth} from "@bino-bi/ibcs-component-interface";
 
 export class TableDataSetFactory {
 

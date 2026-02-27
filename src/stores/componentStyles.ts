@@ -2,9 +2,6 @@ import { createStore } from "@stencil/store";
 import { ScaleFactorsTimeChart } from "../components/bn-chart-time/utils/model";
 import { SVGStyleGroup, SVGVariancesStyleGroup } from "../utils/model";
 import { ScaleFactorsStructureChart } from "../components/bn-chart-structure/utils/model";
-// import {SVGStyleGroup, SVGVariancesStyleGroup} from "@bino-bi/ibcs-component/dist/types/utils/model";
-
-// import {IScaleFactorsStructureChart, IScaleFactorsTimeChart} from "@bino-bi/ibcs-component-interface";
 
 export interface TreeStyle {
   edgeColor: string;

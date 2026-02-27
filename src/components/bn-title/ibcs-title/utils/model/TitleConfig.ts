@@ -1,7 +1,3 @@
-// import { IAdapter } from "../../../../utils/helper/IAdapter";
-// import { CompareUtil } from "../../../../utils/helper/CompareUtil";
-
-// import { OrderAdapter } from "../../../../utils/model/Order";
 import { I18nMode } from "../../../../../utils/constants";
 import { AdapterUtils } from "../../../../../utils/helper/AdapterUtils";
 import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
@@ -10,9 +6,6 @@ import { StringAdapter } from "../../../../../utils/helper/StringAdapter";
 import { Order, OrderAdapter } from "../../../../../utils/model/Order";
 import { MeasureEntry, MeasureEntryAdapter } from "./MeasureEntriy";
 import { TimePeriod, TimePeriodAdapter } from "./TimePeriod";
-// import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
-// import { StringAdapter } from "../../../../utils/helper/StringAdapter";
-// import {I18nMode, IOrder} from "@bino-bi/ibcs-component-interface";
 
 export class TitleConfig {
   businessunit: string = '';

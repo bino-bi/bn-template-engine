@@ -11,14 +11,10 @@ import alasql from "alasql";
 
 import CalculateSize from 'calculate-size';
 
-// import { Formatter } from "../../../utils";
-// import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
-// import { Order } from "../../../utils/model/Order";
 import { StackConfigParsed, TimeChartComponentConfig } from "./model/TimeChartComponentConfig";
 import { TimeChartStyle } from "./model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChart } from "./model/styles/ScaleFactorsTimeChart";
 import { TimeChartDataRow } from "./model/TimeChartDataRow";
-//import { DateStringFactory } from "../../../utils/DateStringFactory";
 import { DateTime } from "luxon";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
 import { AggregationLevel, AxisLabelsMode, ChartMode, StackBy, StackMode } from "../../../utils/constants";
@@ -29,11 +25,6 @@ import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
-// import { DataAnalyzer } from "../../../utils/dataAnalyzer";
-// import { AggregationLevel, AxisLabelsMode, DateDistance, IDataFormatDigits } from "@bino-bi/ibcs-component-interface";
-// import { VisualisationRuleSet } from "../../ibcs-table/utils/model";
-// import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
-// import { SiPrefix } from "../../../utils/model/SiPrefix";
 
 
 enum FactoryState {

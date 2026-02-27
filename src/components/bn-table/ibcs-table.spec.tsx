@@ -12,13 +12,6 @@ import {IbcsTable} from "./ibcs-table";
 import {OrderDirection, TableType} from "./utils/model";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from '../../utils/constants';
 import { Order, OrderColumn } from '../../utils/model/Order';
-/*mport {
-  DataFormat,
-  I18nMode, IOrder,
-  MeasureType,
-  OrderColumn,
-  TableCategoryWidth
-} from "@bino-bi/ibcs-component-interface";*/
 
 describe("IBCS Table Test", () => {
   //FIXME: DataRow

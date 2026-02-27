@@ -1,14 +1,6 @@
 import { Component, Element, h, Host, Prop } from "@stencil/core";
 import { StructureChart } from "./utils/StructureChart";
 import { CustomPattern } from "./utils/helper";
-/*import {
-  AggregationLevel,
-  IDataFormatDigits,
-  IOrder,
-  IStructureChartDataRow, IStructureChartStyles,
-  OrderDirection
-} from "@bino-bi/ibcs-component-interface";
-*/
 import {
   StructureChartComponentConfig,
   StructureChartComponentConfigAdapter,
@@ -16,8 +8,6 @@ import {
 } from "./utils/model";
 import { StackConfigParsed } from "./utils/model/StructureChartComponentConfig";
 import { StructureChartDataRowAdapter } from "./utils/model";
-//import { StringAdapter } from "./utils/helper/StringAdapter";
-//import { OrderAdapter } from "../../utils/model/Order";
 import { ScaleFactorsStructureChartAdapter } from "./utils/model";
 //import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
 //import { SVGStyleGroupAdapter } from "../../utils/model/styles/SVGStyleGroup";

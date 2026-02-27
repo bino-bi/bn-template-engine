@@ -2,17 +2,6 @@ import {Component, h} from "@stencil/core";
 
 import { MeasureType, I18nMode, TableCategoryWidth, TableType } from "../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../utils/model/Order";
-// import {TableType, OrderDirection} from "../components/ibcs-table/utils/model";
-/*import {
-  I18nMode,
-  IOrder,
-  MeasureType,
-  OrderColumn,
-  TableCategoryWidth
-} from "@bino-bi/ibcs-component-interface";
-*/
-
-//import {I18nMode, TableType} from "./ibcs-chart-structure/utils/model";
 
 @Component({
   tag: "test-runner-table",

@@ -5,9 +5,6 @@ import { Marker } from "./utils/model/Marker";
 import { GpxLayer } from "./utils/model/GpxLayer";
 import { GeoJsonLayer } from "./utils/model/GeoJsonLayer";
 import { ComponentStatus } from "../../../utils/componentRegister";
-// import { ComponentStatus } from "@bino-bi/ibcs-component-interface";
-// import { DataUriUtil } from "../../utils/DataUriUtil";
-// import { GeoJSON } from "geojson";
 
 
 

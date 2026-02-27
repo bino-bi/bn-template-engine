@@ -15,10 +15,6 @@ import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../utils/mod
 import { Order, OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./TimeChartDataRow";
-// import {AggregationLevel, AxisLabelsMode, DateDistance, IDataFormatDigits} from "@bino-bi/ibcs-component-interface";
-// import { SiPrefix } from "../../../../utils/model/SiPrefix";
-// import { DataFormatDigitsAdapter } from "../../../../utils/model/DataFormatDigits";
-//import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 
 export interface StackConfigParsed {
   by: StackBy;

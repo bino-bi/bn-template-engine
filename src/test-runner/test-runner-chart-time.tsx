@@ -1,7 +1,6 @@
 import {Component, h} from "@stencil/core";
 import {SVGPolgonPattern} from "../utils/model";
 import { DateDistance } from "../utils/DateStringFactory";
-// import {DateDistance} from "@bino-bi/ibcs-component-interface";
 @Component({
   tag: "test-runner-chart-time",
 })

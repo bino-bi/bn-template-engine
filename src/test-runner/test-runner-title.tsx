@@ -1,5 +1,4 @@
 import {h, Component} from "@stencil/core";
-// import {DateDistance, DateLink, IOrder, OrderDirection} from "@bino-bi/ibcs-component-interface";
 import {DateTime} from "luxon";
 import { Order, OrderDirection } from "../utils/model/Order";
 import { DateDistance, DateLink } from "../utils/DateStringFactory";

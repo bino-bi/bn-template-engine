@@ -1,6 +1,5 @@
 import { Component, h, Host, Listen, Prop, State, Watch } from '@stencil/core';
 import { isValidBoolean, isValidNumber, validateGpxType, validateMarkerType, validateGeojsonType } from "../../utils/validate";
-import { isEmpty, isString } from "lodash";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withDataset from "../../utils/withDataset";
@@ -8,8 +7,6 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { ComponentRegister } from '../../utils/componentRegister';
 import { generateUUID } from '../../utils/utils';
 import { Marker } from './ibcs-map/utils/model/Marker';
-//import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
-//import { ComponentStatus } from '@bino-bi/ibcs-component-interface';
 
 
 type GpxParams = {
@@ -79,7 +76,7 @@ export class BnMap {
   validateMarkerDatasetName(newValue: number) {
     const errId: string = 'ERR_markersDatasetName';
 
-    if (!isString(newValue)) {
+    if (typeof newValue !== 'string') {
       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'markerDatasetName: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
@@ -96,7 +93,7 @@ export class BnMap {
   validateGpxsDatasetName(newValue: number) {
     const errId: string = 'ERR_gpxsDatasetName';
 
-    if (!isString(newValue)) {
+    if (typeof newValue !== 'string') {
       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'gpxsDatasetName: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
@@ -198,7 +195,7 @@ export class BnMap {
   validateAttribution(newValue: string) {
     const errId: string = 'ERR_attribution';
 
-    if (!isString(newValue)) {
+    if (typeof newValue !== 'string') {
       this.errors.addOrReplace({
         id: errId,
         type: 'warning',
@@ -219,7 +216,7 @@ export class BnMap {
   validateTileLayer(newValue: string) {
     const errId: string = 'ERR_tileLayer';
 
-    if (!isString(newValue)) {
+    if (typeof newValue !== 'string') {
       this.errors.addOrReplace({ id: errId, type: 'warning', message: 'tileLayer: invalid value(s) \'' + newValue + '\' are not supported.' });
     } else {
       this.errors.remove(errId);
@@ -239,7 +236,7 @@ export class BnMap {
 
   @Watch('markers')
   validateMarkers(newValue: string | null) {
-    if (isEmpty(newValue)) {
+    if (!newValue) {
       return;
     }
     const errId: string = 'ERR_markers';
@@ -274,7 +271,7 @@ export class BnMap {
   @Watch('gpxs')
   validateGpx(newValue: string | null) {
 
-    if (isEmpty(newValue)) {
+    if (!newValue) {
       return;
     }
     const errId: string = 'ERR_gpxs';
@@ -299,7 +296,7 @@ export class BnMap {
   @Watch('geojsons')
   validateGeojson(newValue: string | null) {
 
-    if (isEmpty(newValue)) {
+    if (!newValue) {
       return;
     }
     const errId: string = 'ERR_geojsons';
