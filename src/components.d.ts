@@ -5,8 +5,8 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { LayoutDirection } from "./components/bn-chart-tree/utils/TreeLayout";
-import { EdgeStyleType } from "./components/bn-chart-tree/utils/EdgeRenderer";
+import { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
+import { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 import { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
 import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { Order } from "./utils/model/Order";
@@ -26,8 +26,8 @@ import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGro
 import { TableType } from "./components/bn-table/utils/model";
 import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
-export { LayoutDirection } from "./components/bn-chart-tree/utils/TreeLayout";
-export { EdgeStyleType } from "./components/bn-chart-tree/utils/EdgeRenderer";
+export { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
+export { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 export { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
 export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 export { Order } from "./utils/model/Order";
@@ -771,6 +771,37 @@ export namespace Components {
          */
         "variances": string;
     }
+    interface BnTree {
+        /**
+          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+          * @default 'ltr'
+         */
+        "direction": LayoutDirection;
+        /**
+          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+          * @default 'orthogonal'
+         */
+        "edgeStyle": EdgeStyleType;
+        /**
+          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+         */
+        "edges": string;
+        /**
+          * Spacing between hierarchy levels in pixels.
+          * @default 60
+         */
+        "levelSpacing": number;
+        /**
+          * Spacing between sibling nodes in pixels.
+          * @default 20
+         */
+        "nodeSpacing": number;
+        /**
+          * Show operator labels between sibling nodes.
+          * @default 'true'
+         */
+        "showOperators": string;
+    }
     interface EditorCompanion {
         "getDistinctFromDataSource": (dataSourceName: string, key: string) => Promise<any[]>;
         "getDistinctFromDataset": (datasetName: string, key: string) => Promise<any[]>;
@@ -1324,6 +1355,12 @@ declare global {
         prototype: HTMLBnTitleElement;
         new (): HTMLBnTitleElement;
     };
+    interface HTMLBnTreeElement extends Components.BnTree, HTMLStencilElement {
+    }
+    var HTMLBnTreeElement: {
+        prototype: HTMLBnTreeElement;
+        new (): HTMLBnTreeElement;
+    };
     interface HTMLEditorCompanionElement extends Components.EditorCompanion, HTMLStencilElement {
     }
     var HTMLEditorCompanionElement: {
@@ -1438,6 +1475,7 @@ declare global {
         "bn-template": HTMLBnTemplateElement;
         "bn-text": HTMLBnTextElement;
         "bn-title": HTMLBnTitleElement;
+        "bn-tree": HTMLBnTreeElement;
         "editor-companion": HTMLEditorCompanionElement;
         "ibcs-chart-structure": HTMLIbcsChartStructureElement;
         "ibcs-chart-time": HTMLIbcsChartTimeElement;
@@ -2177,6 +2215,37 @@ declare namespace LocalJSX {
          */
         "variances"?: string;
     }
+    interface BnTree {
+        /**
+          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+          * @default 'ltr'
+         */
+        "direction"?: LayoutDirection;
+        /**
+          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+          * @default 'orthogonal'
+         */
+        "edgeStyle"?: EdgeStyleType;
+        /**
+          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+         */
+        "edges": string;
+        /**
+          * Spacing between hierarchy levels in pixels.
+          * @default 60
+         */
+        "levelSpacing"?: number;
+        /**
+          * Spacing between sibling nodes in pixels.
+          * @default 20
+         */
+        "nodeSpacing"?: number;
+        /**
+          * Show operator labels between sibling nodes.
+          * @default 'true'
+         */
+        "showOperators"?: string;
+    }
     interface EditorCompanion {
     }
     interface IbcsChartStructure {
@@ -2589,6 +2658,7 @@ declare namespace LocalJSX {
         "bn-template": BnTemplate;
         "bn-text": BnText;
         "bn-title": BnTitle;
+        "bn-tree": BnTree;
         "editor-companion": EditorCompanion;
         "ibcs-chart-structure": IbcsChartStructure;
         "ibcs-chart-time": IbcsChartTime;
@@ -2631,6 +2701,7 @@ declare module "@stencil/core" {
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
             "bn-text": LocalJSX.BnText & JSXBase.HTMLAttributes<HTMLBnTextElement>;
             "bn-title": LocalJSX.BnTitle & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
+            "bn-tree": LocalJSX.BnTree & JSXBase.HTMLAttributes<HTMLBnTreeElement>;
             "editor-companion": LocalJSX.EditorCompanion & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
             "ibcs-chart-structure": LocalJSX.IbcsChartStructure & JSXBase.HTMLAttributes<HTMLIbcsChartStructureElement>;
             "ibcs-chart-time": LocalJSX.IbcsChartTime & JSXBase.HTMLAttributes<HTMLIbcsChartTimeElement>;

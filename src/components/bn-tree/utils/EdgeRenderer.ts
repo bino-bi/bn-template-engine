@@ -1,5 +1,5 @@
 /**
- * Edge Renderer utility for bn-chart-tree component
+ * Edge Renderer utility for bn-tree component
  * Handles SVG path generation for connecting tree nodes
  */
 

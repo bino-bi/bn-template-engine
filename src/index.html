@@ -43,7 +43,7 @@
       {"setName":"de","date":"2022-03-01","operation":"+","rowGroup":"Afrika","rowGroupIndex":1,"category":"Getraenke","categoryIndex":3,"subCategory":"A","subCategoryIndex":1,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":160,"ac1":195,"pl1":170,"fc1":180,"ac2":5,"pp2":9,"fc2":9,"pl2":7,"ac3":4,"pp3":8,"fc3":8,"pl3":6,"ac4":3,"pp4":6,"fc4":6,"pl4":5},
       {"setName":"de","date":"2022-04-01","operation":"+","rowGroup":"Afrika","rowGroupIndex":1,"category":"Getraenke","categoryIndex":3,"subCategory":"A","subCategoryIndex":1,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":158,"ac1":188,"pl1":168,"fc1":176,"ac2":4,"pp2":8,"fc2":8,"pl2":6,"ac3":3,"pp3":7,"fc3":7,"pl3":5,"ac4":2,"pp4":5,"fc4":5,"pl4":4},
       {"setName":"de","date":"2022-05-01","operation":"+","rowGroup":"Afrika","rowGroupIndex":1,"category":"Getraenke","categoryIndex":3,"subCategory":"A","subCategoryIndex":1,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":165,"ac1":205,"pl1":175,"fc1":190,"ac2":6,"pp2":10,"fc2":10,"pl2":8,"ac3":5,"pp3":9,"fc3":9,"pl3":7,"ac4":4,"pp4":7,"fc4":7,"pl4":6},
-      {"setName":"de","date":"2022-06-01","operation":"+","rowGroup":"Afrika","rowGroupIndex":1,"category":"Getraenke","categoryIndex":3,"subCategory":"A","subCategoryIndex":1,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":170,"ac1":220,"pl1":180,"fc1":200,"ac2":7,"pp2":11,"fc2":11,"pl2":9,"ac3":6,"pp3":10,"fc3":10,"pl3":8,"ac4":5,"pp4":8,"fc4":8,"pl4":7},
+      {"setName":"de","date":"2022-06-01","operation":"+","rowGroup":"Afrika","rowGroupIndex":1,"category":"Getraenke","categoryIndex":3,"subCategory":"B","subCategoryIndex":2,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":170,"ac1":220,"pl1":180,"fc1":200,"ac2":7,"pp2":11,"fc2":11,"pl2":9,"ac3":6,"pp3":10,"fc3":10,"pl3":8,"ac4":5,"pp4":8,"fc4":8,"pl4":7},
 
       {"setName":"de","date":"2022-01-01","operation":"+","rowGroup":"Amerika","rowGroupIndex":2,"category":"Logis","categoryIndex":1,"subCategory":"B","subCategoryIndex":2,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":300,"ac1":350,"pl1":320,"fc1":340,"ac2":8,"pp2":14,"fc2":14,"pl2":10,"ac3":5,"pp3":10,"fc3":10,"pl3":7,"ac4":3,"pp4":8,"fc4":8,"pl4":5},
       {"setName":"de","date":"2022-02-01","operation":"+","rowGroup":"Amerika","rowGroupIndex":2,"category":"Logis","categoryIndex":1,"subCategory":"B","subCategoryIndex":2,"columnGroup":null,"columnGroupIndex":null,"columnSubGroup":null,"columnSubGroupIndex":null,"pp1":310,"ac1":370,"pl1":330,"fc1":355,"ac2":9,"pp2":15,"fc2":15,"pl2":11,"ac3":6,"pp3":11,"fc3":11,"pl3":8,"ac4":4,"pp4":9,"fc4":9,"pl4":6},
@@ -133,9 +133,14 @@
     <bn-page format="a5">
       <!-- <bn-chart-structure datasets='$Charts_Time' scenarios="ac1,pp1" unit-scaling='auto' scale="auto"></bn-chart-structure> -->
 
-      <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
-        show-overlay-avg='false' scale="1" unit-scaling='auto'></bn-chart-time>
-
+      <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
+        show-overlay-avg='false' scale="1" unit-scaling='auto'></bn-chart-time> -->
+      <bn-table datasets="$Charts_Time" order="ac1" order-direction="desc" measure-scale="k" measure-type="currency"
+        measure-unit="EUR" grouped="true" show-group-title="true" show-measure-scale="true" limit="4" type="sum"
+        scenarios="ac1,fc1,pl1,pp1" variances="drac1_fc1_pos" bar-columns="ac1" unit-scaling="0.001"
+        percentage-scaling="0.5" thereof='[{"rowGroup":"Afrika","category":"Getraenke","subCategory":"A"}]'
+        partof='[{"rowGroup":null,"category":"Logis"}]'
+        columnthereof='[{"scenario":"ac1","name":null,"subGroups": ["A","B"]}]'></bn-table>
     </bn-page>
     <!-- <bn-page> -->
     <!-- <bn-table scale="auto" datasets='$Charts_Time' table-title='Revenue Overview' scenarios='ac1,pp1,fc1,pl1'

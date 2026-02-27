@@ -1,5 +1,5 @@
 /**
- * Tree Layout utility for bn-chart-tree component
+ * Tree Layout utility for bn-tree component
  * Handles level assignment and grid positioning for tree nodes
  */
 

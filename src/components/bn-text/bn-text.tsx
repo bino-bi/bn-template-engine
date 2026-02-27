@@ -13,11 +13,12 @@ const ALLOWED_TAGS = new Set([
   'br', 'b', 'i', 'strong', 'em', 'span', 'p', 'div',
   'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot',
   'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'sub', 'sup', 'small', 'hr', 'a',
+  'sub', 'sup', 'small', 'hr', 'a', 'img',
 ]);
 
 const ALLOWED_ATTRS = new Set([
   'class', 'style', 'colspan', 'rowspan', 'href', 'title',
+  'src', 'alt', 'width', 'height',
 ]);
 
 const DANGEROUS_PATTERN = /\b(__proto__|globalThis)\b|\.constructor\b/;
@@ -41,7 +42,7 @@ function sanitizeNode(node: Node): void {
       const name = attr.name.toLowerCase();
       if (name.startsWith('on') || !ALLOWED_ATTRS.has(name)) {
         el.removeAttribute(attr.name);
-      } else if (name === 'href' && /^\s*javascript:/i.test(attr.value)) {
+      } else if ((name === 'href' || name === 'src') && /^\s*javascript:/i.test(attr.value)) {
         el.removeAttribute(attr.name);
       } else if (name === 'style' && /expression|javascript/i.test(attr.value)) {
         el.removeAttribute(attr.name);

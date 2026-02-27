@@ -1,5 +1,5 @@
 /**
- * Tree Parser utility for bn-chart-tree component
+ * Tree Parser utility for bn-tree component
  * Handles JSON parsing and validation for tree edge configurations
  */
 
