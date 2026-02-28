@@ -3,6 +3,15 @@ import { G, Pattern, Svg } from "@svgdotjs/svg.js";
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGPolgonPattern } from "../../../../utils/model";
 
+/**
+ * Generates SVG diagonal-line hatching patterns for forecast (FC) scenario bars.
+ *
+ * Creates a 10x10 SVG <pattern> tile with diagonal lines using the FC bar style colors.
+ * The resulting pattern is used as the fill for FC columns/bars to visually distinguish
+ * forecast data from actual data per IBCS conventions (hatched = forecast, solid = actual).
+ *
+ * bgOffset is computed from font size to center the foreground shape within the background.
+ */
 export class CustomPattern {
   bgOffset: number;
   styles: TimeChartStyle;

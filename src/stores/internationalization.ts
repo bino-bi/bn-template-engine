@@ -1,6 +1,25 @@
+/**
+ * Reactive store for internationalized labels and symbols.
+ *
+ * Organized by namespace (`_system` ships built-in `de`/`en` bundles). Each
+ * bundle is a flat key-value map produced by `flattenObject()` from a nested
+ * `{ namespace: { key: label } }` structure, yielding keys like `"bn-table.SUM_TOTAL"`.
+ *
+ * **Token pattern**: Variance symbols use `{%}` as a placeholder for the
+ * scenario abbreviation. For example, `"Δ{%}"` becomes `"ΔPY"` when the
+ * comparison scenario is "PY". The `{%}` replacement is performed at render
+ * time by the `withTranslation` mixin.
+ *
+ * @module stores/internationalization
+ */
 import { createStore } from "@stencil/store";
 import flattenObject from "../utils/flattenObject";
 
+/**
+ * Keys that are treated as global (not namespace-scoped) across all components.
+ * Includes scenario abbreviations (ac1..pl4), sort-order arrows, and IBCS
+ * variance symbols with the `{%}` token for scenario substitution.
+ */
 const globalLabelKeys = [
   "ORDER_asc",
   "ORDER_desc",

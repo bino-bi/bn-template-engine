@@ -1,6 +1,7 @@
 import { IAdapter } from "../helper/IAdapter";
 import { CompareUtil } from "../helper/CompareUtil";
 
+/** SI metric prefix for number scaling (e.g. prefix="M", value=1000000 divides displayed values by one million). */
 export class SiPrefix {
   constructor(
     public prefix: string = "",

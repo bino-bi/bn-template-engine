@@ -25,6 +25,13 @@ import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
 import { DateDistance, DateLink } from "../../utils/DateStringFactory";
 import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
 
+/**
+ * Composes an IBCS-compliant report title block.
+ *
+ * Renders business unit, scenario labels, measure names with units, a
+ * formatted date/time period, and sort-order indicators as a structured
+ * header. Delegates the actual layout to the inner `ibcs-title` element.
+ */
 @Component({
   tag: "bn-title",
   styleUrl: "bn-title.scss",

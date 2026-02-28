@@ -23,6 +23,7 @@ import { MarkerPattern } from "../../helper/MarkerPattern";
 import { ScaleFactorsTimeChart, ScaleFactorsTimeChartAdapter } from "./ScaleFactorsTimeChart";
 // import { SVGPolgonPattern } from "../../../../../utils/model";
 
+/** Aggregates all style configuration for a time chart: scale factors, fonts, colors, patterns, and padding. */
 export class TimeChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
 
@@ -36,6 +37,7 @@ export class TimeChartStyle {
   ) {}
 }
 
+/** Adapts raw componentStyle JSON into a TimeChartStyle, falling back to defaults for missing properties. */
 export class TimeChartStylesAdapter implements IAdapter<TimeChartStyle> {
   constructor(
     private scaleFactorsStructureChartAdapter: ScaleFactorsTimeChartAdapter,

@@ -6,6 +6,14 @@ In bn-datasource body a json array object stores the data
 <!-- Auto Generated Below -->
 
 
+## Overview
+
+Ingests raw JSON data and writes it to the global `datasources` store.
+
+Data is provided as JSON text inside the element body (observed via
+`withBodyObserver`). Other components (e.g. `bn-dataset`) reference
+the stored data by the `name` prop to run queries against it.
+
 ## Properties
 
 | Property            | Attribute | Description                                    | Type     | Default     |

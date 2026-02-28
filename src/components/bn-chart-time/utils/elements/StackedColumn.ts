@@ -8,6 +8,20 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StackMode } from "../../../../utils/constants";
 import { getStackFill, getStackStroke } from "../../../../utils/stackColors";
 
+/**
+ * Renders a single segment within a stacked bar column in a time chart.
+ *
+ * Each StackedColumn represents one layer of the stack. It is positioned vertically
+ * based on its cumulative baseline value and draws a colored rectangle.
+ *
+ * Supports three stacking modes:
+ * - ABSOLUTE: segment height = value * pixelPerUnit
+ * - RELATIVE (100%): segment height proportional to its share of totalValue
+ * - ABSOLUTE_RELATIVE: same as absolute but labels show percentages
+ *
+ * Segment labels are shown only when the segment is tall enough (>= 18px) to avoid clutter.
+ * The topmost segment can draw a total label above the full stack via drawTotalLabel().
+ */
 export class StackedColumn {
   private readonly position: ElementPositions;
   private readonly styles: TimeChartStyle;

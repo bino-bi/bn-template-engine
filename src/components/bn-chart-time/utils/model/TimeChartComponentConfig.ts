@@ -23,24 +23,39 @@ import { Order, OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./TimeChartDataRow";
 
+/** Parsed stacking configuration for multi-scenario bar/area charts. */
 export interface StackConfigParsed {
   by: StackBy;
   mode: StackMode;
   order: StackOrder;
 }
 
+/**
+ * Configuration for an IBCS time-series chart component.
+ *
+ * Controls the vertical scale, date interval detection, axis labelling,
+ * and chart rendering mode (bar, line, etc.).
+ */
 export class TimeChartComponentConfig {
+  /** Variance column identifiers (e.g. `["d_ac1_pl1_pos"]`) for delta visualizations. */
   public variances: string[] = [];
   public title: string = "";
   public hideAxisLabels: boolean = false;
+  /** Vertical scale factor: pixels per one data unit. Controls bar/line height. */
   public pixelPerUnit: number = 10;
+  /** Vertical scale factor for percentage variances: pixels per 1.0 (=100%). */
   public pixelPerPercentage: number = 50;
+  /** Maximum data points to display; 0 means unlimited. */
   public limit: number = 0;
   public sortOrder: Order = new OrderAdapter(new StringAdapter()).default();
   public level: AggregationLevel = AggregationLevel.CATEGORY;
+  /** Pixel offset from left edge for horizontal alignment across multiple charts. -1 disables sync. */
   public leftSideOffsetForHorizontalSync: number = -1;
+  /** Date granularity (year, quarter, month, etc.). AUTO auto-detects from data. */
   public dateInterval: DateDistance = DateDistance.AUTO;
+  /** Controls how axis labels are rendered; SMART suppresses overlapping labels. */
   public axisLabelsMode: AxisLabelsMode = AxisLabelsMode.SMART;
+  /** Maximum number of date intervals before the chart truncates or scrolls. */
   public intervalSpanLimit: number = 28;
   public filter: string = "";
   public measureScale: SiPrefix = new SiPrefix();
@@ -50,8 +65,10 @@ export class TimeChartComponentConfig {
   public showOverlayMedian: boolean = true;
   public showOverlayAvg: boolean = true;
   public chartMode: ChartMode = ChartMode.BAR;
+  /** Maximum number of bars to render before truncating; prevents visual overload. */
   public maxBars: number = 28;
   public stackConfig: StackConfigParsed | null = null;
+  /** When true, line charts extend to the full width of the chart area. */
   public lineFullWidth: boolean = true;
   constructor(
     public data: TimeChartDataRow[],
@@ -59,6 +76,11 @@ export class TimeChartComponentConfig {
   ) {}
 }
 
+/**
+ * Converts untyped JSON into a validated {@link TimeChartComponentConfig}.
+ *
+ * Requires the raw dataset for measure scale auto-calculation.
+ */
 export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartComponentConfig> {
   constructor(
     private dataRowAdapter: TimeChartDataRowAdapter,

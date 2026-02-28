@@ -4,6 +4,17 @@ import { TableType } from "../model";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { QueryColumnNames } from "../../../../utils/model";
 
+/**
+ * Manages the GROUP BY column list for DataQuery's SQL statements and registers
+ * the `transformOperator` AlaSQL custom function.
+ *
+ * `transformOperator` converts the dataset's `operation` field (`"+"` or `"-"`)
+ * into a numeric multiplier (+1 / -1) so that SUM aggregations correctly add
+ * or subtract rows based on their sign.
+ *
+ * The GROUP BY columns are composed dynamically: always category + categoryIndex,
+ * plus operation for OPT types, plus rowGroup/rowGroupIndex when grouping is active.
+ */
 export class QueryGroups {
   private groups: string[];
 
@@ -11,9 +22,6 @@ export class QueryGroups {
     alasql.fn.transformOperator = function (a) {
       return a == "-" ? -1 : 1;
     };
-
-    // prepares category names usesd for query depending on config
-    // grpips RAW is a array of Gorups while groups are
 
     this.groups = [QueryColumnNames.CATEGORY as string, QueryColumnNames.CATEGORYINDEX as string];
 

@@ -2,6 +2,14 @@ import { Scenario } from "../model";
 import { ElementPositions } from "../helper";
 import { G, Svg } from "@svgdotjs/svg.js";
 
+/**
+ * Renders the horizontal baseline axis for a time chart.
+ *
+ * The axis line spans from the left padding to the end of the data area.
+ * A CSS class based on the scenario type (e.g. "axis-ac", "axis-pp") is applied
+ * to control stroke style (solid for AC, dashed for FC, etc. per IBCS rules).
+ * An optional title label (e.g. "AC" or variance expression) is drawn above the axis.
+ */
 export class Axis {
   private scenarioType: Scenario;
 

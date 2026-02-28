@@ -4,12 +4,24 @@
 import { DataFormatDigits } from "../../../../components";
 import { Formatter } from "../../../../utils";
 
+/** Min/max statistics for a single data column, used to scale inline bar charts. */
 export interface ColumnStats {
   min: number;
   max: number;
   absMax: number;
 }
 
+/**
+ * Represents a single table cell with formatting and rendering capabilities.
+ *
+ * The draw() method implements a formatting pipeline:
+ * 1. Checks for undefined/null/NaN values -- returns empty string for missing data
+ * 2. Non-numeric values (category labels) are returned as-is
+ * 3. Numeric values are routed through Formatter.number() with the cell's type
+ *    (decimal or percent) and configured digit precision
+ * 4. For decimal type, the raw value is divided by measureScale before formatting,
+ *    enabling SI prefix display (e.g. "in Mio EUR")
+ */
 export class Cell {
   key: string;
   index: number;

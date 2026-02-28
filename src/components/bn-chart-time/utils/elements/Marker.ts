@@ -7,6 +7,16 @@ import { ElementPositions } from "../helper";
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGPolgonPattern } from "../../../../utils/model";
 
+/**
+ * Renders a diamond/triangle marker indicator for PP or PL reference values in a time chart.
+ *
+ * Markers are small polygon shapes (defined by SVGPolgonPattern) positioned at the
+ * data point's scaled value height. They consist of a white background polygon for
+ * contrast and a foreground polygon with scenario-specific fill/stroke.
+ *
+ * Primary markers appear to the left of the column center; secondary markers to the right.
+ * Each carries an optional scenario label that is drawn at the marker's data level.
+ */
 export class Marker {
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";

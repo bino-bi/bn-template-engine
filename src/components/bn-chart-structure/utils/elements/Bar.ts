@@ -13,6 +13,18 @@ import { SVGStyleGroup } from "../../../../utils/model/styles/SVGStyleGroup";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
+/**
+ * Renders a horizontal bar in an IBCS structure chart (the horizontal equivalent of Column).
+ *
+ * Positive values extend rightward from the vertical axis; negative values extend leftward.
+ * Data labels are placed to the right of positive bars and to the left of negative bars.
+ *
+ * Overflow handling mirrors the Column's broken-bar algorithm but on the horizontal axis:
+ * when a bar exceeds the effective cut width, it is split into a base segment and an
+ * overdrive segment separated by vertical zigzag break indicators.
+ *
+ * Primary bars (AC foreground) carry data labels; secondary bars (PP background) do not.
+ */
 export class Bar {
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";
@@ -156,6 +168,7 @@ export class Bar {
     this.drawScenarioLabel();
   }
 
+  /** Draws a broken bar: base segment + break gap + overdrive segment (horizontal). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private drawOverdriveBar(fillStyle: any, strokeStyle: any): void {
     if (!this.barGroup || !this.overflowConfig) return;
@@ -202,6 +215,7 @@ export class Bar {
     }
   }
 
+  /** Draws left and right vertical zigzag lines to indicate a broken axis (horizontal bars). */
   private drawBreakIndicator(breakX: number, breakGap: number): void {
     if (!this.barGroup) return;
 
@@ -243,6 +257,10 @@ export class Bar {
     this.barGroup.path(rightPath).fill("none").stroke({ color: "#000000", width: 1 });
   }
 
+  /**
+   * Computes the pixel geometry for the bar: position, length, label anchors.
+   * Handles three cases: overflow (broken bar), negative value, and normal positive.
+   */
   private createDimensions(
     position: ElementPositions,
     dataPoint: DataPoint,

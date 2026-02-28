@@ -2,6 +2,7 @@ import { Pattern } from "@svgdotjs/svg.js";
 import { ScaleFactorsStructureChart } from "../../components/bn-chart-structure/utils/model";
 import { ScaleFactorsTimeChart } from "../../components/bn-chart-time/utils/model";
 
+/** Resolved chart styling configuration combining scale factors, fonts, scenario colors, and SVG patterns. */
 export interface BinoChartSyles {
   scaleFactors: ScaleFactorsTimeChart | ScaleFactorsStructureChart | null;
   fontStyles: {
@@ -23,6 +24,11 @@ export interface BinoChartSyles {
   pattern: Map<string, SVGPolgonPattern>;
 }
 
+/**
+ * IBCS scenario visual encoding for SVG elements.
+ * Each key maps to the standard IBCS rendering:
+ * ac=solid dark, fc=hatched, pp=light gray, pl=outlined.
+ */
 export interface SVGStyleGroup {
   ac: SVGStyle;
   fc: SVGStyle;
@@ -32,6 +38,7 @@ export interface SVGStyleGroup {
   [index: string]: SVGStyle;
 }
 
+/** IBCS traffic-light coloring for variance bars: pos=favorable (green), neg=unfavorable (red), neu=neutral. */
 export interface SVGVariancesStyleGroup {
   pos: SVGStyle;
   neg: SVGStyle;
@@ -40,9 +47,11 @@ export interface SVGVariancesStyleGroup {
   [index: string]: SVGStyle;
 }
 
+/** SVG polygon fill pattern definition — used for forecast (FC) hatching with foreground/background layers. */
 export interface SVGPolgonPattern {
   foreground: string;
   background: string;
+  /** Vertical offset between foreground and background polygon layers. */
   bgOffset: number;
   pattern?: Pattern;
 }

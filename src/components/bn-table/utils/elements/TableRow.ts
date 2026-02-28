@@ -2,6 +2,22 @@ import { TableCategoryWidth } from "../../../../utils/constants";
 import { TableRowType } from "../model";
 import { Cell, ColumnStats } from "./Cell";
 
+/**
+ * Represents a single row in an IBCS table, containing an ordered list of Cells.
+ *
+ * The CSS class is determined by the TableRowType:
+ * - HEADER -> "groupheader"
+ * - SEPERATORLINE -> "" (styled via cell-level scenario classes)
+ * - DRILLELEMENT -> "ofit" (thereof rows)
+ * - PARTELEMENT -> "partof" (percentage-of-parent rows)
+ * - SUM -> "sum"
+ * - STANDARD -> ""
+ *
+ * createElement() applies type-specific overrides:
+ * - HEADER rows force "headerlabel" CSS on all cells
+ * - SEPERATORLINE rows use the scenario name as CSS class for border styling
+ * - PARTELEMENT rows show "-" for percent cells and force percent type on data cells
+ */
 export class TableRow {
   index: number;
   groupindex: number;

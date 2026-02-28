@@ -13,6 +13,15 @@ import { SVGStyle } from "../../../../utils/model";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
+/**
+ * Renders a line segment connecting two consecutive DataPoints in a time chart.
+ *
+ * Each Line instance represents the segment from a previous data point to the current one.
+ * Dimensions for both endpoints are computed so the SVG line can be drawn between them.
+ * The primary line (first scenario) receives the scenario label at the end of the series.
+ *
+ * Used by the overlay layer (average/median lines), not by the main LineSeries rendering.
+ */
 export class Line {
   private readonly ID_DATA_PREFIX: string = "DATA";
   private readonly ID_SCENARIO_PREFIX: string = "SCENARIO";

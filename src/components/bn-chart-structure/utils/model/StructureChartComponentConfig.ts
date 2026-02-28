@@ -9,23 +9,37 @@ import { Order, OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StructureChartDataRow, StructureChartDataRowAdapter } from "./StructureChartDataRow";
 
+/** Parsed stacking configuration for multi-scenario bar charts. */
 export interface StackConfigParsed {
   by: StackBy;
   mode: StackMode;
   order: StackOrder;
 }
 
+/**
+ * Configuration for an IBCS structural (categorical) bar chart component.
+ *
+ * Controls the vertical scale, category visibility, and chart rendering parameters
+ * for charts where the x-axis represents categories rather than time periods.
+ */
 export class StructureChartComponentConfig {
+  /** Variance column identifiers (e.g. `["d_ac1_pl1_pos"]`) for delta visualizations. */
   public variances: string[] = [];
   public title: string = "";
+  /** When true, category labels on the y-axis are hidden. */
   public hideCategories: boolean = false;
+  /** Vertical scale factor: pixels per one data unit. Controls bar height. */
   public pixelPerUnit: number = 10;
+  /** Vertical scale factor for percentage variances: pixels per 1.0 (=100%). */
   public pixelPerPercentage: number = 50;
+  /** Maximum data points to display; 0 means unlimited. */
   public limit: number = 0;
   public sortOrder: Order = new OrderAdapter(new StringAdapter()).default();
   public level: AggregationLevel = AggregationLevel.CATEGORY;
   public filter: string = "";
+  /** SI prefix for measure scaling (e.g. "k" for thousands, "M" for millions). */
   public measureScale: SiPrefix = new SiPrefix();
+  /** Unit label displayed alongside the chart (e.g. "EUR", "USD"). */
   public measureUnit: string = "";
   public showMeasureScale: boolean = true;
   public dataFormatDigits: DataFormatDigits = { decimal: 1, percent: 2 };
@@ -37,6 +51,11 @@ export class StructureChartComponentConfig {
   ) {}
 }
 
+/**
+ * Converts untyped JSON into a validated {@link StructureChartComponentConfig}.
+ *
+ * Requires the raw dataset for measure scale auto-calculation.
+ */
 export class StructureChartComponentConfigAdapter implements IAdapter<StructureChartComponentConfig> {
   constructor(
     private dataRowAdapter: StructureChartDataRowAdapter,

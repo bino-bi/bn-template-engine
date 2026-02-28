@@ -11,6 +11,17 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
 import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 
+/**
+ * Transforms raw query results into structured TableRow collections for header and body.
+ *
+ * Header normalization: prepends fixed columns (operation, category) to the configured
+ * scenarios, then translates labels via i18n and adds separator rows for IBCS-style borders.
+ *
+ * Body row creation: iterates DataQuery results grouped by rowGroup, creates detail rows
+ * with type-specific logic (GROUPHEAD, SUM, DRILLELEMENT, PARTELEMENT, ENTRY), and
+ * translates cell values/prefixes via i18n. Supports inline bar chart columns via
+ * columnStats calculation.
+ */
 export class TableDataSetFactory {
   private normalizedHeader: { name: string; group: string; type: string; order: string | undefined }[] = [];
 

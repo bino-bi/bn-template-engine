@@ -5,6 +5,13 @@ import { G, Svg } from "@svgdotjs/svg.js";
 import { HookLocation, Label } from "./Label";
 // import {HookLocation} from "../../../ibcs-chart-time/utils/elements";
 
+/**
+ * Renders the vertical baseline axis for a structure chart.
+ *
+ * The axis line runs vertically from top to bottom of the data area.
+ * A CSS class based on the scenario type (e.g. "axis-ac") controls stroke style.
+ * An optional title label is drawn at the top of the axis.
+ */
 export class Axis {
   scenarioType: Scenario;
   labelText: string | null;

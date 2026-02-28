@@ -3,8 +3,17 @@ import { Scenario, VisualisationRuleSet } from "../components/bn-table/utils/mod
 import { VarianceScenario } from "./model/VarianceScenario";
 
 /**
- * Ruleset defines styles and formats used for IBCS-Charts
- * Implements IBVS 1.2
+ * IBCS rule set defining scenario→style mappings per IBCS notation standard v1.2.
+ *
+ * Color indices encode IBCS visual encoding:
+ * - 10 = AC: solid dark fill
+ * - 20 = PP: light gray fill
+ * - 30 = FC: hatched pattern fill
+ * - 50 = PL: outlined (no fill)
+ *
+ * Sort indices determine column display order: PP(100s) < PL(200s) < FC(300s) < AC(400s).
+ * Variance columns add +1000 (absolute) or +2000 (relative) to the base sort index.
+ * Within each group, variant number (1-4) adds multiples of 10.
  */
 export class IBCSRuleSet implements VisualisationRuleSet {
   public readonly _dateFormat = {
@@ -101,6 +110,10 @@ export class IBCSRuleSet implements VisualisationRuleSet {
     }
   }
 
+  /**
+   * Strips the base scenario from a variance column name, returning type+delta for sort index lookup.
+   * Example: `"dac1_pl1_pos"` → `"dpl1"`, `"drac1_pl1_neg"` → `"drpl1"`
+   */
   normalizeVarianceScenario(scenario: string | undefined): string {
     if (scenario === null || scenario === undefined) {
       return "";

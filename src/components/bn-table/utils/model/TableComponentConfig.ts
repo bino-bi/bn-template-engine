@@ -10,29 +10,62 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TableType } from "./index";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./TableDrillGroup";
 
+/**
+ * Configuration for an IBCS table component.
+ *
+ * Controls table behavior including drill-down groups, data formatting, and display modes.
+ *
+ * Drill-down concepts:
+ * - **thereOf** -- Sub-rows that break down a parent row's total (e.g. "thereof: domestic / international").
+ *   Configured as an array of {@link TableDrillGroup} filters.
+ * - **partOf** -- Rows shown as a percentage share of a parent total.
+ *   Also configured via {@link TableDrillGroup} filters.
+ * - **categoryThereOf** -- Column-level drill-down using the `##` separator convention in category names
+ *   (e.g. `"Revenue##Product A"`) to expand a single category column into detail sub-columns.
+ *   The Map key is the parent category, values are the detail records.
+ */
 export class TableComponentConfig {
   public title: string = "";
+  /** Active scenario column names (e.g. `["ac1", "pl1"]`). */
   public scenarios: string[] = [];
+  /** Number format for scenario values (decimal, percent, etc.). */
   public scenariosUnitType: DataFormat = DataFormat.DECIMAL;
+  /** When true, rows are visually grouped by rowGroup. */
   public grouped: boolean = false;
   public showGroupTitle: boolean = true;
+  /** Drill-down sub-row definitions -- "thereof" breakdowns within a category. */
   public thereOf: TableDrillGroup[] = [];
+  /** Column-level drill-down using `##` separator in category names. */
   public categoryThereOf: Map<string, Record<string, unknown>[]> = new Map();
+  /** Percentage-of-total sub-row definitions. */
   public partOf: TableDrillGroup[] = [];
   public order: Order = new OrderAdapter(new StringAdapter()).default(); // FIXME Rename to sortOrder
+  /** Table aggregation mode: LIST (flat), SUM (with totals), OPT (with optional totals), etc. */
   public type: TableType = TableType.LIST;
+  /** Maximum rows to display; 0 means unlimited. */
   public limit: number = 0;
   public i18n: I18nMode = I18nMode.ALL;
+  /** Proportion of table width allocated to the category label column. */
   public categoryWidth: TableCategoryWidth = TableCategoryWidth.W25;
+  /** SI prefix for measure scaling (e.g. "k" for thousands, "M" for millions). */
   public measureScale: SiPrefix = new SiPrefix();
+  /** Unit label displayed in the table header (e.g. "EUR", "USD"). */
   public measureUnit: string = "";
+  /** Whether the measure represents a volume or a ratio, affecting formatting. */
   public measureType: MeasureType = MeasureType.VOLUME;
   public showMeasureScale: boolean = true;
+  /** AlaSQL WHERE clause for additional row filtering. */
   public filter: string = "";
+  /** Scenario columns to render as inline bar charts instead of numbers. */
   public barColumns: string[] = [];
   constructor() {}
 }
 
+/**
+ * Converts untyped JSON into a validated {@link TableComponentConfig}.
+ *
+ * Requires the raw dataset for measure scale auto-calculation when `measureScale` is set to "auto".
+ */
 export class TableComponentConfigAdapter implements IAdapter<TableComponentConfig> {
   constructor(
     private tableDrillGroupAdapter: TableDrillGroupAdapter,

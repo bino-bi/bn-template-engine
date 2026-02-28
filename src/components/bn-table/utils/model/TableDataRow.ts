@@ -4,30 +4,55 @@
 import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../utils/helper/IAdapter";
 
+/**
+ * IBCS-compliant data row for table visualizations.
+ *
+ * Represents a single record with a three-level row hierarchy (rowGroup > category > subCategory),
+ * a two-level column hierarchy (columnGroup > columnSubGroup), and 16 scenario value slots across
+ * four scenario types: actual (ac1-4), previous period (pp1-4), forecast (fc1-4), and plan (pl1-4).
+ *
+ * The {@link operation} field controls how this row participates in aggregations:
+ * `"+"` adds and `"-"` subtracts the row's values. This is converted to a numeric multiplier
+ * by `transformOperator()` in the SQL query engine.
+ */
 export class TableDataRow {
+  /** Aggregation operator: `"+"` adds values, `"-"` subtracts them in SUM/OPT roll-ups. */
   public operation: string = "+";
+
+  // --- Three-level row hierarchy ---
   public rowGroup: string | null | undefined;
+  /** Sort/display order within the row group level. */
   public rowGroupIndex: number | null | undefined;
   public category: string | null | undefined;
+  /** Sort/display order within the category level. */
   public categoryIndex: number | null | undefined;
   public subCategory: string | null | undefined;
+  /** Sort/display order within the sub-category level. */
   public subCategoryIndex: number | null | undefined;
+
+  // --- Two-level column hierarchy ---
   public columnGroup: string | null | undefined;
   public columnGroupIndex: number | null | undefined;
   public columnSubGroup: string | null | undefined;
   public columnSubGroupIndex: number | null | undefined;
+
+  // --- IBCS scenario slots (4 per type) ---
+  /** Actual values (ac1-ac4) -- reported/measured figures. */
   public ac1: number | null | undefined;
   public ac2: number | null | undefined;
   public ac3: number | null | undefined;
   public ac4: number | null | undefined;
+  /** Previous period values (pp1-pp4) -- prior year/period comparisons. */
   public pp1: number | null | undefined;
   public pp2: number | null | undefined;
   public pp3: number | null | undefined;
   public pp4: number | null | undefined;
+  /** Forecast values (fc1-fc4) -- projected/estimated figures. */
   public fc1: number | null | undefined;
   public fc2: number | null | undefined;
   public fc3: number | null | undefined;
   public fc4: number | null | undefined;
+  /** Plan/budget values (pl1-pl4) -- target figures. */
   public pl1: number | null | undefined;
   public pl2: number | null | undefined;
   public pl3: number | null | undefined;
@@ -61,6 +86,12 @@ export class TableDataRow {
   }
 }
 
+/**
+ * Converts untyped JSON records into validated {@link TableDataRow} instances.
+ *
+ * Only assigns fields that pass type validation via {@link CompareUtil}, so malformed
+ * input data is silently dropped and defaults are preserved.
+ */
 export class TableDataRowAdapter implements IAdapter<TableDataRow> {
   constructor() {}
 

@@ -9,6 +9,17 @@ import alasql from "alasql";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { Order } from "../../../components";
 
+/**
+ * High-level controller for IBCS table generation.
+ *
+ * Coordinates the data pipeline: raw data is filtered via AlaSQL, scenarios are
+ * sorted by the visualization rule set, and TableDataSetFactory produces the
+ * header rows (with i18n-translated labels) and body rows (with grouped/drilled data).
+ *
+ * Uses a dirty-flag pattern (FactoryState) to lazily regenerate header/body rows
+ * only when configuration, data, or i18n changes. getHeader() and getBody() trigger
+ * regeneration if the state is dirty.
+ */
 export class Table {
   private ruleSet: VisualisationRuleSet;
   private config: TableComponentConfig;

@@ -5,6 +5,7 @@ export * from "./styles/StructureChartStyle";
 export * from "./styles/ScaleFactorsStructureChart";
 export * from "./OverflowConfig";
 
+/** A single table cell for the chart's internal tabular data representation. */
 export interface Cell {
   value?: number | string;
   cssStyle?: string;
@@ -12,6 +13,10 @@ export interface Cell {
   colSpan?: number;
 }
 
+/**
+ * A chart element within a row, supporting origin value and optional
+ * "of-it" (thereof) and "share" (part-of) sub-cells.
+ */
 export interface Element {
   key: string;
   index: number;
@@ -20,10 +25,13 @@ export interface Element {
   colSpan?: number;
 
   origin: Cell;
+  /** Thereof breakdown cell. */
   ofit?: Cell;
+  /** Percentage share cell. */
   share?: Cell;
 }
 
+/** A rendered row in the chart's tabular sub-component. */
 export interface Row {
   index: number;
   groupindex: number;
@@ -32,6 +40,13 @@ export interface Row {
   elements: Element[];
 }
 
+/**
+ * IBCS scenario enumeration for structural charts.
+ *
+ * Includes all 16 scenario slots (4 each of ac, pp, fc, pl) plus three
+ * variance direction markers: POS (positive/favorable), NEG (negative/unfavorable),
+ * NEU (neutral).
+ */
 export enum Scenario {
   AC1 = "ac1",
   PP1 = "pp1",
@@ -49,17 +64,22 @@ export enum Scenario {
   PP4 = "pp4",
   FC4 = "fc4",
   PL4 = "pl4",
+  /** Positive/favorable variance (rendered in green per IBCS). */
   POS = "pos",
+  /** Negative/unfavorable variance (rendered in red per IBCS). */
   NEG = "neg",
+  /** Neutral variance (rendered in grey per IBCS). */
   NEU = "neu",
 }
 
+/** Chart-internal table aggregation modes. */
 export enum TableType {
   LIST = "LIST",
   SUM = "SUM",
   OPT = "OPT",
 }
 
+/** Axis-aligned bounding box for label collision detection in chart rendering. */
 export interface CollisionBox {
   x: number;
   y: number;
@@ -82,12 +102,18 @@ export interface Data {
   count: number;
 }
 
+/**
+ * Pre-calculated layout dimensions for a single structural chart bar.
+ * Used by the SVG renderer to position bars, labels, and scenario indicators.
+ */
 export interface StructureChartDimension {
+  /** Horizontal length of the data bar in pixels. */
   barLength: number;
   xPos: number;
   yPos: number;
   labelXPos: number;
   scenarioLabelXPos: number;
   scenarioLabelYPos: number;
+  /** True if the value was clipped by the percentage threshold. */
   clipped: boolean;
 }

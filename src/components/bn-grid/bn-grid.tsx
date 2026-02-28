@@ -7,6 +7,12 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style, GridStyle } from "../../stores/componentStyles";
 import { GridConfig, parseGridConfig, getSlotName, validateHeadersJson } from "./utils/GridConfig";
 
+/**
+ * CSS Grid layout container with optional row/column headers.
+ *
+ * Child components are placed into named slots (`row-col` convention).
+ * Supports configurable borders, title, and header visibility.
+ */
 @Component({
   tag: "bn-grid",
   styleUrl: "bn-grid.scss",

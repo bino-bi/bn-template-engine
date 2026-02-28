@@ -1,5 +1,6 @@
 import { DatasetMeta, DimensionMeta, ScenarioMeta, DateRangeMeta } from "./model/DatasetMeta";
 
+/** All recognized IBCS scenario column keys: actual (ac1-4), previous period (pp1-4), forecast (fc1-4), plan (pl1-4). */
 const SCENARIO_KEYS = [
   "ac1",
   "ac2",
@@ -19,12 +20,14 @@ const SCENARIO_KEYS = [
   "pl4",
 ];
 
+/** Hierarchical dimension fields from coarsest (rowGroup) to finest (columnSubGroup). */
 const DIMENSION_FIELDS = ["rowGroup", "category", "subCategory", "columnGroup", "columnSubGroup"] as const;
 
 function isNumericValue(val: unknown): val is number {
   return typeof val === "number" && !isNaN(val) && isFinite(val);
 }
 
+/** Converts a Set of collected distinct values into a {@link DimensionMeta} summary. */
 function buildDimensionMeta(values: Set<string>): DimensionMeta {
   const distinctValues = Array.from(values);
   return {
@@ -34,6 +37,20 @@ function buildDimensionMeta(values: Set<string>): DimensionMeta {
   };
 }
 
+/**
+ * Computes metadata for a dataset in a single O(n) pass over all rows.
+ *
+ * Collects:
+ * - **Dimensions**: distinct values per dimension field (using Sets for deduplication)
+ * - **Scenarios**: presence flag, min/max values for each scenario column
+ * - **Date range**: min/max date strings and distinct date count
+ * - **Suggested defaults**: `suggestedLevel` is the deepest populated dimension
+ *   (subCategory > category > rowGroup), `suggestedOrder` mirrors it,
+ *   and `suggestedDateInterval` is "auto" when date data exists.
+ *
+ * This function is called by bn-dataset whenever data changes and the result is
+ * stored in the datasetsMeta store for consumption by visualization components.
+ */
 export function calculateDatasetMeta(data: Record<string, unknown>[]): DatasetMeta {
   const dimensionSets: Record<string, Set<string>> = {};
   for (const field of DIMENSION_FIELDS) {

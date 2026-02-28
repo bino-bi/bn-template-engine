@@ -7,6 +7,7 @@ export enum OrderDirection {
   DESC = "desc",
 }
 
+/** Valid columns for ORDER BY in AlaSQL queries — includes hierarchy dimensions and all 16 scenario slots. */
 export enum OrderColumn {
   ROWGROUP = "rowGroup",
   ROWGROUPINDEX = "rowGroupIndex",
@@ -33,6 +34,10 @@ export enum OrderColumn {
 }
 
 export class Order {
+  /**
+   * @param hierarchy Columns for multi-level sorting, applied left-to-right (e.g. `["rowGroup", "category"]`).
+   * @param direction Sort direction applied to all hierarchy levels.
+   */
   constructor(
     public hierarchy: string[] = ["category"],
     public direction: OrderDirection = OrderDirection.ASC,

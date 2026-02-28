@@ -4,8 +4,15 @@ import { DateTime } from "luxon";
 import { IAdapter } from "../../../../utils/helper/IAdapter";
 import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 
+/**
+ * IBCS-compliant data row for time-series chart visualizations.
+ *
+ * Extends the standard table data row schema with a Luxon {@link DateTime} field for temporal
+ * positioning on the x-axis. Shares the same three-level row hierarchy, two-level column hierarchy,
+ * and 16 scenario value slots as {@link TableDataRow}.
+ */
 export class TimeChartDataRow {
-  // public setName: string;
+  /** Parsed date for x-axis placement. Stored as a Luxon DateTime for interval arithmetic. */
   public date: DateTime | undefined;
   public operation: string = "+";
   public rowGroup: string | null | undefined;
@@ -63,6 +70,12 @@ export class TimeChartDataRow {
   }
 }
 
+/**
+ * Converts untyped JSON records into validated {@link TimeChartDataRow} instances.
+ *
+ * Parses the `date` field from an ISO 8601 string into a Luxon DateTime.
+ * Invalid dates are silently dropped (field remains undefined).
+ */
 export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
   constructor() {}
 

@@ -2,6 +2,21 @@ import { Box, DataPoint, Point2D, ScaleFactorsStructureChart } from "../model";
 
 import { Padding } from "./Padding";
 
+/**
+ * Spatial layout engine for the structure chart (horizontal bars).
+ *
+ * Converts logical data model coordinates (bar index, data values) into pixel positions
+ * for all chart elements. All spacings are derived from the font size multiplied by
+ * ScaleFactorsStructureChart factors.
+ *
+ * Key coordinate reference points:
+ * - getBarPositionX(): the X coordinate of the vertical axis baseline
+ * - getBarCenterPositionY(index): center Y for the bar at the given category index
+ * - getAxisPositionX(): axis X accounting for left-side labels and padding
+ *
+ * The layout accounts for: padding, left-side label space (title, category names,
+ * negative-value labels), scenario offsets, and marker positioning above/below bars.
+ */
 export class ElementPositions {
   categoryPosition: Point2D = { x: 0, y: 0 };
   axisPosition: Point2D;

@@ -41,6 +41,16 @@ enum AggregationLevel {
   SUBCATEGORYINDEX = "subCategoryIndex",
 }
 
+/**
+ * SVG time-series chart following IBCS standards.
+ *
+ * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+ * line charts with up to four scenario layers, optional variance sub-charts,
+ * stacking, and proportional auto-scaling. Date normalization and interval
+ * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+ * is performed by the inner `ibcs-chart-time` element; this outer component
+ * validates props, resolves auto-detected metadata, and computes styles.
+ */
 @Component({
   tag: "bn-chart-time",
   styleUrl: "bn-chart-time.scss",
@@ -64,6 +74,10 @@ export class Chart {
   @Prop()
   chartTitle: string = "";
 
+  /**
+   * AlaSQL WHERE clause fragment injected into the data query to filter
+   * rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
+   */
   @Prop()
   filter: string = "";
 
@@ -181,9 +195,9 @@ export class Chart {
 
   /**
    * Name of the 'scaling-group' which the chart uses
-   * scalig groups are maintained globaly
+   * scaling groups are maintained globally
    * <br /> <br />
-   * alternativly a number which represent the
+   * alternatively a number which represent the
    * pixel per measure unit.
    */
   @Prop() unitScaling!: string | number;
@@ -205,9 +219,9 @@ export class Chart {
 
   /**
    * Name of the 'scaling-group' which the chart uses
-   * scalig groups are maintained globaly
+   * scaling groups are maintained globally
    * <br /> <br />
-   * alternativly a number which represent the
+   * alternatively a number which represent the
    * pixel per percentage.
    */
   @Prop() percentageScaling!: string | number;

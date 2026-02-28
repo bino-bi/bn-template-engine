@@ -58,6 +58,15 @@ export namespace Components {
     }
     interface BnCard {
     }
+    /**
+     * SVG structure (categorical) bar chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
+     * charts grouped by category, with up to four scenario layers, optional
+     * variance sub-charts, stacking, and proportional auto-scaling (height-
+     * based). The heavy SVG rendering is performed by the inner
+     * `ibcs-chart-structure` element; this outer component validates props,
+     * resolves auto-detected metadata, and computes styles.
+     */
     interface BnChartStructure {
         /**
           * Custom chart title
@@ -65,6 +74,7 @@ export namespace Components {
          */
         "chartTitle": string;
         /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
           * @default ""
          */
         "filter": string;
@@ -96,7 +106,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per percentage.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per percentage.
          */
         "percentageScaling": string | number;
         /**
@@ -123,7 +133,7 @@ export namespace Components {
          */
         "stack": string;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per measure unit.
          */
         "unitScaling": string | number;
         /**
@@ -131,6 +141,15 @@ export namespace Components {
          */
         "variances": string;
     }
+    /**
+     * SVG time-series chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+     * line charts with up to four scenario layers, optional variance sub-charts,
+     * stacking, and proportional auto-scaling. Date normalization and interval
+     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+     * is performed by the inner `ibcs-chart-time` element; this outer component
+     * validates props, resolves auto-detected metadata, and computes styles.
+     */
     interface BnChartTime {
         /**
           * Axis Labels Mode defines in which mode the labels are rendered. long, and short mode uses the long an short styles for the date smart only displays relevant information if a change/ transition occured (eg.  only on 1.Jan  the year is displayed) <br /><br /> values:<br /> ```smart // long // short```
@@ -151,6 +170,7 @@ export namespace Components {
          */
         "dateInterval": string;
         /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
           * @default ""
          */
         "filter": string;
@@ -197,7 +217,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per percentage.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per percentage.
          */
         "percentageScaling": string | number;
         /**
@@ -237,7 +257,7 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per measure unit.
          */
         "unitScaling": string | number;
         /**
@@ -285,6 +305,14 @@ export namespace Components {
     interface BnContext {
         "locale": string;
     }
+    /**
+     * Queries data from one or more `bn-datasource` entries via AlaSQL and
+     * writes the result to the `datasets` store (+ computed `DatasetMeta`).
+     * The SQL query is provided as text inside the element body (observed via
+     * `withBodyObserver`). When any referenced datasource changes, the query
+     * is re-executed automatically. Set `static="true"` to bypass the SQL
+     * engine and treat the body content as raw JSON data directly.
+     */
     interface BnDataset {
         /**
           * Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```
@@ -296,10 +324,17 @@ export namespace Components {
          */
         "name": string;
         /**
+          * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
           * @default false
          */
         "static": boolean;
     }
+    /**
+     * Ingests raw JSON data and writes it to the global `datasources` store.
+     * Data is provided as JSON text inside the element body (observed via
+     * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
+     * the stored data by the `name` prop to run queries against it.
+     */
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
@@ -326,6 +361,11 @@ export namespace Components {
          */
         "text": string;
     }
+    /**
+     * CSS Grid layout container with optional row/column headers.
+     * Child components are placed into named slots (`row-col` convention).
+     * Supports configurable borders, title, and header visibility.
+     */
     interface BnGrid {
         /**
           * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
@@ -604,6 +644,14 @@ export namespace Components {
          */
         "orientation": string;
     }
+    /**
+     * Public-facing wrapper for the IBCS table component.
+     * Accepts user-facing string/number props, validates them, and converts
+     * them into the typed internal format expected by `ibcs-table`. Handles
+     * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
+     * The actual table rendering (header, body, drill-down rows) is delegated
+     * to the inner `ibcs-table` element.
+     */
     interface BnTable {
         /**
           * List of variance column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin/dot charts. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos```
@@ -635,6 +683,7 @@ export namespace Components {
          */
         "dataFormatDigitsPercent": number;
         /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"category = 'Sales'"`).
           * @default ""
          */
         "filter": string;
@@ -733,6 +782,13 @@ export namespace Components {
          */
         "templateId": string;
     }
+    /**
+     * Renders a template-driven text block with dataset interpolation.
+     * The `value` prop is evaluated as a JavaScript template literal in a
+     * sandboxed scope (`data` and `t` are available) and sanitized against
+     * XSS before being injected as HTML. Supports auto-scaling to fit the
+     * parent container.
+     */
     interface BnText {
         /**
           * Controls font-size scaling relative to the available parent space. Scaling considers both width and height — the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
@@ -744,6 +800,12 @@ export namespace Components {
          */
         "value"?: string;
     }
+    /**
+     * Composes an IBCS-compliant report title block.
+     * Renders business unit, scenario labels, measure names with units, a
+     * formatted date/time period, and sort-order indicators as a structured
+     * header. Delegates the actual layout to the inner `ibcs-title` element.
+     */
     interface BnTitle {
         /**
           * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
@@ -791,6 +853,12 @@ export namespace Components {
          */
         "variances": string;
     }
+    /**
+     * Renders a hierarchical tree diagram with SVG edge connections.
+     * Nodes are provided as named slots; the `edges` prop defines parent-child
+     * relationships and optional arithmetic operators displayed between siblings.
+     * Layout is computed via CSS Grid with an SVG overlay for edge paths.
+     */
     interface BnTree {
         /**
           * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
@@ -822,6 +890,12 @@ export namespace Components {
          */
         "showOperators": string;
     }
+    /**
+     * Headless helper component for editor integration.
+     * Exposes public `@Method()` APIs so an external editor can query
+     * i18n keys and distinct data values from datasources/datasets at
+     * design time (e.g. for autocompletion or property pickers).
+     */
     interface EditorCompanion {
         "getDistinctFromDataSource": (dataSourceName: string, key: string) => Promise<unknown[]>;
         "getDistinctFromDataset": (datasetName: string, key: string) => Promise<unknown[]>;
@@ -1066,6 +1140,14 @@ export namespace Components {
         "tileLayer": string;
         "unSetProps": (data: Partial<IbcsMap>) => Promise<void>;
     }
+    /**
+     * Internal rendering engine for `bn-table`.
+     * Receives pre-validated, typed props from the outer `bn-table` wrapper and
+     * builds the IBCS-compliant HTML table — including header rows, scenario
+     * columns, variance columns (with optional inline bar/pin charts), thereof/
+     * partof drill-down rows, and grouped row sections. This component should
+     * not be used directly; use `bn-table` instead.
+     */
     interface IbcsTable {
         /**
           * @default []
@@ -1243,12 +1325,30 @@ declare global {
         prototype: HTMLBnCardElement;
         new (): HTMLBnCardElement;
     };
+    /**
+     * SVG structure (categorical) bar chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
+     * charts grouped by category, with up to four scenario layers, optional
+     * variance sub-charts, stacking, and proportional auto-scaling (height-
+     * based). The heavy SVG rendering is performed by the inner
+     * `ibcs-chart-structure` element; this outer component validates props,
+     * resolves auto-detected metadata, and computes styles.
+     */
     interface HTMLBnChartStructureElement extends Components.BnChartStructure, HTMLStencilElement {
     }
     var HTMLBnChartStructureElement: {
         prototype: HTMLBnChartStructureElement;
         new (): HTMLBnChartStructureElement;
     };
+    /**
+     * SVG time-series chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+     * line charts with up to four scenario layers, optional variance sub-charts,
+     * stacking, and proportional auto-scaling. Date normalization and interval
+     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+     * is performed by the inner `ibcs-chart-time` element; this outer component
+     * validates props, resolves auto-detected metadata, and computes styles.
+     */
     interface HTMLBnChartTimeElement extends Components.BnChartTime, HTMLStencilElement {
     }
     var HTMLBnChartTimeElement: {
@@ -1273,12 +1373,26 @@ declare global {
         prototype: HTMLBnContextElement;
         new (): HTMLBnContextElement;
     };
+    /**
+     * Queries data from one or more `bn-datasource` entries via AlaSQL and
+     * writes the result to the `datasets` store (+ computed `DatasetMeta`).
+     * The SQL query is provided as text inside the element body (observed via
+     * `withBodyObserver`). When any referenced datasource changes, the query
+     * is re-executed automatically. Set `static="true"` to bypass the SQL
+     * engine and treat the body content as raw JSON data directly.
+     */
     interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
     }
     var HTMLBnDatasetElement: {
         prototype: HTMLBnDatasetElement;
         new (): HTMLBnDatasetElement;
     };
+    /**
+     * Ingests raw JSON data and writes it to the global `datasources` store.
+     * Data is provided as JSON text inside the element body (observed via
+     * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
+     * the stored data by the `name` prop to run queries against it.
+     */
     interface HTMLBnDatasourceElement extends Components.BnDatasource, HTMLStencilElement {
     }
     var HTMLBnDatasourceElement: {
@@ -1291,6 +1405,11 @@ declare global {
         prototype: HTMLBnFooterElement;
         new (): HTMLBnFooterElement;
     };
+    /**
+     * CSS Grid layout container with optional row/column headers.
+     * Child components are placed into named slots (`row-col` convention).
+     * Supports configurable borders, title, and header visibility.
+     */
     interface HTMLBnGridElement extends Components.BnGrid, HTMLStencilElement {
     }
     var HTMLBnGridElement: {
@@ -1351,6 +1470,14 @@ declare global {
         prototype: HTMLBnPageElement;
         new (): HTMLBnPageElement;
     };
+    /**
+     * Public-facing wrapper for the IBCS table component.
+     * Accepts user-facing string/number props, validates them, and converts
+     * them into the typed internal format expected by `ibcs-table`. Handles
+     * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
+     * The actual table rendering (header, body, drill-down rows) is delegated
+     * to the inner `ibcs-table` element.
+     */
     interface HTMLBnTableElement extends Components.BnTable, HTMLStencilElement {
     }
     var HTMLBnTableElement: {
@@ -1363,24 +1490,49 @@ declare global {
         prototype: HTMLBnTemplateElement;
         new (): HTMLBnTemplateElement;
     };
+    /**
+     * Renders a template-driven text block with dataset interpolation.
+     * The `value` prop is evaluated as a JavaScript template literal in a
+     * sandboxed scope (`data` and `t` are available) and sanitized against
+     * XSS before being injected as HTML. Supports auto-scaling to fit the
+     * parent container.
+     */
     interface HTMLBnTextElement extends Components.BnText, HTMLStencilElement {
     }
     var HTMLBnTextElement: {
         prototype: HTMLBnTextElement;
         new (): HTMLBnTextElement;
     };
+    /**
+     * Composes an IBCS-compliant report title block.
+     * Renders business unit, scenario labels, measure names with units, a
+     * formatted date/time period, and sort-order indicators as a structured
+     * header. Delegates the actual layout to the inner `ibcs-title` element.
+     */
     interface HTMLBnTitleElement extends Components.BnTitle, HTMLStencilElement {
     }
     var HTMLBnTitleElement: {
         prototype: HTMLBnTitleElement;
         new (): HTMLBnTitleElement;
     };
+    /**
+     * Renders a hierarchical tree diagram with SVG edge connections.
+     * Nodes are provided as named slots; the `edges` prop defines parent-child
+     * relationships and optional arithmetic operators displayed between siblings.
+     * Layout is computed via CSS Grid with an SVG overlay for edge paths.
+     */
     interface HTMLBnTreeElement extends Components.BnTree, HTMLStencilElement {
     }
     var HTMLBnTreeElement: {
         prototype: HTMLBnTreeElement;
         new (): HTMLBnTreeElement;
     };
+    /**
+     * Headless helper component for editor integration.
+     * Exposes public `@Method()` APIs so an external editor can query
+     * i18n keys and distinct data values from datasources/datasets at
+     * design time (e.g. for autocompletion or property pickers).
+     */
     interface HTMLEditorCompanionElement extends Components.EditorCompanion, HTMLStencilElement {
     }
     var HTMLEditorCompanionElement: {
@@ -1417,6 +1569,14 @@ declare global {
         prototype: HTMLIbcsMapElement;
         new (): HTMLIbcsMapElement;
     };
+    /**
+     * Internal rendering engine for `bn-table`.
+     * Receives pre-validated, typed props from the outer `bn-table` wrapper and
+     * builds the IBCS-compliant HTML table — including header rows, scenario
+     * columns, variance columns (with optional inline bar/pin charts), thereof/
+     * partof drill-down rows, and grouped row sections. This component should
+     * not be used directly; use `bn-table` instead.
+     */
     interface HTMLIbcsTableElement extends Components.IbcsTable, HTMLStencilElement {
     }
     var HTMLIbcsTableElement: {
@@ -1522,6 +1682,15 @@ declare namespace LocalJSX {
     }
     interface BnCard {
     }
+    /**
+     * SVG structure (categorical) bar chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
+     * charts grouped by category, with up to four scenario layers, optional
+     * variance sub-charts, stacking, and proportional auto-scaling (height-
+     * based). The heavy SVG rendering is performed by the inner
+     * `ibcs-chart-structure` element; this outer component validates props,
+     * resolves auto-detected metadata, and computes styles.
+     */
     interface BnChartStructure {
         /**
           * Custom chart title
@@ -1529,6 +1698,7 @@ declare namespace LocalJSX {
          */
         "chartTitle"?: string;
         /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
           * @default ""
          */
         "filter"?: string;
@@ -1560,7 +1730,7 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per percentage.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per percentage.
          */
         "percentageScaling": string | number;
         /**
@@ -1587,7 +1757,7 @@ declare namespace LocalJSX {
          */
         "stack"?: string;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per measure unit.
          */
         "unitScaling": string | number;
         /**
@@ -1595,6 +1765,15 @@ declare namespace LocalJSX {
          */
         "variances": string;
     }
+    /**
+     * SVG time-series chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+     * line charts with up to four scenario layers, optional variance sub-charts,
+     * stacking, and proportional auto-scaling. Date normalization and interval
+     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+     * is performed by the inner `ibcs-chart-time` element; this outer component
+     * validates props, resolves auto-detected metadata, and computes styles.
+     */
     interface BnChartTime {
         /**
           * Axis Labels Mode defines in which mode the labels are rendered. long, and short mode uses the long an short styles for the date smart only displays relevant information if a change/ transition occured (eg.  only on 1.Jan  the year is displayed) <br /><br /> values:<br /> ```smart // long // short```
@@ -1615,6 +1794,7 @@ declare namespace LocalJSX {
          */
         "dateInterval": string;
         /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
           * @default ""
          */
         "filter"?: string;
@@ -1661,7 +1841,7 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per percentage.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per percentage.
          */
         "percentageScaling": string | number;
         /**
@@ -1701,7 +1881,7 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
-          * Name of the 'scaling-group' which the chart uses scalig groups are maintained globaly <br /> <br /> alternativly a number which represent the pixel per measure unit.
+          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per measure unit.
          */
         "unitScaling": string | number;
         /**
@@ -1749,6 +1929,14 @@ declare namespace LocalJSX {
     interface BnContext {
         "locale"?: string;
     }
+    /**
+     * Queries data from one or more `bn-datasource` entries via AlaSQL and
+     * writes the result to the `datasets` store (+ computed `DatasetMeta`).
+     * The SQL query is provided as text inside the element body (observed via
+     * `withBodyObserver`). When any referenced datasource changes, the query
+     * is re-executed automatically. Set `static="true"` to bypass the SQL
+     * engine and treat the body content as raw JSON data directly.
+     */
     interface BnDataset {
         /**
           * Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```
@@ -1760,10 +1948,17 @@ declare namespace LocalJSX {
          */
         "name": string;
         /**
+          * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
           * @default false
          */
         "static"?: boolean;
     }
+    /**
+     * Ingests raw JSON data and writes it to the global `datasources` store.
+     * Data is provided as JSON text inside the element body (observed via
+     * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
+     * the stored data by the `name` prop to run queries against it.
+     */
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
@@ -1790,6 +1985,11 @@ declare namespace LocalJSX {
          */
         "text"?: string;
     }
+    /**
+     * CSS Grid layout container with optional row/column headers.
+     * Child components are placed into named slots (`row-col` convention).
+     * Supports configurable borders, title, and header visibility.
+     */
     interface BnGrid {
         /**
           * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
@@ -2068,6 +2268,14 @@ declare namespace LocalJSX {
          */
         "orientation"?: string;
     }
+    /**
+     * Public-facing wrapper for the IBCS table component.
+     * Accepts user-facing string/number props, validates them, and converts
+     * them into the typed internal format expected by `ibcs-table`. Handles
+     * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
+     * The actual table rendering (header, body, drill-down rows) is delegated
+     * to the inner `ibcs-table` element.
+     */
     interface BnTable {
         /**
           * List of variance column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin/dot charts. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos```
@@ -2099,6 +2307,7 @@ declare namespace LocalJSX {
          */
         "dataFormatDigitsPercent"?: number;
         /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"category = 'Sales'"`).
           * @default ""
          */
         "filter"?: string;
@@ -2197,6 +2406,13 @@ declare namespace LocalJSX {
          */
         "templateId"?: string;
     }
+    /**
+     * Renders a template-driven text block with dataset interpolation.
+     * The `value` prop is evaluated as a JavaScript template literal in a
+     * sandboxed scope (`data` and `t` are available) and sanitized against
+     * XSS before being injected as HTML. Supports auto-scaling to fit the
+     * parent container.
+     */
     interface BnText {
         /**
           * Controls font-size scaling relative to the available parent space. Scaling considers both width and height — the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
@@ -2208,6 +2424,12 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
+    /**
+     * Composes an IBCS-compliant report title block.
+     * Renders business unit, scenario labels, measure names with units, a
+     * formatted date/time period, and sort-order indicators as a structured
+     * header. Delegates the actual layout to the inner `ibcs-title` element.
+     */
     interface BnTitle {
         /**
           * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
@@ -2255,6 +2477,12 @@ declare namespace LocalJSX {
          */
         "variances"?: string;
     }
+    /**
+     * Renders a hierarchical tree diagram with SVG edge connections.
+     * Nodes are provided as named slots; the `edges` prop defines parent-child
+     * relationships and optional arithmetic operators displayed between siblings.
+     * Layout is computed via CSS Grid with an SVG overlay for edge paths.
+     */
     interface BnTree {
         /**
           * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
@@ -2286,6 +2514,12 @@ declare namespace LocalJSX {
          */
         "showOperators"?: string;
     }
+    /**
+     * Headless helper component for editor integration.
+     * Exposes public `@Method()` APIs so an external editor can query
+     * i18n keys and distinct data values from datasources/datasets at
+     * design time (e.g. for autocompletion or property pickers).
+     */
     interface EditorCompanion {
     }
     interface IbcsChartStructure {
@@ -2527,6 +2761,14 @@ declare namespace LocalJSX {
          */
         "tileLayer"?: string;
     }
+    /**
+     * Internal rendering engine for `bn-table`.
+     * Receives pre-validated, typed props from the outer `bn-table` wrapper and
+     * builds the IBCS-compliant HTML table — including header rows, scenario
+     * columns, variance columns (with optional inline bar/pin charts), thereof/
+     * partof drill-down rows, and grouped row sections. This component should
+     * not be used directly; use `bn-table` instead.
+     */
     interface IbcsTable {
         /**
           * @default []
@@ -2721,14 +2963,51 @@ declare module "@stencil/core" {
             "bn-asset": LocalJSX.BnAsset & JSXBase.HTMLAttributes<HTMLBnAssetElement>;
             "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
             "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
+            /**
+             * SVG structure (categorical) bar chart following IBCS standards.
+             * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
+             * charts grouped by category, with up to four scenario layers, optional
+             * variance sub-charts, stacking, and proportional auto-scaling (height-
+             * based). The heavy SVG rendering is performed by the inner
+             * `ibcs-chart-structure` element; this outer component validates props,
+             * resolves auto-detected metadata, and computes styles.
+             */
             "bn-chart-structure": LocalJSX.BnChartStructure & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;
+            /**
+             * SVG time-series chart following IBCS standards.
+             * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+             * line charts with up to four scenario layers, optional variance sub-charts,
+             * stacking, and proportional auto-scaling. Date normalization and interval
+             * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+             * is performed by the inner `ibcs-chart-time` element; this outer component
+             * validates props, resolves auto-detected metadata, and computes styles.
+             */
             "bn-chart-time": LocalJSX.BnChartTime & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
             "bn-chart-tree": LocalJSX.BnChartTree & JSXBase.HTMLAttributes<HTMLBnChartTreeElement>;
             "bn-component-style": LocalJSX.BnComponentStyle & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
+            /**
+             * Queries data from one or more `bn-datasource` entries via AlaSQL and
+             * writes the result to the `datasets` store (+ computed `DatasetMeta`).
+             * The SQL query is provided as text inside the element body (observed via
+             * `withBodyObserver`). When any referenced datasource changes, the query
+             * is re-executed automatically. Set `static="true"` to bypass the SQL
+             * engine and treat the body content as raw JSON data directly.
+             */
             "bn-dataset": LocalJSX.BnDataset & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
+            /**
+             * Ingests raw JSON data and writes it to the global `datasources` store.
+             * Data is provided as JSON text inside the element body (observed via
+             * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
+             * the stored data by the `name` prop to run queries against it.
+             */
             "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
+            /**
+             * CSS Grid layout container with optional row/column headers.
+             * Child components are placed into named slots (`row-col` convention).
+             * Supports configurable borders, title, and header visibility.
+             */
             "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-image": LocalJSX.BnImage & JSXBase.HTMLAttributes<HTMLBnImageElement>;
             "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
@@ -2737,15 +3016,56 @@ declare module "@stencil/core" {
             "bn-map": LocalJSX.BnMap & JSXBase.HTMLAttributes<HTMLBnMapElement>;
             "bn-message": LocalJSX.BnMessage & JSXBase.HTMLAttributes<HTMLBnMessageElement>;
             "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
+            /**
+             * Public-facing wrapper for the IBCS table component.
+             * Accepts user-facing string/number props, validates them, and converts
+             * them into the typed internal format expected by `ibcs-table`. Handles
+             * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
+             * The actual table rendering (header, body, drill-down rows) is delegated
+             * to the inner `ibcs-table` element.
+             */
             "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;
             "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
+            /**
+             * Renders a template-driven text block with dataset interpolation.
+             * The `value` prop is evaluated as a JavaScript template literal in a
+             * sandboxed scope (`data` and `t` are available) and sanitized against
+             * XSS before being injected as HTML. Supports auto-scaling to fit the
+             * parent container.
+             */
             "bn-text": LocalJSX.BnText & JSXBase.HTMLAttributes<HTMLBnTextElement>;
+            /**
+             * Composes an IBCS-compliant report title block.
+             * Renders business unit, scenario labels, measure names with units, a
+             * formatted date/time period, and sort-order indicators as a structured
+             * header. Delegates the actual layout to the inner `ibcs-title` element.
+             */
             "bn-title": LocalJSX.BnTitle & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
+            /**
+             * Renders a hierarchical tree diagram with SVG edge connections.
+             * Nodes are provided as named slots; the `edges` prop defines parent-child
+             * relationships and optional arithmetic operators displayed between siblings.
+             * Layout is computed via CSS Grid with an SVG overlay for edge paths.
+             */
             "bn-tree": LocalJSX.BnTree & JSXBase.HTMLAttributes<HTMLBnTreeElement>;
+            /**
+             * Headless helper component for editor integration.
+             * Exposes public `@Method()` APIs so an external editor can query
+             * i18n keys and distinct data values from datasources/datasets at
+             * design time (e.g. for autocompletion or property pickers).
+             */
             "editor-companion": LocalJSX.EditorCompanion & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
             "ibcs-chart-structure": LocalJSX.IbcsChartStructure & JSXBase.HTMLAttributes<HTMLIbcsChartStructureElement>;
             "ibcs-chart-time": LocalJSX.IbcsChartTime & JSXBase.HTMLAttributes<HTMLIbcsChartTimeElement>;
             "ibcs-map": LocalJSX.IbcsMap & JSXBase.HTMLAttributes<HTMLIbcsMapElement>;
+            /**
+             * Internal rendering engine for `bn-table`.
+             * Receives pre-validated, typed props from the outer `bn-table` wrapper and
+             * builds the IBCS-compliant HTML table — including header rows, scenario
+             * columns, variance columns (with optional inline bar/pin charts), thereof/
+             * partof drill-down rows, and grouped row sections. This component should
+             * not be used directly; use `bn-table` instead.
+             */
             "ibcs-table": LocalJSX.IbcsTable & JSXBase.HTMLAttributes<HTMLIbcsTableElement>;
             "ibcs-title": LocalJSX.IbcsTitle & JSXBase.HTMLAttributes<HTMLIbcsTitleElement>;
             "test-runner-card": LocalJSX.TestRunnerCard & JSXBase.HTMLAttributes<HTMLTestRunnerCardElement>;

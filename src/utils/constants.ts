@@ -1,13 +1,22 @@
+/** Controls which parts of a component are translated: ALL=labels+data, META=labels only. */
 export enum I18nMode {
   ALL = "all",
   META = "meta",
 }
 
+/** Unit type of the measured values — affects default formatting and SI prefix behavior. */
 export enum MeasureType {
   CURRENCY = "currency",
   VOLUME = "volume",
 }
 
+/**
+ * IBCS four-scenario model with up to 4 variants per type.
+ * - AC (actual): reported/measured values
+ * - PP (previous period): prior year or period for comparison
+ * - FC (forecast): projected future values
+ * - PL (plan): budgeted/target values
+ */
 export enum Scenarios {
   AC1 = "ac1",
   AC2 = "ac2",
@@ -27,17 +36,32 @@ export enum Scenarios {
   PL4 = "pl4",
 }
 
+/**
+ * Variance direction for IBCS traffic-light coloring.
+ * - POS: favorable variance (green in IBCS)
+ * - NEG: unfavorable variance (red in IBCS)
+ * - NEU: neutral / no directional meaning
+ */
 export enum Sentiments {
   POS = "pos",
   NEG = "neg",
   NEU = "neu",
 }
 
+/** Number display format: DECIMAL for absolute values, PERCENT for ratio columns. */
 export enum DataFormat {
   DECIMAL = "decimal",
   PERCENT = "percent",
 }
 
+/**
+ * Table aggregation mode.
+ * - LIST: no aggregation, rows displayed as-is
+ * - SUM: simple sum per group with a grand total row
+ * - SUMNOTOTAL: sum per group without a grand total
+ * - OPT: operation-aware aggregation — rows with operation="-" subtract from the group sum
+ * - OPTNOTOTAL: operation-aware aggregation without a grand total
+ */
 export enum TableType {
   LIST = "list",
   SUM = "sum",
@@ -46,6 +70,7 @@ export enum TableType {
   OPTNOTOTAL = "optnototal",
 }
 
+/** Width of the category label column as a percentage of the table width. INF = auto/infinite. */
 export enum TableCategoryWidth {
   INF = "inf",
   W100 = "w100",
@@ -57,8 +82,11 @@ export enum TableCategoryWidth {
   W5 = "w5",
 }
 
-/* Enums */
-
+/**
+ * Three-level row hierarchy for grouping and drill-down: rowGroup > category > subCategory.
+ * Index variants (e.g. ROWGROUPINDEX) provide stable numeric sort keys that preserve
+ * the original dataset order when alphabetical sorting is undesirable.
+ */
 export enum AggregationLevel {
   ROWGROUP = "rowGroup",
   ROWGROUPINDEX = "rowGroupIndex",
@@ -68,24 +96,38 @@ export enum AggregationLevel {
   SUBCATEGORYINDEX = "subCategoryIndex",
 }
 
+/**
+ * Date axis label display strategy.
+ * - SMART: abbreviated labels with parent period shown at boundary crossings (e.g. "Jan" normally, "Jan 2024" at year boundary)
+ * - LONG: full date format for every label
+ * - SHORT: abbreviated format for every label
+ */
 export enum AxisLabelsMode {
   SMART = "smart",
   LONG = "long",
   SHORT = "short",
 }
 
+/**
+ * Visual representation type for chart series.
+ * - COLUMN: vertical bars (time chart) or horizontal bars (structure chart)
+ * - LINE: connected data points
+ * - WATERFALL: cumulative flow where each bar starts where the previous one ended
+ */
 export enum ChartType {
   COLUMN = "column",
   LINE = "line",
   WATERFALL = "waterfall",
 }
 
+/** Chart rendering mode. AUTO selects BAR or LINE based on scenario type. */
 export enum ChartMode {
   BAR = "bar",
   LINE = "line",
   AUTO = "auto",
 }
 
+/** Dimension used to split bars into stacked segments within a single data point. */
 export enum StackBy {
   SCENARIO = "scenario",
   CATEGORY = "category",
@@ -93,12 +135,19 @@ export enum StackBy {
   ROWGROUP = "rowgroup",
 }
 
+/**
+ * How stacked values are presented.
+ * - ABSOLUTE: raw values stacked
+ * - RELATIVE: normalized to 100% per data point
+ * - ABSOLUTE_RELATIVE: absolute bars with a relative (%) total label
+ */
 export enum StackMode {
   ABSOLUTE = "absolute",
   RELATIVE = "relative",
   ABSOLUTE_RELATIVE = "absolute-relative",
 }
 
+/** Sort order of segments within a stacked bar. DATASET preserves the original data order. */
 export enum StackOrder {
   ASC = "asc",
   DESC = "desc",

@@ -8,6 +8,11 @@ import { getContrastTextColor } from "../../../../utils/stackColors";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
+/**
+ * Anchor point for label positioning relative to its coordinates.
+ * Vertical hooks control how the label is offset from its Y coordinate;
+ * horizontal hooks control text-anchor alignment (start/middle/end).
+ */
 export enum HookLocation {
   Left,
   Center,
@@ -16,6 +21,20 @@ export enum HookLocation {
   Bottom,
 }
 
+/**
+ * SVG text label used across all chart elements (columns, needles, markers, axes).
+ *
+ * Handles numeric formatting via Formatter.number() with configurable type (decimal/percent),
+ * digit precision, and SI prefix scaling. Variance labels prepend a "+" sign for positive values.
+ *
+ * The label is drawn with a semi-transparent white background rectangle to ensure
+ * readability over chart geometry. For stacked segments, the background is omitted
+ * and text color is derived from the segment fill for contrast.
+ *
+ * Positioning uses a two-axis hook system: verticalHookLocation shifts the label
+ * above/below/centered on the Y coordinate, horizontalHookLocation sets the SVG
+ * text-anchor (start/middle/end) relative to X.
+ */
 export class Label {
   readonly ID_SCENARIOLABEL: string = "Label";
   readonly CSS_CATEGORIES: string = "categories";

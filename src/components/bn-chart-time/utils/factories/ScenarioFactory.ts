@@ -13,6 +13,24 @@ import { Line } from "../elements/Line";
 import { LineSeries, LineSeriesDataPoint } from "../elements/LineSeries";
 import { OverflowConfig } from "../model/OverflowConfig";
 
+/**
+ * Factory for creating chart element instances (Column, Needle, Marker, Line, LineSeries)
+ * within the correct SVG group hierarchy.
+ *
+ * Manages 4 SVG group layers for z-ordering (back-to-front):
+ * - scenario2: secondary bars (PP) -- inserted before scenario1 so they render behind
+ * - scenario1: primary bars (AC) -- foreground
+ * - scenario3: primary markers (e.g. FC diamonds)
+ * - scenario4: secondary markers (e.g. PL triangles)
+ * - scenario1Label: label group, always rendered on top of all geometry
+ *
+ * createPrimaryBar() produces a foreground Column (AC) with data + scenario labels.
+ * createSecondaryBar() produces a background Column (PP) without data labels.
+ * createPrimaryMarker() / createSecondaryMarker() produce Marker instances on opposite sides.
+ * createVarianceBar() wraps a Column with variance styling.
+ * createRelativeVarianceBar() creates a Needle for percentage variance display.
+ * createLineSeries() creates a LineSeries for line chart mode.
+ */
 export class ScenarioFactory {
   styles: TimeChartStyle;
   svgGroups: {
