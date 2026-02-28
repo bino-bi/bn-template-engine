@@ -6,6 +6,17 @@ import { ElementPositions } from "../helper";
 import { SVGStyle } from "../../../../utils/model";
 // import {SVGStyle} from "../../../../utils/model/styles/SVGStyle";
 
+/**
+ * Renders a horizontal relative variance pin (needle) in an IBCS structure chart.
+ *
+ * The needle is a thin horizontal bar representing a percentage variance, with a head:
+ * - Normal: a square crossbar at the end of the pin
+ * - Clipped (value exceeds the percentage scale): a double-arrow polygon (left or right)
+ *   indicating the value was truncated
+ *
+ * Positive pins extend rightward from the axis; negative pins extend leftward.
+ * Labels are placed beyond the needle head with variance-style formatting (percentage + sign).
+ */
 export class Needle {
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";

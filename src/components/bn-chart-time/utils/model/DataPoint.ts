@@ -1,9 +1,22 @@
 import { Scenario } from "./index";
 
+/**
+ * A single renderable data point in a time-series chart.
+ *
+ * Encapsulates a numeric value, its IBCS scenario type, and the vertical scale factor.
+ * Provides scaling and variance styling logic used by the chart renderer.
+ *
+ * Variance direction follows IBCS convention: the declared variance ("pos"/"neg") applies
+ * to non-negative values; for negative values, the style is flipped (pos becomes neg and
+ * vice versa) so that visual encoding always reflects the economic meaning.
+ */
 export class DataPoint {
   public value: number | null;
+  /** Scenario identifier (e.g. Scenario.AC1) or raw string. */
   public scenario: Scenario | string | null;
+  /** Vertical scale: pixels per one data unit. */
   public pixelPerUnit: number;
+  /** Variance direction for IBCS color coding (POS=green, NEG=red, NEU=grey). */
   public variance: Scenario | string;
 
   constructor(
@@ -29,6 +42,7 @@ export class DataPoint {
     return undefined == this.value || null == this.scenario;
   }
 
+  /** Returns the value scaled to pixel height for absolute (non-percentage) bars. */
   public getScaledUnit(): number {
     if (this.value == null) {
       return 0;
@@ -37,6 +51,12 @@ export class DataPoint {
     return this.value * this.pixelPerUnit;
   }
 
+  /**
+   * Returns the percentage value scaled to pixel height, clipped at +/-145%.
+   *
+   * Values beyond +/-1.45 (145%) are clamped to prevent extreme bars from
+   * distorting the chart layout. Use {@link isClipped} to check if clipping occurred.
+   */
   public getScaledPercentUnit(): number {
     if (this.value == null) {
       return 0;
@@ -53,6 +73,12 @@ export class DataPoint {
     return this.value * this.pixelPerUnit;
   }
 
+  /**
+   * Returns the IBCS variance color style, flipping pos/neg for negative values.
+   *
+   * IBCS rule: a "positive variance" on a negative value is economically unfavorable,
+   * so the visual style must invert. NEU (neutral) is never flipped.
+   */
   public getVarianceStyle(): Scenario | string {
     if (this.value == null) {
       return this.variance as Scenario;
@@ -72,6 +98,7 @@ export class DataPoint {
     return Scenario.POS;
   }
 
+  /** Returns true if the percentage value exceeds the +/-145% clipping threshold. */
   isClipped(): boolean {
     if (this.value == null) {
       return false;
@@ -80,10 +107,12 @@ export class DataPoint {
     return Math.abs(this.value) > 1.45;
   }
 
+  /** Returns the fixed display value (145) shown on clipped percentage bars. */
   getClippedValue(): number {
     return 145;
   }
 
+  /** Extracts the 2-character scenario type prefix (e.g. "ac" from "ac1", "pl" from "pl2"). */
   getScenario() {
     return this.scenario?.slice(0, 2);
   }

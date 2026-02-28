@@ -3,6 +3,26 @@ import { default as locales, on } from "../stores/internationalization";
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 
+/**
+ * Mixin that provides i18n translation support to a Stencil component.
+ *
+ * Returns an object with a `t(key, data?)` function for looking up translated strings.
+ *
+ * **Key resolution shortcuts:**
+ * - A key starting with `.` (e.g. `.label`) is expanded to `<component-tag>.label`,
+ *   allowing components to reference their own translations concisely.
+ * - If the key is not found in the component's namespace, the `_system` namespace
+ *   is used as a fallback.
+ *
+ * **Mustache-style interpolation:** `{{variable}}` placeholders in translation
+ * templates are replaced with values from the optional `data` object.
+ *
+ * The mixin observes the `namespace` attribute on the host element and re-renders
+ * the component when the locale store updates for the active namespace.
+ *
+ * @param component - The Stencil component instance
+ * @returns Object containing the `t` translation function
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withTranslation = (component: any) => {
   let subscription: () => void;

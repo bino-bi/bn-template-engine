@@ -3,14 +3,25 @@ import { BinoChartSyles, QueryColumnNames, VarianceScenario } from "./model";
 
 import CalculateSize from "calculate-size";
 
+/**
+ * Number and label formatting utilities following ISO 80000-1 conventions.
+ */
 export class Formatter {
-  // implements ISO 80000-1
-  // private decimalSeparator = ',';
+  /** Replacement character for the thousands group separator (default de-DE uses period). */
   private static tsdDelimiter: string = ".";
+  /** Replacement character for the decimal separator (default de-DE uses comma). */
   private static postfixSeperator: string = ",";
 
+  /**
+   * Formats a number for display following ISO 80000-1 conventions.
+   *
+   * Pipeline: divide by scale factor -> format via de-DE locale -> strip whitespace
+   * before `%` -> replace group separator with `postfixSeperator` -> replace decimal
+   * separator with `tsdDelimiter`.
+   *
+   * @param scale Divisor applied before formatting (e.g. 1000 for "k" SI prefix).
+   */
   static number(value: number, type: string = "decimal", digits: number = 1, digitsMin: number = 0, scale = 1) {
-    // replace used as workaround to implement ISO 80000-1
     const scaledValue = value / scale;
 
     return scaledValue
@@ -25,6 +36,18 @@ export class Formatter {
       .replace(/\./g, this.tsdDelimiter);
   }
 
+  /**
+   * Translates a technical scenario identifier into a human-readable IBCS label.
+   *
+   * Uses IBCS symbol conventions from the i18n map:
+   * - AC-base absolute variance: `ibcssymbol_delta_ac` -- renders as e.g. `Delta{scenarioName}`
+   * - AC-base relative variance: `ibcssymbol_delta_ac_relative` -- renders as e.g. `Delta(scenarioName)`
+   * - Non-AC absolute variance: `ibcssymbol_delta_generic`
+   * - Non-AC relative variance: `ibcssymbol_delta_generic_relative`
+   *
+   * The `{%}` placeholder in the i18n token is replaced with the translated scenario name(s).
+   * Non-variance scenarios are looked up directly in the i18n map.
+   */
   static translateScenarioLabel(scenario: string | undefined, i18n: Map<string | number, string>): string {
     if (scenario === null || scenario === undefined) {
       return "";

@@ -35,17 +35,20 @@ import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 
+/** Tracks whether the internal data model needs to be regenerated. */
 enum FactoryState {
   UP_TO_DATE,
   DIRTY,
 }
 
+/** Classifies how a data model entry should be rendered: as an absolute or relative variance, or as a regular scenario. */
 enum VarianceType {
   RELATIVE = "dr",
   ABSOLUTE = "d",
   NONE = "",
 }
 
+/** Row shape returned by AlaSQL after date normalization and scenario aggregation. */
 type TimeChartResponseRow = {
   id: number;
   calcdate: DateTime;
@@ -69,6 +72,7 @@ type TimeChartResponseRow = {
   isEmpty: boolean;
 };
 
+/** Internal data model entry: one time period with up to 4 scenario DataPoints and a variance type. */
 type TimeChartDataModelEntry = {
   id: number;
   category: string | null;
@@ -80,6 +84,27 @@ type TimeChartDataModelEntry = {
   scenario4: DataPoint;
 };
 
+/**
+ * Orchestrates the full rendering pipeline for an IBCS time series chart.
+ *
+ * Rendering pipeline (in draw()):
+ * 1. Clears the SVG container
+ * 2. Routes to the appropriate drawing method based on chart type:
+ *    - Variance chart: drawVarianceScenario() for absolute/relative variance bars
+ *    - Stacked chart: drawStackedScenarios() or drawStackedAreaScenarios() (line mode)
+ *    - Standard chart: drawScenarios() (bar mode) or drawLineScenarios() (line mode)
+ * 3. Draws axis baseline + date labels via drawAxisAndLabels()
+ *
+ * Data pipeline (in setConfig()):
+ * 1. Raw data is filtered via AlaSQL (optional WHERE clause)
+ * 2. Dates are normalized to the configured interval (day/week/month/quarter/year)
+ * 3. Scenarios are aggregated per date bucket (SUM with operation sign)
+ * 4. Missing date buckets are filled via leftOuterJoinDates()
+ * 5. Variance model is computed from base/delta scenario pairs
+ * 6. Min/max DataPoints are found for coordinate system sizing
+ *
+ * Auto chart mode: when dataModel.length exceeds maxBars, switches from bar to line.
+ */
 export class TimeChart {
   public styles: TimeChartStyle;
   readonly CSS_CATEGORIES: string = "categories";

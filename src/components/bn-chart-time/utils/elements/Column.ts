@@ -14,6 +14,20 @@ import { OverflowConfig } from "../model/OverflowConfig";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
+/**
+ * Renders a vertical bar (column) in an IBCS time chart.
+ *
+ * Coordinate system: SVG Y-axis is inverted -- positive values grow upward from the
+ * axis baseline, so yPos decreases as value increases. Negative values extend downward.
+ *
+ * Overflow handling: When a bar exceeds the available chart height (determined by
+ * OverflowConfig), the bar is split into a base segment and an overdrive segment
+ * separated by a zigzag break indicator. The overdrive zone maps the overflow amount
+ * proportionally into a fixed pixel region so all overflowing bars remain comparable.
+ *
+ * Primary columns (AC foreground) carry data labels and scenario labels;
+ * secondary columns (PP background) render without labels by default.
+ */
 export class Column {
   private readonly ID_DATA_PREFIX: string = "DATA";
   private readonly ID_SCENARIO_PREFIX: string = "SCENARIO";
@@ -124,6 +138,10 @@ export class Column {
     this.drawScenarioLabel();
   }
 
+  /**
+   * Draws a broken bar: base segment + break gap + overdrive segment.
+   * The break gap is filled with a white background and zigzag lines.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private drawOverdriveBar(fillStyle: any, strokeStyle: any): void {
     if (!this.columnGroup || !this.overflowConfig) return;
@@ -150,6 +168,7 @@ export class Column {
     this.drawBreakIndicator(baseY, breakGap);
   }
 
+  /** Draws top and bottom zigzag lines across the column width to indicate a broken axis. */
   private drawBreakIndicator(baseY: number, breakGap: number): void {
     if (!this.columnGroup) return;
 
@@ -191,6 +210,11 @@ export class Column {
     this.columnGroup.path(bottomPath).fill("none").stroke({ color: "#000000", width: 1 });
   }
 
+  /**
+   * Computes the pixel geometry for the column: position, height, label anchors.
+   * Handles three cases: overflow (broken bar), negative value, and normal positive.
+   * For overflow, the column is capped at effectiveCut height and an overdrive zone is added.
+   */
   public createDimensions(dataPoint: DataPoint, index: number, isPrimaryBar: boolean): TimeChartDimension {
     const scaledUnit = dataPoint.getScaledUnit();
 

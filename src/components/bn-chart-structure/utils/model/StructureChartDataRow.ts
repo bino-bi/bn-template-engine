@@ -4,6 +4,13 @@ import { DateTime } from "luxon";
 import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../utils/helper/IAdapter";
 
+/**
+ * IBCS-compliant data row for structural (categorical) bar chart visualizations.
+ *
+ * Follows the same schema as {@link TableDataRow} with the addition of optional `setName`
+ * and `date` fields. The `date` is present because structure charts may coexist with
+ * time-series data, but it is not used for x-axis positioning (categories are used instead).
+ */
 export class StructureChartDataRow {
   public setName: string | null | undefined;
   public date?: DateTime | null | undefined;
@@ -63,6 +70,12 @@ export class StructureChartDataRow {
   }
 }
 
+/**
+ * Converts untyped JSON records into validated {@link StructureChartDataRow} instances.
+ *
+ * Only assigns fields that pass type validation via {@link CompareUtil}, so malformed
+ * input data is silently dropped and defaults are preserved.
+ */
 export class StructureChartDataRowAdapter implements IAdapter<StructureChartDataRow> {
   constructor() {}
 

@@ -28,6 +28,13 @@ import {
   getEdgeSvgStyle,
 } from "./utils/EdgeRenderer";
 
+/**
+ * Renders a hierarchical tree diagram with SVG edge connections.
+ *
+ * Nodes are provided as named slots; the `edges` prop defines parent-child
+ * relationships and optional arithmetic operators displayed between siblings.
+ * Layout is computed via CSS Grid with an SVG overlay for edge paths.
+ */
 @Component({
   tag: "bn-tree",
   styleUrl: "bn-tree.scss",

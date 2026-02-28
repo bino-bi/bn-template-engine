@@ -9,6 +9,14 @@ import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 // import {Order} from "../../../../utils/model/Order"; // FIXME IOrder
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
 
+/**
+ * AlaSQL-based query builder that produces the complete table result set for bn-table.
+ *
+ * Translates a {@link TableComponentConfig} into a series of SQL statements executed
+ * against in-memory data rows. The pipeline handles scenario aggregation, row/column
+ * grouping, drill-down expansion (thereof / partof), REST rows, sum rows, NaN detection,
+ * column-level drill columns, and relative variance calculation.
+ */
 export class DataQuery {
   private readonly config: TableComponentConfig;
   private hasPartOf: boolean = false;
@@ -20,7 +28,20 @@ export class DataQuery {
   }
 
   /**
-   * prepares and queries Data based on the config.
+   * Executes the full query pipeline and returns a segmented result set.
+   *
+   * Pipeline steps:
+   * 1. Translate scenario columns into SQL aggregation expressions
+   * 2. Run a meta query to discover row groups and their category counts
+   * 3. For each group: generate header row, data rows, REST overflow row, and group sum row
+   * 4. Append a total sum row (if table type requires it)
+   * 5. Execute all accumulated SQL statements against the input data
+   * 6. Detect NaN cells (aggregated cells with zero contributing rows)
+   * 7. Inject thereof/partof drill rows and column-level drill columns
+   * 8. Calculate REST columns (parent minus drilled children)
+   * 9. Divide absolute variances by their denominator to produce relative variances
+   *
+   * @returns Array of row-group segments; each segment is an array of result rows.
    */
   public execute(data: TableDataRow[]): DataQueryResultRow[][] {
     if (data.length == 0) {
@@ -101,6 +122,15 @@ export class DataQuery {
     return res;
   }
 
+  /**
+   * Marks aggregated cells as NaN when no source rows contributed to the sum.
+   *
+   * Without this step, SUM() over zero matching rows would produce 0, which is
+   * misleading -- it would be indistinguishable from an actual zero value.
+   * Each scenario column has a companion `_cnt` counter; when that counter is 0
+   * the cell is overwritten with NaN. For variance scenarios, both base and delta
+   * counters must be non-zero.
+   */
   detectNaNCells(scenarios: string[], res: DataQueryResultRow[][]) {
     res.forEach((group) => {
       group.map((row: DataQueryResultRow) => {
@@ -122,6 +152,11 @@ export class DataQuery {
     });
   }
 
+  /**
+   * Creates "part-of" drill rows that express each category's value as a fraction
+   * of its row group sum. Queries the drill subset, then divides each scenario
+   * value by the corresponding group sum to produce a percentage.
+   */
   createPartOfDrillRows(
     scenarios: string,
     order: [string, string],
@@ -179,6 +214,10 @@ export class DataQuery {
     this.injectDrillRowsToResultRows(resDrill, res);
   }
 
+  /**
+   * Generates a REST row that aggregates all data rows beyond the configured limit.
+   * Only emitted when a limit is set and the group has more rows than the limit.
+   */
   private createRestRow(
     rowGroupEntry: DataQueryMetaRow,
     querys: string[],
@@ -199,6 +238,7 @@ export class DataQuery {
     }
   }
 
+  /** Generates the main data rows for a single row group, applying GROUP BY, ORDER, and LIMIT. */
   private createDataRow(
     querys: string[],
     rowGroupEntry: DataQueryMetaRow,
@@ -220,6 +260,7 @@ export class DataQuery {
                  ORDER BY ${order[0]} ${queryLimitSection}`);
   }
 
+  /** Generates a GROUPHEAD row used as a visual header when row grouping is active. */
   private createGroupHeaderRow(rowGroupEntry: DataQueryMetaRow, querys: string[]) {
     // Generates GroupHeader Row
     if (true === this.config.grouped) {
@@ -235,6 +276,7 @@ export class DataQuery {
     }
   }
 
+  /** Generates a GROUP_SUM row that aggregates all entries within a single row group. */
   private createGroupSumRow(
     querys: string[],
     groupSumQuery: string[],
@@ -269,6 +311,7 @@ export class DataQuery {
     }
   }
 
+  /** Generates a total SUM row across all groups (only for SUM / OPT table types). */
   private createTotalSumRow(querys: string[], sumGroupQueries: string[], scenariosSUMQuery: string) {
     if (TableType.SUM === this.config.type || TableType.OPT === this.config.type) {
       const title = `${this.hasPartOf && this.config.grouped == false ? `${this.i18n.get("SUM_TOTAL") || "SUM_TOTAL"} ` : ""}${this.config.title}`;
@@ -286,6 +329,10 @@ export class DataQuery {
                           FROM ?  `);
   }
 
+  /**
+   * Manually merges drill rows that AlaSQL fails to aggregate correctly.
+   * Groups by composite key (rowNr + rowGroup + type + category) and sums scenario values.
+   */
   private reduceResDrillByCategoryGroups(resDrill: DataQueryResultRow[], scenarioNames: string[]) {
     // This is workarround because alasql is not merging the rows as expected.
     const tmpSumMap = new Map();
@@ -308,6 +355,11 @@ export class DataQuery {
     return [...tmpSumMap.values()];
   }
 
+  /**
+   * Inserts drill (thereof/partof) rows into the result set directly after their
+   * parent category row. Handles both grouped and ungrouped modes, disambiguating
+   * duplicate subCategory names by appending the rowGroup in parentheses.
+   */
   private injectDrillRowsToResultRows(resDrill: DataQueryResultRow[], res: DataQueryResultRow[][]) {
     // resDrill = resDrill.reverse();
     const numberOfElement = new Map<string, number>();
@@ -363,6 +415,11 @@ export class DataQuery {
     }
   }
 
+  /**
+   * Creates "thereof" drill rows -- sub-breakdowns shown with absolute values
+   * beneath their parent category row. Each thereof config entry produces a
+   * filtered/grouped SQL query whose results are spliced into the result set.
+   */
   private createThereOfDrillRows(
     scenarios: string,
     order: [string, string],
@@ -428,6 +485,10 @@ export class DataQuery {
     this.injectDrillRowsToResultRows(resDrill, res);
   }
 
+  /**
+   * Converts absolute variance columns into relative (percentage) variances by dividing
+   * each `dr_*` cell by its denominator column (the delta scenario's aggregated value).
+   */
   private calculateRelativeVariances(res: DataQueryResultRow[][], relativeScenarios: Map<string, string>) {
     res.forEach((group) => {
       group.forEach((row: DataQueryResultRow) => {
@@ -440,6 +501,11 @@ export class DataQuery {
     });
   }
 
+  /**
+   * Calculates REST columns for column-level thereof drills.
+   * REST = parent scenario value minus sum of all drilled child columns.
+   * Columns where REST is zero across all rows are removed entirely.
+   */
   private calculateColumnGroupRest(
     res: DataQueryResultRow[][],
     categoryThereOf: Map<string, Record<string, unknown>[]>,
@@ -493,6 +559,7 @@ export class DataQuery {
     });
   }
 
+  /** Collects all relative variance scenarios and maps each to its denominator column name. */
   private getRelativeScenarios() {
     const relativeScenarios = new Map();
 
@@ -507,9 +574,17 @@ export class DataQuery {
   }
 
   /**
-   * converts technical scenario string into readable ibcs label
+   * Translates a scenario identifier into a SQL aggregation expression.
    *
-   * @param scenario
+   * - **OPT/OPTNOTOTAL types**: Values are summed without `transformOperator` (the
+   *   operation sign is already baked into the data). Variance scenarios produce
+   *   `SUM(base - delta)`.
+   * - **Other types**: Each value is multiplied by `transformOperator(operation)` which
+   *   converts the `"+"` / `"-"` operation field into +1 / -1, so rows with negative
+   *   operation are subtracted from the aggregate.
+   * - **Relative variances** (`dr_*`): additionally select the delta denominator column
+   *   so `calculateRelativeVariances` can divide later.
+   * - A companion `_cnt` column (COUNT of non-null values) is emitted for NaN detection.
    */
   private translateScenarioSQL(scenario: string, isSumRow: boolean, type: TableType): string {
     const scenarios = new VarianceScenario(scenario);
@@ -556,6 +631,7 @@ export class DataQuery {
     return [base, inverted];
   }
 
+  /** Returns a key/value pair mapping a relative variance column to its denominator, or null for non-relative scenarios. */
   private createRelativeScenario(scenario: string) {
     const scenarios = new VarianceScenario(scenario);
 
@@ -566,12 +642,14 @@ export class DataQuery {
     return null;
   }
 
+  /** Parses the comma-separated SQL scenario fragment to extract the alias names (the part after `as`). */
   private exctractScenarioNames(scenarios: string): string[] {
     const scenarioNames: string[] = [];
     scenarios.split(",").forEach((item) => (item.length >= 2 ? scenarioNames.push(item.split("as")[1].trim()) : null));
     return scenarioNames;
   }
 
+  /** Identifies subCategory values that appear more than once in the drill set, requiring disambiguation. */
   private findDuplicateSubCategories(resDrill: DataQueryResultRow[]): string[] {
     const uniq = resDrill
       .map((element) => {
@@ -588,6 +666,7 @@ export class DataQuery {
     return Object.keys(uniq).filter((a) => uniq[a] > 1);
   }
 
+  /** Builds the SQL query for partof drill rows, filtering to configured partOf categories. */
   private createPartOfQuery(scenarios: string, order: [string, string]): string[] {
     const drillQueries = [];
     let fromString = "1 <> 1 "; // helper for strin concat  1<>1 OR ... OR ...
@@ -631,6 +710,15 @@ export class DataQuery {
     return true;
   }
 
+  /**
+   * Creates column-level thereof drill breakdowns for the configured `categoryThereOf` map.
+   *
+   * For each scenario key, queries are generated at multiple aggregation levels
+   * (ENTRY, DRILLELEMENT, GROUP_SUM, SUM) crossed with column dimensions
+   * (COLUMNGROUP, SUBGROUP). Results are stored as new properties on existing
+   * result rows using the `"##"` separator convention: `scenario##columnGroup` or
+   * `scenario##columnGroup##columnSubGroup`.
+   */
   private createThereOfDrillColumns(
     categoryThereOf: Map<string, Record<string, unknown>[]>,
     data: TableDataRow[],
@@ -741,6 +829,11 @@ export class DataQuery {
     this.injectDrillColumnsToResultRows(resDrill, res);
   }
 
+  /**
+   * Merges column-drill query results into existing result rows by matching
+   * row type, category, subCategory, and rowGroup. Uses the `"##"` separator
+   * to form composite property keys for drill column values.
+   */
   private injectDrillColumnsToResultRows(resDrill: DataQueryResultRow[], res: DataQueryResultRow[][]) {
     const separator = "##";
     for (const drillElement of resDrill) {

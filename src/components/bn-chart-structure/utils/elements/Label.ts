@@ -10,6 +10,10 @@ import { getContrastTextColor } from "../../../../utils/stackColors";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
+/**
+ * Anchor point for label positioning relative to its coordinates (structure chart variant).
+ * Vertical hooks shift the label up/down; horizontal hooks set SVG text-anchor alignment.
+ */
 export enum HookLocation {
   Left,
   Center,
@@ -18,6 +22,15 @@ export enum HookLocation {
   Bottom,
 }
 
+/**
+ * SVG text label for structure chart elements (bars, needles, markers, axes).
+ *
+ * Handles numeric formatting via Formatter.number(), variance sign prefixing,
+ * and hook-based positioning. Draws a semi-transparent white background rectangle
+ * for readability, or uses contrast text color when placed inside stacked segments.
+ *
+ * Horizontal equivalent of the time chart Label class, adapted for horizontal bar layout.
+ */
 export class Label {
   private x: number;
   private y: number;

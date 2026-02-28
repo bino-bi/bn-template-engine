@@ -1,8 +1,22 @@
+/**
+ * Reactive store for component theming and visual configuration.
+ *
+ * Styles are resolved through a three-layer merge:
+ * 1. `_system` -- IBCS-compliant defaults (colors, font sizes, scale factors)
+ * 2. `_default` -- optional user-level overrides applied globally
+ * 3. Named themes -- component-specific overrides referenced by a style prop
+ *
+ * The `withStyled` mixin merges these layers at render time so that every
+ * visualization inherits consistent IBCS styling while remaining customizable.
+ *
+ * @module stores/componentStyles
+ */
 import { createStore } from "@stencil/store";
 import { ScaleFactorsTimeChart } from "../components/bn-chart-time/utils/model";
 import { SVGStyleGroup, SVGVariancesStyleGroup } from "../utils/model";
 import { ScaleFactorsStructureChart } from "../components/bn-chart-structure/utils/model";
 
+/** Visual properties for `bn-tree` node edges and operator badges. */
 export interface TreeStyle {
   edgeColor: string;
   edgeWidth: number;
@@ -11,6 +25,7 @@ export interface TreeStyle {
   operatorColor: string;
 }
 
+/** Visual properties for `bn-grid` headers, borders, and cell spacing. */
 export interface GridStyle {
   headerBackground: string;
   borderColor: string;
@@ -18,6 +33,7 @@ export interface GridStyle {
   cellPadding: number;
 }
 
+/** Top-level style object grouping global defaults and per-component overrides. */
 export interface Style {
   global: GlobalStyle;
   "bn-text": TextStyle;
@@ -27,6 +43,7 @@ export interface Style {
   "bn-grid": GridStyle;
 }
 
+/** Baseline typography inherited by all components unless overridden. */
 export interface GlobalStyle {
   fontSizePx: number;
   fontFamily: string;
@@ -34,6 +51,7 @@ export interface GlobalStyle {
   fontBackgroundColor: string;
 }
 
+/** Optional typography overrides for the `bn-text` component. */
 export interface TextStyle {
   fontFamily?: string;
   fontSizePx?: number;
@@ -42,6 +60,7 @@ export interface TextStyle {
   leading?: number;
 }
 
+/** IBCS styling for `bn-chart-time`: scale factors, scenario colors, and padding. */
 export interface TimeChartStyle {
   scaleFactors: ScaleFactorsTimeChart;
   axisStyles: SVGStyleGroup;
@@ -55,6 +74,7 @@ export interface TimeChartStyle {
   };
 }
 
+/** IBCS styling for `bn-chart-structure`: scale factors, scenario colors, and padding. */
 export interface StructureChartStyle {
   scaleFactors: ScaleFactorsStructureChart;
   axisStyles: SVGStyleGroup;

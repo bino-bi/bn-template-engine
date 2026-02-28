@@ -4,26 +4,49 @@
 import { CompareUtil } from "../../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../../utils/helper/IAdapter";
 
+/**
+ * Proportional scale factors for structural (categorical) bar chart elements.
+ *
+ * All values are expressed in **font-size multiples** (em-like units), so the chart
+ * scales uniformly when the base font size changes. The chart renderer multiplies
+ * each factor by the computed font size to get pixel dimensions.
+ */
 export class ScaleFactorsStructureChart {
+  /** Horizontal gap between adjacent scenario bars within a category. */
   public scenarioOffset: number = 0.3;
+  /** Gap between the scenario label and the end of its bar. */
   public scenarioLabelToBar: number = 0.1;
+  /** Gap between the value label and the end of its bar. */
   public labelToBar: number = 0.3;
+  /** Gap between axis labels and the axis line. */
   public labelToAxis: number = 0.3;
+  /** Width of the variance needle (pin chart element). */
   public needleWidth: number = 0.3;
+  /** Width of the arrowhead on variance needles. */
   public needleHeadWidth: number = 0.6;
+  /** Height of a single data bar. */
   public barWidth: number = 1.2;
+  /** Stroke width of the variance chart axis line. */
   public varianceAxisLineWidth: number = 0.3;
+  /** Stroke width of the main value axis line. */
   public axisLineWidth: number = 0.1;
+  /** Stroke width of auxiliary/grid lines. */
   public auxiliaryLineWidth: number = 0.1;
+  /** Stroke width of scenario indicator lines (e.g. forecast hatching). */
   public scenarioLineWidth: number = 0.2;
+  /** Size of plan/previous-period marker symbols. */
   public markerWidth: number = 0.7;
+  /** Vertical offset of markers from the bar center. */
   public markerOffset: number = 0.0;
+  /** Total vertical space allocated per category (bar + padding). */
   public categoryWidth: number = 1.9;
+  /** Length of axis tick marks. */
   public axisTickLength: number = 0.3;
 
   constructor() {}
 }
 
+/** Converts untyped JSON into a validated {@link ScaleFactorsStructureChart}. */
 export class ScaleFactorsStructureChartAdapter implements IAdapter<ScaleFactorsStructureChart> {
   adapt(data: Record<string, unknown>): ScaleFactorsStructureChart {
     const scaleFactors: ScaleFactorsStructureChart = new ScaleFactorsStructureChart();

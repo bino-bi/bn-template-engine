@@ -20,6 +20,15 @@ import { Cell } from "./utils/elements/Cell";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 
+/**
+ * Internal rendering engine for `bn-table`.
+ *
+ * Receives pre-validated, typed props from the outer `bn-table` wrapper and
+ * builds the IBCS-compliant HTML table — including header rows, scenario
+ * columns, variance columns (with optional inline bar/pin charts), thereof/
+ * partof drill-down rows, and grouped row sections. This component should
+ * not be used directly; use `bn-table` instead.
+ */
 @Component({
   tag: "ibcs-table",
   styleUrl: "ibcs-table.scss",

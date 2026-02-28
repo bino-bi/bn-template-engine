@@ -8,6 +8,22 @@ import CalculateSize from "calculate-size";
 import { FontStyle } from "../../../../utils/model/styles/FontStyle";
 // import {FontStyle} from "../../../../utils/model/styles/FontStyle";
 
+/**
+ * Spatial layout engine for the time chart.
+ *
+ * Converts logical data model coordinates (column index, data values) into pixel positions
+ * for all chart elements. All spacings are derived from the font size multiplied by
+ * ScaleFactorsTimeChart factors, making the layout scale consistently with typography.
+ *
+ * Key coordinate reference points:
+ * - getColumnPositionY(): the Y coordinate of the horizontal axis baseline
+ * - getColumnCenterPositionX(index): center X for the column at the given time index
+ * - getAxisPositionY(isRelative): axis Y adjusted for relative variance offset
+ *
+ * The layout accounts for: padding, left-side label space, scenario label offsets,
+ * data label height, and the min/max data values to position the axis correctly
+ * so that bars grow upward (positive) or downward (negative) from the baseline.
+ */
 export class ElementPositions {
   categoryPosition: Point2D = { x: 0, y: 0 };
   axisPosition: Point2D;

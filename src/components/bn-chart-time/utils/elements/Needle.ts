@@ -8,6 +8,18 @@ import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGVariancesStyleGroup } from "../../../../utils/model";
 // import {SVGVariancesStyleGroup} from "../../../../utils/model/styles/SVGVariancesStyleGroup";
 
+/**
+ * Renders a relative variance pin (needle) in an IBCS time chart.
+ *
+ * A needle is a thin vertical bar representing a percentage variance value,
+ * topped with an arrowhead. The head style depends on clipping:
+ * - Normal: a rectangular crossbar (T-shape)
+ * - Clipped (value exceeds 145% scale): a double-arrow polygon indicating the
+ *   value was truncated to fit the chart area
+ *
+ * The needle body uses variance-based fill (positive/negative coloring),
+ * while the head always uses the AC scenario style for visual emphasis.
+ */
 export class Needle {
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";

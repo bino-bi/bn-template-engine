@@ -3,6 +3,13 @@ import { BN_INTERNATIONALIZATION_KEYS } from "../../stores/internationalization"
 import { get as getDataset } from "../../stores/datasets";
 import { get as getDataSource } from "../../stores/datasources";
 
+/**
+ * Headless helper component for editor integration.
+ *
+ * Exposes public `@Method()` APIs so an external editor can query
+ * i18n keys and distinct data values from datasources/datasets at
+ * design time (e.g. for autocompletion or property pickers).
+ */
 @Component({
   tag: "editor-companion",
   styleUrl: "editor-companion.scss",

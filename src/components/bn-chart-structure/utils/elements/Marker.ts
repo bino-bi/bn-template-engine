@@ -6,6 +6,13 @@ import { ElementPositions } from "../helper";
 import { StructureChartDimension, DataPoint, StructureChartStyle } from "../model";
 import { SVGPolgonPattern } from "../../../../utils/model";
 
+/**
+ * Renders a polygon marker for PP or PL reference values in a structure chart (horizontal layout).
+ *
+ * Markers are positioned horizontally at the data point's scaled value distance from the axis.
+ * They consist of a white background polygon and a scenario-styled foreground polygon.
+ * Primary markers sit above the bar center; secondary markers sit below it.
+ */
 export class Marker {
   readonly ID_DATA_PREFIX: string = "DATA";
   readonly ID_SCENARIO_PREFIX: string = "SCENARIO";

@@ -11,6 +11,15 @@ Component to place Text
 <!-- Auto Generated Below -->
 
 
+## Overview
+
+Renders a template-driven text block with dataset interpolation.
+
+The `value` prop is evaluated as a JavaScript template literal in a
+sandboxed scope (`data` and `t` are available) and sanitized against
+XSS before being injected as HTML. Supports auto-scaling to fit the
+parent container.
+
 ## Properties
 
 | Property | Attribute | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Type     | Default     |

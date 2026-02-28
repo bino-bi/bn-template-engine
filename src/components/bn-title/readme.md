@@ -30,6 +30,14 @@ The header element **bn-title** used in the top of the page is placed in front o
 <!-- Auto Generated Below -->
 
 
+## Overview
+
+Composes an IBCS-compliant report title block.
+
+Renders business unit, scenario labels, measure names with units, a
+formatted date/time period, and sort-order indicators as a structured
+header. Delegates the actual layout to the inner `ibcs-title` element.
+
 ## Properties
 
 | Property         | Attribute         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Type     | Default      |

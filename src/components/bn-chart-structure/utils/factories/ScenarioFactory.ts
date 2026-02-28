@@ -9,6 +9,21 @@ import { Needle } from "../elements";
 import { SVGPolgonPattern } from "../../../../utils/model";
 // import { SVGPolgonPattern} from "../../../../utils/model";
 
+/**
+ * Factory for creating horizontal bar chart elements (Bar, Needle, Marker) within the
+ * correct SVG group hierarchy for a structure chart.
+ *
+ * Manages 4 SVG group layers for z-ordering (back-to-front):
+ * - scenario2: secondary bars (PP) -- inserted before scenario1 so they render behind
+ * - scenario1: primary bars (AC) -- foreground
+ * - scenario3: primary markers (positioned above bar center)
+ * - scenario4: secondary markers (positioned below bar center)
+ * - scenario1Label: label group, always on top
+ *
+ * createPrimaryBar() / createSecondaryBar() produce foreground/background Bar instances.
+ * createVarianceBar() wraps a Bar with variance styling.
+ * createRelativeVarianceBar() creates a horizontal Needle for percentage variance.
+ */
 export class ScenarioFactory {
   styles: StructureChartStyle;
   svgGroups: {

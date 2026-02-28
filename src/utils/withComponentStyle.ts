@@ -3,6 +3,23 @@ import state, { Style, on } from "../stores/componentStyles";
 import { runIfExisits } from "./utils";
 import { merge } from "@corex/deepmerge";
 
+/**
+ * Mixin that provides themed styling to a Stencil component using a
+ * three-layer merge strategy.
+ *
+ * The effective style is computed by deep-merging three layers in order:
+ * 1. `_system`  -- built-in defaults (lowest priority)
+ * 2. `_default` -- user-defined global overrides
+ * 3. The value of the host element's `selected-style` attribute (highest priority)
+ *
+ * A MutationObserver watches `selected-style` and the store subscription
+ * reacts to updates in the componentStyles store, triggering a re-merge
+ * and forced re-render on changes.
+ *
+ * @param component - The Stencil component instance
+ * @returns A query function `componentStyle(<selector>)` that provides type-safe
+ *          access to the merged style object, e.g. `componentStyle(s => s.table.headerBg)`
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withComponentStyle = (component: any) => {
   let subscription: () => void;

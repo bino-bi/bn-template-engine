@@ -37,6 +37,15 @@ import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
 
+/**
+ * Public-facing wrapper for the IBCS table component.
+ *
+ * Accepts user-facing string/number props, validates them, and converts
+ * them into the typed internal format expected by `ibcs-table`. Handles
+ * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
+ * The actual table rendering (header, body, drill-down rows) is delegated
+ * to the inner `ibcs-table` element.
+ */
 @Component({
   tag: "bn-table",
   styleUrl: "bn-table.css",
@@ -146,6 +155,10 @@ export class Table {
    */
   @Prop() tableTitle: string = "";
 
+  /**
+   * AlaSQL WHERE clause fragment injected into the data query to filter
+   * rows before rendering (e.g. `"category = 'Sales'"`).
+   */
   @Prop()
   filter: string = "";
 

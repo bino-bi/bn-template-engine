@@ -8,6 +8,15 @@ import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
+/**
+ * Queries data from one or more `bn-datasource` entries via AlaSQL and
+ * writes the result to the `datasets` store (+ computed `DatasetMeta`).
+ *
+ * The SQL query is provided as text inside the element body (observed via
+ * `withBodyObserver`). When any referenced datasource changes, the query
+ * is re-executed automatically. Set `static="true"` to bypass the SQL
+ * engine and treat the body content as raw JSON data directly.
+ */
 @Component({
   tag: "bn-dataset",
   styleUrl: "bn-dataset.css",
@@ -48,6 +57,10 @@ export class Dataset {
    */
   @Prop() datasources: string = "";
 
+  /**
+   * When true, bypasses the AlaSQL query engine and parses the body
+   * content as raw JSON, writing it directly to the datasets store.
+   */
   @Prop() static: boolean = false;
 
   private query: string;

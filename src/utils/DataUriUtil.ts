@@ -1,4 +1,6 @@
+/** Utility for decoding `data:` URIs containing base64-encoded JSON. */
 export class DataUriUtil {
+  /** Decodes a base64 data URI and parses the payload as JSON. */
   public static dataURItoObject(dataURI: string): unknown {
     // Split the Data URI into its parts
     const parts = dataURI.split(",");

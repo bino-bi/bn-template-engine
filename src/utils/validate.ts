@@ -1,3 +1,10 @@
+/**
+ * Prop validators for Stencil @Watch handlers.
+ *
+ * Each validator returns an array of invalid items; an empty array means the input is valid.
+ * These are used in component @Watch methods to warn about malformed attribute values
+ * without crashing the component.
+ */
 import {
   AggregationLevel,
   AxisLabelsMode,
@@ -12,10 +19,21 @@ import {
 import { DateDistance, DateLink } from "./DateStringFactory";
 import { OrderColumn, OrderDirection } from "./model/Order";
 
+/**
+ * Checks whether a value is blank, null, undefined, or the string `"null"`.
+ * The string `"null"` check handles serialized null values from HTML attributes,
+ * which arrive as the literal string "null" rather than a JS null.
+ */
 export function isBlankInput(value: unknown): boolean {
   return value === null || value === undefined || value === "" || value == "null";
 }
 
+/**
+ * Validates a comma-separated list of scenario identifiers.
+ * The special value `"auto"` is always valid. Base scenarios are validated against
+ * the Scenarios enum; remaining invalid entries are passed to `validateVariancesList`
+ * for variance format checking (e.g. `d_ac1_pl1_pos`).
+ */
 export function validateScenarioList(value: string): string[] {
   if (isBlankInput(value)) {
     return [];
@@ -32,6 +50,11 @@ export function validateScenarioList(value: string): string[] {
   return validateVariancesList(invalidScenarios.toString());
 }
 
+/**
+ * Validates variance identifiers in the format `d_<base>_<delta>_<sentiment>` or
+ * `dr_<base>_<delta>_<sentiment>`. Each component is checked against the Scenarios
+ * and Sentiments enums. Returns items that fail validation.
+ */
 export function validateVariancesList(value: string): string[] {
   if (isBlankInput(value)) {
     return [];
@@ -263,6 +286,11 @@ export function isValidMeasureType(value: string): boolean {
   return value?.trim().toUpperCase() in MeasureType;
 }
 
+/**
+ * Validates a measure-scale attribute value.
+ * Accepted values: `"_"` (no scaling), SI prefix letters (k, M, G, T, P, E, Z, Y, m, etc.),
+ * or auto-detection modes `"GREATEST"` / `"LEAST"`.
+ */
 export function isValidMeasureScale(value: string): boolean {
   return (
     ["_", "k", "M", "G", "T", "P", "E", "Z", "Y", "m", "μ", "n", "p", "P", "f", "a", "z", "y"].includes(

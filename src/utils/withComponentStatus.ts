@@ -1,6 +1,19 @@
 import { generateUUID, runIfExisits } from "./utils";
 import { ComponentRegister, ComponentStatus } from "./componentRegister";
 
+/**
+ * Mixin that tracks a component's render lifecycle in the global {@link ComponentRegister}.
+ *
+ * Assigns a stable UUID to the component instance and reports status transitions:
+ * - `RUNNING` on `connectedCallback` and `componentWillRender`
+ * - `SUCCESSFUL` on `componentDidRender`
+ *
+ * External tools (e.g. screenshot/PDF renderers) poll
+ * `window.componentRegisterIsRenderedResult` to determine when all components
+ * have finished rendering.
+ *
+ * @param component - The Stencil component instance
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withComponentStatus = (component: any) => {
   const uuid: string = generateUUID();

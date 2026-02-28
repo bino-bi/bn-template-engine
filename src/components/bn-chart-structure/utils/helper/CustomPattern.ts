@@ -3,6 +3,13 @@ import { StructureChartStyle } from "../model";
 import { SVGPolgonPattern } from "../../../../utils/model";
 // import { SVGPolgonPattern } from "../../../../utils/model";
 
+/**
+ * Generates SVG diagonal-line hatching patterns for forecast (FC) scenario bars
+ * in the structure chart.
+ *
+ * Creates a 10x10 SVG <pattern> tile with diagonal lines using the FC bar style colors.
+ * Used as fill for FC horizontal bars to distinguish forecast from actual data per IBCS.
+ */
 export class CustomPattern {
   bgOffset: number;
   styles: StructureChartStyle;

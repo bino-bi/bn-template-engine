@@ -28,6 +28,7 @@ import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 
+/** Internal data model entry: one category with up to 4 scenario DataPoints and optional stack segments. */
 type StructureChartDataModelEntry = {
   id: number;
   category: string;
@@ -39,6 +40,27 @@ type StructureChartDataModelEntry = {
   stackSegments?: { label: string; value: number; dataPoint: DataPoint }[];
 };
 
+/**
+ * Orchestrates the full rendering pipeline for an IBCS structure (categorical) chart.
+ *
+ * Rendering pipeline (in draw()):
+ * 1. Clears the SVG container
+ * 2. Routes to the appropriate drawing method:
+ *    - Variance chart: drawVarianceScenario() for absolute/relative variance bars
+ *    - Stacked chart: drawStackedScenarios() + drawStackedHeaders()
+ *    - Standard chart: drawScenarios() with primary/secondary bars and markers
+ * 3. Draws vertical axis + category labels via drawAxisAndLabels()
+ *
+ * Data pipeline (in setConfig()):
+ * 1. Raw data is filtered via AlaSQL
+ * 2. Categories are aggregated (GROUP BY) with operation-sign-aware SUM
+ * 3. Optional limit + REST row aggregation for top-N display
+ * 4. Variance model is computed from base/delta scenario pairs
+ * 5. Min/max DataPoints drive the coordinate system sizing
+ *
+ * Overflow handling: setAvailableWidth() can enable broken-bar rendering
+ * when bars exceed the container width.
+ */
 export class StructureChart {
   private dataModel: StructureChartDataModelEntry[] = [];
   private variancesDataModel: StructureChartDataModelEntry[] = [];

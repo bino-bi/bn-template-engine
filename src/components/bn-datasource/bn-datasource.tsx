@@ -3,6 +3,13 @@ import withBodyObserver from "../../utils/withBodyObserver";
 import { set } from "../../stores/datasources";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+/**
+ * Ingests raw JSON data and writes it to the global `datasources` store.
+ *
+ * Data is provided as JSON text inside the element body (observed via
+ * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
+ * the stored data by the `name` prop to run queries against it.
+ */
 @Component({
   tag: "bn-datasource",
   styleUrl: "bn-datasource.css",

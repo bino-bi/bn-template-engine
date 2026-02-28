@@ -1,6 +1,7 @@
 import { IAdapter } from "../helper/IAdapter";
 import { CompareUtil } from "../helper/CompareUtil";
 
+/** Decimal precision configuration: separate digit counts for percent columns vs absolute (decimal) columns. */
 export class DataFormatDigits {
   constructor(
     public percent: number = 2,

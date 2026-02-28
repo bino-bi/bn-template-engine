@@ -6,6 +6,11 @@ import { DatasetMeta } from "./model/DatasetMeta";
 import { runIfExisits } from "./utils";
 import { getElement } from "@stencil/core";
 
+/**
+ * Splits an array into two groups based on a predicate.
+ * Used to separate `$`-prefixed datasource refs from dataset refs.
+ * @returns Tuple of [matches, nonMatches]
+ */
 const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => {
   const matches: T[] = [];
   const nonMatches: T[] = [];
@@ -17,6 +22,11 @@ const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => 
 
 const WARN_DATASOURCE_ID = "WARN_use_dataset";
 
+/**
+ * Emits a warning via the component's ErrorDispatcher when datasource refs
+ * (`$name`) are used directly, nudging consumers toward bn-dataset wrappers
+ * which provide query support and metadata.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const warnIfDatasource = (component: any, datasources: string[]) => {
   const errors = component.errors;
@@ -33,6 +43,21 @@ const warnIfDatasource = (component: any, datasources: string[]) => {
   }
 };
 
+/**
+ * Mixin that subscribes a Stencil component to one or more datasets/datasources.
+ *
+ * **Naming convention:** The `datasets` HTML attribute accepts a comma-separated list of names.
+ * Names prefixed with `$` (e.g. `$revenue`) read directly from the raw datasources store;
+ * unprefixed names read from the processed datasets store (populated by bn-dataset).
+ *
+ * The mixin installs a MutationObserver on the host element's `datasets` attribute so
+ * bindings update automatically when the attribute is changed at runtime.
+ *
+ * @param component - The Stencil component instance (must expose a host element via `@Element()`)
+ * @param onUpdate - Callback invoked with `(name, data)` whenever a subscribed dataset or datasource changes
+ * @param onMetaUpdate - Optional callback invoked with `(name, meta)` when DatasetMeta changes for a subscribed dataset
+ * @returns A function to programmatically replace the list of subscribed dataset names
+ */
 const withDataset = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: any,

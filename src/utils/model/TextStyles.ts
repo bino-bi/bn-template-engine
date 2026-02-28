@@ -1,3 +1,4 @@
+/** Font configuration for the bn-text component. */
 export interface BinoTextStyles {
   fontStyles: {
     font: string;

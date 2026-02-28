@@ -2,6 +2,7 @@ import { DateTime, DateTimeUnit, DurationLike } from "luxon";
 import { DateFormat, DateLinkFormat } from "../components/bn-chart-time/utils/model"; //TODO: JHE:  Merge Title und Cahrt DateFormat...
 //import {DateFormat, DateLinkFormat} from "../components/ibcs-chart-time/utils/model";
 
+/** Granularity levels for date intervals, from YEAR down to MILLISECOND. AUTO triggers auto-detection. */
 export enum DateDistance {
   YEAR = "year",
   QUARTER = "quarter",
@@ -16,6 +17,7 @@ export enum DateDistance {
   AUTO = "auto",
 }
 
+/** IBCS date-link modes controlling how start/end dates are rendered in titles and axis labels. */
 export enum DateLink {
   AVG = "avg",
   INTERVAL = "interval",
@@ -29,6 +31,14 @@ export enum DateLink {
   AUTO = "auto",
 }
 
+/**
+ * Produces formatted date strings and IBCS date-link notations for time-series charts.
+ *
+ * Supports configurable date formats (full and abbreviated), locale-aware formatting
+ * via Luxon, smart boundary labels that append the parent period at crossings
+ * (e.g. month name shown at the first day of a new month), and IBCS date-link
+ * notation (AVG, YTD, YTG, CUM, MAT, INTERVAL, START, END).
+ */
 export class DateStringFactory {
   private readonly _dateFormat: DateFormat = {
     year: "yyyy",
@@ -114,10 +124,11 @@ export class DateStringFactory {
   }
 
   /**
-   * Converts date string based on dateFormatMap and  the selected Type
+   * Produces abbreviated date labels that include the parent period at boundary crossings.
    *
-   * @param date
-   * @param type?
+   * For example, with MONTH granularity, most ticks show just "Jan", "Feb", etc.,
+   * but the first month of a new year also appends the year ("Jan 24").
+   * This avoids redundant repetition while keeping boundary context visible.
    */
   public getSmartDateString(date: DateTime, type: DateDistance): string {
     switch (type) {
@@ -152,10 +163,14 @@ export class DateStringFactory {
   }
 
   /**
-   * Calulating best fitting DateDistance type between 2 dates
+   * Determines the best-fitting {@link DateDistance} granularity for the span between two dates.
    *
-   * @param start
-   * @param end
+   * Cascades through granularities from finest (millisecond) to coarsest (year),
+   * comparing the span against the `limit` threshold at each level. Returns the
+   * first granularity where the span is below the limit, ensuring the number of
+   * axis ticks stays manageable. Defaults to DAY for zero-span or null end dates.
+   *
+   * @param limit Maximum number of intervals before stepping up to a coarser granularity (default 32).
    */
   public calculateDistanceType(
     start: DateTime | number,
@@ -225,16 +240,21 @@ export class DateStringFactory {
   }
 
   /**
-   * Creates DateString depending on date, mode and type.
+   * Produces an IBCS date-link string combining date formatting with link notation.
    *
-   * if mode is set to auto a type will be calculated internaly
-   * in this case the type parameter will be ignored
+   * Supported modes map to IBCS conventions:
+   * - `AVG`: average symbol `Ø` wrapping the interval
+   * - `YTD` / `YTG`: year-to-date / year-to-go underline notation
+   * - `CUM`: cumulative range `start_end`
+   * - `MAT`: moving annual total `~date`
+   * - `INTERVAL`: `start..end` range
+   * - `START` / `END`: dot-prefixed/suffixed single date
    *
-   * function validates parameter if a  invalid  empty string is returned
-   * @param date1 start date
-   * @param date2
-   * @param mode
-   * @param type
+   * When start and end resolve to the same formatted string, INTERVAL is collapsed
+   * to NONE to avoid redundant display. Year parts are deduplicated when both dates
+   * share the same year (e.g. "Q1 .. Q3 2024" instead of "Q1 2024 .. Q3 2024").
+   *
+   * @param type DateDistance granularity; when AUTO, it is auto-detected via `calculateDistanceType`.
    */
   public getDateLinkString(
     startDateTime: DateTime | null,
@@ -321,6 +341,7 @@ export class DateStringFactory {
       .replace("[DATE2]", dateString2);
   }
 
+  /** Returns an abbreviated date string using the short format map (e.g. "yy" for year, "LLL" for month). */
   getShortDateString(date: DateTime, type: DateDistance) {
     return date
       .setLocale(this.locale)

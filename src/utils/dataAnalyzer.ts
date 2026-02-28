@@ -1,30 +1,14 @@
 import alasql from "alasql";
 import { SiPrefix } from "./model/SiPrefix";
 
-/*
-yotta	Y
-zetta	Z
-exa	E
-peta	P
-tera	T
-giga	G
-mega	M
-kilo	k
-hecto	h
-deca	da
-
-deci	d
-centi	c
-milli	m
-micro	μ
-nano	n
-pico	p
-femto	f
-atto	a
-zepto	z
-yocto	y
-    */
-
+/**
+ * SI prefix lookup table mapping prefix symbols to their numeric multipliers.
+ * Used by {@link DataAnalyzer.calculateMeasureScale} to convert a prefix string
+ * (e.g. `"M"` for mega) into the corresponding divisor for display scaling.
+ *
+ * Covers the full SI range from yocto (10^-24) to yotta (10^24).
+ * Note: `"my"` is used instead of `"μ"` (micro) for ASCII compatibility.
+ */
 export enum NumeralFigure {
   "Y" = 1e24,
   "Z" = 1e21,
@@ -48,10 +32,26 @@ export enum NumeralFigure {
   "y" = 0.000000000000000000000001,
 }
 
+/**
+ * Analyzes dataset values to determine the appropriate SI prefix for display scaling.
+ */
 export class DataAnalyzer {
+  /** SI prefixes for large numbers, ordered by magnitude (k=10^3 .. Y=10^24). */
   private static unitsGreat = ["k", "M", "G", "T", "P", "E", "Z", "Y"];
+  /** SI prefixes for small numbers, ordered by magnitude (m=10^-3 .. y=10^-24). */
   private static unitsLeast = ["m", "my", "n", "p", "P", "f", "a", "z", "y"];
 
+  /**
+   * Determines the appropriate SI prefix for scaling displayed values.
+   *
+   * Modes:
+   * - `"_"` (underscore): no scaling, returns identity prefix
+   * - Explicit prefix (e.g. `"k"`, `"M"`): direct lookup in NumeralFigure enum
+   * - `"GREATEST"` (default) / `"LEAST"`: auto-detect from the MAX or MIN of
+   *   absolute base scenario values. Only 3-character scenario names (e.g. `ac1`)
+   *   are considered; variance columns are excluded.
+   * - `null` with data: defaults to GREATEST auto-detection
+   */
   static calculateMeasureScale(data: Record<string, unknown>[], scenarios: string[], mode: string | null): SiPrefix {
     if (mode === "_") {
       return new SiPrefix();
@@ -91,6 +91,7 @@ export class DataAnalyzer {
     return this.determinePrefix(Math.abs(num));
   }
 
+  /** Maps an absolute numeric value to the best-fitting SI prefix based on digit count. */
   private static determinePrefix(num: number): SiPrefix {
     if (num >= 1000) {
       const floor = Math.floor(Math.floor(Math.abs(num)).toString().length / 3);
@@ -109,6 +110,7 @@ export class DataAnalyzer {
     return new SiPrefix();
   }
 
+  /** Looks up an explicit SI prefix string in the NumeralFigure enum. */
   private static lookupPrefix(mode: string): SiPrefix {
     return new SiPrefix(mode, NumeralFigure[mode as keyof typeof NumeralFigure]);
   }

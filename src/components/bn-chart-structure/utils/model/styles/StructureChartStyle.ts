@@ -21,6 +21,7 @@ import { ScaleFactorsStructureChart, ScaleFactorsStructureChartAdapter } from ".
 // import { SVGPolgonPattern } from "../../../../../utils/model";
 // import { Padding, PaddingAdapter } from "../../../../../utils/model/styles/Padding";
 
+/** Aggregates all style configuration for a structure chart: scale factors, fonts, colors, patterns, and padding. */
 export class StructureChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
 
@@ -34,6 +35,7 @@ export class StructureChartStyle {
   ) {}
 }
 
+/** Adapts raw componentStyle JSON into a StructureChartStyle, falling back to defaults for missing properties. */
 export class StructureChartStylesAdapter implements IAdapter<StructureChartStyle> {
   constructor(
     private scaleFactorsStructureChartAdapter: ScaleFactorsStructureChartAdapter,
