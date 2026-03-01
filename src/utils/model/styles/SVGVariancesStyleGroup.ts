@@ -39,15 +39,15 @@ export class SVGVariancesStyleGroupAdapter implements IAdapter<SVGVariancesStyle
     );
 
     if (CompareUtil.isExisting(data.pos)) {
-      styleGroup.pos = this.svgStyleAdapter.adapt(data.pos);
+      styleGroup.pos = this.svgStyleAdapter.adapt(data.pos as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.neg)) {
-      styleGroup.neg = this.svgStyleAdapter.adapt(data.neg);
+      styleGroup.neg = this.svgStyleAdapter.adapt(data.neg as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.pp)) {
-      styleGroup.neu = this.svgStyleAdapter.adapt(data.neu);
+      styleGroup.neu = this.svgStyleAdapter.adapt(data.neu as Record<string, unknown>);
     }
 
     if (CompareUtil.isString(data.needleHeadColour)) {

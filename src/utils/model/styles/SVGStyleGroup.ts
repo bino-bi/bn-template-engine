@@ -43,19 +43,19 @@ export class SVGStyleGroupAdapter implements IAdapter<SVGStyleGroup> {
     );
 
     if (CompareUtil.isExisting(data.ac)) {
-      styleGroup.ac = this.svgStyleAdapter.adapt(data.ac);
+      styleGroup.ac = this.svgStyleAdapter.adapt(data.ac as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.fc)) {
-      styleGroup.fc = this.svgStyleAdapter.adapt(data.fc);
+      styleGroup.fc = this.svgStyleAdapter.adapt(data.fc as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.pp)) {
-      styleGroup.pp = this.svgStyleAdapter.adapt(data.pp);
+      styleGroup.pp = this.svgStyleAdapter.adapt(data.pp as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.pl)) {
-      styleGroup.pl = this.svgStyleAdapter.adapt(data.pl);
+      styleGroup.pl = this.svgStyleAdapter.adapt(data.pl as Record<string, unknown>);
     }
 
     return styleGroup;

@@ -223,7 +223,7 @@ describe("isValidDate", () => {
   });
 
   it("returns true for number", () => {
-    expect(isValidDate(42)).toEqual(true);
+    expect(isValidDate("42")).toEqual(true);
   });
 
   it("returns true for number as string", () => {

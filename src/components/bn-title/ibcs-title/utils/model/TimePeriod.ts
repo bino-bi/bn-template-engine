@@ -27,11 +27,11 @@ export class TimePeriodAdapter implements IAdapter<TimePeriod> {
     }
 
     if (CompareUtil.isExisting(data.format)) {
-      entry.format = data.format;
+      entry.format = data.format as DateDistance;
     }
 
-    if (CompareUtil.isExisting(data.format)) {
-      entry.link = data.link;
+    if (CompareUtil.isExisting(data.link)) {
+      entry.link = data.link as DateLink;
     }
 
     return entry;

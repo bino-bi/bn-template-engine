@@ -671,7 +671,7 @@ export class Chart {
     withDataset(
       this,
       (_name, data) => {
-        this.data = data || [];
+        this.data = (data || []) as TimeChartDataRow[];
       },
       (_name, meta) => {
         this.datasetMeta = meta;

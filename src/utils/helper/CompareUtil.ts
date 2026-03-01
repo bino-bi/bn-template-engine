@@ -36,7 +36,7 @@ export class CompareUtil {
    * Checks if the value is a valid IBCS aggregation operator.
    * Only `"+"` and `"-"` are valid; any other value is rejected.
    */
-  static isOperator(data: unknown): boolean {
+  static isOperator(data: unknown): data is string {
     return data === "+" || data === "-";
   }
 
@@ -45,6 +45,6 @@ export class CompareUtil {
    * Returns false for invalid DateTime objects (e.g. parsed from malformed strings).
    */
   static isDate(data: unknown): data is DateTime {
-    return data instanceof DateTime && data.isValid;
+    return data instanceof DateTime && (data as DateTime).isValid;
   }
 }

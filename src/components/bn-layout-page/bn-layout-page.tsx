@@ -199,8 +199,8 @@ export class LayoutPage {
     const style = this.getLayoutStyle();
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
 
-    // @ts-ignore
     return (
+      // @ts-ignore
       <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
         <bn-message text={this.messageText} image={this.messageImage}></bn-message>
         <bn-title // @ts-ignore

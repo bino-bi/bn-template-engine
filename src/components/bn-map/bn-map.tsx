@@ -63,9 +63,9 @@ export class BnMap {
     this.errors = withHasError(this);
     withDataset(this, (name, data) => {
       if (name == this.markersDatasetName) {
-        this.markerData = data;
+        this.markerData = data as Marker[];
       } else if (name == this.gpxsDatasetName) {
-        this.gpxData = data;
+        this.gpxData = data as GpxParams[];
       }
     });
     //this.t = withTranslation(this).t;

@@ -149,7 +149,7 @@ export class StructureChartDataRowAdapter implements IAdapter<StructureChartData
       dataRow.pl3 = data.pl3;
     }
 
-    if (CompareUtil.isNumber(data.ac4)) {
+    if (CompareUtil.isNumber(data.pl4)) {
       dataRow.pl4 = data.pl4;
     }
   }

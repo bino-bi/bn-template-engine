@@ -205,7 +205,9 @@ export class IbcsTable {
 
     const data: TableDataRow[] = this.prepareData();
 
-    this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(this.dataFormatDigits);
+    this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(
+      this.dataFormatDigits as unknown as Record<string, unknown>,
+    );
     this.barChartStyles = this.prepareBarChartStyles();
     this.table = new Table(new IBCSRuleSet(), data, config);
     this.table.setI18n(this.i18n);
@@ -216,7 +218,7 @@ export class IbcsTable {
       new TableDrillGroupAdapter(),
       new StringAdapter(),
       new OrderAdapter(new StringAdapter()),
-      this.data,
+      this.data as unknown as Record<string, unknown>[],
     ).adapt({
       title: this.tableTitle,
       scenarios: this.scenarios,

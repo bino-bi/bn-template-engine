@@ -173,8 +173,8 @@ export class LayoutCard {
   render() {
     const style = this.getLayoutStyle();
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
-    // @ts-ignore
     return (
+      // @ts-ignore
       <bn-card styles={this.styles} class={this.setCardClass()}>
         <div class="cardtitle">
           <bn-title // @ts-ignore

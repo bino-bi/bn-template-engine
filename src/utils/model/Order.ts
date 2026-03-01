@@ -51,7 +51,7 @@ export class OrderAdapter implements IAdapter<Order> {
     const hierarchy: string[] = AdapterUtils.adaptArray(data.hierarchy, this.stringAdapter);
 
     const order: OrderDirection =
-      OrderDirection[data.direction?.toUpperCase() as keyof typeof OrderDirection] || OrderDirection.ASC;
+      OrderDirection[(data.direction as string)?.toUpperCase() as keyof typeof OrderDirection] || OrderDirection.ASC;
 
     return new Order(
       hierarchy.map((str) => OrderColumn[str.toUpperCase() as keyof typeof OrderColumn] || OrderColumn.CATEGORY),
