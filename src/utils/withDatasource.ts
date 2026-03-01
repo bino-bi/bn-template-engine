@@ -1,4 +1,4 @@
-import { on, get } from "../stores/datasources";
+import { getStores, clearStoresCache, ScopedStores } from "../context/context-protocol";
 import { runIfExisits } from "./utils";
 import { getElement } from "@stencil/core";
 
@@ -20,6 +20,7 @@ import { getElement } from "@stencil/core";
 const withDatasource = (component: any, onUpdate: (name: string, data: unknown) => void) => {
   let subscription: () => void;
   let datasources: string[] = [];
+  let stores: ScopedStores;
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -27,7 +28,7 @@ const withDatasource = (component: any, onUpdate: (name: string, data: unknown) 
         datasources = (getElement(component).getAttribute("datasources") || "").split(",");
         datasources.forEach((name) => {
           // @ts-ignore
-          onUpdate(name, get(name));
+          onUpdate(name, stores.datasources.get(name));
         });
       }
     });
@@ -36,16 +37,18 @@ const withDatasource = (component: any, onUpdate: (name: string, data: unknown) 
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
     const element = getElement(component);
+    stores = getStores(element);
+
     datasources = (element.getAttribute("datasources") || "").split(",");
     datasources.forEach((name) => {
       // @ts-ignore
-      onUpdate(name, get(name));
+      onUpdate(name, stores.datasources.get(name));
     });
 
     observer.observe(element, { attributes: true, attributeFilter: ["datasources"] });
-    subscription = on("set", (key, newVlaue) => {
-      if (datasources.includes(key)) {
-        onUpdate(key, newVlaue);
+    subscription = stores.datasources.on("set", (key, newVlaue) => {
+      if (datasources.includes(key as string)) {
+        onUpdate(key as string, newVlaue);
       }
     });
 
@@ -56,6 +59,7 @@ const withDatasource = (component: any, onUpdate: (name: string, data: unknown) 
   component["disconnectedCallback"] = () => {
     observer.disconnect();
     runIfExisits(subscription);
+    clearStoresCache(getElement(component));
     runIfExisits(disconnectedCallback, component);
   };
 };

@@ -1,6 +1,4 @@
-import { on as onSet, get as getSet } from "../stores/datasets";
-import { on as onSource, get as getSource } from "../stores/datasources";
-import { on as onMeta, get as getMeta } from "../stores/datasetsMeta";
+import { getStores, clearStoresCache, ScopedStores } from "../context/context-protocol";
 import { DatasetMeta } from "./model/DatasetMeta";
 
 import { runIfExisits } from "./utils";
@@ -69,11 +67,12 @@ const withDataset = (
   let subscriptionMeta: () => void;
   let datasets: string[] = [];
   let datasources: string[] = [];
+  let stores: ScopedStores;
 
   const deliverMeta = (name: string) => {
     if (onMetaUpdate) {
       // @ts-ignore
-      const meta = getMeta(name);
+      const meta = stores.datasetsMeta.get(name);
       if (meta) onMetaUpdate(name, meta);
     }
   };
@@ -88,12 +87,12 @@ const withDataset = (
         warnIfDatasource(component, datasources);
         datasets.forEach((name) => {
           // @ts-ignore
-          onUpdate(name, getSet(name));
+          onUpdate(name, stores.datasets.get(name));
           deliverMeta(name);
         });
         datasources.forEach((name) => {
           // @ts-ignore
-          onUpdate(name, getSource(name.substring(1)));
+          onUpdate(name, stores.datasources.get(name.substring(1)));
         });
       }
     });
@@ -102,36 +101,38 @@ const withDataset = (
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
     const element = getElement(component);
+    stores = getStores(element);
+
     [datasources, datasets] = partition((s) => s.startsWith("$"), (element.getAttribute("datasets") || "").split(","));
     warnIfDatasource(component, datasources);
     datasets.forEach((name) => {
       // @ts-ignore
-      onUpdate(name, getSet(name));
+      onUpdate(name, stores.datasets.get(name));
       deliverMeta(name);
     });
     datasources.forEach((name) => {
       // @ts-ignore
-      onUpdate(name, getSource(name.substring(1)));
+      onUpdate(name, stores.datasources.get(name.substring(1)));
     });
 
     observer.observe(element, { attributes: true, attributeFilter: ["datasets"] });
 
-    subscriptionSet = onSet("set", (key, newVlaue) => {
-      if (datasets.includes(key)) {
-        onUpdate(key, newVlaue);
+    subscriptionSet = stores.datasets.on("set", (key, newVlaue) => {
+      if (datasets.includes(key as string)) {
+        onUpdate(key as string, newVlaue);
       }
     });
 
-    subscriptionSource = onSource("set", (key, newVlaue) => {
+    subscriptionSource = stores.datasources.on("set", (key, newVlaue) => {
       if (datasources.includes("$" + key)) {
         onUpdate("$" + key, newVlaue);
       }
     });
 
     if (onMetaUpdate) {
-      subscriptionMeta = onMeta("set", (key, newValue) => {
-        if (datasets.includes(key)) {
-          onMetaUpdate(key, newValue);
+      subscriptionMeta = stores.datasetsMeta.on("set", (key, newValue) => {
+        if (datasets.includes(key as string)) {
+          onMetaUpdate(key as string, newValue as DatasetMeta);
         }
       });
     }
@@ -145,6 +146,7 @@ const withDataset = (
     runIfExisits(subscriptionSet);
     runIfExisits(subscriptionSource);
     runIfExisits(subscriptionMeta);
+    clearStoresCache(getElement(component));
     runIfExisits(disconnectedCallback, component);
   };
 
@@ -152,7 +154,7 @@ const withDataset = (
     datasets = names;
     names.forEach((name) => {
       // @ts-ignore
-      onUpdate(name, getSet(name));
+      onUpdate(name, stores.datasets.get(name));
       deliverMeta(name);
     });
   };

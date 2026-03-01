@@ -1,8 +1,7 @@
 import { Component, Prop, h, Host, Watch } from "@stencil/core";
 import withDatasource from "../../utils/withDatasource";
 import withBodyObserver from "../../utils/withBodyObserver";
-import { set } from "../../stores/datasets";
-import { set as setMeta } from "../../stores/datasetsMeta";
+import { getStores, ScopedStores } from "../../context/context-protocol";
 import { calculateDatasetMeta } from "../../utils/datasetMetaCalculator";
 import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -27,6 +26,8 @@ export class Dataset {
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+
+  private stores: ScopedStores;
 
   constructor() {
     withComponentStatus(this);
@@ -69,6 +70,7 @@ export class Dataset {
   private latestResult: unknown;
 
   executeQuery() {
+    if (!this.stores) this.stores = getStores(this.element);
     if (!!this.query && !!this.name) {
       let result: unknown;
       if (this.static) {
@@ -84,9 +86,9 @@ export class Dataset {
       if (this.latestResult !== result) {
         this.latestResult = result;
         // @ts-ignore
-        set(this.name, result);
+        this.stores.datasets.set(this.name, result);
         // @ts-ignore
-        setMeta(this.name, calculateDatasetMeta(result));
+        this.stores.datasetsMeta.set(this.name, calculateDatasetMeta(result));
       }
     }
   }

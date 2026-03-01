@@ -1,5 +1,6 @@
 import { forceUpdate, getElement } from "@stencil/core";
-import state, { Style, on } from "../stores/componentStyles";
+import { Style } from "../stores/componentStyles";
+import { getStores, clearStoresCache, ScopedStores } from "../context/context-protocol";
 import { runIfExisits } from "./utils";
 import { merge } from "@corex/deepmerge";
 
@@ -23,11 +24,13 @@ import { merge } from "@corex/deepmerge";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withComponentStyle = (component: any) => {
   let subscription: () => void;
+  let stores: ScopedStores;
 
   let selectedStyle: string;
-  let style: Style = state["_system"];
+  let style: Style;
 
   const updateStyle = () => {
+    const state = stores.componentStyles.state;
     style = merge([
       state["_system"] || ({} as Style),
       state["_default"] || ({} as Style),
@@ -48,13 +51,16 @@ const withComponentStyle = (component: any) => {
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
     const element = getElement(component);
+    stores = getStores(element);
+    style = stores.componentStyles.state["_system"];
+
     observer.observe(element, { attributes: true, attributeFilter: ["selected-style"] });
 
     selectedStyle = getElement(component).getAttribute("selected-style");
 
     updateStyle();
 
-    subscription = on("set", (key) => {
+    subscription = stores.componentStyles.on("set", (key) => {
       if (key === selectedStyle) {
         selectedStyle = getElement(component).getAttribute("selected-style");
         updateStyle();
@@ -69,6 +75,7 @@ const withComponentStyle = (component: any) => {
   component["disconnectedCallback"] = () => {
     observer.disconnect();
     runIfExisits(subscription);
+    clearStoresCache(getElement(component));
     runIfExisits(disconnectedCallback, component);
   };
 

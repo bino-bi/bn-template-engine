@@ -1,5 +1,4 @@
-import { default as context } from "../stores/context";
-import { default as locales, on } from "../stores/internationalization";
+import { getStores, clearStoresCache, ScopedStores } from "../context/context-protocol";
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 
@@ -27,6 +26,7 @@ import { runIfExisits } from "./utils";
 const withTranslation = (component: any) => {
   let subscription: () => void;
   let namespace: string | undefined = undefined;
+  let stores: ScopedStores;
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -40,11 +40,13 @@ const withTranslation = (component: any) => {
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
     const element = getElement(component);
+    stores = getStores(element);
+
     observer.observe(element, { attributes: true, attributeFilter: ["namespace"] });
 
     namespace = getElement(component).getAttribute("namespace");
 
-    subscription = on("set", (key, _value) => {
+    subscription = stores.internationalization.on("set", (key, _value) => {
       if (key == namespace) {
         forceUpdate(component);
       }
@@ -57,6 +59,7 @@ const withTranslation = (component: any) => {
   component["disconnectedCallback"] = () => {
     observer.disconnect();
     runIfExisits(subscription);
+    clearStoresCache(getElement(component));
     runIfExisits(disconnectedCallback, component);
   };
 
@@ -65,13 +68,16 @@ const withTranslation = (component: any) => {
       key = getElement(component).localName + key;
     }
 
+    const locales = stores.internationalization.state;
+    const locale = stores.context.state.locale;
+
     let currentNamespace = namespace;
 
-    if (locales[currentNamespace]?.[context.locale]?.[key] == null) {
+    if (locales[currentNamespace]?.[locale]?.[key] == null) {
       currentNamespace = "_system";
     }
 
-    const tpl = locales[currentNamespace][context.locale][key];
+    const tpl = locales[currentNamespace][locale][key];
     return tpl.replace(/{{([\s\S]+?)}}/g, (_: string, k: string) => data?.[k.trim()] ?? "");
   };
 
