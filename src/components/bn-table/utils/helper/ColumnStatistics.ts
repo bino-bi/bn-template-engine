@@ -23,11 +23,13 @@ export class ColumnStatistics {
       let min = Infinity;
       let max = -Infinity;
 
-      for (const row of data) {
-        const value = this.extractValue(row, column);
-        if (value !== null && !isNaN(value)) {
-          min = Math.min(min, value);
-          max = Math.max(max, value);
+      for (const group of data) {
+        for (const row of group) {
+          const value = this.extractValue(row, column);
+          if (value !== null && !isNaN(value)) {
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+          }
         }
       }
 

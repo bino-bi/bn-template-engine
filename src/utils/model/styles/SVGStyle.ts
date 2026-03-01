@@ -14,7 +14,7 @@ export class SVGStyle {
 
 export class SVGStyleAdapter implements IAdapter<SVGStyle> {
   adapt(data: Record<string, unknown>): SVGStyle {
-    const style = new SVGStyle(data.stroke, data.fill, data.width);
+    const style = new SVGStyle(data.stroke as string, data.fill as string, data.width as number);
 
     if (CompareUtil.isString(data.fillpattern)) {
       style.fillpattern = data.fillpattern;

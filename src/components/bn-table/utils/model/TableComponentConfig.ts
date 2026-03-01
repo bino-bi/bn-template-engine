@@ -85,7 +85,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     }
 
     if (CompareUtil.isExisting(data.scenariosUnitType)) {
-      config.scenariosUnitType = data.scenariosUnitType;
+      config.scenariosUnitType = data.scenariosUnitType as DataFormat;
     }
 
     if (CompareUtil.isBoolean(data.grouped)) {
@@ -105,7 +105,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     }
 
     if (CompareUtil.isExisting(data.categoryThereOf)) {
-      config.categoryThereOf = data.categoryThereOf;
+      config.categoryThereOf = data.categoryThereOf as Map<string, Record<string, unknown>[]>;
     }
 
     if (CompareUtil.isArray(data.partOf)) {
@@ -113,11 +113,11 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     }
 
     if (CompareUtil.isExisting(data.order)) {
-      config.order = this.orderAdapter.adapt(data.order);
+      config.order = this.orderAdapter.adapt(data.order as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.type)) {
-      config.type = data.type;
+      config.type = data.type as TableType;
     }
 
     if (CompareUtil.isNumber(data.limit)) {
@@ -125,19 +125,23 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     }
 
     if (CompareUtil.isExisting(data.i18n)) {
-      config.i18n = data.i18n;
+      config.i18n = data.i18n as I18nMode;
     }
 
     if (CompareUtil.isExisting(data.categoryWidth)) {
-      config.categoryWidth = data.categoryWidth;
+      config.categoryWidth = data.categoryWidth as TableCategoryWidth;
     }
 
     if (CompareUtil.isExisting(data.measureScale)) {
-      config.measureScale = DataAnalyzer.calculateMeasureScale(this.dataSet, config.scenarios, data.measureScale);
+      config.measureScale = DataAnalyzer.calculateMeasureScale(
+        this.dataSet,
+        config.scenarios,
+        data.measureScale as string,
+      );
     }
 
     if (CompareUtil.isExisting(data.measureType)) {
-      config.measureType = data.measureType;
+      config.measureType = data.measureType as MeasureType;
     }
 
     if (CompareUtil.isString(data.measureUnit)) {
@@ -149,7 +153,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     }
 
     if (CompareUtil.isArray(data.barColumns)) {
-      config.barColumns = data.barColumns;
+      config.barColumns = data.barColumns as string[];
     }
 
     return config;

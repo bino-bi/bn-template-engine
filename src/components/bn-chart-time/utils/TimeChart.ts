@@ -53,6 +53,8 @@ type TimeChartResponseRow = {
   id: number;
   calcdate: DateTime;
   category: string | null;
+  mindate?: any;
+  maxdate?: any;
   ac1: number | null;
   ac2: number | null;
   ac3: number | null;
@@ -176,9 +178,9 @@ export class TimeChart {
     // @ts-ignore
     alasql.fn.normalizeDate = function (
       date: DateTime | undefined,
-      normalizationLevel: StringOf,
-      locale: moment.LocaleSpecifier,
-    ): DateTimes {
+      normalizationLevel: string,
+      _locale: string,
+    ): DateTime | undefined {
       if (date == undefined || !date.isValid) {
         return undefined;
       }
@@ -747,7 +749,7 @@ export class TimeChart {
     return localDateInterval;
   }
 
-  private queryMinMaxDates(): { mindate: DateTime | null; maxdate: DateTime | null }[] {
+  private queryMinMaxDates(): { mindate?: any; maxdate?: any }[] {
     //let result: any[] = [];
     const result = alasql<TimeChartResponseRow[]>(
       `SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ?`,
@@ -898,8 +900,8 @@ export class TimeChart {
 
         for (const index in dataModel) {
           varianceModel.push({
-            id: index,
-            category: dataModel[index].name,
+            id: Number(index),
+            category: dataModel[index].category,
             type: scenarios.type == "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
             date: dataModel[index].date,
             scenario1: new DataPoint(
@@ -908,6 +910,7 @@ export class TimeChart {
               pixelPerUnit,
               directon,
             ),
+            scenario2: new DataPoint(null, null, null, null),
             scenario3: new DataPoint(null, null, null, null),
             scenario4: new DataPoint(null, null, null, null),
           });
@@ -1637,7 +1640,7 @@ export class TimeChart {
     const scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);
 
     if (this.showOverlayAvg == true) {
-      let previousDataPoint: null;
+      let previousDataPoint: DataPoint | null = null;
 
       const avgDataModel = tranformToAvgDataModel(dataModel);
 
@@ -1657,7 +1660,7 @@ export class TimeChart {
     }
 
     if (this.showOverlayMedian === true) {
-      let previousDataPoint: null;
+      let previousDataPoint: DataPoint | null = null;
 
       const medianDataModel = tranformToMedianDataModel(dataModel);
 

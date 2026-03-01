@@ -32,7 +32,7 @@ import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 type StructureChartDataModelEntry = {
   id: number;
   category: string;
-  type: string;
+  type: VarianceType;
   scenario1: DataPoint;
   scenario2: DataPoint;
   scenario3: DataPoint;
@@ -499,12 +499,32 @@ export class StructureChart {
     primaryResult.forEach((element: Record<string, unknown>, index: number) => {
       dataModel.push({
         id: index,
-        category: element.category,
+        category: element.category as string,
         type: VarianceType.NONE,
-        scenario1: new DataPoint(element[selectedScenarios[0]], selectedScenarios[0], this.pixelPerUnit, Scenario.NEU),
-        scenario2: new DataPoint(element[selectedScenarios[1]], selectedScenarios[1], this.pixelPerUnit, Scenario.NEU),
-        scenario3: new DataPoint(element[selectedScenarios[2]], selectedScenarios[2], this.pixelPerUnit, Scenario.NEU),
-        scenario4: new DataPoint(element[selectedScenarios[3]], selectedScenarios[3], this.pixelPerUnit, Scenario.NEU),
+        scenario1: new DataPoint(
+          element[selectedScenarios[0]] as number,
+          selectedScenarios[0],
+          this.pixelPerUnit,
+          Scenario.NEU,
+        ),
+        scenario2: new DataPoint(
+          element[selectedScenarios[1]] as number,
+          selectedScenarios[1],
+          this.pixelPerUnit,
+          Scenario.NEU,
+        ),
+        scenario3: new DataPoint(
+          element[selectedScenarios[2]] as number,
+          selectedScenarios[2],
+          this.pixelPerUnit,
+          Scenario.NEU,
+        ),
+        scenario4: new DataPoint(
+          element[selectedScenarios[3]] as number,
+          selectedScenarios[3],
+          this.pixelPerUnit,
+          Scenario.NEU,
+        ),
       });
     });
   }
@@ -623,7 +643,7 @@ export class StructureChart {
 
         for (const index in dataModel) {
           varianceModel.push({
-            id: index,
+            id: Number(index),
             category: dataModel[index].category,
             type: scenarios.type == "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
             scenario1: new DataPoint(
@@ -632,6 +652,7 @@ export class StructureChart {
               pixelPerUnit,
               directon,
             ),
+            scenario2: new DataPoint(null, null, null, null),
             scenario3: new DataPoint(null, null, null, null),
             scenario4: new DataPoint(null, null, null, null),
           });
@@ -1189,10 +1210,10 @@ export class StructureChart {
     // Group results by displayGroup
     const groupMap = new Map<string, { label: string; value: number }[]>();
     for (const row of result) {
-      const key = row.displayGroup;
+      const key = row.displayGroup as string;
       if (!groupMap.has(key)) groupMap.set(key, []);
       if (row.stackValue != null && row.stackLabel != null) {
-        groupMap.get(key)!.push({ label: row.stackLabel, value: row.stackValue });
+        groupMap.get(key)!.push({ label: row.stackLabel as string, value: row.stackValue as number });
       }
     }
 

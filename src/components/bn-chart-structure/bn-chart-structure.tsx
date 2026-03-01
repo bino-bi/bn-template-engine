@@ -452,7 +452,7 @@ export class Chart {
     withDataset(
       this,
       (_name, data) => {
-        this.data = data || [];
+        this.data = (data || []) as StructureChartDataRow[];
       },
       (_name, meta) => {
         this.datasetMeta = meta;

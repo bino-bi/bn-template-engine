@@ -212,15 +212,15 @@ export class Table {
         const categoryDrills = categoryThereOf.get(scenario);
         for (const drillElement of categoryDrills) {
           normalizedScenarios.push({
-            name: drillElement.name,
-            group: drillElement.name,
+            name: drillElement.name as string,
+            group: drillElement.name as string,
             type: scenario,
             order: undefined,
           });
-          for (const drillSubElement of drillElement.subGroups) {
+          for (const drillSubElement of (drillElement as Record<string, unknown>).subGroups as string[]) {
             normalizedScenarios.push({
               name: drillSubElement,
-              group: drillElement.name,
+              group: drillElement.name as string,
               type: scenario,
               order: undefined,
             });

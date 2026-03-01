@@ -299,7 +299,7 @@ export class TableDataSetFactory {
           this.createColumnType(scenario),
           this.setCellType(scenario.type, scenariosUnitType),
           this.translateCellPrefix(i18n, type, scenario.type),
-          this.translateScenarioCSS(scenario.type, value),
+          this.translateScenarioCSS(scenario.type, value as number),
           isSecondElement,
           categoryWidth,
           measureScale?.value,

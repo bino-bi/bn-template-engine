@@ -59,27 +59,31 @@ export class TimeChartStylesAdapter implements IAdapter<TimeChartStyle> {
 
     if (CompareUtil.isExisting(data)) {
       if (CompareUtil.isExisting(data.scaleFactors)) {
-        styles.scaleFactors = this.scaleFactorsStructureChartAdapter.adapt(data.scaleFactors);
+        styles.scaleFactors = this.scaleFactorsStructureChartAdapter.adapt(
+          data.scaleFactors as Record<string, unknown>,
+        );
       }
 
       if (CompareUtil.isExisting(data.fontStyles)) {
-        styles.fontStyles = this.fontStyleAdapter.adapt(data.fontStyles);
+        styles.fontStyles = this.fontStyleAdapter.adapt(data.fontStyles as Record<string, unknown>);
       }
 
       if (CompareUtil.isExisting(data.axisStyles)) {
-        styles.axisStyles = this.svgStyleGroupAdapter.adapt(data.axisStyles);
+        styles.axisStyles = this.svgStyleGroupAdapter.adapt(data.axisStyles as Record<string, unknown>);
       }
 
       if (CompareUtil.isExisting(data.barStyles)) {
-        styles.barStyles = this.svgStyleGroupAdapter.adapt(data.barStyles);
+        styles.barStyles = this.svgStyleGroupAdapter.adapt(data.barStyles as Record<string, unknown>);
       }
 
       if (CompareUtil.isExisting(data.varianceStyles)) {
-        styles.varianceStyles = this.svgVariancesStyleGroupAdapter.adapt(data.varianceStyles);
+        styles.varianceStyles = this.svgVariancesStyleGroupAdapter.adapt(
+          data.varianceStyles as Record<string, unknown>,
+        );
       }
 
       if (CompareUtil.isExisting(data.padding)) {
-        styles.padding = this.paddingadapter.adapt(data.padding);
+        styles.padding = this.paddingadapter.adapt(data.padding as Record<string, unknown>);
       }
 
       styles.pattern = new MarkerPattern(styles.fontStyles.size).createPatternMapForStructureBar();

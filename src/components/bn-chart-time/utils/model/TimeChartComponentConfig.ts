@@ -121,19 +121,19 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     if (CompareUtil.isExisting(data.sortOrder)) {
-      config.sortOrder = this.orderAdapter.adapt(data.sortOrder);
+      config.sortOrder = this.orderAdapter.adapt(data.sortOrder as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.level)) {
-      config.level = data.level;
+      config.level = data.level as AggregationLevel;
     }
 
     if (CompareUtil.isExisting(data.dateInterval)) {
-      config.dateInterval = data.dateInterval;
+      config.dateInterval = data.dateInterval as DateDistance;
     }
 
     if (CompareUtil.isExisting(data.axisLabelsMode)) {
-      config.axisLabelsMode = data.axisLabelsMode;
+      config.axisLabelsMode = data.axisLabelsMode as AxisLabelsMode;
     }
 
     if (CompareUtil.isNumber(data.leftSideOffsetForHorizontalSync)) {
@@ -149,7 +149,11 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     if (CompareUtil.isExisting(data.measureScale)) {
-      config.measureScale = DataAnalyzer.calculateMeasureScale(this.dataSet, config.scenarios, data.measureScale);
+      config.measureScale = DataAnalyzer.calculateMeasureScale(
+        this.dataSet,
+        config.scenarios,
+        data.measureScale as string,
+      );
     }
 
     if (CompareUtil.isString(data.measureUnit)) {
@@ -161,7 +165,7 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     if (CompareUtil.isExisting(data.dataFormatDigits)) {
-      config.dataFormatDigits = this.dataFormatDigitsAdapter.adapt(data.dataFormatDigits);
+      config.dataFormatDigits = this.dataFormatDigitsAdapter.adapt(data.dataFormatDigits as Record<string, unknown>);
     }
 
     if (CompareUtil.isBoolean(data.showOverlayAvg)) {
@@ -173,7 +177,7 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     if (CompareUtil.isExisting(data.chartMode)) {
-      config.chartMode = data.chartMode;
+      config.chartMode = data.chartMode as ChartMode;
     }
 
     if (CompareUtil.isNumber(data.maxBars)) {
@@ -181,7 +185,7 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     if (CompareUtil.isExisting(data.stackConfig)) {
-      config.stackConfig = data.stackConfig;
+      config.stackConfig = data.stackConfig as StackConfigParsed;
     }
 
     if (CompareUtil.isBoolean(data.lineFullWidth)) {

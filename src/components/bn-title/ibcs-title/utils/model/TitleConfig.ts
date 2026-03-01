@@ -43,7 +43,7 @@ export class TitleConifgAdapter implements IAdapter<TitleConfig> {
     }
 
     if (CompareUtil.isExisting(data.timeperiod)) {
-      config.timeperiod = this.timePeriodAdapter.adapt(data.timeperiod);
+      config.timeperiod = this.timePeriodAdapter.adapt(data.timeperiod as Record<string, unknown>);
     }
 
     if (CompareUtil.isNumber(data.intervalSpanLimit)) {
@@ -51,11 +51,11 @@ export class TitleConifgAdapter implements IAdapter<TitleConfig> {
     }
 
     if (CompareUtil.isExisting(data.i18nMode)) {
-      config.i18nMode = data.i18nMode;
+      config.i18nMode = data.i18nMode as I18nMode;
     }
 
     if (CompareUtil.isExisting(data.order)) {
-      config.order = this.orderAdapter.adapt(data.order);
+      config.order = this.orderAdapter.adapt(data.order as Record<string, unknown>);
     }
 
     return config;

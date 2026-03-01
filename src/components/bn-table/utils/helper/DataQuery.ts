@@ -80,7 +80,7 @@ export class DataQuery {
     );
 
     // Creates DataSelection for LIST
-    meta.forEach((rowGroupEntry: DataQueryMetaRow) => {
+    (meta as unknown as DataQueryMetaRow[]).forEach((rowGroupEntry: DataQueryMetaRow) => {
       // the following variables are 'helper sections' which are used to constuct dynamicly the sql statement depending of the given config
       // is grouping active?
       const queryWhereSection: string =
@@ -203,7 +203,11 @@ export class DataQuery {
     resDrill.forEach(function (drillItem) {
       scenarioNames.forEach((key) => {
         try {
-          drillItem[key] = drillItem[key] / rowGroupSumResultMap.get(drillItem[QueryColumnNames.ROWGROUP])[key];
+          drillItem[key] =
+            (drillItem[key] as number) /
+            ((rowGroupSumResultMap.get(drillItem[QueryColumnNames.ROWGROUP] as string) as DataQueryResultRow)[
+              key
+            ] as number);
         } catch (err) {
           console.error("DataQuery: partOf drill row calculation failed", key, err);
           drillItem[key] = Number.NaN;
@@ -494,7 +498,7 @@ export class DataQuery {
       group.forEach((row: DataQueryResultRow) => {
         if (row[QueryColumnNames.TYPE] !== "GROUPHEAD") {
           relativeScenarios.forEach((value: string, key: string) => {
-            row[key] = row[key] / row[value];
+            row[key] = (row[key] as number) / (row[value] as number);
           });
         }
       });
@@ -533,10 +537,10 @@ export class DataQuery {
             let minuent = 0;
             values.forEach((value: string) => {
               if (row[value] != undefined) {
-                minuent += row[value];
+                minuent += row[value] as number;
               }
             });
-            row[`${key}##REST`] = row[key] - minuent;
+            row[`${key}##REST`] = (row[key] as number) - minuent;
 
             if (row[`${key}##REST`] != 0) {
               scenarioRestHasValuesMap.set(`${key}##REST`, true);

@@ -242,7 +242,7 @@ export class IbcsChartTime {
       new OrderAdapter(new StringAdapter()),
       new StringAdapter(),
       new DataFormatDigitsAdapter(),
-      this.data,
+      this.data as unknown as Record<string, unknown>[],
     ).adapt({
       data: this.data,
       scenarios: this.scenarios,
@@ -279,6 +279,6 @@ export class IbcsChartTime {
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
       new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
       new PaddingAdapter(),
-    ).adapt(this.styles);
+    ).adapt(this.styles as unknown as Record<string, unknown>);
   }
 }

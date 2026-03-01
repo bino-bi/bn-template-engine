@@ -97,11 +97,11 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     }
 
     if (CompareUtil.isExisting(data.sortOrder)) {
-      config.sortOrder = this.orderAdapter.adapt(data.sortOrder);
+      config.sortOrder = this.orderAdapter.adapt(data.sortOrder as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.level)) {
-      config.level = data.level;
+      config.level = data.level as AggregationLevel;
     }
 
     if (CompareUtil.isString(data.filter)) {
@@ -109,7 +109,11 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     }
 
     if (CompareUtil.isExisting(data.measureScale)) {
-      config.measureScale = DataAnalyzer.calculateMeasureScale(this.dataSet, config.scenarios, data.measureScale);
+      config.measureScale = DataAnalyzer.calculateMeasureScale(
+        this.dataSet,
+        config.scenarios,
+        data.measureScale as string,
+      );
     }
 
     if (CompareUtil.isString(data.measureUnit)) {
@@ -121,11 +125,11 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     }
 
     if (CompareUtil.isExisting(data.dataFormatDigits)) {
-      config.dataFormatDigits = this.dataFormatDigitsAdapter.adapt(data.dataFormatDigits);
+      config.dataFormatDigits = this.dataFormatDigitsAdapter.adapt(data.dataFormatDigits as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.stackConfig)) {
-      config.stackConfig = data.stackConfig;
+      config.stackConfig = data.stackConfig as StackConfigParsed;
     }
 
     return config;

@@ -140,7 +140,7 @@ export class Table {
     withDataset(
       this,
       (_name, data) => {
-        this.data = data || [];
+        this.data = (data || []) as TableDataRow[];
       },
       (_name, meta) => {
         this.datasetMeta = meta;
@@ -432,7 +432,7 @@ export class Table {
   validateType(newValue: string | boolean) {
     const errId: string = "ERR_type";
 
-    if (!isValidTableType(newValue)) {
+    if (!isValidTableType(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
