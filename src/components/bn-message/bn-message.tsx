@@ -2,7 +2,7 @@ import { Component, Element, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
-import state from "../../stores/assets";
+import { getStores, ScopedStores } from "../../context/context-protocol";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
@@ -18,10 +18,16 @@ export class Footer {
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
 
+  private stores: ScopedStores;
+
   constructor() {
     withComponentStatus(this);
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
+  }
+
+  connectedCallback() {
+    this.stores = getStores(this.element);
   }
 
   private getFontStyles(): { [key: string]: string } {
@@ -56,12 +62,13 @@ export class Footer {
     if (value == null || value == "") {
       return "";
     }
+    const assetsState = this.stores.assets.state;
     // for backward compatibility deprecated "asset:" prefix
     if (value.startsWith("asset:")) {
-      return state[value.substring(6)]; // TODO: will not work with IE11 (state proxie is not available) )
+      return assetsState[value.substring(6)];
     }
 
-    return state[value] || value;
+    return assetsState[value] || value;
   }
 
   render() {

@@ -1,5 +1,5 @@
 import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
-import state from "../../stores/assets";
+import { getStores, ScopedStores } from "../../context/context-protocol";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
@@ -14,8 +14,14 @@ export class LayoutCard {
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
 
+  private stores: ScopedStores;
+
   constructor() {
     this.errors = withHasError(this);
+  }
+
+  connectedCallback() {
+    this.stores = getStores(this.element);
   }
 
   @Prop() styles?: string;
@@ -162,12 +168,13 @@ export class LayoutCard {
     if (value == null || value == "") {
       return "";
     }
+    const assetsState = this.stores.assets.state;
     // for backward compatibility deprecated "asset:" prefix
     if (value.startsWith("asset:")) {
-      return state[value.substring(6)]; // TODO: will not work with IE11 (state proxie is not available) )
+      return assetsState[value.substring(6)];
     }
 
-    return state[value] || value;
+    return assetsState[value] || value;
   }
 
   render() {

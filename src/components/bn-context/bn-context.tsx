@@ -1,5 +1,5 @@
 import { Component, h, Host, Element, Prop, Watch } from "@stencil/core";
-import state from "../../stores/context";
+import { ScopedStores, getOrCreateStores } from "../../context/context-protocol";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
@@ -11,6 +11,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 export class Context {
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+  private stores: ScopedStores;
 
   constructor() {
     withComponentStatus(this);
@@ -24,14 +25,19 @@ export class Context {
 
   @Watch("locale")
   setLocale(newValue: string) {
-    state.locale = newValue;
+    this.stores.context.state.locale = newValue;
   }
 
   currentPageUpdate = undefined;
 
   connectedCallback() {
+    // Retrieve (or create) the stores for this context element.
+    // A descendant component may have already triggered creation via
+    // getStores() if Stencil initialized it before this component.
+    this.stores = getOrCreateStores(this.element);
+
     if (this.locale) {
-      state.locale = this.locale;
+      this.stores.context.state.locale = this.locale;
     }
 
     this.currentPageUpdate = setTimeout(() => {

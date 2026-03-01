@@ -1,7 +1,7 @@
 import { Component, Prop, h, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
-// @ts-ignore
-import state, { set, Style } from "../../stores/componentStyles";
+import { Style } from "../../stores/componentStyles";
+import { getStores, ScopedStores } from "../../context/context-protocol";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
@@ -17,13 +17,17 @@ export class ComponentStyle {
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
 
+  private stores: ScopedStores;
+
   constructor() {
     withComponentStatus(this);
     this.errors = withHasError(this);
     withBodyObserver(this, (data) => {
+      if (!this.stores) this.stores = getStores(this.element);
       try {
         const parsedData = JSON.parse(data);
-        set(this.name, parsedData as Style);
+        // @ts-ignore
+        this.stores.componentStyles.set(this.name, parsedData as Style);
       } catch (e) {
         //TODO: add error chanel for JSON parsing errors
         console.error(e);

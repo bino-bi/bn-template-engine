@@ -265,6 +265,37 @@ export namespace Components {
          */
         "variances": string;
     }
+    interface BnChartTree {
+        /**
+          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+          * @default 'ltr'
+         */
+        "direction": LayoutDirection;
+        /**
+          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+          * @default 'orthogonal'
+         */
+        "edgeStyle": EdgeStyleType;
+        /**
+          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+         */
+        "edges": string;
+        /**
+          * Spacing between hierarchy levels in pixels.
+          * @default 60
+         */
+        "levelSpacing": number;
+        /**
+          * Spacing between sibling nodes in pixels.
+          * @default 20
+         */
+        "nodeSpacing": number;
+        /**
+          * Show operator labels between sibling nodes.
+          * @default 'true'
+         */
+        "showOperators": string;
+    }
     interface BnComponentStyle {
         /**
           * @default "_default"
@@ -299,7 +330,7 @@ export namespace Components {
         "static": boolean;
     }
     /**
-     * Ingests raw JSON data and writes it to the global `datasources` store.
+     * Ingests raw JSON data and writes it to the scoped `datasources` store.
      * Data is provided as JSON text inside the element body (observed via
      * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
      * the stored data by the `name` prop to run queries against it.
@@ -1324,6 +1355,12 @@ declare global {
         prototype: HTMLBnChartTimeElement;
         new (): HTMLBnChartTimeElement;
     };
+    interface HTMLBnChartTreeElement extends Components.BnChartTree, HTMLStencilElement {
+    }
+    var HTMLBnChartTreeElement: {
+        prototype: HTMLBnChartTreeElement;
+        new (): HTMLBnChartTreeElement;
+    };
     interface HTMLBnComponentStyleElement extends Components.BnComponentStyle, HTMLStencilElement {
     }
     var HTMLBnComponentStyleElement: {
@@ -1351,7 +1388,7 @@ declare global {
         new (): HTMLBnDatasetElement;
     };
     /**
-     * Ingests raw JSON data and writes it to the global `datasources` store.
+     * Ingests raw JSON data and writes it to the scoped `datasources` store.
      * Data is provided as JSON text inside the element body (observed via
      * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
      * the stored data by the `name` prop to run queries against it.
@@ -1600,6 +1637,7 @@ declare global {
         "bn-card": HTMLBnCardElement;
         "bn-chart-structure": HTMLBnChartStructureElement;
         "bn-chart-time": HTMLBnChartTimeElement;
+        "bn-chart-tree": HTMLBnChartTreeElement;
         "bn-component-style": HTMLBnComponentStyleElement;
         "bn-context": HTMLBnContextElement;
         "bn-dataset": HTMLBnDatasetElement;
@@ -1851,6 +1889,37 @@ declare namespace LocalJSX {
          */
         "variances": string;
     }
+    interface BnChartTree {
+        /**
+          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+          * @default 'ltr'
+         */
+        "direction"?: LayoutDirection;
+        /**
+          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+          * @default 'orthogonal'
+         */
+        "edgeStyle"?: EdgeStyleType;
+        /**
+          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+         */
+        "edges": string;
+        /**
+          * Spacing between hierarchy levels in pixels.
+          * @default 60
+         */
+        "levelSpacing"?: number;
+        /**
+          * Spacing between sibling nodes in pixels.
+          * @default 20
+         */
+        "nodeSpacing"?: number;
+        /**
+          * Show operator labels between sibling nodes.
+          * @default 'true'
+         */
+        "showOperators"?: string;
+    }
     interface BnComponentStyle {
         /**
           * @default "_default"
@@ -1885,7 +1954,7 @@ declare namespace LocalJSX {
         "static"?: boolean;
     }
     /**
-     * Ingests raw JSON data and writes it to the global `datasources` store.
+     * Ingests raw JSON data and writes it to the scoped `datasources` store.
      * Data is provided as JSON text inside the element body (observed via
      * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
      * the stored data by the `name` prop to run queries against it.
@@ -2853,6 +2922,7 @@ declare namespace LocalJSX {
         "bn-card": BnCard;
         "bn-chart-structure": BnChartStructure;
         "bn-chart-time": BnChartTime;
+        "bn-chart-tree": BnChartTree;
         "bn-component-style": BnComponentStyle;
         "bn-context": BnContext;
         "bn-dataset": BnDataset;
@@ -2913,6 +2983,7 @@ declare module "@stencil/core" {
              * validates props, resolves auto-detected metadata, and computes styles.
              */
             "bn-chart-time": LocalJSX.BnChartTime & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
+            "bn-chart-tree": LocalJSX.BnChartTree & JSXBase.HTMLAttributes<HTMLBnChartTreeElement>;
             "bn-component-style": LocalJSX.BnComponentStyle & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             /**
@@ -2925,7 +2996,7 @@ declare module "@stencil/core" {
              */
             "bn-dataset": LocalJSX.BnDataset & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             /**
-             * Ingests raw JSON data and writes it to the global `datasources` store.
+             * Ingests raw JSON data and writes it to the scoped `datasources` store.
              * Data is provided as JSON text inside the element body (observed via
              * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
              * the stored data by the `name` prop to run queries against it.

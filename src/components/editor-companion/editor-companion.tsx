@@ -1,7 +1,6 @@
-import { Component, Fragment, Method, h } from "@stencil/core";
+import { Component, Element, Fragment, Method, h } from "@stencil/core";
 import { BN_INTERNATIONALIZATION_KEYS } from "../../stores/internationalization";
-import { get as getDataset } from "../../stores/datasets";
-import { get as getDataSource } from "../../stores/datasources";
+import { getStores, ScopedStores } from "../../context/context-protocol";
 
 /**
  * Headless helper component for editor integration.
@@ -15,6 +14,15 @@ import { get as getDataSource } from "../../stores/datasources";
   styleUrl: "editor-companion.scss",
 })
 export class EditorCompanion {
+  // @ts-ignore - Required by mixins
+  @Element() private element: HTMLElement;
+
+  private stores: ScopedStores;
+
+  connectedCallback() {
+    this.stores = getStores(this.element);
+  }
+
   @Method()
   internationalizationKeys(): Promise<string[]> {
     return Promise.resolve(BN_INTERNATIONALIZATION_KEYS);
@@ -24,14 +32,14 @@ export class EditorCompanion {
   getDistinctFromDataSource(dataSourceName: string, key: string): Promise<unknown[]> {
     // TODO: add caching
     // @ts-ignore
-    return Promise.resolve(this.distinct(getDataSource(dataSourceName) || [], key));
+    return Promise.resolve(this.distinct(this.stores.datasources.get(dataSourceName) || [], key));
   }
 
   @Method()
   getDistinctFromDataset(datasetName: string, key: string): Promise<unknown[]> {
     // TODO: add caching
     // @ts-ignore
-    return Promise.resolve(this.distinct(getDataset(datasetName) || [], key));
+    return Promise.resolve(this.distinct(this.stores.datasets.get(datasetName) || [], key));
   }
 
   render() {

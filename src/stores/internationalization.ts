@@ -12,7 +12,6 @@
  *
  * @module stores/internationalization
  */
-import { createStore } from "@stencil/store";
 import flattenObject from "../utils/flattenObject";
 
 /**
@@ -130,7 +129,6 @@ const en = flattenObject({
 
 const BN_INTERNATIONALIZATION_KEYS = Object.keys(de || {});
 
-const { state, on, get, set } = createStore({ _system: { de, en } });
+export const SYSTEM_I18N_DEFAULTS: Record<string, unknown> = { _system: { de, en } };
 
-export { on, get, set, globalLabelKeys, BN_INTERNATIONALIZATION_KEYS };
-export default state;
+export { globalLabelKeys, BN_INTERNATIONALIZATION_KEYS };
