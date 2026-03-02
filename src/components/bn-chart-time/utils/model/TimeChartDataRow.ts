@@ -125,13 +125,13 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
   }
 
   private parseDateString(date: unknown): DateTime | undefined {
-    //FIXME: TODO: JHE: Check was passiert bei invalid date...
     const timestamp = DateTime.fromISO(date);
 
     if (timestamp.isValid) {
       return timestamp;
     }
 
+    console.warn(`TimeChartDataRow: invalid date value '${date}' — skipping row`);
     return undefined;
   }
 

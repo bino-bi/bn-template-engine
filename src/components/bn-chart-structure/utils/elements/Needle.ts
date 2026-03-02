@@ -59,7 +59,7 @@ export class Needle {
     this.styles = styles;
     this.barGroup = scenarioGroup.group().id(scenarioGroup.toString() + "_" + this.ID_RECT);
 
-    if (dataPoint?.isEmpty() != true && dataPoint.value != null) {
+    if (dataPoint?.isEmpty() !== true && dataPoint.value != null) {
       this.hasData = true;
       this.dimensions = this.createDimensions(position, dataPoint, index);
 
@@ -100,7 +100,7 @@ export class Needle {
       return this;
     }
 
-    const scenarioStyle: SVGStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle()); // TODO: JHE: Fix duplicates
+    const scenarioStyle: SVGStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle()); // TODO(JHE): investigate duplicate SVGStyle resolution
 
     const strokeStyle = scenarioStyle.stroke;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

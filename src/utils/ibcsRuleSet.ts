@@ -1,5 +1,5 @@
 //import {VisualisationRuleSet, Scenario} from "../components/ibcs-table/utils/model";
-import { Scenario, VisualisationRuleSet } from "../components/bn-table/utils/model"; // TODO JHE: Scenario Dublicate
+import { Scenario, VisualisationRuleSet } from "../components/bn-table/utils/model"; // TODO(JHE): Scenario type is duplicated — consolidate into a shared model
 import { VarianceScenario } from "./model/VarianceScenario";
 
 /**

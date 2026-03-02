@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, Host, Prop, Watch } from "@stencil/core";
 
 import {
   isBlankInput,
@@ -297,9 +297,6 @@ export class Title {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @State() readonly datasource: any; // TODO: is this needed?
-
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
@@ -387,7 +384,7 @@ export class Title {
   }
 
   private prepareBusinessUnit(): string {
-    if (isBlankInput(this.businessUnit) || this.businessUnit == "null") {
+    if (isBlankInput(this.businessUnit) || this.businessUnit === "null") {
       return null;
     }
     return this.businessUnit;

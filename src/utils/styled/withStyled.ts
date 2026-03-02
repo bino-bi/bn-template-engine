@@ -71,7 +71,8 @@ export const withStyled = (component: any) => {
   };
 
   component["disconnectedCallback"] = () => {
-    //TODO do we to clear su subscription ? (sven)
+    // MutationObserver has no per-element unobserve — the shared observer
+    // automatically stops firing for elements removed from the DOM.
     runIfExisits(cstrDisconnectedCallback, component);
   };
 };

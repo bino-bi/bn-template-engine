@@ -1,4 +1,4 @@
-import { Component, Element, Fragment, Method, h } from "@stencil/core";
+import { Component, Element, Fragment, Method } from "@stencil/core";
 import { BN_INTERNATIONALIZATION_KEYS } from "../../stores/internationalization";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 
@@ -18,6 +18,7 @@ export class EditorCompanion {
   @Element() private element: HTMLElement;
 
   private stores: ScopedStores;
+  private distinctCache = new Map<string, unknown[]>();
 
   connectedCallback() {
     this.stores = getStores(this.element);
@@ -30,16 +31,26 @@ export class EditorCompanion {
 
   @Method()
   getDistinctFromDataSource(dataSourceName: string, key: string): Promise<unknown[]> {
-    // TODO: add caching
+    const cacheKey = `datasource:${dataSourceName}:${key}`;
+    if (this.distinctCache.has(cacheKey)) {
+      return Promise.resolve(this.distinctCache.get(cacheKey));
+    }
     // @ts-ignore
-    return Promise.resolve(this.distinct(this.stores.datasources.get(dataSourceName) || [], key));
+    const result = this.distinct(this.stores.datasources.get(dataSourceName) || [], key);
+    this.distinctCache.set(cacheKey, result);
+    return Promise.resolve(result);
   }
 
   @Method()
   getDistinctFromDataset(datasetName: string, key: string): Promise<unknown[]> {
-    // TODO: add caching
+    const cacheKey = `dataset:${datasetName}:${key}`;
+    if (this.distinctCache.has(cacheKey)) {
+      return Promise.resolve(this.distinctCache.get(cacheKey));
+    }
     // @ts-ignore
-    return Promise.resolve(this.distinct(this.stores.datasets.get(datasetName) || [], key));
+    const result = this.distinct(this.stores.datasets.get(datasetName) || [], key);
+    this.distinctCache.set(cacheKey, result);
+    return Promise.resolve(result);
   }
 
   render() {
@@ -47,6 +58,6 @@ export class EditorCompanion {
   }
 
   private distinct(data: object[], key: string): unknown[] {
-    return [...new Set(data.map((d) => d[key]))].filter(Boolean); // TODO: refine filter ("", 0 also removed
+    return [...new Set(data.map((d) => d[key]))].filter((v) => v !== null && v !== undefined);
   }
 }

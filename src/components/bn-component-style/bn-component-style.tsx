@@ -1,4 +1,4 @@
-import { Component, Prop, h, Host } from "@stencil/core";
+import { Component, Element, Prop, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
 import { Style } from "../../stores/componentStyles";
 import { getStores, ScopedStores } from "../../context/context-protocol";
@@ -28,8 +28,13 @@ export class ComponentStyle {
         const parsedData = JSON.parse(data);
         // @ts-ignore
         this.stores.componentStyles.set(this.name, parsedData as Style);
+        this.errors.remove("JSON_PARSE");
       } catch (e) {
-        //TODO: add error chanel for JSON parsing errors
+        this.errors.addOrReplace({
+          id: "JSON_PARSE",
+          type: "error",
+          message: `bn-component-style: Failed to parse JSON body — ${(e as Error).message}`,
+        });
         console.error(e);
       }
     });

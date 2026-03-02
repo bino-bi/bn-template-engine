@@ -1,5 +1,5 @@
 import { DateTime, DateTimeUnit, DurationLike } from "luxon";
-import { DateFormat, DateLinkFormat } from "../components/bn-chart-time/utils/model"; //TODO: JHE:  Merge Title und Cahrt DateFormat...
+import { DateFormat, DateLinkFormat } from "../components/bn-chart-time/utils/model"; // TODO(JHE): merge Title and Chart DateFormat into a single shared type
 //import {DateFormat, DateLinkFormat} from "../components/ibcs-chart-time/utils/model";
 
 /** Granularity levels for date intervals, from YEAR down to MILLISECOND. AUTO triggers auto-detection. */
@@ -184,7 +184,7 @@ export class DateStringFactory {
     const mStart: DateTime = typeof start == "number" ? DateTime.fromMillis(start) : start;
     const mEnd: DateTime = typeof end == "number" ? DateTime.fromMillis(end) : end;
 
-    if (mEnd.diff(mStart).as("milliseconds") == 0) {
+    if (mEnd.diff(mStart).as("milliseconds") === 0) {
       return DateDistance.DAY;
     } else if (mEnd.diff(mStart).as("milliseconds") < limit) {
       return DateDistance.MILLISECOND;
@@ -269,7 +269,7 @@ export class DateStringFactory {
       return "";
     }
 
-    if (startDateTime == null && !(mode == DateLink.END || mode == DateLink.YTD)) {
+    if (startDateTime == null && !(mode === DateLink.END || mode === DateLink.YTD)) {
       // BinoSystem.warn('NO START N SELECTED');
       return "";
     }
@@ -302,7 +302,7 @@ export class DateStringFactory {
         // BinoSystem.warn('CHANGED INTERVAL TO NONE; START AND END ARE IDENTICAL');
         mode = DateLink.NONE;
       }
-      if (dateString1 === dateString2 && mode == DateLink.AVG) {
+      if (dateString1 === dateString2 && mode === DateLink.AVG) {
         // BinoSystem.warn('CHANGED INTERVAL TO NONE; START AND END ARE IDENTICAL');
         link = DateLink.NONE;
       }
@@ -433,35 +433,35 @@ export class DateStringFactory {
   }
 
   private isFirstInMonth(date: DateTime) {
-    return date.day == 1;
+    return date.day === 1;
   }
 
   private isJanuary(date: DateTime) {
-    return date.month == 1;
+    return date.month === 1;
   }
 
   private isFirstQuarter(date: DateTime) {
-    return date.quarter == 1;
+    return date.quarter === 1;
   }
 
   private isFirstWeek(date: DateTime) {
-    return date.weekNumber == 1;
+    return date.weekNumber === 1;
   }
 
   private isFirstHour(date: DateTime) {
-    return date.hour == 0;
+    return date.hour === 0;
   }
 
   private isFirstMinute(date: DateTime) {
-    return date.minute == 0;
+    return date.minute === 0;
   }
 
   private isFirstSecond(date: DateTime) {
-    return date.second == 0;
+    return date.second === 0;
   }
 
   private isFirstMilliSecond(date: DateTime) {
-    return date.millisecond == 0;
+    return date.millisecond === 0;
   }
 
   private convertDateDistanceToMomentunitOfTime(dateInterval: DateDistance): DateTimeUnit {
@@ -503,39 +503,27 @@ export class DateStringFactory {
   }
 
   private createDiratonLike(unit: DateTimeUnit, number: number): DurationLike {
-    let unitOfTime: DurationLike = { days: 0 };
-
     switch (unit) {
       case "year":
-        unitOfTime = { years: number };
-        break;
+        return { years: number };
       case "month":
-        unitOfTime = { months: number };
-        break;
+        return { months: number };
       case "quarter":
-        unitOfTime = { quarters: number };
-        break;
+        return { quarters: number };
       case "week":
-        unitOfTime = { weeks: number };
-        break;
+        return { weeks: number };
       case "day":
-        unitOfTime = { days: number };
-        break;
+        return { days: number };
       case "hour":
-        unitOfTime = { hours: number };
-        break;
+        return { hours: number };
       case "minute":
-        unitOfTime = { minutes: number };
-        break;
+        return { minutes: number };
       case "second":
-        unitOfTime = { seconds: number };
-        break;
+        return { seconds: number };
       case "millisecond":
-        unitOfTime = { milliseconds: number };
-        break;
+        return { milliseconds: number };
       default:
-        unitOfTime = { days: number };
+        return { days: number };
     }
-    return unitOfTime;
   }
 }
