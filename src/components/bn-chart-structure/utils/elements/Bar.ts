@@ -82,7 +82,7 @@ export class Bar {
       this.barGroup = scenarioGroup.group().id(scenarioGroup.toString() + "_" + this.ID_RECT);
     }
 
-    if (dataPoint?.isEmpty() != true && dataPoint.value != null) {
+    if (dataPoint?.isEmpty() !== true && dataPoint.value != null) {
       this.hasData = true;
       let textLabelHook = HookLocation.Left;
       if (dataPoint.value < 0) {
@@ -134,7 +134,7 @@ export class Bar {
       return this;
     }
 
-    let scenarioStyle: SVGStyle = this.barStyles.getSVGStyle(this.dataPoint.getScenario()); //TODO: JHE: Fix Class? nicht die richitge
+    let scenarioStyle: SVGStyle = this.barStyles.getSVGStyle(this.dataPoint.getScenario()); // TODO(JHE): verify SVGStyle resolution returns correct scenario class
 
     if (this.isVarianceBar) {
       scenarioStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle());

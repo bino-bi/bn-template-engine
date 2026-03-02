@@ -1,7 +1,11 @@
-import { Component, h, Host, Prop, Watch, Element } from "@stencil/core";
+import { Component, Host, Prop, Watch, Element } from "@stencil/core";
+import { isBlankInput } from "../../utils/validate";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+
+const VALID_FORMATS = ["xga", "hd", "full-hd", "4k", "4k2k", "a4", "a3", "a2", "a1", "a0", "letter", "legal"];
+const VALID_ORIENTATIONS = ["landscape", "portrait"];
 
 @Component({
   tag: "bn-page",
@@ -43,15 +47,31 @@ export class Page {
   @Prop() orientation: string;
 
   @Watch("format")
-  // @ts-ignore
-  validateFormat(newValue: string, oldValue: string) {
-    //TODO: add validation
+  validateFormat(newValue: string) {
+    const errId = "ERR_format";
+    if (!isBlankInput(newValue) && !VALID_FORMATS.includes(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: `format: invalid value '${newValue}' is not supported. Valid values: ${VALID_FORMATS.join(", ")}`,
+      });
+    } else {
+      this.errors.remove(errId);
+    }
   }
 
   @Watch("orientation")
-  // @ts-ignore
-  validateOrientation(newValue: string, oldValue: string) {
-    //TODO: add validation
+  validateOrientation(newValue: string) {
+    const errId = "ERR_orientation";
+    if (!isBlankInput(newValue) && !VALID_ORIENTATIONS.includes(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: `orientation: invalid value '${newValue}' is not supported. Valid values: ${VALID_ORIENTATIONS.join(", ")}`,
+      });
+    } else {
+      this.errors.remove(errId);
+    }
   }
 
   render() {

@@ -17,64 +17,60 @@ export enum ComponentStatus {
  *
  * The 500 ms debounce prevents premature "rendered" signals during rapid
  * successive re-renders.
+ *
+ * Status counts are maintained incrementally — `updateStatus` adjusts running
+ * counters instead of iterating all entries, making it O(1) per update.
  */
 export namespace ComponentRegister {
-  var currentTimeOutId: NodeJS.Timeout = undefined;
+  let currentTimeOutId: NodeJS.Timeout = undefined;
   const componentRegister = new Map<string, ComponentStatus>();
-  const statusIntervall = setInterval(() => {
-    console.log("Component status rdy: " + componentRegisterIsRendered());
-  }, 100);
+
+  const statusCounts = { running: 0, successful: 0, error: 0 };
+
+  const countKey = (status: ComponentStatus): keyof typeof statusCounts => {
+    switch (status) {
+      case ComponentStatus.RUNNING:
+        return "running";
+      case ComponentStatus.SUCCESSFUL:
+        return "successful";
+      default:
+        return "error";
+    }
+  };
 
   /**
    * Records a status change for the component identified by `uuid` and
    * resets the 500 ms debounce timer. When the timer fires, the aggregate
    * "all rendered" boolean is published to `window.componentRegisterIsRenderedResult`.
    */
-  // TODO: improve that make it faster Sven
   export const updateStatus = (uuid: string, status: ComponentStatus) => {
     if (currentTimeOutId) {
       clearTimeout(currentTimeOutId);
     }
+
+    const prev = componentRegister.get(uuid);
+    if (prev !== undefined) {
+      statusCounts[countKey(prev)]--;
+    }
+    statusCounts[countKey(status)]++;
     componentRegister.set(uuid, status);
+
     currentTimeOutId = setTimeout(() => {
       // @ts-ignore
       window.componentRegisterIsRenderedResult = componentRegisterIsRendered();
       // @ts-ignore
+      // eslint-disable-next-line no-console
       console.log("componentRegisterIsRendered:", window.componentRegisterIsRenderedResult);
-      clearInterval(statusIntervall);
     }, 500);
   };
 
   /** Returns `true` when no components are currently in `RUNNING` state. */
   export const componentRegisterIsRendered = () => {
-    return componentRegisterStatus().running == 0;
+    return statusCounts.running === 0;
   };
 
   /** Returns a summary count of components in each status category. */
   export const componentRegisterStatus = () => {
-    const result = {
-      successful: 0,
-      running: 0,
-      error: 0,
-    };
-
-    componentRegister.forEach((value: ComponentStatus) => {
-      switch (value) {
-        case ComponentStatus.RUNNING: {
-          result.running++;
-          break;
-        }
-        case ComponentStatus.SUCCESSFUL: {
-          result.successful++;
-          break;
-        }
-        default: {
-          result.error++;
-          break;
-        }
-      }
-    });
-
-    return result;
+    return { ...statusCounts };
   };
 }

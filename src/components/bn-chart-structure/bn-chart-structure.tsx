@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isValidBoolean,
@@ -582,7 +582,7 @@ export class Chart {
   }
 
   private prepareHideCategories(idx: number): boolean {
-    return idx >= 1 || this.showCategories != "true";
+    return idx >= 1 || this.showCategories !== "true";
   }
 
   private prepareI18n(): Map<string, string> {
@@ -624,7 +624,7 @@ export class Chart {
 
   private preparePixelPerPercentage(): number {
     if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
-      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string); // TODO: check if this is correct '* 100' or not if global scaling groups are implemented (JHE)
+      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string); // TODO(JHE): revisit '* 100' correctness when global scaling groups are implemented
     }
 
     return Number(this.percentageScaling) * 100;
@@ -681,7 +681,7 @@ export class Chart {
 
     return tableOrder;
   }
-  // TODO: FIXME:  Adapter pattenr doch noch verschieben?
+  // TODO(JHE): consider extracting style preparation into an adapter pattern
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private prepareStyle(): any {
     const effectiveFactor = this.getEffectiveScaleFactor();
@@ -748,7 +748,7 @@ export class Chart {
   }
 
   private prepareFilter(): string {
-    if (this.filter.length == 0) {
+    if (this.filter.length === 0) {
       return "";
     }
 
@@ -817,10 +817,11 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx == 0 && this.showMeasureScale == "true";
+    return idx === 0 && this.showMeasureScale === "true";
   }
   prepareMeasureUnit(): string {
-    if (this.measureUnit == "" || this.measureUnit == null) {
+     
+    if (this.measureUnit === "" || this.measureUnit == null) {
       return "";
     }
     return this.measureUnit;

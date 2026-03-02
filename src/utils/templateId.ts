@@ -7,16 +7,5 @@
  * styles and data bindings can be scoped per-template.
  */
 export const templateId = (elm: HTMLElement) => {
-  //TODO: maybte elm.closets  is the better choice!?!?
-  if (elm.parentElement) {
-    const parent = elm.parentElement;
-    const id = parent.getAttribute("template-id");
-    if (id) {
-      return id;
-    } else {
-      return templateId(parent);
-    }
-  } else {
-    return undefined;
-  }
+  return elm.closest("[template-id]")?.getAttribute("template-id") ?? undefined;
 };
