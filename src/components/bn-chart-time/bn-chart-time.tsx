@@ -1,4 +1,5 @@
-import { Component, Element, Host, Prop, State, Watch } from "@stencil/core";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- h is required for Stencil JSX
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
   isValidAxisLabelsMode,
@@ -1101,7 +1102,6 @@ export class Chart {
   }
 
   prepareMeasureUnit(): string {
-     
     if (this.measureUnit === "" || this.measureUnit == null) {
       return "";
     }
