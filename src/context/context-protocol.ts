@@ -68,7 +68,7 @@ const storesCache = new WeakMap<HTMLElement, ScopedStores>();
 function findContextElement(element: HTMLElement): HTMLElement | undefined {
   let current: Node | null = element.parentNode;
   while (current) {
-    if (current instanceof HTMLElement && current.localName === "bn-context") {
+    if (current instanceof HTMLElement && (current as HTMLElement).nodeName?.toLowerCase() === "bn-context") {
       return current;
     }
     if (current.parentNode) {

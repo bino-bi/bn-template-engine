@@ -1,7 +1,7 @@
 import { QueryGroups } from "./QueryGroup";
 import { TableType } from "../model";
 import { TableComponentConfig } from "../model/TableComponentConfig";
-import { Order } from "../../../../components";
+import { Order } from "../../../../utils/model/Order";
 import { DataFormat, I18nMode, TableCategoryWidth, MeasureType } from "../../../../utils/constants";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
