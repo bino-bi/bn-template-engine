@@ -1,4 +1,5 @@
-import { Component, Element, Prop, Host } from "@stencil/core";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- h is required for Stencil JSX
+import { Component, Element, h, Prop, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
 import { Style } from "../../stores/componentStyles";
 import { getStores, ScopedStores } from "../../context/context-protocol";
