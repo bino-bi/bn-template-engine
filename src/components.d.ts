@@ -265,37 +265,6 @@ export namespace Components {
          */
         "variances": string;
     }
-    interface BnChartTree {
-        /**
-          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
-          * @default 'ltr'
-         */
-        "direction": LayoutDirection;
-        /**
-          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
-          * @default 'orthogonal'
-         */
-        "edgeStyle": EdgeStyleType;
-        /**
-          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
-         */
-        "edges": string;
-        /**
-          * Spacing between hierarchy levels in pixels.
-          * @default 60
-         */
-        "levelSpacing": number;
-        /**
-          * Spacing between sibling nodes in pixels.
-          * @default 20
-         */
-        "nodeSpacing": number;
-        /**
-          * Show operator labels between sibling nodes.
-          * @default 'true'
-         */
-        "showOperators": string;
-    }
     interface BnComponentStyle {
         /**
           * @default "_default"
@@ -1355,12 +1324,6 @@ declare global {
         prototype: HTMLBnChartTimeElement;
         new (): HTMLBnChartTimeElement;
     };
-    interface HTMLBnChartTreeElement extends Components.BnChartTree, HTMLStencilElement {
-    }
-    var HTMLBnChartTreeElement: {
-        prototype: HTMLBnChartTreeElement;
-        new (): HTMLBnChartTreeElement;
-    };
     interface HTMLBnComponentStyleElement extends Components.BnComponentStyle, HTMLStencilElement {
     }
     var HTMLBnComponentStyleElement: {
@@ -1637,7 +1600,6 @@ declare global {
         "bn-card": HTMLBnCardElement;
         "bn-chart-structure": HTMLBnChartStructureElement;
         "bn-chart-time": HTMLBnChartTimeElement;
-        "bn-chart-tree": HTMLBnChartTreeElement;
         "bn-component-style": HTMLBnComponentStyleElement;
         "bn-context": HTMLBnContextElement;
         "bn-dataset": HTMLBnDatasetElement;
@@ -1672,6 +1634,8 @@ declare global {
     }
 }
 declare namespace LocalJSX {
+    type OneOf<K extends string, PropT, AttrT = PropT> = { [P in K]: PropT } & { [P in `attr:${K}` | `prop:${K}`]?: never } | { [P in `attr:${K}`]: AttrT } & { [P in K | `prop:${K}`]?: never } | { [P in `prop:${K}`]: PropT } & { [P in K | `attr:${K}`]?: never };
+
     interface BnAsset {
         /**
           * Unique (template scope) name of the asset
@@ -1888,37 +1852,6 @@ declare namespace LocalJSX {
           * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
          */
         "variances": string;
-    }
-    interface BnChartTree {
-        /**
-          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
-          * @default 'ltr'
-         */
-        "direction"?: LayoutDirection;
-        /**
-          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
-          * @default 'orthogonal'
-         */
-        "edgeStyle"?: EdgeStyleType;
-        /**
-          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
-         */
-        "edges": string;
-        /**
-          * Spacing between hierarchy levels in pixels.
-          * @default 60
-         */
-        "levelSpacing"?: number;
-        /**
-          * Spacing between sibling nodes in pixels.
-          * @default 20
-         */
-        "nodeSpacing"?: number;
-        /**
-          * Show operator labels between sibling nodes.
-          * @default 'true'
-         */
-        "showOperators"?: string;
     }
     interface BnComponentStyle {
         /**
@@ -2916,37 +2849,336 @@ declare namespace LocalJSX {
     }
     interface TestRunnerTitle {
     }
+
+    interface BnAssetAttributes {
+        "name": string;
+    }
+    interface BnChartStructureAttributes {
+        "chartTitle": string;
+        "filter": string;
+        "scenarios": string;
+        "variances": string;
+        "unitScaling": string;
+        "percentageScaling": string;
+        "level": string;
+        "order": string;
+        "orderDirection": string;
+        "limit": number;
+        "showCategories": string;
+        "measureScale": string;
+        "showMeasureScale": string;
+        "measureUnit": string;
+        "stack": string;
+        "scale": string;
+    }
+    interface BnChartTimeAttributes {
+        "chartTitle": string;
+        "filter": string;
+        "scenarios": string;
+        "variances": string;
+        "syncSpaceLeft": number;
+        "limit": number;
+        "unitScaling": string;
+        "percentageScaling": string;
+        "level": string;
+        "order": string;
+        "orderDirection": string;
+        "dateInterval": string;
+        "chartMode": string;
+        "maxBars": number;
+        "stack": string;
+        "scale": string;
+        "intervalSpanLimit": number;
+        "axisLabelsMode": string;
+        "lineFullWidth": string;
+        "showCategories": string;
+        "measureScale": string;
+        "showMeasureScale": string;
+        "showOverlayAvg": string;
+        "showOverlayMedian": string;
+        "measureUnit": string;
+    }
+    interface BnComponentStyleAttributes {
+        "name": string;
+    }
+    interface BnContextAttributes {
+        "locale": string;
+    }
+    interface BnDatasetAttributes {
+        "name": string;
+        "datasources": string;
+        "static": boolean;
+    }
+    interface BnDatasourceAttributes {
+        "name": string;
+    }
+    interface BnFooterAttributes {
+        "pageNumber": number | null;
+        "text": string;
+        "code": string;
+        "displayPageNumber": boolean;
+    }
+    interface BnGridAttributes {
+        "chartTitle": string;
+        "rowHeaders": string;
+        "columnHeaders": string;
+        "showRowHeaders": string;
+        "showColumnHeaders": string;
+        "showBorders": string;
+        "rowHeaderWidth": string;
+        "cellGap": string;
+    }
+    interface BnImageAttributes {
+        "source": string;
+    }
+    interface BnInternationalizationAttributes {
+        "code": string;
+        "namespace": string;
+    }
+    interface BnLayoutCardAttributes {
+        "styles": string;
+        "titleImage": string;
+        "titleBusinessUnit": string;
+        "titleScenarios": string;
+        "titleVariances": string;
+        "titleOrder": string;
+        "titleOrderDirection": string;
+        "titleMeasures": string;
+        "titleDateStart": string;
+        "titleDateEnd": string;
+        "titleDateFormat": string;
+        "titleDateLink": string;
+        "titleNamespace": string;
+        "footerText": string;
+        "cardLayout": | "full"
+    | "split-vertical"
+    | "split-horizontal"
+    | "2x2"
+    | "3x3"
+    | "4x4"
+    | "1-over-2"
+    | "1-over-3"
+    | "2-over-1"
+    | "3-over-1"
+    | "custom-template";
+        "cardCustomTemplate": string;
+        "cardGridGap": string;
+        "cardFitToContent": boolean;
+        "cardShowBorder": boolean;
+    }
+    interface BnLayoutPageAttributes {
+        "styles": string;
+        "messageText": string;
+        "messageImage": string;
+        "titleBusinessUnit": string;
+        "titleScenarios": string;
+        "titleVariances": string;
+        "titleOrder": string;
+        "titleOrderDirection": string;
+        "titleMeasures": string;
+        "titleDateStart": string;
+        "titleDateEnd": string;
+        "titleDateFormat": string;
+        "titleDateLink": string;
+        "titleNamespace": string;
+        "pageFormat": string;
+        "pageOrientation": string;
+        "pageNumber": string;
+        "footerText": string;
+        "footerDisplayPageNumber": boolean;
+        "pageLayout": | "full"
+    | "split-vertical"
+    | "split-horizontal"
+    | "2x2"
+    | "3x3"
+    | "4x4"
+    | "1-over-2"
+    | "1-over-3"
+    | "2-over-1"
+    | "3-over-1"
+    | "custom-template";
+        "pageCustomTemplate": string;
+        "pageGridGap": string;
+        "pageFitToContent": boolean;
+    }
+    interface BnMapAttributes {
+        "markersDatasetName": string;
+        "gpxsDatasetName": string;
+        "latitude": number;
+        "longitude": number;
+        "scale": number;
+        "manualPosOverride": boolean;
+        "showScale": boolean;
+        "attribution": string;
+        "tileLayer": string;
+        "markers": string | null;
+        "gpxs": string | null;
+        "geojsons": string | null;
+    }
+    interface BnMessageAttributes {
+        "text": string;
+        "image": string;
+    }
+    interface BnPageAttributes {
+        "format": string;
+        "orientation": string;
+    }
+    interface BnTableAttributes {
+        "scale": string;
+        "tableTitle": string;
+        "filter": string;
+        "measureUnit": string;
+        "scenarios": string;
+        "variances": string;
+        "barColumns": string;
+        "unitScaling": string;
+        "percentageScaling": string;
+        "dataFormat": string;
+        "grouped": string;
+        "showMeasureScale": string;
+        "showGroupTitle": string;
+        "type": string;
+        "limit": number;
+        "thereof": string;
+        "partof": string;
+        "order": string;
+        "orderDirection": string;
+        "measureType": string;
+        "measureScale": string;
+        "dataFormatDigitsDecimal": number;
+        "dataFormatDigitsPercent": number;
+        "categoryWidth": string;
+        "columnthereof": string | null;
+    }
+    interface BnTemplateAttributes {
+        "templateId": string;
+    }
+    interface BnTextAttributes {
+        "value": string;
+        "scale": string;
+    }
+    interface BnTitleAttributes {
+        "businessUnit": string;
+        "scenarios": string;
+        "variances": string;
+        "order": string;
+        "orderDirection": string;
+        "measures": string;
+        "dateStart": string;
+        "dateEnd": string;
+        "dateFormat": string;
+        "dateLink": string;
+    }
+    interface BnTreeAttributes {
+        "edges": string;
+        "direction": LayoutDirection;
+        "levelSpacing": number;
+        "nodeSpacing": number;
+        "edgeStyle": EdgeStyleType;
+        "showOperators": string;
+    }
+    interface IbcsChartStructureAttributes {
+        "chartTitle": string;
+        "hideCategories": boolean;
+        "pixelPerUnit": number;
+        "pixelPerPercentage": number;
+        "limit": number;
+        "level": AggregationLevel;
+        "filter": string;
+        "measureScale": string;
+        "measureUnit": string;
+        "showMeasureScale": boolean;
+    }
+    interface IbcsChartTimeAttributes {
+        "chartTitle": string;
+        "hideAxisLabels": boolean;
+        "pixelPerUnit": number;
+        "pixelPerPercentage": number;
+        "limit": number;
+        "leftSideOffsetForHorizontalSync": number;
+        "level": AggregationLevel;
+        "dateInterval": DateDistance;
+        "intervalSpanLimit": number;
+        "axisLabelsMode": AxisLabelsMode;
+        "filter": string;
+        "measureScale": string;
+        "measureUnit": string;
+        "showMeasureScale": boolean;
+        "showOverlayMedian": boolean;
+        "showOverlayAvg": boolean;
+        "chartMode": ChartMode;
+        "maxBars": number;
+        "lineFullWidth": boolean;
+        "containerWidth": number;
+    }
+    interface IbcsMapAttributes {
+        "tileLayer": string;
+        "manualPosOverride": boolean;
+        "latitude": number;
+        "longitude": number;
+        "scale": number;
+        "customView": boolean;
+        "showScale": boolean;
+        "showZoom": boolean;
+        "attribution": string;
+        "gpxs": GpxLayer[] | string;
+        "markers": Marker[] | string;
+        "geojsons": GeoJsonLayer[] | string;
+    }
+    interface IbcsTableAttributes {
+        "tableTitle": string;
+        "scenariosDataFormat": DataFormat;
+        "grouped": boolean;
+        "limit": number;
+        "showGroupTitle": boolean;
+        "type": TableType;
+        "categoryWidth": TableCategoryWidth;
+        "i18nMode": I18nMode;
+        "measureScale": string;
+        "measureUnit": string;
+        "showMeasureScale": boolean;
+        "measureType": MeasureType;
+        "filter": string;
+        "unitScaling": number;
+        "percentageScaling": number;
+        "scaleFactor": number;
+    }
+    interface IbcsTitleAttributes {
+        "businessUnit": string;
+        "intervalSpanLimit": number;
+        "i18nMode": I18nMode;
+    }
+
     interface IntrinsicElements {
-        "bn-asset": BnAsset;
+        "bn-asset": Omit<BnAsset, keyof BnAssetAttributes> & { [K in keyof BnAsset & keyof BnAssetAttributes]?: BnAsset[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `attr:${K}`]?: BnAssetAttributes[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `prop:${K}`]?: BnAsset[K] } & OneOf<"name", BnAsset["name"], BnAssetAttributes["name"]>;
         "bn-body": BnBody;
         "bn-card": BnCard;
-        "bn-chart-structure": BnChartStructure;
-        "bn-chart-time": BnChartTime;
-        "bn-chart-tree": BnChartTree;
-        "bn-component-style": BnComponentStyle;
-        "bn-context": BnContext;
-        "bn-dataset": BnDataset;
-        "bn-datasource": BnDatasource;
-        "bn-footer": BnFooter;
-        "bn-grid": BnGrid;
-        "bn-image": BnImage;
-        "bn-internationalization": BnInternationalization;
-        "bn-layout-card": BnLayoutCard;
-        "bn-layout-page": BnLayoutPage;
-        "bn-map": BnMap;
-        "bn-message": BnMessage;
-        "bn-page": BnPage;
-        "bn-table": BnTable;
-        "bn-template": BnTemplate;
-        "bn-text": BnText;
-        "bn-title": BnTitle;
-        "bn-tree": BnTree;
+        "bn-chart-structure": Omit<BnChartStructure, keyof BnChartStructureAttributes> & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes]?: BnChartStructure[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `attr:${K}`]?: BnChartStructureAttributes[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `prop:${K}`]?: BnChartStructure[K] } & OneOf<"scenarios", BnChartStructure["scenarios"], BnChartStructureAttributes["scenarios"]> & OneOf<"variances", BnChartStructure["variances"], BnChartStructureAttributes["variances"]> & OneOf<"unitScaling", BnChartStructure["unitScaling"], BnChartStructureAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartStructure["percentageScaling"], BnChartStructureAttributes["percentageScaling"]> & OneOf<"level", BnChartStructure["level"], BnChartStructureAttributes["level"]> & OneOf<"order", BnChartStructure["order"], BnChartStructureAttributes["order"]> & OneOf<"orderDirection", BnChartStructure["orderDirection"], BnChartStructureAttributes["orderDirection"]>;
+        "bn-chart-time": Omit<BnChartTime, keyof BnChartTimeAttributes> & { [K in keyof BnChartTime & keyof BnChartTimeAttributes]?: BnChartTime[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `attr:${K}`]?: BnChartTimeAttributes[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `prop:${K}`]?: BnChartTime[K] } & OneOf<"scenarios", BnChartTime["scenarios"], BnChartTimeAttributes["scenarios"]> & OneOf<"variances", BnChartTime["variances"], BnChartTimeAttributes["variances"]> & OneOf<"unitScaling", BnChartTime["unitScaling"], BnChartTimeAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartTime["percentageScaling"], BnChartTimeAttributes["percentageScaling"]> & OneOf<"level", BnChartTime["level"], BnChartTimeAttributes["level"]> & OneOf<"order", BnChartTime["order"], BnChartTimeAttributes["order"]> & OneOf<"orderDirection", BnChartTime["orderDirection"], BnChartTimeAttributes["orderDirection"]> & OneOf<"dateInterval", BnChartTime["dateInterval"], BnChartTimeAttributes["dateInterval"]> & OneOf<"axisLabelsMode", BnChartTime["axisLabelsMode"], BnChartTimeAttributes["axisLabelsMode"]>;
+        "bn-component-style": Omit<BnComponentStyle, keyof BnComponentStyleAttributes> & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes]?: BnComponentStyle[K] } & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes as `attr:${K}`]?: BnComponentStyleAttributes[K] } & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes as `prop:${K}`]?: BnComponentStyle[K] };
+        "bn-context": Omit<BnContext, keyof BnContextAttributes> & { [K in keyof BnContext & keyof BnContextAttributes]?: BnContext[K] } & { [K in keyof BnContext & keyof BnContextAttributes as `attr:${K}`]?: BnContextAttributes[K] } & { [K in keyof BnContext & keyof BnContextAttributes as `prop:${K}`]?: BnContext[K] };
+        "bn-dataset": Omit<BnDataset, keyof BnDatasetAttributes> & { [K in keyof BnDataset & keyof BnDatasetAttributes]?: BnDataset[K] } & { [K in keyof BnDataset & keyof BnDatasetAttributes as `attr:${K}`]?: BnDatasetAttributes[K] } & { [K in keyof BnDataset & keyof BnDatasetAttributes as `prop:${K}`]?: BnDataset[K] } & OneOf<"name", BnDataset["name"], BnDatasetAttributes["name"]>;
+        "bn-datasource": Omit<BnDatasource, keyof BnDatasourceAttributes> & { [K in keyof BnDatasource & keyof BnDatasourceAttributes]?: BnDatasource[K] } & { [K in keyof BnDatasource & keyof BnDatasourceAttributes as `attr:${K}`]?: BnDatasourceAttributes[K] } & { [K in keyof BnDatasource & keyof BnDatasourceAttributes as `prop:${K}`]?: BnDatasource[K] } & OneOf<"name", BnDatasource["name"], BnDatasourceAttributes["name"]>;
+        "bn-footer": Omit<BnFooter, keyof BnFooterAttributes> & { [K in keyof BnFooter & keyof BnFooterAttributes]?: BnFooter[K] } & { [K in keyof BnFooter & keyof BnFooterAttributes as `attr:${K}`]?: BnFooterAttributes[K] } & { [K in keyof BnFooter & keyof BnFooterAttributes as `prop:${K}`]?: BnFooter[K] };
+        "bn-grid": Omit<BnGrid, keyof BnGridAttributes> & { [K in keyof BnGrid & keyof BnGridAttributes]?: BnGrid[K] } & { [K in keyof BnGrid & keyof BnGridAttributes as `attr:${K}`]?: BnGridAttributes[K] } & { [K in keyof BnGrid & keyof BnGridAttributes as `prop:${K}`]?: BnGrid[K] };
+        "bn-image": Omit<BnImage, keyof BnImageAttributes> & { [K in keyof BnImage & keyof BnImageAttributes]?: BnImage[K] } & { [K in keyof BnImage & keyof BnImageAttributes as `attr:${K}`]?: BnImageAttributes[K] } & { [K in keyof BnImage & keyof BnImageAttributes as `prop:${K}`]?: BnImage[K] };
+        "bn-internationalization": Omit<BnInternationalization, keyof BnInternationalizationAttributes> & { [K in keyof BnInternationalization & keyof BnInternationalizationAttributes]?: BnInternationalization[K] } & { [K in keyof BnInternationalization & keyof BnInternationalizationAttributes as `attr:${K}`]?: BnInternationalizationAttributes[K] } & { [K in keyof BnInternationalization & keyof BnInternationalizationAttributes as `prop:${K}`]?: BnInternationalization[K] };
+        "bn-layout-card": Omit<BnLayoutCard, keyof BnLayoutCardAttributes> & { [K in keyof BnLayoutCard & keyof BnLayoutCardAttributes]?: BnLayoutCard[K] } & { [K in keyof BnLayoutCard & keyof BnLayoutCardAttributes as `attr:${K}`]?: BnLayoutCardAttributes[K] } & { [K in keyof BnLayoutCard & keyof BnLayoutCardAttributes as `prop:${K}`]?: BnLayoutCard[K] };
+        "bn-layout-page": Omit<BnLayoutPage, keyof BnLayoutPageAttributes> & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes]?: BnLayoutPage[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `attr:${K}`]?: BnLayoutPageAttributes[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `prop:${K}`]?: BnLayoutPage[K] };
+        "bn-map": Omit<BnMap, keyof BnMapAttributes> & { [K in keyof BnMap & keyof BnMapAttributes]?: BnMap[K] } & { [K in keyof BnMap & keyof BnMapAttributes as `attr:${K}`]?: BnMapAttributes[K] } & { [K in keyof BnMap & keyof BnMapAttributes as `prop:${K}`]?: BnMap[K] };
+        "bn-message": Omit<BnMessage, keyof BnMessageAttributes> & { [K in keyof BnMessage & keyof BnMessageAttributes]?: BnMessage[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `attr:${K}`]?: BnMessageAttributes[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `prop:${K}`]?: BnMessage[K] };
+        "bn-page": Omit<BnPage, keyof BnPageAttributes> & { [K in keyof BnPage & keyof BnPageAttributes]?: BnPage[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `attr:${K}`]?: BnPageAttributes[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `prop:${K}`]?: BnPage[K] };
+        "bn-table": Omit<BnTable, keyof BnTableAttributes> & { [K in keyof BnTable & keyof BnTableAttributes]?: BnTable[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `attr:${K}`]?: BnTableAttributes[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `prop:${K}`]?: BnTable[K] };
+        "bn-template": Omit<BnTemplate, keyof BnTemplateAttributes> & { [K in keyof BnTemplate & keyof BnTemplateAttributes]?: BnTemplate[K] } & { [K in keyof BnTemplate & keyof BnTemplateAttributes as `attr:${K}`]?: BnTemplateAttributes[K] } & { [K in keyof BnTemplate & keyof BnTemplateAttributes as `prop:${K}`]?: BnTemplate[K] };
+        "bn-text": Omit<BnText, keyof BnTextAttributes> & { [K in keyof BnText & keyof BnTextAttributes]?: BnText[K] } & { [K in keyof BnText & keyof BnTextAttributes as `attr:${K}`]?: BnTextAttributes[K] } & { [K in keyof BnText & keyof BnTextAttributes as `prop:${K}`]?: BnText[K] };
+        "bn-title": Omit<BnTitle, keyof BnTitleAttributes> & { [K in keyof BnTitle & keyof BnTitleAttributes]?: BnTitle[K] } & { [K in keyof BnTitle & keyof BnTitleAttributes as `attr:${K}`]?: BnTitleAttributes[K] } & { [K in keyof BnTitle & keyof BnTitleAttributes as `prop:${K}`]?: BnTitle[K] };
+        "bn-tree": Omit<BnTree, keyof BnTreeAttributes> & { [K in keyof BnTree & keyof BnTreeAttributes]?: BnTree[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `attr:${K}`]?: BnTreeAttributes[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `prop:${K}`]?: BnTree[K] } & OneOf<"edges", BnTree["edges"], BnTreeAttributes["edges"]>;
         "editor-companion": EditorCompanion;
-        "ibcs-chart-structure": IbcsChartStructure;
-        "ibcs-chart-time": IbcsChartTime;
-        "ibcs-map": IbcsMap;
-        "ibcs-table": IbcsTable;
-        "ibcs-title": IbcsTitle;
+        "ibcs-chart-structure": Omit<IbcsChartStructure, keyof IbcsChartStructureAttributes> & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes]?: IbcsChartStructure[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `attr:${K}`]?: IbcsChartStructureAttributes[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `prop:${K}`]?: IbcsChartStructure[K] };
+        "ibcs-chart-time": Omit<IbcsChartTime, keyof IbcsChartTimeAttributes> & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes]?: IbcsChartTime[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `attr:${K}`]?: IbcsChartTimeAttributes[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `prop:${K}`]?: IbcsChartTime[K] };
+        "ibcs-map": Omit<IbcsMap, keyof IbcsMapAttributes> & { [K in keyof IbcsMap & keyof IbcsMapAttributes]?: IbcsMap[K] } & { [K in keyof IbcsMap & keyof IbcsMapAttributes as `attr:${K}`]?: IbcsMapAttributes[K] } & { [K in keyof IbcsMap & keyof IbcsMapAttributes as `prop:${K}`]?: IbcsMap[K] };
+        "ibcs-table": Omit<IbcsTable, keyof IbcsTableAttributes> & { [K in keyof IbcsTable & keyof IbcsTableAttributes]?: IbcsTable[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `attr:${K}`]?: IbcsTableAttributes[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `prop:${K}`]?: IbcsTable[K] };
+        "ibcs-title": Omit<IbcsTitle, keyof IbcsTitleAttributes> & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes]?: IbcsTitle[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `attr:${K}`]?: IbcsTitleAttributes[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `prop:${K}`]?: IbcsTitle[K] };
         "test-runner-card": TestRunnerCard;
         "test-runner-chart": TestRunnerChart;
         "test-runner-chart-time": TestRunnerChartTime;
@@ -2960,9 +3192,9 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
-            "bn-asset": LocalJSX.BnAsset & JSXBase.HTMLAttributes<HTMLBnAssetElement>;
-            "bn-body": LocalJSX.BnBody & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
-            "bn-card": LocalJSX.BnCard & JSXBase.HTMLAttributes<HTMLBnCardElement>;
+            "bn-asset": LocalJSX.IntrinsicElements["bn-asset"] & JSXBase.HTMLAttributes<HTMLBnAssetElement>;
+            "bn-body": LocalJSX.IntrinsicElements["bn-body"] & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
+            "bn-card": LocalJSX.IntrinsicElements["bn-card"] & JSXBase.HTMLAttributes<HTMLBnCardElement>;
             /**
              * SVG structure (categorical) bar chart following IBCS standards.
              * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
@@ -2972,7 +3204,7 @@ declare module "@stencil/core" {
              * `ibcs-chart-structure` element; this outer component validates props,
              * resolves auto-detected metadata, and computes styles.
              */
-            "bn-chart-structure": LocalJSX.BnChartStructure & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;
+            "bn-chart-structure": LocalJSX.IntrinsicElements["bn-chart-structure"] & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;
             /**
              * SVG time-series chart following IBCS standards.
              * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
@@ -2982,10 +3214,9 @@ declare module "@stencil/core" {
              * is performed by the inner `ibcs-chart-time` element; this outer component
              * validates props, resolves auto-detected metadata, and computes styles.
              */
-            "bn-chart-time": LocalJSX.BnChartTime & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
-            "bn-chart-tree": LocalJSX.BnChartTree & JSXBase.HTMLAttributes<HTMLBnChartTreeElement>;
-            "bn-component-style": LocalJSX.BnComponentStyle & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
-            "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
+            "bn-chart-time": LocalJSX.IntrinsicElements["bn-chart-time"] & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
+            "bn-component-style": LocalJSX.IntrinsicElements["bn-component-style"] & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
+            "bn-context": LocalJSX.IntrinsicElements["bn-context"] & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             /**
              * Queries data from one or more `bn-datasource` entries via AlaSQL and
              * writes the result to the `datasets` store (+ computed `DatasetMeta`).
@@ -2994,28 +3225,28 @@ declare module "@stencil/core" {
              * is re-executed automatically. Set `static="true"` to bypass the SQL
              * engine and treat the body content as raw JSON data directly.
              */
-            "bn-dataset": LocalJSX.BnDataset & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
+            "bn-dataset": LocalJSX.IntrinsicElements["bn-dataset"] & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             /**
              * Ingests raw JSON data and writes it to the scoped `datasources` store.
              * Data is provided as JSON text inside the element body (observed via
              * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
              * the stored data by the `name` prop to run queries against it.
              */
-            "bn-datasource": LocalJSX.BnDatasource & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
-            "bn-footer": LocalJSX.BnFooter & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
+            "bn-datasource": LocalJSX.IntrinsicElements["bn-datasource"] & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
+            "bn-footer": LocalJSX.IntrinsicElements["bn-footer"] & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
             /**
              * CSS Grid layout container with optional row/column headers.
              * Child components are placed into named slots (`row-col` convention).
              * Supports configurable borders, title, and header visibility.
              */
-            "bn-grid": LocalJSX.BnGrid & JSXBase.HTMLAttributes<HTMLBnGridElement>;
-            "bn-image": LocalJSX.BnImage & JSXBase.HTMLAttributes<HTMLBnImageElement>;
-            "bn-internationalization": LocalJSX.BnInternationalization & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
-            "bn-layout-card": LocalJSX.BnLayoutCard & JSXBase.HTMLAttributes<HTMLBnLayoutCardElement>;
-            "bn-layout-page": LocalJSX.BnLayoutPage & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
-            "bn-map": LocalJSX.BnMap & JSXBase.HTMLAttributes<HTMLBnMapElement>;
-            "bn-message": LocalJSX.BnMessage & JSXBase.HTMLAttributes<HTMLBnMessageElement>;
-            "bn-page": LocalJSX.BnPage & JSXBase.HTMLAttributes<HTMLBnPageElement>;
+            "bn-grid": LocalJSX.IntrinsicElements["bn-grid"] & JSXBase.HTMLAttributes<HTMLBnGridElement>;
+            "bn-image": LocalJSX.IntrinsicElements["bn-image"] & JSXBase.HTMLAttributes<HTMLBnImageElement>;
+            "bn-internationalization": LocalJSX.IntrinsicElements["bn-internationalization"] & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
+            "bn-layout-card": LocalJSX.IntrinsicElements["bn-layout-card"] & JSXBase.HTMLAttributes<HTMLBnLayoutCardElement>;
+            "bn-layout-page": LocalJSX.IntrinsicElements["bn-layout-page"] & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
+            "bn-map": LocalJSX.IntrinsicElements["bn-map"] & JSXBase.HTMLAttributes<HTMLBnMapElement>;
+            "bn-message": LocalJSX.IntrinsicElements["bn-message"] & JSXBase.HTMLAttributes<HTMLBnMessageElement>;
+            "bn-page": LocalJSX.IntrinsicElements["bn-page"] & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             /**
              * Public-facing wrapper for the IBCS table component.
              * Accepts user-facing string/number props, validates them, and converts
@@ -3024,8 +3255,8 @@ declare module "@stencil/core" {
              * The actual table rendering (header, body, drill-down rows) is delegated
              * to the inner `ibcs-table` element.
              */
-            "bn-table": LocalJSX.BnTable & JSXBase.HTMLAttributes<HTMLBnTableElement>;
-            "bn-template": LocalJSX.BnTemplate & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
+            "bn-table": LocalJSX.IntrinsicElements["bn-table"] & JSXBase.HTMLAttributes<HTMLBnTableElement>;
+            "bn-template": LocalJSX.IntrinsicElements["bn-template"] & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
             /**
              * Renders a template-driven text block with dataset interpolation.
              * The `value` prop is evaluated as a JavaScript template literal in a
@@ -3033,31 +3264,31 @@ declare module "@stencil/core" {
              * XSS before being injected as HTML. Supports auto-scaling to fit the
              * parent container.
              */
-            "bn-text": LocalJSX.BnText & JSXBase.HTMLAttributes<HTMLBnTextElement>;
+            "bn-text": LocalJSX.IntrinsicElements["bn-text"] & JSXBase.HTMLAttributes<HTMLBnTextElement>;
             /**
              * Composes an IBCS-compliant report title block.
              * Renders business unit, scenario labels, measure names with units, a
              * formatted date/time period, and sort-order indicators as a structured
              * header. Delegates the actual layout to the inner `ibcs-title` element.
              */
-            "bn-title": LocalJSX.BnTitle & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
+            "bn-title": LocalJSX.IntrinsicElements["bn-title"] & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
             /**
              * Renders a hierarchical tree diagram with SVG edge connections.
              * Nodes are provided as named slots; the `edges` prop defines parent-child
              * relationships and optional arithmetic operators displayed between siblings.
              * Layout is computed via CSS Grid with an SVG overlay for edge paths.
              */
-            "bn-tree": LocalJSX.BnTree & JSXBase.HTMLAttributes<HTMLBnTreeElement>;
+            "bn-tree": LocalJSX.IntrinsicElements["bn-tree"] & JSXBase.HTMLAttributes<HTMLBnTreeElement>;
             /**
              * Headless helper component for editor integration.
              * Exposes public `@Method()` APIs so an external editor can query
              * i18n keys and distinct data values from datasources/datasets at
              * design time (e.g. for autocompletion or property pickers).
              */
-            "editor-companion": LocalJSX.EditorCompanion & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
-            "ibcs-chart-structure": LocalJSX.IbcsChartStructure & JSXBase.HTMLAttributes<HTMLIbcsChartStructureElement>;
-            "ibcs-chart-time": LocalJSX.IbcsChartTime & JSXBase.HTMLAttributes<HTMLIbcsChartTimeElement>;
-            "ibcs-map": LocalJSX.IbcsMap & JSXBase.HTMLAttributes<HTMLIbcsMapElement>;
+            "editor-companion": LocalJSX.IntrinsicElements["editor-companion"] & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
+            "ibcs-chart-structure": LocalJSX.IntrinsicElements["ibcs-chart-structure"] & JSXBase.HTMLAttributes<HTMLIbcsChartStructureElement>;
+            "ibcs-chart-time": LocalJSX.IntrinsicElements["ibcs-chart-time"] & JSXBase.HTMLAttributes<HTMLIbcsChartTimeElement>;
+            "ibcs-map": LocalJSX.IntrinsicElements["ibcs-map"] & JSXBase.HTMLAttributes<HTMLIbcsMapElement>;
             /**
              * Internal rendering engine for `bn-table`.
              * Receives pre-validated, typed props from the outer `bn-table` wrapper and
@@ -3066,15 +3297,15 @@ declare module "@stencil/core" {
              * partof drill-down rows, and grouped row sections. This component should
              * not be used directly; use `bn-table` instead.
              */
-            "ibcs-table": LocalJSX.IbcsTable & JSXBase.HTMLAttributes<HTMLIbcsTableElement>;
-            "ibcs-title": LocalJSX.IbcsTitle & JSXBase.HTMLAttributes<HTMLIbcsTitleElement>;
-            "test-runner-card": LocalJSX.TestRunnerCard & JSXBase.HTMLAttributes<HTMLTestRunnerCardElement>;
-            "test-runner-chart": LocalJSX.TestRunnerChart & JSXBase.HTMLAttributes<HTMLTestRunnerChartElement>;
-            "test-runner-chart-time": LocalJSX.TestRunnerChartTime & JSXBase.HTMLAttributes<HTMLTestRunnerChartTimeElement>;
-            "test-runner-map": LocalJSX.TestRunnerMap & JSXBase.HTMLAttributes<HTMLTestRunnerMapElement>;
-            "test-runner-table": LocalJSX.TestRunnerTable & JSXBase.HTMLAttributes<HTMLTestRunnerTableElement>;
-            "test-runner-time": LocalJSX.TestRunnerTime & JSXBase.HTMLAttributes<HTMLTestRunnerTimeElement>;
-            "test-runner-title": LocalJSX.TestRunnerTitle & JSXBase.HTMLAttributes<HTMLTestRunnerTitleElement>;
+            "ibcs-table": LocalJSX.IntrinsicElements["ibcs-table"] & JSXBase.HTMLAttributes<HTMLIbcsTableElement>;
+            "ibcs-title": LocalJSX.IntrinsicElements["ibcs-title"] & JSXBase.HTMLAttributes<HTMLIbcsTitleElement>;
+            "test-runner-card": LocalJSX.IntrinsicElements["test-runner-card"] & JSXBase.HTMLAttributes<HTMLTestRunnerCardElement>;
+            "test-runner-chart": LocalJSX.IntrinsicElements["test-runner-chart"] & JSXBase.HTMLAttributes<HTMLTestRunnerChartElement>;
+            "test-runner-chart-time": LocalJSX.IntrinsicElements["test-runner-chart-time"] & JSXBase.HTMLAttributes<HTMLTestRunnerChartTimeElement>;
+            "test-runner-map": LocalJSX.IntrinsicElements["test-runner-map"] & JSXBase.HTMLAttributes<HTMLTestRunnerMapElement>;
+            "test-runner-table": LocalJSX.IntrinsicElements["test-runner-table"] & JSXBase.HTMLAttributes<HTMLTestRunnerTableElement>;
+            "test-runner-time": LocalJSX.IntrinsicElements["test-runner-time"] & JSXBase.HTMLAttributes<HTMLTestRunnerTimeElement>;
+            "test-runner-title": LocalJSX.IntrinsicElements["test-runner-title"] & JSXBase.HTMLAttributes<HTMLTestRunnerTitleElement>;
         }
     }
 }
