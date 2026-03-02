@@ -265,6 +265,37 @@ export namespace Components {
          */
         "variances": string;
     }
+    interface BnChartTree {
+        /**
+          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+          * @default 'ltr'
+         */
+        "direction": LayoutDirection;
+        /**
+          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+          * @default 'orthogonal'
+         */
+        "edgeStyle": EdgeStyleType;
+        /**
+          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+         */
+        "edges": string;
+        /**
+          * Spacing between hierarchy levels in pixels.
+          * @default 60
+         */
+        "levelSpacing": number;
+        /**
+          * Spacing between sibling nodes in pixels.
+          * @default 20
+         */
+        "nodeSpacing": number;
+        /**
+          * Show operator labels between sibling nodes.
+          * @default 'true'
+         */
+        "showOperators": string;
+    }
     interface BnComponentStyle {
         /**
           * @default "_default"
@@ -1324,6 +1355,12 @@ declare global {
         prototype: HTMLBnChartTimeElement;
         new (): HTMLBnChartTimeElement;
     };
+    interface HTMLBnChartTreeElement extends Components.BnChartTree, HTMLStencilElement {
+    }
+    var HTMLBnChartTreeElement: {
+        prototype: HTMLBnChartTreeElement;
+        new (): HTMLBnChartTreeElement;
+    };
     interface HTMLBnComponentStyleElement extends Components.BnComponentStyle, HTMLStencilElement {
     }
     var HTMLBnComponentStyleElement: {
@@ -1600,6 +1637,7 @@ declare global {
         "bn-card": HTMLBnCardElement;
         "bn-chart-structure": HTMLBnChartStructureElement;
         "bn-chart-time": HTMLBnChartTimeElement;
+        "bn-chart-tree": HTMLBnChartTreeElement;
         "bn-component-style": HTMLBnComponentStyleElement;
         "bn-context": HTMLBnContextElement;
         "bn-dataset": HTMLBnDatasetElement;
@@ -1850,6 +1888,37 @@ declare namespace LocalJSX {
           * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
          */
         "variances": string;
+    }
+    interface BnChartTree {
+        /**
+          * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+          * @default 'ltr'
+         */
+        "direction"?: LayoutDirection;
+        /**
+          * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+          * @default 'orthogonal'
+         */
+        "edgeStyle"?: EdgeStyleType;
+        /**
+          * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+         */
+        "edges": string;
+        /**
+          * Spacing between hierarchy levels in pixels.
+          * @default 60
+         */
+        "levelSpacing"?: number;
+        /**
+          * Spacing between sibling nodes in pixels.
+          * @default 20
+         */
+        "nodeSpacing"?: number;
+        /**
+          * Show operator labels between sibling nodes.
+          * @default 'true'
+         */
+        "showOperators"?: string;
     }
     interface BnComponentStyle {
         /**
@@ -2853,6 +2922,7 @@ declare namespace LocalJSX {
         "bn-card": BnCard;
         "bn-chart-structure": BnChartStructure;
         "bn-chart-time": BnChartTime;
+        "bn-chart-tree": BnChartTree;
         "bn-component-style": BnComponentStyle;
         "bn-context": BnContext;
         "bn-dataset": BnDataset;
@@ -2913,6 +2983,7 @@ declare module "@stencil/core" {
              * validates props, resolves auto-detected metadata, and computes styles.
              */
             "bn-chart-time": LocalJSX.BnChartTime & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
+            "bn-chart-tree": LocalJSX.BnChartTree & JSXBase.HTMLAttributes<HTMLBnChartTreeElement>;
             "bn-component-style": LocalJSX.BnComponentStyle & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
             "bn-context": LocalJSX.BnContext & JSXBase.HTMLAttributes<HTMLBnContextElement>;
             /**
