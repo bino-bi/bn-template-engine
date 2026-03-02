@@ -48,8 +48,10 @@ describe("Table Class Test", () => {
         elements: [
           {
             colSpan: 1,
+            columnStats: undefined,
             cssStyle: "category-w25  base",
             index: 0,
+            isBarChart: false,
             key: "category",
             mark: undefined,
             measureScale: 1,
@@ -76,8 +78,10 @@ describe("Table Class Test", () => {
         elements: [
           {
             colSpan: 1,
+            columnStats: undefined,
             cssStyle: "category-w25  base",
             index: 0,
+            isBarChart: false,
             key: "category",
             mark: undefined,
             measureScale: 1,
