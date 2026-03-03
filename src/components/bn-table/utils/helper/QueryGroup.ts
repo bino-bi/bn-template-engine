@@ -20,7 +20,7 @@ export class QueryGroups {
 
   constructor(config: TableComponentConfig) {
     alasql.fn.transformOperator = function (a) {
-      return a == "-" ? -1 : 1;
+      return a === "-" ? -1 : 1;
     };
 
     this.groups = [QueryColumnNames.CATEGORY as string, QueryColumnNames.CATEGORYINDEX as string];

@@ -230,7 +230,7 @@ export class Table {
       }
 
       let orderDirection = undefined;
-      if (order?.hierarchy?.at(0) == scenario) {
+      if (order?.hierarchy?.at(0) === scenario) {
         orderDirection = order.direction;
       }
 
@@ -240,6 +240,6 @@ export class Table {
   }
 
   hasNoData() {
-    return this.data.length == 0;
+    return this.data.length === 0;
   }
 }

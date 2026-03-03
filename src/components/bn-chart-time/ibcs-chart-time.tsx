@@ -119,7 +119,7 @@ export class IbcsChartTime {
   constructor() {}
 
   render() {
-    if (this.chart == undefined) {
+    if (this.chart === undefined) {
       return <Host />;
     }
 

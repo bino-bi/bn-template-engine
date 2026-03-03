@@ -39,7 +39,7 @@ export class DataPoint {
   }
 
   public isEmpty(): boolean {
-    return undefined == this.value || null == this.scenario;
+    return undefined === this.value || null == this.scenario;
   }
 
   /** Returns the value scaled to pixel height for absolute (non-percentage) bars. */

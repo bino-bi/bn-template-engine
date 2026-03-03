@@ -53,7 +53,7 @@ export class Image {
   @Prop() readonly source: string;
 
   prepareAssetUrl(value: string) {
-    if (value == null || value == "") {
+    if (value == null || value === "") {
       return "";
     }
     const assetsState = this.stores.assets.state;
@@ -68,7 +68,7 @@ export class Image {
   render() {
     return (
       <Host style={this.getFontStyles()}>
-        {this.source != null && this.source != "" ? <img src={this.prepareAssetUrl(this.source)} /> : ""}
+        {this.source != null && this.source !== "" ? <img src={this.prepareAssetUrl(this.source)} /> : ""}
       </Host>
     );
   }

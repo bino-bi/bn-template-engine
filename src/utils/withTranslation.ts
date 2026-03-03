@@ -47,7 +47,7 @@ const withTranslation = (component: any) => {
     namespace = getElement(component).getAttribute("namespace");
 
     subscription = stores.internationalization.on("set", (key, _value) => {
-      if (key == namespace) {
+      if (key === namespace) {
         forceUpdate(component);
       }
     });

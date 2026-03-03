@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- h is required for Stencil JSX
 import { Component, h, Host, Prop, Watch, Element } from "@stencil/core";
 import { isBlankInput } from "../../utils/validate";
 import withComponentStatus from "../../utils/withComponentStatus";

@@ -104,18 +104,18 @@ export class Label {
     }
 
     const label: G = this.group;
-    let valueStr = "";
+    let valueStr: string;
 
     let prefix = "";
 
-    if (Number.isNaN(Number(this.value)) == false) {
+    if (Number.isNaN(Number(this.value)) === false) {
       const value = this.value;
       let type = "percent";
       let digits = dataFormatDigits.percent;
       let digitsMin = dataFormatDigits.percent;
       let scale = 1;
 
-      if (this.isRelativeLabel == false) {
+      if (this.isRelativeLabel === false) {
         digits = dataFormatDigits.decimal;
         digitsMin = dataFormatDigits.decimal;
         scale = measureScale.value;
@@ -136,7 +136,7 @@ export class Label {
 
     const text = this.drawLabel(label, labelStr);
 
-    if (displayLabel == false) {
+    if (displayLabel === false) {
       text.addClass("hide");
       label.addClass("hide");
     }
@@ -185,24 +185,24 @@ export class Label {
     const textX: number = text.x() as number;
     let textY: number = text.y() as number;
 
-    if (this.horizontalHookLocation == HookLocation.Left) {
+    if (this.horizontalHookLocation === HookLocation.Left) {
       labelAnchor = "left";
       rectX = text.x() as number;
-    } else if (this.horizontalHookLocation == HookLocation.Center) {
+    } else if (this.horizontalHookLocation === HookLocation.Center) {
       labelAnchor = "middle";
       rectX = (text.x() as number) - (boxWidth + 2) / 2;
-    } else if (this.horizontalHookLocation == HookLocation.Right) {
+    } else if (this.horizontalHookLocation === HookLocation.Right) {
       labelAnchor = "end";
       rectX = (text.x() as number) - boxWidth;
     }
 
-    if (this.verticalHookLocation == HookLocation.Center) {
+    if (this.verticalHookLocation === HookLocation.Center) {
       textY = (text.y() as number) - (boxHeight * 1.2) / 2;
       rectY = textY + boxHeight * 0.2;
-    } else if (this.verticalHookLocation == HookLocation.Top) {
+    } else if (this.verticalHookLocation === HookLocation.Top) {
       textY -= boxHeight / 4;
       rectY = textY + boxHeight * 0.2;
-    } else if (this.verticalHookLocation == HookLocation.Bottom) {
+    } else if (this.verticalHookLocation === HookLocation.Bottom) {
       textY -= boxHeight;
       rectY = textY + boxHeight * 0.2; // + (boxHeight / 2);
     }

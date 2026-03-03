@@ -31,7 +31,7 @@ export class TitleDataSetFactory implements Formatter {
           separator = i18n.get("CONNECTOR_WS");
         }
 
-        if (i18nMode == I18nMode.ALL) {
+        if (i18nMode === I18nMode.ALL) {
           measureName =
             (i18n.get(measureName) || measureName) + separator + (i18n.get(measures[i].name) || measures[i].name);
           unit = i18n.get(measures[i].unit as string) || (measures[i].unit as string);
@@ -70,7 +70,7 @@ export class TitleDataSetFactory implements Formatter {
   ): string {
     let formatedTime: string = "";
 
-    if (time != undefined) {
+    if (time !== undefined) {
       formatedTime = new DateStringFactory().getDateLinkString(time.start, time.end, time.link, time.format, spanLimit);
     }
 
@@ -79,7 +79,7 @@ export class TitleDataSetFactory implements Formatter {
         let orderString: string | undefined = "";
         if (order != null && order.hierarchy != null) {
           if (order.hierarchy.find((x) => x === scenario)) {
-            if (order.direction == "asc") {
+            if (order.direction === "asc") {
               orderString = i18n.get("ORDER_asc");
             } else {
               orderString = i18n.get("ORDER_desc");
@@ -99,7 +99,7 @@ export class TitleDataSetFactory implements Formatter {
       units.set(entry.unit as string, true);
     });
 
-    const hasOneUnit = units.size == 1;
+    const hasOneUnit = units.size === 1;
     return hasOneUnit;
   }
 }

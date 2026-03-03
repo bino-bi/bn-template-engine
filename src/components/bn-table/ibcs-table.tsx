@@ -127,7 +127,7 @@ export class IbcsTable {
 
   render() {
     const helper = () => {
-      if (this.table == undefined) {
+      if (this.table === undefined) {
         return;
       }
 

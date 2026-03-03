@@ -41,7 +41,7 @@ export interface ErrorDispatcher {
 const withHasError = (component: any) => {
   const { set, modify } = ref<ErrorItem[]>([], (items) => {
     const elm = getElement(component);
-    if (items.length == 0) {
+    if (items.length === 0) {
       elm.removeAttribute("has-error");
     } else {
       elm.setAttribute("has-error", JSON.stringify(items));

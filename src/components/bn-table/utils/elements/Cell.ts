@@ -76,7 +76,7 @@ export class Cell {
   public draw(dataFormatDigits: DataFormatDigits) {
     let cellValue = this.value;
 
-    if (cellValue == "undefined" || cellValue == undefined || cellValue == null) {
+    if (cellValue === "undefined" || cellValue === undefined || cellValue == null) {
       return "";
     }
 
@@ -84,14 +84,14 @@ export class Cell {
       return cellValue;
     }
 
-    if (this.type == "" || this.type == undefined || this.type == null) {
+    if (this.type === "" || this.type === undefined || this.type == null) {
       return cellValue;
     }
 
     let digitsMin = dataFormatDigits.percent;
     let scale = dataFormatDigits.percent;
 
-    if (this.type == "decimal") {
+    if (this.type === "decimal") {
       cellValue = +cellValue / this.measureScale;
       digitsMin = dataFormatDigits.decimal;
       scale = dataFormatDigits.decimal;

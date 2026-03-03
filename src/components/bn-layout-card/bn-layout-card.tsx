@@ -135,12 +135,12 @@ export class LayoutCard {
   }
 
   private getTemplatePattern(name: string): string {
-    console.dir({ name: name });
-    if (this.templateMap.has(name) == false && name != "custom-template") {
+    console.warn("getTemplatePattern", { name: name });
+    if (this.templateMap.has(name) === false && name !== "custom-template") {
       return '"a"';
     }
 
-    if (name == "custom-template") {
+    if (name === "custom-template") {
       return this.cardCustomTemplate;
     }
 
@@ -158,14 +158,14 @@ export class LayoutCard {
   }
 
   setCardClass(): string {
-    if (this.cardShowBorder == true) {
+    if (this.cardShowBorder === true) {
       return "card_box border";
     }
     return "card_box";
   }
 
   prepareTitleImage(value: string) {
-    if (value == null || value == "") {
+    if (value == null || value === "") {
       return "";
     }
     const assetsState = this.stores.assets.state;
@@ -197,7 +197,7 @@ export class LayoutCard {
             date-format={this.titleDateFormat}
             date-link={this.titleDateLink}
           ></bn-title>
-          {this.titleImage != null && this.titleImage != "" ? (
+          {this.titleImage != null && this.titleImage !== "" ? (
             <img class="image" src={this.prepareTitleImage(this.titleImage)} />
           ) : (
             ""

@@ -136,11 +136,11 @@ export class LayoutPage {
   }
 
   private getTemplateAreas(name: string): string {
-    if (this.templateMap.has(name) == false && name != "custom-template") {
+    if (this.templateMap.has(name) === false && name !== "custom-template") {
       return '"a"';
     }
 
-    if (name == "custom-template") {
+    if (name === "custom-template") {
       return this.pageCustomTemplate;
     }
 
@@ -158,13 +158,13 @@ export class LayoutPage {
     return Array(count).fill(percentage).join(" ");
   }
   private getGridTemplateColumns(name: string): string {
-    if (this.templateMap.has(name) == false && name != "custom-template") {
+    if (this.templateMap.has(name) === false && name !== "custom-template") {
       return "100%";
     }
     let template;
     const pattern = /"[\w\d\s.]+"/g;
 
-    if (name == "custom-template") {
+    if (name === "custom-template") {
       template = this.pageCustomTemplate;
     } else {
       template = this.templateMap.get(name);
@@ -183,7 +183,7 @@ export class LayoutPage {
   componentDidUpdate() {
     // workaround for the render rotation issue
     const renderOrientation = this.element.closest("bn-context").getAttribute("render-orientation");
-    if (renderOrientation && renderOrientation != this.pageOrientation) {
+    if (renderOrientation && renderOrientation !== this.pageOrientation) {
       const page = this.element.shadowRoot.querySelector("bn-page");
       const layout = this.element.closest("bn-layout-page");
       if (layout && page) {

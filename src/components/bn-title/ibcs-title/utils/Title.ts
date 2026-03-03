@@ -76,7 +76,7 @@ export class Title {
    * the dataSet will not be regenerated.
    */
   public update(): Title {
-    if (FactoryState.DIRTY == this.state) {
+    if (FactoryState.DIRTY === this.state) {
       this.unit = this.config.businessunit;
       this.measures = this.dataSetFactory.createMeasures(this.config.measures, this.i18n, this.config.i18nMode);
       this.dimension = this.dataSetFactory.createDimension(

@@ -62,9 +62,9 @@ export class BnMap {
     withComponentStatus(this);
     this.errors = withHasError(this);
     withDataset(this, (name, data) => {
-      if (name == this.markersDatasetName) {
+      if (name === this.markersDatasetName) {
         this.markerData = data as Marker[];
-      } else if (name == this.gpxsDatasetName) {
+      } else if (name === this.gpxsDatasetName) {
         this.gpxData = data as GpxParams[];
       }
     });

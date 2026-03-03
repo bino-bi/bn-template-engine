@@ -89,7 +89,7 @@ export class TableDataSetFactory {
   ) {
     let prefix = "";
 
-    if (scenario.name == "category" && showMeasureScale) {
+    if (scenario.name === "category" && showMeasureScale) {
       if (measureScale.prefix.length !== 0 || measureUnit.length !== 0) {
         prefix = Formatter.translateScenarioLabel("in", i18n) + " " + measureScale.prefix + measureUnit;
       }
@@ -318,10 +318,10 @@ export class TableDataSetFactory {
     rawDataRow: DataQueryResultRow,
     scenario: { name: string; group: string; type: string },
   ) {
-    if (scenario.name == scenario.group && scenario.name == scenario.type) {
+    if (scenario.name === scenario.group && scenario.name === scenario.type) {
       // Default Sum Scenario (e.g. AC)
       return rawDataRow[scenario.name];
-    } else if (scenario.name == scenario.group && scenario.name != scenario.type) {
+    } else if (scenario.name === scenario.group && scenario.name !== scenario.type) {
       return rawDataRow[scenario.type + "##" + scenario.name];
     }
 
@@ -375,7 +375,7 @@ export class TableDataSetFactory {
     type: string,
     scenario: string,
   ): string | number {
-    if (Number.isNaN(Number(value)) == false) {
+    if (Number.isNaN(Number(value)) === false) {
       return value;
     }
 
@@ -384,7 +384,7 @@ export class TableDataSetFactory {
     }
 
     if (this.isGroupHeadCategory(type, scenario)) {
-      if (i18nMode == I18nMode.ALL) {
+      if (i18nMode === I18nMode.ALL) {
         return `${i18n.get(value) || value}`;
       }
 
@@ -392,7 +392,7 @@ export class TableDataSetFactory {
     }
 
     if (this.isEntryCategory(type, scenario)) {
-      if (i18nMode == I18nMode.ALL) {
+      if (i18nMode === I18nMode.ALL) {
         return `${i18n.get(value) || value}`;
       }
 
@@ -400,7 +400,7 @@ export class TableDataSetFactory {
     }
 
     if (this.isDrillElementCategory(type, scenario)) {
-      if (i18nMode == I18nMode.ALL) {
+      if (i18nMode === I18nMode.ALL) {
         return `${i18n.get(subCategory) || subCategory}`;
       }
 
@@ -409,21 +409,21 @@ export class TableDataSetFactory {
 
     if (this.isPartElementCategory(type, scenario)) {
       // translate allways because of default sum symbol.
-      if (i18nMode == I18nMode.ALL || rowGroup === "SUM_TOTAL") {
+      if (i18nMode === I18nMode.ALL || rowGroup === "SUM_TOTAL") {
         return `${i18n.get(rowGroup) || rowGroup}`;
       }
       return `${rowGroup}`;
     }
 
     if (this.isSumElementCategory(type, scenario)) {
-      if (i18nMode == I18nMode.ALL || rowGroup === "SUM_TOTAL") {
+      if (i18nMode === I18nMode.ALL || rowGroup === "SUM_TOTAL") {
         return `${i18n.get(rowGroup) || rowGroup}`;
       }
 
       return rowGroup;
     }
 
-    if ("GROUPHEAD" == type && value == null) {
+    if ("GROUPHEAD" === type && value == null) {
       return value;
     }
 
@@ -435,7 +435,7 @@ export class TableDataSetFactory {
   }
 
   private isOperationColumn(scenario: string) {
-    return scenario == "operation";
+    return scenario === "operation";
   }
 
   /**
@@ -453,7 +453,7 @@ export class TableDataSetFactory {
     }
 
     if (scenarios.isValid) {
-      return prefix + "_" + scenarios.direction + (scenarios.type == "dr" ? " relative_variance" : "");
+      return prefix + "_" + scenarios.direction + (scenarios.type === "dr" ? " relative_variance" : "");
     }
 
     return scenario;
@@ -467,16 +467,16 @@ export class TableDataSetFactory {
     let unitType: string;
     const scenarios = new VarianceScenario(scenario);
 
-    if (scenariosUnitType == DataFormat.PERCENT) {
+    if (scenariosUnitType === DataFormat.PERCENT) {
       unitType = "percent";
 
-      if (scenarios.isValid && scenarios.type == "d") {
+      if (scenarios.isValid && scenarios.type === "d") {
         unitType = "decimal";
       }
     } else {
       unitType = "decimal";
 
-      if (scenarios.isValid && scenarios.type == "dr") {
+      if (scenarios.isValid && scenarios.type === "dr") {
         unitType = "percent";
       }
     }
@@ -530,11 +530,11 @@ export class TableDataSetFactory {
   }
 
   private createColumnType(scenario: { name: string; group: string; type: string }) {
-    if (scenario.name == scenario.group && scenario.name == scenario.type) {
+    if (scenario.name === scenario.group && scenario.name === scenario.type) {
       return "base";
     }
 
-    if (scenario.name == scenario.group) {
+    if (scenario.name === scenario.group) {
       return "columnGroup";
     }
 
