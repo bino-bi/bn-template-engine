@@ -25,7 +25,7 @@ import { OrderColumn, OrderDirection } from "./model/Order";
  * which arrive as the literal string "null" rather than a JS null.
  */
 export function isBlankInput(value: unknown): boolean {
-  return value === null || value === undefined || value === "" || value == "null";
+  return value === null || value === undefined || value === "" || value === "null";
 }
 
 /**
@@ -74,7 +74,7 @@ export function validateVariancesList(value: string): string[] {
       const scenarioSentiment = splittedElement[2]?.toUpperCase().trim();
 
       return (
-        splittedElement.length != 3 ||
+        splittedElement.length !== 3 ||
         !(scenarioSubtrahend in Scenarios) ||
         !(scenarioMinuend in Scenarios) ||
         !(scenarioSentiment in Sentiments)
@@ -230,7 +230,7 @@ export function isValidBoolean(value: unknown): boolean {
   }
 
   const validValues: (string | boolean)[] = ["true", "false", true, false];
-  return validValues.some((elem) => elem == value);
+  return validValues.some((elem) => elem === value);
 }
 
 export function isValidTableType(value: string): boolean {
@@ -307,7 +307,7 @@ export function validateI18nString(value: string): string[] {
     const jsonObject = JSON.parse(value);
     const errList = [];
 
-    for (var value in jsonObject) {
+    for (const value in jsonObject) {
       if (typeof jsonObject[value] === "object") {
         errList.push(value + ":" + jsonObject[value]);
       }
@@ -393,18 +393,18 @@ export function validateStackConfig(value: string): string[] {
     }
 
     return errors;
-  } catch (e) {
+  } catch (_e) {
     return ["stack: invalid JSON"];
   }
 }
 
 // @ts-ignore - Parameter reserved for future validation
-export function isValidFontSize(value: string): boolean {
+export function isValidFontSize(_value: string): boolean {
   return true;
 }
 
 // @ts-ignore - Parameter reserved for future validation
-export function isValidFontFamily(value: string): boolean {
+export function isValidFontFamily(_value: string): boolean {
   return true;
 }
 

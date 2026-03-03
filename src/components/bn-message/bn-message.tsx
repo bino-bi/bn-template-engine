@@ -59,7 +59,7 @@ export class Footer {
   @Prop() readonly image: string;
 
   prepareAssetUrl(value: string) {
-    if (value == null || value == "") {
+    if (value == null || value === "") {
       return "";
     }
     const assetsState = this.stores.assets.state;
@@ -74,9 +74,11 @@ export class Footer {
   render() {
     return (
       <Host id={this.text || this.image ? "container-page-message" : "container"} style={this.getFontStyles()}>
-        <div id="message-text">{this.text != null && this.text != "" ? <span class="note">{this.text}</span> : ""}</div>
+        <div id="message-text">
+          {this.text != null && this.text !== "" ? <span class="note">{this.text}</span> : ""}
+        </div>
         <div id="page-image">
-          {this.image != null && this.image != "" ? <img class="image" src={this.prepareAssetUrl(this.image)} /> : ""}
+          {this.image != null && this.image !== "" ? <img class="image" src={this.prepareAssetUrl(this.image)} /> : ""}
         </div>
         {/* </div> */}
       </Host>

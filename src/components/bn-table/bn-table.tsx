@@ -854,11 +854,11 @@ export class Table {
   }
 
   private prepareGrouped(): boolean {
-    return this.grouped == "true";
+    return this.grouped === "true";
   }
 
   private prepareShowGroupTitle(): boolean {
-    return this.showGroupTitle == "true";
+    return this.showGroupTitle === "true";
   }
 
   private prepareTableType(): TableType {
@@ -870,7 +870,7 @@ export class Table {
   }
 
   private prepareThereOf(): TableDrillGroup[] {
-    if (this.thereof == null || this.thereof.trim() == "") {
+    if (this.thereof == null || this.thereof.trim() === "") {
       return [];
     }
 
@@ -878,7 +878,7 @@ export class Table {
   }
 
   private preparePartOf(): TableDrillGroup[] {
-    if (this.partof == null || this.partof.trim() == "") {
+    if (this.partof == null || this.partof.trim() === "") {
       return [];
     }
     return JSON.parse(this.partof!) as TableDrillGroup[];
@@ -1002,14 +1002,14 @@ export class Table {
   }
 
   private prepareColumnThereOf(): Map<string, Record<string, unknown>[]> {
-    if (this.columnthereof == null || this.columnthereof.trim() == "") {
+    if (this.columnthereof == null || this.columnthereof.trim() === "") {
       return new Map();
     }
     const parsedString = JSON.parse(this.columnthereof);
     const map = new Map();
 
     for (const [_key, value] of Object.entries(parsedString)) {
-      if (map.has(value["scenario"]) == false) {
+      if (map.has(value["scenario"]) === false) {
         map.set(value["scenario"], []);
       }
       map.get(value["scenario"]).push(value);
@@ -1019,24 +1019,24 @@ export class Table {
   }
 
   private prepareTableTitle(): string {
-    if (this.tableTitle == "" || this.tableTitle == null) {
+    if (this.tableTitle === "" || this.tableTitle == null) {
       return "SUM_TOTAL";
     }
     return this.tableTitle;
   }
 
   prepareShowMeasureScale(): boolean {
-    return this.showMeasureScale == "true";
+    return this.showMeasureScale === "true";
   }
   prepareMeasureUnit(): string {
-    if (this.measureUnit == "" || this.measureUnit == null) {
+    if (this.measureUnit === "" || this.measureUnit == null) {
       return "";
     }
     return this.measureUnit;
   }
 
   private prepareFilter(): string {
-    if (this.filter.length == 0) {
+    if (this.filter.length === 0) {
       return "";
     }
 

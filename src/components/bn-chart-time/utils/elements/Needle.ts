@@ -68,7 +68,7 @@ export class Needle {
 
     this.barGroup = scenarioGroup.group().id(scenarioGroup.toString() + "_" + this.ID_RECT);
 
-    if (dataPoint?.isEmpty() != true) {
+    if (dataPoint?.isEmpty() !== true) {
       this.hasData = true;
       this.dimensions = this.createDimensions(position, dataPoint, index);
       this.dataLabel = new Label(

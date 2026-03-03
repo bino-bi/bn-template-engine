@@ -13,7 +13,7 @@ import {
 } from "./model";
 
 // @ts-ignore
-import { Axis, Categories, HookLocation, Label, StackedBar } from "./elements";
+import { Axis, HookLocation, Label, StackedBar } from "./elements";
 import { ScenarioFactory } from "./factories";
 import alasql from "alasql";
 
@@ -129,7 +129,7 @@ export class StructureChart {
 
   initSQLFunctions() {
     alasql.fn.transformOperator = function (a) {
-      return a == "-" ? -1 : 1;
+      return a === "-" ? -1 : 1;
     };
   }
 
@@ -307,7 +307,7 @@ export class StructureChart {
   public draw(svgContainer: Svg): void {
     this.cleanSVGforRedraw(svgContainer);
 
-    if (this.state == FactoryState.DIRTY) {
+    if (this.state === FactoryState.DIRTY) {
       this.state = FactoryState.UP_TO_DATE;
     }
 
@@ -343,7 +343,7 @@ export class StructureChart {
   }
 
   public getFooter(): string {
-    if (this.measureScale.value == 1 && this.measureUnit == "") {
+    if (this.measureScale.value === 1 && this.measureUnit === "") {
       return " ";
     }
     return Formatter.translateScenarioLabel("in", this.i18n) + " " + this.measureScale.prefix + this.measureUnit;
@@ -410,12 +410,12 @@ export class StructureChart {
       scenarios.forEach((scenario: string) => {
         const varianceScenario = new VarianceScenario(scenario);
 
-        if (varianceScenario.isValid == true) {
-          if (row[varianceScenario.base + "_cnt"] == 0 || row[varianceScenario.delta + "_cnt"] == 0) {
+        if (varianceScenario.isValid === true) {
+          if (row[varianceScenario.base + "_cnt"] === 0 || row[varianceScenario.delta + "_cnt"] === 0) {
             row[scenario] = Number.NaN;
           }
         } else {
-          if (row[scenario + "_cnt"] == 0) {
+          if (row[scenario + "_cnt"] === 0) {
             row[scenario] = Number.NaN;
           }
         }
@@ -430,7 +430,7 @@ export class StructureChart {
     selectedScenarios: string[],
     dataModel: StructureChartDataModelEntry[],
   ) {
-    if (this.limit == 0 || this.limit > result.length) {
+    if (this.limit === 0 || this.limit > result.length) {
       return;
     }
 
@@ -538,11 +538,11 @@ export class StructureChart {
   }
 
   private createSelectString(level: AggregationLevel, sortOrder: Order) {
-    if (level == AggregationLevel.CATEGORY && sortOrder.hierarchy.includes(OrderColumn.CATEGORYINDEX)) {
+    if (level === AggregationLevel.CATEGORY && sortOrder.hierarchy.includes(OrderColumn.CATEGORYINDEX)) {
       return `${OrderColumn.CATEGORYINDEX}, ${AggregationLevel.CATEGORY} as category`;
-    } else if (level == AggregationLevel.ROWGROUP && sortOrder.hierarchy.includes(OrderColumn.ROWGROUPINDEX)) {
+    } else if (level === AggregationLevel.ROWGROUP && sortOrder.hierarchy.includes(OrderColumn.ROWGROUPINDEX)) {
       return `${OrderColumn.ROWGROUPINDEX}, ${AggregationLevel.ROWGROUP} as category`;
-    } else if (level == AggregationLevel.SUBCATEGORY && sortOrder.hierarchy.includes(OrderColumn.SUBCATEGORYINDEX)) {
+    } else if (level === AggregationLevel.SUBCATEGORY && sortOrder.hierarchy.includes(OrderColumn.SUBCATEGORYINDEX)) {
       return `${OrderColumn.SUBCATEGORYINDEX}, ${AggregationLevel.SUBCATEGORY} as category`;
     } else {
       return `${level.toString()} as category`;
@@ -550,11 +550,11 @@ export class StructureChart {
   }
 
   private createGroupByStr(level: AggregationLevel, sortOrder: Order) {
-    if (level == AggregationLevel.CATEGORY && sortOrder.hierarchy.includes(OrderColumn.CATEGORYINDEX)) {
+    if (level === AggregationLevel.CATEGORY && sortOrder.hierarchy.includes(OrderColumn.CATEGORYINDEX)) {
       return `${OrderColumn.CATEGORYINDEX}, ${AggregationLevel.CATEGORY}`;
-    } else if (level == AggregationLevel.ROWGROUP && sortOrder.hierarchy.includes(OrderColumn.ROWGROUPINDEX)) {
+    } else if (level === AggregationLevel.ROWGROUP && sortOrder.hierarchy.includes(OrderColumn.ROWGROUPINDEX)) {
       return `${OrderColumn.ROWGROUPINDEX}, ${AggregationLevel.ROWGROUP}`;
-    } else if (level == AggregationLevel.SUBCATEGORY && sortOrder.hierarchy.includes(OrderColumn.SUBCATEGORYINDEX)) {
+    } else if (level === AggregationLevel.SUBCATEGORY && sortOrder.hierarchy.includes(OrderColumn.SUBCATEGORYINDEX)) {
       return `${OrderColumn.SUBCATEGORYINDEX}, ${AggregationLevel.SUBCATEGORY}`;
     } else {
       return `${level.toString()}`;
@@ -637,7 +637,7 @@ export class StructureChart {
         const directon: string = scenarios.direction;
 
         let pixelPerUnit: number = this.pixelPerUnit;
-        if (scenarios.type == "dr") {
+        if (scenarios.type === "dr") {
           pixelPerUnit = this.pixelPerPercentage;
         }
 
@@ -645,7 +645,7 @@ export class StructureChart {
           varianceModel.push({
             id: Number(index),
             category: dataModel[index].category,
-            type: scenarios.type == "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
+            type: scenarios.type === "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
             scenario1: new DataPoint(
               this.calculateVariance(scenarios, dataModel[index], scenariomap),
               scenarios.base,
@@ -714,7 +714,6 @@ export class StructureChart {
 
   private calculatePercentageTextBoxWidth(value: number): number {
     let signWidth = 0;
-    let labelWidth = 0;
 
     if (value >= 0) {
       signWidth += CalculateSize("+", {
@@ -728,7 +727,7 @@ export class StructureChart {
       fontSize: this.styles.fontStyles.size + "px",
     }).width;
 
-    labelWidth =
+    const labelWidth =
       CalculateSize(Formatter.number(value, "decimal", 1, 1), {
         font: this.styles.fontStyles.font,
         fontSize: this.styles.fontStyles.size + "px",
@@ -747,7 +746,7 @@ export class StructureChart {
     let isRelative = false;
     if (!this.hideCategories) {
       dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
-        if (elements["type"] == VarianceType.RELATIVE) {
+        if (elements["type"] === VarianceType.RELATIVE) {
           isRelative = true;
         }
 
@@ -803,7 +802,7 @@ export class StructureChart {
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
-      if (elements["type"] == VarianceType.RELATIVE) {
+      if (elements["type"] === VarianceType.RELATIVE) {
         scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw();
       } else {
         scenarioFactory.createVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
@@ -1113,21 +1112,21 @@ export class StructureChart {
     const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
 
     if (
-      VarianceType.NONE == varianceType &&
+      VarianceType.NONE === varianceType &&
       this.smallestDataPointValue?.value != null &&
       this.smallestDataPointValue.value < 0
     ) {
       const sizeLabelValue = this.calculateTextBoxWidth(this.smallestDataPointValue.value);
       width = Math.abs(this.smallestDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     } else if (
-      VarianceType.RELATIVE == varianceType &&
+      VarianceType.RELATIVE === varianceType &&
       this.smallestVarianceDataPointValue?.value != null &&
       this.smallestVarianceDataPointValue.value < 0
     ) {
       const sizeLabelValue = this.calculatePercentageTextBoxWidth(this.smallestVarianceDataPointValue.value);
       width = Math.abs(this.smallestVarianceDataPointValue.getScaledPercentUnit()) + labelToBar + sizeLabelValue;
     } else if (
-      VarianceType.ABSOLUTE == varianceType &&
+      VarianceType.ABSOLUTE === varianceType &&
       this.smallestVarianceDataPointValue?.value != null &&
       this.smallestVarianceDataPointValue.value < 0
     ) {
@@ -1147,21 +1146,21 @@ export class StructureChart {
     const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
 
     if (
-      VarianceType.NONE == varianceType &&
+      VarianceType.NONE === varianceType &&
       this.highestDataPointValue?.value != null &&
       this.highestDataPointValue.value >= 0
     ) {
       const sizeLabelValue = this.calculateTextBoxWidth(this.highestDataPointValue.value);
       width = Math.abs(this.highestDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     } else if (
-      VarianceType.RELATIVE == varianceType &&
+      VarianceType.RELATIVE === varianceType &&
       this.highestVarianceDataPointValue?.value != null &&
       this.highestVarianceDataPointValue.value >= 0
     ) {
       const sizeLabelValue = this.calculatePercentageTextBoxWidth(this.highestVarianceDataPointValue.value);
       width = Math.abs(this.highestVarianceDataPointValue.getScaledPercentUnit()) + labelToBar + sizeLabelValue;
     } else if (
-      VarianceType.ABSOLUTE == varianceType &&
+      VarianceType.ABSOLUTE === varianceType &&
       this.highestVarianceDataPointValue?.value != null &&
       this.highestVarianceDataPointValue.value >= 0
     ) {
@@ -1233,7 +1232,7 @@ export class StructureChart {
   }
 
   hasNoData() {
-    return this.dataModel.length == 0;
+    return this.dataModel.length === 0;
   }
 
   public setAvailableWidth(availableWidth: number): void {

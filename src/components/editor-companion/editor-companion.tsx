@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- h is required for Stencil JSX
 import { Component, Element, Fragment, h, Method } from "@stencil/core";
 import { BN_INTERNATIONALIZATION_KEYS } from "../../stores/internationalization";
 import { getStores, ScopedStores } from "../../context/context-protocol";

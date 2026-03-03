@@ -62,15 +62,15 @@ export class Formatter {
     let token;
     let scenarioLabel;
 
-    if (QueryColumnNames.AC1 == scenarios.base) {
-      if (scenarios.type == "dr") {
+    if (QueryColumnNames.AC1 === scenarios.base) {
+      if (scenarios.type === "dr") {
         token = i18n.get("ibcssymbol_delta_ac" + "_relative");
       } else {
         token = i18n.get("ibcssymbol_delta_ac" + "");
       }
       scenarioLabel = i18n.get(scenarios.delta) || scenarios.delta;
     } else {
-      if (scenarios.type == "dr") {
+      if (scenarios.type === "dr") {
         token = i18n.get("ibcssymbol_delta_generic" + "_relative");
       } else {
         token = i18n.get("ibcssymbol_delta_generic" + "");

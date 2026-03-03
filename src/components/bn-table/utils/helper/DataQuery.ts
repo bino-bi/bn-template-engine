@@ -44,7 +44,7 @@ export class DataQuery {
    * @returns Array of row-group segments; each segment is an array of result rows.
    */
   public execute(data: TableDataRow[]): DataQueryResultRow[][] {
-    if (data.length == 0) {
+    if (data.length === 0) {
       return [];
     }
 
@@ -137,12 +137,12 @@ export class DataQuery {
         scenarios.forEach((scenario: string) => {
           const varianceScenario = new VarianceScenario(scenario);
 
-          if (varianceScenario.isValid == true) {
-            if (row[varianceScenario.base + "_cnt"] == 0 || row[varianceScenario.delta + "_cnt"] == 0) {
+          if (varianceScenario.isValid === true) {
+            if (row[varianceScenario.base + "_cnt"] === 0 || row[varianceScenario.delta + "_cnt"] === 0) {
               row[scenario] = Number.NaN;
             }
           } else {
-            if (row[scenario + "_cnt"] == 0) {
+            if (row[scenario + "_cnt"] === 0) {
               row[scenario] = Number.NaN;
             }
           }
@@ -166,22 +166,16 @@ export class DataQuery {
   ) {
     if (
       this.config.partOf == null ||
-      this.config.partOf.length == 0 ||
-      this.config.type == TableType.LIST ||
+      this.config.partOf.length === 0 ||
+      this.config.type === TableType.LIST ||
       data == null ||
-      data.length == 0
+      data.length === 0
     ) {
       return;
     }
 
-    let drillQueries = [];
-    let resDrill: DataQueryResultRow[] = []; // set of drill (subquery result injected into resultset)
-
-    if (this.config.type == TableType.OPT || this.config.type == TableType.OPTNOTOTAL) {
-      drillQueries = this.createPartOfQuery(scenarios, order);
-    } else {
-      drillQueries = this.createPartOfQuery(scenarios, order);
-    }
+    const drillQueries = this.createPartOfQuery(scenarios, order);
+    const resDrill: DataQueryResultRow[] = []; // set of drill (subquery result injected into resultset)
 
     drillQueries.forEach(function (query) {
       resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
@@ -318,7 +312,7 @@ export class DataQuery {
   /** Generates a total SUM row across all groups (only for SUM / OPT table types). */
   private createTotalSumRow(querys: string[], sumGroupQueries: string[], scenariosSUMQuery: string) {
     if (TableType.SUM === this.config.type || TableType.OPT === this.config.type) {
-      const title = `${this.hasPartOf && this.config.grouped == false ? `${this.i18n.get("SUM_TOTAL") || "SUM_TOTAL"} ` : ""}${this.config.title}`;
+      const title = `${this.hasPartOf && this.config.grouped === false ? `${this.i18n.get("SUM_TOTAL") || "SUM_TOTAL"} ` : ""}${this.config.title}`;
 
       querys.push(`SELECT ${querys.length} as ${QueryColumnNames.ROWGROUPINDEX},
                           '${title}'       as ${QueryColumnNames.ROWGROUP},
@@ -406,7 +400,7 @@ export class DataQuery {
               numberOfElement.set(`${drillItem.category}`, 1);
             }
 
-            if (drillItem[QueryColumnNames.ROWNR] == 1) {
+            if (drillItem[QueryColumnNames.ROWNR] === 1) {
               drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
             } else if (duplicateSubCategoriesList.includes(drillItem.subCategory)) {
               drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
@@ -434,7 +428,7 @@ export class DataQuery {
     // if there of is set drilldown row is displayed with absolute numbers,
     // if part of is also not null a relative percenatage based of the selected basis is displayed
 
-    if (this.config.thereOf == undefined || this.config.thereOf.length == 0) {
+    if (this.config.thereOf === undefined || this.config.thereOf.length === 0) {
       return;
     }
 
@@ -514,7 +508,7 @@ export class DataQuery {
     res: DataQueryResultRow[][],
     categoryThereOf: Map<string, Record<string, unknown>[]>,
   ) {
-    if (categoryThereOf == null || categoryThereOf.size == 0) {
+    if (categoryThereOf == null || categoryThereOf.size === 0) {
       return;
     }
     const scenarioRestMap: Map<string, string[]> = new Map();
@@ -536,13 +530,13 @@ export class DataQuery {
           scenarioRestMap.forEach((values, key) => {
             let minuent = 0;
             values.forEach((value: string) => {
-              if (row[value] != undefined) {
+              if (row[value] !== undefined) {
                 minuent += row[value] as number;
               }
             });
             row[`${key}##REST`] = (row[key] as number) - minuent;
 
-            if (row[`${key}##REST`] != 0) {
+            if (row[`${key}##REST`] !== 0) {
               scenarioRestHasValuesMap.set(`${key}##REST`, true);
             }
           });
@@ -593,9 +587,9 @@ export class DataQuery {
   private translateScenarioSQL(scenario: string, isSumRow: boolean, type: TableType): string {
     const scenarios = new VarianceScenario(scenario);
 
-    if (TableType.OPT == type || TableType.OPTNOTOTAL == type) {
+    if (TableType.OPT === type || TableType.OPTNOTOTAL === type) {
       if (scenarios.isValid) {
-        if (scenarios.type == "dr") {
+        if (scenarios.type === "dr") {
           return `SUM(${scenarios.base} - ${scenarios.delta}) as ${scenario}, SUM(${scenarios.delta}) as dr_${scenarios.delta}`;
         } else {
           return `SUM(${scenarios.base} - ${scenarios.delta}) as ${scenario}`;
@@ -610,7 +604,7 @@ export class DataQuery {
     }
 
     if (scenarios.isValid) {
-      if (scenarios.type == "dr") {
+      if (scenarios.type === "dr") {
         return `SUM((${scenarios.base}  * transformOperator(operation)) - (${scenarios.delta}  * transformOperator(operation))) as ${scenario}, SUM(${scenarios.delta} * transformOperator(operation)) as dr_${scenarios.delta}`;
       } else {
         return `SUM((${scenarios.base}  * transformOperator(operation))- (${scenarios.delta} * transformOperator(operation))) as ${scenario}`;
@@ -627,11 +621,8 @@ export class DataQuery {
    * @param orderComponent
    */
   private createOrderString(orderComponent: Order): [string, string] {
-    let base = "";
-    let inverted = "";
-
-    base = `${orderComponent.hierarchy.toString()} ${orderComponent.direction}`;
-    inverted = `${orderComponent.hierarchy.toString()} ${OrderDirection.ASC === orderComponent.direction ? OrderDirection.DESC : OrderDirection.ASC}`;
+    const base = `${orderComponent.hierarchy.toString()} ${orderComponent.direction}`;
+    const inverted = `${orderComponent.hierarchy.toString()} ${OrderDirection.ASC === orderComponent.direction ? OrderDirection.DESC : OrderDirection.ASC}`;
     return [base, inverted];
   }
 
@@ -639,7 +630,7 @@ export class DataQuery {
   private createRelativeScenario(scenario: string) {
     const scenarios = new VarianceScenario(scenario);
 
-    if (scenarios.isValid && scenarios.type == "dr") {
+    if (scenarios.isValid && scenarios.type === "dr") {
       return { key: `${scenario}`, value: `dr_${scenarios.delta}` };
     }
 
@@ -684,7 +675,7 @@ export class DataQuery {
         fromString += `and ${QueryColumnNames.ROWGROUP} = '${element.rowGroup}'`;
       }
 
-      if (this.config.grouped == false) {
+      if (this.config.grouped === false) {
         groupName = ` 'SUM_TOTAL'  as ${QueryColumnNames.ROWGROUP} `;
         rowNum = "1";
       }
@@ -708,7 +699,7 @@ export class DataQuery {
   }
 
   private checkConfigForPartOf() {
-    if (this.config.partOf == null || this.config.partOf.length == 0) {
+    if (this.config.partOf == null || this.config.partOf.length === 0) {
       return false;
     }
     return true;
@@ -728,7 +719,7 @@ export class DataQuery {
     data: TableDataRow[],
     res: DataQueryResultRow[][],
   ) {
-    if (categoryThereOf == null || categoryThereOf.size == 0) {
+    if (categoryThereOf == null || categoryThereOf.size === 0) {
       return;
     }
 
@@ -843,77 +834,77 @@ export class DataQuery {
     for (const drillElement of resDrill) {
       for (const tableSegment of res) {
         for (const row of tableSegment) {
-          if (row.type != drillElement.rowlevel) {
+          if (row.type !== drillElement.rowlevel) {
             continue;
           }
 
-          if ("ENTRY" == drillElement.rowlevel) {
-            if (drillElement.columnlevel == "COLUMNGROUP" && row.category == drillElement.category) {
+          if ("ENTRY" === drillElement.rowlevel) {
+            if (drillElement.columnlevel === "COLUMNGROUP" && row.category === drillElement.category) {
               row[drillElement.scenario + separator + drillElement.columnGroup] = drillElement.val;
-            } else if (drillElement.columnlevel == "SUBGROUP" && row.category == drillElement.category) {
+            } else if (drillElement.columnlevel === "SUBGROUP" && row.category === drillElement.category) {
               row[
                 drillElement.scenario + separator + drillElement.columnGroup + separator + drillElement.columnSubGroup
               ] = drillElement.val;
             }
-          } else if ("DRILLELEMENT" == drillElement.rowlevel) {
+          } else if ("DRILLELEMENT" === drillElement.rowlevel) {
             if (
-              drillElement.columnlevel == "COLUMNGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == drillElement.subCategory
+              drillElement.columnlevel === "COLUMNGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === drillElement.subCategory
             ) {
               row[drillElement.scenario + separator + drillElement.columnGroup] = drillElement.val;
             } else if (
-              drillElement.columnlevel == "SUBGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == drillElement.subCategory
+              drillElement.columnlevel === "SUBGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === drillElement.subCategory
             ) {
               row[
                 drillElement.scenario + separator + drillElement.columnGroup + separator + drillElement.columnSubGroup
               ] = drillElement.val;
             } else if (
-              drillElement.columnlevel == "COLUMNGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == `${drillElement.subCategory} (${drillElement.rowGroup})`
+              drillElement.columnlevel === "COLUMNGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === `${drillElement.subCategory} (${drillElement.rowGroup})`
             ) {
               row[drillElement.scenario + separator + drillElement.columnGroup] = drillElement.val;
             } else if (
-              drillElement.columnlevel == "SUBGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == `${drillElement.subCategory} (${drillElement.rowGroup})`
+              drillElement.columnlevel === "SUBGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === `${drillElement.subCategory} (${drillElement.rowGroup})`
             ) {
               row[
                 drillElement.scenario + separator + drillElement.columnGroup + separator + drillElement.columnSubGroup
               ] = drillElement.val;
             }
-          } else if ("SUM" == drillElement.rowlevel) {
+          } else if ("SUM" === drillElement.rowlevel) {
             if (
-              drillElement.columnlevel == "COLUMNGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == drillElement.subCategory
+              drillElement.columnlevel === "COLUMNGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === drillElement.subCategory
             ) {
               row[drillElement.scenario + separator + drillElement.columnGroup] = drillElement.val;
             }
             if (
-              drillElement.columnlevel == "SUBGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == drillElement.subCategory
+              drillElement.columnlevel === "SUBGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === drillElement.subCategory
             ) {
               row[
                 drillElement.scenario + separator + drillElement.columnGroup + separator + drillElement.columnSubGroup
               ] = drillElement.val;
             }
-          } else if ("GROUP_SUM" == drillElement.rowlevel) {
+          } else if ("GROUP_SUM" === drillElement.rowlevel) {
             if (
-              drillElement.columnlevel == "COLUMNGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == drillElement.subCategory
+              drillElement.columnlevel === "COLUMNGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === drillElement.subCategory
             ) {
               row[drillElement.scenario + separator + drillElement.columnGroup] = drillElement.val;
             }
             if (
-              drillElement.columnlevel == "SUBGROUP" &&
-              row.category == drillElement.category &&
-              row.subCategory == drillElement.subCategory
+              drillElement.columnlevel === "SUBGROUP" &&
+              row.category === drillElement.category &&
+              row.subCategory === drillElement.subCategory
             ) {
               row[
                 drillElement.scenario + separator + drillElement.columnGroup + separator + drillElement.columnSubGroup

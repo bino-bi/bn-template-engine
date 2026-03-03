@@ -96,7 +96,7 @@ export class IbcsChartStructure {
   constructor() {}
 
   public render() {
-    if (this.chart == undefined) {
+    if (this.chart === undefined) {
       return <Host />;
     }
 

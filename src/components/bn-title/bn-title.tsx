@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- h is required for Stencil JSX
 import { Component, Element, h, Host, Prop, Watch } from "@stencil/core";
 
 import {

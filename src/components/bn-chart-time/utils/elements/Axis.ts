@@ -63,7 +63,7 @@ export class Axis {
   }
 
   private convertScenarioType() {
-    if (this.scenarioType == undefined || this.scenarioType == null) {
+    if (this.scenarioType === undefined || this.scenarioType == null) {
       return "default";
     }
     return `${this.scenarioType}`.slice(0, 2);

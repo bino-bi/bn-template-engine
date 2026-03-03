@@ -118,14 +118,14 @@ export class Label {
     let prefix = "";
     let labelAnchor = "start";
 
-    if (Number.isNaN(Number(this.value)) == false) {
+    if (Number.isNaN(Number(this.value)) === false) {
       let digits = dataFormatDigits.percent;
       let digitsMin = dataFormatDigits.percent;
       let scale = 1;
       const value = this.value;
       let type = "percent";
 
-      if (this.isRelativeLabel == false) {
+      if (this.isRelativeLabel === false) {
         digits = dataFormatDigits.decimal;
         digitsMin = dataFormatDigits.decimal;
         scale = measureScale.value;
@@ -153,17 +153,17 @@ export class Label {
     const boxWidth: number = text.bbox().w;
     const boxHeight: number = text.bbox().h;
 
-    if (this.horizontalHookLocation == HookLocation.Right) {
+    if (this.horizontalHookLocation === HookLocation.Right) {
       labelAnchor = "end";
       text.move((text.x() as number) - text.length(), text.y());
-    } else if (this.horizontalHookLocation == HookLocation.Center) {
+    } else if (this.horizontalHookLocation === HookLocation.Center) {
       labelAnchor = "middle";
       text.move((text.x() as number) - text.length() / 2, text.y());
     }
 
-    if (this.verticalHookLocation == HookLocation.Center) {
+    if (this.verticalHookLocation === HookLocation.Center) {
       text.move(text.x() as number, (text.y() as number) - boxHeight / 2);
-    } else if (this.verticalHookLocation == HookLocation.Bottom) {
+    } else if (this.verticalHookLocation === HookLocation.Bottom) {
       text.move(text.x() as number, (text.y() as number) - boxHeight);
     }
 

@@ -29,7 +29,7 @@ export class CompareUtil {
   }
 
   public static isObject(data: unknown): boolean {
-    return data === new Object(data);
+    return typeof data === "object" && data !== null;
   }
 
   /**

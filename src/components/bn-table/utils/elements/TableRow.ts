@@ -78,27 +78,27 @@ export class TableRow {
   ) {
     let cssStyle = cellStyle;
 
-    if (scenario == "category" && categoryWidth != null) {
+    if (scenario === "category" && categoryWidth != null) {
       cssStyle = `category-${categoryWidth.toString()}`;
     }
 
-    if (this.type == TableRowType.HEADER) {
+    if (this.type === TableRowType.HEADER) {
       cssStyle = "headerlabel";
-    } else if (this.type == TableRowType.SEPERATORLINE) {
+    } else if (this.type === TableRowType.SEPERATORLINE) {
       cssStyle = scenario;
     }
 
-    if (this.type == TableRowType.PARTELEMENT) {
-      if (cellType == "percent") {
+    if (this.type === TableRowType.PARTELEMENT) {
+      if (cellType === "percent") {
         value = "-";
       }
-      if (scenario != "category" && scenario != "operation") {
+      if (scenario !== "category" && scenario !== "operation") {
         cellType = "percent";
         cssStyle = "";
       }
     }
 
-    if (value == "-") {
+    if (value === "-") {
       cssStyle = "";
     }
 

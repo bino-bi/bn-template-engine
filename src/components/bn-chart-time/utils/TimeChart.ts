@@ -172,7 +172,7 @@ export class TimeChart {
 
   initSQLFunctions() {
     alasql.fn.transformOperator = function (a) {
-      return a == "-" ? -1 : 1;
+      return a === "-" ? -1 : 1;
     };
 
     // @ts-ignore
@@ -181,7 +181,7 @@ export class TimeChart {
       normalizationLevel: string,
       _locale: string,
     ): DateTime | undefined {
-      if (date == undefined || !date.isValid) {
+      if (date === undefined || !date.isValid) {
         return undefined;
       }
 
@@ -308,7 +308,7 @@ export class TimeChart {
   }
 
   public getFooter(): string {
-    if (this.measureScale.value == 1 && this.measureUnit == "") {
+    if (this.measureScale.value === 1 && this.measureUnit === "") {
       return " ";
     }
     return Formatter.translateScenarioLabel("in", this.i18n) + " " + this.measureScale.prefix + this.measureUnit;
@@ -433,7 +433,7 @@ export class TimeChart {
   public draw(svgContainer: Svg): void {
     this.cleanSVGforRedraw(svgContainer);
 
-    if (this.state == FactoryState.DIRTY) {
+    if (this.state === FactoryState.DIRTY) {
       this.state = FactoryState.UP_TO_DATE;
     }
 
@@ -484,7 +484,7 @@ export class TimeChart {
   }
 
   hasNoData() {
-    return this.dataModel.length == 0;
+    return this.dataModel.length === 0;
   }
 
   private isOnSameAxisSide(): boolean {
@@ -499,13 +499,13 @@ export class TimeChart {
 
     if (this.isVarianceChart()) {
       return (
-        Math.sign(this.smallestVarianceDataPointValue.value) == Math.sign(this.highestVarianceDataPointValue.value) ||
-        (this.smallestDataPointValue.value == 0 && Math.sign(this.highestDataPointValue.value) == 1)
+        Math.sign(this.smallestVarianceDataPointValue.value) === Math.sign(this.highestVarianceDataPointValue.value) ||
+        (this.smallestDataPointValue.value === 0 && Math.sign(this.highestDataPointValue.value) === 1)
       );
     } else {
       return (
-        Math.sign(this.smallestDataPointValue.value) == Math.sign(this.highestDataPointValue.value) ||
-        (this.smallestDataPointValue.value == 0 && Math.sign(this.highestDataPointValue.value) == 1)
+        Math.sign(this.smallestDataPointValue.value) === Math.sign(this.highestDataPointValue.value) ||
+        (this.smallestDataPointValue.value === 0 && Math.sign(this.highestDataPointValue.value) === 1)
       );
     }
   }
@@ -549,12 +549,12 @@ export class TimeChart {
   }
 
   private createElementPosition(scenarios: string[]): ElementPositions {
-    let maxLabelLengthLeft = 0;
+    let maxLabelLengthLeft: number;
 
     // only need scenarios written on the leftside of bar/ marker
     const scenarioLabelLeft = CalculateSize(
       scenarios
-        .filter((_value, index) => index == 1 || index == 2)
+        .filter((_value, index) => index === 1 || index === 2)
         .map((scenario) => Formatter.translateScenarioLabel(scenario, this.i18n))
         .reduce((a, b) => (a.length < b.length ? b : a), ""),
       {
@@ -715,12 +715,12 @@ export class TimeChart {
       scenarios.forEach((scenario: string) => {
         const varianceScenario = new VarianceScenario(scenario);
 
-        if (varianceScenario.isValid == true) {
-          if (row[varianceScenario.base + "_cnt"] == 0 || row[varianceScenario.delta + "_cnt"] == 0) {
+        if (varianceScenario.isValid === true) {
+          if (row[varianceScenario.base + "_cnt"] === 0 || row[varianceScenario.delta + "_cnt"] === 0) {
             row[scenario] = Number.NaN;
           }
         } else {
-          if (row[scenario + "_cnt"] == 0) {
+          if (row[scenario + "_cnt"] === 0) {
             row[scenario] = Number.NaN;
           }
         }
@@ -731,7 +731,7 @@ export class TimeChart {
   }
 
   private findDateInterval(dateInterval: DateDistance): DateDistance {
-    if (dateInterval != DateDistance.AUTO) {
+    if (dateInterval !== DateDistance.AUTO) {
       return dateInterval;
     }
 
@@ -896,13 +896,13 @@ export class TimeChart {
         const scenariomap: Map<string, string> = this.mapScenarios(scenarios, firstRow);
         const directon: string = scenarios.direction;
 
-        const pixelPerUnit = scenarios.type == "dr" ? this.pixelPerPercentage : this.pixelPerUnit;
+        const pixelPerUnit = scenarios.type === "dr" ? this.pixelPerPercentage : this.pixelPerUnit;
 
         for (const index in dataModel) {
           varianceModel.push({
             id: Number(index),
             category: dataModel[index].category,
-            type: scenarios.type == "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
+            type: scenarios.type === "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
             date: dataModel[index].date,
             scenario1: new DataPoint(
               this.calculateVariance(scenarios, dataModel[index], scenariomap),
@@ -991,19 +991,19 @@ export class TimeChart {
           hookLocation = HookLocation.Bottom;
           offset *= -1;
         }
-        if (elements["type"] == VarianceType.RELATIVE) {
+        if (elements["type"] === VarianceType.RELATIVE) {
           isRelative = true;
         }
 
         let datelabel = dateStringFactory.getDateString(elements.date, this.dateInterval);
 
-        if (this.axisLabelsMode == AxisLabelsMode.SMART) {
+        if (this.axisLabelsMode === AxisLabelsMode.SMART) {
           datelabel = dateStringFactory.getSmartDateString(elements.date, this.dateInterval);
 
-          if (index == 0 && this.dateInterval != DateDistance.YEAR) {
+          if (index === 0 && this.dateInterval !== DateDistance.YEAR) {
             datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
           }
-        } else if (this.axisLabelsMode == AxisLabelsMode.SHORT) {
+        } else if (this.axisLabelsMode === AxisLabelsMode.SHORT) {
           datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
         }
 
@@ -1020,7 +1020,7 @@ export class TimeChart {
       });
     } else {
       const element = dataModel?.[0];
-      if (element && element["type"] == VarianceType.RELATIVE) {
+      if (element && element["type"] === VarianceType.RELATIVE) {
         isRelative = true;
       }
     }
@@ -1054,13 +1054,13 @@ export class TimeChart {
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
       scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
 
-      if (elements["scenario1"].isEmpty() == false) {
+      if (elements["scenario1"].isEmpty() === false) {
         hasValidPrim = true;
       }
     });
 
     let heightOffset = 0;
-    if (hasValidPrim == false) {
+    if (hasValidPrim === false) {
       if (this.isOnSameAxisSide()) {
         heightOffset = this.position.dataLabelHeight;
       } else {
@@ -1282,7 +1282,7 @@ export class TimeChart {
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
-      if (elements["type"] == VarianceType.RELATIVE) {
+      if (elements["type"] === VarianceType.RELATIVE) {
         scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw();
       } else {
         scenarioFactory.createVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
@@ -1639,7 +1639,7 @@ export class TimeChart {
 
     const scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);
 
-    if (this.showOverlayAvg == true) {
+    if (this.showOverlayAvg === true) {
       let previousDataPoint: DataPoint | null = null;
 
       const avgDataModel = tranformToAvgDataModel(dataModel);

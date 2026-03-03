@@ -105,7 +105,6 @@ function formatValue(value: number, isRelative: boolean, measureScale: number = 
     // Relative variance is stored as decimal (e.g., -2.0 = -200%)
     // Multiply by 100 to get percentage value for display
     scaledValue = value * 100;
-    absValue = Math.abs(scaledValue);
     // Show as integer percentage with % suffix
     return prefix + Math.round(scaledValue).toString() + "%";
   } else {

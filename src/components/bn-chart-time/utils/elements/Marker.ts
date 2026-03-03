@@ -63,7 +63,7 @@ export class Marker {
 
     this.scenario = scenario;
 
-    if (dataPoint?.isEmpty() != true) {
+    if (dataPoint?.isEmpty() !== true) {
       this.hasData = true;
       this.dimensions = this.createMarkerDimensions(dataPoint, index, isPrimaryMarker);
       this.scenarioLabel = this.getScenarioLabel(labelText, styles, isPrimaryMarker);
@@ -176,7 +176,7 @@ export class Marker {
   }
 
   private isEmpty(): boolean {
-    return false == this.hasData;
+    return false === this.hasData;
   }
 
   private getScenario() {

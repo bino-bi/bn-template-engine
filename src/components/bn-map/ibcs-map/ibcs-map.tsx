@@ -186,7 +186,7 @@ export class IbcsMap {
     this.gpxLayer = [];
 
     for (const gpxOptions of gpxOptionsLayers) {
-      if (gpxOptions == undefined) {
+      if (gpxOptions === undefined) {
         continue;
       }
       const regex = /^data:application\/octet-stream;/;
@@ -214,7 +214,7 @@ export class IbcsMap {
           },
         }).on("loaded", (e: any) => {
           this.updateCumulatedBounds(e);
-          if (this._manualPosOverride == false) {
+          if (this._manualPosOverride === false) {
             this.lmap.fitBounds([this.cumlatedBounds.northEast, this.cumlatedBounds.southWest]);
           }
           this.stateUpdated.emit(ComponentStatus.SUCCESSFUL);
@@ -390,14 +390,14 @@ export class IbcsMap {
 
   setShowScale(): void {
     this.scaleControl.remove();
-    if (this._showScale == true) {
+    if (this._showScale === true) {
       this.scaleControl.addTo(this.lmap);
     }
   }
 
   setShowZoom(): void {
     this.zoomControl.remove();
-    if (this._showZoom == true) {
+    if (this._showZoom === true) {
       this.zoomControl.addTo(this.lmap);
     }
   }

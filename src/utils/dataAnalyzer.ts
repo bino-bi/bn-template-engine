@@ -63,18 +63,18 @@ export class DataAnalyzer {
       }
     }
 
-    if (scenarios.length == 0) {
+    if (scenarios.length === 0) {
       return new SiPrefix();
     }
 
     // filtering wordlenght == 3, so variances are not considered
     const queryMax = `SELECT MAX(GREATEST(${scenarios
-      .filter((word) => word.length == 3)
+      .filter((word) => word.length === 3)
       .map((x) => "ABS(" + x + ")")
       .toString()})) as prefixvalue
                       FROM ?`;
     const queryMin = `SELECT MIN(LEAST(${scenarios
-      .filter((word) => word.length == 3)
+      .filter((word) => word.length === 3)
       .map((x) => "ABS(" + x + ")")
       .toString()})) as prefixvalue
                       FROM ?`;
