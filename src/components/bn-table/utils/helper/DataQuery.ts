@@ -175,7 +175,7 @@ export class DataQuery {
     }
 
     const drillQueries = this.createPartOfQuery(scenarios, order);
-    const resDrill: DataQueryResultRow[] = []; // set of drill (subquery result injected into resultset)
+    let resDrill: DataQueryResultRow[] = []; // set of drill (subquery result injected into resultset)
 
     drillQueries.forEach(function (query) {
       resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
