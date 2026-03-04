@@ -1,7 +1,30 @@
 # bn-template
 
-Container for **bn-page**  components which exists in the same context.
-Must contain only ```bn-page, bn-dataset , bn-datasource``` components.
+Container for multi-page templates. Wraps multiple [`<bn-page>`](../bn-page/readme.md) components that share the same datasources and datasets.
+
+## Usage
+
+```html
+<bn-context locale="en">
+  <bn-datasource name="sales">...</bn-datasource>
+  <bn-dataset name="sales" datasources="sales">...</bn-dataset>
+
+  <bn-template template-id="monthly-report">
+    <bn-page format="hd" orientation="landscape">
+      <bn-body>
+        <bn-table scenarios="ac1,pl1"></bn-table>
+      </bn-body>
+    </bn-page>
+    <bn-page format="hd" orientation="landscape">
+      <bn-body>
+        <bn-chart-time scenarios="ac1,pl1"></bn-chart-time>
+      </bn-body>
+    </bn-page>
+  </bn-template>
+</bn-context>
+```
+
+The `template-id` prop is a unique identifier for the template.
 
 <!-- Auto Generated Below -->
 

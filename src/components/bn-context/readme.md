@@ -1,14 +1,39 @@
 # bn-context
 
-@Internal 
-Only one Element.
-Root element of the report. It is used exlusivly by renderer.
-Keeps all instances of global stores and components.
+Root wrapper element for all bn-template-engine components. Every `<bn-*>` component must be placed inside a `<bn-context>`.
 
-**Example**
-It keeps Pagescount, Author, locale etc.
+`<bn-context>` creates and owns a scoped set of reactive stores (datasources, datasets, styles, translations, assets). Components nested inside resolve their stores from the nearest `<bn-context>` ancestor.
 
+## Usage
 
+```html
+<bn-context locale="en">
+  <bn-datasource name="sales">...</bn-datasource>
+  <bn-dataset name="sales" datasources="sales">...</bn-dataset>
+
+  <bn-page format="hd" orientation="landscape">
+    <bn-body>
+      <bn-table scenarios="ac1,pl1"></bn-table>
+    </bn-body>
+  </bn-page>
+</bn-context>
+```
+
+### Locale
+
+Set the `locale` prop to control which built-in translation bundle is used:
+
+```html
+<bn-context locale="de">
+  <!-- German labels for scenarios, table headings, etc. -->
+</bn-context>
+```
+
+Supported built-in locales: `"en"` (English), `"de"` (German). Custom translations can be added via [`<bn-internationalization>`](../bn-internationalization/readme.md).
+
+### Multiple Contexts
+
+You can use multiple `<bn-context>` elements on the same page. Each one has its own isolated stores, so datasources and datasets defined in one context are not visible in another.
 
 <!-- Auto Generated Below -->
 

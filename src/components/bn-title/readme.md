@@ -1,31 +1,65 @@
 # bn-title
 
-The header element **bn-title** used in the top of the page is placed in front of <bn-body></bn-body> element.
+IBCS-compliant title block displaying business unit, scenario labels, measures, date range, and sort order. Placed before [`<bn-body>`](../bn-body/readme.md) inside a [`<bn-page>`](../bn-page/readme.md).
 
-**Example**
+## Usage
+
 ```html
-    <bn-title
-      business-unit='Beispiel Report'
-      scenarios='ac1, fc1, pp1,dac1_pp1_neg'
-      order='dac1_pp1_neg'
-      date-start='2019-12-31'
-      date-end='2020-12-31'
-      date-format=''
-      date-link='interval'
-      measures='[{"name": "Marktwert2", "unit": "mEUR"},{"name": "Marktwert", "unit": "%"}]'
-    >
-    </bn-title>
+<bn-title
+  business-unit="ACME Corp"
+  scenarios="ac1,pl1"
+  variances="dac1_pl1_pos"
+  measures='[{"name":"Revenue","unit":"mEUR"}]'
+  date-start="2024-01-01"
+  date-end="2024-12-31"
+  date-format="month"
+  date-link="interval"
+  order="ac1"
+  order-direction="desc">
+</bn-title>
 ```
-**Output**
 
-![bn-title example](./img/bn-title-example.png)
+### Measures
 
+Pass measures as a JSON array of `{name, unit}` objects:
 
-## Mixins
-@withStyle
-@withComponentStatus
-@withTranslation
+```html
+<!-- Single measure -->
+<bn-title measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-title>
 
+<!-- Multiple measures with same unit (units are deduplicated) -->
+<bn-title measures='[{"name":"Revenue","unit":"mEUR"},{"name":"Costs","unit":"mEUR"}]'></bn-title>
+
+<!-- Multiple measures with different units -->
+<bn-title measures='[{"name":"Revenue","unit":"mEUR"},{"name":"Margin","unit":"%"}]'></bn-title>
+```
+
+### Date Formats
+
+| Value | Example Output |
+|-------|---------------|
+| `year` | 2024 |
+| `quarter` | Q1 2024 |
+| `month` | Jan 2024 |
+| `week` | KW01 2024 |
+| `day` | 01.01.2024 |
+| `hour` | 01.01.2024 14:00:00 |
+| `auto` | Auto-detected |
+| `none` | Raw date |
+
+### Date Links
+
+| Value | Pattern | Example |
+|-------|---------|---------|
+| `interval` | start..end | Jan 2024..Dec 2024 |
+| `start` | .start | .Jan 2024 |
+| `end` | end. | Dec 2024. |
+| `avg` | avg | Jan 2024 |
+| `ytd` | year-to-date | _Dec 2024 |
+| `ytg` | year-to-go | Dec 2024_ |
+| `cum` | cumulative | Jan 2024_Dec 2024 |
+| `mat` | moving annual total | ~Dec 2024 |
+| `none` | single date | Jan 2024 |
 
 <!-- Auto Generated Below -->
 

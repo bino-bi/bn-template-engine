@@ -1,6 +1,51 @@
 # bn-map
 
+Interactive [Leaflet](https://leafletjs.com/) map with support for markers, GPX tracks, and GeoJSON overlays.
 
+## Usage
+
+```html
+<bn-map latitude="48.8566" longitude="2.3522" scale="13"></bn-map>
+```
+
+### Markers
+
+Pass markers as a JSON array:
+
+```html
+<bn-map
+  latitude="48.8566"
+  longitude="2.3522"
+  scale="13"
+  markers='[
+    {"latitude": 48.8566, "longitude": 2.3522, "iconUrl": "https://example.com/pin.png", "iconWidth": 32, "iconHeight": 32}
+  ]'>
+</bn-map>
+```
+
+Markers can also be loaded dynamically from a dataset by setting `markers-dataset-name`.
+
+### GPX Tracks
+
+```html
+<bn-map
+  gpxs='[
+    {"file": "https://example.com/route.gpx", "color": "#FC5200", "opacity": 0.75, "weight": 3, "lineCap": "round"}
+  ]'>
+</bn-map>
+```
+
+When GPX files are provided, the map viewport auto-fits to the track bounds.
+
+### Tile Layer
+
+Change the map tile provider:
+
+```html
+<bn-map tile-layer="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"></bn-map>
+```
+
+See [Leaflet Providers](https://leaflet-extras.github.io/leaflet-providers/preview/) for available tile layers.
 
 <!-- Auto Generated Below -->
 

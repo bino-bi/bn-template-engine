@@ -1,7 +1,22 @@
-# bn-footer
+# bn-message
 
-**bn-footer** determines the area in which the footer-content of the report is placed.
-The **bn-body** is a child element of bn-page and mandatory for a valid report template.
+Displays a message with optional text and image, typically used in page headers via [`<bn-layout-page>`](../bn-layout-page/readme.md).
+
+## Usage
+
+```html
+<bn-message text="Draft Report" image="company-logo"></bn-message>
+```
+
+When used inside `<bn-layout-page>`, set the message props on the layout component instead:
+
+```html
+<bn-layout-page message-text="Draft Report" message-image="company-logo">
+  ...
+</bn-layout-page>
+```
+
+The `image` prop accepts either an HTTP URL or a registered asset name.
 
 <!-- Auto Generated Below -->
 

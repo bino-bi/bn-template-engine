@@ -1,16 +1,57 @@
 # bn-dataset
 
-@Internal
-Maps data-columns between DataSource and report components.
-The SQL for the transformation is in the db-dataset body.
+Queries data from one or more [`<bn-datasource>`](../bn-datasource/readme.md) elements using [AlaSQL](https://alasql.org/) and stores the results for visualization components.
 
+The SQL query is provided as the element's text content. When any referenced datasource changes, the query is re-executed automatically.
 
-**Example**
+## Usage
+
 ```html
-<bn-dataset datasources="examplesource" name="example">
-  SELECT * from examplesource;
+<bn-dataset name="sales" datasources="revenue">
+  SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1
+  FROM revenue GROUP BY category
 </bn-dataset>
 ```
+
+### Multiple Datasources
+
+Reference multiple datasources by listing them comma-separated:
+
+```html
+<bn-dataset name="combined" datasources="revenue,costs">
+  SELECT * FROM revenue UNION ALL SELECT * FROM costs
+</bn-dataset>
+```
+
+### Static Mode
+
+Bypass the SQL engine and provide raw JSON data directly:
+
+```html
+<bn-dataset name="static-data" static="true">
+  [
+    { "category": "North", "ac1": 100 },
+    { "category": "South", "ac1": 200 }
+  ]
+</bn-dataset>
+```
+
+### Connecting to Visualizations
+
+Visualization components (`<bn-table>`, `<bn-chart-time>`, `<bn-chart-structure>`) automatically subscribe to datasets. By default they use the first available dataset, or you can specify one explicitly:
+
+```html
+<bn-dataset name="revenue" datasources="source1">
+  SELECT category, SUM(ac1) as ac1 FROM source1 GROUP BY category
+</bn-dataset>
+
+<bn-table datasets="$revenue" scenarios="ac1"></bn-table>
+```
+
+### AlaSQL Query Reference
+
+The SQL dialect supports standard SELECT, WHERE, GROUP BY, ORDER BY, UNION, JOIN, and aggregate functions (SUM, COUNT, AVG, MIN, MAX). See the [AlaSQL documentation](https://github.com/AlaSQL/alasql/wiki) for the full syntax reference.
+
 <!-- Auto Generated Below -->
 
 

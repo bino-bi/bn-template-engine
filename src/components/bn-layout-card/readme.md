@@ -1,6 +1,49 @@
-# bn-layout-page
+# bn-layout-card
 
+Card component with built-in title, body, and footer layout, plus a configurable grid for arranging content. Similar to [`<bn-layout-page>`](../bn-layout-page/readme.md) but at the card level.
 
+## Usage
+
+```html
+<bn-layout-card
+  card-layout="split-vertical"
+  title-business-unit="Sales Division"
+  title-scenarios="ac1,pl1"
+  footer-text="Source: ERP">
+
+  <div slot="1">
+    <bn-chart-time scenarios="ac1,pl1"></bn-chart-time>
+  </div>
+  <div slot="2">
+    <bn-table scenarios="ac1,pl1"></bn-table>
+  </div>
+</bn-layout-card>
+```
+
+### Card Layouts
+
+Same layout options as `<bn-layout-page>`: `full`, `split-vertical`, `split-horizontal`, `2x2`, `3x3`, `4x4`, `1-over-2`, `1-over-3`, `2-over-1`, `3-over-1`, `custom-template`.
+
+### Title Props
+
+Title configuration is passed through to the inner [`<bn-title>`](../bn-title/readme.md):
+
+- `title-business-unit` — Organization name
+- `title-scenarios` — Scenario list
+- `title-variances` — Variance list
+- `title-measures` — JSON measure array
+- `title-image` — Image URL or asset name for the card header
+- `title-order` / `title-order-direction` — Sort indicator
+- `title-date-start` / `title-date-end` — Date range
+- `title-date-format` / `title-date-link` — Date formatting
+
+### Border
+
+```html
+<bn-layout-card card-show-border="true" card-layout="full">
+  ...
+</bn-layout-card>
+```
 
 <!-- Auto Generated Below -->
 

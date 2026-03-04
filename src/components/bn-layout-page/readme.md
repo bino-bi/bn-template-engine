@@ -1,6 +1,74 @@
 # bn-layout-page
 
+High-level page component that combines a title, body, and footer with a configurable grid layout for arranging multiple cards or visualizations.
 
+## Usage
+
+```html
+<bn-layout-page
+  page-format="hd"
+  page-orientation="landscape"
+  page-layout="2x2"
+  title-business-unit="ACME Corp"
+  title-scenarios="ac1,pl1"
+  title-measures='[{"name":"Revenue","unit":"mEUR"}]'
+  footer-text="Confidential">
+
+  <div slot="1">
+    <bn-chart-time scenarios="ac1,pl1"></bn-chart-time>
+  </div>
+  <div slot="2">
+    <bn-chart-structure scenarios="ac1,pl1"></bn-chart-structure>
+  </div>
+  <div slot="3">
+    <bn-table scenarios="ac1,pl1"></bn-table>
+  </div>
+  <div slot="4">
+    <bn-table scenarios="ac1,pp1"></bn-table>
+  </div>
+</bn-layout-page>
+```
+
+### Page Layouts
+
+| Layout | Description |
+|--------|-------------|
+| `full` | Single content area (default) |
+| `split-vertical` | Two columns side by side |
+| `split-horizontal` | Two rows stacked |
+| `2x2` | 2x2 grid (4 slots) |
+| `3x3` | 3x3 grid (9 slots) |
+| `4x4` | 4x4 grid (16 slots) |
+| `1-over-2` | One row on top, two columns below |
+| `1-over-3` | One row on top, three columns below |
+| `2-over-1` | Two columns on top, one row below |
+| `3-over-1` | Three columns on top, one row below |
+| `custom-template` | Custom CSS grid-template-areas |
+
+### Custom Template
+
+```html
+<bn-layout-page
+  page-layout="custom-template"
+  page-custom-template='"header header" "left right"'>
+
+  <div slot="header">...</div>
+  <div slot="left">...</div>
+  <div slot="right">...</div>
+</bn-layout-page>
+```
+
+### Title Props
+
+Title configuration is passed through to the inner [`<bn-title>`](../bn-title/readme.md):
+
+- `title-business-unit` — Organization name
+- `title-scenarios` — Scenario list
+- `title-variances` — Variance list
+- `title-measures` — JSON measure array
+- `title-order` / `title-order-direction` — Sort indicator
+- `title-date-start` / `title-date-end` — Date range
+- `title-date-format` / `title-date-link` — Date formatting
 
 <!-- Auto Generated Below -->
 

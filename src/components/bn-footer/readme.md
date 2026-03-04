@@ -1,7 +1,36 @@
 # bn-footer
 
-**bn-footer** determines the area in which the footer-content of the report is placed.
-The **bn-body** is a child element of bn-page and mandatory for a valid report template.
+Page or card footer with optional text, image, and page number. Placed as the last child inside a [`<bn-page>`](../bn-page/readme.md).
+
+## Usage
+
+```html
+<bn-page format="hd" orientation="landscape">
+  <bn-body>...</bn-body>
+  <bn-footer text="Source: ERP System" display-page-number="true"></bn-footer>
+</bn-page>
+```
+
+### With Code Image
+
+Display a QR code or other image in the footer using an asset reference:
+
+```html
+<bn-asset name="qr-code">data:image/png;base64,...</bn-asset>
+<bn-footer text="Confidential" code="qr-code"></bn-footer>
+```
+
+### Page Numbers
+
+Page numbers are automatically assigned by `<bn-context>`. Toggle visibility:
+
+```html
+<!-- Show page number (default) -->
+<bn-footer display-page-number="true"></bn-footer>
+
+<!-- Hide page number -->
+<bn-footer display-page-number="false"></bn-footer>
+```
 
 <!-- Auto Generated Below -->
 

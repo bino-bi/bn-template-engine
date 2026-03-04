@@ -1,11 +1,19 @@
-# bn-page
+# bn-card
 
-Component which represent the report page. It is the user-root component.
-(It is the first component a users sees and adds child componens to it)
+Card container for grouping content within a page layout. Cards are typically used inside [`<bn-layout-page>`](../bn-layout-page/readme.md) grid slots.
 
+## Usage
 
-A bn-page components only allows childs of the types: ```bn-body, bn-header and bn-footer```
-Each Child-element must be used only once.
+```html
+<bn-card>
+  <bn-title business-unit="Sales" scenarios="ac1,pl1"></bn-title>
+  <bn-body>
+    <bn-chart-structure scenarios="ac1,pl1"></bn-chart-structure>
+  </bn-body>
+</bn-card>
+```
+
+For a higher-level card with built-in title, body, and footer layout, use [`<bn-layout-card>`](../bn-layout-card/readme.md) instead.
 
 <!-- Auto Generated Below -->
 

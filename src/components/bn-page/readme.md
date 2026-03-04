@@ -1,11 +1,40 @@
 # bn-page
 
-Component which represent the report page. It is the user-root component.
-(It is the first component a users sees and adds child componens to it)
+Page container that defines the output dimensions and orientation. Place [`<bn-title>`](../bn-title/readme.md), [`<bn-body>`](../bn-body/readme.md), and [`<bn-footer>`](../bn-footer/readme.md) inside it.
 
+## Usage
 
-A bn-page components only allows childs of the types: ```bn-body, bn-header and bn-footer```
-Each Child-element must be used only once.
+```html
+<bn-page format="hd" orientation="landscape">
+  <bn-title business-unit="ACME Corp" scenarios="ac1,pl1"></bn-title>
+  <bn-body>
+    <bn-table scenarios="ac1,pl1"></bn-table>
+  </bn-body>
+  <bn-footer text="Confidential"></bn-footer>
+</bn-page>
+```
+
+### Page Formats
+
+| Format | Resolution |
+|--------|------------|
+| `xga` | 1024 x 768 |
+| `hd` | 1280 x 720 |
+| `full-hd` | 1920 x 1080 |
+| `4k` | 3840 x 2160 |
+| `4k2k` | 4096 x 2160 |
+| `a4` | A4 paper |
+| `a3` | A3 paper |
+| `a2` | A2 paper |
+| `a1` | A1 paper |
+| `a0` | A0 paper |
+| `letter` | US Letter |
+| `legal` | US Legal |
+
+### Orientation
+
+- `landscape` — wider than tall (default for screen formats)
+- `portrait` — taller than wide
 
 <!-- Auto Generated Below -->
 

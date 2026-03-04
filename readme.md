@@ -1,13 +1,164 @@
-# Setup Schritte
-1. IBCS Components updaten (git)
-1. yarn upgrade durchfuehren
+# bn-template-engine
 
-# Run
-1. Github Regestry einstellen
-1. npm start   -- um engine zu starten?
-1. 
+IBCS-compliant web components for business intelligence visualizations.
 
-GitHub Access Token erstellen
-https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@bino-bi/bn-template-engine)](https://www.npmjs.com/package/@bino-bi/bn-template-engine)
 
-...
+**bn-template-engine** is a [Stencil.js](https://stenciljs.com/) web component library that renders tables and charts following [IBCS (International Business Communication Standards)](https://www.ibcs.com/). It supports multi-scenario comparisons (actual, forecast, plan, previous period), variance calculations, hierarchical data grouping, and more — all as standard Web Components that work in any HTML page or framework.
+
+## Installation
+
+```bash
+npm install @bino-bi/bn-template-engine
+```
+
+See the [Installation Guide](doc/installation.md) for framework integration, ES Module import maps, and CDN script tag options.
+
+## Quick Start
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@bino-bi/bn-template-engine/dist/bn-template-engine/bn-template-engine.esm.js"></script>
+</head>
+<body>
+
+<bn-context locale="en">
+
+  <bn-datasource name="revenue">
+    [
+      { "category": "Software", "ac1": 150, "pl1": 140 },
+      { "category": "Services", "ac1": 90, "pl1": 100 },
+      { "category": "Hardware", "ac1": 60, "pl1": 55 }
+    ]
+  </bn-datasource>
+
+  <bn-dataset name="revenue" datasources="revenue">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM revenue GROUP BY category
+  </bn-dataset>
+
+  <bn-page format="hd" orientation="landscape">
+    <bn-title
+      business-unit="ACME Corp"
+      scenarios="ac1,pl1"
+      measures='[{"name":"Revenue","unit":"mEUR"}]'>
+    </bn-title>
+    <bn-body>
+      <bn-table scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
+    </bn-body>
+  </bn-page>
+
+</bn-context>
+```
+
+This renders an IBCS-compliant table comparing actual vs. plan revenue with an absolute variance column.
+
+## Architecture
+
+Data flows through three layers:
+
+```
+bn-datasource  →  bn-dataset  →  Visualization (bn-table, bn-chart-time, bn-chart-structure)
+   (raw JSON)     (SQL query)       (renders IBCS output)
+```
+
+1. **`<bn-datasource>`** — Receives raw JSON data and stores it by name
+2. **`<bn-dataset>`** — Queries datasources using [AlaSQL](https://alasql.org/) and stores results
+3. **Visualization components** — Subscribe to datasets and render tables or charts
+
+All components must be wrapped in a **`<bn-context>`** element, which provides scoped state management and locale configuration.
+
+```
+<bn-context locale="en">
+  ├── <bn-datasource>        Raw data input
+  ├── <bn-dataset>           SQL query layer
+  ├── <bn-component-style>   Theming (optional)
+  ├── <bn-internationalization>  i18n (optional)
+  ├── <bn-asset>             Images/resources (optional)
+  │
+  ├── <bn-page>              Page container
+  │   ├── <bn-title>         IBCS title block
+  │   ├── <bn-body>          Content area
+  │   │   ├── <bn-table>     Data table
+  │   │   ├── <bn-chart-time>      Time series chart
+  │   │   └── <bn-chart-structure>  Structure chart
+  │   └── <bn-footer>        Footer
+  │
+  └── <bn-template>          Multi-page wrapper (optional)
+```
+
+## Components
+
+### Core Data Flow
+
+| Component | Description |
+|-----------|-------------|
+| [`<bn-context>`](src/components/bn-context/readme.md) | Root wrapper providing scoped stores and locale |
+| [`<bn-datasource>`](src/components/bn-datasource/readme.md) | Ingests raw JSON data |
+| [`<bn-dataset>`](src/components/bn-dataset/readme.md) | Queries datasources with AlaSQL |
+
+### Visualization
+
+| Component | Description |
+|-----------|-------------|
+| [`<bn-table>`](src/components/bn-table/readme.md) | IBCS data table with grouping, drill-down, and variances |
+| [`<bn-chart-time>`](src/components/bn-chart-time/readme.md) | Time series bar/line chart |
+| [`<bn-chart-structure>`](src/components/bn-chart-structure/readme.md) | Categorical/structural bar chart |
+
+### Layout
+
+| Component | Description |
+|-----------|-------------|
+| [`<bn-page>`](src/components/bn-page/readme.md) | Page container with format and orientation |
+| [`<bn-body>`](src/components/bn-body/readme.md) | Content area within a page |
+| [`<bn-card>`](src/components/bn-card/readme.md) | Card container |
+| [`<bn-grid>`](src/components/bn-grid/readme.md) | CSS Grid layout with headers and borders |
+| [`<bn-layout-page>`](src/components/bn-layout-page/readme.md) | High-level page layout with card arrangements |
+| [`<bn-layout-card>`](src/components/bn-layout-card/readme.md) | Card layout with grid patterns |
+| [`<bn-template>`](src/components/bn-template/readme.md) | Multi-page template container |
+
+### Content
+
+| Component | Description |
+|-----------|-------------|
+| [`<bn-title>`](src/components/bn-title/readme.md) | IBCS title block (business unit, scenarios, measures, dates) |
+| [`<bn-text>`](src/components/bn-text/readme.md) | Template text with dataset interpolation |
+| [`<bn-footer>`](src/components/bn-footer/readme.md) | Page footer with text and page numbers |
+| [`<bn-image>`](src/components/bn-image/readme.md) | Image display |
+| [`<bn-message>`](src/components/bn-message/readme.md) | Message display |
+| [`<bn-asset>`](src/components/bn-asset/readme.md) | Asset/resource registration |
+
+### Specialized
+
+| Component | Description |
+|-----------|-------------|
+| [`<bn-map>`](src/components/bn-map/readme.md) | Interactive Leaflet map with markers and GPX tracks |
+| [`<bn-tree>`](src/components/bn-tree/readme.md) | Hierarchical tree diagram with SVG edges |
+
+### Configuration
+
+| Component | Description |
+|-----------|-------------|
+| [`<bn-component-style>`](src/components/bn-component-style/readme.md) | Theme/style configuration |
+| [`<bn-internationalization>`](src/components/bn-internationalization/readme.md) | Translation/locale configuration |
+
+## Concept Guides
+
+- [Data Model](doc/data-model.md) — Scenarios, variances, grouping fields, operations
+- [Theming](doc/theming.md) — Colors, fonts, chart styles, style layers
+- [Internationalization](doc/internationalization.md) — Locale setup, translations, scenario labels
+- [Installation](doc/installation.md) — npm, CDN, framework integration
+
+## Browser Support
+
+bn-template-engine uses standard [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) (Custom Elements v1). Supported in all modern browsers:
+
+- Chrome / Edge 79+
+- Firefox 63+
+- Safari 10.1+
+
+## License
+
+[MIT](LICENSE)
