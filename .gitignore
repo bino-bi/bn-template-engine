@@ -1,6 +1,6 @@
 www/
 loader/
-
+examples/
 *~
 *.sw[mnpcod]
 *.log
