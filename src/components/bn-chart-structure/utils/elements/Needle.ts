@@ -100,7 +100,8 @@ export class Needle {
       return this;
     }
 
-    const scenarioStyle: SVGStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle()); // TODO(JHE): investigate duplicate SVGStyle resolution
+    // Needles always use varianceStyles (falls back to 'neu'); bars use barStyles (falls back to 'ac')
+    const scenarioStyle: SVGStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle());
 
     const strokeStyle = scenarioStyle.stroke;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

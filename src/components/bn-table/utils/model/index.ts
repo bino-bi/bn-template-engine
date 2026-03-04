@@ -5,7 +5,7 @@ import { TableRow } from "../elements";
  * Maps scenario names to their visual properties (color, sort order, grouping).
  */
 export interface VisualisationRuleSet {
-  getScenario(scenarioName: string): Scenario;
+  getScenario(scenarioName: string): ScenarioStyle;
 
   getScenarioGroup(scenarioName: string): string;
 
@@ -135,7 +135,7 @@ export interface ColumnNameMap {
  * @property colorIndex - Index into the IBCS color palette (determines fill/stroke color).
  * @property sortIndex - Controls the left-to-right display order of scenario columns.
  */
-export interface Scenario {
+export interface ScenarioStyle {
   name: string;
   /** Scenario type group (e.g. "ac", "pp", "fc", "pl"). */
   group: string;

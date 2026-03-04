@@ -107,7 +107,6 @@ export class Table {
     this.state = FactoryState.DIRTY; // mark dataSet for update
     const tmpConfig: TableComponentConfig = config;
 
-    // this.checkConfigIfValidElseSetDefaultOrder(config.order);
     // sorting scenario order based on Ruleset
     const self = this;
 
@@ -149,7 +148,7 @@ export class Table {
     const normalizedScenarios = this.normalizeScenarios(
       this.config.scenarios,
       this.config.categoryThereOf,
-      this.config.order,
+      this.config.sortOrder,
     );
 
     this.headerRows = this.dataSetFactory.createHeader(
@@ -169,7 +168,7 @@ export class Table {
     const normalizedScenarios = this.normalizeScenarios(
       this.config.scenarios,
       this.config.categoryThereOf,
-      this.config.order,
+      this.config.sortOrder,
     );
 
     this.headerRows = this.dataSetFactory.createHeader(

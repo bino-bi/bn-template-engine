@@ -38,25 +38,4 @@ export interface Scenario {
   sortIndex: number;
 }
 
-export interface DateFormat {
-  [key: string]: unknown;
-  year: string;
-  quarter: string;
-  month: string;
-  week: string;
-  day: string;
-  time: string;
-  fallback: string;
-}
-
-export interface DateLinkFormat {
-  avg: string;
-  interval: string;
-  start: string;
-  end: string;
-  ytd: string;
-  ytg: string;
-  cum: string;
-  mat: string;
-  none: string;
-}
+export type { DateFormat, DateLinkFormat } from "../../../../../utils/model/DateFormat";

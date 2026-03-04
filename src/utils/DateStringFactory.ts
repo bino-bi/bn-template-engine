@@ -1,6 +1,5 @@
 import { DateTime, DateTimeUnit, DurationLike } from "luxon";
-import { DateFormat, DateLinkFormat } from "../components/bn-chart-time/utils/model"; // TODO(JHE): merge Title and Chart DateFormat into a single shared type
-//import {DateFormat, DateLinkFormat} from "../components/ibcs-chart-time/utils/model";
+import { DateFormat, DateLinkFormat } from "./model/DateFormat";
 
 /** Granularity levels for date intervals, from YEAR down to MILLISECOND. AUTO triggers auto-detection. */
 export enum DateDistance {
@@ -87,14 +86,6 @@ export class DateStringFactory {
     this.dateFormat = this._dateFormat;
     this.dateLinkFormat = this._dateLinkFormat;
     this.dateFormatShort = this._dateFormatShort;
-
-    /*
-    // FIXME: JHE: kein custom support in Luxon
-    DateTime.updateLocale('de', {
-      monthsShort: 'Jan_Feb_Mrz_Apr_Mai_Jun_Jul_Aug_Sep_Okt_Nov_Dez'.split('_'),
-    });
-
-     */
   }
 
   public setDateLinkFormat(datelink: DateLinkFormat) {

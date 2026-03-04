@@ -39,7 +39,7 @@ export class TableComponentConfig {
   public categoryThereOf: Map<string, Record<string, unknown>[]> = new Map();
   /** Percentage-of-total sub-row definitions. */
   public partOf: TableDrillGroup[] = [];
-  public order: Order = new OrderAdapter(new StringAdapter()).default(); // FIXME Rename to sortOrder
+  public sortOrder: Order = new OrderAdapter(new StringAdapter()).default();
   /** Table aggregation mode: LIST (flat), SUM (with totals), OPT (with optional totals), etc. */
   public type: TableType = TableType.LIST;
   /** Maximum rows to display; 0 means unlimited. */
@@ -113,7 +113,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     }
 
     if (CompareUtil.isExisting(data.order)) {
-      config.order = this.orderAdapter.adapt(data.order as Record<string, unknown>);
+      config.sortOrder = this.orderAdapter.adapt(data.order as Record<string, unknown>);
     }
 
     if (CompareUtil.isExisting(data.type)) {

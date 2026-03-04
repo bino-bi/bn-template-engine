@@ -5,8 +5,6 @@ import { Order } from "../../../../../utils/model/Order";
 import { MeasureEntry } from "../model/MeasureEntriy";
 import { TimePeriod } from "../model/TimePeriod";
 
-// FIXME IOrder
-
 export class TitleDataSetFactory implements Formatter {
   constructor() {}
 

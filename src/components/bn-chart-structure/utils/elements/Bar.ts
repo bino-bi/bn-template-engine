@@ -134,7 +134,8 @@ export class Bar {
       return this;
     }
 
-    let scenarioStyle: SVGStyle = this.barStyles.getSVGStyle(this.dataPoint.getScenario()); // TODO(JHE): verify SVGStyle resolution returns correct scenario class
+    // Bars default to barStyles (falls back to 'ac'); variance bars switch to varianceStyles below
+    let scenarioStyle: SVGStyle = this.barStyles.getSVGStyle(this.dataPoint.getScenario());
 
     if (this.isVarianceBar) {
       scenarioStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle());

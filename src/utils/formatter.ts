@@ -1,4 +1,3 @@
-import { TimeChartStyle } from "../components/bn-chart-time/utils/model";
 import { BinoChartSyles, QueryColumnNames, VarianceScenario } from "./model";
 
 import CalculateSize from "calculate-size";
@@ -85,11 +84,10 @@ export class Formatter {
     return `${token.replace("{%}", scenarioLabel)}`;
   }
 
-  // FIXME JHE: querverweis  TimeChartSTyle muss raus
   static getMaxWidthOfArrayItems(
     scenarios: string[],
     i18n: Map<string, string>,
-    style: BinoChartSyles | TimeChartStyle,
+    style: Pick<BinoChartSyles, "fontStyles">,
   ) {
     return CalculateSize(
       scenarios
