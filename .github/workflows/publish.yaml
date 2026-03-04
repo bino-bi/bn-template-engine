@@ -46,7 +46,8 @@ jobs:
           fi
 
       - name: Publish to npm
-        run: npm publish --tag ${{ steps.dist-tag.outputs.TAG }} --provenance --access public
+        # --provenance add when public
+        run: npm publish --tag ${{ steps.dist-tag.outputs.TAG }}  --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
