@@ -1,0 +1,202 @@
+# Data Model
+
+This document describes the data schema used by bn-template-engine components. Data is provided as JSON rows via `<bn-datasource>`, queried with AlaSQL in `<bn-dataset>`, and rendered by visualization components.
+
+## Overview
+
+Each row in a dataset represents a data point with:
+
+- **Dimensions** — categorical fields for grouping and labeling (category, rowGroup, etc.)
+- **Scenarios** — numeric values for different business scenarios (actual, plan, forecast, previous period)
+- **Operation** — whether the row adds (`"+"`) or subtracts (`"-"`) in aggregations
+
+## Scenarios
+
+Four scenario families, each with up to four slots:
+
+| Family | Slots | Description | IBCS Visual |
+|--------|-------|-------------|-------------|
+| **Actual (AC)** | `ac1`, `ac2`, `ac3`, `ac4` | Realized values | Solid dark bars |
+| **Previous Period (PP)** | `pp1`, `pp2`, `pp3`, `pp4` | Prior period comparison | Light gray bars |
+| **Forecast (FC)** | `fc1`, `fc2`, `fc3`, `fc4` | Projected values | Hatched bars |
+| **Plan (PL)** | `pl1`, `pl2`, `pl3`, `pl4` | Target/budget values | Outlined bars |
+
+All scenario fields are `number | null`. In queries, they are aggregated with the operation sign:
+
+```sql
+SUM(ac1 * transformOperator(operation)) as ac1
+```
+
+Where `transformOperator("+")` returns `1` and `transformOperator("-")` returns `-1`.
+
+### Example
+
+```json
+[
+  { "category": "Product Sales", "operation": "+", "ac1": 150000, "pp1": 140000, "pl1": 145000 },
+  { "category": "Discounts",     "operation": "-", "ac1": 12000,  "pp1": 10000,  "pl1": 11000 },
+  { "category": "Services",      "operation": "+", "ac1": 90000,  "pp1": 85000,  "pl1": 88000 }
+]
+```
+
+## Variances
+
+Variance columns are computed from scenario pairs. They follow a naming pattern:
+
+```
+{type}_{base}_{delta}_{direction}
+```
+
+| Part | Values | Meaning |
+|------|--------|---------|
+| `type` | `d` or `dr` | `d` = absolute difference, `dr` = relative (percentage) |
+| `base` | `ac1`..`pl4` | The primary scenario |
+| `delta` | `ac1`..`pl4` | The comparison scenario |
+| `direction` | `pos`, `neg`, `neu` | Favorable, unfavorable, or neutral |
+
+**Examples:**
+
+| Variance | Meaning |
+|----------|---------|
+| `dac1_pl1_pos` | Absolute: AC1 minus PL1, favorable when positive |
+| `drac1_pp1_neg` | Relative %: (AC1 - PP1) / PP1, unfavorable when positive |
+| `dac1_fc1_neu` | Absolute: AC1 minus FC1, neutral (no color coding) |
+
+The `direction` determines the IBCS color coding in charts and tables:
+
+- `pos` — Green/teal when the value is favorable (positive difference is good)
+- `neg` — Red when the value is unfavorable (positive difference is bad)
+- `neu` — Gray, no direction judgment
+
+To display variances, pass them as a comma-separated list to the `variances` prop:
+
+```html
+<bn-table scenarios="ac1,pl1" variances="dac1_pl1_pos,drac1_pl1_pos"></bn-table>
+```
+
+## Dimensions
+
+### Row Grouping (Hierarchical)
+
+Rows can be organized into a three-level hierarchy:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `rowGroup` | `string` | Primary grouping (e.g., "Revenue", "Costs") |
+| `rowGroupIndex` | `number` | Sort order for row groups |
+| `category` | `string` | Dimension within a row group (e.g., "Product Sales") |
+| `categoryIndex` | `number` | Sort order for categories |
+| `subCategory` | `string` | Detail dimension for drill-down |
+| `subCategoryIndex` | `number` | Sort order for subcategories |
+
+```
+rowGroup: "Revenue"
+├── category: "Product Sales"
+│   ├── subCategory: "Electronics"
+│   └── subCategory: "Furniture"
+└── category: "Services"
+```
+
+### Column Grouping
+
+For multi-dimensional tables:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `columnGroup` | `string` | Column-level grouping |
+| `columnGroupIndex` | `number` | Sort order for column groups |
+| `columnSubGroup` | `string` | Column sub-grouping |
+| `columnSubGroupIndex` | `number` | Sort order for column sub-groups |
+
+### Temporal Dimension
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `date` | `string` | ISO 8601 date string (e.g., `"2024-01-15"`) |
+
+Used by `<bn-chart-time>` for time series visualization. The `dateInterval` prop controls the aggregation level (year, quarter, month, etc.).
+
+### Other Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `setname` | `string` | Dataset identifier (used by structure charts) |
+| `operation` | `string` | `"+"` (default) or `"-"` — determines sign in aggregations |
+
+## Generated Row Types
+
+When `<bn-table>` processes data, it generates additional rows:
+
+| Type | Description |
+|------|-------------|
+| `ENTRY` | Normal data row |
+| `GROUPHEAD` | Row group header |
+| `GROUP_SUM` | Subtotal for a row group |
+| `SUM` | Grand total |
+| `DRILLELEMENT` | Thereof drill-down detail row |
+| `PARTELEMENT` | Part-of percentage row |
+| `REST` | Aggregated remaining rows (when a `limit` is applied) |
+
+## Count Fields
+
+Each scenario has a corresponding `_cnt` field (e.g., `ac1_cnt`) that tracks the number of non-null values. These are used internally for variance validation — a variance is only computed when both the base and delta scenarios have data.
+
+## Complete Example
+
+```json
+[
+  {
+    "rowGroup": "Revenue",
+    "rowGroupIndex": 1,
+    "category": "Product Sales",
+    "categoryIndex": 1,
+    "operation": "+",
+    "date": "2024-01-01",
+    "ac1": 150000,
+    "pp1": 140000,
+    "fc1": 155000,
+    "pl1": 145000
+  },
+  {
+    "rowGroup": "Revenue",
+    "rowGroupIndex": 1,
+    "category": "Services",
+    "categoryIndex": 2,
+    "operation": "+",
+    "date": "2024-01-01",
+    "ac1": 90000,
+    "pp1": 85000,
+    "fc1": 92000,
+    "pl1": 88000
+  },
+  {
+    "rowGroup": "Costs",
+    "rowGroupIndex": 2,
+    "category": "Personnel",
+    "categoryIndex": 1,
+    "operation": "-",
+    "date": "2024-01-01",
+    "ac1": 80000,
+    "pp1": 75000,
+    "fc1": 82000,
+    "pl1": 78000
+  }
+]
+```
+
+This data can be queried and displayed as:
+
+```html
+<bn-table
+  scenarios="ac1,pp1,pl1"
+  variances="dac1_pl1_pos"
+  grouped="true"
+  type="sum">
+</bn-table>
+```
+
+The table will show:
+- Two row groups: Revenue and Costs
+- Categories within each group
+- Subtotals per group and a grand total
+- An absolute variance column (AC1 vs PL1)

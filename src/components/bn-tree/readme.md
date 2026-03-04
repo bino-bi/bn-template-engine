@@ -1,6 +1,64 @@
 # bn-tree
 
+Hierarchical tree diagram with SVG edge connections and optional operator labels between nodes. Useful for visualizing DuPont analysis trees, organizational structures, or any parent-child decomposition.
 
+## Usage
+
+```html
+<bn-tree
+  edges='[
+    {"from": "roi", "to": "ros", "operator": "x", "label": "x"},
+    {"from": "roi", "to": "turnover"}
+  ]'
+  direction="ltr"
+  edge-style="orthogonal">
+
+  <div slot="roi">ROI: 15%</div>
+  <div slot="ros">ROS: 10%</div>
+  <div slot="turnover">Capital Turnover: 1.5x</div>
+</bn-tree>
+```
+
+### Node Slots
+
+Each node is provided as a named slot matching the node ID used in `edges`:
+
+```html
+<bn-tree edges='[{"from":"a","to":"b"},{"from":"a","to":"c"}]'>
+  <div slot="a">Parent</div>
+  <div slot="b">Child 1</div>
+  <div slot="c">Child 2</div>
+</bn-tree>
+```
+
+### Edge Definition
+
+Each edge object supports:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `from` | `string` | Parent node ID |
+| `to` | `string` | Child node ID |
+| `operator` | `string` | Operator symbol between siblings (e.g., `"x"`, `"+"`, `"-"`) |
+| `label` | `string` | Display label for the operator |
+| `style` | `string` | Edge line style (e.g., `"dashed"`) |
+
+### Layout Direction
+
+| Value | Description |
+|-------|-------------|
+| `ltr` | Left to right (default) |
+| `rtl` | Right to left |
+| `ttb` | Top to bottom |
+| `btt` | Bottom to top |
+
+### Edge Style
+
+| Value | Description |
+|-------|-------------|
+| `orthogonal` | Right-angle connector lines (default) |
+| `straight` | Direct lines between nodes |
+| `curved` | Smooth bezier curves |
 
 <!-- Auto Generated Below -->
 

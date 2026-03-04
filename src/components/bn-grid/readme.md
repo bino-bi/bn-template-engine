@@ -1,8 +1,56 @@
 # bn-grid
 
-## Mixins
+CSS Grid layout with optional row/column headers and configurable borders. Child components are placed into named slots using a `row-col` naming convention.
 
-@withStyle
+## Usage
+
+```html
+<bn-grid
+  column-headers='["2023", "2024"]'
+  row-headers='["Revenue", "Costs"]'
+  show-borders="true">
+
+  <bn-chart-time slot="1-1" scenarios="ac1" ...></bn-chart-time>
+  <bn-chart-time slot="1-2" scenarios="ac1" ...></bn-chart-time>
+  <bn-chart-time slot="2-1" scenarios="ac1" ...></bn-chart-time>
+  <bn-chart-time slot="2-2" scenarios="ac1" ...></bn-chart-time>
+</bn-grid>
+```
+
+### Slot Naming
+
+Slots follow the pattern `row-col` (1-indexed). For a 2x3 grid:
+
+```
+slot="1-1"  slot="1-2"  slot="1-3"
+slot="2-1"  slot="2-2"  slot="2-3"
+```
+
+### Headers with IDs
+
+Use object headers to assign custom slot IDs:
+
+```html
+<bn-grid
+  column-headers='[{"label":"Q1","id":"q1"}, {"label":"Q2","id":"q2"}]'
+  row-headers='[{"label":"Revenue","id":"rev"}, {"label":"Costs","id":"cost"}]'>
+
+  <bn-chart-time slot="rev-q1" ...></bn-chart-time>
+  <bn-chart-time slot="rev-q2" ...></bn-chart-time>
+  <bn-chart-time slot="cost-q1" ...></bn-chart-time>
+  <bn-chart-time slot="cost-q2" ...></bn-chart-time>
+</bn-grid>
+```
+
+### Grid Title
+
+```html
+<bn-grid chart-title="Revenue Overview" column-headers='["Q1","Q2"]' row-headers='["North","South"]'>
+  ...
+</bn-grid>
+```
+
+The title is displayed in the top-left corner cell.
 
 <!-- Auto Generated Below -->
 

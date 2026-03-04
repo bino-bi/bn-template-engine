@@ -1,6 +1,19 @@
 # bn-image
 
+Displays an image from a URL or a registered [`<bn-asset>`](../bn-asset/readme.md).
 
+## Usage
+
+```html
+<!-- From URL -->
+<bn-image source="https://example.com/logo.png"></bn-image>
+
+<!-- From a registered asset -->
+<bn-asset name="logo">data:image/png;base64,...</bn-asset>
+<bn-image source="logo"></bn-image>
+```
+
+If `source` is an HTTP/HTTPS URL, it is used directly. Otherwise, it is looked up in the asset store by name.
 
 <!-- Auto Generated Below -->
 

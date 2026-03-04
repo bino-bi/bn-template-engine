@@ -1,83 +1,148 @@
 # bn-chart-time
 
-**bn-chart-time**  is a report element and renderes data as time-chart.
-It supports the main chart with up to 4 scenarios and additonal variance charts (unlimited)
+Time series chart rendering data as vertical bars or lines following IBCS standards. Supports up to 4 scenarios in the main chart and unlimited variance sub-charts.
 
-The **bn-chart-time** can be used within the bn-content element
+## Basic Usage
 
-## Mixins
-@withStyle
-@withComponentStatus
-@withDataset
-@withTranslation
-
-**Example**
 ```html
- <bn-body>
+<bn-chart-time scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-chart-time>
+```
+
+## Scenarios
+
+```html
+<!-- Actual vs Previous Period -->
+<bn-chart-time scenarios="ac1,pp1"></bn-chart-time>
+
+<!-- Auto-detect from dataset metadata -->
+<bn-chart-time scenarios="auto"></bn-chart-time>
+```
+
+Available scenarios: `ac1`-`ac4`, `pp1`-`pp4`, `fc1`-`fc4`, `pl1`-`pl4`. Each scenario is rendered with IBCS-standard visual encoding (solid for actual, hatched for forecast, etc.).
+
+## Date Interval
+
+Controls the temporal aggregation level:
+
+```html
+<bn-chart-time date-interval="month" scenarios="ac1"></bn-chart-time>
+<bn-chart-time date-interval="quarter" scenarios="ac1"></bn-chart-time>
+<bn-chart-time date-interval="auto" scenarios="ac1"></bn-chart-time>
+```
+
+Values: `year`, `quarter`, `month`, `week`, `day`, `hour`, `minute`, `second`, `millisecond`, `auto`.
+
+## Chart Mode
+
+```html
+<!-- Bar chart (default) -->
+<bn-chart-time chart-mode="bar" scenarios="ac1"></bn-chart-time>
+
+<!-- Line chart -->
+<bn-chart-time chart-mode="line" scenarios="ac1"></bn-chart-time>
+
+<!-- Auto: switches to line when data points exceed max-bars -->
+<bn-chart-time chart-mode="auto" max-bars="28" scenarios="ac1"></bn-chart-time>
+```
+
+## Variances
+
+Add variance sub-charts below the main chart:
+
+```html
+<bn-chart-time
+  scenarios="ac1,pl1"
+  variances="dac1_pl1_pos,drac1_pl1_pos">
+</bn-chart-time>
+```
+
+Each variance generates a separate sub-chart. See the [Data Model](../../../doc/data-model.md) for naming conventions.
+
+## Stacking
+
+Stack bars by scenario, category, subcategory, or row group:
+
+```html
+<!-- Stack by category -->
+<bn-chart-time
+  scenarios="ac1"
+  stack='{"by":"category","mode":"absolute","order":"asc"}'>
+</bn-chart-time>
+
+<!-- Relative stacking (100% stacked) -->
+<bn-chart-time
+  scenarios="ac1"
+  stack='{"by":"category","mode":"relative"}'>
+</bn-chart-time>
+```
+
+Stack config properties:
+- `by`: `"scenario"`, `"category"`, `"subcategory"`, or `"rowgroup"`
+- `mode`: `"absolute"`, `"relative"`, or `"absolute-relative"`
+- `order`: `"asc"`, `"desc"`, or `"dataset"`
+
+## Aggregation Level
+
+```html
+<bn-chart-time level="category" scenarios="ac1"></bn-chart-time>
+<bn-chart-time level="subcategory" scenarios="ac1"></bn-chart-time>
+<bn-chart-time level="rowcategory" scenarios="ac1"></bn-chart-time>
+```
+
+## Sorting
+
+```html
+<bn-chart-time order="category" order-direction="asc" scenarios="ac1"></bn-chart-time>
+<bn-chart-time order="ac1" order-direction="desc" scenarios="ac1"></bn-chart-time>
+```
+
+## Overlays
+
+```html
+<!-- Show average line -->
+<bn-chart-time show-overlay-avg="true" scenarios="ac1"></bn-chart-time>
+
+<!-- Show median line -->
+<bn-chart-time show-overlay-median="true" scenarios="ac1"></bn-chart-time>
+```
+
+## Scaling
+
+```html
+<bn-chart-time measure-scale="M" scenarios="ac1"></bn-chart-time>
+<bn-chart-time scale="auto" scenarios="ac1"></bn-chart-time>
+```
+
+## Full Example
+
+```html
+<bn-context locale="en">
+  <bn-datasource name="monthly">
+    [
+      {"date":"2024-01-01","category":"Sales","ac1":120,"pl1":110},
+      {"date":"2024-02-01","category":"Sales","ac1":135,"pl1":115},
+      {"date":"2024-03-01","category":"Sales","ac1":128,"pl1":120},
+      {"date":"2024-04-01","category":"Sales","ac1":142,"pl1":125}
+    ]
+  </bn-datasource>
+
+  <bn-dataset name="monthly" datasources="monthly">
+    SELECT date, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM monthly GROUP BY date
+  </bn-dataset>
+
+  <bn-page format="hd" orientation="landscape">
+    <bn-body>
       <bn-chart-time
-        internationalisation = null
-        internationalisationMode = 'meta'
-        level='category'
-        order='category'
-        order-direction='asc'
-        scenarios='ac1,py1'
-        styles=''
-        unit-scaling='10'
-        datasets="$marktwert"
-      >
+        scenarios="ac1,pl1"
+        variances="dac1_pl1_pos"
+        date-interval="month"
+        measure-scale="k">
       </bn-chart-time>
-</bn-body>
+    </bn-body>
+  </bn-page>
+</bn-context>
 ```
-**Output**
-![bn-chart example](./img/bn-chart-example.png)
 
-
-**Custom BinoChartSyles Example**
-```json
-     {
-      "scaleFactors": {
-        barWidthYOffset: 0.95,
-        fontNettoHeight: 0.7,
-        needleWidthOffset: 0.7,
-        barHeightOffset: 0.4,
-        barWidthOffset: 0.3,
-        pt2Px: 1.2,
-        axisWidth: 0.1,
-        rowHeight: 1.8,
-      },
-      "fontStyles": {
-        font: "16px Calibri",
-        size: 16,
-        color: "#000000",
-        backgroud: "#ffffff",
-        leading: 1.8,
-      },
-      "axisStyles": {
-        ac: {stroke: "#121212", fill: "#121212", width: 0.1},
-        fc: {stroke: "#121212", fill: "#ffffff", width: 0.1, "dasharray": "10 5 5 5"},
-        pp: {stroke: "#606060", fill: "#606060", width: 0.1},
-        pl: {stroke: "#121212", fill: "#ffffff", width: 0.1},
-      },
-      "barStyles": {
-        ac: {stroke: "#121212", fill: "#121212", width: 0.1},
-        fc: {stroke: "#121212", fill: "#ffffff", width: 0.5, fillpattern: "fc"},
-        pp: {stroke: "#606060", fill: "#606060", width: 0.1},
-        pl: {stroke: "#121212", fill: "#ffffff", width: 0.1},
-      },
-      "varianceStyles": {
-        pos: {stroke: "#AAFF00", fill: "#AAFF00", width: 0.1},
-        neg: {stroke: "#FF0A0A", fill: "#FF0A0A", width: 0.1},
-      },
-      "padding": {
-        top: 10,
-        left: 10,
-        right: 10,
-        bottom: 10,
-      },
-      "pattern": new Map([["marker-up", {foreground: "", background: "", bgOffset: 0}],
-        ["marker-down", {foreground: "", background: "", bgOffset: 0}]]),
-    }
-```
 <!-- Auto Generated Below -->
 
 

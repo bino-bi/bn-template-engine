@@ -1,6 +1,8 @@
 # editor-companion
 
+> **Internal/Advanced** — This component is intended for editor integration and design-time tooling, not for end-user templates.
 
+Headless helper component that exposes methods for querying i18n keys and distinct data values from datasources/datasets. Used by external editors for autocompletion and property pickers.
 
 <!-- Auto Generated Below -->
 

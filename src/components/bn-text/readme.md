@@ -1,12 +1,51 @@
 # bn-text
 
-Component to place Text
+Template-driven text block with dataset value interpolation and translation support. Output is sanitized against XSS.
 
-## Mixins
-@withStyle
-@withDataset
+## Usage
 
-**Example**
+```html
+<bn-text value="Revenue: ${data.sales[0].ac1}"></bn-text>
+```
+
+### Dataset Interpolation
+
+Access dataset values using `${data.<datasetName>}`:
+
+```html
+<bn-text value="Total: ${data.revenue[0].ac1} EUR"></bn-text>
+```
+
+The `data` object contains all datasets keyed by name, each as an array of rows.
+
+### Translations
+
+Use the `t()` function to resolve translation keys:
+
+```html
+<bn-text value="${t('custom.labels.revenue')}: ${data.revenue[0].ac1}"></bn-text>
+```
+
+### HTML Content
+
+The template output is rendered as HTML. Safe tags (`<b>`, `<i>`, `<br>`, `<span>`, etc.) are allowed; unsafe content is stripped:
+
+```html
+<bn-text value="<b>Revenue</b>: ${data.revenue[0].ac1}"></bn-text>
+```
+
+### Scaling
+
+```html
+<!-- Auto-scale to fit parent (silent) -->
+<bn-text scale="auto" value="..."></bn-text>
+
+<!-- No scaling -->
+<bn-text scale="none" value="..."></bn-text>
+
+<!-- Fixed scale factor -->
+<bn-text scale="1.5" value="..."></bn-text>
+```
 
 <!-- Auto Generated Below -->
 

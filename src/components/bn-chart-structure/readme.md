@@ -1,83 +1,104 @@
 # bn-chart-structure
 
-**bn-structure**  is a report element and renderes data as structure-chart.
-It supports the main chart with up to 4 scenarios and additonal variance charts (unlimited)
+Categorical/structural horizontal bar chart following IBCS standards. Renders data by category as horizontal bars with support for up to 4 scenarios and unlimited variance sub-charts.
 
-The **bn-chart-structure** can be used within the bn-content element
+## Basic Usage
 
-## Mixins
-@withStyle
-@withComponentStatus
-@withDataset
-@withTranslation
-
-**Example**
 ```html
- <bn-body>
+<bn-chart-structure scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-chart-structure>
+```
+
+## Scenarios
+
+```html
+<!-- Actual vs Plan -->
+<bn-chart-structure scenarios="ac1,pl1"></bn-chart-structure>
+
+<!-- Auto-detect from dataset metadata -->
+<bn-chart-structure scenarios="auto"></bn-chart-structure>
+```
+
+Available scenarios: `ac1`-`ac4`, `pp1`-`pp4`, `fc1`-`fc4`, `pl1`-`pl4`.
+
+## Variances
+
+Add variance sub-charts beside the main chart:
+
+```html
+<bn-chart-structure
+  scenarios="ac1,pl1"
+  variances="dac1_pl1_pos,drac1_pl1_pos">
+</bn-chart-structure>
+```
+
+## Aggregation Level
+
+```html
+<bn-chart-structure level="category" scenarios="ac1"></bn-chart-structure>
+<bn-chart-structure level="subcategory" scenarios="ac1"></bn-chart-structure>
+<bn-chart-structure level="rowcategory" scenarios="ac1"></bn-chart-structure>
+```
+
+## Sorting
+
+```html
+<bn-chart-structure order="category" order-direction="asc" scenarios="ac1"></bn-chart-structure>
+<bn-chart-structure order="ac1" order-direction="desc" scenarios="ac1"></bn-chart-structure>
+```
+
+## Stacking
+
+Stack bars by scenario, category, subcategory, or row group:
+
+```html
+<bn-chart-structure
+  scenarios="ac1"
+  stack='{"by":"category","mode":"absolute","order":"asc"}'>
+</bn-chart-structure>
+```
+
+Stack config properties:
+- `by`: `"scenario"`, `"category"`, `"subcategory"`, or `"rowgroup"`
+- `mode`: `"absolute"`, `"relative"`, or `"absolute-relative"`
+- `order`: `"asc"`, `"desc"`, or `"dataset"`
+
+## Scaling
+
+```html
+<bn-chart-structure measure-scale="M" scenarios="ac1"></bn-chart-structure>
+<bn-chart-structure scale="auto" scenarios="ac1"></bn-chart-structure>
+```
+
+## Full Example
+
+```html
+<bn-context locale="en">
+  <bn-datasource name="regions">
+    [
+      {"category":"North","ac1":250,"pl1":230},
+      {"category":"South","ac1":180,"pl1":200},
+      {"category":"East","ac1":120,"pl1":110},
+      {"category":"West","ac1":95,"pl1":100}
+    ]
+  </bn-datasource>
+
+  <bn-dataset name="regions" datasources="regions">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM regions GROUP BY category
+  </bn-dataset>
+
+  <bn-page format="hd" orientation="landscape">
+    <bn-body>
       <bn-chart-structure
-        internationalisation = null
-        internationalisationMode = 'meta'
-        level='category'
-        order='category'
-        order-direction='asc'
-        scenarios='ac1,py1'
-        styles=''
-        unit-scaling='10'
-        datasets="$marktwert"
-      >
+        scenarios="ac1,pl1"
+        variances="dac1_pl1_pos"
+        order="ac1"
+        order-direction="desc">
       </bn-chart-structure>
-</bn-body>
+    </bn-body>
+  </bn-page>
+</bn-context>
 ```
-**Output**
-![bn-chart example](./img/bn-chart-example.png)
 
-
-**Custom BinoChartSyles Example**
-```json
-     {
-      "scaleFactors": {
-        barWidthYOffset: 0.95,
-        fontNettoHeight: 0.7,
-        needleWidthOffset: 0.7,
-        barHeightOffset: 0.4,
-        barWidthOffset: 0.3,
-        pt2Px: 1.2,
-        axisWidth: 0.1,
-        rowHeight: 1.8,
-      },
-      "fontStyles": {
-        font: "16px Calibri",
-        size: 16,
-        color: "#000000",
-        backgroud: "#ffffff",
-        leading: 1.8,
-      },
-      "axisStyles": {
-        ac: {stroke: "#121212", fill: "#121212", width: 0.1},
-        fc: {stroke: "#121212", fill: "#ffffff", width: 0.1, "dasharray": "10 5 5 5"},
-        pp: {stroke: "#606060", fill: "#606060", width: 0.1},
-        pl: {stroke: "#121212", fill: "#ffffff", width: 0.1},
-      },
-      "barStyles": {
-        ac: {stroke: "#121212", fill: "#121212", width: 0.1},
-        fc: {stroke: "#121212", fill: "#ffffff", width: 0.5, fillpattern: "fc"},
-        pp: {stroke: "#606060", fill: "#606060", width: 0.1},
-        pl: {stroke: "#121212", fill: "#ffffff", width: 0.1},
-      },
-      "varianceStyles": {
-        pos: {stroke: "#AAFF00", fill: "#AAFF00", width: 0.1},
-        neg: {stroke: "#FF0A0A", fill: "#FF0A0A", width: 0.1},
-      },
-      "padding": {
-        top: 10,
-        left: 10,
-        right: 10,
-        bottom: 10,
-      },
-      "pattern": new Map([["marker-up", {foreground: "", background: "", bgOffset: 0}],
-        ["marker-down", {foreground: "", background: "", bgOffset: 0}]]),
-    }
-```
 <!-- Auto Generated Below -->
 
 

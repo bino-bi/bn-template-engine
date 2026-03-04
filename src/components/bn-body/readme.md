@@ -1,15 +1,19 @@
 # bn-body
 
-**bn-body** determines the area in which the content of the report is placed.
-the **bn-body** is a child element of bn-page and mandatory for a valid report template.
+Content area within a [`<bn-page>`](../bn-page/readme.md). Place visualization components (tables, charts) and other content inside it.
 
-**Example**<br />
+## Usage
 
-````html
-<bn-page name="Example bn-body" format="letter" orientation="landscape">
-        <bn-body> ... </bn-body>
+```html
+<bn-page format="hd" orientation="landscape">
+  <bn-body>
+    <bn-table scenarios="ac1,pl1"></bn-table>
+  </bn-body>
 </bn-page>
-````
+```
+
+`<bn-body>` is a required child of `<bn-page>`. It defines the main content region between the title and footer.
+
 <!-- Auto Generated Below -->
 
 
