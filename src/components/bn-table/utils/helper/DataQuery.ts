@@ -1,12 +1,10 @@
 import alasql from "alasql";
 import { OrderDirection, TableType } from "../model";
 import { QueryGroups } from "./QueryGroup";
-// import {QueryColumnNames, VarianceScenario} from "../../../../utils/model";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { TableDataRow } from "../model/TableDataRow";
 import { Order } from "../../../../components";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
-// import {Order} from "../../../../utils/model/Order"; // FIXME IOrder
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
 
 /**
@@ -64,8 +62,8 @@ export class DataQuery {
     const groupsAggregated = this.config.grouped ? [QueryColumnNames.ROWGROUP, QueryColumnNames.ROWGROUPINDEX] : [];
 
     let order: [string, string] = ["", ""];
-    if (this.config.order.hierarchy.length > 0) {
-      order = this.createOrderString(this.config.order);
+    if (this.config.sortOrder.hierarchy.length > 0) {
+      order = this.createOrderString(this.config.sortOrder);
     }
 
     this.hasPartOf = this.checkConfigForPartOf();

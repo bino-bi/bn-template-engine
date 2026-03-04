@@ -1,5 +1,4 @@
-//import {VisualisationRuleSet, Scenario} from "../components/ibcs-table/utils/model";
-import { Scenario, VisualisationRuleSet } from "../components/bn-table/utils/model"; // TODO(JHE): Scenario type is duplicated — consolidate into a shared model
+import { ScenarioStyle, VisualisationRuleSet } from "../components/bn-table/utils/model";
 import { VarianceScenario } from "./model/VarianceScenario";
 
 /**
@@ -34,8 +33,13 @@ export class IBCSRuleSet implements VisualisationRuleSet {
     mat: "~[DATE]",
     none: "[DATE]",
   };
-  private _scenarioMap: Map<string, Scenario> = new Map<string, Scenario>();
-  private readonly _fallBackScenario: Scenario = { name: "Series", group: "Series", colorIndex: 10, sortIndex: 120 };
+  private _scenarioMap: Map<string, ScenarioStyle> = new Map<string, ScenarioStyle>();
+  private readonly _fallBackScenario: ScenarioStyle = {
+    name: "Series",
+    group: "Series",
+    colorIndex: 10,
+    sortIndex: 120,
+  };
 
   constructor() {
     // defines scenario sortIndex an colour   PP, PL, FC, AC,
@@ -77,7 +81,7 @@ export class IBCSRuleSet implements VisualisationRuleSet {
     });
   }
 
-  getScenario(scenarioName: string): Scenario {
+  getScenario(scenarioName: string): ScenarioStyle {
     if (this._scenarioMap.has(scenarioName)) {
       return this._scenarioMap.get(scenarioName)!;
     } else {

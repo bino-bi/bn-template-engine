@@ -15,7 +15,7 @@ describe("DQueryGroup Test", () => {
     thereOf: [],
     categoryThereOf: new Map(),
     partOf: [],
-    order: new Order(),
+    sortOrder: new Order(),
     type: TableType.OPTNOTOTAL,
     limit: 100,
     i18n: I18nMode.ALL,
