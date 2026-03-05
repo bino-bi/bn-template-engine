@@ -18,9 +18,6 @@ import { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeCha
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
-import { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
-import { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
-import { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLayer";
 import { TableDataRow } from "./components/bn-table/utils/model/TableDataRow";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 import { TableType } from "./components/bn-table/utils/model";
@@ -39,9 +36,6 @@ export { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeCha
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
-export { GpxLayer } from "./components/bn-map/ibcs-map/utils/model/GpxLayer";
-export { Marker } from "./components/bn-map/ibcs-map/utils/model/Marker";
-export { GeoJsonLayer } from "./components/bn-map/ibcs-map/utils/model/GeoJsonLayer";
 export { TableDataRow } from "./components/bn-table/utils/model/TableDataRow";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 export { TableType } from "./components/bn-table/utils/model";
@@ -533,66 +527,6 @@ export namespace Components {
         "titleScenarios"?: string;
         "titleVariances"?: string;
     }
-    interface BnMap {
-        /**
-          * Set Footer label
-          * @default ""
-         */
-        "attribution": string;
-        /**
-          * @default null
-         */
-        "geojsons": string | null;
-        /**
-          * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
-          * @default null
-         */
-        "gpxs": string | null;
-        /**
-          * Name of the gpxs Dataset used in map  default: $gpxs
-          * @default "$gpxs"
-         */
-        "gpxsDatasetName": string;
-        /**
-          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
-          * @default 50.137634
-         */
-        "latitude": number;
-        /**
-          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
-          * @default 8.679129
-         */
-        "longitude": number;
-        /**
-          * @default true
-         */
-        "manualPosOverride": boolean;
-        /**
-          * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
-          * @default null
-         */
-        "markers": string | null;
-        /**
-          * Name of the makers Dataset used in map  default: $markers
-          * @default "$markers"
-         */
-        "markersDatasetName": string;
-        /**
-          * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
-          * @default 11
-         */
-        "scale": number;
-        /**
-          * Activates/ Deactivates Map Scale
-          * @default false
-         */
-        "showScale": boolean;
-        /**
-          * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
-          * @default "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
-         */
-        "tileLayer": string;
-    }
     interface BnMessage {
         /**
           * /**    Url of the cards logo/ pictogram.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
@@ -1057,58 +991,6 @@ export namespace Components {
          */
         "variances": string[];
     }
-    interface IbcsMap {
-        /**
-          * @default this._attribution
-         */
-        "attribution": string;
-        /**
-          * @default this._customView
-         */
-        "customView": boolean;
-        /**
-          * @default this._geojsons
-         */
-        "geojsons": GeoJsonLayer[] | string;
-        /**
-          * @default this._gpxs
-         */
-        "gpxs": GpxLayer[] | string;
-        /**
-          * @default this._latitude
-         */
-        "latitude": number;
-        /**
-          * @default this._longitude
-         */
-        "longitude": number;
-        /**
-          * @default this._manualPosOverride
-         */
-        "manualPosOverride": boolean;
-        /**
-          * @default this._markers
-         */
-        "markers": Marker[] | string;
-        /**
-          * @default this._scale
-         */
-        "scale": number;
-        "setProps": (data: Partial<IbcsMap>) => Promise<void>;
-        /**
-          * @default this._showScale
-         */
-        "showScale": boolean;
-        /**
-          * @default this._showZoom
-         */
-        "showZoom": boolean;
-        /**
-          * @default this._tileLayer
-         */
-        "tileLayer": string;
-        "unSetProps": (data: Partial<IbcsMap>) => Promise<void>;
-    }
     /**
      * Internal rendering engine for `bn-table`.
      * Receives pre-validated, typed props from the outer `bn-table` wrapper and
@@ -1253,14 +1135,6 @@ export namespace Components {
         "timeperiod"?: TimePeriod;
     }
 }
-export interface BnMapCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLBnMapElement;
-}
-export interface IbcsMapCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLIbcsMapElement;
-}
 declare global {
     interface HTMLBnAssetElement extends Components.BnAsset, HTMLStencilElement {
     }
@@ -1389,24 +1263,6 @@ declare global {
         prototype: HTMLBnLayoutPageElement;
         new (): HTMLBnLayoutPageElement;
     };
-    interface HTMLBnMapElementEventMap {
-        "bnStateUpdated": any;
-        "bnDragZoomEnded": any;
-    }
-    interface HTMLBnMapElement extends Components.BnMap, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLBnMapElementEventMap>(type: K, listener: (this: HTMLBnMapElement, ev: BnMapCustomEvent<HTMLBnMapElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLBnMapElementEventMap>(type: K, listener: (this: HTMLBnMapElement, ev: BnMapCustomEvent<HTMLBnMapElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLBnMapElement: {
-        prototype: HTMLBnMapElement;
-        new (): HTMLBnMapElement;
-    };
     interface HTMLBnMessageElement extends Components.BnMessage, HTMLStencilElement {
     }
     var HTMLBnMessageElement: {
@@ -1500,24 +1356,6 @@ declare global {
         prototype: HTMLIbcsChartTimeElement;
         new (): HTMLIbcsChartTimeElement;
     };
-    interface HTMLIbcsMapElementEventMap {
-        "stateUpdated": any;
-        "dragZoomEnded": any;
-    }
-    interface HTMLIbcsMapElement extends Components.IbcsMap, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLIbcsMapElementEventMap>(type: K, listener: (this: HTMLIbcsMapElement, ev: IbcsMapCustomEvent<HTMLIbcsMapElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLIbcsMapElementEventMap>(type: K, listener: (this: HTMLIbcsMapElement, ev: IbcsMapCustomEvent<HTMLIbcsMapElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLIbcsMapElement: {
-        prototype: HTMLIbcsMapElement;
-        new (): HTMLIbcsMapElement;
-    };
     /**
      * Internal rendering engine for `bn-table`.
      * Receives pre-validated, typed props from the outer `bn-table` wrapper and
@@ -1554,7 +1392,6 @@ declare global {
         "bn-internationalization": HTMLBnInternationalizationElement;
         "bn-layout-card": HTMLBnLayoutCardElement;
         "bn-layout-page": HTMLBnLayoutPageElement;
-        "bn-map": HTMLBnMapElement;
         "bn-message": HTMLBnMessageElement;
         "bn-page": HTMLBnPageElement;
         "bn-table": HTMLBnTableElement;
@@ -1565,7 +1402,6 @@ declare global {
         "editor-companion": HTMLEditorCompanionElement;
         "ibcs-chart-structure": HTMLIbcsChartStructureElement;
         "ibcs-chart-time": HTMLIbcsChartTimeElement;
-        "ibcs-map": HTMLIbcsMapElement;
         "ibcs-table": HTMLIbcsTableElement;
         "ibcs-title": HTMLIbcsTitleElement;
     }
@@ -2056,68 +1892,6 @@ declare namespace LocalJSX {
         "titleScenarios"?: string;
         "titleVariances"?: string;
     }
-    interface BnMap {
-        /**
-          * Set Footer label
-          * @default ""
-         */
-        "attribution"?: string;
-        /**
-          * @default null
-         */
-        "geojsons"?: string | null;
-        /**
-          * GPX Parameter example ["file": "http://URL_TO_GPX.gpx",          "color": "#FC5200",          "opacity": 0.75,          "weight": 3,          "lineCap": "round"}]
-          * @default null
-         */
-        "gpxs"?: string | null;
-        /**
-          * Name of the gpxs Dataset used in map  default: $gpxs
-          * @default "$gpxs"
-         */
-        "gpxsDatasetName"?: string;
-        /**
-          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
-          * @default 50.137634
-         */
-        "latitude"?: number;
-        /**
-          * Latitude of the maps viewport center, the selected value will be ignored if gpx files are selected
-          * @default 8.679129
-         */
-        "longitude"?: number;
-        /**
-          * @default true
-         */
-        "manualPosOverride"?: boolean;
-        /**
-          * Marker Parameter example [{"latitude": 50.137634,           "longitude": 8.679129,           "iconUrl": "http://localhost:3333/build/assets/icons/marker-example.png",           "iconWidth": 64,           "iconHeight":64}]
-          * @default null
-         */
-        "markers"?: string | null;
-        /**
-          * Name of the makers Dataset used in map  default: $markers
-          * @default "$markers"
-         */
-        "markersDatasetName"?: string;
-        "onBnDragZoomEnded"?: (event: BnMapCustomEvent<any>) => void;
-        "onBnStateUpdated"?: (event: BnMapCustomEvent<any>) => void;
-        /**
-          * scale / zoom factor of the maps viewport. Decrease the value to zoom out. Increase the value to zoom in. the selected value will be ignored if gpx files are selected
-          * @default 11
-         */
-        "scale"?: number;
-        /**
-          * Activates/ Deactivates Map Scale
-          * @default false
-         */
-        "showScale"?: boolean;
-        /**
-          * URL for maplayer provider example provers https://leaflet-extras.github.io/leaflet-providers/preview/
-          * @default "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
-         */
-        "tileLayer"?: string;
-    }
     interface BnMessage {
         /**
           * /**    Url of the cards logo/ pictogram.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
@@ -2579,58 +2353,6 @@ declare namespace LocalJSX {
          */
         "variances"?: string[];
     }
-    interface IbcsMap {
-        /**
-          * @default this._attribution
-         */
-        "attribution"?: string;
-        /**
-          * @default this._customView
-         */
-        "customView"?: boolean;
-        /**
-          * @default this._geojsons
-         */
-        "geojsons"?: GeoJsonLayer[] | string;
-        /**
-          * @default this._gpxs
-         */
-        "gpxs"?: GpxLayer[] | string;
-        /**
-          * @default this._latitude
-         */
-        "latitude"?: number;
-        /**
-          * @default this._longitude
-         */
-        "longitude"?: number;
-        /**
-          * @default this._manualPosOverride
-         */
-        "manualPosOverride"?: boolean;
-        /**
-          * @default this._markers
-         */
-        "markers"?: Marker[] | string;
-        "onDragZoomEnded"?: (event: IbcsMapCustomEvent<any>) => void;
-        "onStateUpdated"?: (event: IbcsMapCustomEvent<any>) => void;
-        /**
-          * @default this._scale
-         */
-        "scale"?: number;
-        /**
-          * @default this._showScale
-         */
-        "showScale"?: boolean;
-        /**
-          * @default this._showZoom
-         */
-        "showZoom"?: boolean;
-        /**
-          * @default this._tileLayer
-         */
-        "tileLayer"?: string;
-    }
     /**
      * Internal rendering engine for `bn-table`.
      * Receives pre-validated, typed props from the outer `bn-table` wrapper and
@@ -2924,20 +2646,6 @@ declare namespace LocalJSX {
         "pageGridGap": string;
         "pageFitToContent": boolean;
     }
-    interface BnMapAttributes {
-        "markersDatasetName": string;
-        "gpxsDatasetName": string;
-        "latitude": number;
-        "longitude": number;
-        "scale": number;
-        "manualPosOverride": boolean;
-        "showScale": boolean;
-        "attribution": string;
-        "tileLayer": string;
-        "markers": string | null;
-        "gpxs": string | null;
-        "geojsons": string | null;
-    }
     interface BnMessageAttributes {
         "text": string;
         "image": string;
@@ -3034,20 +2742,6 @@ declare namespace LocalJSX {
         "lineFullWidth": boolean;
         "containerWidth": number;
     }
-    interface IbcsMapAttributes {
-        "tileLayer": string;
-        "manualPosOverride": boolean;
-        "latitude": number;
-        "longitude": number;
-        "scale": number;
-        "customView": boolean;
-        "showScale": boolean;
-        "showZoom": boolean;
-        "attribution": string;
-        "gpxs": GpxLayer[] | string;
-        "markers": Marker[] | string;
-        "geojsons": GeoJsonLayer[] | string;
-    }
     interface IbcsTableAttributes {
         "tableTitle": string;
         "scenariosDataFormat": DataFormat;
@@ -3088,7 +2782,6 @@ declare namespace LocalJSX {
         "bn-internationalization": Omit<BnInternationalization, keyof BnInternationalizationAttributes> & { [K in keyof BnInternationalization & keyof BnInternationalizationAttributes]?: BnInternationalization[K] } & { [K in keyof BnInternationalization & keyof BnInternationalizationAttributes as `attr:${K}`]?: BnInternationalizationAttributes[K] } & { [K in keyof BnInternationalization & keyof BnInternationalizationAttributes as `prop:${K}`]?: BnInternationalization[K] };
         "bn-layout-card": Omit<BnLayoutCard, keyof BnLayoutCardAttributes> & { [K in keyof BnLayoutCard & keyof BnLayoutCardAttributes]?: BnLayoutCard[K] } & { [K in keyof BnLayoutCard & keyof BnLayoutCardAttributes as `attr:${K}`]?: BnLayoutCardAttributes[K] } & { [K in keyof BnLayoutCard & keyof BnLayoutCardAttributes as `prop:${K}`]?: BnLayoutCard[K] };
         "bn-layout-page": Omit<BnLayoutPage, keyof BnLayoutPageAttributes> & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes]?: BnLayoutPage[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `attr:${K}`]?: BnLayoutPageAttributes[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `prop:${K}`]?: BnLayoutPage[K] };
-        "bn-map": Omit<BnMap, keyof BnMapAttributes> & { [K in keyof BnMap & keyof BnMapAttributes]?: BnMap[K] } & { [K in keyof BnMap & keyof BnMapAttributes as `attr:${K}`]?: BnMapAttributes[K] } & { [K in keyof BnMap & keyof BnMapAttributes as `prop:${K}`]?: BnMap[K] };
         "bn-message": Omit<BnMessage, keyof BnMessageAttributes> & { [K in keyof BnMessage & keyof BnMessageAttributes]?: BnMessage[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `attr:${K}`]?: BnMessageAttributes[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `prop:${K}`]?: BnMessage[K] };
         "bn-page": Omit<BnPage, keyof BnPageAttributes> & { [K in keyof BnPage & keyof BnPageAttributes]?: BnPage[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `attr:${K}`]?: BnPageAttributes[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `prop:${K}`]?: BnPage[K] };
         "bn-table": Omit<BnTable, keyof BnTableAttributes> & { [K in keyof BnTable & keyof BnTableAttributes]?: BnTable[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `attr:${K}`]?: BnTableAttributes[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `prop:${K}`]?: BnTable[K] };
@@ -3099,7 +2792,6 @@ declare namespace LocalJSX {
         "editor-companion": EditorCompanion;
         "ibcs-chart-structure": Omit<IbcsChartStructure, keyof IbcsChartStructureAttributes> & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes]?: IbcsChartStructure[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `attr:${K}`]?: IbcsChartStructureAttributes[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `prop:${K}`]?: IbcsChartStructure[K] };
         "ibcs-chart-time": Omit<IbcsChartTime, keyof IbcsChartTimeAttributes> & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes]?: IbcsChartTime[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `attr:${K}`]?: IbcsChartTimeAttributes[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `prop:${K}`]?: IbcsChartTime[K] };
-        "ibcs-map": Omit<IbcsMap, keyof IbcsMapAttributes> & { [K in keyof IbcsMap & keyof IbcsMapAttributes]?: IbcsMap[K] } & { [K in keyof IbcsMap & keyof IbcsMapAttributes as `attr:${K}`]?: IbcsMapAttributes[K] } & { [K in keyof IbcsMap & keyof IbcsMapAttributes as `prop:${K}`]?: IbcsMap[K] };
         "ibcs-table": Omit<IbcsTable, keyof IbcsTableAttributes> & { [K in keyof IbcsTable & keyof IbcsTableAttributes]?: IbcsTable[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `attr:${K}`]?: IbcsTableAttributes[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `prop:${K}`]?: IbcsTable[K] };
         "ibcs-title": Omit<IbcsTitle, keyof IbcsTitleAttributes> & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes]?: IbcsTitle[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `attr:${K}`]?: IbcsTitleAttributes[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `prop:${K}`]?: IbcsTitle[K] };
     }
@@ -3160,7 +2852,6 @@ declare module "@stencil/core" {
             "bn-internationalization": LocalJSX.IntrinsicElements["bn-internationalization"] & JSXBase.HTMLAttributes<HTMLBnInternationalizationElement>;
             "bn-layout-card": LocalJSX.IntrinsicElements["bn-layout-card"] & JSXBase.HTMLAttributes<HTMLBnLayoutCardElement>;
             "bn-layout-page": LocalJSX.IntrinsicElements["bn-layout-page"] & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
-            "bn-map": LocalJSX.IntrinsicElements["bn-map"] & JSXBase.HTMLAttributes<HTMLBnMapElement>;
             "bn-message": LocalJSX.IntrinsicElements["bn-message"] & JSXBase.HTMLAttributes<HTMLBnMessageElement>;
             "bn-page": LocalJSX.IntrinsicElements["bn-page"] & JSXBase.HTMLAttributes<HTMLBnPageElement>;
             /**
@@ -3204,7 +2895,6 @@ declare module "@stencil/core" {
             "editor-companion": LocalJSX.IntrinsicElements["editor-companion"] & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
             "ibcs-chart-structure": LocalJSX.IntrinsicElements["ibcs-chart-structure"] & JSXBase.HTMLAttributes<HTMLIbcsChartStructureElement>;
             "ibcs-chart-time": LocalJSX.IntrinsicElements["ibcs-chart-time"] & JSXBase.HTMLAttributes<HTMLIbcsChartTimeElement>;
-            "ibcs-map": LocalJSX.IntrinsicElements["ibcs-map"] & JSXBase.HTMLAttributes<HTMLIbcsMapElement>;
             /**
              * Internal rendering engine for `bn-table`.
              * Receives pre-validated, typed props from the outer `bn-table` wrapper and

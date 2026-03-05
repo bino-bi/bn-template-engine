@@ -134,7 +134,6 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 
 | Component | Description |
 |-----------|-------------|
-| [`<bn-map>`](src/components/bn-map/readme.md) | Interactive Leaflet map with markers and GPX tracks |
 | [`<bn-tree>`](src/components/bn-tree/readme.md) | Hierarchical tree diagram with SVG edges |
 
 ### Configuration
