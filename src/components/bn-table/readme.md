@@ -239,15 +239,11 @@ not be used directly; use `bn-table` instead.
 ### Used by
 
  - [bn-table](.)
- - [test-runner-card](../../test-runner)
- - [test-runner-table](../../test-runner)
 
 ### Graph
 ```mermaid
 graph TD;
   bn-table --> ibcs-table
-  test-runner-card --> ibcs-table
-  test-runner-table --> ibcs-table
   style ibcs-table fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

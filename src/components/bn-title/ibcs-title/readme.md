@@ -59,15 +59,11 @@ Type: `Promise<void>`
 ### Used by
 
  - [bn-title](..)
- - [test-runner-card](../../../test-runner)
- - [test-runner-title](../../../test-runner)
 
 ### Graph
 ```mermaid
 graph TD;
   bn-title --> ibcs-title
-  test-runner-card --> ibcs-title
-  test-runner-title --> ibcs-title
   style ibcs-title fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
