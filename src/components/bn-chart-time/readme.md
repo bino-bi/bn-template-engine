@@ -186,15 +186,11 @@ Stack config properties:
 ### Used by
 
  - [bn-chart-time](.)
- - [test-runner-chart-time](../../test-runner)
- - [test-runner-time](../../test-runner)
 
 ### Graph
 ```mermaid
 graph TD;
   bn-chart-time --> ibcs-chart-time
-  test-runner-chart-time --> ibcs-chart-time
-  test-runner-time --> ibcs-chart-time
   style ibcs-chart-time fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

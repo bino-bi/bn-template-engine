@@ -1252,20 +1252,6 @@ export namespace Components {
         "setProps": (data: Partial<IbcsTitle>) => Promise<void>;
         "timeperiod"?: TimePeriod;
     }
-    interface TestRunnerCard {
-    }
-    interface TestRunnerChart {
-    }
-    interface TestRunnerChartTime {
-    }
-    interface TestRunnerMap {
-    }
-    interface TestRunnerTable {
-    }
-    interface TestRunnerTime {
-    }
-    interface TestRunnerTitle {
-    }
 }
 export interface BnMapCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1552,48 +1538,6 @@ declare global {
         prototype: HTMLIbcsTitleElement;
         new (): HTMLIbcsTitleElement;
     };
-    interface HTMLTestRunnerCardElement extends Components.TestRunnerCard, HTMLStencilElement {
-    }
-    var HTMLTestRunnerCardElement: {
-        prototype: HTMLTestRunnerCardElement;
-        new (): HTMLTestRunnerCardElement;
-    };
-    interface HTMLTestRunnerChartElement extends Components.TestRunnerChart, HTMLStencilElement {
-    }
-    var HTMLTestRunnerChartElement: {
-        prototype: HTMLTestRunnerChartElement;
-        new (): HTMLTestRunnerChartElement;
-    };
-    interface HTMLTestRunnerChartTimeElement extends Components.TestRunnerChartTime, HTMLStencilElement {
-    }
-    var HTMLTestRunnerChartTimeElement: {
-        prototype: HTMLTestRunnerChartTimeElement;
-        new (): HTMLTestRunnerChartTimeElement;
-    };
-    interface HTMLTestRunnerMapElement extends Components.TestRunnerMap, HTMLStencilElement {
-    }
-    var HTMLTestRunnerMapElement: {
-        prototype: HTMLTestRunnerMapElement;
-        new (): HTMLTestRunnerMapElement;
-    };
-    interface HTMLTestRunnerTableElement extends Components.TestRunnerTable, HTMLStencilElement {
-    }
-    var HTMLTestRunnerTableElement: {
-        prototype: HTMLTestRunnerTableElement;
-        new (): HTMLTestRunnerTableElement;
-    };
-    interface HTMLTestRunnerTimeElement extends Components.TestRunnerTime, HTMLStencilElement {
-    }
-    var HTMLTestRunnerTimeElement: {
-        prototype: HTMLTestRunnerTimeElement;
-        new (): HTMLTestRunnerTimeElement;
-    };
-    interface HTMLTestRunnerTitleElement extends Components.TestRunnerTitle, HTMLStencilElement {
-    }
-    var HTMLTestRunnerTitleElement: {
-        prototype: HTMLTestRunnerTitleElement;
-        new (): HTMLTestRunnerTitleElement;
-    };
     interface HTMLElementTagNameMap {
         "bn-asset": HTMLBnAssetElement;
         "bn-body": HTMLBnBodyElement;
@@ -1624,13 +1568,6 @@ declare global {
         "ibcs-map": HTMLIbcsMapElement;
         "ibcs-table": HTMLIbcsTableElement;
         "ibcs-title": HTMLIbcsTitleElement;
-        "test-runner-card": HTMLTestRunnerCardElement;
-        "test-runner-chart": HTMLTestRunnerChartElement;
-        "test-runner-chart-time": HTMLTestRunnerChartTimeElement;
-        "test-runner-map": HTMLTestRunnerMapElement;
-        "test-runner-table": HTMLTestRunnerTableElement;
-        "test-runner-time": HTMLTestRunnerTimeElement;
-        "test-runner-title": HTMLTestRunnerTitleElement;
     }
 }
 declare namespace LocalJSX {
@@ -2835,20 +2772,6 @@ declare namespace LocalJSX {
         "scenarios"?: string[];
         "timeperiod"?: TimePeriod;
     }
-    interface TestRunnerCard {
-    }
-    interface TestRunnerChart {
-    }
-    interface TestRunnerChartTime {
-    }
-    interface TestRunnerMap {
-    }
-    interface TestRunnerTable {
-    }
-    interface TestRunnerTime {
-    }
-    interface TestRunnerTitle {
-    }
 
     interface BnAssetAttributes {
         "name": string;
@@ -3179,13 +3102,6 @@ declare namespace LocalJSX {
         "ibcs-map": Omit<IbcsMap, keyof IbcsMapAttributes> & { [K in keyof IbcsMap & keyof IbcsMapAttributes]?: IbcsMap[K] } & { [K in keyof IbcsMap & keyof IbcsMapAttributes as `attr:${K}`]?: IbcsMapAttributes[K] } & { [K in keyof IbcsMap & keyof IbcsMapAttributes as `prop:${K}`]?: IbcsMap[K] };
         "ibcs-table": Omit<IbcsTable, keyof IbcsTableAttributes> & { [K in keyof IbcsTable & keyof IbcsTableAttributes]?: IbcsTable[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `attr:${K}`]?: IbcsTableAttributes[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `prop:${K}`]?: IbcsTable[K] };
         "ibcs-title": Omit<IbcsTitle, keyof IbcsTitleAttributes> & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes]?: IbcsTitle[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `attr:${K}`]?: IbcsTitleAttributes[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `prop:${K}`]?: IbcsTitle[K] };
-        "test-runner-card": TestRunnerCard;
-        "test-runner-chart": TestRunnerChart;
-        "test-runner-chart-time": TestRunnerChartTime;
-        "test-runner-map": TestRunnerMap;
-        "test-runner-table": TestRunnerTable;
-        "test-runner-time": TestRunnerTime;
-        "test-runner-title": TestRunnerTitle;
     }
 }
 export { LocalJSX as JSX };
@@ -3299,13 +3215,6 @@ declare module "@stencil/core" {
              */
             "ibcs-table": LocalJSX.IntrinsicElements["ibcs-table"] & JSXBase.HTMLAttributes<HTMLIbcsTableElement>;
             "ibcs-title": LocalJSX.IntrinsicElements["ibcs-title"] & JSXBase.HTMLAttributes<HTMLIbcsTitleElement>;
-            "test-runner-card": LocalJSX.IntrinsicElements["test-runner-card"] & JSXBase.HTMLAttributes<HTMLTestRunnerCardElement>;
-            "test-runner-chart": LocalJSX.IntrinsicElements["test-runner-chart"] & JSXBase.HTMLAttributes<HTMLTestRunnerChartElement>;
-            "test-runner-chart-time": LocalJSX.IntrinsicElements["test-runner-chart-time"] & JSXBase.HTMLAttributes<HTMLTestRunnerChartTimeElement>;
-            "test-runner-map": LocalJSX.IntrinsicElements["test-runner-map"] & JSXBase.HTMLAttributes<HTMLTestRunnerMapElement>;
-            "test-runner-table": LocalJSX.IntrinsicElements["test-runner-table"] & JSXBase.HTMLAttributes<HTMLTestRunnerTableElement>;
-            "test-runner-time": LocalJSX.IntrinsicElements["test-runner-time"] & JSXBase.HTMLAttributes<HTMLTestRunnerTimeElement>;
-            "test-runner-title": LocalJSX.IntrinsicElements["test-runner-title"] & JSXBase.HTMLAttributes<HTMLTestRunnerTitleElement>;
         }
     }
 }

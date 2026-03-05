@@ -132,15 +132,11 @@ Stack config properties:
 ### Used by
 
  - [bn-chart-structure](.)
- - [test-runner-card](../../test-runner)
- - [test-runner-chart](../../test-runner)
 
 ### Graph
 ```mermaid
 graph TD;
   bn-chart-structure --> ibcs-chart-structure
-  test-runner-card --> ibcs-chart-structure
-  test-runner-chart --> ibcs-chart-structure
   style ibcs-chart-structure fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

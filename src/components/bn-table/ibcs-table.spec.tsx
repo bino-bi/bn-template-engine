@@ -39,7 +39,7 @@ import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../uti
 import { Order, OrderColumn } from "../../utils/model/Order";
 
 describe("IBCS Table Test", () => {
-  const dataSet2: Record<string, unknown>[] = [
+  const dataSet2: any[] = [
     {
       setName: "de",
       operation: "+",

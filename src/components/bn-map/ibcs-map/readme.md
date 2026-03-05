@@ -79,13 +79,11 @@ Type: `Promise<void>`
 ### Used by
 
  - [bn-map](..)
- - [test-runner-map](../../../test-runner)
 
 ### Graph
 ```mermaid
 graph TD;
   bn-map --> ibcs-map
-  test-runner-map --> ibcs-map
   style ibcs-map fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

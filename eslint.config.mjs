@@ -47,7 +47,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.spec.ts", "**/*.spec.tsx", "src/test-runner/**"],
+    files: ["**/*.spec.ts", "**/*.spec.tsx"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "no-useless-escape": "off",
