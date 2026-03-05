@@ -624,7 +624,7 @@ export class Chart {
 
   private preparePixelPerPercentage(): number {
     if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
-      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string); // TODO(JHE): revisit '* 100' correctness when global scaling groups are implemented
+      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
     }
 
     return Number(this.percentageScaling) * 100;
@@ -681,7 +681,6 @@ export class Chart {
 
     return tableOrder;
   }
-  // TODO(JHE): consider extracting style preparation into an adapter pattern
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private prepareStyle(): any {
     const effectiveFactor = this.getEffectiveScaleFactor();

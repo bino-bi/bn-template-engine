@@ -39,8 +39,7 @@ import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../uti
 import { Order, OrderColumn } from "../../utils/model/Order";
 
 describe("IBCS Table Test", () => {
-  //FIXME: DataRow
-  const dataSet2: any[] = [
+  const dataSet2: Record<string, unknown>[] = [
     {
       setName: "de",
       operation: "+",
