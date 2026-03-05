@@ -61,8 +61,6 @@
     "@svgdotjs/svg.js": "^3.2.5",
     "alasql": "^4.17.0",
     "calculate-size": "^1.1.1",
-    "leaflet": "^1.9.4",
-    "leaflet-gpx": "^2.2.0",
     "luxon": "^3.7.2",
     "nanoid": "^5.1.6"
   }
