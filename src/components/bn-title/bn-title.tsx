@@ -309,14 +309,6 @@ export class Title {
     this.validateOrder(this.order);
   }
 
-  scopedEval = (scope, script) => {
-    try {
-      return Function(`"use strict"; try { return ${script} } catch { return ""}`).bind(scope)();
-    } catch (e) {
-      console.error("bn-text", e);
-    }
-  };
-
   private prepareI18n(): Map<string, string> {
     const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
