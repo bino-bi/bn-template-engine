@@ -47,35 +47,38 @@ td.neg_neutral {
   text-align: right;
 }
 
-.category-inf {
-  max-width: 1000em;
-}
-
 .category-w100 {
+  min-width: 100em;
   max-width: 100em;
 }
 
 .category-w50 {
+  min-width: 50em;
   max-width: 50em;
 }
 
 .category-w25 {
+  min-width: 25em;
   max-width: 25em;
 }
 
 .category-w20 {
+  min-width: 20em;
   max-width: 20em;
 }
 
 .category-w15 {
+  min-width: 15em;
   max-width: 15em;
 }
 
 .category-w10 {
+  min-width: 10em;
   max-width: 10em;
 }
 
 .category-w5 {
+  min-width: 5em;
   max-width: 5em;
 }
 
@@ -287,7 +290,6 @@ td {
   -webkit-box-sizing: border-box;
   border-top: 0.1em dashed #ddd;
   padding-left: 0.5em;
-  max-width: 15em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

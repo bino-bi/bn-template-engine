@@ -168,7 +168,7 @@ export class IbcsTable {
             {this.table.getBody().map((row: TableRow) => (
               <tr class={row.cssStyle}>
                 {row?.getCells().map((cell: Cell) => (
-                  <td colSpan={cell.colSpan} class={cell.cssStyle + " " + cell.type}>
+                  <td colSpan={cell.colSpan} class={cell.type ? `${cell.cssStyle} ${cell.type}` : cell.cssStyle}>
                     {cell.prefix != null ? (
                       <span class={cell.cssStyle + " " + cell.prefixStyle}>{cell.drawPrefix()}</span>
                     ) : (

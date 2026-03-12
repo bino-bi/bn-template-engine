@@ -107,7 +107,9 @@ export class TableRow {
       prefixStyle = "prefix-second";
     }
 
-    cssStyle = `${cssStyle}  ${columnType}`;
+    if (columnType) {
+      cssStyle = `${cssStyle} ${columnType}`;
+    }
 
     const cell = new Cell(
       scenario,
