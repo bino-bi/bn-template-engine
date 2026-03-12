@@ -33,7 +33,14 @@ jobs:
 
             - name: Get version from tag
               id: version
-              run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+              run: |
+                  VERSION="${GITHUB_REF#refs/tags/}"
+                  echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+                  if [[ "$VERSION" == *-* ]]; then
+                    echo "PRERELEASE=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "PRERELEASE=false" >> $GITHUB_OUTPUT
+                  fi
 
             - name: Zip build artifacts
               run: |
@@ -60,4 +67,4 @@ jobs:
                       Built from: ${{ github.repository }}@${{ github.sha }}
                   files: bn-template-engine-${{ steps.version.outputs.VERSION }}.zip
                   draft: false
-                  prerelease: false
+                  prerelease: ${{ steps.version.outputs.PRERELEASE == 'true' }}
