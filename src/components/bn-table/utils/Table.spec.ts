@@ -49,7 +49,7 @@ describe("Table Class Test", () => {
           {
             colSpan: 1,
             columnStats: undefined,
-            cssStyle: "category-w25  base",
+            cssStyle: "category-w25 base",
             index: 0,
             isBarChart: false,
             key: "category",
@@ -79,7 +79,7 @@ describe("Table Class Test", () => {
           {
             colSpan: 1,
             columnStats: undefined,
-            cssStyle: "category-w25  base",
+            cssStyle: "category-w25 base",
             index: 0,
             isBarChart: false,
             key: "category",
@@ -108,14 +108,14 @@ describe("Table Class Test", () => {
         groupindex: 0,
         type: "HEADER",
         cssStyle: "groupheader",
-        elements: [new Cell("category", 0, " ", "headerlabel  base", null, "", "prefix-first", 1, 1)],
+        elements: [new Cell("category", 0, " ", "headerlabel base", null, "", "prefix-first", 1, 1)],
       } as TableRow,
       {
         index: 1,
         groupindex: 0,
         type: "SEPERATORLINE",
         cssStyle: "",
-        elements: [new Cell("category", 0, null, "category  base", null, "", "prefix-first", 1, 1)],
+        elements: [new Cell("category", 0, null, "category base", null, "", "prefix-first", 1, 1)],
       } as TableRow,
     ]);
   });
@@ -130,14 +130,14 @@ describe("Table Class Test", () => {
         groupindex: 0,
         type: "HEADER",
         cssStyle: "groupheader",
-        elements: [new Cell("category", 0, " ", "headerlabel  base", null, "", "prefix-first", 1, 1)],
+        elements: [new Cell("category", 0, " ", "headerlabel base", null, "", "prefix-first", 1, 1)],
       } as TableRow,
       {
         index: 1,
         groupindex: 0,
         type: "SEPERATORLINE",
         cssStyle: "",
-        elements: [new Cell("category", 0, null, "category  base", null, "", "prefix-first", 1, 1)],
+        elements: [new Cell("category", 0, null, "category base", null, "", "prefix-first", 1, 1)],
       } as TableRow,
     ]);
   });
