@@ -216,7 +216,6 @@ export class DateStringFactory {
     const days = [];
 
     if (span >= spanLimit) {
-      console.warn("Clip Span from", span, "to spanLimit", spanLimit);
       span = spanLimit;
     }
 
