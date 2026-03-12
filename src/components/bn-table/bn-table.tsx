@@ -1,6 +1,7 @@
 import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
 import {
   isBlankInput,
+  isTableBarColumnWidth,
   isTableCategoryWidth,
   isValidBoolean,
   isValidDataFormat,
@@ -31,7 +32,14 @@ import { getParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TableDataRow } from "./utils/model/TableDataRow";
-import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
+import {
+  BAR_COLUMN_WIDTH_EM,
+  DataFormat,
+  I18nMode,
+  MeasureType,
+  TableBarColumnWidth,
+  TableCategoryWidth,
+} from "../../utils/constants";
 import { TableType } from "./utils/model";
 import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
@@ -261,14 +269,32 @@ export class Table {
   }
 
   /**
+   *  Set width of bar chart columns. Controls the max bar/pin width in pixels.
+   *  <br /><br />
+   *  values:<br />
+   *  ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
+   */
+  @Prop() barColumnWidth: string = "w30";
+
+  @Watch("barColumnWidth")
+  validateBarColumnWidth(newValue: string) {
+    const errId: string = "ERR_barColumnWidth";
+
+    if (!isTableBarColumnWidth(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "barColumnWidth: invalid value '" + newValue + "' is not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * @deprecated Bars now scale proportionally via column statistics. Kept for backward compatibility.
+   * <br /><br />
    * Scaling for absolute variance bar charts (ΔPY).
-   * <br /><br />
-   * Name of the 'scaling-group' which the table uses.
-   * Scaling groups are maintained globally.
-   * <br /><br />
-   * Alternatively a number which represents pixels per unit of measure.
-   * <br /><br />
-   * Example: 0.01 means 1000 units = 10 pixels width.
    * <br /><br />
    * Default: 0.01
    */
@@ -775,6 +801,7 @@ export class Table {
     this.validateColumnThereOf(this.columnthereof);
     this.validateShowMeasureScale(this.showMeasureScale);
     this.validateBarColumns(this.barColumns);
+    this.validateBarColumnWidth(this.barColumnWidth);
     this.validateUnitScaling(this.unitScaling);
     this.validatePercentageScaling(this.percentageScaling);
     this.validateScaling(this.scale);
@@ -1043,6 +1070,15 @@ export class Table {
     return this.filter;
   }
 
+  private prepareBarColumnWidth(): number {
+    const key = this.barColumnWidth?.toUpperCase() as keyof typeof TableBarColumnWidth;
+    const preset = TableBarColumnWidth[key];
+    if (preset) {
+      return BAR_COLUMN_WIDTH_EM[preset];
+    }
+    return BAR_COLUMN_WIDTH_EM[TableBarColumnWidth.W30];
+  }
+
   private prepareBarColumns(): string[] {
     if (isBlankInput(this.barColumns)) {
       return [];
@@ -1153,6 +1189,7 @@ export class Table {
             showMeasureScale={this.prepareShowMeasureScale()}
             filter={this.prepareFilter()}
             barColumns={this.prepareBarColumns()}
+            barColumnMaxWidth={this.prepareBarColumnWidth()}
             unitScaling={this.prepareUnitScaling()}
             percentageScaling={this.preparePercentageScaling()}
             scaleFactor={effectiveFactor}

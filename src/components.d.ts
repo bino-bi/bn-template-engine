@@ -557,6 +557,11 @@ export namespace Components {
      */
     interface BnTable {
         /**
+          * Set width of bar chart columns. Controls the max bar/pin width in pixels. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
+          * @default "w30"
+         */
+        "barColumnWidth": string;
+        /**
           * List of variance column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin/dot charts. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos```
          */
         "barColumns": string;
@@ -670,7 +675,7 @@ export namespace Components {
          */
         "type": string;
         /**
-          * Scaling for absolute variance bar charts (ΔPY). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per unit of measure. <br /><br /> Example: 0.01 means 1000 units = 10 pixels width. <br /><br /> Default: 0.01
+          * @deprecated Bars now scale proportionally via column statistics. Kept for backward compatibility. <br /><br /> Scaling for absolute variance bar charts (ΔPY). <br /><br /> Default: 0.01
           * @default 0.01
          */
         "unitScaling": string | number;
@@ -1000,6 +1005,10 @@ export namespace Components {
      * not be used directly; use `bn-table` instead.
      */
     interface IbcsTable {
+        /**
+          * @default 30
+         */
+        "barColumnMaxWidth": number;
         /**
           * @default []
          */
@@ -1922,6 +1931,11 @@ declare namespace LocalJSX {
      */
     interface BnTable {
         /**
+          * Set width of bar chart columns. Controls the max bar/pin width in pixels. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
+          * @default "w30"
+         */
+        "barColumnWidth"?: string;
+        /**
           * List of variance column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin/dot charts. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos```
          */
         "barColumns"?: string;
@@ -2035,7 +2049,7 @@ declare namespace LocalJSX {
          */
         "type"?: string;
         /**
-          * Scaling for absolute variance bar charts (ΔPY). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per unit of measure. <br /><br /> Example: 0.01 means 1000 units = 10 pixels width. <br /><br /> Default: 0.01
+          * @deprecated Bars now scale proportionally via column statistics. Kept for backward compatibility. <br /><br /> Scaling for absolute variance bar charts (ΔPY). <br /><br /> Default: 0.01
           * @default 0.01
          */
         "unitScaling"?: string | number;
@@ -2363,6 +2377,10 @@ declare namespace LocalJSX {
      */
     interface IbcsTable {
         /**
+          * @default 30
+         */
+        "barColumnMaxWidth"?: number;
+        /**
           * @default []
          */
         "barColumns"?: string[];
@@ -2662,6 +2680,7 @@ declare namespace LocalJSX {
         "scenarios": string;
         "variances": string;
         "barColumns": string;
+        "barColumnWidth": string;
         "unitScaling": string;
         "percentageScaling": string;
         "dataFormat": string;
@@ -2756,6 +2775,7 @@ declare namespace LocalJSX {
         "showMeasureScale": boolean;
         "measureType": MeasureType;
         "filter": string;
+        "barColumnMaxWidth": number;
         "unitScaling": number;
         "percentageScaling": number;
         "scaleFactor": number;

@@ -24,8 +24,10 @@ export interface CellBarChartStyles {
   fontColor: string;
   fontSize: number;
   fontFamily: string;
-  unitScaling: number; // Pixels per unit for absolute variance
-  percentageScaling: number; // Pixels per percentage point for relative variance
+  /** @deprecated No longer used internally — bars now scale proportionally via columnStats.absMax */
+  unitScaling: number;
+  /** @deprecated No longer used internally — pins now scale proportionally via columnStats.absMax */
+  percentageScaling: number;
   scaleFactor: number; // Proportional scaling factor for all pixel constants
 }
 
@@ -38,6 +40,7 @@ export interface CellBarChartProps {
   isPositiveGood: boolean;
   formattedValue?: string;
   measureScale?: number;
+  maxBarWidth?: number;
   styles?: CellBarChartStyles;
 }
 
@@ -222,30 +225,67 @@ function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; strokeWid
 }
 
 /**
+ * Computes an effective max for proportional scaling that keeps most bars readable.
+ * If a few outliers (extreme values) dominate, the effective max is capped so the
+ * majority of bars remain at a useful size. Values exceeding the effective max are
+ * flagged as "extreme" and rendered with an arrow indicator.
+ *
+ * Algorithm: effectiveMax = median * EXTREME_THRESHOLD (default 3×).
+ * If this would be less than absMax, some values are extreme.
+ * If the median is 0 (e.g. single value), falls back to absMax.
+ */
+const EXTREME_THRESHOLD = 3;
+
+function computeEffectiveMax(columnStats: ColumnStats): number {
+  if (columnStats.median <= 0) {
+    return columnStats.absMax;
+  }
+  const cap = columnStats.median * EXTREME_THRESHOLD;
+  return Math.min(cap, columnStats.absMax);
+}
+
+/**
  * Renders an absolute variance bar chart (d_ prefix).
  * Horizontal bar with centered axis, green for positive, red for negative.
  * Value label shown next to the bar (black text per IBCS).
  *
  * Layout: [left label area][bar area with axis][right label area]
- * Uses unitScaling to determine bar width (pixels per unit of measure).
  */
 const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
-  const { value, scenario, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
+  const {
+    value,
+    scenario,
+    columnStats,
+    height,
+    isPositiveGood,
+    formattedValue,
+    measureScale,
+    maxBarWidth: maxBarWidthEm = 3,
+    styles = DEFAULT_STYLES,
+  } = props;
   const s = styles.scaleFactor;
 
-  const labelAreaWidth = 50 * s;
-  const maxBarWidth = 40 * s;
-  const barAreaWidth = maxBarWidth * 2;
-  const totalWidth = labelAreaWidth + barAreaWidth + labelAreaWidth;
+  const labelAreaWidth = 38 * s;
+  const maxBarWidth = maxBarWidthEm * styles.fontSize * s;
+
+  // Adaptive axis placement based on data range
+  const hasNeg = columnStats.min < 0;
+  const hasPos = columnStats.max > 0;
+  const negBarWidth = hasNeg ? maxBarWidth : 0;
+  const posBarWidth = hasPos ? maxBarWidth : 0;
+  const barAreaWidth = negBarWidth + posBarWidth;
+  const totalWidth = (hasNeg ? labelAreaWidth : 0) + barAreaWidth + (hasPos ? labelAreaWidth : 0);
 
   const padding = 2 * s;
   const barHeight = height - padding * 2;
-  const axisX = labelAreaWidth + maxBarWidth; // Axis in center of bar area
+  const axisX = (hasNeg ? labelAreaWidth : 0) + negBarWidth;
 
-  // Calculate bar width using unitScaling (pixels per unit)
-  // Clamp to maxBarWidth to prevent overflow
-  const scaledWidth = Math.abs(value) * styles.unitScaling * s;
-  const barWidth = Math.min(scaledWidth, maxBarWidth);
+  // Proportional scaling with outlier detection
+  const effectiveMax = computeEffectiveMax(columnStats);
+  const absValue = Math.abs(value);
+  const proportion = effectiveMax > 0 ? absValue / effectiveMax : 0;
+  const isExtreme = absValue > effectiveMax;
+  const barWidth = Math.min(proportion, 1) * maxBarWidth;
 
   const isPositive = value >= 0;
   const barX = isPositive ? axisX : axisX - barWidth;
@@ -274,6 +314,8 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const labelX = isPositive ? axisX + barWidth + 4 * s : axisX - barWidth - 4 * s;
   const labelAnchor = isPositive ? "start" : "end";
 
+  const centerY = height / 2;
+
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart absolute-variance" style={{ overflow: "visible" }}>
       <PatternDefs styles={styles} />
@@ -291,6 +333,22 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
           fill={fillValue}
           stroke={barStroke}
           stroke-width={barStrokeWidth * s}
+        />
+      )}
+
+      {/* Arrow indicator for extreme positive values */}
+      {isExtreme && isPositive && (
+        <polygon
+          points={`${axisX + maxBarWidth},${centerY} ${axisX + maxBarWidth - 6 * s},${centerY - 3 * s} ${axisX + maxBarWidth - 6 * s},${centerY + 3 * s}`}
+          fill={barStyle.fill === "transparent" ? barStyle.stroke : barStyle.fill}
+        />
+      )}
+
+      {/* Arrow indicator for extreme negative values */}
+      {isExtreme && !isPositive && (
+        <polygon
+          points={`${axisX - maxBarWidth},${centerY} ${axisX - maxBarWidth + 6 * s},${centerY - 3 * s} ${axisX - maxBarWidth + 6 * s},${centerY + 3 * s}`}
+          fill={barStyle.fill === "transparent" ? barStyle.stroke : barStyle.fill}
         />
       )}
 
@@ -318,22 +376,41 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
  * Uses percentageScaling to determine pin length (pixels per percentage point).
  */
 const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
-  const { value, scenario, height, isPositiveGood, formattedValue, measureScale, styles = DEFAULT_STYLES } = props;
+  const {
+    value,
+    scenario,
+    columnStats,
+    height,
+    isPositiveGood,
+    formattedValue,
+    measureScale,
+    maxBarWidth: maxBarWidthEm = 3,
+    styles = DEFAULT_STYLES,
+  } = props;
   const s = styles.scaleFactor;
 
-  const maxPinLength = 25 * s;
-  const pinAreaWidth = maxPinLength * 2 + 10 * s;
-  const labelAreaWidth = 70 * s;
+  // Pin length is ~2/3 of bar width for visual balance
+  const maxPinLength = Math.round(maxBarWidthEm * 0.67 * styles.fontSize) * s;
+  const pinPadding = 5 * s;
+
+  // Adaptive axis placement based on data range
+  const hasNeg = columnStats.min < 0;
+  const hasPos = columnStats.max > 0;
+  const negPinWidth = hasNeg ? maxPinLength + pinPadding : 0;
+  const posPinWidth = hasPos ? maxPinLength + pinPadding : 0;
+  const pinAreaWidth = negPinWidth + posPinWidth;
+  const labelAreaWidth = 45 * s;
   const totalWidth = pinAreaWidth + labelAreaWidth;
 
-  const axisX = pinAreaWidth / 2;
+  const axisX = negPinWidth;
   const centerY = height / 2;
 
-  // Calculate pin length using percentageScaling (pixels per percentage point)
-  // Value is in decimal form (e.g., 0.5 = 50%), multiply by 100 to get percentage
-  const percentValue = Math.abs(value) * 100;
-  const scaledLength = percentValue * styles.percentageScaling * s;
-  const pinLength = Math.min(scaledLength, maxPinLength);
+  // Proportional scaling with outlier detection
+  const effectiveMax = computeEffectiveMax(columnStats);
+  const absValue = Math.abs(value);
+  const proportion = effectiveMax > 0 ? absValue / effectiveMax : 0;
+  const isExtreme = absValue > effectiveMax;
+  const pinLength = Math.min(proportion, 1) * maxPinLength;
 
   const isPositive = value >= 0;
   const pinEndX = isPositive ? axisX + pinLength : axisX - pinLength;
@@ -341,9 +418,6 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   // Get style based on column type (scenario vs variance)
   const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
   const dotRadius = 3 * s;
-
-  // Show arrow for extreme values (when pin would exceed max length)
-  const isExtreme = scaledLength > maxPinLength;
 
   const displayValue = formattedValue || formatValue(value, true, measureScale);
 
@@ -355,24 +429,24 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
       {/* Center axis line */}
       <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
 
-      {/* Dot at end - always black, only shown when NOT extreme, rendered first so line is on top */}
+      {/* Dot at end - shown when NOT extreme, rendered first so line is on top */}
       {!isExtreme && <circle cx={pinEndX} cy={centerY} r={dotRadius} fill={styles.fontColor} />}
 
       {/* Pin line - colored based on column type, on top of dot */}
       <line x1={axisX} y1={centerY} x2={pinEndX} y2={centerY} stroke={barStyle.fill} stroke-width={2 * s} />
 
-      {/* Arrow indicator for extreme positive values (pointing right) */}
+      {/* Arrow indicator for extreme positive values */}
       {isExtreme && isPositive && (
         <polygon
-          points={`${pinAreaWidth - 2 * s},${centerY} ${pinAreaWidth - 8 * s},${centerY - 3 * s} ${pinAreaWidth - 8 * s},${centerY + 3 * s}`}
+          points={`${axisX + maxPinLength},${centerY} ${axisX + maxPinLength - 6 * s},${centerY - 3 * s} ${axisX + maxPinLength - 6 * s},${centerY + 3 * s}`}
           fill={barStyle.fill}
         />
       )}
 
-      {/* Arrow indicator for extreme negative values (pointing left) */}
+      {/* Arrow indicator for extreme negative values */}
       {isExtreme && !isPositive && (
         <polygon
-          points={`${2 * s},${centerY} ${8 * s},${centerY - 3 * s} ${8 * s},${centerY + 3 * s}`}
+          points={`${axisX - maxPinLength},${centerY} ${axisX - maxPinLength + 6 * s},${centerY - 3 * s} ${axisX - maxPinLength + 6 * s},${centerY + 3 * s}`}
           fill={barStyle.fill}
         />
       )}
