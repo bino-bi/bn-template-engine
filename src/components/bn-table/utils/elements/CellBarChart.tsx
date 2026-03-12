@@ -24,10 +24,8 @@ export interface CellBarChartStyles {
   fontColor: string;
   fontSize: number;
   fontFamily: string;
-  /** @deprecated No longer used internally — bars now scale proportionally via columnStats.absMax */
-  unitScaling: number;
-  /** @deprecated No longer used internally — pins now scale proportionally via columnStats.absMax */
-  percentageScaling: number;
+  unitScaling: number; // Pixels per unit for absolute variance bars
+  percentageScaling: number; // Pixels per percentage point for relative variance pins
   scaleFactor: number; // Proportional scaling factor for all pixel constants
 }
 
@@ -225,29 +223,42 @@ function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; strokeWid
 }
 
 /**
- * Computes an effective max for proportional scaling that keeps most bars readable.
- * If a few outliers (extreme values) dominate, the effective max is capped so the
- * majority of bars remain at a useful size. Values exceeding the effective max are
- * flagged as "extreme" and rendered with an arrow indicator.
- *
- * Algorithm: effectiveMax = median * EXTREME_THRESHOLD (default 3×).
- * If this would be less than absMax, some values are extreme.
- * If the median is 0 (e.g. single value), falls back to absMax.
+ * Renders a zigzag break indicator at a given x position, matching the structure chart style.
+ * Two mirrored zigzag lines with a white background covering the break gap.
  */
-const EXTREME_THRESHOLD = 3;
+function renderZigzagBreak(breakX: number, breakGap: number, yTop: number, barHeight: number, s: number): unknown[] {
+  const midX = breakX + breakGap / 2;
+  const halfGap = breakGap * 0.35;
+  const zigCount = 3;
+  const segHeight = barHeight / zigCount;
+  const amplitude = breakGap * 0.3;
 
-function computeEffectiveMax(columnStats: ColumnStats): number {
-  if (columnStats.median <= 0) {
-    return columnStats.absMax;
+  let leftPath = `M ${midX - halfGap} ${yTop}`;
+  for (let i = 0; i < zigCount; i++) {
+    const y1 = yTop + segHeight * (i + 0.5);
+    const y2 = yTop + segHeight * (i + 1);
+    leftPath += ` L ${midX - halfGap - amplitude} ${y1} L ${midX - halfGap} ${y2}`;
   }
-  const cap = columnStats.median * EXTREME_THRESHOLD;
-  return Math.min(cap, columnStats.absMax);
+
+  let rightPath = `M ${midX + halfGap} ${yTop}`;
+  for (let i = 0; i < zigCount; i++) {
+    const y1 = yTop + segHeight * (i + 0.5);
+    const y2 = yTop + segHeight * (i + 1);
+    rightPath += ` L ${midX + halfGap + amplitude} ${y1} L ${midX + halfGap} ${y2}`;
+  }
+
+  return [
+    <rect x={breakX} y={yTop - 1} width={breakGap} height={barHeight + 2} fill="#ffffff" />,
+    <path d={leftPath} fill="none" stroke="#000000" stroke-width={1 * s} />,
+    <path d={rightPath} fill="none" stroke="#000000" stroke-width={1 * s} />,
+  ];
 }
 
 /**
  * Renders an absolute variance bar chart (d_ prefix).
  * Horizontal bar with centered axis, green for positive, red for negative.
- * Value label shown next to the bar (black text per IBCS).
+ * When a bar exceeds maxBarWidth it is drawn as an overdrive bar:
+ * base segment + zigzag break + proportional overdrive stub (like structure chart).
  *
  * Layout: [left label area][bar area with axis][right label area]
  */
@@ -260,13 +271,29 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     isPositiveGood,
     formattedValue,
     measureScale,
-    maxBarWidth: maxBarWidthEm = 3,
+    maxBarWidth: maxBarWidthEm = 10,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
+  const fs = styles.fontSize;
 
   const labelAreaWidth = 38 * s;
-  const maxBarWidth = maxBarWidthEm * styles.fontSize * s;
+  const maxBarWidth = maxBarWidthEm * fs;
+
+  // Overdrive layout constants
+  const breakGap = 4 * s;
+  const overdriveZoneWidth = maxBarWidth * 0.15;
+  const cutWidth = maxBarWidth - breakGap - overdriveZoneWidth;
+
+  // Direct unit scaling via fontSize
+  const scaledWidth = Math.abs(value) * styles.unitScaling * fs;
+  const isExtreme = scaledWidth > cutWidth;
+
+  // Compute proportional overdrive width across the column
+  const maxScaledWidth = columnStats.absMax * styles.unitScaling * fs;
+  const maxOverflow = Math.max(0, maxScaledWidth - cutWidth);
+  const overflowAmount = Math.max(0, scaledWidth - cutWidth);
+  const overdriveWidth = maxOverflow > 0 ? (overflowAmount / maxOverflow) * overdriveZoneWidth : 0;
 
   // Adaptive axis placement based on data range
   const hasNeg = columnStats.min < 0;
@@ -279,21 +306,11 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const padding = 2 * s;
   const barHeight = height - padding * 2;
   const axisX = (hasNeg ? labelAreaWidth : 0) + negBarWidth;
-
-  // Proportional scaling with outlier detection
-  const effectiveMax = computeEffectiveMax(columnStats);
-  const absValue = Math.abs(value);
-  const proportion = effectiveMax > 0 ? absValue / effectiveMax : 0;
-  const isExtreme = absValue > effectiveMax;
-  const barWidth = Math.min(proportion, 1) * maxBarWidth;
-
-  const isPositive = value >= 0;
-  const barX = isPositive ? axisX : axisX - barWidth;
   const barY = padding;
+  const isPositive = value >= 0;
 
   // Get style based on column type (scenario vs variance)
   const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
-  // Pattern prefix for scenarios uses scenario type, for variances uses pos/neg
   const patternPrefix = isScenarioColumn(scenario)
     ? getScenarioType(scenario)
     : isPositiveGood
@@ -308,13 +325,13 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
 
   const displayValue = formattedValue || formatValue(value, false, measureScale);
 
-  // Label position: in the label area on the appropriate side
-  // Positive values: label in right area, left-aligned
-  // Negative values: label in left area, right-aligned
-  const labelX = isPositive ? axisX + barWidth + 4 * s : axisX - barWidth - 4 * s;
-  const labelAnchor = isPositive ? "start" : "end";
+  // Normal bar width (clamped to cutWidth when extreme)
+  const baseBarWidth = isExtreme ? cutWidth : scaledWidth;
 
-  const centerY = height / 2;
+  // Label position accounts for overdrive
+  const totalVisualWidth = isExtreme ? cutWidth + breakGap + overdriveWidth : scaledWidth;
+  const labelX = isPositive ? axisX + totalVisualWidth + 4 * s : axisX - totalVisualWidth - 4 * s;
+  const labelAnchor = isPositive ? "start" : "end";
 
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart absolute-variance" style={{ overflow: "visible" }}>
@@ -323,12 +340,12 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
       {/* Center axis line */}
       <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
 
-      {/* Bar */}
-      {barWidth > 0 && (
+      {/* Base bar */}
+      {baseBarWidth > 0 && (
         <rect
-          x={barX}
+          x={isPositive ? axisX : axisX - baseBarWidth}
           y={barY}
-          width={barWidth}
+          width={baseBarWidth}
           height={barHeight}
           fill={fillValue}
           stroke={barStroke}
@@ -336,30 +353,31 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
         />
       )}
 
-      {/* Arrow indicator for extreme positive values */}
-      {isExtreme && isPositive && (
-        <polygon
-          points={`${axisX + maxBarWidth},${centerY} ${axisX + maxBarWidth - 6 * s},${centerY - 3 * s} ${axisX + maxBarWidth - 6 * s},${centerY + 3 * s}`}
-          fill={barStyle.fill === "transparent" ? barStyle.stroke : barStyle.fill}
+      {/* Overdrive: break gap + stub bar (only when extreme) */}
+      {isExtreme && overdriveWidth > 0 && (
+        <rect
+          x={isPositive ? axisX + cutWidth + breakGap : axisX - cutWidth - breakGap - overdriveWidth}
+          y={barY}
+          width={overdriveWidth}
+          height={barHeight}
+          fill={fillValue}
+          stroke={barStroke}
+          stroke-width={barStrokeWidth * s}
         />
       )}
 
-      {/* Arrow indicator for extreme negative values */}
-      {isExtreme && !isPositive && (
-        <polygon
-          points={`${axisX - maxBarWidth},${centerY} ${axisX - maxBarWidth + 6 * s},${centerY - 3 * s} ${axisX - maxBarWidth + 6 * s},${centerY + 3 * s}`}
-          fill={barStyle.fill === "transparent" ? barStyle.stroke : barStyle.fill}
-        />
-      )}
+      {/* Zigzag break indicator between base and overdrive */}
+      {isExtreme &&
+        renderZigzagBreak(isPositive ? axisX + cutWidth : axisX - cutWidth - breakGap, breakGap, barY, barHeight, s)}
 
-      {/* Value label - uses fontColor from styles */}
+      {/* Value label */}
       <text
         x={labelX}
         y={height / 2}
         dy="0.35em"
         text-anchor={labelAnchor}
         fill={styles.fontColor}
-        font-size={styles.fontSize}
+        font-size={fs}
         font-family={styles.fontFamily}
       >
         {displayValue}
@@ -384,13 +402,14 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     isPositiveGood,
     formattedValue,
     measureScale,
-    maxBarWidth: maxBarWidthEm = 3,
+    maxBarWidth: maxBarWidthEm = 10,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
+  const fs = styles.fontSize;
 
   // Pin length is ~2/3 of bar width for visual balance
-  const maxPinLength = Math.round(maxBarWidthEm * 0.67 * styles.fontSize) * s;
+  const maxPinLength = Math.round(maxBarWidthEm * 0.67 * fs);
   const pinPadding = 5 * s;
 
   // Adaptive axis placement based on data range
@@ -405,12 +424,11 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const axisX = negPinWidth;
   const centerY = height / 2;
 
-  // Proportional scaling with outlier detection
-  const effectiveMax = computeEffectiveMax(columnStats);
-  const absValue = Math.abs(value);
-  const proportion = effectiveMax > 0 ? absValue / effectiveMax : 0;
-  const isExtreme = absValue > effectiveMax;
-  const pinLength = Math.min(proportion, 1) * maxPinLength;
+  // Direct unit scaling via fontSize
+  const percentValue = Math.abs(value) * 100;
+  const scaledLength = percentValue * styles.percentageScaling * fs;
+  const isExtreme = scaledLength > maxPinLength;
+  const pinLength = Math.min(scaledLength, maxPinLength);
 
   const isPositive = value >= 0;
   const pinEndX = isPositive ? axisX + pinLength : axisX - pinLength;
@@ -458,7 +476,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         dy="0.35em"
         text-anchor="start"
         fill={styles.fontColor}
-        font-size={styles.fontSize}
+        font-size={fs}
         font-style="italic"
         font-family={styles.fontFamily}
       >

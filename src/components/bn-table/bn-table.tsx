@@ -274,7 +274,7 @@ export class Table {
    *  values:<br />
    *  ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
    */
-  @Prop() barColumnWidth: string = "w30";
+  @Prop() barColumnWidth: string = "w10";
 
   @Watch("barColumnWidth")
   validateBarColumnWidth(newValue: string) {
@@ -292,9 +292,9 @@ export class Table {
   }
 
   /**
-   * @deprecated Bars now scale proportionally via column statistics. Kept for backward compatibility.
-   * <br /><br />
-   * Scaling for absolute variance bar charts (ΔPY).
+   * Pixels per unit for absolute variance bar charts (ΔPY).
+   * Controls bar width: barWidth = value × unitScaling.
+   * Bars exceeding barColumnWidth are shown with an arrow indicator.
    * <br /><br />
    * Default: 0.01
    */
@@ -1076,7 +1076,7 @@ export class Table {
     if (preset) {
       return BAR_COLUMN_WIDTH_EM[preset];
     }
-    return BAR_COLUMN_WIDTH_EM[TableBarColumnWidth.W30];
+    return BAR_COLUMN_WIDTH_EM[TableBarColumnWidth.W10];
   }
 
   private prepareBarColumns(): string[] {
