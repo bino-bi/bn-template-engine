@@ -708,14 +708,13 @@ export class Chart {
     this.validateScaling(this.scale);
   }
 
-  private _autoScaleIterations = 0;
-  private static readonly MAX_SCALE_ITERATIONS = 3;
+  private _autoScaleGuard = false;
 
   componentDidRender() {
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {
-      this._autoScaleIterations = 0;
+      this._autoScaleGuard = false;
       // Keep existing width-based overflow warning for non-auto modes
       const parent = getParentDimensions(this.element);
       const errId = "WARN_overflow";
@@ -731,55 +730,49 @@ export class Chart {
       return;
     }
 
+    if (this._autoScaleGuard) {
+      this._autoScaleGuard = false;
+      return;
+    }
+
     const host = this.element;
     const { width: parentWidth } = getParentDimensions(host);
     if (parentWidth <= 0) return;
 
-    const div = host.shadowRoot?.querySelector(".container");
-    const currentWidth = div?.scrollWidth ?? host.scrollWidth;
+    // Measure at base (unscaled) font size to get true content width
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
+    host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
 
-    // Content fits — no scaling needed (or current scale is sufficient)
-    if (currentWidth <= parentWidth + 1) {
-      this._autoScaleIterations = 0;
+    // Reading scrollWidth forces a synchronous reflow at base size
+    const div = host.shadowRoot?.querySelector(".container");
+    const unscaledWidth = div?.scrollWidth ?? host.scrollWidth;
+
+    if (unscaledWidth <= parentWidth + 1) {
       this.errors.remove("AUTO_scale");
-      // If previously scaled but content now fits at base, reset to 1
       if (this.appliedScaleFactor !== 1) {
-        // Try resetting — if that overflows, the next didRender will re-scale
-        this._autoScaleIterations = 1;
+        this._autoScaleGuard = true;
         this.appliedScaleFactor = 1;
-        host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
       }
       return;
     }
 
-    // Prevent infinite loop
-    if (this._autoScaleIterations >= Chart.MAX_SCALE_ITERATIONS) {
-      this._autoScaleIterations = 0;
-      return;
-    }
+    const computedFactor = (parentWidth - 1) / unscaledWidth;
 
-    // Content overflows — compute multiplicative correction
-    const correction = (parentWidth - 1) / currentWidth;
-    const newFactor = this.appliedScaleFactor * correction;
-
-    host.style.setProperty("--bn-font-size", `${baseFontSize * newFactor}px`);
+    host.style.setProperty("--bn-font-size", `${baseFontSize * computedFactor}px`);
 
     if (mode === "empty") {
       this.errors.addOrReplace({
         id: "AUTO_scale",
         type: "warning",
-        message: `Auto-scaled chart by factor ${newFactor.toFixed(3)}`,
+        message: `Auto-scaled chart by factor ${computedFactor.toFixed(3)}`,
       });
     } else {
       this.errors.remove("AUTO_scale");
     }
 
-    if (Math.abs(newFactor - this.appliedScaleFactor) > 0.001) {
-      this._autoScaleIterations++;
-      this.appliedScaleFactor = newFactor;
-    } else {
-      this._autoScaleIterations = 0;
+    if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
+      this._autoScaleGuard = true;
+      this.appliedScaleFactor = computedFactor;
     }
   }
 
