@@ -82,6 +82,34 @@ export enum TableCategoryWidth {
   W5 = "w5",
 }
 
+/** Width preset for inline bar/pin chart columns. Value = max bar width in em. */
+export enum TableBarColumnWidth {
+  W5 = "w5",
+  W10 = "w10",
+  W15 = "w15",
+  W20 = "w20",
+  W25 = "w25",
+  W30 = "w30",
+  W40 = "w40",
+  W60 = "w60",
+  W80 = "w80",
+  W100 = "w100",
+}
+
+/** Maps TableBarColumnWidth presets to max bar width in em. */
+export const BAR_COLUMN_WIDTH_EM: Record<TableBarColumnWidth, number> = {
+  [TableBarColumnWidth.W5]: 5,
+  [TableBarColumnWidth.W10]: 10,
+  [TableBarColumnWidth.W15]: 15,
+  [TableBarColumnWidth.W20]: 20,
+  [TableBarColumnWidth.W25]: 25,
+  [TableBarColumnWidth.W30]: 30,
+  [TableBarColumnWidth.W40]: 40,
+  [TableBarColumnWidth.W60]: 60,
+  [TableBarColumnWidth.W80]: 80,
+  [TableBarColumnWidth.W100]: 100,
+};
+
 /**
  * Three-level row hierarchy for grouping and drill-down: rowGroup > category > subCategory.
  * Index variants (e.g. ROWGROUPINDEX) provide stable numeric sort keys that preserve

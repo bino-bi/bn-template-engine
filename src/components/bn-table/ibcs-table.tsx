@@ -109,6 +109,9 @@ export class IbcsTable {
   barColumns: string[] = [];
 
   @Prop()
+  barColumnMaxWidth: number = 30;
+
+  @Prop()
   unitScaling: number = 0.01;
 
   @Prop()
@@ -183,6 +186,7 @@ export class IbcsTable {
                         isRelative={cell.key.startsWith("dr")}
                         isPositiveGood={cell.key.endsWith("_pos")}
                         measureScale={cell.measureScale}
+                        maxBarWidth={this.barColumnMaxWidth}
                         styles={this.barChartStyles}
                       />
                     ) : (

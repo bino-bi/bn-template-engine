@@ -22,6 +22,7 @@ export class ColumnStatistics {
     for (const column of columns) {
       let min = Infinity;
       let max = -Infinity;
+      const absValues: number[] = [];
 
       for (const group of data) {
         for (const row of group) {
@@ -29,6 +30,7 @@ export class ColumnStatistics {
           if (value !== null && !isNaN(value)) {
             min = Math.min(min, value);
             max = Math.max(max, value);
+            absValues.push(Math.abs(value));
           }
         }
       }
@@ -41,7 +43,14 @@ export class ColumnStatistics {
 
       const absMax = Math.max(Math.abs(min), Math.abs(max));
 
-      statsMap.set(column, { min, max, absMax });
+      let median = 0;
+      if (absValues.length > 0) {
+        absValues.sort((a, b) => a - b);
+        const mid = Math.floor(absValues.length / 2);
+        median = absValues.length % 2 === 0 ? (absValues[mid - 1] + absValues[mid]) / 2 : absValues[mid];
+      }
+
+      statsMap.set(column, { min, max, absMax, median });
     }
 
     return statsMap;

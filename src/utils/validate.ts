@@ -13,6 +13,7 @@ import {
   MeasureType,
   Scenarios,
   Sentiments,
+  TableBarColumnWidth,
   TableCategoryWidth,
   TableType,
 } from "./constants";
@@ -336,6 +337,10 @@ export function validateStylesString(value: string): string[] {
 
 export function isTableCategoryWidth(value: string): boolean {
   return value?.toUpperCase().trim() in TableCategoryWidth;
+}
+
+export function isTableBarColumnWidth(value: string): boolean {
+  return value?.toUpperCase().trim() in TableBarColumnWidth;
 }
 
 export function validateColumnThereOfJsonStr(value: string): string[] {

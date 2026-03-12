@@ -193,9 +193,11 @@ export class TableDataSetFactory {
       return statsMap;
     }
 
-    // Initialize stats for each bar column
+    // Collect all values per column for median calculation
+    const valuesMap = new Map<string, number[]>();
     for (const column of barColumns) {
-      statsMap.set(column, { min: Infinity, max: -Infinity, absMax: 0 });
+      statsMap.set(column, { min: Infinity, max: -Infinity, absMax: 0, median: 0 });
+      valuesMap.set(column, []);
     }
 
     // Iterate through all groups and rows
@@ -207,18 +209,27 @@ export class TableDataSetFactory {
             const stats = statsMap.get(column)!;
             stats.min = Math.min(stats.min, value);
             stats.max = Math.max(stats.max, value);
+            valuesMap.get(column)!.push(Math.abs(value));
           }
         }
       }
     }
 
-    // Finalize absMax values
+    // Finalize absMax and median values
     for (const [column, stats] of statsMap) {
       if (stats.min === Infinity || stats.max === -Infinity) {
         stats.min = 0;
         stats.max = 0;
       }
       stats.absMax = Math.max(Math.abs(stats.min), Math.abs(stats.max));
+
+      const absValues = valuesMap.get(column)!;
+      if (absValues.length > 0) {
+        absValues.sort((a, b) => a - b);
+        const mid = Math.floor(absValues.length / 2);
+        stats.median = absValues.length % 2 === 0 ? (absValues[mid - 1] + absValues[mid]) / 2 : absValues[mid];
+      }
+
       statsMap.set(column, stats);
     }
 

@@ -9,6 +9,7 @@ export interface ColumnStats {
   min: number;
   max: number;
   absMax: number;
+  median: number;
 }
 
 /**
