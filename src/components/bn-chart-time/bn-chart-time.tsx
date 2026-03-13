@@ -957,6 +957,7 @@ export class Chart {
         axisStyles: $["bn-chart-time"]["axisStyles"],
         barStyles: $["bn-chart-time"]["barStyles"],
         varianceStyles: $["bn-chart-time"]["varianceStyles"],
+        stackColors: $["bn-chart-time"]["stackColors"],
         padding: $["bn-chart-time"]["padding"],
         pattern: null,
       };
@@ -1102,16 +1103,36 @@ export class Chart {
 
   private prepareStackConfig(): StackConfigParsed | null {
     if (isBlankInput(this.stack)) {
+      this.errors.remove("WARN_stack_dimensions_scenarios");
       return null;
     }
     try {
       const parsed = JSON.parse(this.stack);
+      const by = parsed.by as StackBy;
+
+      const errId = "WARN_stack_dimensions_scenarios";
+      if (by === StackBy.DIMENSIONS) {
+        const scenarios = this.prepareScenarios();
+        if (scenarios.length > 1) {
+          this.errors.addOrReplace({
+            id: errId,
+            type: "warning",
+            message: `stack by dimensions: only the first scenario "${scenarios[0]}" is used, the rest (${scenarios.slice(1).join(", ")}) are discarded.`,
+          });
+        } else {
+          this.errors.remove(errId);
+        }
+      } else {
+        this.errors.remove(errId);
+      }
+
       return {
-        by: parsed.by as StackBy,
+        by,
         mode: (parsed.mode as StackMode) || StackMode.ABSOLUTE,
         order: (parsed.order as StackOrder) || StackOrder.DATASET,
       };
     } catch {
+      this.errors.remove("WARN_stack_dimensions_scenarios");
       return null;
     }
   }
@@ -1141,12 +1162,15 @@ export class Chart {
     const effectiveFactor = this.getEffectiveScaleFactor();
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
+    const stackConfig = this.prepareStackConfig();
+    const scenarios = this.prepareScenarios();
+    const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
       <ibcs-chart-time
         data={this.data}
         chartTitle={this.prepareChartTitle(idx)}
-        scenarios={this.prepareScenarios()}
+        scenarios={effectiveScenarios}
         variances={[localScenarioString]}
         hideAxisLabels={this.prepareHideAxisLabels(idx)}
         pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
@@ -1168,7 +1192,7 @@ export class Chart {
         showMeasureScale={this.prepareShowMeasureScale(idx)}
         chartMode={this.prepareChartMode()}
         maxBars={this.prepareMaxBars()}
-        stackConfig={this.prepareStackConfig()}
+        stackConfig={stackConfig}
         lineFullWidth={this.prepareLineFullWidth()}
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension()}

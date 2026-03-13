@@ -57,31 +57,36 @@ export class Chart {
   private readonly errors: ErrorDispatcher;
 
   /**
-   * Custom chart title
+   * Title displayed above the chart. When empty, the title is derived
+   * from the variance scenario labels (if variances are configured).
+   *
+   * @example chart-title="Revenue by Category"
    */
   @Prop()
   chartTitle: string = "";
 
   /**
    * AlaSQL WHERE clause fragment injected into the data query to filter
-   * rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
+   * rows before rendering.
+   *
+   * @example filter="rowGroup = 'Revenue'"
    */
   @Prop()
   filter: string = "";
 
   /**
-   * List of Scenarios Map.
-   *<br /> <br />
-   * per chart there are up to 4 different scenarios supported.
-   * The first 4 scenarios in the list are used, the rest ignored.
+   * Comma-separated list of scenario columns to display as bars.
+   * Up to 4 scenarios are supported; additional values are ignored.
    *
-   *<br /> <br />
-   *  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```
-   *  example:<br /> ```ac1,ac2,ac3,ac4```
-   *<br /> <br />
-   *  When set to ```auto```, scenarios are detected from the dataset silently.
-   *  When left blank, scenarios are detected from the dataset with a warning.
+   * Valid scenario names: `ac1`–`ac4`, `fc1`–`fc4`, `pp1`–`pp4`, `pl1`–`pl4`.
    *
+   * | Value         | Behavior                                                    |
+   * |---------------|-------------------------------------------------------------|
+   * | `"ac1,fc1"`   | Show the listed scenarios                                   |
+   * | `"auto"`      | Auto-detect from dataset metadata (no warning)              |
+   * | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) |
+   *
+   * @example scenarios="ac1,pp1,pl1"
    */
   @Prop() scenarios!: string;
   @Watch("scenarios")
@@ -100,26 +105,19 @@ export class Chart {
     }
   }
   /**
-   * List of Variance Map.
-   *<br /> <br />
-   *   Variance chart can be added by seperating the scenarios
-   *   of each chart with ```;```<br />
-   *   The additonal variances which
-   *   are calculated form the given scenarios.
-   *   the scenarios used in the variances have also
-   *   be defined in the *scenarios* property.
-   *<br /> <br />
-   *   the variance is defiend as  (Scenario A -  ScenarioB)
-   *   neu. neg and pos post fix defines which value is *good*
-   *   a negative or a positive value.
-   *<br /> <br />
-   *   if empty variance charts are hidden
-   *<br /> <br />
-   *   each variance creates a chart
-   *<br /> <br />
-   *   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   * Comma-separated list of variance definitions. Each variance adds
+   * a separate sub-chart next to the main bar chart.
    *
-   *    example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
+   * **Pattern:** `d<base>_<comparison>_<sentiment>` (absolute)
+   * or `dr<base>_<comparison>_<sentiment>` (relative / percentage).
+   *
+   * - `base` / `comparison`: scenario names that must also appear in `scenarios`.
+   * - `sentiment`: `pos` (positive is good), `neg` (negative is good), `neu` (neutral).
+   *
+   * When empty, no variance charts are shown.
+   *
+   * @example variances="dpp1_ac1_neg,dfc1_ac1_neg"
+   * @example variances="drac1_pl1_pos"
    */
   @Prop() variances!: string;
   @Watch("variances")
@@ -139,11 +137,20 @@ export class Chart {
   }
 
   /**
-   * Name of the 'scaling-group' which the chart uses
-   * scaling groups are maintained globally
-   * <br /> <br />
-   * alternatively a number which represent the
-   * pixel per measure unit.
+   * Controls horizontal bar scaling (pixels per data unit).
+   *
+   * | Value          | Behavior                                                        |
+   * |----------------|-----------------------------------------------------------------|
+   * | `"auto"`       | Auto-fit bars to fill the available container width (no warning) |
+   * | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              |
+   * | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       |
+   * | group name     | References a shared scaling group for synchronized charts       |
+   *
+   * When using a custom value that causes the chart to exceed its container,
+   * a `WARN_overflow` error is emitted.
+   *
+   * @example unit-scaling="auto"
+   * @example unit-scaling="0.05"
    */
   @Prop() unitScaling!: string | number;
 
@@ -163,11 +170,16 @@ export class Chart {
   }
 
   /**
-   * Name of the 'scaling-group' which the chart uses
-   * scaling groups are maintained globally
-   * <br /> <br />
-   * alternatively a number which represent the
-   * pixel per percentage.
+   * Controls scaling of relative variance bars (pixels per percentage point).
+   *
+   * | Value          | Behavior                                                      |
+   * |----------------|---------------------------------------------------------------|
+   * | `"auto"`       | Auto-fit to available width                                   |
+   * | not set / `""` | Same as auto with warning                                     |
+   * | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    |
+   * | group name     | References a shared scaling group for synchronized charts     |
+   *
+   * @example percentage-scaling="50"
    */
   @Prop() percentageScaling!: string | number;
   @Watch("percentageScaling")
@@ -186,15 +198,24 @@ export class Chart {
   }
 
   /**
-   * Determines level on which the chart is aggregated on.
-   * <br /> <br />
+   * Aggregation level that determines which hierarchy dimension each bar represents.
    *
-   * values:<br/>
-   * ``` rowcategory // category // subcategory // auto```
-   * <br /> <br />
-   *  When set to ```auto```, level is detected from the dataset silently.
-   *  When left blank, level is detected from the dataset with a warning.
+   * | Value              | Bars represent            |
+   * |--------------------|---------------------------|
+   * | `"rowGroup"`       | Row groups                |
+   * | `"rowGroupIndex"`  | Row groups (dataset order)|
+   * | `"category"`       | Categories                |
+   * | `"categoryIndex"`  | Categories (dataset order)|
+   * | `"subCategory"`    | Sub-categories            |
+   * | `"subCategoryIndex"` | Sub-categories (dataset order)|
+   * | `"auto"`           | Auto-detect from dataset metadata (no warning) |
+   * | not set / `""`     | Auto-detect with `AUTO_level` warning          |
    *
+   * Index variants preserve the original dataset order instead of sorting alphabetically.
+   * When `stack.by` is `"dimensions"`, the chart automatically stacks by the next-lower
+   * level (e.g. level `"rowGroup"` stacks by category).
+   *
+   * @example level="category"
    */
   @Prop() level!: string;
 
@@ -213,14 +234,21 @@ export class Chart {
     }
   }
 
-  /** List of the primary scenarios on which the order direction are applied  valid scenarios are
-   *  If order is set to a scenario it has also exists in scenariolist
-   *  <br /><br />
-   *  values:<br />
-   *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto```
-   *  <br /><br />
-   *  When set to ```auto```, order is detected from the dataset silently.
-   *  When left blank, order is detected from the dataset with a warning.
+  /**
+   * Comma-separated list of columns that define the sort order of bars.
+   * When ordering by a scenario column, that scenario must also be listed in `scenarios`.
+   *
+   * Valid values: `category`, `categoryIndex`, `rowGroup`, `rowGroupIndex`,
+   * `subCategory`, `subCategoryIndex`, `ac1`–`ac4`, `fc1`–`fc4`, `pp1`–`pp4`, `pl1`–`pl4`.
+   *
+   * | Value          | Behavior                                            |
+   * |----------------|-----------------------------------------------------|
+   * | `"ac1"`        | Sort bars by the ac1 scenario values                |
+   * | `"category"`   | Sort bars alphabetically by category name           |
+   * | `"auto"`       | Auto-detect from dataset metadata (no warning)      |
+   * | not set / `""` | Auto-detect with `AUTO_order` warning               |
+   *
+   * @example order="ac1"
    */
   @Prop() order!: string;
 
@@ -240,10 +268,13 @@ export class Chart {
     }
   }
 
-  /** set sorting order direction
-   *  <br /><br />
-   *  values:<br />
-   *  ```asc // desc```
+  /**
+   * Sort direction applied to the columns specified in `order`.
+   *
+   * Values: `"asc"` (ascending) | `"desc"` (descending).
+   *
+   * @default "asc"
+   * @example order-direction="desc"
    */
   @Prop() orderDirection!: string;
   @Watch("orderDirection")
@@ -260,18 +291,12 @@ export class Chart {
       this.errors.remove(errId);
     }
   }
-  /** set translaton mode.
-   *  <br /><br />
-   *  values:<br />
-   *  ``` all // none // meta ```
-   */
-
   /**
-   * Set the maximum number of bars for each
-   * group. The value 0 means *no limit*
-   * <br /><br />
-   * rows wich where cut by the limit are cumulated as REST
+   * Maximum number of bars to display. Excess rows are aggregated into
+   * a "REST" summary bar. `0` means no limit (all rows are shown).
    *
+   * @default 0
+   * @example limit="5"
    */
   @Prop() limit: number = 0;
 
@@ -290,6 +315,14 @@ export class Chart {
     }
   }
 
+  /**
+   * Whether to display category labels on the left side of the chart.
+   *
+   * Values: `"true"` | `"false"`.
+   *
+   * @default "true"
+   * @example show-categories="false"
+   */
   @Prop() showCategories: string = "true";
 
   @Watch("showCategories")
@@ -308,38 +341,21 @@ export class Chart {
   }
 
   /**
-   *  Sets the SiPrefix of the Mesaurements and converts the
-   *  original value.
-   *  <br /><br />
-   *  values:  <br />
-   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
-   *  <br /><br />
-   *  SiPrefix overview:
-   *  ```     "Y":  1E+24,```<br />
-   *  ```    "Z":  1E+21,```<br />
-   *  ```   "E":  1E+18,```<br />
-   *  ```     "P":  1E+15,```<br />
-   *  ```     "T":  1E+12,```<br />
-   *  ```     "G":  1000000000,```<br />
-   *  ```     "M":  1000000,```<br />
-   *  ```     "k":  1000,```<br />
-   *  <br />
-   *  ```     "m":  0.001,```<br />
-   *  ```    "μ":  0.000001,```<br />
-   *  ```     "n":  0.000000001,```<br />
-   *  ```     "p":  0.000000000001,```<br />
-   *  ```     "f":  0.000000000000001,```<br />
-   *  ```     "a":  0.000000000000000001,```<br />
-   *  ```     "z":  0.000000000000000000001,```<br />
-   *  ```     "y":  0.000000000000000000000001,```<br />
-   *  <br /><br />
-   * Special modes:
-   * ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br />
-   * ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br />
-   *<br /><br />
-   * ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+   * SI prefix applied to data values, dividing them for display
+   * (e.g. `"k"` divides by 1 000, showing 14 000 as "14").
    *
+   * Common prefixes: `"k"` (×10³), `"M"` (×10⁶), `"G"` (×10⁹), `"T"` (×10¹²).
+   * Use `"_"` for no prefix (raw values).
    *
+   * | Special value | Behavior                                                     |
+   * |---------------|--------------------------------------------------------------|
+   * | `"GREATEST"`  | Auto-select prefix based on the largest value in the dataset |
+   * | `"LEAST"`     | Auto-select prefix based on the smallest value               |
+   *
+   * The selected prefix is shown in the chart footer when `show-measure-scale` is enabled.
+   *
+   * @default "greatest"
+   * @example measure-scale="k"
    */
   @Prop() measureScale: string = "greatest";
 
@@ -359,10 +375,13 @@ export class Chart {
   }
 
   /**
-   *  Toggles display of measure units in table header
-   *  <br /><br />
-   *  values: <br />
-   *  ```true // false```
+   * Toggles display of the SI prefix and unit label in the chart footer
+   * (e.g. "k EUR").
+   *
+   * Values: `"true"` | `"false"`.
+   *
+   * @default "false"
+   * @example show-measure-scale="true"
    */
   @Prop() showMeasureScale: string = "false";
 
@@ -382,17 +401,38 @@ export class Chart {
   }
 
   /**
-   * measureUnit displayed in table.
+   * Unit label displayed alongside the SI prefix in the chart footer
+   * (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is `"true"`.
+   *
+   * @default ""
+   * @example measure-unit="EUR"
    */
   @Prop() measureUnit: string = "";
 
   /**
-   * Stacking configuration for the chart as a JSON string.
+   * Stacking configuration as a JSON string. When set, bars are drawn as
+   * stacked segments instead of side-by-side.
    *
-   * When set, bars are drawn stacked (additive layers) instead of side-by-side.
+   * **Properties:**
    *
-   * @default '' (empty — no stacking)
-   * @example stack='{"by":"scenario"}'
+   * | Key     | Values                                        | Description                                        |
+   * |---------|-----------------------------------------------|----------------------------------------------------|
+   * | `by`    | `"scenarios"` \| `"dimensions"`               | **Required.** What to stack.                       |
+   * | `mode`  | `"absolute"` \| `"relative"` \| `"absolute-relative"` | Stacking mode. Default: `"absolute"`.        |
+   * | `order` | `"asc"` \| `"desc"` \| `"dataset"`           | Segment sort order. Default: `"dataset"`.          |
+   *
+   * - `by: "scenarios"` — stacks the scenarios listed in the `scenarios` prop end-to-end.
+   * - `by: "dimensions"` — stacks by the next-lower hierarchy level derived from `level`
+   *   (e.g. level `"rowGroup"` stacks by category). Only the first scenario is used;
+   *   extra scenarios trigger a `WARN_stack_dimensions_scenarios` warning.
+   * - `mode: "relative"` — normalizes each bar to 100%, showing proportions.
+   * - `mode: "absolute-relative"` — absolute bars with percentage labels.
+   *
+   * Segment colors are configurable via the `stackColors` array in component styles.
+   *
+   * @default "" (no stacking)
+   * @example stack='{"by":"scenarios","mode":"absolute"}'
+   * @example stack='{"by":"dimensions","mode":"relative"}'
    */
   @Prop() stack: string = "";
 
@@ -486,29 +526,22 @@ export class Chart {
 
     if (mode !== "auto" && mode !== "empty") {
       this._autoScaleGuard = false;
-      // Keep existing width-based overflow warning for non-auto modes
-      const parent = getParentDimensions(this.element);
-      const errId = "WARN_overflow";
-      if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
-        this.errors.addOrReplace({
-          id: errId,
-          type: "warning",
-          message: "Chart exceeds available space and will be cut off. Check unit-scaling value.",
-        });
-      } else {
-        this.errors.remove(errId);
-      }
+      this.checkWidthOverflow();
       return;
     }
 
     if (this._autoScaleGuard) {
       this._autoScaleGuard = false;
+      this.checkWidthOverflow();
       return;
     }
 
     const host = this.element;
     const { height: parentHeight } = getParentDimensions(host);
-    if (parentHeight <= 0) return;
+    if (parentHeight <= 0) {
+      this.checkWidthOverflow();
+      return;
+    }
 
     // Measure at base (unscaled) font size to get true content height
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
@@ -524,6 +557,7 @@ export class Chart {
         this._autoScaleGuard = true;
         this.appliedScaleFactor = 1;
       }
+      this.checkWidthOverflow();
       return;
     }
 
@@ -544,6 +578,33 @@ export class Chart {
     if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
       this._autoScaleGuard = true;
       this.appliedScaleFactor = computedFactor;
+    }
+
+    this.checkWidthOverflow();
+  }
+
+  /**
+   * Emits an error when a custom unit-scaling value causes the chart to exceed its container width.
+   * Skipped for auto/unset unit-scaling since auto-fit handles width.
+   */
+  private checkWidthOverflow(): void {
+    const errId = "WARN_overflow";
+    const us = String(this.unitScaling ?? "")
+      .trim()
+      .toLowerCase();
+    if (us === "" || us === "auto") {
+      this.errors.remove(errId);
+      return;
+    }
+    const parent = getParentDimensions(this.element);
+    if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "error",
+        message: `Chart exceeds available width (${this.element.scrollWidth}px > ${Math.round(parent.width)}px). Reduce unit-scaling or set to "auto".`,
+      });
+    } else {
+      this.errors.remove(errId);
     }
   }
 
@@ -732,16 +793,36 @@ export class Chart {
 
   private prepareStackConfig(): StackConfigParsed | null {
     if (isBlankInput(this.stack)) {
+      this.errors.remove("WARN_stack_dimensions_scenarios");
       return null;
     }
     try {
       const parsed = JSON.parse(this.stack);
+      const by = parsed.by as StackBy;
+
+      const errId = "WARN_stack_dimensions_scenarios";
+      if (by === StackBy.DIMENSIONS) {
+        const scenarios = this.prepareScenarios();
+        if (scenarios.length > 1) {
+          this.errors.addOrReplace({
+            id: errId,
+            type: "warning",
+            message: `stack by dimensions: only the first scenario "${scenarios[0]}" is used, the rest (${scenarios.slice(1).join(", ")}) are discarded.`,
+          });
+        } else {
+          this.errors.remove(errId);
+        }
+      } else {
+        this.errors.remove(errId);
+      }
+
       return {
-        by: parsed.by as StackBy,
+        by,
         mode: (parsed.mode as StackMode) || StackMode.ABSOLUTE,
         order: (parsed.order as StackOrder) || StackOrder.DATASET,
       };
     } catch {
+      this.errors.remove("WARN_stack_dimensions_scenarios");
       return null;
     }
   }
@@ -829,12 +910,16 @@ export class Chart {
     const effectiveFactor = this.getEffectiveScaleFactor();
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
+    const stackConfig = this.prepareStackConfig();
+    const scenarios = this.prepareScenarios();
+    // Dimension stacking uses only the first scenario
+    const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
       <ibcs-chart-structure
         data={this.data}
         chartTitle={this.prepareChartTitle(idx)}
-        scenarios={this.prepareScenarios()}
+        scenarios={effectiveScenarios}
         variances={[localScenarioString]}
         hideCategories={this.prepareHideCategories(idx)}
         pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
@@ -848,7 +933,7 @@ export class Chart {
         measure-scale={this.prepareMeasureScale()}
         measure-unit={this.prepareMeasureUnit()}
         showMeasureScale={this.prepareShowMeasureScale(idx)}
-        stackConfig={this.prepareStackConfig()}
+        stackConfig={stackConfig}
         parentDimensions={this.prepareDimension()}
       ></ibcs-chart-structure>
     );

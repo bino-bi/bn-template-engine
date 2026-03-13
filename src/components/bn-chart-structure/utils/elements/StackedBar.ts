@@ -5,7 +5,6 @@ import { HookLocation, Label } from "./Label";
 import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StackMode } from "../../../../utils/constants";
-import { getStackFill, getStackStroke } from "../../../../utils/stackColors";
 
 /**
  * Renders a single horizontal stacked bar segment for the structure chart.
@@ -83,10 +82,10 @@ export class StackedBar {
 
     const yPos = this.position.getBarPositionY(this.index, true);
 
-    // Unified IBCS 3-color palette for all stacking modes
-    const fillColor = getStackFill(this.segmentIndex);
+    const colors = this.styles.stackColors;
+    const fillColor = colors[this.segmentIndex % colors.length];
     const fillStyle = { color: fillColor };
-    const strokeStyle = { color: getStackStroke(this.segmentIndex), width: 0.5 };
+    const strokeStyle = { color: fillColor, width: 0.5 };
 
     this.barGroup.rect(Math.max(segmentLength, 0.5), barWidth).fill(fillStyle).stroke(strokeStyle).cy(yPos).x(xPos);
 

@@ -1,7 +1,7 @@
 /** Default fill colors cycled through for stacked chart segments. */
-export const STACK_FILLS = ["#808080", "#c0c0c0", "#000000"];
+export const STACK_FILLS = ["#000000", "#c0c0c0", "#808080"];
 /** Default stroke colors cycled through for stacked chart segments. */
-export const STACK_STROKES = ["#808080", "#c0c0c0", "#000000"];
+export const STACK_STROKES = ["#000000", "#c0c0c0", "#808080"];
 
 /**
  * IBCS rendering order: back-to-front (PL behind FC behind PP behind AC).

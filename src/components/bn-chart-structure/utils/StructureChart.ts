@@ -92,6 +92,7 @@ export class StructureChart {
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
   private stackConfig: StackConfigParsed | null = null;
   private overflowConfig: OverflowConfig | null = null;
+  private highestStackedTotal: number = 0;
 
   constructor(ruleSet: VisualisationRuleSet, config: StructureChartComponentConfig, styles: StructureChartStyle) {
     this.initSQLFunctions();
@@ -149,7 +150,7 @@ export class StructureChart {
     this.dataModel = this.populateModel(config.scenarios, config.level, config.sortOrder);
 
     // Populate per-dimension stack segments when stacking by a data dimension
-    if (config.stackConfig && config.stackConfig.by !== StackBy.SCENARIO) {
+    if (config.stackConfig && config.stackConfig.by !== StackBy.SCENARIOS) {
       this.populateDimensionStackSegments(config.scenarios, config.stackConfig, config.level);
     }
 
@@ -167,6 +168,7 @@ export class StructureChart {
     this.measureUnit = config.measureUnit;
     this.dataFormatDigits = config.dataFormatDigits;
     this.stackConfig = config.stackConfig;
+    this.highestStackedTotal = this.findHighestStackedRowTotal(this.dataModel);
 
     this.updatePosition();
   }
@@ -262,6 +264,32 @@ export class StructureChart {
     } else {
       this.preparedDataSet = data;
     }
+  }
+
+  /**
+   * Returns the data value whose bar extent is proportional to pixelPerUnit.
+   * Used by autoFitScaling to separate fixed vs variable width components.
+   */
+  public getMaxBarValue(): number {
+    // Stacked: bar extent = highestStackedTotal * ppu (or just ppu for relative)
+    if (this.stackConfig != null && this.highestStackedTotal > 0) {
+      if (this.stackConfig.mode === StackMode.RELATIVE) {
+        return 1;
+      }
+      return this.highestStackedTotal;
+    }
+
+    // Non-stacked: bar extent = highestDataPointValue * ppu
+    const vt = this.getVarianceType();
+    if (vt === VarianceType.NONE && this.highestDataPointValue?.value != null) {
+      return Math.abs(this.highestDataPointValue.value);
+    }
+    if (vt === VarianceType.ABSOLUTE && this.highestVarianceDataPointValue?.value != null) {
+      return Math.abs(this.highestVarianceDataPointValue.value);
+    }
+
+    // RELATIVE variance depends on pixelPerPercentage, not pixelPerUnit
+    return 0;
   }
 
   public getAllocatedCanvasWidth(): number {
@@ -613,6 +641,53 @@ export class StructureChart {
     return highestDataPoint;
   }
 
+  private findHighestStackedRowTotal(dataModel: StructureChartDataModelEntry[]): number {
+    if (!this.stackConfig || dataModel.length === 0) return 0;
+
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
+    let maxTotal = 0;
+
+    for (const row of dataModel) {
+      let rowTotal = 0;
+
+      if (isScenarioStack) {
+        const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"] as const;
+        const segments: { value: number; scenario: string }[] = [];
+
+        for (const key of scenarioKeys) {
+          const dp: DataPoint = row[key];
+          if (dp && !dp.isEmpty() && dp.value != null) {
+            segments.push({ value: dp.value, scenario: dp.scenario as string });
+          }
+        }
+
+        const prefixes = new Set(segments.map((s) => getScenarioPrefix(s.scenario)));
+
+        if (prefixes.size > 1) {
+          // Overlay: groups overlap from baseline, width = max group total
+          const groupMap = new Map<string, number>();
+          for (const seg of segments) {
+            const prefix = getScenarioPrefix(seg.scenario);
+            groupMap.set(prefix, (groupMap.get(prefix) || 0) + Math.abs(seg.value));
+          }
+          rowTotal = Math.max(...groupMap.values());
+        } else {
+          // Single group: segments stack end-to-end, width = sum
+          rowTotal = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+        }
+      } else {
+        // Dimension stacking: use stackSegments
+        if (row.stackSegments && row.stackSegments.length > 0) {
+          rowTotal = row.stackSegments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+        }
+      }
+
+      if (rowTotal > maxTotal) maxTotal = rowTotal;
+    }
+
+    return maxTotal;
+  }
+
   private populateVarianceModel(
     variancesConfig: string[],
     dataModel: StructureChartDataModelEntry[],
@@ -822,7 +897,7 @@ export class StructureChart {
     if (!this.stackConfig) return;
 
     const stackGroup: G = svgContainer.group().id("StackedScenarios");
-    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
@@ -956,7 +1031,7 @@ export class StructureChart {
   private drawStackedHeaders(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig || dataModel.length === 0) return;
 
-    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
 
     const headerGroup: G = svgContainer.group().id("StackedHeaders");
     const firstRow = dataModel[0];
@@ -1142,6 +1217,23 @@ export class StructureChart {
   }
 
   private calculateRightSideWidth(varianceType: VarianceType): number {
+    // Stacked charts: width based on max row total, not individual max
+    if (this.stackConfig != null && this.highestStackedTotal > 0) {
+      const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
+      let barExtent: number;
+
+      if (this.stackConfig.mode === StackMode.RELATIVE) {
+        barExtent = this.pixelPerUnit;
+      } else {
+        barExtent = this.highestStackedTotal * this.pixelPerUnit;
+      }
+
+      const sizeTotalLabel = this.calculateTextBoxWidth(this.highestStackedTotal);
+      const width = barExtent + labelToBar + sizeTotalLabel;
+
+      return Math.max(width, this.titleLength);
+    }
+
     let width = 0;
     const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
 
@@ -1181,19 +1273,20 @@ export class StructureChart {
    */
   private populateDimensionStackSegments(
     scenarios: string[],
-    stackConfig: StackConfigParsed,
+    _stackConfig: StackConfigParsed,
     level: AggregationLevel,
   ): void {
     if (this.preparedDataSet?.length === 0 || scenarios.length === 0) return;
 
-    // Map StackBy value to the actual data column name
-    const stackColumnMap: Record<string, string> = {
-      [StackBy.CATEGORY]: "category",
-      [StackBy.SUBCATEGORY]: "subCategory",
-      [StackBy.ROWGROUP]: "rowGroup",
+    // Derive stack column from level: stack by the next-lower hierarchy dimension
+    const nextLowerDimension: Record<string, string> = {
+      [AggregationLevel.ROWGROUP]: "category",
+      [AggregationLevel.ROWGROUPINDEX]: "category",
+      [AggregationLevel.CATEGORY]: "subCategory",
+      [AggregationLevel.CATEGORYINDEX]: "subCategory",
     };
-    const stackColumn = stackColumnMap[stackConfig.by];
-    if (!stackColumn) return;
+    const stackColumn = nextLowerDimension[level];
+    if (!stackColumn) return; // subCategory has no lower dimension
 
     // The display level column (what each bar represents)
     const displayColumn = level.toString(); // e.g. 'rowGroup', 'category', 'subCategory'

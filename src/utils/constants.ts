@@ -155,12 +155,15 @@ export enum ChartMode {
   AUTO = "auto",
 }
 
-/** Dimension used to split bars into stacked segments within a single data point. */
+/**
+ * Stacking dimension for multi-segment bar charts.
+ * - SCENARIOS: stack the scenarios from the `scenarios` prop end-to-end
+ * - DIMENSIONS: stack by the next-lower hierarchy level derived from the `level` prop
+ *   (rowGroup → category, category → subCategory)
+ */
 export enum StackBy {
-  SCENARIO = "scenario",
-  CATEGORY = "category",
-  SUBCATEGORY = "subcategory",
-  ROWGROUP = "rowgroup",
+  SCENARIOS = "scenarios",
+  DIMENSIONS = "dimensions",
 }
 
 /**
