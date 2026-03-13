@@ -169,7 +169,7 @@ export class IbcsChartStructure {
       return;
     }
 
-    // First pass with pixelPerUnit=1 to measure the real SVG width
+    // First pass with pixelPerUnit=1 to measure total width and bar extent
     config.pixelPerUnit = 1;
     this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
     this.chart.setI18n(this.i18n);
@@ -180,8 +180,17 @@ export class IbcsChartStructure {
       return;
     }
 
-    // Scale so the chart fits in ~90% of the available width
-    config.pixelPerUnit = (targetWidth * 0.9) / svgWidth;
+    // Separate fixed parts (labels, padding, spacing) from variable part (bar extent).
+    // totalWidth(ppu) = fixedWidth + maxBarValue * ppu
+    // Solving for ppu:  ppu = (targetWidth - fixedWidth) / maxBarValue
+    const maxBarValue = this.chart.getMaxBarValue();
+    if (maxBarValue > 0) {
+      const fixedWidth = svgWidth - maxBarValue; // at ppu=1, barExtent = maxBarValue * 1
+      config.pixelPerUnit = Math.max(0.001, (targetWidth - fixedWidth) / maxBarValue);
+    } else {
+      // Fallback (e.g. relative variance charts)
+      config.pixelPerUnit = (targetWidth * 0.9) / svgWidth;
+    }
 
     // Second pass with the corrected scaling
     this.chart = new StructureChart(new IBCSRuleSet(), config, styles);

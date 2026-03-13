@@ -377,7 +377,7 @@ export function validateStackConfig(value: string): string[] {
     if (!config.hasOwnProperty("by")) {
       errors.push("stack: 'by' is required");
     } else {
-      const validBy = ["scenario", "category", "subcategory", "rowgroup"];
+      const validBy = ["scenarios", "dimensions"];
       if (!validBy.includes(config.by)) {
         errors.push(`stack: 'by' must be one of: ${validBy.join(", ")}`);
       }

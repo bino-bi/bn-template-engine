@@ -1307,7 +1307,7 @@ export class TimeChart {
     if (!this.stackConfig) return;
 
     const stackGroup: G = svgContainer.group().id("StackedScenarios");
-    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
 
     dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
       const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
@@ -1435,7 +1435,7 @@ export class TimeChart {
   private drawStackedHeaders(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig || dataModel.length === 0) return;
 
-    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
     if (!isScenarioStack) return;
 
     const headerGroup: G = svgContainer.group().id("StackedHeaders");
@@ -1542,7 +1542,7 @@ export class TimeChart {
     if (!this.stackConfig) return;
 
     const areaGroup: G = svgContainer.group().id("StackedAreaScenarios");
-    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIO;
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
     const stackMode = this.stackConfig.mode;
     const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
 

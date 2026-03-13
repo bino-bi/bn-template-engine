@@ -65,6 +65,7 @@ export interface TimeChartStyle {
   axisStyles: SVGStyleGroup;
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
+  stackColors: string[];
   padding: {
     top: number;
     left: number;
@@ -79,6 +80,7 @@ export interface StructureChartStyle {
   axisStyles: SVGStyleGroup;
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
+  stackColors: string[];
   padding: {
     top: number;
     left: number;
@@ -130,6 +132,7 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
       neg: { stroke: "#ff0000", fill: "#ff0000", width: 0.1 },
       neu: { stroke: "#808080", fill: "#808080", width: 0.1 },
     },
+    stackColors: ["#000000", "#c0c0c0", "#808080"],
     padding: {
       top: 10,
       left: 10,
@@ -172,6 +175,7 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
       neg: { stroke: "#ff0000", fill: "#ff0000", width: 0.1 },
       neu: { stroke: "#808080", fill: "#808080", width: 0.1 },
     },
+    stackColors: ["#000000", "#c0c0c0", "#808080"],
     padding: {
       top: 10,
       left: 10,

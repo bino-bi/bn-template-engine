@@ -26,6 +26,7 @@ import { ScaleFactorsTimeChart, ScaleFactorsTimeChartAdapter } from "./ScaleFact
 /** Aggregates all style configuration for a time chart: scale factors, fonts, colors, patterns, and padding. */
 export class TimeChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
+  public stackColors: string[] = ["#000000", "#c0c0c0", "#808080"];
 
   constructor(
     public scaleFactors: ScaleFactorsTimeChart,
@@ -84,6 +85,10 @@ export class TimeChartStylesAdapter implements IAdapter<TimeChartStyle> {
 
       if (CompareUtil.isExisting(data.padding)) {
         styles.padding = this.paddingadapter.adapt(data.padding as Record<string, unknown>);
+      }
+
+      if (Array.isArray(data.stackColors) && data.stackColors.length > 0) {
+        styles.stackColors = data.stackColors as string[];
       }
 
       styles.pattern = new MarkerPattern(styles.fontStyles.size).createPatternMapForStructureBar();

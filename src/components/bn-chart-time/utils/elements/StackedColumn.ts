@@ -6,7 +6,6 @@ import { HookLocation, Label } from "./Label";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StackMode } from "../../../../utils/constants";
-import { getStackFill, getStackStroke } from "../../../../utils/stackColors";
 
 /**
  * Renders a single segment within a stacked bar column in a time chart.
@@ -99,10 +98,10 @@ export class StackedColumn {
     const xPos = this.position.getColumnCenterPositionX(this.index);
     const columnWidth = this.position.getColumnWidth();
 
-    // Unified IBCS 3-color palette for all stacking modes
-    const fillColor = getStackFill(this.segmentIndex);
+    const colors = this.styles.stackColors;
+    const fillColor = colors[this.segmentIndex % colors.length];
     const fillStyle = { color: fillColor };
-    const strokeStyle = { color: getStackStroke(this.segmentIndex), width: 0.5 };
+    const strokeStyle = { color: fillColor, width: 0.5 };
 
     // Draw rectangle
     this.columnGroup

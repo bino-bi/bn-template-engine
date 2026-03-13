@@ -24,6 +24,7 @@ import { ScaleFactorsStructureChart, ScaleFactorsStructureChartAdapter } from ".
 /** Aggregates all style configuration for a structure chart: scale factors, fonts, colors, patterns, and padding. */
 export class StructureChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
+  public stackColors: string[] = ["#000000", "#c0c0c0", "#808080"];
 
   constructor(
     public scaleFactors: ScaleFactorsStructureChart,
@@ -82,6 +83,10 @@ export class StructureChartStylesAdapter implements IAdapter<StructureChartStyle
 
       if (CompareUtil.isExisting(data.padding)) {
         styles.padding = this.paddingadapter.adapt(data.padding as Record<string, unknown>);
+      }
+
+      if (Array.isArray(data.stackColors) && data.stackColors.length > 0) {
+        styles.stackColors = data.stackColors as string[];
       }
 
       styles.pattern = new MarkerPattern(styles.fontStyles.size).createPatternMapForStructureBar();
