@@ -6,6 +6,7 @@ import { calculateDatasetMeta } from "../../utils/datasetMetaCalculator";
 import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { computeContentHash, decodeCompressedContent } from "../../utils/contentDecoder";
 
 /**
  * Queries data from one or more `bn-datasource` entries via AlaSQL and
@@ -40,7 +41,27 @@ export class Dataset {
     });
 
     withBodyObserver(this, (data) => {
-      this.query = data;
+      let contentHash: string;
+      let body: string;
+
+      if (!this.raw && this.static) {
+        try {
+          const decoded = decodeCompressedContent(data);
+          contentHash = decoded.hash;
+          body = decoded.json;
+        } catch (e) {
+          console.error("Error decoding compressed dataset", e, String(data).slice(0, 200));
+          return;
+        }
+      } else {
+        contentHash = computeContentHash(data);
+        body = data;
+      }
+
+      if (contentHash === this.lastBodyHash) return;
+      this.lastBodyHash = contentHash;
+
+      this.query = body;
       this.executeQuery();
     });
   }
@@ -64,7 +85,14 @@ export class Dataset {
    */
   @Prop() static: boolean = false;
 
+  /**
+   * When true (default), body content is plain text (SQL or JSON).
+   * When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
+   */
+  @Prop() raw: boolean = true;
+
   private query: string;
+  private lastBodyHash: string | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private database: any;
   private latestResult: unknown;

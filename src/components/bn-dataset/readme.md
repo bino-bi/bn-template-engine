@@ -67,11 +67,12 @@ engine and treat the body content as raw JSON data directly.
 
 ## Properties
 
-| Property            | Attribute     | Description                                                                                                                     | Type      | Default     |
-| ------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                        | `string`  | `""`        |
-| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                                                                  | `string`  | `undefined` |
-| `static`            | `static`      | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store. | `boolean` | `false`     |
+| Property            | Attribute     | Description                                                                                                                               | Type      | Default     |
+| ------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                                  | `string`  | `""`        |
+| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                                                                            | `string`  | `undefined` |
+| `raw`               | `raw`         | When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`). | `boolean` | `true`      |
+| `static`            | `static`      | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.           | `boolean` | `false`     |
 
 
 ----------------------------------------------

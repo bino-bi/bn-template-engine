@@ -51,11 +51,14 @@ Data is provided as JSON text inside the element body (observed via
 `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
 the stored data by the `name` prop to run queries against it.
 
+Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
+
 ## Properties
 
-| Property            | Attribute | Description                                    | Type     | Default     |
-| ------------------- | --------- | ---------------------------------------------- | -------- | ----------- |
-| `name` _(required)_ | `name`    | Unique (template scope) name of the datasource | `string` | `undefined` |
+| Property            | Attribute | Description                                                                                                                      | Type      | Default     |
+| ------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `name` _(required)_ | `name`    | Unique (template scope) name of the datasource                                                                                   | `string`  | `undefined` |
+| `raw`               | `raw`     | When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). | `boolean` | `true`      |
 
 
 ----------------------------------------------

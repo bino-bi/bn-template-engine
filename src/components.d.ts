@@ -306,6 +306,11 @@ export namespace Components {
          */
         "name": string;
         /**
+          * When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
+          * @default true
+         */
+        "raw": boolean;
+        /**
           * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
           * @default false
          */
@@ -316,12 +321,18 @@ export namespace Components {
      * Data is provided as JSON text inside the element body (observed via
      * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
      * the stored data by the `name` prop to run queries against it.
+     * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
      */
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        /**
+          * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
+          * @default true
+         */
+        "raw": boolean;
     }
     interface BnFooter {
         /**
@@ -1243,6 +1254,7 @@ declare global {
      * Data is provided as JSON text inside the element body (observed via
      * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
      * the stored data by the `name` prop to run queries against it.
+     * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
      */
     interface HTMLBnDatasourceElement extends Components.BnDatasource, HTMLStencilElement {
     }
@@ -1701,6 +1713,11 @@ declare namespace LocalJSX {
          */
         "name": string;
         /**
+          * When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
+          * @default true
+         */
+        "raw"?: boolean;
+        /**
           * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
           * @default false
          */
@@ -1711,12 +1728,18 @@ declare namespace LocalJSX {
      * Data is provided as JSON text inside the element body (observed via
      * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
      * the stored data by the `name` prop to run queries against it.
+     * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
      */
     interface BnDatasource {
         /**
           * Unique (template scope) name of the datasource
          */
         "name": string;
+        /**
+          * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
+          * @default true
+         */
+        "raw"?: boolean;
     }
     interface BnFooter {
         /**
@@ -2609,9 +2632,11 @@ declare namespace LocalJSX {
         "name": string;
         "datasources": string;
         "static": boolean;
+        "raw": boolean;
     }
     interface BnDatasourceAttributes {
         "name": string;
+        "raw": boolean;
     }
     interface BnFooterAttributes {
         "pageNumber": number | null;
@@ -2897,6 +2922,7 @@ declare module "@stencil/core" {
              * Data is provided as JSON text inside the element body (observed via
              * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
              * the stored data by the `name` prop to run queries against it.
+             * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
              */
             "bn-datasource": LocalJSX.IntrinsicElements["bn-datasource"] & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.IntrinsicElements["bn-footer"] & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
