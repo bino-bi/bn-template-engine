@@ -1,6 +1,6 @@
 import { Component, Element, h, Host, Prop } from "@stencil/core";
 
-import { OrderDirection, TableType } from "./utils/model";
+import { OrderDirection, TableRowType, TableType } from "./utils/model";
 
 import { TableRow } from "./utils/elements";
 import { Table } from "./utils/Table";
@@ -177,7 +177,7 @@ export class IbcsTable {
                     ) : (
                       ""
                     )}
-                    {cell.isBarChart && cell.columnStats ? (
+                    {cell.isBarChart && cell.columnStats && row.type !== TableRowType.SUM ? (
                       <CellBarChart
                         value={cell.value as number}
                         scenario={cell.key}

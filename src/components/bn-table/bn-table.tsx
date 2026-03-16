@@ -91,11 +91,13 @@ export class Table {
    * | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                     |
    *
    * **Auto-scale algorithm** (modes `""` and `"auto"`):
-   * 1. After each render, the CSS variable `--bn-font-size` is temporarily
-   *    reset to the unscaled base size and a synchronous reflow is forced.
-   * 2. The unscaled `scrollWidth` of the table container is compared against
-   *    the parent's content-box width (via `getParentDimensions`).
-   * 3. If the table overflows, `factor = parentWidth / unscaledScrollWidth`
+   * 1. After each render, the current `scrollWidth` of the host element is
+   *    divided by the current `appliedScaleFactor` to derive the unscaled
+   *    content width. This avoids resetting `--bn-font-size` to base (which
+   *    would only affect em-based widths but not SVG pixel attributes).
+   * 2. This unscaled width is compared against the parent's content-box
+   *    width (via `getParentDimensions`).
+   * 3. If the table overflows, `factor = parentWidth / unscaledWidth`
    *    is computed and applied to both the CSS variable and the
    *    `appliedScaleFactor` state (which re-renders the SVG charts).
    * 4. A guard flag (`_autoScaleGuard`) prevents the subsequent
@@ -832,20 +834,24 @@ export class Table {
     const { width: parentWidth } = getParentDimensions(host);
     if (parentWidth <= 0) return;
 
-    // Measure at base (unscaled) font size to get true content width.
-    // This avoids the oscillation where scaled-down content fits → reset
-    // to 1 → overflows → scale down → fits → …
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
-    host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
 
-    // Reading scrollWidth forces a synchronous reflow at base size
-    const div = host.shadowRoot?.querySelector("div");
-    const unscaledWidth = div?.scrollWidth ?? host.scrollWidth;
+    // Measure current content width. host has overflow:hidden, so scrollWidth
+    // reliably includes full content including shadow DOM overflow.
+    const currentWidth = host.scrollWidth;
+    const currentFactor = this.appliedScaleFactor;
+
+    // Both em-based and SVG-based dimensions scale proportionally with the
+    // factor, so dividing by the current factor recovers the base-size width.
+    // This avoids resetting --bn-font-size to base which only changes em
+    // widths but not SVG pixel attributes, causing measurement mismatch.
+    const unscaledWidth = currentFactor > 0 ? currentWidth / currentFactor : currentWidth;
 
     if (unscaledWidth <= parentWidth + 1) {
       // Content fits at base size — no scaling needed
       this.errors.remove("AUTO_scale");
       if (this.appliedScaleFactor !== 1) {
+        host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
         this._autoScaleGuard = true;
         this.appliedScaleFactor = 1;
       }
