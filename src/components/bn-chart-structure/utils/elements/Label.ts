@@ -41,6 +41,7 @@ export class Label {
 
   private isVarianceLabel: boolean;
   private segmentFillColor: string | null = null;
+  private maxWidth: number | null = null;
 
   readonly ID_SCENARIOLABEL: string = "Label";
   readonly CSS_CATEGORIES: string = "categories";
@@ -90,6 +91,11 @@ export class Label {
 
   public setSegmentFill(color: string): Label {
     this.segmentFillColor = color;
+    return this;
+  }
+
+  public setMaxWidth(width: number): Label {
+    this.maxWidth = width;
     return this;
   }
 
@@ -152,6 +158,12 @@ export class Label {
 
     const boxWidth: number = text.bbox().w;
     const boxHeight: number = text.bbox().h;
+
+    if (this.maxWidth != null && boxWidth > this.maxWidth) {
+      this.group?.remove();
+      this.group = null;
+      return this;
+    }
 
     if (this.horizontalHookLocation === HookLocation.Right) {
       labelAnchor = "end";
