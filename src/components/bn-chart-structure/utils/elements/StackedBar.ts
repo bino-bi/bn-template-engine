@@ -90,8 +90,9 @@ export class StackedBar {
     this.barGroup.rect(Math.max(segmentLength, 0.5), barWidth).fill(fillStyle).stroke(strokeStyle).cy(yPos).x(xPos);
 
     // Draw segment value label centered on bar if wide enough
-    const MIN_SEGMENT_WIDTH_FOR_LABEL = 30;
-    if (segmentLength >= MIN_SEGMENT_WIDTH_FOR_LABEL) {
+    const LABEL_PADDING = 6;
+    const availableWidth = segmentLength - LABEL_PADDING;
+    if (availableWidth > 0) {
       const labelX = xPos + segmentLength / 2;
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
@@ -108,11 +109,13 @@ export class StackedBar {
           HookLocation.Center,
         )
           .setSegmentFill(fillColor)
+          .setMaxWidth(availableWidth)
           .draw();
       } else {
         // Pass raw numeric value — Label.draw() formats with measureScale
         new Label(this.group, labelX, yPos, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
           .setSegmentFill(fillColor)
+          .setMaxWidth(availableWidth)
           .draw(dataFormatDigits, measureScale);
       }
     }
