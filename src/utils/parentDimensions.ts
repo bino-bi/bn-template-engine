@@ -6,13 +6,18 @@ export interface ParentDimensions {
 /**
  * Returns the available dimensions for a component.
  *
- * Width: parent content-box width (excluding padding).
+ * Width: visual parent's content-box width (excluding padding).
  * Height: walks up the DOM to find the nearest ancestor with a constrained
  *   height (overflow !== 'visible' or explicit max-height). Falls back to
  *   the viewport height when every ancestor auto-grows with its content.
+ *
+ * When the component is slotted into a shadow DOM (e.g. inside
+ * bn-layout-page or bn-layout-card), the light DOM parentElement is NOT the
+ * visual container. We cross the light→shadow boundary via assignedSlot to
+ * find the actual slot wrapper that determines layout.
  */
 export function getParentDimensions(element: HTMLElement): ParentDimensions {
-  const parent = element.parentElement;
+  const parent = findLayoutParent(element);
   if (!parent) {
     return { width: 0, height: 0 };
   }
@@ -26,12 +31,39 @@ export function getParentDimensions(element: HTMLElement): ParentDimensions {
 }
 
 /**
+ * Returns the visual layout parent of an element, crossing the
+ * light→shadow DOM boundary when the element's parent is slotted.
+ *
+ * For a slotted element, the light DOM parentElement is NOT where
+ * the element renders visually. The actual container is the shadow
+ * DOM element that wraps the <slot>. We reach it via assignedSlot.
+ */
+function findLayoutParent(element: HTMLElement): HTMLElement | null {
+  const lightParent = element.parentElement;
+  if (lightParent?.assignedSlot?.parentElement) {
+    return lightParent.assignedSlot.parentElement as HTMLElement;
+  }
+  return lightParent;
+}
+
+/**
+ * Returns the visual parent, crossing shadow DOM boundaries via assignedSlot.
+ */
+function getVisualParent(element: HTMLElement): HTMLElement | null {
+  if (element.assignedSlot?.parentElement) {
+    return element.assignedSlot.parentElement as HTMLElement;
+  }
+  return element.parentElement;
+}
+
+/**
  * Walks up the ancestor chain to find a height that is actually constrained
- * (not just "whatever my content needs").  Returns viewport height as a
- * last resort.
+ * (not just "whatever my content needs"). Crosses shadow DOM boundaries
+ * via assignedSlot when encountering slotted elements. Returns viewport
+ * height as a last resort.
  */
 function findConstrainedHeight(element: HTMLElement): number {
-  let current = element.parentElement;
+  let current: HTMLElement | null = findLayoutParent(element);
 
   while (current) {
     const style = getComputedStyle(current);
@@ -50,7 +82,7 @@ function findConstrainedHeight(element: HTMLElement): number {
       }
     }
 
-    current = current.parentElement;
+    current = getVisualParent(current);
   }
 
   // No constrained ancestor found — use viewport
