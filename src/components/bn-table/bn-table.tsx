@@ -28,6 +28,7 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
@@ -65,6 +66,7 @@ export class Table {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+  private readonly resolveInherited: InheritedResolver;
   @State() data: TableDataRow[] = [];
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
@@ -158,6 +160,12 @@ export class Table {
     );
 
     this.t = withTranslation(this).t;
+    this.resolveInherited = withInheritedProps(this, [
+      { propName: "scenarios", ancestorAttr: "title-scenarios" },
+      { propName: "variances", ancestorAttr: "title-variances" },
+      { propName: "order", ancestorAttr: "title-order" },
+      { propName: "orderDirection", ancestorAttr: "title-order-direction" },
+    ]);
   }
 
   /**
@@ -191,6 +199,10 @@ export class Table {
   @Watch("scenarios")
   validateScenario(newValue: string) {
     const errId: string = "ERR_scenarios";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
 
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
@@ -227,6 +239,10 @@ export class Table {
   @Watch("variances")
   validateVariances(newValue: string) {
     const errId: string = "ERR_variances";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
@@ -574,6 +590,10 @@ export class Table {
   @Watch("order")
   validateOrderList(newValue: string) {
     const errId: string = "ERR_order";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
     const invalidElements: string[] = validateOrderList(newValue);
 
     if (invalidElements.length > 0) {
@@ -597,6 +617,10 @@ export class Table {
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
     const errId: string = "ERR_orderDirection";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
 
     if (!isValidDirection(newValue)) {
       this.errors.addOrReplace({
@@ -918,15 +942,21 @@ export class Table {
   }
 
   private prepareOrder(): Order {
-    const isAuto = this.order?.trim().toLowerCase() === "auto";
-    let orderStr = this.order;
+    const inheritedOrder = this.resolveInherited("order", this.order);
+    const inheritedDirection = this.resolveInherited("orderDirection", this.orderDirection);
+
+    const effectiveOrder = inheritedOrder ?? this.order;
+    const effectiveDirection = inheritedDirection ?? this.orderDirection;
+
+    const isAuto = effectiveOrder?.trim().toLowerCase() === "auto";
+    let orderStr = effectiveOrder;
     if (isAuto && this.datasetMeta?.suggestedOrder) {
       orderStr = this.datasetMeta.suggestedOrder;
     }
 
     const tableOrder: Order = {
       hierarchy: orderStr.split(",").map((entry) => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
-      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection],
+      direction: OrderDirection[effectiveDirection?.toUpperCase() as keyof typeof OrderDirection],
     };
 
     return tableOrder;
@@ -957,6 +987,25 @@ export class Table {
   }
 
   private prepareScenarios(): string[] {
+    const inheritedScenarios = this.resolveInherited("scenarios", this.scenarios);
+    const inheritedVariances = this.resolveInherited("variances", this.variances);
+
+    if (inheritedScenarios !== undefined || inheritedVariances !== undefined) {
+      this.errors.remove("AUTO_scenarios");
+      let scenarios: string[] = [];
+      if (inheritedScenarios !== undefined) {
+        scenarios = scenarios.concat(inheritedScenarios.split(","));
+      } else if (!isBlankInput(this.scenarios)) {
+        scenarios = scenarios.concat(this.scenarios.split(","));
+      }
+      if (inheritedVariances !== undefined) {
+        scenarios = scenarios.concat(inheritedVariances.split(","));
+      } else if (this.variances?.trim().length > 0) {
+        scenarios = scenarios.concat(this.variances.split(","));
+      }
+      return scenarios.map((entry) => entry.trim());
+    }
+
     const isAuto = this.scenarios?.trim().toLowerCase() === "auto";
     if ((isBlankInput(this.scenarios) || isAuto) && isBlankInput(this.variances)) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
