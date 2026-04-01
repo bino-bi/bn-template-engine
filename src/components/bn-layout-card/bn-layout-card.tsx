@@ -210,10 +210,16 @@ export class LayoutCard {
 
   /**
    * When `true`, the card shrinks to fit its content (`fit-content`)
-   * for both width and height. When `false`, the card stretches to
-   * fill its parent (`100%`).
+   * for both width and height. When `false` (default), the card stretches
+   * to fill its parent (`100%`).
+   * <br /><br />
+   * Use `false` (default) when the card contains components with
+   * auto-scaling (e.g. `unit-scaling="auto"`), because auto-scaling
+   * needs a fixed parent width to calculate dimensions. `fit-content`
+   * creates a circular dependency where the card width depends on the
+   * child content but the child needs the card width to render.
    */
-  @Prop() cardFitToContent: boolean = true;
+  @Prop() cardFitToContent: boolean = false;
 
   /**
    * Whether to display a visible border around the card.

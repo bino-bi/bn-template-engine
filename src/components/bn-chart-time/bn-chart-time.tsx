@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Prop, State, Watch, writeTask } from "@stencil/core";
 import {
   isBlankInput,
   isValidAxisLabelsMode,
@@ -775,7 +775,9 @@ export class Chart {
       this.errors.remove("AUTO_scale");
       if (this.appliedScaleFactor !== 1) {
         this._autoScaleGuard = true;
-        this.appliedScaleFactor = 1;
+        writeTask(() => {
+          this.appliedScaleFactor = 1;
+        });
       }
       return;
     }
@@ -796,7 +798,22 @@ export class Chart {
 
     if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
       this._autoScaleGuard = true;
-      this.appliedScaleFactor = computedFactor;
+      writeTask(() => {
+        this.appliedScaleFactor = computedFactor;
+      });
+    }
+  }
+
+  componentDidLoad() {
+    // After the first render the DOM is committed and the browser has computed
+    // layout. If the initial parentDimensions measurement returned 0 (common
+    // inside cards/slots whose width isn't known before first paint), force a
+    // re-render so the inner ibcs-chart-time receives correct dimensions.
+    if (this.canvasWidthSegmented <= 0) {
+      const { width } = getParentDimensions(this.element);
+      if (width > 0) {
+        forceUpdate(this);
+      }
     }
   }
 

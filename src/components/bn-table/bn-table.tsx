@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, h, Host, Prop, State, Watch, writeTask } from "@stencil/core";
 import {
   isBlankInput,
   isTableBarColumnWidth,
@@ -321,8 +321,9 @@ export class Table {
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
     const errId: string = "ERR_unitScaling";
+    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -350,8 +351,9 @@ export class Table {
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
     const errId: string = "ERR_percentageScaling";
+    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -877,7 +879,11 @@ export class Table {
       if (this.appliedScaleFactor !== 1) {
         host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
         this._autoScaleGuard = true;
-        this.appliedScaleFactor = 1;
+        // Defer state change to avoid Stencil "changed during rendering" warning.
+        // The CSS var is already applied, so the visual update is immediate.
+        writeTask(() => {
+          this.appliedScaleFactor = 1;
+        });
       }
       return;
     }
@@ -899,10 +905,14 @@ export class Table {
       this.errors.remove("AUTO_scale");
     }
 
-    // Update state so bar charts re-render at the new scale
+    // Defer state update to avoid Stencil "changed during rendering" warning.
+    // The CSS var is already applied, so the visual update is immediate;
+    // the deferred state change triggers a re-render for SVG bar charts.
     if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
       this._autoScaleGuard = true;
-      this.appliedScaleFactor = computedFactor;
+      writeTask(() => {
+        this.appliedScaleFactor = computedFactor;
+      });
     }
   }
 
@@ -1145,12 +1155,18 @@ export class Table {
     if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
       return this.pixelPerUnitGroupMap.get(this.unitScaling as string)!;
     }
+    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === "auto") {
+      return 0;
+    }
     return Number(this.unitScaling);
   }
 
   private preparePercentageScaling(): number {
     if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
       return this.pixelPerUnitGroupMap.get(this.percentageScaling as string)!;
+    }
+    if ((this.percentageScaling as string)?.toString().trim().toLowerCase() === "auto") {
+      return 0;
     }
     return Number(this.percentageScaling);
   }
