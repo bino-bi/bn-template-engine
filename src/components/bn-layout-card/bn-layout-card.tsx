@@ -1,6 +1,7 @@
 import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withInheritedProps, { InheritedResolver } from "../../utils/withInheritedProps";
 
 @Component({
   tag: "bn-layout-card",
@@ -13,15 +14,25 @@ export class LayoutCard {
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+  private readonly resolveInherited: InheritedResolver;
 
   private stores: ScopedStores;
 
   constructor() {
     this.errors = withHasError(this);
+    this.resolveInherited = withInheritedProps(this, [
+      { propName: "titleScenarios", ancestorAttr: "title-scenarios" },
+      { propName: "titleVariances", ancestorAttr: "title-variances" },
+      { propName: "titleOrder", ancestorAttr: "title-order" },
+      { propName: "titleOrderDirection", ancestorAttr: "title-order-direction" },
+    ]);
   }
 
   connectedCallback() {
     this.stores = getStores(this.element);
+    // Reflect resolved inherited values to host attributes so child vis
+    // components can read them during their own DOM traversal.
+    this.reflectInheritedAttrs();
   }
 
   /**
@@ -348,6 +359,27 @@ export class LayoutCard {
     return "card_box";
   }
 
+  /**
+   * When the card itself inherits a title prop from a page, write the
+   * resolved value back to the host element's attribute so that child
+   * vis components (bn-table, bn-chart-*) performing their own DOM walk
+   * read the actual value instead of the literal "inherited-page" keyword.
+   */
+  private reflectInheritedAttrs() {
+    const mappings: { prop: string; attr: string }[] = [
+      { prop: "titleScenarios", attr: "title-scenarios" },
+      { prop: "titleVariances", attr: "title-variances" },
+      { prop: "titleOrder", attr: "title-order" },
+      { prop: "titleOrderDirection", attr: "title-order-direction" },
+    ];
+    for (const { prop, attr } of mappings) {
+      const resolved = this.resolveInherited(prop, this[prop]);
+      if (resolved !== undefined) {
+        this.element.setAttribute(attr, resolved);
+      }
+    }
+  }
+
   prepareTitleImage(value: string) {
     if (value == null || value === "") {
       return "";
@@ -371,10 +403,12 @@ export class LayoutCard {
           <bn-title // @ts-ignore
             namespace={this.titleNamespace}
             business-unit={this.titleBusinessUnit}
-            scenarios={this.titleScenarios}
-            variances={this.titleVariances}
-            order={this.titleOrder}
-            order-direction={this.titleOrderDirection}
+            scenarios={this.resolveInherited("titleScenarios", this.titleScenarios) ?? this.titleScenarios}
+            variances={this.resolveInherited("titleVariances", this.titleVariances) ?? this.titleVariances}
+            order={this.resolveInherited("titleOrder", this.titleOrder) ?? this.titleOrder}
+            order-direction={
+              this.resolveInherited("titleOrderDirection", this.titleOrderDirection) ?? this.titleOrderDirection
+            }
             measures={this.titleMeasures}
             date-start={this.titleDateStart}
             date-end={this.titleDateEnd}

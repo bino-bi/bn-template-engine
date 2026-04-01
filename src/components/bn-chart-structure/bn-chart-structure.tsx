@@ -20,6 +20,7 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
@@ -55,6 +56,7 @@ export class Chart {
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private readonly errors: ErrorDispatcher;
+  private readonly resolveInherited: InheritedResolver;
 
   /**
    * Title displayed above the chart. When empty, the title is derived
@@ -91,8 +93,12 @@ export class Chart {
   @Prop() scenarios!: string;
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const invalidScenarios: string[] = validateScenarioList(newValue);
     const errId: string = "ERR_scenarios";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
+    const invalidScenarios: string[] = validateScenarioList(newValue);
 
     if (invalidScenarios.length > 0) {
       this.errors.addOrReplace({
@@ -123,6 +129,10 @@ export class Chart {
   @Watch("variances")
   validateVariances(newValue: string) {
     const errIdVar: string = "ERR_variances";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errIdVar);
+      return;
+    }
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
@@ -254,8 +264,12 @@ export class Chart {
 
   @Watch("order")
   validateOrderList(newValue: string) {
-    const invalidElements: string[] = validateOrderList(newValue);
     const errId: string = "ERR_order";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
+    const invalidElements: string[] = validateOrderList(newValue);
 
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({
@@ -280,6 +294,10 @@ export class Chart {
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
     const errId: string = "ERR_orderDirection";
+    if (isInheritedValue(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
 
     if (!isValidDirection(newValue)) {
       this.errors.addOrReplace({
@@ -502,6 +520,12 @@ export class Chart {
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
+    this.resolveInherited = withInheritedProps(this, [
+      { propName: "scenarios", ancestorAttr: "title-scenarios" },
+      { propName: "variances", ancestorAttr: "title-variances" },
+      { propName: "order", ancestorAttr: "title-order" },
+      { propName: "orderDirection", ancestorAttr: "title-order-direction" },
+    ]);
   }
 
   componentWillLoad() {
@@ -615,6 +639,11 @@ export class Chart {
   }
 
   private prepareScenarios(): string[] {
+    const inherited = this.resolveInherited("scenarios", this.scenarios);
+    if (inherited !== undefined) {
+      this.errors.remove("AUTO_scenarios");
+      return inherited.split(",").map((entry) => entry.trim());
+    }
     const isAuto = this.scenarios?.trim().toLowerCase() === "auto";
     if (isBlankInput(this.scenarios) || isAuto) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
@@ -636,6 +665,10 @@ export class Chart {
   }
 
   private prepareVariances(): string[] {
+    const inherited = this.resolveInherited("variances", this.variances);
+    if (inherited !== undefined) {
+      return inherited.split(",").map((entry) => entry.trim());
+    }
     if (isBlankInput(this.variances)) {
       return [];
     }
@@ -713,9 +746,15 @@ export class Chart {
   }
 
   private prepareOrder(): Order {
-    const isAuto = this.order?.trim().toLowerCase() === "auto";
+    const inheritedOrder = this.resolveInherited("order", this.order);
+    const inheritedDirection = this.resolveInherited("orderDirection", this.orderDirection);
+
+    const effectiveOrder = inheritedOrder ?? this.order;
+    const effectiveDirection = inheritedDirection ?? this.orderDirection;
+
+    const isAuto = effectiveOrder?.trim().toLowerCase() === "auto";
     let orderStr: string;
-    if (isBlankInput(this.order) || isAuto) {
+    if (isBlankInput(effectiveOrder) || isAuto) {
       if (this.datasetMeta?.suggestedOrder) {
         if (!isAuto) {
           this.errors.addOrReplace({
@@ -728,16 +767,16 @@ export class Chart {
         }
         orderStr = this.datasetMeta.suggestedOrder;
       } else {
-        orderStr = this.order;
+        orderStr = effectiveOrder;
       }
     } else {
       this.errors.remove("AUTO_order");
-      orderStr = this.order;
+      orderStr = effectiveOrder;
     }
 
     const tableOrder: Order = {
       hierarchy: orderStr?.split(",").map((entry) => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
-      direction: OrderDirection[this.orderDirection?.toUpperCase() as keyof typeof OrderDirection],
+      direction: OrderDirection[effectiveDirection?.toUpperCase() as keyof typeof OrderDirection],
     };
 
     return tableOrder;
