@@ -239,7 +239,11 @@ export class ChartTree {
 
   componentDidLoad() {
     this.setupResizeObserver();
-    this.updateNodeRects();
+    // Defer DOM measurement to after the browser has completed layout.
+    // getBoundingClientRect() can return zeros if called before first paint.
+    requestAnimationFrame(() => {
+      this.updateNodeRects();
+    });
   }
 
   disconnectedCallback() {

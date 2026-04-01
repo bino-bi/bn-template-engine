@@ -215,8 +215,9 @@ export class Chart {
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
     const errId: string = "ERR_unitScaling";
+    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -805,15 +806,17 @@ export class Chart {
   }
 
   componentDidLoad() {
-    // After the first render the DOM is committed and the browser has computed
-    // layout. If the initial parentDimensions measurement returned 0 (common
-    // inside cards/slots whose width isn't known before first paint), force a
-    // re-render so the inner ibcs-chart-time receives correct dimensions.
+    // If the initial parentDimensions measurement returned 0 (common inside
+    // cards/slots whose width isn't known before first paint), defer re-check
+    // to a requestAnimationFrame so the browser has completed at least one
+    // full layout pass before we re-measure.
     if (this.canvasWidthSegmented <= 0) {
-      const { width } = getParentDimensions(this.element);
-      if (width > 0) {
-        forceUpdate(this);
-      }
+      requestAnimationFrame(() => {
+        const { width } = getParentDimensions(this.element);
+        if (width > 0) {
+          forceUpdate(this);
+        }
+      });
     }
   }
 
