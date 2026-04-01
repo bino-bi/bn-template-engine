@@ -212,9 +212,9 @@ export class IbcsTable {
     this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(
       this.dataFormatDigits as unknown as Record<string, unknown>,
     );
-    this.barChartStyles = this.prepareBarChartStyles();
     this.table = new Table(new IBCSRuleSet(), data, config);
     this.table.setI18n(this.i18n);
+    this.barChartStyles = this.prepareBarChartStyles();
   }
 
   private prepareConfig(): TableComponentConfig {
@@ -317,10 +317,77 @@ export class IbcsTable {
         fontColor: $["global"]?.["fontColor"] || "#000000",
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor,
         fontFamily: $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-        unitScaling: this.unitScaling,
-        percentageScaling: this.percentageScaling,
+        unitScaling: this.unitScaling > 0 ? this.unitScaling : this.autoUnitScaling(),
+        percentageScaling: this.percentageScaling > 0 ? this.percentageScaling : this.autoPercentageScaling(),
         scaleFactor: this.scaleFactor,
       };
     });
+  }
+
+  /**
+   * Auto-calculate unitScaling so the largest absolute variance bar
+   * fills ~80% of the bar column width.
+   */
+  private autoUnitScaling(): number {
+    const fs = this.componentStyle(($) => ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor);
+    const maxBarWidthPx = this.barColumnMaxWidth * fs;
+    const targetWidth = maxBarWidthPx * 0.8;
+
+    const absMax = this.getMaxAbsValue();
+    if (absMax <= 0 || fs <= 0) {
+      return 0.01;
+    }
+    return targetWidth / (absMax * fs);
+  }
+
+  /**
+   * Auto-calculate percentageScaling so the largest relative variance pin
+   * fills ~80% of the pin area.
+   */
+  private autoPercentageScaling(): number {
+    const fs = this.componentStyle(($) => ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor);
+    const maxPinLength = Math.round(this.barColumnMaxWidth * 0.67 * fs);
+    const targetLength = maxPinLength * 0.8;
+
+    const maxPct = this.getMaxRelativeValue();
+    if (maxPct <= 0 || fs <= 0) {
+      return 0.5;
+    }
+    return targetLength / (maxPct * fs);
+  }
+
+  /**
+   * Find the maximum absolute value across all absolute variance columns (d_*) in the table body.
+   */
+  private getMaxAbsValue(): number {
+    if (!this.table) return 0;
+    let max = 0;
+    for (const row of this.table.getBody()) {
+      if (row.type === TableRowType.SUM) continue;
+      for (const cell of row.getCells()) {
+        if (cell.isBarChart && cell.columnStats && !cell.key.startsWith("dr")) {
+          max = Math.max(max, cell.columnStats.absMax);
+        }
+      }
+    }
+    return max;
+  }
+
+  /**
+   * Find the maximum percentage value across all relative variance columns (dr_*) in the table body.
+   * Values are stored as decimals (e.g. 0.2 = 20%), returned as percentage (20).
+   */
+  private getMaxRelativeValue(): number {
+    if (!this.table) return 0;
+    let max = 0;
+    for (const row of this.table.getBody()) {
+      if (row.type === TableRowType.SUM) continue;
+      for (const cell of row.getCells()) {
+        if (cell.isBarChart && cell.columnStats && cell.key.startsWith("dr")) {
+          max = Math.max(max, cell.columnStats.absMax * 100);
+        }
+      }
+    }
+    return max;
   }
 }

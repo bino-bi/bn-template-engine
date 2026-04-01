@@ -221,11 +221,16 @@ export class LayoutPage {
 
   /**
    * When `true`, the page body height shrinks to fit its content
-   * (`fit-content`). When `false`, the body stretches to fill the
-   * full page height (`100%`). Width is always `100%` regardless
-   * of this setting.
+   * (`fit-content`). When `false` (default), the body stretches to
+   * fill the full page height (`100%`). Width is always `100%`
+   * regardless of this setting.
+   * <br /><br />
+   * Use `false` (default) when the page contains components with
+   * auto-scaling (e.g. `unit-scaling="auto"` or `scale="auto"`),
+   * because auto-scaling needs a fixed parent height to calculate
+   * dimensions.
    */
-  @Prop() pageFitToContent: boolean = true;
+  @Prop() pageFitToContent: boolean = false;
 
   private templateMap = new Map([
     ["split-vertical", '"a  b"'],

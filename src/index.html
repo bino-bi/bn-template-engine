@@ -69,44 +69,119 @@
          Scenarios & variances are set once on the page and inherited
          by the card, chart, and table via "inherited-closest" / "inherited-page".
          ═══════════════════════════════════════════════════════════════ -->
-    <bn-layout-page data-bino-page='inherited_demo'
-      title-business-unit='Inherited Props Demo'
-      title-namespace='_system'
+    <bn-layout-page data-bino-page='inherited_demo' title-business-unit='Inherited Props Demo' title-namespace='_system'
       title-date-start='2025-01-31' title-date-end='2025-12-31' title-date-format='month' title-date-link='ytd'
-      title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;mEUR&#34;}]'
-      title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos'
-      title-order='ac1' title-order-direction='desc'
-      page-layout='split-vertical' page-format='xga' page-orientation='landscape'
+      title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;mEUR&#34;}]' title-scenarios='ac1,fc1'
+      title-variances='dac1_fc1_pos' title-order='ac1' title-order-direction='desc' page-layout='split-vertical'
+      page-format='xga' page-orientation='landscape'
       message-text='This page demonstrates inherited props: scenarios &amp; variances are defined once on the page and inherited by child components.'
       footer-text='Inherited Props Demo' page-fit-to-content="true">
 
       <!-- slot-0: chart inherits scenarios/variances directly from page -->
       <div slot='slot-0' data-bino-kind='ChartStructure'>
-        <bn-chart-structure datasets='$umsatz'
-          chart-title='Chart inherits from page'
-          level='category'
-          scenarios='inherited-page'
-          variances='inherited-page'
-          order='inherited-page'
-          order-direction='inherited-page'
-          unit-scaling='0.001'
-          measure-scale='k'
-          measure-unit='EUR'
-          show-measure-scale='true'
+        <bn-chart-structure datasets='$umsatz' chart-title='Chart inherits from page' level='category'
+          scenarios='inherited-page' variances='inherited-page' order='inherited-page' order-direction='inherited-page'
+          unit-scaling='0.001' measure-scale='k' measure-unit='EUR' show-measure-scale='true'
           limit='10'></bn-chart-structure>
       </div>
 
       <!-- slot-1: table inherits scenarios/variances from page -->
       <div slot='slot-1' data-bino-kind='Table'>
-        <bn-table datasets='$umsatz'
-          scenarios='inherited-page'
-          variances='inherited-page'
-          order='inherited-page'
-          order-direction='inherited-page'
-          measure-scale='k' measure-type='currency' measure-unit='EUR'
-          grouped='true' show-group-title='true' show-measure-scale='true'
-          limit='4' type='sum' unit-scaling='0.001' percentage-scaling='0.5'
-          scale='auto'></bn-table>
+        <bn-table datasets='$umsatz' scenarios='inherited-page' variances='inherited-page' order='inherited-page'
+          order-direction='inherited-page' measure-scale='k' measure-type='currency' measure-unit='EUR' grouped='true'
+          show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='0.001'
+          percentage-scaling='0.5' scale='auto'></bn-table>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         AUTO UNIT SCALING TEST — WITH CARDS
+         measure-scale="greatest" on all components (auto SI prefix)
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='scaling_with_cards' title-business-unit='Auto Unit Scaling — With Cards'
+      title-namespace='_system' title-date-start='2025-01-31' title-date-end='2025-12-31' title-date-format='month'
+      title-date-link='ytd' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,fc1,pl1' title-variances='dac1_fc1_pos' title-order='ac1' title-order-direction='desc'
+      page-layout='2x2' page-format='xga' page-orientation='landscape' footer-text='Auto Unit Scaling — Cards'
+      footer-display-page-number='true' page-fit-to-content='true'>
+
+      <div slot='slot-0' data-bino-kind='ChartStructure'>
+        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Structure Chart (auto scale)'>
+          <div slot='card-slot-0' data-bino-kind='ChartStructure'>
+            <bn-chart-structure datasets='$umsatz' chart-title='Top categories' level='category' order='ac1'
+              order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='auto'
+              show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <div slot='slot-1' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Table (auto scale)'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+              scenarios='ac1,fc1,pl1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' grouped='true'
+              show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
+              percentage-scaling='auto' scale='auto'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <div slot='slot-2' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Time Chart (auto scale)'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+              measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1,pl1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <div slot='slot-3' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Table (auto scale, more variances)'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+              scenarios='ac1,fc1,pp1' variances='dac1_fc1_pos,drac1_fc1_pos' order='ac1' order-direction='desc'
+              grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
+              percentage-scaling='auto' bar-columns='ac1' scale='auto'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         AUTO UNIT SCALING TEST — WITHOUT CARDS, fitContent DISABLED
+         Same components, no card wrappers, page-fit-to-content="false"
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='scaling_no_cards' title-business-unit='Auto Unit Scaling — No Cards, No FitContent'
+      title-namespace='_system' title-date-start='2025-01-31' title-date-end='2025-12-31' title-date-format='month'
+      title-date-link='ytd' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,fc1,pl1' title-variances='dac1_fc1_pos' title-order='ac1' title-order-direction='desc'
+      page-layout='2x2' page-format='xga' page-orientation='landscape' footer-text='Auto Unit Scaling — No Cards'
+      footer-display-page-number='true'>
+
+      <div slot='slot-0' data-bino-kind='ChartStructure'>
+        <bn-chart-structure datasets='$umsatz' chart-title='Top categories' level='category' order='ac1'
+          order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='auto'
+          show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
+      </div>
+
+      <div slot='slot-1' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1,pl1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' grouped='true'
+          show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
+          percentage-scaling='auto'></bn-table>
+      </div>
+
+      <div slot='slot-2' data-bino-kind='ChartStructure'>
+        <bn-chart-structure datasets='$umsatz' chart-title='All categories ascending' level='category' order='ac1'
+          order-direction='asc' measure-scale='greatest' measure-unit='EUR' unit-scaling='auto'
+          show-measure-scale='true' scenarios='ac1,pl1' variances='dac1_pl1_pos'></bn-chart-structure>
+      </div>
+
+      <div slot='slot-3' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1,pp1' variances='dac1_fc1_pos,drac1_fc1_pos' order='ac1' order-direction='desc'
+          grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
+          percentage-scaling='auto' bar-columns='ac1' scale='auto'></bn-table>
       </div>
     </bn-layout-page>
 
