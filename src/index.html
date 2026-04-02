@@ -106,7 +106,7 @@
       footer-display-page-number='true' page-fit-to-content='true'>
 
       <div slot='slot-0' data-bino-kind='ChartStructure'>
-        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Structure Chart (auto scale)'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Structure Chart (auto scale)'>
           <div slot='card-slot-0' data-bino-kind='ChartStructure'>
             <bn-chart-structure datasets='$umsatz' chart-title='Top categories' level='category' order='ac1'
               order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='auto'
@@ -116,7 +116,7 @@
       </div>
 
       <div slot='slot-1' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Table (auto scale)'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Table (auto scale)'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1,pl1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' grouped='true'
@@ -127,7 +127,7 @@
       </div>
 
       <div slot='slot-2' data-bino-kind='ChartTime'>
-        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Time Chart (auto scale)'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time Chart (auto scale)'>
           <div slot='card-slot-0' data-bino-kind='ChartTime'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
               measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1,pl1'></bn-chart-time>
@@ -136,7 +136,8 @@
       </div>
 
       <div slot='slot-3' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true'          title-business-unit='Table (auto scale, more variances)'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='Table (auto scale, more variances)'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1,pp1' variances='dac1_fc1_pos,drac1_fc1_pos' order='ac1' order-direction='desc'
@@ -172,9 +173,8 @@
       </div>
 
       <div slot='slot-2' data-bino-kind='ChartStructure'>
-        <bn-chart-structure datasets='$umsatz' chart-title='All categories ascending' level='category' order='ac1'
-          order-direction='asc' measure-scale='greatest' measure-unit='EUR' unit-scaling='auto'
-          show-measure-scale='true' scenarios='ac1,pl1' variances='dac1_pl1_pos'></bn-chart-structure>
+        <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+          measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1,pl1'></bn-chart-time>
       </div>
 
       <div slot='slot-3' data-bino-kind='Table'>
