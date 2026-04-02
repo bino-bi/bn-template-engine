@@ -185,6 +185,239 @@
       </div>
     </bn-layout-page>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         LAYOUT TEST 1: 3-Column Grid (1fr distribution)
+         Verifies that 3 equal columns share space perfectly with no
+         pixel gap from rounding (was 33%+33%+33%=99% before fix).
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='test_3col_grid' title-business-unit='Layout Test: 3-Column Grid (1fr)'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='3-over-1' page-format='xga'
+      page-orientation='landscape' footer-text='3 equal columns on top row — no pixel gaps expected'>
+
+      <div slot='slot-0' data-bino-kind='ChartStructure'>
+        <bn-chart-structure datasets='$umsatz' chart-title='Col 1 (auto)' level='category' order='ac1'
+          order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='auto'
+          show-measure-scale='true' limit='5' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
+      </div>
+      <div slot='slot-1' data-bino-kind='ChartTime'>
+        <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+          measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1'
+          scale='auto'></bn-chart-time>
+      </div>
+      <div slot='slot-2' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+          limit='5' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+      </div>
+      <div slot='slot-3' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1,pl1,pp1' variances='dac1_fc1_pos,drac1_fc1_pos' order='ac1' order-direction='desc'
+          grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
+          percentage-scaling='auto' bar-columns='ac1' scale='auto'></bn-table>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         LAYOUT TEST 2: Cards with Split Layout (no clipping)
+         Cards using split-vertical with two components side by side.
+         Verifies auto-scaling works inside nested card slots.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='test_card_split' title-business-unit='Layout Test: Cards with Split Layout'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='split-horizontal' page-format='xga'
+      page-orientation='landscape' footer-text='Two cards, each split-vertical with auto-scaled content'>
+
+      <div slot='slot-0'>
+        <bn-layout-card card-layout='split-vertical' card-show-border='true'
+          title-business-unit='Card 1: Table + Chart side by side'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+              scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+              limit='4' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+          </div>
+          <div slot='card-slot-1' data-bino-kind='ChartStructure'>
+            <bn-chart-structure datasets='$umsatz' chart-title='Structure' level='category' order='ac1'
+              order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='auto'
+              show-measure-scale='true' limit='5' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <div slot='slot-1'>
+        <bn-layout-card card-layout='split-vertical' card-show-border='true'
+          title-business-unit='Card 2: Two Time Charts'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+              measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1'
+              scale='auto'></bn-chart-time>
+          </div>
+          <div slot='card-slot-1' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+              measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,pp1'
+              scale='auto'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         LAYOUT TEST 3: Scale Modes Comparison
+         One page with explicit scale factors, auto, and none — to
+         verify each mode renders correctly without clipping.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='test_scale_modes' title-business-unit='Layout Test: Scale Mode Comparison'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='2x2' page-format='xga'
+      page-orientation='landscape'
+      footer-text='Top-left: auto, Top-right: scale=0.7, Bottom-left: scale=1.2, Bottom-right: scale=none'>
+
+      <div slot='slot-0' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1,pl1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+          limit='4' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+      </div>
+      <div slot='slot-1' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1,pl1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+          limit='4' type='sum' unit-scaling='auto' scale='0.7'></bn-table>
+      </div>
+      <div slot='slot-2' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+          limit='4' type='sum' unit-scaling='auto' scale='1.2'></bn-table>
+      </div>
+      <div slot='slot-3' data-bino-kind='Table'>
+        <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+          scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+          limit='4' type='sum' unit-scaling='auto' scale='none'></bn-table>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         LAYOUT TEST 4: FitToContent Cards
+         page-fit-to-content="true" with cards that also use
+         card-fit-to-content="true" — verifies height-only shrink.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='test_fit_to_content' title-business-unit='Layout Test: FitToContent (height only)'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='split-vertical' page-format='xga'
+      page-orientation='landscape' page-fit-to-content='true'
+      footer-text='Both cards use card-fit-to-content=true — should shrink to content height, full width'>
+
+      <div slot='slot-0'>
+        <bn-layout-card card-layout='full' card-show-border='true' card-fit-to-content='true'
+          title-business-unit='FitToContent Card (Table)'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+              scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+              limit='3' type='sum' unit-scaling='0.001'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <div slot='slot-1'>
+        <bn-layout-card card-layout='full' card-show-border='true' card-fit-to-content='true'
+          title-business-unit='FitToContent Card (Chart)'>
+          <div slot='card-slot-0' data-bino-kind='ChartStructure'>
+            <bn-chart-structure datasets='$umsatz' chart-title='Top 5' level='category' order='ac1'
+              order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='0.001'
+              show-measure-scale='true' limit='5' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         LAYOUT TEST 5: Dense 3x3 Grid with Cards
+         Exercises the tightest packing: 9 cells, each with a card
+         containing auto-scaled content. Tests min-floor scaling.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='test_dense_grid' title-business-unit='Layout Test: Dense 3x3 Grid'
+      title-namespace='_system' title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='3x3'
+      page-format='xga' page-orientation='landscape'
+      footer-text='9 cells with auto-scaled content — tests min scale floor (0.3)'>
+
+      <div slot='slot-0'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Table 1'>
+          <div slot='card-slot-0'>
+            <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+              scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
+              limit='3' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-1'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Chart 1'>
+          <div slot='card-slot-0'>
+            <bn-chart-structure datasets='$umsatz' level='category' order='ac1' order-direction='desc'
+              measure-scale='greatest' measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' limit='3'
+              scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-2'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 1'>
+          <div slot='card-slot-0'>
+            <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+              measure-unit='EUR' unit-scaling='auto' scenarios='ac1,fc1' scale='auto'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-3'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Table 2'>
+          <div slot='card-slot-0'>
+            <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+              scenarios='ac1,fc1' order='ac1' order-direction='desc' show-measure-scale='true' limit='3' type='sum'
+              unit-scaling='auto' scale='auto'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-4'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Chart 2'>
+          <div slot='card-slot-0'>
+            <bn-chart-structure datasets='$umsatz' level='category' order='ac1' order-direction='desc'
+              measure-scale='greatest' measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' limit='3'
+              scenarios='ac1'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-5'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 2'>
+          <div slot='card-slot-0'>
+            <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+              measure-unit='EUR' unit-scaling='auto' scenarios='ac1' scale='auto'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-6'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Table 3'>
+          <div slot='card-slot-0'>
+            <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
+              scenarios='ac1' order='ac1' order-direction='desc' show-measure-scale='true' limit='3' type='sum'
+              unit-scaling='auto' scale='auto'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-7'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Chart 3'>
+          <div slot='card-slot-0'>
+            <bn-chart-structure datasets='$umsatz' level='category' order='ac1' order-direction='desc'
+              measure-scale='greatest' measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' limit='3'
+              scenarios='ac1' variances='dac1_fc1_pos'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+      <div slot='slot-8'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 3'>
+          <div slot='card-slot-0'>
+            <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
+              measure-unit='EUR' unit-scaling='0.4' scenarios='ac1,fc1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+    </bn-layout-page>
+
   </bn-context>
 
 </body>
