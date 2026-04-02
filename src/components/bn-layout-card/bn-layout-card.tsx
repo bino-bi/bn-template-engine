@@ -209,15 +209,15 @@ export class LayoutCard {
   @Prop() cardGridGap: string = "0";
 
   /**
-   * When `true`, the card shrinks to fit its content (`fit-content`)
-   * for both width and height. When `false` (default), the card stretches
-   * to fill its parent (`100%`).
+   * When `true`, the card body height shrinks to fit its content
+   * (`fit-content`). When `false` (default), the card stretches to
+   * fill its parent (`100%`). Width is always `100%` regardless
+   * of this setting.
    * <br /><br />
    * Use `false` (default) when the card contains components with
-   * auto-scaling (e.g. `unit-scaling="auto"`), because auto-scaling
-   * needs a fixed parent width to calculate dimensions. `fit-content`
-   * creates a circular dependency where the card width depends on the
-   * child content but the child needs the card width to render.
+   * auto-scaling (e.g. `unit-scaling="auto"` or `scale="auto"`),
+   * because auto-scaling needs a fixed parent height to calculate
+   * dimensions.
    */
   @Prop() cardFitToContent: boolean = false;
 
@@ -243,38 +243,38 @@ export class LayoutCard {
 
   private getCommonStyles() {
     let height = "100%";
-    let width = "100%";
 
     if (this.cardFitToContent === true) {
-      width = "fit-content";
       height = "fit-content";
     }
 
+    // Width is always 100% — the card is bounded by its parent grid cell.
+    // Using fit-content for width creates a circular dependency where the
+    // card width depends on child content but children need the card width
+    // for auto-scaling.
     return {
       display: "grid",
       height: height,
-      width: width,
+      width: "100%",
       gap: this.cardGridGap + "px",
     };
   }
 
-  private calculatePercentages(input: string): string {
+  private calculateFractions(input: string): string {
     const items = input.trim().split(/\s+/);
     const count = items.length;
 
-    if (count === 0) return "100%";
+    if (count === 0) return "1fr";
 
-    const percentage = (100 / count).toFixed(0) + "%";
-
-    return Array(count).fill(percentage).join(" ");
+    return Array(count).fill("1fr").join(" ");
   }
 
   private getGridTemplateColumns(name: string): string {
     const template = this.getTemplatePattern(name);
     const pattern = /"[\w\d\s.]+"/g;
     const matches = template.match(pattern);
-    if (!matches || matches.length === 0) return "100%";
-    return this.calculatePercentages(matches[0]);
+    if (!matches || matches.length === 0) return "1fr";
+    return this.calculateFractions(matches[0]);
   }
 
   private getGridTemplateRows(name: string): string {
@@ -300,6 +300,7 @@ export class LayoutCard {
 
   private createDivAreaStyles(elements: string[]) {
     return elements.map((x) => ({
+      display: "grid",
       width: "100%",
       overflow: "hidden",
       "grid-area": x,

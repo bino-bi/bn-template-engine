@@ -5,31 +5,29 @@ on:
         tags:
             - "v*"
 
+permissions:
+    contents: write
+    id-token: write
+
 jobs:
-    build-and-release:
+    release:
+        name: Build, Publish & Release
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout source repository
-              uses: actions/checkout@v4
+            - uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
+            - uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  registry-url: "https://npm.pkg.github.com"
-                  scope: "@bino-bi"
-                  always-auth: true
-                  token: ${{ secrets.GH_REGISTRY_PACKAGES }}
-                  cache: "npm"
-                  cache-dependency-path: package-lock.json
+                  registry-url: "https://registry.npmjs.org"
+                  cache: npm
 
-            - name: Install dependencies
-              run: npm ci
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.GH_REGISTRY_PACKAGES }}
+            - run: npm ci
 
-            - name: Build
-              run: npm run build
+            - name: Set version from tag
+              run: npm version "${GITHUB_REF#refs/tags/v}" --no-git-tag-version
+
+            - run: npm run build
 
             - name: Get version from tag
               id: version
@@ -42,10 +40,41 @@ jobs:
                     echo "PRERELEASE=false" >> $GITHUB_OUTPUT
                   fi
 
-            - name: Zip build artifacts
+            - name: Determine npm dist-tag
+              id: dist-tag
+              run: |
+                  TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+                  if [[ "$TAG_VERSION" == *"-alpha"* ]]; then
+                    echo "TAG=alpha" >> $GITHUB_OUTPUT
+                  elif [[ "$TAG_VERSION" == *"-beta"* ]]; then
+                    echo "TAG=beta" >> $GITHUB_OUTPUT
+                  elif [[ "$TAG_VERSION" == *"-rc"* ]]; then
+                    echo "TAG=rc" >> $GITHUB_OUTPUT
+                  elif [[ "$TAG_VERSION" == *"-"* ]]; then
+                    echo "TAG=next" >> $GITHUB_OUTPUT
+                  else
+                    echo "TAG=latest" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Publish to npm
+              # --provenance add when public
+              run: npm publish --tag ${{ steps.dist-tag.outputs.TAG }} --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Zip dist
               run: |
                   cd dist
                   zip -r ../bn-template-engine-${{ steps.version.outputs.VERSION }}.zip .
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ steps.version.outputs.VERSION }}
+                  name: Release ${{ steps.version.outputs.VERSION }}
+                  prerelease: ${{ steps.version.outputs.PRERELEASE == 'true' }}
+                  generate_release_notes: true
+                  files: bn-template-engine-${{ steps.version.outputs.VERSION }}.zip
 
             - name: Checkout releases repository
               uses: actions/checkout@v4

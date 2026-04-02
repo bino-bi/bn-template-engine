@@ -25,6 +25,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
+import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
@@ -69,6 +70,10 @@ export class Chart {
   private readonly componentStyle: <T>(q: (Style) => T) => T;
   private readonly errors: ErrorDispatcher;
   private readonly resolveInherited: InheritedResolver;
+  private layoutObserver: LayoutObserverHandle | null = null;
+  /** Last parent dimensions seen, used to suppress ResizeObserver noise. */
+  private _lastScaledParentWidth = 0;
+  private _lastScaledParentHeight = 0;
 
   /**
    * Custom chart title
@@ -761,29 +766,42 @@ export class Chart {
     }
 
     const host = this.element;
-    const { width: parentWidth } = getParentDimensions(host);
+    const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
     if (parentWidth <= 0) return;
 
-    // Measure at base (unscaled) font size to get true content width
+    // Record both dimensions so the ResizeObserver callback can tell
+    // whether the container genuinely resized or just reflowed.
+    this._lastScaledParentWidth = parentWidth;
+    this._lastScaledParentHeight = parentHeight;
+
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
-    host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
 
-    // Reading scrollWidth forces a synchronous reflow at base size
-    const div = host.shadowRoot?.querySelector(".container");
-    const unscaledWidth = div?.scrollWidth ?? host.scrollWidth;
+    // The chart host is display:inline-block — it sizes to its content.
+    // scrollWidth == clientWidth (the host is never narrower than its
+    // content), so we get the actual rendered width at the current factor.
+    const currentWidth = host.scrollWidth;
+    const currentFactor = this.appliedScaleFactor;
 
-    if (unscaledWidth <= parentWidth + 1) {
+    // Primary check: does the content ACTUALLY fit at the current factor?
+    // This avoids oscillation from non-linear SVG scaling where the
+    // divide-by-factor estimate overshoots.
+    if (currentWidth <= parentWidth + 1) {
+      // Content fits. Don't reset to factor 1 — the content only fits
+      // BECAUSE of the current factor. Resetting would cause oscillation.
       this.errors.remove("AUTO_scale");
-      if (this.appliedScaleFactor !== 1) {
-        this._autoScaleGuard = true;
-        writeTask(() => {
-          this.appliedScaleFactor = 1;
-        });
-      }
       return;
     }
 
-    const computedFactor = (parentWidth - 1) / unscaledWidth;
+    // Content overflows. Compute a new factor based on the ratio of
+    // parent to current content width, scaled by the current factor.
+    const computedFactor = Math.max(0.3, (currentFactor * (parentWidth - 1)) / currentWidth);
+
+    // Only apply if the change is significant (> 1% of current factor).
+    // SVG charts have non-linear scaling so we use a wider tolerance
+    // than tables to avoid oscillation from sub-pixel rounding.
+    if (Math.abs(computedFactor - currentFactor) < 0.01) {
+      return;
+    }
 
     host.style.setProperty("--bn-font-size", `${baseFontSize * computedFactor}px`);
 
@@ -797,27 +815,48 @@ export class Chart {
       this.errors.remove("AUTO_scale");
     }
 
-    if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
-      this._autoScaleGuard = true;
-      writeTask(() => {
-        this.appliedScaleFactor = computedFactor;
-      });
-    }
+    this._autoScaleGuard = true;
+    writeTask(() => {
+      this.appliedScaleFactor = computedFactor;
+    });
   }
 
   componentDidLoad() {
-    // If the initial parentDimensions measurement returned 0 (common inside
-    // cards/slots whose width isn't known before first paint), defer re-check
-    // to a requestAnimationFrame so the browser has completed at least one
-    // full layout pass before we re-measure.
-    if (this.canvasWidthSegmented <= 0) {
-      requestAnimationFrame(() => {
-        const { width } = getParentDimensions(this.element);
-        if (width > 0) {
-          forceUpdate(this);
-        }
-      });
-    }
+    // Observe the parent container for size changes so auto-scaling
+    // reacts to genuine container resizes (window resize, card relayout).
+    this.layoutObserver = observeParentResize(this.element, () => {
+      const { width, height } = getParentDimensions(this.element);
+      const widthChanged = width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2;
+      const heightChanged = height > 0 && Math.abs(height - this._lastScaledParentHeight) > 2;
+      if (widthChanged || heightChanged) {
+        this._lastScaledParentWidth = width;
+        this._lastScaledParentHeight = height;
+        forceUpdate(this);
+      }
+    });
+
+    // Time charts depend on parent HEIGHT for pixelPerUnit and overflow
+    // (zigzag) calculations. Inside cards the height may not be resolved
+    // until several animation frames later (nested shadow DOM components
+    // render asynchronously). Retry until the height is available.
+    let retries = 0;
+    const waitForHeight = () => {
+      const { width, height } = getParentDimensions(this.element);
+      if (height > 0) {
+        this._lastScaledParentWidth = width;
+        this._lastScaledParentHeight = height;
+        forceUpdate(this);
+      } else if (retries < 10) {
+        retries++;
+        requestAnimationFrame(waitForHeight);
+      }
+    };
+    requestAnimationFrame(waitForHeight);
+  }
+
+  disconnectedCallback() {
+    this.layoutObserver?.disconnect();
+    this.layoutObserver = null;
   }
 
   prepareDimension(): ParentDimensions {

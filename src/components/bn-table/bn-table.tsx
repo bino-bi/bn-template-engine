@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, State, Watch, writeTask } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Prop, State, Watch, writeTask } from "@stencil/core";
 import {
   isBlankInput,
   isTableBarColumnWidth,
@@ -31,6 +31,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
+import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TableDataRow } from "./utils/model/TableDataRow";
 import {
@@ -67,6 +68,10 @@ export class Table {
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private readonly resolveInherited: InheritedResolver;
+  private layoutObserver: LayoutObserverHandle | null = null;
+  /** Last parent dimensions seen, used to suppress ResizeObserver noise. */
+  private _lastScaledParentWidth = 0;
+  private _lastScaledParentHeight = 0;
   @State() data: TableDataRow[] = [];
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
@@ -835,7 +840,24 @@ export class Table {
     this.validateScaling(this.scale);
   }
 
+  componentDidLoad() {
+    // Observe the parent container for size changes so auto-scaling
+    // reacts to genuine container resizes (window resize, card relayout).
+    this.layoutObserver = observeParentResize(this.element, () => {
+      const { width, height } = getParentDimensions(this.element);
+      const widthChanged = width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2;
+      const heightChanged = height > 0 && Math.abs(height - this._lastScaledParentHeight) > 2;
+      if (widthChanged || heightChanged) {
+        this._lastScaledParentWidth = width;
+        this._lastScaledParentHeight = height;
+        forceUpdate(this);
+      }
+    });
+  }
+
   disconnectedCallback() {
+    this.layoutObserver?.disconnect();
+    this.layoutObserver = null;
     this.unsubscribe();
   }
 
@@ -857,8 +879,11 @@ export class Table {
     }
 
     const host = this.element;
-    const { width: parentWidth } = getParentDimensions(host);
+    const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
     if (parentWidth <= 0) return;
+
+    this._lastScaledParentWidth = parentWidth;
+    this._lastScaledParentHeight = parentHeight;
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
@@ -890,7 +915,8 @@ export class Table {
 
     // Subtract 1px to account for sub-pixel rounding after scaling,
     // preventing the right edge from being clipped by overflow:hidden.
-    const computedFactor = (parentWidth - 1) / unscaledWidth;
+    // Floor at 0.3 to prevent illegible micro-rendering in very small containers.
+    const computedFactor = Math.max(0.3, (parentWidth - 1) / unscaledWidth);
 
     // Apply immediately via CSS var for smooth visual (before state re-render)
     host.style.setProperty("--bn-font-size", `${baseFontSize * computedFactor}px`);

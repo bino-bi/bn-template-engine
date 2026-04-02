@@ -289,6 +289,7 @@ export class LayoutPage {
 
   private createDivAreaStyles(elements: string[]) {
     return elements.map((x) => ({
+      display: "grid",
       width: "100%",
       overflow: "hidden",
       "grid-area": x,
@@ -337,19 +338,17 @@ export class LayoutPage {
     return this.templateMap.get(name);
   }
 
-  private calculatePercentages(input: string): string {
+  private calculateFractions(input: string): string {
     const items = input.trim().split(/\s+/);
     const count = items.length;
 
-    if (count === 0) return "100%";
+    if (count === 0) return "1fr";
 
-    const percentage = (100 / count).toFixed(0) + "%";
-
-    return Array(count).fill(percentage).join(" ");
+    return Array(count).fill("1fr").join(" ");
   }
   private getGridTemplateColumns(name: string): string {
     if (this.templateMap.has(name) === false && name !== "custom-template") {
-      return "100%";
+      return "1fr";
     }
     let template;
     const pattern = /"[\w\d\s.]+"/g;
@@ -361,7 +360,7 @@ export class LayoutPage {
     }
 
     const matches = template.match(pattern);
-    return this.calculatePercentages(matches[0]);
+    return this.calculateFractions(matches[0]);
   }
 
   @Method()

@@ -419,7 +419,7 @@ export namespace Components {
          */
         "cardCustomTemplate": string;
         /**
-          * When `true`, the card shrinks to fit its content (`fit-content`) for both width and height. When `false` (default), the card stretches to fill its parent (`100%`). <br /><br /> Use `false` (default) when the card contains components with auto-scaling (e.g. `unit-scaling="auto"`), because auto-scaling needs a fixed parent width to calculate dimensions. `fit-content` creates a circular dependency where the card width depends on the child content but the child needs the card width to render.
+          * When `true`, the card body height shrinks to fit its content (`fit-content`). When `false` (default), the card stretches to fill its parent (`100%`). Width is always `100%` regardless of this setting. <br /><br /> Use `false` (default) when the card contains components with auto-scaling (e.g. `unit-scaling="auto"` or `scale="auto"`), because auto-scaling needs a fixed parent height to calculate dimensions.
           * @default false
          */
         "cardFitToContent": boolean;
@@ -1910,7 +1910,7 @@ declare namespace LocalJSX {
          */
         "cardCustomTemplate"?: string;
         /**
-          * When `true`, the card shrinks to fit its content (`fit-content`) for both width and height. When `false` (default), the card stretches to fill its parent (`100%`). <br /><br /> Use `false` (default) when the card contains components with auto-scaling (e.g. `unit-scaling="auto"`), because auto-scaling needs a fixed parent width to calculate dimensions. `fit-content` creates a circular dependency where the card width depends on the child content but the child needs the card width to render.
+          * When `true`, the card body height shrinks to fit its content (`fit-content`). When `false` (default), the card stretches to fill its parent (`100%`). Width is always `100%` regardless of this setting. <br /><br /> Use `false` (default) when the card contains components with auto-scaling (e.g. `unit-scaling="auto"` or `scale="auto"`), because auto-scaling needs a fixed parent height to calculate dimensions.
           * @default false
          */
         "cardFitToContent"?: boolean;

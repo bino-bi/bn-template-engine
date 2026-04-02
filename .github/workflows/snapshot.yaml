@@ -1,0 +1,28 @@
+name: Snapshot
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  registry-url: "https://registry.npmjs.org"
+                  cache: npm
+            - run: npm ci
+            - run: npm run build
+             
+            - name: Ypload to storage
+              uses: shallwefootball/s3-upload-action@master
+              with:
+                  aws_key_id: ${{ secrets.STORAGE_ACCESS_KEY }}
+                  aws_secret_access_key: ${{ secrets.STORAGE_SECRET_KEY }}
+                  aws_bucket: "cdn"
+                  endpoint: ${{ secrets.STORAGE_ENDPOINT }}
+                  source_dir: "dist/bn-template-engine"
+                  destination_dir: "bn-template-engine/SNAPSHOT"
