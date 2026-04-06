@@ -737,19 +737,10 @@ export class Chart {
 
   private _autoScaleGuard = false;
 
-  private _renderCount = 0;
+  private _lastObservedWidth = 0;
+  private _lastObservedHeight = 0;
 
   componentDidRender() {
-    this._renderCount++;
-    const dims = getParentDimensions(this.element);
-    console.log(
-      `[TIME didRender #${this._renderCount}]`,
-      `parentW=${Math.round(dims.width)} parentH=${Math.round(dims.height)}`,
-      `hostW=${this.element.clientWidth} hostH=${this.element.clientHeight}`,
-      `scrollW=${this.element.scrollWidth} scrollH=${this.element.scrollHeight}`,
-      `factor=${this.appliedScaleFactor.toFixed(3)} guard=${this._autoScaleGuard}`,
-    );
-
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {
@@ -774,23 +765,22 @@ export class Chart {
     }
 
     const host = this.element;
-    const { width: parentWidth } = getParentDimensions(host);
+    const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
     if (parentWidth <= 0) return;
+
+    // Keep observer tracking in sync so the observer callback does not
+    // trigger spurious forceUpdate calls with stale threshold values.
+    this._lastObservedWidth = parentWidth;
+    this._lastObservedHeight = parentHeight;
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
-    // The chart host is display:inline-block — it sizes to its content.
-    // scrollWidth == clientWidth (the host is never narrower than its
-    // content), so we get the actual rendered width at the current factor.
     const currentWidth = host.scrollWidth;
     const currentFactor = this.appliedScaleFactor;
 
-    // Primary check: does the content ACTUALLY fit at the current factor?
-    // This avoids oscillation from non-linear SVG scaling where the
-    // divide-by-factor estimate overshoots.
+    // Content fits at current factor — done. Don't reset to factor 1;
+    // the content only fits BECAUSE of the current factor.
     if (currentWidth <= parentWidth + 1) {
-      // Content fits. Don't reset to factor 1 — the content only fits
-      // BECAUSE of the current factor. Resetting would cause oscillation.
       this.errors.remove("AUTO_scale");
       return;
     }
@@ -800,8 +790,6 @@ export class Chart {
     const computedFactor = Math.max(0.3, (currentFactor * (parentWidth - 1)) / currentWidth);
 
     // Only apply if the change is significant (> 1% of current factor).
-    // SVG charts have non-linear scaling so we use a wider tolerance
-    // than tables to avoid oscillation from sub-pixel rounding.
     if (Math.abs(computedFactor - currentFactor) < 0.01) {
       return;
     }
@@ -824,24 +812,16 @@ export class Chart {
     });
   }
 
-  private _lastObservedWidth = 0;
-  private _lastObservedHeight = 0;
-
   componentDidLoad() {
-    console.log("[TIME didLoad] setting up observer + double-rAF");
-
     // Watch for size changes (window resize, card relayout).
     this.layoutObserver = observeParentResize(this.element, () => {
-      const { width, height } = getParentDimensions(this.element);
-      const widthChanged = width > 0 && Math.abs(width - this._lastObservedWidth) > 2;
-      const heightChanged = height > 0 && Math.abs(height - this._lastObservedHeight) > 2;
-      if (widthChanged || heightChanged) {
-        console.log(
-          "[TIME observer]",
-          `w=${Math.round(width)} h=${Math.round(height)} (was ${Math.round(this._lastObservedWidth)}x${Math.round(this._lastObservedHeight)}) → forceUpdate`,
-        );
+      if (this._autoScaleGuard) return;
+      const { width } = getParentDimensions(this.element);
+      // Only react to WIDTH changes — this chart scales by width.
+      // Height changes (e.g. from page-fit-to-content auto grid rows)
+      // are irrelevant and would cause an infinite render loop.
+      if (width > 0 && Math.abs(width - this._lastObservedWidth) > 2) {
         this._lastObservedWidth = width;
-        this._lastObservedHeight = height;
         forceUpdate(this);
       }
     });
@@ -850,8 +830,8 @@ export class Chart {
     // paint cycle so all nested card/body/grid layouts are finalized.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        if (this._autoScaleGuard) return;
         const { width, height } = getParentDimensions(this.element);
-        console.log("[TIME double-rAF]", `w=${Math.round(width)} h=${Math.round(height)} → forceUpdate`);
         this._lastObservedWidth = width;
         this._lastObservedHeight = height;
         forceUpdate(this);
@@ -865,20 +845,10 @@ export class Chart {
   }
 
   prepareDimension(): ParentDimensions {
-    const parent = getParentDimensions(this.element, true);
+    const parent = getParentDimensions(this.element);
     const scenariosList = this.prepareScenarios();
     const variancesList = this.prepareVariances();
     this.canvasWidthSegmented = parent.width / (scenariosList.length + variancesList.length || 1);
-    console.log(
-      "[TIME prepareDim]",
-      `w=${Math.round(parent.width)} h=${Math.round(parent.height)} segW=${Math.round(this.canvasWidthSegmented)}`,
-      "host:",
-      `${this.element.clientWidth}x${this.element.clientHeight}`,
-      "scrollW:",
-      this.element.scrollWidth,
-      "scrollH:",
-      this.element.scrollHeight,
-    );
     return { width: this.canvasWidthSegmented, height: parent.height };
   }
 

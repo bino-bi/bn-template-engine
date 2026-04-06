@@ -636,11 +636,11 @@ export class Chart {
     // ResizeObserver's initial fire (and content-reflow noise) from
     // creating an infinite auto-scale loop.
     this.layoutObserver = observeParentResize(this.element, () => {
-      const { width, height } = getParentDimensions(this.element);
-      const widthChanged = width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2;
-      const heightChanged = height > 0 && Math.abs(height - this._lastScaledParentHeight) > 2;
-      if (widthChanged || heightChanged) {
-        this._lastScaledParentWidth = width;
+      if (this._autoScaleGuard) return;
+      const { height } = getParentDimensions(this.element);
+      // Only react to HEIGHT changes — structure chart scales by height.
+      // Width changes are handled separately via checkWidthOverflow.
+      if (height > 0 && Math.abs(height - this._lastScaledParentHeight) > 2) {
         this._lastScaledParentHeight = height;
         forceUpdate(this);
       }
@@ -648,9 +648,9 @@ export class Chart {
 
     // Double-rAF guarantees the browser has completed at least one full
     // paint cycle so all nested shadow DOM layouts are finalized.
-    // Structure charts depend on parent WIDTH for auto-fit and overflow.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        if (this._autoScaleGuard) return;
         const { width, height } = getParentDimensions(this.element);
         this._lastScaledParentWidth = width;
         this._lastScaledParentHeight = height;
