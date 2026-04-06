@@ -264,16 +264,16 @@ export class LayoutCard {
     const items = input.trim().split(/\s+/);
     const count = items.length;
 
-    if (count === 0) return "1fr";
+    if (count === 0) return "minmax(0, 1fr)";
 
-    return Array(count).fill("1fr").join(" ");
+    return Array(count).fill("minmax(0, 1fr)").join(" ");
   }
 
   private getGridTemplateColumns(name: string): string {
     const template = this.getTemplatePattern(name);
     const pattern = /"[\w\d\s.]+"/g;
     const matches = template.match(pattern);
-    if (!matches || matches.length === 0) return "1fr";
+    if (!matches || matches.length === 0) return "minmax(0, 1fr)";
     return this.calculateFractions(matches[0]);
   }
 
@@ -286,7 +286,10 @@ export class LayoutCard {
     if (this.cardFitToContent) {
       return Array(rowCount).fill("auto").join(" ");
     }
-    return Array(rowCount).fill("1fr").join(" ");
+    // minmax(0, 1fr) allows rows to shrink below content height.
+    // Plain 1fr = minmax(auto, 1fr) which grows rows to fit content,
+    // breaking overflow constraints on the slot wrappers.
+    return Array(rowCount).fill("minmax(0, 1fr)").join(" ");
   }
 
   private getLayoutStyle() {
@@ -300,11 +303,9 @@ export class LayoutCard {
 
   private createDivAreaStyles(elements: string[]) {
     return elements.map((x) => ({
-      display: "grid",
-      width: "100%",
+      display: "flex",
       overflow: "hidden",
       "grid-area": x,
-      height: "100%",
     }));
   }
 

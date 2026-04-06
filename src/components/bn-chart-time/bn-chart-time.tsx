@@ -71,9 +71,6 @@ export class Chart {
   private readonly errors: ErrorDispatcher;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
-  /** Last parent dimensions seen, used to suppress ResizeObserver noise. */
-  private _lastScaledParentWidth = 0;
-  private _lastScaledParentHeight = 0;
 
   /**
    * Custom chart title
@@ -740,12 +737,23 @@ export class Chart {
 
   private _autoScaleGuard = false;
 
+  private _renderCount = 0;
+
   componentDidRender() {
+    this._renderCount++;
+    const dims = getParentDimensions(this.element);
+    console.log(
+      `[TIME didRender #${this._renderCount}]`,
+      `parentW=${Math.round(dims.width)} parentH=${Math.round(dims.height)}`,
+      `hostW=${this.element.clientWidth} hostH=${this.element.clientHeight}`,
+      `scrollW=${this.element.scrollWidth} scrollH=${this.element.scrollHeight}`,
+      `factor=${this.appliedScaleFactor.toFixed(3)} guard=${this._autoScaleGuard}`,
+    );
+
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {
       this._autoScaleGuard = false;
-      // Keep existing width-based overflow warning for non-auto modes
       const parent = getParentDimensions(this.element);
       const errId = "WARN_overflow";
       if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
@@ -766,13 +774,8 @@ export class Chart {
     }
 
     const host = this.element;
-    const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
+    const { width: parentWidth } = getParentDimensions(host);
     if (parentWidth <= 0) return;
-
-    // Record both dimensions so the ResizeObserver callback can tell
-    // whether the container genuinely resized or just reflowed.
-    this._lastScaledParentWidth = parentWidth;
-    this._lastScaledParentHeight = parentHeight;
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
@@ -821,37 +824,39 @@ export class Chart {
     });
   }
 
+  private _lastObservedWidth = 0;
+  private _lastObservedHeight = 0;
+
   componentDidLoad() {
-    // Observe the parent container for size changes so auto-scaling
-    // reacts to genuine container resizes (window resize, card relayout).
+    console.log("[TIME didLoad] setting up observer + double-rAF");
+
+    // Watch for size changes (window resize, card relayout).
     this.layoutObserver = observeParentResize(this.element, () => {
       const { width, height } = getParentDimensions(this.element);
-      const widthChanged = width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2;
-      const heightChanged = height > 0 && Math.abs(height - this._lastScaledParentHeight) > 2;
+      const widthChanged = width > 0 && Math.abs(width - this._lastObservedWidth) > 2;
+      const heightChanged = height > 0 && Math.abs(height - this._lastObservedHeight) > 2;
       if (widthChanged || heightChanged) {
-        this._lastScaledParentWidth = width;
-        this._lastScaledParentHeight = height;
+        console.log(
+          "[TIME observer]",
+          `w=${Math.round(width)} h=${Math.round(height)} (was ${Math.round(this._lastObservedWidth)}x${Math.round(this._lastObservedHeight)}) → forceUpdate`,
+        );
+        this._lastObservedWidth = width;
+        this._lastObservedHeight = height;
         forceUpdate(this);
       }
     });
 
-    // Time charts depend on parent HEIGHT for pixelPerUnit and overflow
-    // (zigzag) calculations. Inside cards the height may not be resolved
-    // until several animation frames later (nested shadow DOM components
-    // render asynchronously). Retry until the height is available.
-    let retries = 0;
-    const waitForHeight = () => {
-      const { width, height } = getParentDimensions(this.element);
-      if (height > 0) {
-        this._lastScaledParentWidth = width;
-        this._lastScaledParentHeight = height;
+    // Double-rAF: guarantees the browser completed at least one full
+    // paint cycle so all nested card/body/grid layouts are finalized.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const { width, height } = getParentDimensions(this.element);
+        console.log("[TIME double-rAF]", `w=${Math.round(width)} h=${Math.round(height)} → forceUpdate`);
+        this._lastObservedWidth = width;
+        this._lastObservedHeight = height;
         forceUpdate(this);
-      } else if (retries < 10) {
-        retries++;
-        requestAnimationFrame(waitForHeight);
-      }
-    };
-    requestAnimationFrame(waitForHeight);
+      });
+    });
   }
 
   disconnectedCallback() {
@@ -860,10 +865,20 @@ export class Chart {
   }
 
   prepareDimension(): ParentDimensions {
-    const parent = getParentDimensions(this.element);
+    const parent = getParentDimensions(this.element, true);
     const scenariosList = this.prepareScenarios();
     const variancesList = this.prepareVariances();
     this.canvasWidthSegmented = parent.width / (scenariosList.length + variancesList.length || 1);
+    console.log(
+      "[TIME prepareDim]",
+      `w=${Math.round(parent.width)} h=${Math.round(parent.height)} segW=${Math.round(this.canvasWidthSegmented)}`,
+      "host:",
+      `${this.element.clientWidth}x${this.element.clientHeight}`,
+      "scrollW:",
+      this.element.scrollWidth,
+      "scrollH:",
+      this.element.scrollHeight,
+    );
     return { width: this.canvasWidthSegmented, height: parent.height };
   }
 

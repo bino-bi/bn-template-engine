@@ -645,6 +645,18 @@ export class Chart {
         forceUpdate(this);
       }
     });
+
+    // Double-rAF guarantees the browser has completed at least one full
+    // paint cycle so all nested shadow DOM layouts are finalized.
+    // Structure charts depend on parent WIDTH for auto-fit and overflow.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const { width, height } = getParentDimensions(this.element);
+        this._lastScaledParentWidth = width;
+        this._lastScaledParentHeight = height;
+        forceUpdate(this);
+      });
+    });
   }
 
   disconnectedCallback() {

@@ -275,7 +275,11 @@ export class LayoutPage {
     if (this.pageFitToContent) {
       return Array(rowCount).fill("auto").join(" ");
     }
-    return Array(rowCount).fill("1fr").join(" ");
+    // minmax(0, 1fr) allows rows to shrink below their content height.
+    // Plain 1fr = minmax(auto, 1fr) which grows rows to fit content,
+    // breaking overflow:hidden on slot wrappers and causing charts
+    // inside cards to push the grid cell beyond its intended share.
+    return Array(rowCount).fill("minmax(0, 1fr)").join(" ");
   }
 
   private getLayoutStyle() {
@@ -289,11 +293,13 @@ export class LayoutPage {
 
   private createDivAreaStyles(elements: string[]) {
     return elements.map((x) => ({
-      display: "grid",
-      width: "100%",
+      // display:flex (row direction) makes slotted children stretch
+      // vertically via align-items:stretch (default). This constrains
+      // cards/charts to the grid cell height instead of growing to
+      // content size. Column direction would only stretch horizontally.
+      display: "flex",
       overflow: "hidden",
       "grid-area": x,
-      height: "100%",
     }));
   }
 
@@ -342,9 +348,9 @@ export class LayoutPage {
     const items = input.trim().split(/\s+/);
     const count = items.length;
 
-    if (count === 0) return "1fr";
+    if (count === 0) return "minmax(0, 1fr)";
 
-    return Array(count).fill("1fr").join(" ");
+    return Array(count).fill("minmax(0, 1fr)").join(" ");
   }
   private getGridTemplateColumns(name: string): string {
     if (this.templateMap.has(name) === false && name !== "custom-template") {
