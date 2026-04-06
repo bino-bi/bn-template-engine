@@ -16,16 +16,30 @@ export interface ParentDimensions {
  * visual container. We cross the light→shadow boundary via assignedSlot to
  * find the actual slot wrapper that determines layout.
  */
-export function getParentDimensions(element: HTMLElement): ParentDimensions {
+export function getParentDimensions(element: HTMLElement, debug = false): ParentDimensions {
   const parent = findLayoutParent(element);
   if (!parent) {
+    if (debug) console.log("[parentDims] no layout parent found for", element.tagName);
     return { width: 0, height: 0 };
   }
 
   const parentStyle = getComputedStyle(parent);
   const width = parent.clientWidth - parseFloat(parentStyle.paddingLeft) - parseFloat(parentStyle.paddingRight);
 
-  const height = findConstrainedHeight(element);
+  const height = findConstrainedHeight(element, debug);
+
+  if (debug) {
+    console.log(
+      "[parentDims]",
+      element.tagName,
+      "→ layoutParent:",
+      parent.tagName,
+      parent.className || "(no class)",
+      `clientW=${parent.clientWidth} → w=${Math.round(width)}, h=${Math.round(height)}`,
+      "overflow:",
+      parentStyle.overflow,
+    );
+  }
 
   return { width: Math.max(0, width), height: Math.max(0, height) };
 }
@@ -62,16 +76,28 @@ function getVisualParent(element: HTMLElement): HTMLElement | null {
  * via assignedSlot when encountering slotted elements. Returns viewport
  * height as a last resort.
  */
-function findConstrainedHeight(element: HTMLElement): number {
+function findConstrainedHeight(element: HTMLElement, debug = false): number {
   let current: HTMLElement | null = findLayoutParent(element);
+  let depth = 0;
 
   while (current) {
     const style = getComputedStyle(current);
     const overflow = style.overflowY;
 
+    if (debug) {
+      console.log(
+        `[height:${depth}]`,
+        current.tagName,
+        current.className || "(no class)",
+        `overflow=${overflow} clientH=${current.clientHeight} h=${style.height}`,
+      );
+    }
+
     // An ancestor that clips / scrolls its content has a meaningful height
     if (overflow === "hidden" || overflow === "scroll" || overflow === "auto") {
-      return current.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      const h = current.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      if (debug) console.log(`[height] FOUND constrained at depth ${depth}: ${Math.round(h)}px`);
+      return h;
     }
 
     // An explicit max-height constrains the available space
@@ -83,8 +109,10 @@ function findConstrainedHeight(element: HTMLElement): number {
     }
 
     current = getVisualParent(current);
+    depth++;
   }
 
+  if (debug) console.log("[height] NO constrained ancestor → viewport fallback");
   // No constrained ancestor found — use viewport
   return typeof window !== "undefined" ? window.innerHeight : 0;
 }
