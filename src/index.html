@@ -57,7 +57,7 @@
         <bn-table datasets='$umsatz' order='ac1' order-direction='desc' measure-scale='k' measure-type='currency'
           measure-unit='EUR' grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum'
           scenarios='ac1,fc1,pl1,pp1' variances='drac1_fc1_pos' bar-columns='ac1' unit-scaling='0.001'
-          percentage-scaling='0.5' scale='auto'
+          percentage-scaling='0.5'
           thereof='[{&#34;rowGroup&#34;:&#34;Umsatz&#34;,&#34;category&#34;:&#34;Logis&#34;,&#34;subCategory&#34;:&#34;D&#34;}]'
           partof='[{&#34;rowGroup&#34;:&#34;Umsatz&#34;,&#34;category&#34;:&#34;Shop&#34;}]'
           columnthereof='[{&#34;scenario&#34;:&#34;PY1&#34;,&#34;name&#34;:&#34;A&#34;,&#34;subGroups&#34;:[&#34;A&#34;]}]'></bn-table>
@@ -90,7 +90,7 @@
         <bn-table datasets='$umsatz' scenarios='inherited-page' variances='inherited-page' order='inherited-page'
           order-direction='inherited-page' measure-scale='k' measure-type='currency' measure-unit='EUR' grouped='true'
           show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='0.001'
-          percentage-scaling='0.5' scale='auto'></bn-table>
+          percentage-scaling='0.5'></bn-table>
       </div>
     </bn-layout-page>
 
@@ -121,7 +121,7 @@
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1,pl1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' grouped='true'
               show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
-              percentage-scaling='auto' scale='auto'></bn-table>
+              percentage-scaling='auto'></bn-table>
           </div>
         </bn-layout-card>
       </div>
@@ -130,7 +130,7 @@
         <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time Chart (auto scale)'>
           <div slot='card-slot-0' data-bino-kind='ChartTime'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
-              measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1,pl1'></bn-chart-time>
+              measure-unit='EUR' show-measure-scale='true' scenarios='ac1,fc1,pl1'></bn-chart-time>
           </div>
         </bn-layout-card>
       </div>
@@ -142,7 +142,7 @@
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1,pp1' variances='dac1_fc1_pos,drac1_fc1_pos' order='ac1' order-direction='desc'
               grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
-              percentage-scaling='auto' bar-columns='ac1' scale='auto'></bn-table>
+              percentage-scaling='auto' bar-columns='ac1'></bn-table>
           </div>
         </bn-layout-card>
       </div>
@@ -181,7 +181,7 @@
         <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
           scenarios='ac1,fc1,pp1' variances='dac1_fc1_pos,drac1_fc1_pos' order='ac1' order-direction='desc'
           grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
-          percentage-scaling='auto' bar-columns='ac1' scale='auto'></bn-table>
+          percentage-scaling='auto' bar-columns='ac1'></bn-table>
       </div>
     </bn-layout-page>
 
@@ -202,19 +202,18 @@
       </div>
       <div slot='slot-1' data-bino-kind='ChartTime'>
         <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
-          measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1'
-          scale='auto'></bn-chart-time>
+          measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1'></bn-chart-time>
       </div>
       <div slot='slot-2' data-bino-kind='Table'>
         <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
           scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
-          limit='5' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+          limit='5' type='sum' unit-scaling='auto'></bn-table>
       </div>
       <div slot='slot-3' data-bino-kind='Table'>
         <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
           scenarios='ac1,fc1,pl1,pp1' variances='dac1_fc1_pos,drac1_fc1_pos' order='ac1' order-direction='desc'
           grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='auto'
-          percentage-scaling='auto' bar-columns='ac1' scale='auto'></bn-table>
+          percentage-scaling='auto' bar-columns='ac1'></bn-table>
       </div>
     </bn-layout-page>
 
@@ -234,7 +233,7 @@
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
-              limit='4' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+              limit='4' type='sum' unit-scaling='auto'></bn-table>
           </div>
           <div slot='card-slot-1' data-bino-kind='ChartStructure'>
             <bn-chart-structure datasets='$umsatz' chart-title='Structure' level='category' order='ac1'
@@ -250,12 +249,12 @@
           <div slot='card-slot-0' data-bino-kind='ChartTime'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
               measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,fc1'
-              scale='auto'></bn-chart-time>
+              scale='none'></bn-chart-time>
           </div>
           <div slot='card-slot-1' data-bino-kind='ChartTime'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
               measure-unit='EUR' unit-scaling='auto' show-measure-scale='true' scenarios='ac1,pp1'
-              scale='auto'></bn-chart-time>
+              scale='none'></bn-chart-time>
           </div>
         </bn-layout-card>
       </div>
@@ -275,7 +274,7 @@
       <div slot='slot-0' data-bino-kind='Table'>
         <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
           scenarios='ac1,fc1,pl1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
-          limit='4' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+          limit='4' type='sum' unit-scaling='auto'></bn-table>
       </div>
       <div slot='slot-1' data-bino-kind='Table'>
         <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
@@ -343,7 +342,7 @@
           <div slot='card-slot-0'>
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
-              limit='3' type='sum' unit-scaling='auto' scale='auto'></bn-table>
+              limit='3' type='sum' unit-scaling='auto'></bn-table>
           </div>
         </bn-layout-card>
       </div>
@@ -360,7 +359,7 @@
         <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 1'>
           <div slot='card-slot-0'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
-              measure-unit='EUR' unit-scaling='auto' scenarios='ac1,fc1' scale='auto'></bn-chart-time>
+              measure-unit='EUR' unit-scaling='auto' scenarios='ac1,fc1'></bn-chart-time>
           </div>
         </bn-layout-card>
       </div>
@@ -369,7 +368,7 @@
           <div slot='card-slot-0'>
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1' order='ac1' order-direction='desc' show-measure-scale='true' limit='3' type='sum'
-              unit-scaling='auto' scale='auto'></bn-table>
+              unit-scaling='auto'></bn-table>
           </div>
         </bn-layout-card>
       </div>
@@ -386,7 +385,7 @@
         <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 2'>
           <div slot='card-slot-0'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
-              measure-unit='EUR' unit-scaling='auto' scenarios='ac1' scale='auto'></bn-chart-time>
+              measure-unit='EUR' unit-scaling='auto' scenarios='ac1'></bn-chart-time>
           </div>
         </bn-layout-card>
       </div>
@@ -395,7 +394,7 @@
           <div slot='card-slot-0'>
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1' order='ac1' order-direction='desc' show-measure-scale='true' limit='3' type='sum'
-              unit-scaling='auto' scale='auto'></bn-table>
+              unit-scaling='auto'></bn-table>
           </div>
         </bn-layout-card>
       </div>

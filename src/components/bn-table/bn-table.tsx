@@ -844,12 +844,13 @@ export class Table {
     // Observe the parent container for size changes so auto-scaling
     // reacts to genuine container resizes (window resize, card relayout).
     this.layoutObserver = observeParentResize(this.element, () => {
-      const { width, height } = getParentDimensions(this.element);
-      const widthChanged = width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2;
-      const heightChanged = height > 0 && Math.abs(height - this._lastScaledParentHeight) > 2;
-      if (widthChanged || heightChanged) {
+      if (this._autoScaleGuard) return;
+      const { width } = getParentDimensions(this.element);
+      // Only react to WIDTH changes — table scales by width.
+      // Height changes (e.g. from page-fit-to-content auto grid rows)
+      // are irrelevant and would cause an infinite render loop.
+      if (width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2) {
         this._lastScaledParentWidth = width;
-        this._lastScaledParentHeight = height;
         forceUpdate(this);
       }
     });
@@ -887,36 +888,26 @@ export class Table {
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
-    // Measure current content width. host has overflow:hidden, so scrollWidth
-    // reliably includes full content including shadow DOM overflow.
     const currentWidth = host.scrollWidth;
     const currentFactor = this.appliedScaleFactor;
 
-    // Both em-based and SVG-based dimensions scale proportionally with the
-    // factor, so dividing by the current factor recovers the base-size width.
-    // This avoids resetting --bn-font-size to base which only changes em
-    // widths but not SVG pixel attributes, causing measurement mismatch.
-    const unscaledWidth = currentFactor > 0 ? currentWidth / currentFactor : currentWidth;
-
-    if (unscaledWidth <= parentWidth + 1) {
-      // Content fits at base size — no scaling needed
+    // Content fits at current factor — done. Don't estimate unscaled width
+    // and reset to factor 1; that estimate is approximate due to pixel
+    // rounding and causes oscillation (reset → overflow → scale → reset).
+    if (currentWidth <= parentWidth + 1) {
       this.errors.remove("AUTO_scale");
-      if (this.appliedScaleFactor !== 1) {
-        host.style.setProperty("--bn-font-size", `${baseFontSize}px`);
-        this._autoScaleGuard = true;
-        // Defer state change to avoid Stencil "changed during rendering" warning.
-        // The CSS var is already applied, so the visual update is immediate.
-        writeTask(() => {
-          this.appliedScaleFactor = 1;
-        });
-      }
       return;
     }
 
-    // Subtract 1px to account for sub-pixel rounding after scaling,
-    // preventing the right edge from being clipped by overflow:hidden.
+    // Content overflows. Compute a new factor based on the ratio of
+    // parent to current content width, scaled by the current factor.
     // Floor at 0.3 to prevent illegible micro-rendering in very small containers.
-    const computedFactor = Math.max(0.3, (parentWidth - 1) / unscaledWidth);
+    const computedFactor = Math.max(0.3, (currentFactor * (parentWidth - 1)) / currentWidth);
+
+    // Only apply if the change is significant (> 0.1% of current factor).
+    if (Math.abs(computedFactor - currentFactor) < 0.001) {
+      return;
+    }
 
     // Apply immediately via CSS var for smooth visual (before state re-render)
     host.style.setProperty("--bn-font-size", `${baseFontSize * computedFactor}px`);
@@ -934,12 +925,10 @@ export class Table {
     // Defer state update to avoid Stencil "changed during rendering" warning.
     // The CSS var is already applied, so the visual update is immediate;
     // the deferred state change triggers a re-render for SVG bar charts.
-    if (Math.abs(computedFactor - this.appliedScaleFactor) > 0.001) {
-      this._autoScaleGuard = true;
-      writeTask(() => {
-        this.appliedScaleFactor = computedFactor;
-      });
-    }
+    this._autoScaleGuard = true;
+    writeTask(() => {
+      this.appliedScaleFactor = computedFactor;
+    });
   }
 
   private prepareDataFormat(): DataFormat {
