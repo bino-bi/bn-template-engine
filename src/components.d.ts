@@ -109,8 +109,9 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Controls scaling of relative variance bars (pixels per percentage point).  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available width                                   | | not set / `""` | Same as auto with warning                                     | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a shared scaling group for synchronized charts     |
+          * Controls scaling of relative variance bars (pixels per percentage point).  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available width                                   | | not set / `""` | Same as auto with warning                                     | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
           * @example percentage-scaling="50"
+          * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
         /**
@@ -142,9 +143,10 @@ export namespace Components {
          */
         "stack": string;
         /**
-          * Controls horizontal bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container width (no warning) | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a shared scaling group for synchronized charts       |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
+          * Controls horizontal bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container width (no warning) | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
           * @example unit-scaling="auto"
           * @example unit-scaling="0.05"
+          * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
         /**
@@ -230,7 +232,9 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a shared scaling group for synchronized charts     |
+          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
+          * @example percentage-scaling="50"
+          * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
         /**
@@ -270,7 +274,10 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per measure unit.
+          * Controls vertical bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container height             | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |
+          * @example unit-scaling="auto"
+          * @example unit-scaling="0.05"
+          * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
         /**
@@ -662,6 +669,26 @@ export namespace Components {
         "orientation": string;
     }
     /**
+     * Defines a named scaling value that chart and table components can reference
+     * via their `unit-scaling` or `percentage-scaling` attributes.
+     * Multiple components sharing the same group name will use the same scaling
+     * value, allowing synchronized scaling across an entire page or section.
+     * The reserved name `"auto"` is not allowed and will be ignored with a warning.
+     * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+     * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
+     * <bn-table unit-scaling="revenue" ...></bn-table>
+     */
+    interface BnScalingGroup {
+        /**
+          * Unique name identifying this scaling group. Components reference this name in their `unit-scaling` or `percentage-scaling` attributes.  The name `"auto"` is reserved and cannot be used.
+         */
+        "name": string;
+        /**
+          * The scaling value (pixels per data unit or pixels per percentage point, depending on which attribute references this group).
+         */
+        "value": number;
+    }
+    /**
      * Public-facing wrapper for the IBCS table component.
      * Accepts user-facing string/number props, validates them, and converts
      * them into the typed internal format expected by `ibcs-table`. Handles
@@ -750,7 +777,9 @@ export namespace Components {
          */
         "partof": string;
         /**
-          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per percentage point. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
+          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
+          * @example percentage-scaling="0.5"
+          * @example percentage-scaling="pct-scale"
           * @default 0.5
          */
         "percentageScaling": string | number;
@@ -789,7 +818,9 @@ export namespace Components {
          */
         "type": string;
         /**
-          * Pixels per unit for absolute variance bar charts (ΔPY). Controls bar width: barWidth = value × unitScaling. Bars exceeding barColumnWidth are shown with an arrow indicator. <br /><br /> Default: 0.01
+          * Pixels per unit for absolute variance bar charts (ΔPY). Controls bar width: barWidth = value × unitScaling. Bars exceeding barColumnWidth are shown with an arrow indicator. <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Default: 0.01
+          * @example unit-scaling="0.01"
+          * @example unit-scaling="revenue-scale"
           * @default 0.01
          */
         "unitScaling": string | number;
@@ -1400,6 +1431,22 @@ declare global {
         new (): HTMLBnPageElement;
     };
     /**
+     * Defines a named scaling value that chart and table components can reference
+     * via their `unit-scaling` or `percentage-scaling` attributes.
+     * Multiple components sharing the same group name will use the same scaling
+     * value, allowing synchronized scaling across an entire page or section.
+     * The reserved name `"auto"` is not allowed and will be ignored with a warning.
+     * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+     * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
+     * <bn-table unit-scaling="revenue" ...></bn-table>
+     */
+    interface HTMLBnScalingGroupElement extends Components.BnScalingGroup, HTMLStencilElement {
+    }
+    var HTMLBnScalingGroupElement: {
+        prototype: HTMLBnScalingGroupElement;
+        new (): HTMLBnScalingGroupElement;
+    };
+    /**
      * Public-facing wrapper for the IBCS table component.
      * Accepts user-facing string/number props, validates them, and converts
      * them into the typed internal format expected by `ibcs-table`. Handles
@@ -1518,6 +1565,7 @@ declare global {
         "bn-layout-page": HTMLBnLayoutPageElement;
         "bn-message": HTMLBnMessageElement;
         "bn-page": HTMLBnPageElement;
+        "bn-scaling-group": HTMLBnScalingGroupElement;
         "bn-table": HTMLBnTableElement;
         "bn-template": HTMLBnTemplateElement;
         "bn-text": HTMLBnTextElement;
@@ -1600,8 +1648,9 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Controls scaling of relative variance bars (pixels per percentage point).  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available width                                   | | not set / `""` | Same as auto with warning                                     | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a shared scaling group for synchronized charts     |
+          * Controls scaling of relative variance bars (pixels per percentage point).  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available width                                   | | not set / `""` | Same as auto with warning                                     | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
           * @example percentage-scaling="50"
+          * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
         /**
@@ -1633,9 +1682,10 @@ declare namespace LocalJSX {
          */
         "stack"?: string;
         /**
-          * Controls horizontal bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container width (no warning) | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a shared scaling group for synchronized charts       |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
+          * Controls horizontal bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container width (no warning) | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
           * @example unit-scaling="auto"
           * @example unit-scaling="0.05"
+          * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
         /**
@@ -1721,7 +1771,9 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a shared scaling group for synchronized charts     |
+          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
+          * @example percentage-scaling="50"
+          * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
         /**
@@ -1761,7 +1813,10 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
-          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per measure unit.
+          * Controls vertical bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container height             | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |
+          * @example unit-scaling="auto"
+          * @example unit-scaling="0.05"
+          * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
         /**
@@ -2151,6 +2206,26 @@ declare namespace LocalJSX {
         "orientation"?: string;
     }
     /**
+     * Defines a named scaling value that chart and table components can reference
+     * via their `unit-scaling` or `percentage-scaling` attributes.
+     * Multiple components sharing the same group name will use the same scaling
+     * value, allowing synchronized scaling across an entire page or section.
+     * The reserved name `"auto"` is not allowed and will be ignored with a warning.
+     * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+     * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
+     * <bn-table unit-scaling="revenue" ...></bn-table>
+     */
+    interface BnScalingGroup {
+        /**
+          * Unique name identifying this scaling group. Components reference this name in their `unit-scaling` or `percentage-scaling` attributes.  The name `"auto"` is reserved and cannot be used.
+         */
+        "name": string;
+        /**
+          * The scaling value (pixels per data unit or pixels per percentage point, depending on which attribute references this group).
+         */
+        "value": number;
+    }
+    /**
      * Public-facing wrapper for the IBCS table component.
      * Accepts user-facing string/number props, validates them, and converts
      * them into the typed internal format expected by `ibcs-table`. Handles
@@ -2239,7 +2314,9 @@ declare namespace LocalJSX {
          */
         "partof"?: string;
         /**
-          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Name of the 'scaling-group' which the table uses. Scaling groups are maintained globally. <br /><br /> Alternatively a number which represents pixels per percentage point. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
+          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
+          * @example percentage-scaling="0.5"
+          * @example percentage-scaling="pct-scale"
           * @default 0.5
          */
         "percentageScaling"?: string | number;
@@ -2278,7 +2355,9 @@ declare namespace LocalJSX {
          */
         "type"?: string;
         /**
-          * Pixels per unit for absolute variance bar charts (ΔPY). Controls bar width: barWidth = value × unitScaling. Bars exceeding barColumnWidth are shown with an arrow indicator. <br /><br /> Default: 0.01
+          * Pixels per unit for absolute variance bar charts (ΔPY). Controls bar width: barWidth = value × unitScaling. Bars exceeding barColumnWidth are shown with an arrow indicator. <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Default: 0.01
+          * @example unit-scaling="0.01"
+          * @example unit-scaling="revenue-scale"
           * @default 0.01
          */
         "unitScaling"?: string | number;
@@ -2903,6 +2982,10 @@ declare namespace LocalJSX {
         "format": string;
         "orientation": string;
     }
+    interface BnScalingGroupAttributes {
+        "name": string;
+        "value": number;
+    }
     interface BnTableAttributes {
         "scale": string;
         "tableTitle": string;
@@ -3035,6 +3118,7 @@ declare namespace LocalJSX {
         "bn-layout-page": Omit<BnLayoutPage, keyof BnLayoutPageAttributes> & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes]?: BnLayoutPage[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `attr:${K}`]?: BnLayoutPageAttributes[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `prop:${K}`]?: BnLayoutPage[K] };
         "bn-message": Omit<BnMessage, keyof BnMessageAttributes> & { [K in keyof BnMessage & keyof BnMessageAttributes]?: BnMessage[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `attr:${K}`]?: BnMessageAttributes[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `prop:${K}`]?: BnMessage[K] };
         "bn-page": Omit<BnPage, keyof BnPageAttributes> & { [K in keyof BnPage & keyof BnPageAttributes]?: BnPage[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `attr:${K}`]?: BnPageAttributes[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `prop:${K}`]?: BnPage[K] };
+        "bn-scaling-group": Omit<BnScalingGroup, keyof BnScalingGroupAttributes> & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes]?: BnScalingGroup[K] } & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes as `attr:${K}`]?: BnScalingGroupAttributes[K] } & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes as `prop:${K}`]?: BnScalingGroup[K] } & OneOf<"name", BnScalingGroup["name"], BnScalingGroupAttributes["name"]> & OneOf<"value", BnScalingGroup["value"], BnScalingGroupAttributes["value"]>;
         "bn-table": Omit<BnTable, keyof BnTableAttributes> & { [K in keyof BnTable & keyof BnTableAttributes]?: BnTable[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `attr:${K}`]?: BnTableAttributes[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `prop:${K}`]?: BnTable[K] };
         "bn-template": Omit<BnTemplate, keyof BnTemplateAttributes> & { [K in keyof BnTemplate & keyof BnTemplateAttributes]?: BnTemplate[K] } & { [K in keyof BnTemplate & keyof BnTemplateAttributes as `attr:${K}`]?: BnTemplateAttributes[K] } & { [K in keyof BnTemplate & keyof BnTemplateAttributes as `prop:${K}`]?: BnTemplate[K] };
         "bn-text": Omit<BnText, keyof BnTextAttributes> & { [K in keyof BnText & keyof BnTextAttributes]?: BnText[K] } & { [K in keyof BnText & keyof BnTextAttributes as `attr:${K}`]?: BnTextAttributes[K] } & { [K in keyof BnText & keyof BnTextAttributes as `prop:${K}`]?: BnText[K] };
@@ -3106,6 +3190,17 @@ declare module "@stencil/core" {
             "bn-layout-page": LocalJSX.IntrinsicElements["bn-layout-page"] & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
             "bn-message": LocalJSX.IntrinsicElements["bn-message"] & JSXBase.HTMLAttributes<HTMLBnMessageElement>;
             "bn-page": LocalJSX.IntrinsicElements["bn-page"] & JSXBase.HTMLAttributes<HTMLBnPageElement>;
+            /**
+             * Defines a named scaling value that chart and table components can reference
+             * via their `unit-scaling` or `percentage-scaling` attributes.
+             * Multiple components sharing the same group name will use the same scaling
+             * value, allowing synchronized scaling across an entire page or section.
+             * The reserved name `"auto"` is not allowed and will be ignored with a warning.
+             * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+             * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
+             * <bn-table unit-scaling="revenue" ...></bn-table>
+             */
+            "bn-scaling-group": LocalJSX.IntrinsicElements["bn-scaling-group"] & JSXBase.HTMLAttributes<HTMLBnScalingGroupElement>;
             /**
              * Public-facing wrapper for the IBCS table component.
              * Accepts user-facing string/number props, validates them, and converts

@@ -18,6 +18,7 @@ import {
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
+import withScalingGroup from "../../utils/withScalingGroup";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
@@ -206,11 +207,18 @@ export class Chart {
   }
 
   /**
-   * Name of the 'scaling-group' which the chart uses
-   * scaling groups are maintained globally
-   * <br /> <br />
-   * alternatively a number which represent the
-   * pixel per measure unit.
+   * Controls vertical bar scaling (pixels per data unit).
+   *
+   * | Value          | Behavior                                                        |
+   * |----------------|-----------------------------------------------------------------|
+   * | `"auto"`       | Auto-fit bars to fill the available container height             |
+   * | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              |
+   * | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       |
+   * | group name     | References a `<bn-scaling-group>` for synchronized scaling      |
+   *
+   * @example unit-scaling="auto"
+   * @example unit-scaling="0.05"
+   * @example unit-scaling="revenue-scale"
    */
   @Prop() unitScaling!: string | number;
 
@@ -238,7 +246,10 @@ export class Chart {
    * | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  |
    * | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            |
    * | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    |
-   * | group name     | References a shared scaling group for synchronized charts     |
+   * | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
+   *
+   * @example percentage-scaling="50"
+   * @example percentage-scaling="pct-scale"
    */
   @Prop() percentageScaling!: string | number;
 
@@ -704,6 +715,7 @@ export class Chart {
     );
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
+    withScalingGroup(this);
     this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
     this.resolveInherited = withInheritedProps(this, [

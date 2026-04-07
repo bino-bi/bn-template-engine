@@ -16,6 +16,7 @@ import {
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
+import withScalingGroup from "../../utils/withScalingGroup";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
@@ -159,13 +160,14 @@ export class Chart {
    * | `"auto"`       | Auto-fit bars to fill the available container width (no warning) |
    * | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              |
    * | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       |
-   * | group name     | References a shared scaling group for synchronized charts       |
+   * | group name     | References a `<bn-scaling-group>` for synchronized scaling      |
    *
    * When using a custom value that causes the chart to exceed its container,
    * a `WARN_overflow` error is emitted.
    *
    * @example unit-scaling="auto"
    * @example unit-scaling="0.05"
+   * @example unit-scaling="revenue-scale"
    */
   @Prop() unitScaling!: string | number;
 
@@ -193,9 +195,10 @@ export class Chart {
    * | `"auto"`       | Auto-fit to available width                                   |
    * | not set / `""` | Same as auto with warning                                     |
    * | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    |
-   * | group name     | References a shared scaling group for synchronized charts     |
+   * | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
    *
    * @example percentage-scaling="50"
+   * @example percentage-scaling="pct-scale"
    */
   @Prop() percentageScaling!: string | number;
   @Watch("percentageScaling")
@@ -507,7 +510,6 @@ export class Chart {
     }
   }
 
-  private scenariosArray: string[] = [""];
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
@@ -525,6 +527,7 @@ export class Chart {
     );
     this.chartTemplate = this.chartTemplate.bind(this);
     this.errors = withHasError(this);
+    withScalingGroup(this);
     this.componentStyle = withComponentStyle(this);
     this.t = withTranslation(this).t;
     this.resolveInherited = withInheritedProps(this, [
@@ -692,7 +695,9 @@ export class Chart {
 
   prepareDimension(): ParentDimensions {
     const parent = getParentDimensions(this.element);
-    this.canvasWidthSegmented = parent.width / this.scenariosArray.length;
+    const variancesList = this.prepareVariances();
+    const segmentCount = 1 + variancesList.length;
+    this.canvasWidthSegmented = parent.width / segmentCount;
     return { width: this.canvasWidthSegmented, height: parent.height };
   }
 

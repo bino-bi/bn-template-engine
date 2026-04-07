@@ -27,7 +27,7 @@ export interface StoreInstance<T extends object> {
   set: (key: keyof T, value: T[keyof T]) => void;
 }
 
-/** Typed bag of all 7 store instances owned by a single `<bn-context>`. */
+/** Typed bag of all 8 store instances owned by a single `<bn-context>`. */
 export interface ScopedStores {
   datasources: StoreInstance<Record<string, unknown>>;
   datasets: StoreInstance<Record<string, unknown>>;
@@ -36,6 +36,7 @@ export interface ScopedStores {
   internationalization: StoreInstance<Record<string, unknown>>;
   assets: StoreInstance<Record<string, string>>;
   context: StoreInstance<ContextStore>;
+  scalingGroups: StoreInstance<Record<string, number>>;
 }
 
 /**
