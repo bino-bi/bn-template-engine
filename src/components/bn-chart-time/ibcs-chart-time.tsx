@@ -176,26 +176,32 @@ export class IbcsChartTime {
   }
 
   /**
-   * Two-pass auto-fit: only when pixelPerUnit is 0 (auto mode).
-   * Explicit values are never overridden — the outer component warns
-   * about overflow via componentDidRender.
+   * Two-pass auto-fit for pixelPerUnit and/or pixelPerPercentage.
+   * When either is 0 (auto mode), renders a measurement pass at 1,
+   * computes the ratio to fit ~90% of the available height, and rebuilds.
+   * Explicit (> 0) values are never overridden.
    */
   private autoFitScaling(config: TimeChartComponentConfig, styles: TimeChartStyle): void {
-    if (config.pixelPerUnit > 0) {
-      return; // Explicit value — respect it, do not override
+    const autoUnit = config.pixelPerUnit <= 0;
+    const autoPercent = config.pixelPerPercentage <= 0;
+
+    if (!autoUnit && !autoPercent) {
+      return; // Both explicit — nothing to auto-fit
     }
 
     const targetHeight = this.parentDimensions?.height;
     const availableWidth = this.containerWidth || 0;
     if (!targetHeight || targetHeight <= 0) {
-      config.pixelPerUnit = 1; // No parent info — use fallback
+      if (autoUnit) config.pixelPerUnit = 1;
+      if (autoPercent) config.pixelPerPercentage = 50;
       this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
       this.chart.setI18n(this.i18n);
       return;
     }
 
-    // First pass with pixelPerUnit=1 to measure the real SVG height
-    config.pixelPerUnit = 1;
+    // First pass: set auto values to 1 and measure SVG height
+    if (autoUnit) config.pixelPerUnit = 1;
+    if (autoPercent) config.pixelPerPercentage = 1;
     this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
     this.chart.toString();
@@ -206,7 +212,9 @@ export class IbcsChartTime {
     }
 
     // Scale so the chart fits in ~90% of the available height
-    config.pixelPerUnit = (targetHeight * 0.9) / svgHeight;
+    const ratio = (targetHeight * 0.9) / svgHeight;
+    if (autoUnit) config.pixelPerUnit = ratio;
+    if (autoPercent) config.pixelPerPercentage = ratio;
 
     // Second pass with the corrected scaling
     this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);

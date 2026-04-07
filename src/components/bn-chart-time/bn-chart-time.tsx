@@ -231,19 +231,23 @@ export class Chart {
   }
 
   /**
-   * Name of the 'scaling-group' which the chart uses
-   * scaling groups are maintained globally
-   * <br /> <br />
-   * alternatively a number which represent the
-   * pixel per percentage.
+   * Pixels per percentage point for relative variance bars/pins.
+   *
+   * | Value          | Behavior                                                      |
+   * |----------------|---------------------------------------------------------------|
+   * | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  |
+   * | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            |
+   * | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    |
+   * | group name     | References a shared scaling group for synchronized charts     |
    */
   @Prop() percentageScaling!: string | number;
 
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
     const errId: string = "ERR_percentageScaling";
+    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -943,7 +947,23 @@ export class Chart {
       return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
     }
 
-    return Number(this.percentageScaling) * 100;
+    if ((this.percentageScaling as string)?.toString().trim().toLowerCase() === "auto") {
+      this.errors.remove("AUTO_percentageScaling");
+      return 0;
+    }
+
+    const numeric = Number(this.percentageScaling);
+    if (!isNaN(numeric) && numeric > 0) {
+      this.errors.remove("AUTO_percentageScaling");
+      return numeric * 100;
+    }
+
+    this.errors.addOrReplace({
+      id: "AUTO_percentageScaling",
+      type: "warning",
+      message: `percentage-scaling: not set, auto-calculated to fit available space.`,
+    });
+    return 0;
   }
 
   private prepareLevel(): AggregationLevel {
