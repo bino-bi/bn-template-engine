@@ -21,6 +21,7 @@ import {
 
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withScalingGroup from "../../utils/withScalingGroup";
 import { globalLabelKeys } from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
@@ -152,6 +153,7 @@ export class Table {
     withStyled(this);
     withComponentStatus(this);
     this.errors = withHasError(this);
+    withScalingGroup(this);
     this.componentStyle = withComponentStyle(this);
 
     withDataset(
@@ -319,7 +321,12 @@ export class Table {
    * Controls bar width: barWidth = value × unitScaling.
    * Bars exceeding barColumnWidth are shown with an arrow indicator.
    * <br /><br />
+   * Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling.
+   * <br /><br />
    * Default: 0.01
+   *
+   * @example unit-scaling="0.01"
+   * @example unit-scaling="revenue-scale"
    */
   @Prop() unitScaling: string | number = 0.01;
 
@@ -342,14 +349,14 @@ export class Table {
   /**
    * Scaling for relative variance pin charts (ΔPY%).
    * <br /><br />
-   * Name of the 'scaling-group' which the table uses.
-   * Scaling groups are maintained globally.
-   * <br /><br />
-   * Alternatively a number which represents pixels per percentage point.
+   * Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling.
    * <br /><br />
    * Example: 0.5 means 100% = 50 pixels width.
    * <br /><br />
    * Default: 0.5
+   *
+   * @example percentage-scaling="0.5"
+   * @example percentage-scaling="pct-scale"
    */
   @Prop() percentageScaling: string | number = 0.5;
 

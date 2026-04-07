@@ -1,5 +1,5 @@
 /**
- * Factory that creates a fresh set of all 7 `@stencil/store` instances.
+ * Factory that creates a fresh set of all 8 `@stencil/store` instances.
  *
  * Called once per `<bn-context>` element so that each context owns isolated
  * reactive state. The returned object satisfies the {@link ScopedStores} interface.
@@ -22,6 +22,7 @@ export function createScopedStores() {
   const internationalization = createStore<Record<string, unknown>>({ ...SYSTEM_I18N_DEFAULTS });
   const assets = createStore<Record<string, string>>({} as Record<string, string>);
   const context = createStore<ContextStore>({ locale: "en" });
+  const scalingGroups = createStore<Record<string, number>>({});
 
   return {
     datasources,
@@ -31,5 +32,6 @@ export function createScopedStores() {
     internationalization,
     assets,
     context,
+    scalingGroups,
   };
 }

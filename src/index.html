@@ -22,6 +22,7 @@
 
 <body>
   <bn-context locale='de'>
+    <bn-scaling-group name="revenue" value="0.001"></bn-scaling-group>
     <bn-component-style
       name='corporate_design_extern'>{&#34;color&#34;:&#34;#333333&#34;,&#34;fontFamily&#34;:&#34;Arial&#34;,&#34;fontSize&#34;:&#34;12px&#34;}</bn-component-style>
     <bn-asset name='logo'>/assets/files/logo</bn-asset>
@@ -50,12 +51,12 @@
       footer-display-page-number='true' page-fit-to-content="true">
       <div slot='slot-0' data-bino-kind='ChartStructure'>
         <bn-chart-structure datasets='$umsatz' chart-title='Top 10 products by revenue' level='category' order='ac1'
-          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='0.002' percentage-scaling='auto'
+          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='revenue' percentage-scaling='0.01'
           show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
       </div>
       <div slot='slot-1' data-bino-kind='Table'>
         <bn-chart-structure datasets='$umsatz' chart-title='Top 10 products by revenue' level='category' order='ac1'
-          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='auto' percentage-scaling='auto'
+          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='revenue' percentage-scaling='0.001'
           show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
       </div>
     </bn-layout-page>
