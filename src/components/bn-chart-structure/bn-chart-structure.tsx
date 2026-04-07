@@ -201,8 +201,9 @@ export class Chart {
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
     const errId: string = "ERR_percentageScaling";
+    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -778,7 +779,23 @@ export class Chart {
       return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
     }
 
-    return Number(this.percentageScaling) * 100;
+    if ((this.percentageScaling as string)?.toString().trim().toLowerCase() === "auto") {
+      this.errors.remove("AUTO_percentageScaling");
+      return 0;
+    }
+
+    const numeric = Number(this.percentageScaling);
+    if (!isNaN(numeric) && numeric > 0) {
+      this.errors.remove("AUTO_percentageScaling");
+      return numeric * 100;
+    }
+
+    this.errors.addOrReplace({
+      id: "AUTO_percentageScaling",
+      type: "warning",
+      message: `percentage-scaling: not set, auto-calculated to fit available space.`,
+    });
+    return 0;
   }
 
   private prepareLevel(): AggregationLevel {

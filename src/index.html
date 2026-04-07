@@ -50,17 +50,13 @@
       footer-display-page-number='true' page-fit-to-content="true">
       <div slot='slot-0' data-bino-kind='ChartStructure'>
         <bn-chart-structure datasets='$umsatz' chart-title='Top 10 products by revenue' level='category' order='ac1'
-          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='0.001' show-measure-scale='true'
-          limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
+          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='0.002' percentage-scaling='auto'
+          show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
       </div>
       <div slot='slot-1' data-bino-kind='Table'>
-        <bn-table datasets='$umsatz' order='ac1' order-direction='desc' measure-scale='k' measure-type='currency'
-          measure-unit='EUR' grouped='true' show-group-title='true' show-measure-scale='true' limit='4' type='sum'
-          scenarios='ac1,fc1,pl1,pp1' variances='drac1_fc1_pos' bar-columns='ac1' unit-scaling='0.001'
-          percentage-scaling='0.5'
-          thereof='[{&#34;rowGroup&#34;:&#34;Umsatz&#34;,&#34;category&#34;:&#34;Logis&#34;,&#34;subCategory&#34;:&#34;D&#34;}]'
-          partof='[{&#34;rowGroup&#34;:&#34;Umsatz&#34;,&#34;category&#34;:&#34;Shop&#34;}]'
-          columnthereof='[{&#34;scenario&#34;:&#34;PY1&#34;,&#34;name&#34;:&#34;A&#34;,&#34;subGroups&#34;:[&#34;A&#34;]}]'></bn-table>
+        <bn-chart-structure datasets='$umsatz' chart-title='Top 10 products by revenue' level='category' order='ac1'
+          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='auto' percentage-scaling='auto'
+          show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
       </div>
     </bn-layout-page>
 
@@ -356,10 +352,11 @@
         </bn-layout-card>
       </div>
       <div slot='slot-2'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 1'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 1 (pct auto)'>
           <div slot='card-slot-0'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
-              measure-unit='EUR' unit-scaling='auto' scenarios='ac1,fc1'></bn-chart-time>
+              measure-unit='EUR' unit-scaling='auto' percentage-scaling='auto' scenarios='ac1,fc1'
+              variances='drac1_fc1_pos' scale='auto'></bn-chart-time>
           </div>
         </bn-layout-card>
       </div>

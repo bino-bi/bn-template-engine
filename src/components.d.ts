@@ -230,7 +230,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per percentage.
+          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a shared scaling group for synchronized charts     |
          */
         "percentageScaling": string | number;
         /**
@@ -1721,7 +1721,7 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Name of the 'scaling-group' which the chart uses scaling groups are maintained globally <br /> <br /> alternatively a number which represent the pixel per percentage.
+          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a shared scaling group for synchronized charts     |
          */
         "percentageScaling": string | number;
         /**

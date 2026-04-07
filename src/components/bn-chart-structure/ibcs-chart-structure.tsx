@@ -151,26 +151,32 @@ export class IbcsChartStructure {
   }
 
   /**
-   * Two-pass auto-fit: only when pixelPerUnit is 0 (auto mode).
-   * Explicit values are never overridden — the outer component warns
-   * about overflow via componentDidRender.
+   * Two-pass auto-fit for pixelPerUnit and/or pixelPerPercentage.
+   * When either is 0 (auto mode), renders a measurement pass at 1,
+   * computes the ratio to fit the available width, and rebuilds.
    * Structure charts grow horizontally, so we fit to width.
+   * Explicit (> 0) values are never overridden.
    */
   private autoFitScaling(config: StructureChartComponentConfig, styles: StructureChartStyle): void {
-    if (config.pixelPerUnit > 0) {
-      return; // Explicit value — respect it, do not override
+    const autoUnit = config.pixelPerUnit <= 0;
+    const autoPercent = config.pixelPerPercentage <= 0;
+
+    if (!autoUnit && !autoPercent) {
+      return; // Both explicit — nothing to auto-fit
     }
 
     const targetWidth = this.parentDimensions?.width;
     if (!targetWidth || targetWidth <= 0) {
-      config.pixelPerUnit = 1;
+      if (autoUnit) config.pixelPerUnit = 1;
+      if (autoPercent) config.pixelPerPercentage = 50;
       this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
       this.chart.setI18n(this.i18n);
       return;
     }
 
-    // First pass with pixelPerUnit=1 to measure total width and bar extent
-    config.pixelPerUnit = 1;
+    // First pass: set auto values to 1 and measure total width + bar extent
+    if (autoUnit) config.pixelPerUnit = 1;
+    if (autoPercent) config.pixelPerPercentage = 1;
     this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
     this.chart.setI18n(this.i18n);
     this.chart.toString();
@@ -184,12 +190,17 @@ export class IbcsChartStructure {
     // totalWidth(ppu) = fixedWidth + maxBarValue * ppu
     // Solving for ppu:  ppu = (targetWidth - fixedWidth) / maxBarValue
     const maxBarValue = this.chart.getMaxBarValue();
-    if (maxBarValue > 0) {
-      const fixedWidth = svgWidth - maxBarValue; // at ppu=1, barExtent = maxBarValue * 1
-      config.pixelPerUnit = Math.max(0.001, (targetWidth - fixedWidth) / maxBarValue);
-    } else {
-      // Fallback (e.g. relative variance charts)
-      config.pixelPerUnit = (targetWidth * 0.9) / svgWidth;
+    if (autoUnit) {
+      if (maxBarValue > 0) {
+        const fixedWidth = svgWidth - maxBarValue; // at ppu=1, barExtent = maxBarValue * 1
+        config.pixelPerUnit = Math.max(0.001, (targetWidth - fixedWidth) / maxBarValue);
+      } else {
+        config.pixelPerUnit = (targetWidth * 0.9) / svgWidth;
+      }
+    }
+    if (autoPercent) {
+      // Same ratio approach: scale percentage bars to fill ~90% of width
+      config.pixelPerPercentage = (targetWidth * 0.9) / svgWidth;
     }
 
     // Second pass with the corrected scaling
