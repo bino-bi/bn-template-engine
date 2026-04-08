@@ -754,7 +754,6 @@ export class Chart {
   private _autoScaleGuard = false;
 
   private _lastObservedWidth = 0;
-  private _lastObservedHeight = 0;
 
   componentDidRender() {
     const { mode } = parseScaling(this.scale);
@@ -781,13 +780,12 @@ export class Chart {
     }
 
     const host = this.element;
-    const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
+    const { width: parentWidth } = getParentDimensions(host);
     if (parentWidth <= 0) return;
 
     // Keep observer tracking in sync so the observer callback does not
     // trigger spurious forceUpdate calls with stale threshold values.
     this._lastObservedWidth = parentWidth;
-    this._lastObservedHeight = parentHeight;
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
@@ -847,9 +845,8 @@ export class Chart {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (this._autoScaleGuard) return;
-        const { width, height } = getParentDimensions(this.element);
+        const { width } = getParentDimensions(this.element);
         this._lastObservedWidth = width;
-        this._lastObservedHeight = height;
         forceUpdate(this);
       });
     });
