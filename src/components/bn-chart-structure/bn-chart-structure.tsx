@@ -60,8 +60,7 @@ export class Chart {
   private readonly errors: ErrorDispatcher;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
-  /** Last parent dimensions seen, used to suppress ResizeObserver noise. */
-  private _lastScaledParentWidth = 0;
+  /** Last parent height seen, used to suppress ResizeObserver noise. */
   private _lastScaledParentHeight = 0;
 
   /**
@@ -571,15 +570,14 @@ export class Chart {
     }
 
     const host = this.element;
-    const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
+    const { height: parentHeight } = getParentDimensions(host);
     if (parentHeight <= 0) {
       this.checkWidthOverflow();
       return;
     }
 
-    // Record both dimensions so the ResizeObserver callback can tell
+    // Record height so the ResizeObserver callback can tell
     // whether the container genuinely resized or just reflowed.
-    this._lastScaledParentWidth = parentWidth;
     this._lastScaledParentHeight = parentHeight;
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
@@ -655,8 +653,7 @@ export class Chart {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (this._autoScaleGuard) return;
-        const { width, height } = getParentDimensions(this.element);
-        this._lastScaledParentWidth = width;
+        const { height } = getParentDimensions(this.element);
         this._lastScaledParentHeight = height;
         forceUpdate(this);
       });

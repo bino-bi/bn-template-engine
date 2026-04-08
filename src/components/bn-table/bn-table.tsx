@@ -70,9 +70,8 @@ export class Table {
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
-  /** Last parent dimensions seen, used to suppress ResizeObserver noise. */
+  /** Last parent width seen, used to suppress ResizeObserver noise. */
   private _lastScaledParentWidth = 0;
-  private _lastScaledParentHeight = 0;
   @State() data: TableDataRow[] = [];
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
@@ -887,11 +886,10 @@ export class Table {
     }
 
     const host = this.element;
-    const { width: parentWidth, height: parentHeight } = getParentDimensions(host);
+    const { width: parentWidth } = getParentDimensions(host);
     if (parentWidth <= 0) return;
 
     this._lastScaledParentWidth = parentWidth;
-    this._lastScaledParentHeight = parentHeight;
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
