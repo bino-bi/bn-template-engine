@@ -45,20 +45,27 @@ You can define multiple datasources and join them in a single dataset query:
 
 ## Overview
 
-Ingests raw JSON data and writes it to the scoped `datasources` store.
+Ingests data and writes it to the scoped `datasources` store.
 
-Data is provided as JSON text inside the element body (observed via
-`withBodyObserver`). Other components (e.g. `bn-dataset`) reference
-the stored data by the `name` prop to run queries against it.
+Data can be provided in three ways:
+1. **Inline JSON** — Place JSON text inside the element body (default).
+2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
+3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
+   from a remote endpoint.
 
-Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
+In URL mode the component fetches JSON from the URL. Set the `interval`
+prop (in seconds) to enable periodic re-fetching (polling).
+
+Other components (e.g. `bn-dataset`) reference the stored data by the
+`name` prop to run queries against it.
 
 ## Properties
 
-| Property            | Attribute | Description                                                                                                                      | Type      | Default     |
-| ------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| `name` _(required)_ | `name`    | Unique (template scope) name of the datasource                                                                                   | `string`  | `undefined` |
-| `raw`               | `raw`     | When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). | `boolean` | `true`      |
+| Property            | Attribute  | Description                                                                                                                                                                                                                              | Type      | Default     |
+| ------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `interval`          | `interval` | Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
+| `name` _(required)_ | `name`     | Unique (template scope) name of the datasource.                                                                                                                                                                                          | `string`  | `undefined` |
+| `raw`               | `raw`      | When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored in URL mode.                                                                                    | `boolean` | `true`      |
 
 
 ----------------------------------------------
