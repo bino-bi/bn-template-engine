@@ -324,19 +324,29 @@ export namespace Components {
         "static": boolean;
     }
     /**
-     * Ingests raw JSON data and writes it to the scoped `datasources` store.
-     * Data is provided as JSON text inside the element body (observed via
-     * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
-     * the stored data by the `name` prop to run queries against it.
-     * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
+     * Ingests data and writes it to the scoped `datasources` store.
+     * Data can be provided in three ways:
+     * 1. **Inline JSON** — Place JSON text inside the element body (default).
+     * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
+     * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
+     *    from a remote endpoint.
+     * In URL mode the component fetches JSON from the URL. Set the `interval`
+     * prop (in seconds) to enable periodic re-fetching (polling).
+     * Other components (e.g. `bn-dataset`) reference the stored data by the
+     * `name` prop to run queries against it.
      */
     interface BnDatasource {
         /**
-          * Unique (template scope) name of the datasource
+          * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+          * @default 0
+         */
+        "interval": number;
+        /**
+          * Unique (template scope) name of the datasource.
          */
         "name": string;
         /**
-          * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
+          * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored in URL mode.
           * @default true
          */
         "raw": boolean;
@@ -1365,11 +1375,16 @@ declare global {
         new (): HTMLBnDatasetElement;
     };
     /**
-     * Ingests raw JSON data and writes it to the scoped `datasources` store.
-     * Data is provided as JSON text inside the element body (observed via
-     * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
-     * the stored data by the `name` prop to run queries against it.
-     * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
+     * Ingests data and writes it to the scoped `datasources` store.
+     * Data can be provided in three ways:
+     * 1. **Inline JSON** — Place JSON text inside the element body (default).
+     * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
+     * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
+     *    from a remote endpoint.
+     * In URL mode the component fetches JSON from the URL. Set the `interval`
+     * prop (in seconds) to enable periodic re-fetching (polling).
+     * Other components (e.g. `bn-dataset`) reference the stored data by the
+     * `name` prop to run queries against it.
      */
     interface HTMLBnDatasourceElement extends Components.BnDatasource, HTMLStencilElement {
     }
@@ -1863,19 +1878,29 @@ declare namespace LocalJSX {
         "static"?: boolean;
     }
     /**
-     * Ingests raw JSON data and writes it to the scoped `datasources` store.
-     * Data is provided as JSON text inside the element body (observed via
-     * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
-     * the stored data by the `name` prop to run queries against it.
-     * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
+     * Ingests data and writes it to the scoped `datasources` store.
+     * Data can be provided in three ways:
+     * 1. **Inline JSON** — Place JSON text inside the element body (default).
+     * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
+     * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
+     *    from a remote endpoint.
+     * In URL mode the component fetches JSON from the URL. Set the `interval`
+     * prop (in seconds) to enable periodic re-fetching (polling).
+     * Other components (e.g. `bn-dataset`) reference the stored data by the
+     * `name` prop to run queries against it.
      */
     interface BnDatasource {
         /**
-          * Unique (template scope) name of the datasource
+          * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+          * @default 0
+         */
+        "interval"?: number;
+        /**
+          * Unique (template scope) name of the datasource.
          */
         "name": string;
         /**
-          * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
+          * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored in URL mode.
           * @default true
          */
         "raw"?: boolean;
@@ -2884,6 +2909,7 @@ declare namespace LocalJSX {
     interface BnDatasourceAttributes {
         "name": string;
         "raw": boolean;
+        "interval": number;
     }
     interface BnFooterAttributes {
         "pageNumber": number | null;
@@ -3170,11 +3196,16 @@ declare module "@stencil/core" {
              */
             "bn-dataset": LocalJSX.IntrinsicElements["bn-dataset"] & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             /**
-             * Ingests raw JSON data and writes it to the scoped `datasources` store.
-             * Data is provided as JSON text inside the element body (observed via
-             * `withBodyObserver`). Other components (e.g. `bn-dataset`) reference
-             * the stored data by the `name` prop to run queries against it.
-             * Set `raw="false"` to accept pre-compressed payloads in `<hash>:<base64_gzip>` format.
+             * Ingests data and writes it to the scoped `datasources` store.
+             * Data can be provided in three ways:
+             * 1. **Inline JSON** — Place JSON text inside the element body (default).
+             * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
+             * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
+             *    from a remote endpoint.
+             * In URL mode the component fetches JSON from the URL. Set the `interval`
+             * prop (in seconds) to enable periodic re-fetching (polling).
+             * Other components (e.g. `bn-dataset`) reference the stored data by the
+             * `name` prop to run queries against it.
              */
             "bn-datasource": LocalJSX.IntrinsicElements["bn-datasource"] & JSXBase.HTMLAttributes<HTMLBnDatasourceElement>;
             "bn-footer": LocalJSX.IntrinsicElements["bn-footer"] & JSXBase.HTMLAttributes<HTMLBnFooterElement>;
