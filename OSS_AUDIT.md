@@ -14,7 +14,7 @@ The project has made **significant progress** since the initial OSS review (2026
 | Area | Status | Score |
 |------|--------|-------|
 | Secrets & credentials | Resolved | 10/10 |
-| License | Needs copyright holder | 8/10 |
+| License | Apache 2.0 with copyright holder | 10/10 |
 | README & docs | Good (English, comprehensive) | 9/10 |
 | CI/CD (public) | Ready (publish.yaml) | 8/10 |
 | Linting & formatting | Configured + CI enforced | 9/10 |
@@ -79,13 +79,11 @@ Personal family names appear **15+ times** in test snapshots:
 | `src/components/bn-table/ibcs-table.spec.tsx` | ~15 | `"Sven ist der Papa von Phineas und Max"` |
 | `src/components/bn-title/ibcs-title/ibcs-title.tsx` | 1 | Commented code with `"Sven"` |
 
-**Action:** Replace with generic English placeholder (e.g. `"Sample Table Title"`).
+**Action:** Replace with generic English placeholder (e.g. `"Sample Table Title"`). — RESOLVED (spec string replaced globally; `ibcs-title.tsx` dev-console comment block deleted).
 
-### 3. LICENSE Copyright Holder (Priority: HIGH)
+### 3. LICENSE Copyright Holder (Priority: HIGH) — RESOLVED
 
-Current LICENSE line 3: `Copyright (c) 2018` — no name.
-
-**Action:** Add copyright holder: `Copyright (c) 2018 Bino Bi` (or whoever holds the copyright).
+LICENSE now uses Apache License 2.0 with `Copyright 2018-2026 Bino Bi`. `package.json` `license` field updated to `Apache-2.0`; README badge and CONTRIBUTING reference updated accordingly.
 
 ### 4. Developer Initials in Comments (Priority: MEDIUM)
 
@@ -185,9 +183,9 @@ npm provenance adds supply-chain transparency via Sigstore. Now that the project
 - [ ] Create `.github/ISSUE_TEMPLATE/bug_report.md`
 - [ ] Create `.github/ISSUE_TEMPLATE/feature_request.md`
 - [ ] Create `.github/PULL_REQUEST_TEMPLATE.md`
-- [ ] Replace personal names in `ibcs-table.spec.tsx` (~15 occurrences)
-- [ ] Remove `"Sven"` comment in `ibcs-title.tsx`
-- [ ] Add copyright holder to `LICENSE`
+- [x] ~~Replace personal names in `ibcs-table.spec.tsx` (~15 occurrences)~~ — DONE (replaced with `"Sample Table Title"`)
+- [x] ~~Remove `"Sven"` comment in `ibcs-title.tsx`~~ — DONE (dev-console comment block deleted)
+- [x] ~~Add copyright holder to `LICENSE`~~ — DONE (relicensed MIT → Apache-2.0, holder: Bino Bi)
 - [ ] Decide: remove or keep `release.yaml` (private releases workflow)
 - [ ] Align version between `package.json` and `CHANGELOG.md`
 

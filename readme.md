@@ -2,7 +2,7 @@
 
 IBCS-compliant web components for business intelligence visualizations.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![npm version](https://img.shields.io/npm/v/@bino-bi/bn-template-engine)](https://www.npmjs.com/package/@bino-bi/bn-template-engine)
 
 **bn-template-engine** is a [Stencil.js](https://stenciljs.com/) web component library that renders tables and charts following [IBCS (International Business Communication Standards)](https://www.ibcs.com/). It supports multi-scenario comparisons (actual, forecast, plan, previous period), variance calculations, hierarchical data grouping, and more — all as standard Web Components that work in any HTML page or framework.
@@ -160,4 +160,4 @@ bn-template-engine uses standard [Web Components](https://developer.mozilla.org/
 
 ## License
 
-[MIT](LICENSE)
+[Apache 2.0](LICENSE)

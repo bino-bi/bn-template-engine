@@ -16,12 +16,7 @@ Checklist and assessment for making `bn-template-engine` open source.
 
 ### Personal Information (Critical)
 
-- [ ] **Replace personal names in test data** — `"Sven ist der Papa von Phineas und Max"` appears in:
-  - `src/components/bn-table/ibcs-table.spec.tsx` (~30 occurrences)
-  - `src/test-runner/test-runner-card.tsx`
-  - `src/test-runner/test-runner-table.tsx`
-  - `src/components/bn-title/ibcs-title/ibcs-title.tsx` (commented)
-  - Replace with generic English placeholder (e.g. `"Sample Table Title"`)
+- [x] ~~**Replace personal names in test data**~~ — DONE. Replaced the German sentence with `"Sample Table Title"` in `src/components/bn-table/ibcs-table.spec.tsx` (15 occurrences) and deleted the dev-console comment block in `src/components/bn-title/ibcs-title/ibcs-title.tsx`. Grep across `src/` confirms no remaining occurrences (the `test-runner-*.tsx` files referenced here no longer contain the name).
 - [ ] **Remove developer name references** in TODO comments (JHE, Sven) — replace with issue tracker references
 
 ### Company Branding
@@ -49,7 +44,7 @@ Checklist and assessment for making `bn-template-engine` open source.
   - License badge
 - [ ] **Create `CONTRIBUTING.md`** — contribution guidelines, development setup, coding standards, PR process
 - [ ] **Create `CODE_OF_CONDUCT.md`** — adopt Contributor Covenant or similar
-- [ ] **Update `LICENSE`** — add copyright holder name (currently just `Copyright (c) 2018` with no name)
+- [x] ~~**Update `LICENSE`**~~ — replaced MIT with Apache 2.0 and set copyright holder to `Bino Bi`
 - [ ] **Update `package.json` description** — currently says `"Stencil Component Starter"`, should describe the actual project
 
 ### Should Have
@@ -286,7 +281,7 @@ The Storybook setup still contains default example stories (Button, Header, Page
 1. ~~Remove secrets from `sonar-project.properties`~~ — DONE (SonarQube removed entirely)
 2. Remove personal information from test data
 3. Rewrite `README.md` in English
-4. Update `LICENSE` with copyright holder
+4. ~~Update `LICENSE` with copyright holder~~ — DONE (Apache 2.0, Bino Bi)
 5. Create `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`
 6. Clean up CI workflows for public distribution
 7. Remove unused `xlsx` dependency

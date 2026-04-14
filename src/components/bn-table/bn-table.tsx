@@ -815,12 +815,7 @@ export class Table {
     }
   }
 
-  unsubscribe: () => void;
-
   componentWillLoad() {
-    //this.datasouce = get("test");
-    // this.unsubscribe = onChange("test", (value) => this.datasouce = value);
-
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateDataFormat(this.dataFormat);
@@ -865,7 +860,6 @@ export class Table {
   disconnectedCallback() {
     this.layoutObserver?.disconnect();
     this.layoutObserver = null;
-    this.unsubscribe();
   }
 
   private _autoScaleGuard = false;
