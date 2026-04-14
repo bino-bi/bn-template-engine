@@ -258,7 +258,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sven ist der Papa von Phineas und Max"
+          table-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dac1_pp1_pos", "drac1_pp1_pos"]}
           scenarios-data-format={DataFormat.PERCENT}
           measure-scale="_"
@@ -327,7 +327,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" table-title=\"Sample Table Title\">
       <mock:shadow-root>
     <table>
       <thead>
@@ -1064,7 +1064,7 @@ describe("IBCS Table Test", () => {
           </td>
           <td class=\"base category-w100\" colspan=\"1\">
             <span class=\"base category-w100 prefix-first\"></span>
-            Sven ist der Papa von Phineas und Max
+            Sample Table Title
           </td>
           <td class=\"columnGroup percent pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
@@ -1118,7 +1118,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sven ist der Papa von Phineas und Max"
+          table-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
           scenarios-data-format="decimal"
           measure-scale="_"
@@ -1178,7 +1178,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
       <mock:shadow-root>
     <table>
       <thead>
@@ -1865,7 +1865,7 @@ describe("IBCS Table Test", () => {
           </td>
           <td class=\"base category-w100\" colspan=\"1\">
             <span class=\"base category-w100 prefix-first\"></span>
-            Sven ist der Papa von Phineas und Max
+            Sample Table Title
           </td>
           <td class=\"columnGroup decimal pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
@@ -1919,7 +1919,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sven ist der Papa von Phineas und Max"
+          table-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
           scenarios-data-format="decimal"
           measure-scale="_"
@@ -1979,7 +1979,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
          <mock:shadow-root>
        <table>
          <thead>
@@ -2364,7 +2364,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sven ist der Papa von Phineas und Max"
+          table-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
           scenarios-data-format="decimal"
           measure-scale="_"
@@ -2424,7 +2424,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
           <mock:shadow-root>
         <table>
           <thead>
@@ -3047,7 +3047,7 @@ describe("IBCS Table Test", () => {
         components: [IbcsTable],
         template: () => (
           <ibcs-table
-            table-title="Sven ist der Papa von Phineas und Max"
+            table-title="Sample Table Title"
             scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
             scenarios-data-format="decimal"
             measure-scale="_"
@@ -3107,7 +3107,7 @@ describe("IBCS Table Test", () => {
       });
 
       expect(page.root)
-        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
           <mock:shadow-root>
         <p class=\"warning\">
           ==No Data==
@@ -3121,7 +3121,7 @@ describe("IBCS Table Test", () => {
         components: [IbcsTable],
         template: () => (
           <ibcs-table
-            table-title="Sven ist der Papa von Phineas und Max"
+            table-title="Sample Table Title"
             scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
             scenarios-data-format="decimal"
             measure-scale="_"
@@ -3181,7 +3181,7 @@ describe("IBCS Table Test", () => {
       });
 
       expect(page.root)
-        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sven ist der Papa von Phineas und Max\">
+        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
             <mock:shadow-root>
           <table>
             <thead>
@@ -3452,7 +3452,7 @@ describe("IBCS Table Test", () => {
               <tr class=\"sum\">
                 <td class=\"base category-w100\" colspan=\"1\">
                   <span class=\"base category-w100 prefix-first\"></span>
-                  Sven ist der Papa von Phineas und Max
+                  Sample Table Title
                 </td>
                 <td class=\"columnGroup decimal pp1\" colspan=\"1\">
                   <span class=\"columnGroup pp1 prefix-first\"></span>

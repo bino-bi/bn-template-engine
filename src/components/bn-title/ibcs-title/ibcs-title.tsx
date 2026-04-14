@@ -15,10 +15,6 @@ import { StringAdapter } from "../../../utils/helper/StringAdapter";
   shadow: true,
 })
 export class IbcsTitle {
-  // sample fuer die chrome dev console:
-  // document.querySelector("ibcs-title").setBusinessUnit("Sven")
-  // document.querySelector("ibcs-title").setProps({businessUnit: "Lalal"})
-
   @Prop({ mutable: true, reflect: true }) // Wichtig mutable muss true sein, reflect passt den dom an und updatet die poprs im html
   businessUnit: string = "";
 
