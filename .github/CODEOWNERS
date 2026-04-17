@@ -1,0 +1,17 @@
+# CODEOWNERS enforces review by listed owners on every PR once branch
+# protection is set to require code-owner reviews. See:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# TODO: replace the placeholder team with a real GitHub team or user handle
+# before enabling branch protection (e.g. `@bino-bi/maintainers` or `@your-handle`).
+
+*                           @bino-bi/maintainers
+
+# Supply-chain and CI configuration is security-sensitive; require a
+# maintainer review for every change.
+/.github/                   @bino-bi/maintainers
+/.github/workflows/         @bino-bi/maintainers
+/.github/dependabot.yml     @bino-bi/maintainers
+/SECURITY.md                @bino-bi/maintainers
+/package.json               @bino-bi/maintainers
+/package-lock.json          @bino-bi/maintainers
