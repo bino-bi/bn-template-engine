@@ -127,8 +127,16 @@ export class Datasource {
 
   disconnectedCallback(): void {
     this.clearPolling();
-    if (this.stores?.db?.db?.tables?.[this.name]) {
-      delete this.stores.db.db.tables[this.name];
+    const db = this.stores?.db?.db;
+    if (db && this.name) {
+      if (db.tables[this.name] != null) {
+        delete db.tables[this.name];
+      }
+      // @ts-ignore - views typing is loose
+      if (db.views && db.views[this.name] != null) {
+        // @ts-ignore
+        delete db.views[this.name];
+      }
       this.stores.db.notify(this.name);
     }
   }

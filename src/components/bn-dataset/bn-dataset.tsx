@@ -30,7 +30,7 @@ export class Dataset {
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
 
-  private stores: ScopedStores;
+  private stores!: ScopedStores;
 
   constructor() {
     withComponentStatus(this);
@@ -117,7 +117,7 @@ export class Dataset {
    */
   @Prop() interval: number = 0;
 
-  private query: string;
+  private query!: string;
   private lastBodyHash: string | null = null;
   /** The query text last used to (re)create the SQL view, so we only `CREATE VIEW` when it actually changes. */
   private lastViewQuery: string | null = null;
@@ -152,12 +152,25 @@ export class Dataset {
       // query text changes; otherwise we just re-materialize so upstream data updates
       // flow through.
       if (this.lastViewQuery !== this.query) {
+        // alasql tracks names in BOTH `db.tables` and `db.views`, and its
+        // CREATE-conflict check looks at `db.tables`. Clean both locations
+        // before creating so devtools "Edit as HTML" (which destroys the old
+        // element and creates a new one without giving us a clean slate)
+        // doesn't trip the "already exists" guard.
         try {
-          // alasql stores views in `db.views` keyed by name; drop any prior version.
-          // @ts-ignore - views typing is loose
-          if (db.views && db.views[this.name] != null) {
-            db.exec(`DROP VIEW \`${this.name}\``);
-          }
+          db.exec(`DROP VIEW \`${this.name}\``);
+        } catch (_e) {
+          /* not registered as a view — fine */
+        }
+        if (db.tables[this.name] != null) {
+          delete db.tables[this.name];
+        }
+        // @ts-ignore - views typing is loose
+        if (db.views && db.views[this.name] != null) {
+          // @ts-ignore
+          delete db.views[this.name];
+        }
+        try {
           db.exec(`CREATE VIEW \`${this.name}\` AS ${this.query}`);
           this.lastViewQuery = this.query;
         } catch (e) {
@@ -170,9 +183,12 @@ export class Dataset {
       }
       try {
         result = db.exec(`SELECT * FROM \`${this.name}\``);
-      } catch (e) {
-        console.error("bn-dataset: SQL execution failed", e, this.query);
-        result = [];
+      } catch (_e) {
+        // Most common cause: an upstream datasource referenced by the view hasn't
+        // been registered yet (HTML parse/connectedCallback race). `withDatasource`
+        // re-fires executeQuery on every upstream notify, so we'll retry then.
+        // Skip publish so we don't clobber datasetsMeta with empty data.
+        return;
       }
     }
 
@@ -210,15 +226,17 @@ export class Dataset {
     if (this.stores?.db?.db && this.name) {
       const db = this.stores.db.db;
       try {
-        // @ts-ignore - views typing is loose
-        if (db.views && db.views[this.name] != null) {
-          db.exec(`DROP VIEW \`${this.name}\``);
-        }
+        db.exec(`DROP VIEW \`${this.name}\``);
       } catch (_e) {
-        // ignore; view may not exist
+        // not registered as a view — fine
       }
       if (db.tables[this.name] != null) {
         delete db.tables[this.name];
+      }
+      // @ts-ignore - views typing is loose
+      if (db.views && db.views[this.name] != null) {
+        // @ts-ignore
+        delete db.views[this.name];
       }
       this.stores.db.notify(this.name);
     }

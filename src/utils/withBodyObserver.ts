@@ -15,17 +15,19 @@ import { runIfExisits } from "./utils";
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withBodyObserver = (component: any, onUpdate: (data: string) => void) => {
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      onUpdate(mutation.target.textContent);
-    });
+  let hostElement: HTMLElement;
+  // Coalesce bursts of mutations (e.g. devtools "Edit as HTML" fires childList +
+  // characterData in quick succession) and always read the *host* textContent so
+  // we deliver the complete body, not the individual text node that mutated.
+  const observer = new MutationObserver(() => {
+    if (hostElement) onUpdate(hostElement.textContent ?? "");
   });
 
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
-    const element = getElement(component);
-    observer.observe(element, { childList: true, subtree: true, characterData: true });
-    onUpdate(element.textContent);
+    hostElement = getElement(component);
+    observer.observe(hostElement, { childList: true, subtree: true, characterData: true });
+    onUpdate(hostElement.textContent ?? "");
     runIfExisits(connectedCallback, component);
   };
 
