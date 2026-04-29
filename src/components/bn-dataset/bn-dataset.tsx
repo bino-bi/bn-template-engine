@@ -15,9 +15,10 @@ import { computeContentHash, decodeCompressedContent } from "../../utils/content
  * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
  * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
  *    parsed body directly to the `datasets` store.
- * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
- *    JSON from a remote endpoint and write it to the `datasets` store.
- *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
+ * 3. **URL** — place an `http://`/`https://` URL or a same-origin path
+ *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
+ *    write it to the `datasets` store. Set the `interval` prop (in seconds)
+ *    to enable periodic re-fetching.
  */
 @Component({
   tag: "bn-dataset",
@@ -243,10 +244,13 @@ export class Dataset {
   }
 
   /**
-   * Returns `true` if the text starts with `http://` or `https://`.
+   * Returns `true` if the text is a fetchable URL: an absolute `http(s)://`
+   * URL, or a same-origin path starting with `/` (but not `//`, which is a
+   * protocol-relative URL we treat as inline-mode escape).
    */
   private isUrl(text: string): boolean {
-    return text.startsWith("http://") || text.startsWith("https://");
+    if (text.startsWith("http://") || text.startsWith("https://")) return true;
+    return text.startsWith("/") && !text.startsWith("//");
   }
 
   /**

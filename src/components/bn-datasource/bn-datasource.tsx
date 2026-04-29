@@ -10,8 +10,8 @@ import { computeContentHash, decodeCompressedContent } from "../../utils/content
  * Data can be provided in three ways:
  * 1. **Inline JSON** — Place JSON text inside the element body (default).
  * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
- * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
- *    from a remote endpoint.
+ * 3. **URL** — Place an `http://`/`https://` URL or a same-origin path
+ *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
  *
  * In URL mode the component fetches JSON from the URL. Set the `interval`
  * prop (in seconds) to enable periodic re-fetching (polling).
@@ -142,10 +142,13 @@ export class Datasource {
   }
 
   /**
-   * Returns `true` if the text starts with `http://` or `https://`.
+   * Returns `true` if the text is a fetchable URL: an absolute `http(s)://`
+   * URL, or a same-origin path starting with `/` (but not `//`, which is a
+   * protocol-relative URL we treat as inline-mode escape).
    */
   private isUrl(text: string): boolean {
-    return text.startsWith("http://") || text.startsWith("https://");
+    if (text.startsWith("http://") || text.startsWith("https://")) return true;
+    return text.startsWith("/") && !text.startsWith("//");
   }
 
   /**

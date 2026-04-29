@@ -295,9 +295,10 @@ export namespace Components {
      * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
      * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
      *    parsed body directly to the `datasets` store.
-     * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
-     *    JSON from a remote endpoint and write it to the `datasets` store.
-     *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
+     * 3. **URL** — place an `http://`/`https://` URL or a same-origin path
+     *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
+     *    write it to the `datasets` store. Set the `interval` prop (in seconds)
+     *    to enable periodic re-fetching.
      */
     interface BnDataset {
         /**
@@ -330,8 +331,8 @@ export namespace Components {
      * Data can be provided in three ways:
      * 1. **Inline JSON** — Place JSON text inside the element body (default).
      * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-     * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
-     *    from a remote endpoint.
+     * 3. **URL** — Place an `http://`/`https://` URL or a same-origin path
+     *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
      * In URL mode the component fetches JSON from the URL. Set the `interval`
      * prop (in seconds) to enable periodic re-fetching (polling).
      * Other components (e.g. `bn-dataset`) reference the stored data by the
@@ -1387,9 +1388,10 @@ declare global {
      * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
      * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
      *    parsed body directly to the `datasets` store.
-     * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
-     *    JSON from a remote endpoint and write it to the `datasets` store.
-     *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
+     * 3. **URL** — place an `http://`/`https://` URL or a same-origin path
+     *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
+     *    write it to the `datasets` store. Set the `interval` prop (in seconds)
+     *    to enable periodic re-fetching.
      */
     interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
     }
@@ -1402,8 +1404,8 @@ declare global {
      * Data can be provided in three ways:
      * 1. **Inline JSON** — Place JSON text inside the element body (default).
      * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-     * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
-     *    from a remote endpoint.
+     * 3. **URL** — Place an `http://`/`https://` URL or a same-origin path
+     *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
      * In URL mode the component fetches JSON from the URL. Set the `interval`
      * prop (in seconds) to enable periodic re-fetching (polling).
      * Other components (e.g. `bn-dataset`) reference the stored data by the
@@ -1878,9 +1880,10 @@ declare namespace LocalJSX {
      * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
      * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
      *    parsed body directly to the `datasets` store.
-     * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
-     *    JSON from a remote endpoint and write it to the `datasets` store.
-     *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
+     * 3. **URL** — place an `http://`/`https://` URL or a same-origin path
+     *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
+     *    write it to the `datasets` store. Set the `interval` prop (in seconds)
+     *    to enable periodic re-fetching.
      */
     interface BnDataset {
         /**
@@ -1913,8 +1916,8 @@ declare namespace LocalJSX {
      * Data can be provided in three ways:
      * 1. **Inline JSON** — Place JSON text inside the element body (default).
      * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-     * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
-     *    from a remote endpoint.
+     * 3. **URL** — Place an `http://`/`https://` URL or a same-origin path
+     *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
      * In URL mode the component fetches JSON from the URL. Set the `interval`
      * prop (in seconds) to enable periodic re-fetching (polling).
      * Other components (e.g. `bn-dataset`) reference the stored data by the
@@ -3249,9 +3252,10 @@ declare module "@stencil/core" {
              * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
              * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
              *    parsed body directly to the `datasets` store.
-             * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
-             *    JSON from a remote endpoint and write it to the `datasets` store.
-             *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
+             * 3. **URL** — place an `http://`/`https://` URL or a same-origin path
+             *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
+             *    write it to the `datasets` store. Set the `interval` prop (in seconds)
+             *    to enable periodic re-fetching.
              */
             "bn-dataset": LocalJSX.IntrinsicElements["bn-dataset"] & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             /**
@@ -3259,8 +3263,8 @@ declare module "@stencil/core" {
              * Data can be provided in three ways:
              * 1. **Inline JSON** — Place JSON text inside the element body (default).
              * 2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-             * 3. **URL** — Place an `http://` or `https://` URL in the body to fetch JSON
-             *    from a remote endpoint.
+             * 3. **URL** — Place an `http://`/`https://` URL or a same-origin path
+             *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
              * In URL mode the component fetches JSON from the URL. Set the `interval`
              * prop (in seconds) to enable periodic re-fetching (polling).
              * Other components (e.g. `bn-dataset`) reference the stored data by the
