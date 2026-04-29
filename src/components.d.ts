@@ -297,10 +297,13 @@ export namespace Components {
     /**
      * Queries data from one or more `bn-datasource` entries via AlaSQL and
      * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-     * The SQL query is provided as text inside the element body (observed via
-     * `withBodyObserver`). When any referenced datasource changes, the query
-     * is re-executed automatically. Set `static="true"` to bypass the SQL
-     * engine and treat the body content as raw JSON data directly.
+     * The body content is observed via `withBodyObserver` and may be:
+     * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
+     * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
+     *    parsed body directly to the `datasets` store.
+     * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
+     *    JSON from a remote endpoint and write it to the `datasets` store.
+     *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
      */
     interface BnDataset {
         /**
@@ -308,6 +311,11 @@ export namespace Components {
           * @default ""
          */
         "datasources": string;
+        /**
+          * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+          * @default 0
+         */
+        "interval": number;
         /**
           * Unique (template scope) name of the datasource
          */
@@ -1363,10 +1371,13 @@ declare global {
     /**
      * Queries data from one or more `bn-datasource` entries via AlaSQL and
      * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-     * The SQL query is provided as text inside the element body (observed via
-     * `withBodyObserver`). When any referenced datasource changes, the query
-     * is re-executed automatically. Set `static="true"` to bypass the SQL
-     * engine and treat the body content as raw JSON data directly.
+     * The body content is observed via `withBodyObserver` and may be:
+     * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
+     * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
+     *    parsed body directly to the `datasets` store.
+     * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
+     *    JSON from a remote endpoint and write it to the `datasets` store.
+     *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
      */
     interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
     }
@@ -1851,10 +1862,13 @@ declare namespace LocalJSX {
     /**
      * Queries data from one or more `bn-datasource` entries via AlaSQL and
      * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-     * The SQL query is provided as text inside the element body (observed via
-     * `withBodyObserver`). When any referenced datasource changes, the query
-     * is re-executed automatically. Set `static="true"` to bypass the SQL
-     * engine and treat the body content as raw JSON data directly.
+     * The body content is observed via `withBodyObserver` and may be:
+     * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
+     * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
+     *    parsed body directly to the `datasets` store.
+     * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
+     *    JSON from a remote endpoint and write it to the `datasets` store.
+     *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
      */
     interface BnDataset {
         /**
@@ -1862,6 +1876,11 @@ declare namespace LocalJSX {
           * @default ""
          */
         "datasources"?: string;
+        /**
+          * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+          * @default 0
+         */
+        "interval"?: number;
         /**
           * Unique (template scope) name of the datasource
          */
@@ -2905,6 +2924,7 @@ declare namespace LocalJSX {
         "datasources": string;
         "static": boolean;
         "raw": boolean;
+        "interval": number;
     }
     interface BnDatasourceAttributes {
         "name": string;
@@ -3189,10 +3209,13 @@ declare module "@stencil/core" {
             /**
              * Queries data from one or more `bn-datasource` entries via AlaSQL and
              * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-             * The SQL query is provided as text inside the element body (observed via
-             * `withBodyObserver`). When any referenced datasource changes, the query
-             * is re-executed automatically. Set `static="true"` to bypass the SQL
-             * engine and treat the body content as raw JSON data directly.
+             * The body content is observed via `withBodyObserver` and may be:
+             * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
+             * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
+             *    parsed body directly to the `datasets` store.
+             * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
+             *    JSON from a remote endpoint and write it to the `datasets` store.
+             *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
              */
             "bn-dataset": LocalJSX.IntrinsicElements["bn-dataset"] & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
             /**

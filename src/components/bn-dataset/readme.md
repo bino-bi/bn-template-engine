@@ -36,6 +36,29 @@ Bypass the SQL engine and provide raw JSON data directly:
 </bn-dataset>
 ```
 
+### URL Mode
+
+Place an `http://` or `https://` URL inside the body to fetch the dataset
+JSON from a remote endpoint. The fetched payload is written directly to the
+`datasets` store (the `static` and `raw` props are ignored in this mode).
+
+```html
+<bn-dataset name="remote-data">
+  https://example.com/api/sales.json
+</bn-dataset>
+```
+
+Set the `interval` prop (in seconds) to enable periodic re-fetching:
+
+```html
+<bn-dataset name="live-data" interval="30">
+  https://example.com/api/sales.json
+</bn-dataset>
+```
+
+Polling stops automatically when the component is removed from the DOM or
+when the body content is changed back to inline SQL/JSON.
+
 ### Connecting to Visualizations
 
 Visualization components (`<bn-table>`, `<bn-chart-time>`, `<bn-chart-structure>`) automatically subscribe to datasets. By default they use the first available dataset, or you can specify one explicitly:
@@ -60,19 +83,23 @@ The SQL dialect supports standard SELECT, WHERE, GROUP BY, ORDER BY, UNION, JOIN
 Queries data from one or more `bn-datasource` entries via AlaSQL and
 writes the result to the `datasets` store (+ computed `DatasetMeta`).
 
-The SQL query is provided as text inside the element body (observed via
-`withBodyObserver`). When any referenced datasource changes, the query
-is re-executed automatically. Set `static="true"` to bypass the SQL
-engine and treat the body content as raw JSON data directly.
+The body content is observed via `withBodyObserver` and may be:
+1. **SQL** (default) — AlaSQL query against referenced `datasources`.
+2. **Static JSON** — set `static="true"` to bypass SQL and write the
+   parsed body directly to the `datasets` store.
+3. **URL** — place an `http://` or `https://` URL in the body to fetch
+   JSON from a remote endpoint and write it to the `datasets` store.
+   Set the `interval` prop (in seconds) to enable periodic re-fetching.
 
 ## Properties
 
-| Property            | Attribute     | Description                                                                                                                               | Type      | Default     |
-| ------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                                  | `string`  | `""`        |
-| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                                                                            | `string`  | `undefined` |
-| `raw`               | `raw`         | When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`). | `boolean` | `true`      |
-| `static`            | `static`      | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.           | `boolean` | `false`     |
+| Property            | Attribute     | Description                                                                                                                                                                                                                                   | Type      | Default     |
+| ------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                                                                                                                                      | `string`  | `""`        |
+| `interval`          | `interval`    | Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
+| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                                                                                                                                                                                | `string`  | `undefined` |
+| `raw`               | `raw`         | When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`).                                                                                                     | `boolean` | `true`      |
+| `static`            | `static`      | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.                                                                                                               | `boolean` | `false`     |
 
 
 ----------------------------------------------

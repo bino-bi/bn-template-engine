@@ -12,10 +12,13 @@ import { computeContentHash, decodeCompressedContent } from "../../utils/content
  * Queries data from one or more `bn-datasource` entries via AlaSQL and
  * writes the result to the `datasets` store (+ computed `DatasetMeta`).
  *
- * The SQL query is provided as text inside the element body (observed via
- * `withBodyObserver`). When any referenced datasource changes, the query
- * is re-executed automatically. Set `static="true"` to bypass the SQL
- * engine and treat the body content as raw JSON data directly.
+ * The body content is observed via `withBodyObserver` and may be:
+ * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
+ * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
+ *    parsed body directly to the `datasets` store.
+ * 3. **URL** — place an `http://` or `https://` URL in the body to fetch
+ *    JSON from a remote endpoint and write it to the `datasets` store.
+ *    Set the `interval` prop (in seconds) to enable periodic re-fetching.
  */
 @Component({
   tag: "bn-dataset",
@@ -41,6 +44,24 @@ export class Dataset {
     });
 
     withBodyObserver(this, (data) => {
+      const trimmed = data.trim();
+
+      // --- URL mode ---
+      if (this.isUrl(trimmed)) {
+        if (trimmed === this.currentUrl) return;
+        this.currentUrl = trimmed;
+        this.lastBodyHash = null;
+        this.fetchAndStore(trimmed);
+        this.startPolling();
+        return;
+      }
+
+      // --- Leaving URL mode → clean up ---
+      if (this.currentUrl !== null) {
+        this.clearPolling();
+        this.currentUrl = null;
+      }
+
       let contentHash: string;
       let body: string;
 
@@ -91,11 +112,26 @@ export class Dataset {
    */
   @Prop() raw: boolean = true;
 
+  /**
+   * Polling interval in **seconds** for URL mode.
+   * When set and the body content is a URL, the component re-fetches
+   * data at this interval. Has no effect for SQL, inline JSON or
+   * compressed content. Set to `0` or leave unset to disable polling.
+   */
+  @Prop() interval: number = 0;
+
   private query: string;
   private lastBodyHash: string | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private database: any;
   private latestResult: unknown;
+
+  /** The currently active URL (`null` when not in URL mode). */
+  private currentUrl: string | null = null;
+  /** Timer ID for the polling interval. */
+  private pollTimerId: ReturnType<typeof setInterval> | null = null;
+  /** AbortController for cancelling in-flight fetch requests. */
+  private abortController: AbortController | null = null;
 
   executeQuery() {
     if (!this.stores) this.stores = getStores(this.element);
@@ -124,6 +160,77 @@ export class Dataset {
   @Watch("name")
   nameUpdated() {
     this.executeQuery();
+  }
+
+  @Watch("interval")
+  onIntervalChange(): void {
+    if (this.currentUrl) {
+      this.startPolling();
+    }
+  }
+
+  disconnectedCallback(): void {
+    this.clearPolling();
+  }
+
+  /**
+   * Returns `true` if the text starts with `http://` or `https://`.
+   */
+  private isUrl(text: string): boolean {
+    return text.startsWith("http://") || text.startsWith("https://");
+  }
+
+  /**
+   * Fetches JSON from the given URL and stores the result as the dataset.
+   * Cancels any in-flight request before starting a new one.
+   */
+  private async fetchAndStore(url: string): Promise<void> {
+    this.abortController?.abort();
+    this.abortController = new AbortController();
+
+    if (!this.stores) this.stores = getStores(this.element);
+
+    try {
+      const response = await fetch(url, { signal: this.abortController.signal });
+      const json = await response.json();
+      if (this.latestResult !== json) {
+        this.latestResult = json;
+        // @ts-ignore
+        this.stores.datasets.set(this.name, json);
+        // @ts-ignore
+        this.stores.datasetsMeta.set(this.name, calculateDatasetMeta(json));
+      }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      console.error("bn-dataset: error fetching URL", e, url);
+      this.latestResult = [];
+      // @ts-ignore
+      this.stores.datasets.set(this.name, []);
+      // @ts-ignore
+      this.stores.datasetsMeta.set(this.name, calculateDatasetMeta([]));
+    }
+  }
+
+  /** Stops the polling timer and cancels any in-flight fetch. */
+  private clearPolling(): void {
+    if (this.pollTimerId !== null) {
+      clearInterval(this.pollTimerId);
+      this.pollTimerId = null;
+    }
+    this.abortController?.abort();
+    this.abortController = null;
+  }
+
+  /** Starts (or restarts) the polling timer if in URL mode with a positive interval. */
+  private startPolling(): void {
+    this.clearPolling();
+    if (this.currentUrl && this.interval > 0) {
+      this.pollTimerId = setInterval(() => {
+        if (this.currentUrl) {
+          this.fetchAndStore(this.currentUrl);
+        }
+      }, this.interval * 1000);
+    }
   }
 
   render() {
