@@ -9,6 +9,7 @@ import { OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TableType } from "./index";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./TableDrillGroup";
+import { AlaSQLDatabase } from "../../../../context/scopedDb";
 
 /**
  * Configuration for an IBCS table component.
@@ -64,14 +65,15 @@ export class TableComponentConfig {
 /**
  * Converts untyped JSON into a validated {@link TableComponentConfig}.
  *
- * Requires the raw dataset for measure scale auto-calculation when `measureScale` is set to "auto".
+ * Reads from the shared alasql database for measure-scale auto-calculation when `measureScale` is set to "auto".
  */
 export class TableComponentConfigAdapter implements IAdapter<TableComponentConfig> {
   constructor(
     private tableDrillGroupAdapter: TableDrillGroupAdapter,
     private stringAdapter: StringAdapter,
     private orderAdapter: OrderAdapter,
-    private dataSet: Record<string, unknown>[],
+    private db: AlaSQLDatabase,
+    private fromExpr: string,
   ) {}
   adapt(data: Record<string, unknown>): TableComponentConfig {
     const config = new TableComponentConfig();
@@ -134,7 +136,8 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isExisting(data.measureScale)) {
       config.measureScale = DataAnalyzer.calculateMeasureScale(
-        this.dataSet,
+        this.db,
+        this.fromExpr,
         config.scenarios,
         data.measureScale as string,
       );

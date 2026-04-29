@@ -3,7 +3,6 @@ import withDatasource from "../../utils/withDatasource";
 import withBodyObserver from "../../utils/withBodyObserver";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import { calculateDatasetMeta } from "../../utils/datasetMetaCalculator";
-import alasql from "alasql";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { computeContentHash, decodeCompressedContent } from "../../utils/contentDecoder";
@@ -36,10 +35,8 @@ export class Dataset {
   constructor() {
     withComponentStatus(this);
     this.errors = withHasError(this);
-    // @ts-ignore
-    this.database = new alasql.Database();
-    withDatasource(this, (name, data) => {
-      this.database.tables[name] = { data };
+    // Datasources already live in the shared db; just re-execute when any upstream notifies.
+    withDatasource(this, () => {
       this.executeQuery();
     });
 
@@ -122,8 +119,8 @@ export class Dataset {
 
   private query: string;
   private lastBodyHash: string | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private database: any;
+  /** The query text last used to (re)create the SQL view, so we only `CREATE VIEW` when it actually changes. */
+  private lastViewQuery: string | null = null;
   private latestResult: unknown;
 
   /** The currently active URL (`null` when not in URL mode). */
@@ -135,26 +132,65 @@ export class Dataset {
 
   executeQuery() {
     if (!this.stores) this.stores = getStores(this.element);
-    if (!!this.query && !!this.name) {
-      let result: unknown;
-      if (this.static) {
-        try {
-          result = JSON.parse(this.query);
-        } catch (e) {
-          console.error("Failed to parse static dataset", e);
-          result = [];
-        }
-      } else {
-        result = this.database.exec(this.query);
+    if (!this.query || !this.name) return;
+
+    const db = this.stores.db.db;
+    let result: unknown;
+
+    if (this.static) {
+      // Static JSON: parse and register as a table in the shared db.
+      try {
+        result = JSON.parse(this.query);
+      } catch (e) {
+        console.error("Failed to parse static dataset", e);
+        result = [];
       }
-      if (this.latestResult !== result) {
-        this.latestResult = result;
-        // @ts-ignore
-        this.stores.datasets.set(this.name, result);
-        // @ts-ignore
-        this.stores.datasetsMeta.set(this.name, calculateDatasetMeta(result));
+      db.tables[this.name] = { data: Array.isArray(result) ? result : [] };
+      this.lastViewQuery = null;
+    } else {
+      // SQL: register the dataset as a view in the shared db. Recreate only when the
+      // query text changes; otherwise we just re-materialize so upstream data updates
+      // flow through.
+      if (this.lastViewQuery !== this.query) {
+        try {
+          // alasql stores views in `db.views` keyed by name; drop any prior version.
+          // @ts-ignore - views typing is loose
+          if (db.views && db.views[this.name] != null) {
+            db.exec(`DROP VIEW \`${this.name}\``);
+          }
+          db.exec(`CREATE VIEW \`${this.name}\` AS ${this.query}`);
+          this.lastViewQuery = this.query;
+        } catch (e) {
+          console.error("bn-dataset: failed to register SQL view", e, this.query);
+          this.lastViewQuery = null;
+          result = [];
+          this.publish(result);
+          return;
+        }
+      }
+      try {
+        result = db.exec(`SELECT * FROM \`${this.name}\``);
+      } catch (e) {
+        console.error("bn-dataset: SQL execution failed", e, this.query);
+        result = [];
       }
     }
+
+    this.publish(result);
+  }
+
+  /** Notifies db subscribers and updates the derived `datasetsMeta` store. */
+  private publish(result: unknown): void {
+    if (this.latestResult === result) {
+      // Even if the materialized object reference is unchanged, upstream data may have moved
+      // (notably for views) — fire notify so consumers re-render against the fresh table state.
+      this.stores.db.notify(this.name);
+      return;
+    }
+    this.latestResult = result;
+    this.stores.db.notify(this.name);
+    // @ts-ignore - DatasetMeta is small derived metadata; kept as a @stencil/store per the plan.
+    this.stores.datasetsMeta.set(this.name, calculateDatasetMeta(result));
   }
 
   @Watch("name")
@@ -171,6 +207,21 @@ export class Dataset {
 
   disconnectedCallback(): void {
     this.clearPolling();
+    if (this.stores?.db?.db && this.name) {
+      const db = this.stores.db.db;
+      try {
+        // @ts-ignore - views typing is loose
+        if (db.views && db.views[this.name] != null) {
+          db.exec(`DROP VIEW \`${this.name}\``);
+        }
+      } catch (_e) {
+        // ignore; view may not exist
+      }
+      if (db.tables[this.name] != null) {
+        delete db.tables[this.name];
+      }
+      this.stores.db.notify(this.name);
+    }
   }
 
   /**
@@ -193,21 +244,17 @@ export class Dataset {
     try {
       const response = await fetch(url, { signal: this.abortController.signal });
       const json = await response.json();
-      if (this.latestResult !== json) {
-        this.latestResult = json;
-        // @ts-ignore
-        this.stores.datasets.set(this.name, json);
-        // @ts-ignore
-        this.stores.datasetsMeta.set(this.name, calculateDatasetMeta(json));
-      }
+      const db = this.stores.db.db;
+      db.tables[this.name] = { data: Array.isArray(json) ? json : [] };
+      this.lastViewQuery = null;
+      this.publish(json);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
       console.error("bn-dataset: error fetching URL", e, url);
-      this.latestResult = [];
-      // @ts-ignore
-      this.stores.datasets.set(this.name, []);
-      // @ts-ignore
-      this.stores.datasetsMeta.set(this.name, calculateDatasetMeta([]));
+      const db = this.stores.db.db;
+      db.tables[this.name] = { data: [] };
+      this.lastViewQuery = null;
+      this.publish([]);
     }
   }
 

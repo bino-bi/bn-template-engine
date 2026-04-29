@@ -3,11 +3,10 @@ import { VisualisationRuleSet, FactoryState } from "./model";
 import { TableDataSetFactory } from "./factories/tableDataSetFactory";
 import { TableRow } from "./elements";
 import { TableComponentConfig } from "./model/TableComponentConfig";
-import { TableDataRow } from "./model/TableDataRow";
 // import { Order } from "../../../utils/model/Order";
-import alasql from "alasql";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { Order } from "../../../components";
+import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
 
 /**
  * High-level controller for IBCS table generation.
@@ -27,23 +26,24 @@ export class Table {
   private i18n: Map<string | number, string>;
   private state: FactoryState; // is uesed to track if dataset has to be reenerated (true) or if the stored one is still valid (false)
 
-  private data: TableDataRow[] = [];
+  private db: AlaSQLDatabase;
+  private fromExpr: string = "";
+  private rowCount: number = 0;
   private headerRows: TableRow[] = [];
   private bodyRows: TableRow[] = [];
 
   /**
-   * Initialises all Variables for the DataSet, created by the factory
-   * @param ruleSet
+   * Initialises all Variables for the DataSet, created by the factory.
+   * Reads data directly from the shared alasql database (named by `tableName`).
    */
-
-  constructor(ruleSet: VisualisationRuleSet, data: TableDataRow[], config: TableComponentConfig) {
+  constructor(ruleSet: VisualisationRuleSet, db: AlaSQLDatabase, tableName: string, config: TableComponentConfig) {
     this.ruleSet = ruleSet || new IBCSRuleSet();
-
+    this.db = db;
     this.dataSetFactory = new TableDataSetFactory();
 
     this.config = this.initConfig(config);
     this.i18n = this.initI18n(new Map<string, string>());
-    this.setData(data, config.filter);
+    this.setSource(tableName, config.filter);
     this.state = FactoryState.DIRTY;
   }
 
@@ -129,20 +129,21 @@ export class Table {
     this.config = this.initConfig(config);
   }
 
-  public setData(data: TableDataRow[], filter: string) {
-    if (data == null) {
+  public setSource(tableName: string, filter: string) {
+    if (!tableName) {
+      this.fromExpr = "";
+      this.rowCount = 0;
       return;
     }
 
-    if (filter != null && filter.length > 0) {
-      try {
-        this.data = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
-      } catch (e) {
-        console.error("Table: filter query failed, using unfiltered data", filter, e);
-        this.data = data;
-      }
-    } else {
-      this.data = data;
+    this.fromExpr = buildFromExpr(tableName, filter);
+
+    try {
+      const r = this.db.exec<{ cnt: number }[]>(`SELECT COUNT(*) AS cnt FROM ${this.fromExpr}`);
+      this.rowCount = (r[0]?.cnt ?? 0) as number;
+    } catch (_e) {
+      // Table may not exist yet (e.g. datasource hasn't loaded). Treat as empty.
+      this.rowCount = 0;
     }
 
     const normalizedScenarios = this.normalizeScenarios(
@@ -160,7 +161,8 @@ export class Table {
       this.config.showMeasureScale,
     );
 
-    this.bodyRows = this.dataSetFactory.createBodyRows(this.config, this.i18n, this.data);
+    this.bodyRows =
+      this.rowCount === 0 ? [] : this.dataSetFactory.createBodyRows(this.config, this.i18n, this.db, this.fromExpr);
     this.state = FactoryState.UP_TO_DATE;
   }
 
@@ -179,7 +181,10 @@ export class Table {
       this.config.measureUnit,
       this.config.showMeasureScale,
     );
-    this.bodyRows = this.dataSetFactory.createBodyRows(this.config, this.i18n, this.data);
+    this.bodyRows =
+      this.rowCount === 0 || !this.fromExpr
+        ? []
+        : this.dataSetFactory.createBodyRows(this.config, this.i18n, this.db, this.fromExpr);
     this.state = FactoryState.UP_TO_DATE;
   }
 
@@ -239,6 +244,6 @@ export class Table {
   }
 
   hasNoData() {
-    return this.data.length === 0;
+    return this.rowCount === 0;
   }
 }

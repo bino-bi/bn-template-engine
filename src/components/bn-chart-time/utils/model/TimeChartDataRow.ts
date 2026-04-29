@@ -125,6 +125,7 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
   }
 
   private parseDateString(date: unknown): DateTime | undefined {
+    if (typeof date !== "string") return undefined;
     const timestamp = DateTime.fromISO(date);
 
     if (timestamp.isValid) {

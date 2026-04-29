@@ -1,4 +1,4 @@
-import alasql from "alasql";
+import { AlaSQLDatabase } from "../context/scopedDb";
 import { SiPrefix } from "./model/SiPrefix";
 
 /**
@@ -52,7 +52,12 @@ export class DataAnalyzer {
    *   are considered; variance columns are excluded.
    * - `null` with data: defaults to GREATEST auto-detection
    */
-  static calculateMeasureScale(data: Record<string, unknown>[], scenarios: string[], mode: string | null): SiPrefix {
+  static calculateMeasureScale(
+    db: AlaSQLDatabase,
+    fromExpr: string,
+    scenarios: string[],
+    mode: string | null,
+  ): SiPrefix {
     if (mode === "_") {
       return new SiPrefix();
     }
@@ -63,7 +68,7 @@ export class DataAnalyzer {
       }
     }
 
-    if (scenarios.length === 0) {
+    if (scenarios.length === 0 || !fromExpr) {
       return new SiPrefix();
     }
 
@@ -72,12 +77,12 @@ export class DataAnalyzer {
       .filter((word) => word.length === 3)
       .map((x) => "ABS(" + x + ")")
       .toString()})) as prefixvalue
-                      FROM ?`;
+                      FROM ${fromExpr}`;
     const queryMin = `SELECT MIN(LEAST(${scenarios
       .filter((word) => word.length === 3)
       .map((x) => "ABS(" + x + ")")
       .toString()})) as prefixvalue
-                      FROM ?`;
+                      FROM ${fromExpr}`;
 
     let query = queryMax;
 
@@ -85,8 +90,14 @@ export class DataAnalyzer {
       query = queryMin;
     }
 
-    const result = alasql(query, [data]);
-    const num = result[0]?.prefixvalue;
+    let num: number;
+    try {
+      const result = db.exec<{ prefixvalue?: number }[]>(query);
+      num = result[0]?.prefixvalue ?? 0;
+    } catch (e) {
+      console.error("DataAnalyzer: measure-scale query failed", query, e);
+      return new SiPrefix();
+    }
 
     return this.determinePrefix(Math.abs(num));
   }

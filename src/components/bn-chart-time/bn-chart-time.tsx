@@ -28,7 +28,7 @@ import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensi
 import { parseScaling } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
-import { TimeChartDataRow, TimeChartStyle } from "./utils/model";
+import { TimeChartStyle } from "./utils/model";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
@@ -63,7 +63,10 @@ export class Chart {
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
 
-  @State() data: TimeChartDataRow[] = [];
+  /** Active dataset name (the last subscribed dataset to fire `onUpdate`). */
+  @State() private datasetName: string = "";
+  /** Bumped on every data update so Stencil re-renders even when the name is unchanged. */
+  @State() private dataVersion: number = 0;
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
 
@@ -706,8 +709,9 @@ export class Chart {
     withComponentStatus(this);
     withDataset(
       this,
-      (_name, data) => {
-        this.data = (data || []) as TimeChartDataRow[];
+      (name, _data) => {
+        this.datasetName = name?.startsWith("$") ? name.substring(1) : name || "";
+        this.dataVersion = this.dataVersion + 1;
       },
       (_name, meta) => {
         this.datasetMeta = meta;
@@ -1280,7 +1284,8 @@ export class Chart {
 
     return (
       <ibcs-chart-time
-        data={this.data}
+        tableName={this.datasetName}
+        dataVersion={this.dataVersion}
         chartTitle={this.prepareChartTitle(idx)}
         scenarios={effectiveScenarios}
         variances={[localScenarioString]}

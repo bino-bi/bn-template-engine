@@ -2,7 +2,6 @@ import { TableRow } from "../elements";
 import { TableRowType, TableType } from "../model";
 import { DataQuery } from "../helper";
 
-import { TableDataRow } from "../model/TableDataRow";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Formatter } from "../../../../utils";
 import { I18nMode, DataFormat, TableCategoryWidth } from "../../../../utils/constants";
@@ -10,6 +9,7 @@ import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
 import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
+import { AlaSQLDatabase } from "../../../../context/scopedDb";
 
 /**
  * Transforms raw query results into structured TableRow collections for header and body.
@@ -150,12 +150,13 @@ export class TableDataSetFactory {
   public createBodyRows(
     config: TableComponentConfig,
     i18n: Map<string | number, string>,
-    data: TableDataRow[],
+    db: AlaSQLDatabase,
+    fromExpr: string,
   ): TableRow[] {
     const bodyRows: TableRow[] = [];
 
     let iGroupIndex: number = -1; // index used in detailRow JSON to count the current group
-    const queryData = new DataQuery(config, i18n).execute(data); // collection of all query results
+    const queryData = new DataQuery(config, i18n).execute(db, fromExpr); // collection of all query results
 
     // Calculate column statistics for bar columns
     const columnStatsMap = this.calculateColumnStatistics(queryData, config.barColumns);

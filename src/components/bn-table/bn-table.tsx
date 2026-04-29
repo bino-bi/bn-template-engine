@@ -34,7 +34,6 @@ import { getParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
-import { TableDataRow } from "./utils/model/TableDataRow";
 import {
   BAR_COLUMN_WIDTH_EM,
   DataFormat,
@@ -72,7 +71,10 @@ export class Table {
   private layoutObserver: LayoutObserverHandle | null = null;
   /** Last parent width seen, used to suppress ResizeObserver noise. */
   private _lastScaledParentWidth = 0;
-  @State() data: TableDataRow[] = [];
+  /** Active dataset name (the last subscribed dataset to fire `onUpdate`). */
+  @State() private datasetName: string = "";
+  /** Bumped on every data update so Stencil re-renders even when the name is unchanged. */
+  @State() private dataVersion: number = 0;
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
 
@@ -157,8 +159,12 @@ export class Table {
 
     withDataset(
       this,
-      (_name, data) => {
-        this.data = (data || []) as TableDataRow[];
+      (name, _data) => {
+        // Helpers query the shared alasql database directly by name; we just
+        // record the active dataset and bump a version counter so Stencil
+        // re-renders when the data changes.
+        this.datasetName = name?.startsWith("$") ? name.substring(1) : name || "";
+        this.dataVersion = this.dataVersion + 1;
       },
       (_name, meta) => {
         this.datasetMeta = meta;
@@ -1252,7 +1258,8 @@ export class Table {
       <Host style={fontStyles}>
         <div>
           <ibcs-table
-            data={this.data}
+            tableName={this.datasetName}
+            dataVersion={this.dataVersion}
             table-title={this.prepareTableTitle()}
             scenarios={this.prepareScenarios()}
             scenarios-data-format={this.prepareDataFormat()}

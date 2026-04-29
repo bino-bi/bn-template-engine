@@ -11,10 +11,10 @@ import { SYSTEM_STYLE_DEFAULTS, Style } from "./componentStyles";
 import { SYSTEM_I18N_DEFAULTS } from "./internationalization";
 import { ContextStore } from "./context";
 import { DatasetMeta } from "../utils/model/DatasetMeta";
+import { createScopedDb } from "../context/scopedDb";
 
 export function createScopedStores() {
-  const datasources = createStore<Record<string, unknown>>({});
-  const datasets = createStore<Record<string, unknown>>({});
+  const db = createScopedDb();
   const datasetsMeta = createStore<Record<string, DatasetMeta>>({} as Record<string, DatasetMeta>);
   const componentStyles = createStore<Record<string, Style>>({
     _system: SYSTEM_STYLE_DEFAULTS,
@@ -25,8 +25,7 @@ export function createScopedStores() {
   const scalingGroups = createStore<Record<string, number>>({});
 
   return {
-    datasources,
-    datasets,
+    db,
     datasetsMeta,
     componentStyles,
     internationalization,

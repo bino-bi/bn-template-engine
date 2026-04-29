@@ -7,7 +7,6 @@ import {
   Scenario,
   StackConfigParsed,
   StructureChartComponentConfig,
-  StructureChartDataRow,
   StructureChartStyle,
   OverflowConfig,
 } from "./model";
@@ -15,7 +14,6 @@ import {
 // @ts-ignore
 import { Axis, HookLocation, Label, StackedBar } from "./elements";
 import { ScenarioFactory } from "./factories";
-import alasql from "alasql";
 
 import CalculateSize from "calculate-size";
 import { Formatter } from "../../../utils";
@@ -27,6 +25,7 @@ import { Order, OrderColumn } from "../../../utils/model/Order";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
+import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
 
 /** Internal data model entry: one category with up to 4 scenario DataPoints and optional stack segments. */
 type StructureChartDataModelEntry = {
@@ -77,7 +76,6 @@ export class StructureChart {
   private hideCategories: boolean = false;
   private axisScenario: Scenario = Scenario.AC1;
   readonly CSS_CATEGORIES: string = "categories";
-  private preparedDataSet: StructureChartDataRow[] = [];
   private state: FactoryState = FactoryState.DIRTY;
   private i18n: Map<string | number, string>;
 
@@ -93,9 +91,20 @@ export class StructureChart {
   private stackConfig: StackConfigParsed | null = null;
   private overflowConfig: OverflowConfig | null = null;
   private highestStackedTotal: number = 0;
+  private db: AlaSQLDatabase;
+  private tableName: string;
+  private fromExpr: string = "";
+  private rowCount: number = 0;
 
-  constructor(ruleSet: VisualisationRuleSet, config: StructureChartComponentConfig, styles: StructureChartStyle) {
-    this.initSQLFunctions();
+  constructor(
+    ruleSet: VisualisationRuleSet,
+    db: AlaSQLDatabase,
+    tableName: string,
+    config: StructureChartComponentConfig,
+    styles: StructureChartStyle,
+  ) {
+    this.db = db;
+    this.tableName = tableName;
     this.ruleSet = ruleSet || new IBCSRuleSet();
     this.i18n = this.createI18n(new Map());
     this.styles = styles;
@@ -128,12 +137,6 @@ export class StructureChart {
     );
   }
 
-  initSQLFunctions() {
-    alasql.fn.transformOperator = function (a) {
-      return a === "-" ? -1 : 1;
-    };
-  }
-
   public setStyles(newStyle: StructureChartStyle) {
     this.styles = newStyle;
   }
@@ -146,7 +149,7 @@ export class StructureChart {
     this.limit = config.limit;
     this.pixelPerUnit = config.pixelPerUnit || 1;
     this.pixelPerPercentage = config.pixelPerPercentage || 100;
-    this.setData([...config.data], config.filter);
+    this.setSource(config.filter);
     this.dataModel = this.populateModel(config.scenarios, config.level, config.sortOrder);
 
     // Populate per-dimension stack segments when stacking by a data dimension
@@ -238,31 +241,23 @@ export class StructureChart {
   }
 
   /**
-   * Init load raw datasets the loaded dataset is
-   * the base on which the filters defined in the config
-   * are apllied on internaly it is called prepared DataSet
-   *
-   * @param data
-   * @param filter - data filter
-   * @param customColumnNameMap Custon ColumnNameMap can be used if data uses non standard columnames
+   * Resolves the dataset (a table or view in the shared alasql database) and
+   * caches its row count. All subsequent queries reference the source by name,
+   * so alasql doesn't have to ingest a fresh array per call.
    */
-  public setData(data: StructureChartDataRow[], filter: string) {
-    if (data == null) {
+  public setSource(filter: string) {
+    this.state = FactoryState.DIRTY;
+    if (!this.tableName) {
+      this.fromExpr = "";
+      this.rowCount = 0;
       return;
     }
-
-    this.state = FactoryState.DIRTY; // mark dataSet for update
-    this.preparedDataSet.length = 0; // cleans formerly loaded and prepared  dataset
-
-    if (filter != null && filter.length > 0) {
-      try {
-        this.preparedDataSet = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
-      } catch (e) {
-        console.error("StructureChart: filter query failed, using unfiltered data", filter, e);
-        this.preparedDataSet = data;
-      }
-    } else {
-      this.preparedDataSet = data;
+    this.fromExpr = buildFromExpr(this.tableName, filter);
+    try {
+      const r = this.db.exec<{ cnt: number }[]>(`SELECT COUNT(*) AS cnt FROM ${this.fromExpr}`);
+      this.rowCount = (r[0]?.cnt ?? 0) as number;
+    } catch (_e) {
+      this.rowCount = 0;
     }
   }
 
@@ -400,7 +395,7 @@ export class StructureChart {
     level: AggregationLevel,
     sortOrder: Order,
   ): StructureChartDataModelEntry[] {
-    if (this.preparedDataSet?.length === 0) {
+    if (this.rowCount === 0 || !this.fromExpr) {
       return [];
     }
 
@@ -408,22 +403,27 @@ export class StructureChart {
     const orderStr = this.createOrderStr(level, sortOrder);
     const select = this.createSelectString(level, sortOrder);
     const groupByStr = this.createGroupByStr(level, sortOrder);
-    const result = alasql<Record<string, unknown>[]>(
-      `SELECT ${select} ${
-        selectedScenarios.length > 0
-          ? "," +
-            selectedScenarios
-              .map((scenario: string) => {
-                return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
-              })
-              .join(",")
-          : ""
-      }                          
-                         FROM ?
+    let result: Record<string, unknown>[];
+    try {
+      result = this.db.exec<Record<string, unknown>[]>(
+        `SELECT ${select} ${
+          selectedScenarios.length > 0
+            ? "," +
+              selectedScenarios
+                .map((scenario: string) => {
+                  return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
+                })
+                .join(",")
+            : ""
+        }
+                         FROM ${this.fromExpr}
                          GROUP BY ${groupByStr}
                          ORDER BY ${orderStr}`,
-      [this.preparedDataSet],
-    );
+      );
+    } catch (e) {
+      console.error("StructureChart: populateModel query failed", e);
+      return [];
+    }
 
     this.detectNaNCells(selectedScenarios, result);
 
@@ -1276,7 +1276,7 @@ export class StructureChart {
     _stackConfig: StackConfigParsed,
     level: AggregationLevel,
   ): void {
-    if (this.preparedDataSet?.length === 0 || scenarios.length === 0) return;
+    if (this.rowCount === 0 || !this.fromExpr || scenarios.length === 0) return;
 
     // Derive stack column from level: stack by the next-lower hierarchy dimension
     const nextLowerDimension: Record<string, string> = {
@@ -1292,12 +1292,17 @@ export class StructureChart {
     const displayColumn = level.toString(); // e.g. 'rowGroup', 'category', 'subCategory'
     const scenario = scenarios[0]; // dimension stacking uses first scenario
 
-    const result = alasql<Record<string, unknown>[]>(
-      `SELECT [${displayColumn}] as displayGroup, [${stackColumn}] as stackLabel, ` +
-        `SUM([${scenario}] * transformOperator(operation)) as stackValue ` +
-        `FROM ? GROUP BY [${displayColumn}], [${stackColumn}]`,
-      [this.preparedDataSet],
-    );
+    let result: Record<string, unknown>[];
+    try {
+      result = this.db.exec<Record<string, unknown>[]>(
+        `SELECT [${displayColumn}] as displayGroup, [${stackColumn}] as stackLabel, ` +
+          `SUM([${scenario}] * transformOperator(operation)) as stackValue ` +
+          `FROM ${this.fromExpr} GROUP BY [${displayColumn}], [${stackColumn}]`,
+      );
+    } catch (e) {
+      console.error("StructureChart: dimension-stack query failed", e);
+      return;
+    }
 
     // Group results by displayGroup
     const groupMap = new Map<string, { label: string; value: number }[]>();

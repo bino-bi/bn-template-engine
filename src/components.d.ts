@@ -7,36 +7,30 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 import { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
-import { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
 import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { Order } from "./utils/model/Order";
 import { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
 import { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 import { ParentDimensions } from "./utils/parentDimensions";
-import { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
-import { TableDataRow } from "./components/bn-table/utils/model/TableDataRow";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 import { TableType } from "./components/bn-table/utils/model";
 import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
 export { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 export { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
-export { StructureChartDataRow } from "./components/bn-chart-structure/utils/model";
 export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 export { Order } from "./utils/model/Order";
 export { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
 export { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 export { ParentDimensions } from "./utils/parentDimensions";
-export { TimeChartDataRow } from "./components/bn-chart-time/utils/model/TimeChartDataRow";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
-export { TableDataRow } from "./components/bn-table/utils/model/TableDataRow";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 export { TableType } from "./components/bn-table/utils/model";
 export { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
@@ -978,13 +972,14 @@ export namespace Components {
          */
         "chartTitle": string;
         /**
-          * @default []
-         */
-        "data": StructureChartDataRow[];
-        /**
           * @default { percent: 2, decimal: 1 }
          */
         "dataFormatDigits": DataFormatDigits;
+        /**
+          * Bumped by `bn-chart-structure` when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion": number;
         /**
           * @default ""
          */
@@ -1043,6 +1038,11 @@ export namespace Components {
         "stackConfig": StackConfigParsed | null;
         "styles": StructureChartStyle | undefined;
         /**
+          * Name of the dataset (table or view in the shared alasql database).
+          * @default ""
+         */
+        "tableName": string;
+        /**
           * @default []
          */
         "variances": string[];
@@ -1062,13 +1062,14 @@ export namespace Components {
          */
         "containerWidth": number;
         /**
-          * @default []
-         */
-        "data": TimeChartDataRow[];
-        /**
           * @default { percent: 2, decimal: 1 }
          */
         "dataFormatDigits": DataFormatDigits;
+        /**
+          * Bumped by `bn-chart-time` when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion": number;
         /**
           * @default DateDistance.AUTO
          */
@@ -1155,6 +1156,11 @@ export namespace Components {
         "stackConfig": StackConfigParsed1 | null;
         "styles": TimeChartStyle | undefined;
         /**
+          * Name of the dataset (table or view in the shared alasql database).
+          * @default ""
+         */
+        "tableName": string;
+        /**
           * @default []
          */
         "variances": string[];
@@ -1185,13 +1191,14 @@ export namespace Components {
          */
         "categorythereof": Map<string, Record<string, unknown>[]>;
         /**
-          * @default []
-         */
-        "data": TableDataRow[];
-        /**
           * @default { percent: 2, decimal: 1 }
          */
         "dataFormatDigits": DataFormatDigits;
+        /**
+          * Bumped by the outer `bn-table` whenever the dataset's data changes. Triggers a re-render via Stencil's prop-change detection.
+          * @default 0
+         */
+        "dataVersion": number;
         /**
           * @default ""
          */
@@ -1256,6 +1263,11 @@ export namespace Components {
           * @default true
          */
         "showMeasureScale": boolean;
+        /**
+          * Name of the dataset (a table or view in the shared alasql database). The inner `Table` helper queries it directly — no array copy.
+          * @default ""
+         */
+        "tableName": string;
         /**
           * @default "SUM_TOTAL"
          */
@@ -2538,13 +2550,14 @@ declare namespace LocalJSX {
          */
         "chartTitle"?: string;
         /**
-          * @default []
-         */
-        "data"?: StructureChartDataRow[];
-        /**
           * @default { percent: 2, decimal: 1 }
          */
         "dataFormatDigits"?: DataFormatDigits;
+        /**
+          * Bumped by `bn-chart-structure` when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion"?: number;
         /**
           * @default ""
          */
@@ -2603,6 +2616,11 @@ declare namespace LocalJSX {
         "stackConfig"?: StackConfigParsed | null;
         "styles"?: StructureChartStyle | undefined;
         /**
+          * Name of the dataset (table or view in the shared alasql database).
+          * @default ""
+         */
+        "tableName"?: string;
+        /**
           * @default []
          */
         "variances"?: string[];
@@ -2622,13 +2640,14 @@ declare namespace LocalJSX {
          */
         "containerWidth"?: number;
         /**
-          * @default []
-         */
-        "data"?: TimeChartDataRow[];
-        /**
           * @default { percent: 2, decimal: 1 }
          */
         "dataFormatDigits"?: DataFormatDigits;
+        /**
+          * Bumped by `bn-chart-time` when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion"?: number;
         /**
           * @default DateDistance.AUTO
          */
@@ -2715,6 +2734,11 @@ declare namespace LocalJSX {
         "stackConfig"?: StackConfigParsed1 | null;
         "styles"?: TimeChartStyle | undefined;
         /**
+          * Name of the dataset (table or view in the shared alasql database).
+          * @default ""
+         */
+        "tableName"?: string;
+        /**
           * @default []
          */
         "variances"?: string[];
@@ -2745,13 +2769,14 @@ declare namespace LocalJSX {
          */
         "categorythereof"?: Map<string, Record<string, unknown>[]>;
         /**
-          * @default []
-         */
-        "data"?: TableDataRow[];
-        /**
           * @default { percent: 2, decimal: 1 }
          */
         "dataFormatDigits"?: DataFormatDigits;
+        /**
+          * Bumped by the outer `bn-table` whenever the dataset's data changes. Triggers a re-render via Stencil's prop-change detection.
+          * @default 0
+         */
+        "dataVersion"?: number;
         /**
           * @default ""
          */
@@ -2816,6 +2841,11 @@ declare namespace LocalJSX {
           * @default true
          */
         "showMeasureScale"?: boolean;
+        /**
+          * Name of the dataset (a table or view in the shared alasql database). The inner `Table` helper queries it directly — no array copy.
+          * @default ""
+         */
+        "tableName"?: string;
         /**
           * @default "SUM_TOTAL"
          */
@@ -3088,6 +3118,8 @@ declare namespace LocalJSX {
         "showOperators": string;
     }
     interface IbcsChartStructureAttributes {
+        "tableName": string;
+        "dataVersion": number;
         "chartTitle": string;
         "hideCategories": boolean;
         "pixelPerUnit": number;
@@ -3100,6 +3132,8 @@ declare namespace LocalJSX {
         "showMeasureScale": boolean;
     }
     interface IbcsChartTimeAttributes {
+        "tableName": string;
+        "dataVersion": number;
         "chartTitle": string;
         "hideAxisLabels": boolean;
         "pixelPerUnit": number;
@@ -3122,6 +3156,8 @@ declare namespace LocalJSX {
         "containerWidth": number;
     }
     interface IbcsTableAttributes {
+        "tableName": string;
+        "dataVersion": number;
         "tableTitle": string;
         "scenariosDataFormat": DataFormat;
         "grouped": boolean;

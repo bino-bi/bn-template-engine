@@ -16,15 +16,14 @@ import {
 } from "./elements";
 import { ScenarioFactory } from "./factories";
 import { LabelCollisionManager, SCENARIO_PRIORITY } from "./helper";
-import alasql from "alasql";
 
 import CalculateSize from "calculate-size";
 
 import { StackConfigParsed, TimeChartComponentConfig } from "./model/TimeChartComponentConfig";
 import { TimeChartStyle } from "./model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChart } from "./model/styles/ScaleFactorsTimeChart";
-import { TimeChartDataRow } from "./model/TimeChartDataRow";
 import { DateTime } from "luxon";
+import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
 import { AggregationLevel, AxisLabelsMode, ChartMode, StackBy, StackMode } from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
@@ -122,7 +121,10 @@ export class TimeChart {
   private pixelPerPercentage: number = 1;
   private hideAxisLabels: boolean = false;
   private axisScenario: Scenario = Scenario.AC1;
-  private preparedDataSet: TimeChartDataRow[] = [];
+  private db: AlaSQLDatabase;
+  private tableName: string;
+  private fromExpr: string = "";
+  private rowCount: number = 0;
 
   private axisCategoryArea: { width: number; height: number } = { width: 0, height: 0 };
   private scenariosArea: { width: number; height: number } = { width: 0, height: 0 };
@@ -153,11 +155,14 @@ export class TimeChart {
 
   constructor(
     ruleSet: VisualisationRuleSet,
+    db: AlaSQLDatabase,
+    tableName: string,
     config: TimeChartComponentConfig,
     styles: TimeChartStyle,
     availableWidth: number = 0,
   ) {
-    this.initSQLFunctions();
+    this.db = db;
+    this.tableName = tableName;
     this.ruleSet = ruleSet || new IBCSRuleSet();
     this.i18n = this.createI18n(new Map());
     this.styles = styles;
@@ -168,25 +173,6 @@ export class TimeChart {
 
   public updatePosition(scenarios: string[]) {
     this.position = this.createElementPosition(scenarios);
-  }
-
-  initSQLFunctions() {
-    alasql.fn.transformOperator = function (a) {
-      return a === "-" ? -1 : 1;
-    };
-
-    // @ts-ignore
-    alasql.fn.normalizeDate = function (
-      date: DateTime | undefined,
-      normalizationLevel: string,
-      _locale: string,
-    ): DateTime | undefined {
-      if (date === undefined || !date.isValid) {
-        return undefined;
-      }
-
-      return date.startOf(normalizationLevel);
-    };
   }
 
   public setStyles(newStyle: TimeChartStyle) {
@@ -271,7 +257,7 @@ export class TimeChart {
 
     this.sortScenariosbyVisualisationRules(config);
 
-    this.setData([...config.data], config.filter);
+    this.setSource(config.filter);
     this.hideAxisLabels = config.hideAxisLabels || false;
     this.pixelPerUnit = config.pixelPerUnit;
     this.pixelPerPercentage = config.pixelPerPercentage;
@@ -341,31 +327,23 @@ export class TimeChart {
   }
 
   /**
-   * Init load raw datasets the loaded dataset is
-   * the base on which the filters defined in the config
-   * are apllied on internaly it is called prepared DataSet
-   *
-   * @param data
-   * @param filter - data filter
-   * @param customColumnNameMap Custon ColumnNameMap can be used if data uses non standard columnames
+   * Resolves the dataset (a table or view in the shared alasql database) and
+   * caches its row count. Subsequent queries reference the source by name —
+   * alasql doesn't have to ingest a fresh array per call.
    */
-  public setData(data: TimeChartDataRow[], filter: string): void {
-    if (data == null) {
+  public setSource(filter: string): void {
+    this.state = FactoryState.DIRTY;
+    if (!this.tableName) {
+      this.fromExpr = "";
+      this.rowCount = 0;
       return;
     }
-
-    this.state = FactoryState.DIRTY; // mark dataSet for update
-    this.preparedDataSet.length = 0; // cleans formerly loaded and prepared  dataset
-
-    if (filter != null && filter.length > 0) {
-      try {
-        this.preparedDataSet = alasql(`SELECT * FROM ? WHERE ${filter}`, [data]);
-      } catch (e) {
-        console.error("TimeChart: filter query failed, using unfiltered data", filter, e);
-        this.preparedDataSet = data;
-      }
-    } else {
-      this.preparedDataSet = data;
+    this.fromExpr = buildFromExpr(this.tableName, filter);
+    try {
+      const r = this.db.exec<{ cnt: number }[]>(`SELECT COUNT(*) AS cnt FROM ${this.fromExpr}`);
+      this.rowCount = (r[0]?.cnt ?? 0) as number;
+    } catch (_e) {
+      this.rowCount = 0;
     }
   }
 
@@ -693,7 +671,7 @@ export class TimeChart {
     _level: AggregationLevel,
     _sortOrder: Order,
   ): TimeChartDataModelEntry[] {
-    if (this.preparedDataSet?.length === 0) {
+    if (this.rowCount === 0 || !this.fromExpr) {
       return [];
     }
 
@@ -750,20 +728,42 @@ export class TimeChart {
   }
 
   private queryMinMaxDates(): { mindate?: any; maxdate?: any }[] {
-    //let result: any[] = [];
-    const result = alasql<TimeChartResponseRow[]>(
-      `SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ?`,
-      [this.preparedDataSet],
-    );
+    let result: TimeChartResponseRow[];
+    try {
+      result = this.db.exec<TimeChartResponseRow[]>(
+        `SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ${this.fromExpr}`,
+      );
+    } catch (e) {
+      console.error("TimeChart: min/max date query failed", e);
+      return [{}];
+    }
 
+    // `date` rows in the shared db are typically ISO strings (raw JSON) or millis;
+    // accept both so existing fixtures and live JSON data both work.
     if (result[0]?.mindate != null) {
-      result[0].mindate = DateTime.fromMillis(result[0]?.mindate);
+      result[0].mindate = TimeChart.coerceDateTime(result[0].mindate);
     }
     if (result[0]?.maxdate != null) {
-      result[0].maxdate = DateTime.fromMillis(result[0]?.maxdate);
+      result[0].maxdate = TimeChart.coerceDateTime(result[0].maxdate);
     }
 
     return result;
+  }
+
+  private static coerceDateTime(v: unknown): DateTime | undefined {
+    if (v == null) return undefined;
+    if (typeof v === "string") {
+      const dt = DateTime.fromISO(v);
+      return dt.isValid ? dt : undefined;
+    }
+    if (typeof v === "number") {
+      const dt = DateTime.fromMillis(v);
+      return dt.isValid ? dt : undefined;
+    }
+    if (typeof (v as { isValid?: boolean }).isValid === "boolean") {
+      return v as DateTime;
+    }
+    return undefined;
   }
 
   private queryDataSet(dateInterval: DateDistance, select: string, order: string) {
@@ -786,14 +786,16 @@ export class TimeChart {
       "pl4",
     ];
     const dateSelect = `normalizeDate([date], '${dateInterval}' , '${this.locale}') as  calcdate`;
-    const result = alasql<TimeChartResponseRow[]>(
-      `SELECT ${"p.calcdate"}                                ${select},
+    let result: TimeChartResponseRow[];
+    try {
+      result = this.db.exec<TimeChartResponseRow[]>(
+        `SELECT ${"p.calcdate"}                                ${select},
                           ${scenarios
                             .map((scenario: string) => {
                               return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
                             })
-                            .join(",")} 
-                     
+                            .join(",")}
+
                            FROM (SELECT ${dateSelect} ${select},
                                         ac1,
                                         ac2,
@@ -811,11 +813,14 @@ export class TimeChart {
                                         pl2,
                                         pl3,
                                         pl4
-                                 FROM ?) as p
+                                 FROM ${this.fromExpr}) as p
                            GROUP BY ${"calcdate"} ${order}
                            ORDER BY ${"calcdate asc"}`,
-      [this.preparedDataSet],
-    );
+      );
+    } catch (e) {
+      console.error("TimeChart: queryDataSet failed", e);
+      return [];
+    }
 
     return result;
   }
@@ -1681,17 +1686,14 @@ export class TimeChart {
   }
 
   private leftOuterJoinDates(result: TimeChartResponseRow[], dateInterval: DateDistance): TimeChartResponseRow[] {
-    const to: DateTime = DateTime.max(
-      ...result.map(function (e: TimeChartResponseRow) {
-        return e.calcdate;
-      }),
-    );
-
-    const from: DateTime = DateTime.min(
-      ...result.map(function (e: TimeChartResponseRow) {
-        return e.calcdate;
-      }),
-    );
+    const validDates = result
+      .map((e: TimeChartResponseRow) => e.calcdate)
+      .filter((d): d is DateTime => d != null && typeof (d as DateTime).isValid === "boolean" && d.isValid);
+    if (validDates.length === 0) {
+      return result;
+    }
+    const to: DateTime = DateTime.max(...validDates);
+    const from: DateTime = DateTime.min(...validDates);
 
     const dateRange: DateTime[] = new DateStringFactory().datesBetween(from, to, dateInterval, this.intervalSpanLimit);
 

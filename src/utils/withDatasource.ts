@@ -6,9 +6,9 @@ import { getElement } from "@stencil/core";
  * Mixin that subscribes a Stencil component to raw datasources.
  *
  * This is the simpler counterpart of {@link withDataset} -- it reads directly from
- * the datasources store without going through bn-dataset query processing.
- * Primarily used by bn-dataset itself, which needs access to raw data before
- * producing a processed dataset.
+ * the shared alasql database via `stores.db.subscribe(name, ...)`. Primarily used
+ * by `bn-dataset` itself to react to upstream datasource updates so it can re-fire
+ * its own dataset notification.
  *
  * Watches the host element's `datasources` attribute via MutationObserver for
  * dynamic rebinding at runtime.
@@ -18,18 +18,35 @@ import { getElement } from "@stencil/core";
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withDatasource = (component: any, onUpdate: (name: string, data: unknown) => void) => {
-  let subscription: () => void;
+  let dbUnsubs: (() => void)[] = [];
   let datasources: string[] = [];
   let stores: ScopedStores;
+
+  const deliver = (name: string) => {
+    let rows: unknown;
+    try {
+      rows = stores.db.db.exec(`SELECT * FROM \`${name}\``);
+    } catch (_e) {
+      rows = [];
+    }
+    onUpdate(name, rows);
+  };
+
+  const rebind = () => {
+    dbUnsubs.forEach((fn) => fn());
+    dbUnsubs = [];
+    datasources.forEach((name) => {
+      if (!name) return;
+      dbUnsubs.push(stores.db.subscribe(name, () => deliver(name)));
+      deliver(name);
+    });
+  };
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.attributeName === "datasources") {
         datasources = (getElement(component).getAttribute("datasources") || "").split(",");
-        datasources.forEach((name) => {
-          // @ts-ignore
-          onUpdate(name, stores.datasources.get(name));
-        });
+        rebind();
       }
     });
   });
@@ -40,17 +57,9 @@ const withDatasource = (component: any, onUpdate: (name: string, data: unknown) 
     stores = getStores(element);
 
     datasources = (element.getAttribute("datasources") || "").split(",");
-    datasources.forEach((name) => {
-      // @ts-ignore
-      onUpdate(name, stores.datasources.get(name));
-    });
+    rebind();
 
     observer.observe(element, { attributes: true, attributeFilter: ["datasources"] });
-    subscription = stores.datasources.on("set", (key, newVlaue) => {
-      if (datasources.includes(key as string)) {
-        onUpdate(key as string, newVlaue);
-      }
-    });
 
     runIfExisits(connectedCallback, component);
   };
@@ -58,7 +67,8 @@ const withDatasource = (component: any, onUpdate: (name: string, data: unknown) 
   const disconnectedCallback = component["disconnectedCallback"];
   component["disconnectedCallback"] = () => {
     observer.disconnect();
-    runIfExisits(subscription);
+    dbUnsubs.forEach((fn) => fn());
+    dbUnsubs = [];
     clearStoresCache(getElement(component));
     runIfExisits(disconnectedCallback, component);
   };

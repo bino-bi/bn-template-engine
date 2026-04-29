@@ -7,10 +7,8 @@ import { Table } from "./utils/Table";
 
 import { TableComponentConfig, TableComponentConfigAdapter } from "./utils/model/TableComponentConfig";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./utils/model/TableDrillGroup";
-import { TableDataRow, TableDataRowAdapter } from "./utils/model/TableDataRow";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
 
-import { AdapterUtils } from "../../utils/helper/AdapterUtils";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
@@ -19,6 +17,7 @@ import { CellBarChart, CellBarChartStyles } from "./utils/elements/CellBarChart"
 import { Cell } from "./utils/elements/Cell";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
+import { getStores, ScopedStores } from "../../context/context-protocol";
 
 /**
  * Internal rendering engine for `bn-table`.
@@ -39,8 +38,19 @@ export class IbcsTable {
   @Element() private element: HTMLElement;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
 
+  /**
+   * Name of the dataset (a table or view in the shared alasql database). The
+   * inner `Table` helper queries it directly — no array copy.
+   */
   @Prop()
-  data: TableDataRow[] = [];
+  tableName: string = "";
+
+  /**
+   * Bumped by the outer `bn-table` whenever the dataset's data changes. Triggers
+   * a re-render via Stencil's prop-change detection.
+   */
+  @Prop()
+  dataVersion: number = 0;
 
   @Prop()
   tableTitle: string = "SUM_TOTAL";
@@ -123,6 +133,7 @@ export class IbcsTable {
   private table: Table | undefined;
   private componentDataFormatDigits: DataFormatDigits = new DataFormatDigits();
   private barChartStyles: CellBarChartStyles;
+  private stores: ScopedStores | undefined;
 
   constructor() {
     this.componentStyle = withComponentStyle(this);
@@ -205,24 +216,31 @@ export class IbcsTable {
   }
 
   componentWillRender() {
-    const config: TableComponentConfig = this.prepareConfig();
+    if (!this.stores) this.stores = getStores(this.element);
+    const db = this.stores.db.db;
 
-    const data: TableDataRow[] = this.prepareData();
+    const config: TableComponentConfig = this.prepareConfig(db);
 
     this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(
       this.dataFormatDigits as unknown as Record<string, unknown>,
     );
-    this.table = new Table(new IBCSRuleSet(), data, config);
+    this.table = new Table(new IBCSRuleSet(), db, this.tableName, config);
     this.table.setI18n(this.i18n);
     this.barChartStyles = this.prepareBarChartStyles();
   }
 
-  private prepareConfig(): TableComponentConfig {
+  private prepareConfig(db: import("../../context/scopedDb").AlaSQLDatabase): TableComponentConfig {
+    const fromExpr = this.tableName
+      ? this.filter && this.filter.length > 0
+        ? `(SELECT * FROM \`${this.tableName}\` WHERE ${this.filter}) AS __src`
+        : `\`${this.tableName}\``
+      : "";
     const config = new TableComponentConfigAdapter(
       new TableDrillGroupAdapter(),
       new StringAdapter(),
       new OrderAdapter(new StringAdapter()),
-      this.data as unknown as Record<string, unknown>[],
+      db,
+      fromExpr,
     ).adapt({
       title: this.tableTitle,
       scenarios: this.scenarios,
@@ -246,10 +264,6 @@ export class IbcsTable {
     });
 
     return config;
-  }
-
-  private prepareData(): TableDataRow[] {
-    return AdapterUtils.adaptArray(this.data, new TableDataRowAdapter());
   }
 
   /**

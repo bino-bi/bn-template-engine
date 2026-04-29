@@ -1,12 +1,20 @@
 import { DataAnalyzer } from "./dataAnalyzer";
 import { SiPrefix } from "./model/SiPrefix";
+import { createScopedDb } from "../context/scopedDb";
+
+/** Test helper: registers `rows` as a table in a fresh shared db and runs `calculateMeasureScale` against it. */
+function callMeasureScale(rows: any[], scenarios: string[], mode: string | null): SiPrefix {
+  const sdb = createScopedDb();
+  sdb.db.tables["__test"] = { data: rows };
+  return DataAnalyzer.calculateMeasureScale(sdb.db, "`__test`", scenarios, mode);
+}
 
 describe("Data Analyzer Test", () => {
   it("returns default if empty data object", () => {
     const scenarios = ["ac1", "ac2", "ac3"];
 
     const data: any[] = [];
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
     });
@@ -21,7 +29,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 100, ac2: 100, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
     });
@@ -36,7 +44,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "k",
       value: 1000,
     });
@@ -51,7 +59,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "k",
       value: 1000,
     });
@@ -66,7 +74,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "M",
       value: 1000000,
     });
@@ -81,7 +89,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "M",
       value: 1000000,
     });
@@ -96,7 +104,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "LEAST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "LEAST")).toEqual({
       prefix: "m",
       value: 0.001,
     });
@@ -111,7 +119,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "least")).toEqual({
+    expect(callMeasureScale(data, scenarios, "least")).toEqual({
       prefix: "m",
       value: 0.001,
     });
@@ -126,7 +134,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "my")).toEqual(new SiPrefix("my", 0.000001));
+    expect(callMeasureScale(data, scenarios, "my")).toEqual(new SiPrefix("my", 0.000001));
   });
 
   it("returns 0.000001 if mode is μ", () => {
@@ -138,7 +146,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "my")).toEqual({
+    expect(callMeasureScale(data, scenarios, "my")).toEqual({
       prefix: "my",
       value: 0.000001,
     });
@@ -153,7 +161,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "_")).toEqual({
+    expect(callMeasureScale(data, scenarios, "_")).toEqual({
       prefix: "",
       value: 1,
     });
@@ -168,7 +176,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, null)).toEqual({
+    expect(callMeasureScale(data, scenarios, null)).toEqual({
       prefix: "k",
       value: 1000,
     });
@@ -183,7 +191,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
     });
@@ -198,7 +206,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
     });
@@ -213,7 +221,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
     });
@@ -224,7 +232,7 @@ describe("Data Analyzer Test", () => {
 
     const data: any[] = [];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
     });
@@ -235,7 +243,7 @@ describe("Data Analyzer Test", () => {
 
     const data: any[] = [];
 
-    expect(DataAnalyzer.calculateMeasureScale(data, scenarios, "GREATEST")).toEqual({
+    expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
     });

@@ -15,6 +15,7 @@ import { createScopedStores } from "../stores/createScopedStores";
 import { Style } from "../stores/componentStyles";
 import { ContextStore } from "../stores/context";
 import { DatasetMeta } from "../utils/model/DatasetMeta";
+import { ScopedDb } from "./scopedDb";
 
 /** Return type of `createStore()` from `@stencil/store`. */
 export interface StoreInstance<T extends object> {
@@ -27,10 +28,10 @@ export interface StoreInstance<T extends object> {
   set: (key: keyof T, value: T[keyof T]) => void;
 }
 
-/** Typed bag of all 8 store instances owned by a single `<bn-context>`. */
+/** Typed bag of all stores + the shared alasql database owned by a single `<bn-context>`. */
 export interface ScopedStores {
-  datasources: StoreInstance<Record<string, unknown>>;
-  datasets: StoreInstance<Record<string, unknown>>;
+  /** Shared isolated alasql database. Datasources/datasets register tables/views here. */
+  db: ScopedDb;
   datasetsMeta: StoreInstance<Record<string, DatasetMeta>>;
   componentStyles: StoreInstance<Record<string, Style>>;
   internationalization: StoreInstance<Record<string, unknown>>;

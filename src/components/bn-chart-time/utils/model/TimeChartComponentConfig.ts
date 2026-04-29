@@ -22,6 +22,7 @@ import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../utils/mod
 import { Order, OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./TimeChartDataRow";
+import { AlaSQLDatabase } from "../../../../context/scopedDb";
 
 /** Parsed stacking configuration for multi-scenario bar/area charts. */
 export interface StackConfigParsed {
@@ -79,7 +80,7 @@ export class TimeChartComponentConfig {
 /**
  * Converts untyped JSON into a validated {@link TimeChartComponentConfig}.
  *
- * Requires the raw dataset for measure scale auto-calculation.
+ * Reads from the shared alasql database for measure-scale auto-calculation.
  */
 export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartComponentConfig> {
   constructor(
@@ -87,7 +88,8 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     private orderAdapter: OrderAdapter,
     private stringAdapter: StringAdapter,
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
-    private dataSet: Record<string, unknown>[],
+    private db: AlaSQLDatabase,
+    private fromExpr: string,
   ) {}
 
   adapt(data: Record<string, unknown>): TimeChartComponentConfig {
@@ -150,7 +152,8 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isExisting(data.measureScale)) {
       config.measureScale = DataAnalyzer.calculateMeasureScale(
-        this.dataSet,
+        this.db,
+        this.fromExpr,
         config.scenarios,
         data.measureScale as string,
       );

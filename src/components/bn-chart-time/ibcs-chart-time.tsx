@@ -7,7 +7,9 @@ import {
   TimeChartComponentConfig,
   TimeChartComponentConfigAdapter,
 } from "./utils/model/TimeChartComponentConfig";
-import { TimeChartDataRow, TimeChartDataRowAdapter } from "./utils/model/TimeChartDataRow";
+import { TimeChartDataRowAdapter } from "./utils/model/TimeChartDataRow";
+import { getStores, ScopedStores } from "../../context/context-protocol";
+import { buildFromExpr } from "../../context/scopedDb";
 import { TimeChartStyle, TimeChartStylesAdapter } from "./utils/model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsTimeChart";
 import { DateDistance } from "../../utils/DateStringFactory";
@@ -29,11 +31,13 @@ import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVaria
   shadow: true,
 })
 export class IbcsChartTime {
-  @Element() element: HTMLElement | undefined;
+  @Element() element!: HTMLElement;
 
-  // @Prop() dimension: { height: number, width: number } = {height: 400, width: 450};
+  /** Name of the dataset (table or view in the shared alasql database). */
+  @Prop() tableName: string = "";
 
-  @Prop() data: TimeChartDataRow[] = [];
+  /** Bumped by `bn-chart-time` when the dataset changes; triggers re-render. */
+  @Prop() dataVersion: number = 0;
 
   @Prop() chartTitle?: string; // title cannot be used, is reserved
 
@@ -115,8 +119,14 @@ export class IbcsChartTime {
 
   private chart: TimeChart | undefined;
   private pattern: CustomPattern | undefined;
+  private stores: ScopedStores | undefined;
 
   constructor() {}
+
+  private getDb() {
+    if (!this.stores) this.stores = getStores(this.element);
+    return this.stores.db.db;
+  }
 
   render() {
     if (this.chart === undefined) {
@@ -149,7 +159,7 @@ export class IbcsChartTime {
     const styles: TimeChartStyle = this.prepareStyle();
     const availableWidth = this.containerWidth || 0;
 
-    this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
+    this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
     this.autoFitScaling(config, styles);
     this.chart.setAvailableHeight(this.parentDimensions?.height || 0);
@@ -194,7 +204,7 @@ export class IbcsChartTime {
     if (!targetHeight || targetHeight <= 0) {
       if (autoUnit) config.pixelPerUnit = 1;
       if (autoPercent) config.pixelPerPercentage = 50;
-      this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
+      this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
       this.chart.setI18n(this.i18n);
       return;
     }
@@ -202,7 +212,7 @@ export class IbcsChartTime {
     // First pass: set auto values to 1 and measure SVG height
     if (autoUnit) config.pixelPerUnit = 1;
     if (autoPercent) config.pixelPerPercentage = 1;
-    this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
+    this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
     this.chart.toString();
     const svgHeight = this.chart.getAllocatedCanvasHeight();
@@ -217,7 +227,7 @@ export class IbcsChartTime {
     if (autoPercent) config.pixelPerPercentage = ratio;
 
     // Second pass with the corrected scaling
-    this.chart = new TimeChart(new IBCSRuleSet(), config, styles, availableWidth);
+    this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
     this.chart.setI18n(this.i18n);
   }
 
@@ -245,14 +255,16 @@ export class IbcsChartTime {
   }
 
   private prepareConfig(): TimeChartComponentConfig {
+    const db = this.getDb();
+    const fromExpr = this.tableName ? buildFromExpr(this.tableName, this.filter) : "";
     return new TimeChartComponentConfigAdapter(
       new TimeChartDataRowAdapter(),
       new OrderAdapter(new StringAdapter()),
       new StringAdapter(),
       new DataFormatDigitsAdapter(),
-      this.data as unknown as Record<string, unknown>[],
+      db,
+      fromExpr,
     ).adapt({
-      data: this.data,
       scenarios: this.scenarios,
       variances: this.variances,
       title: this.chartTitle,

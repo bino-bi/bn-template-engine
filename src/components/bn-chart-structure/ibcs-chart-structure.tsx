@@ -1,14 +1,12 @@
 import { Component, Element, h, Host, Prop } from "@stencil/core";
 import { StructureChart } from "./utils/StructureChart";
 import { CustomPattern } from "./utils/helper";
-import {
-  StructureChartComponentConfig,
-  StructureChartComponentConfigAdapter,
-  StructureChartDataRow,
-} from "./utils/model";
+import { StructureChartComponentConfig, StructureChartComponentConfigAdapter } from "./utils/model";
 import { StackConfigParsed } from "./utils/model/StructureChartComponentConfig";
 import { StructureChartDataRowAdapter } from "./utils/model";
 import { ScaleFactorsStructureChartAdapter } from "./utils/model";
+import { getStores, ScopedStores } from "../../context/context-protocol";
+import { buildFromExpr } from "../../context/scopedDb";
 //import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
 //import { SVGStyleGroupAdapter } from "../../utils/model/styles/SVGStyleGroup";
 //import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVariancesStyleGroup";
@@ -35,9 +33,13 @@ import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVaria
   shadow: true,
 })
 export class IbcsChartStructure {
-  @Element() element: HTMLElement | undefined;
+  @Element() element!: HTMLElement;
 
-  @Prop() data: StructureChartDataRow[] = [];
+  /** Name of the dataset (table or view in the shared alasql database). */
+  @Prop() tableName: string = "";
+
+  /** Bumped by `bn-chart-structure` when the dataset changes; triggers re-render. */
+  @Prop() dataVersion: number = 0;
 
   @Prop() chartTitle: string = "";
 
@@ -92,8 +94,14 @@ export class IbcsChartStructure {
 
   private chart: StructureChart | undefined;
   private pattern: CustomPattern | undefined;
+  private stores: ScopedStores | undefined;
 
   constructor() {}
+
+  private getDb() {
+    if (!this.stores) this.stores = getStores(this.element);
+    return this.stores.db.db;
+  }
 
   public render() {
     if (this.chart === undefined) {
@@ -122,10 +130,11 @@ export class IbcsChartStructure {
   }
 
   public async componentWillLoad() {
+    const db = this.getDb();
     const config: StructureChartComponentConfig = this.prepareConfig();
     const styles: StructureChartStyle = this.prepareStyle();
 
-    this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
+    this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
     this.autoFitScaling(config, styles);
     this.chart.setAvailableWidth(this.parentDimensions?.width || 0);
@@ -166,10 +175,11 @@ export class IbcsChartStructure {
     }
 
     const targetWidth = this.parentDimensions?.width;
+    const db = this.getDb();
     if (!targetWidth || targetWidth <= 0) {
       if (autoUnit) config.pixelPerUnit = 1;
       if (autoPercent) config.pixelPerPercentage = 50;
-      this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
+      this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
       this.chart.setI18n(this.i18n);
       return;
     }
@@ -177,7 +187,7 @@ export class IbcsChartStructure {
     // First pass: set auto values to 1 and measure total width + bar extent
     if (autoUnit) config.pixelPerUnit = 1;
     if (autoPercent) config.pixelPerPercentage = 1;
-    this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
+    this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
     this.chart.toString();
     const svgWidth = this.chart.getAllocatedCanvasWidth();
@@ -204,7 +214,7 @@ export class IbcsChartStructure {
     }
 
     // Second pass with the corrected scaling
-    this.chart = new StructureChart(new IBCSRuleSet(), config, styles);
+    this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
   }
 
@@ -232,14 +242,16 @@ export class IbcsChartStructure {
   }
 
   private prepareConfig(): StructureChartComponentConfig {
+    const db = this.getDb();
+    const fromExpr = this.tableName ? buildFromExpr(this.tableName, this.filter) : "";
     return new StructureChartComponentConfigAdapter(
       new StructureChartDataRowAdapter(),
       new OrderAdapter(new StringAdapter()),
       new StringAdapter(),
       new DataFormatDigitsAdapter(),
-      this.data as unknown as Record<string, unknown>[],
+      db,
+      fromExpr,
     ).adapt({
-      data: this.data,
       scenarios: this.scenarios,
       variances: this.variances,
       title: this.chartTitle,

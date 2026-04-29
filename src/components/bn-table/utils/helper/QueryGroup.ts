@@ -1,16 +1,14 @@
-import alasql from "alasql";
 import { TableType } from "../model";
 // import {QueryColumnNames} from "../../../../utils/model";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { QueryColumnNames } from "../../../../utils/model";
 
 /**
- * Manages the GROUP BY column list for DataQuery's SQL statements and registers
- * the `transformOperator` AlaSQL custom function.
+ * Manages the GROUP BY column list for DataQuery's SQL statements.
  *
- * `transformOperator` converts the dataset's `operation` field (`"+"` or `"-"`)
- * into a numeric multiplier (+1 / -1) so that SUM aggregations correctly add
- * or subtract rows based on their sign.
+ * The `transformOperator` AlaSQL UDF (which maps `"+"`/`"-"` to +1/-1 for
+ * sign-aware SUMs) is registered globally by `scopedDb.ts` when the shared
+ * database is created — no per-component registration is needed here.
  *
  * The GROUP BY columns are composed dynamically: always category + categoryIndex,
  * plus operation for OPT types, plus rowGroup/rowGroupIndex when grouping is active.
@@ -19,10 +17,6 @@ export class QueryGroups {
   private groups: string[];
 
   constructor(config: TableComponentConfig) {
-    alasql.fn.transformOperator = function (a) {
-      return a === "-" ? -1 : 1;
-    };
-
     this.groups = [QueryColumnNames.CATEGORY as string, QueryColumnNames.CATEGORYINDEX as string];
 
     if (TableType.OPT === config.type || TableType.OPTNOTOTAL === config.type) {

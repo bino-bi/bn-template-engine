@@ -100,14 +100,22 @@ export class Datasource {
         this.lastHash = contentHash;
 
         const json = JSON.parse(jsonString);
-        // @ts-ignore
-        this.stores.datasources.set(this.name, json);
+        this.publish(json);
       } catch (e) {
         console.error("Error parsing datasource", e, String(data).slice(0, 200));
-        // @ts-ignore
-        this.stores.datasources.set(this.name, []);
+        this.publish([]);
       }
     });
+  }
+
+  /**
+   * Writes the parsed data into the shared alasql database (as a table named
+   * after this datasource) and notifies subscribers.
+   */
+  private publish(json: unknown): void {
+    const db = this.stores.db.db;
+    db.tables[this.name] = { data: Array.isArray(json) ? json : [] };
+    this.stores.db.notify(this.name);
   }
 
   @Watch("interval")
@@ -119,6 +127,10 @@ export class Datasource {
 
   disconnectedCallback(): void {
     this.clearPolling();
+    if (this.stores?.db?.db?.tables?.[this.name]) {
+      delete this.stores.db.db.tables[this.name];
+      this.stores.db.notify(this.name);
+    }
   }
 
   /**
@@ -141,13 +153,11 @@ export class Datasource {
     try {
       const response = await fetch(url, { signal: this.abortController.signal });
       const json = await response.json();
-      // @ts-ignore
-      this.stores.datasources.set(this.name, json);
+      this.publish(json);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
       console.error("bn-datasource: error fetching URL", e, url);
-      // @ts-ignore
-      this.stores.datasources.set(this.name, []);
+      this.publish([]);
     }
   }
 

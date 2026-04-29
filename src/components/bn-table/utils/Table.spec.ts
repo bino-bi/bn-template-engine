@@ -3,6 +3,14 @@ import { Table } from "./Table";
 import { TableComponentConfig } from "./model/TableComponentConfig";
 import { Cell, TableRow } from "./elements";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { createScopedDb } from "../../../context/scopedDb";
+
+/** Test helper: registers `rows` as `__test` in a fresh shared db and constructs a Table reading from it. */
+function makeTable(rows: any[], config: TableComponentConfig): Table {
+  const sdb = createScopedDb();
+  sdb.db.tables["__test"] = { data: rows };
+  return new Table(new IBCSRuleSet(), sdb.db, "__test", config);
+}
 
 describe("Table Class Test", () => {
   // Fixme to DataRow
@@ -40,8 +48,7 @@ describe("Table Class Test", () => {
   ];
 
   it("should return default if empty data object runs with default IBCSRuleset", () => {
-    const table = new Table(new IBCSRuleSet(), [], new TableComponentConfig());
-    table.setData(dataSet, "");
+    const table = makeTable(dataSet, new TableComponentConfig());
     expect(table.getBody()).toEqual([
       {
         cssStyle: "",
@@ -69,8 +76,7 @@ describe("Table Class Test", () => {
   });
 
   it("should run with i18n null", () => {
-    const table = new Table(new IBCSRuleSet(), [], new TableComponentConfig());
-    table.setData(dataSet, "");
+    const table = makeTable(dataSet, new TableComponentConfig());
     table.setI18n(new Map());
     expect(table.getBody()).toEqual([
       {
@@ -99,8 +105,7 @@ describe("Table Class Test", () => {
   });
 
   it("should run the header with default config", () => {
-    const table = new Table(new IBCSRuleSet(), [], new TableComponentConfig());
-    table.setData(dataSet, "");
+    const table = makeTable(dataSet, new TableComponentConfig());
     table.update();
     expect(table.getHeader()).toEqual([
       {
@@ -121,8 +126,7 @@ describe("Table Class Test", () => {
   });
 
   it("should run the rerunned header with default config", () => {
-    const table = new Table(new IBCSRuleSet(), [], new TableComponentConfig());
-    table.setData(dataSet, "");
+    const table = makeTable(dataSet, new TableComponentConfig());
     table.setConfig(new TableComponentConfig());
     expect(table.getHeader()).toEqual([
       {

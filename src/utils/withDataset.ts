@@ -45,8 +45,12 @@ const warnIfDatasource = (component: any, datasources: string[]) => {
  * Mixin that subscribes a Stencil component to one or more datasets/datasources.
  *
  * **Naming convention:** The `datasets` HTML attribute accepts a comma-separated list of names.
- * Names prefixed with `$` (e.g. `$revenue`) read directly from the raw datasources store;
- * unprefixed names read from the processed datasets store (populated by bn-dataset).
+ * Names prefixed with `$` (e.g. `$revenue`) read directly from the raw datasource tables;
+ * unprefixed names read from datasets (registered as tables/views by `<bn-dataset>`).
+ *
+ * Data is sourced from the shared per-context alasql database; each subscribed
+ * name is registered with `stores.db.subscribe(...)` and the rows are materialized
+ * via `db.exec("SELECT * FROM <name>")` whenever the producer fires `notify(name)`.
  *
  * The mixin installs a MutationObserver on the host element's `datasets` attribute so
  * bindings update automatically when the attribute is changed at runtime.
@@ -62,12 +66,24 @@ const withDataset = (
   onUpdate: (name: string, data: unknown) => void,
   onMetaUpdate?: (name: string, meta: DatasetMeta) => void,
 ) => {
-  let subscriptionSet: () => void;
-  let subscriptionSource: () => void;
+  let dbUnsubs: (() => void)[] = [];
   let subscriptionMeta: () => void;
   let datasets: string[] = [];
   let datasources: string[] = [];
   let stores: ScopedStores;
+
+  /** Materialize the current rows for a subscribed name via the shared db, then deliver. */
+  const deliver = (name: string, isDatasource: boolean) => {
+    const tableName = isDatasource ? name.substring(1) : name;
+    let rows: unknown;
+    try {
+      rows = stores.db.db.exec(`SELECT * FROM \`${tableName}\``);
+    } catch (_e) {
+      // Table/view not registered yet (producer hasn't fired). Treat as empty.
+      rows = [];
+    }
+    onUpdate(name, rows);
+  };
 
   const deliverMeta = (name: string) => {
     if (onMetaUpdate) {
@@ -75,6 +91,24 @@ const withDataset = (
       const meta = stores.datasetsMeta.get(name);
       if (meta) onMetaUpdate(name, meta);
     }
+  };
+
+  /** Tear down current db subscriptions and re-subscribe based on `datasets` / `datasources`. */
+  const rebind = () => {
+    dbUnsubs.forEach((fn) => fn());
+    dbUnsubs = [];
+
+    datasets.forEach((name) => {
+      if (!name) return;
+      dbUnsubs.push(stores.db.subscribe(name, () => deliver(name, false)));
+      deliver(name, false);
+      deliverMeta(name);
+    });
+    datasources.forEach((ref) => {
+      if (!ref) return;
+      dbUnsubs.push(stores.db.subscribe(ref.substring(1), () => deliver(ref, true)));
+      deliver(ref, true);
+    });
   };
 
   const observer = new MutationObserver((mutations) => {
@@ -85,15 +119,7 @@ const withDataset = (
           getElement(component).getAttribute("datasets").split(","),
         );
         warnIfDatasource(component, datasources);
-        datasets.forEach((name) => {
-          // @ts-ignore
-          onUpdate(name, stores.datasets.get(name));
-          deliverMeta(name);
-        });
-        datasources.forEach((name) => {
-          // @ts-ignore
-          onUpdate(name, stores.datasources.get(name.substring(1)));
-        });
+        rebind();
       }
     });
   });
@@ -105,29 +131,9 @@ const withDataset = (
 
     [datasources, datasets] = partition((s) => s.startsWith("$"), (element.getAttribute("datasets") || "").split(","));
     warnIfDatasource(component, datasources);
-    datasets.forEach((name) => {
-      // @ts-ignore
-      onUpdate(name, stores.datasets.get(name));
-      deliverMeta(name);
-    });
-    datasources.forEach((name) => {
-      // @ts-ignore
-      onUpdate(name, stores.datasources.get(name.substring(1)));
-    });
+    rebind();
 
     observer.observe(element, { attributes: true, attributeFilter: ["datasets"] });
-
-    subscriptionSet = stores.datasets.on("set", (key, newVlaue) => {
-      if (datasets.includes(key as string)) {
-        onUpdate(key as string, newVlaue);
-      }
-    });
-
-    subscriptionSource = stores.datasources.on("set", (key, newVlaue) => {
-      if (datasources.includes("$" + key)) {
-        onUpdate("$" + key, newVlaue);
-      }
-    });
 
     if (onMetaUpdate) {
       subscriptionMeta = stores.datasetsMeta.on("set", (key, newValue) => {
@@ -143,8 +149,8 @@ const withDataset = (
   const disconnectedCallback = component["disconnectedCallback"];
   component["disconnectedCallback"] = () => {
     observer.disconnect();
-    runIfExisits(subscriptionSet);
-    runIfExisits(subscriptionSource);
+    dbUnsubs.forEach((fn) => fn());
+    dbUnsubs = [];
     runIfExisits(subscriptionMeta);
     clearStoresCache(getElement(component));
     runIfExisits(disconnectedCallback, component);
@@ -152,11 +158,7 @@ const withDataset = (
 
   return (names: string[]) => {
     datasets = names;
-    names.forEach((name) => {
-      // @ts-ignore
-      onUpdate(name, stores.datasets.get(name));
-      deliverMeta(name);
-    });
+    rebind();
   };
 };
 

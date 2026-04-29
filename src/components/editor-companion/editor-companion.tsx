@@ -35,8 +35,7 @@ export class EditorCompanion {
     if (this.distinctCache.has(cacheKey)) {
       return Promise.resolve(this.distinctCache.get(cacheKey));
     }
-    // @ts-ignore
-    const result = this.distinct(this.stores.datasources.get(dataSourceName) || [], key);
+    const result = this.distinct(this.queryRows(dataSourceName), key);
     this.distinctCache.set(cacheKey, result);
     return Promise.resolve(result);
   }
@@ -47,14 +46,22 @@ export class EditorCompanion {
     if (this.distinctCache.has(cacheKey)) {
       return Promise.resolve(this.distinctCache.get(cacheKey));
     }
-    // @ts-ignore
-    const result = this.distinct(this.stores.datasets.get(datasetName) || [], key);
+    const result = this.distinct(this.queryRows(datasetName), key);
     this.distinctCache.set(cacheKey, result);
     return Promise.resolve(result);
   }
 
   render() {
     return <Fragment></Fragment>;
+  }
+
+  /** Materialize a table or view from the shared db, returning [] when it doesn't exist yet. */
+  private queryRows(name: string): object[] {
+    try {
+      return this.stores.db.db.exec<object[]>(`SELECT * FROM \`${name}\``);
+    } catch (_e) {
+      return [];
+    }
   }
 
   private distinct(data: object[], key: string): unknown[] {

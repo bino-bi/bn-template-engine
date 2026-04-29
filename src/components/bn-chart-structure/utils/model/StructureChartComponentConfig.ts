@@ -8,6 +8,7 @@ import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../utils/mod
 import { Order, OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StructureChartDataRow, StructureChartDataRowAdapter } from "./StructureChartDataRow";
+import { AlaSQLDatabase } from "../../../../context/scopedDb";
 
 /** Parsed stacking configuration for multi-scenario bar charts. */
 export interface StackConfigParsed {
@@ -54,7 +55,7 @@ export class StructureChartComponentConfig {
 /**
  * Converts untyped JSON into a validated {@link StructureChartComponentConfig}.
  *
- * Requires the raw dataset for measure scale auto-calculation.
+ * Reads from the shared alasql database for measure-scale auto-calculation.
  */
 export class StructureChartComponentConfigAdapter implements IAdapter<StructureChartComponentConfig> {
   constructor(
@@ -62,7 +63,8 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     private orderAdapter: OrderAdapter,
     private stringAdapter: StringAdapter,
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
-    private dataSet: Record<string, unknown>[],
+    private db: AlaSQLDatabase,
+    private fromExpr: string,
   ) {}
 
   adapt(data: Record<string, unknown>): StructureChartComponentConfig {
@@ -110,7 +112,8 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isExisting(data.measureScale)) {
       config.measureScale = DataAnalyzer.calculateMeasureScale(
-        this.dataSet,
+        this.db,
+        this.fromExpr,
         config.scenarios,
         data.measureScale as string,
       );

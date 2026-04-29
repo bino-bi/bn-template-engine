@@ -1,11 +1,10 @@
-import alasql from "alasql";
 import { OrderDirection, TableType } from "../model";
 import { QueryGroups } from "./QueryGroup";
 import { TableComponentConfig } from "../model/TableComponentConfig";
-import { TableDataRow } from "../model/TableDataRow";
 import { Order } from "../../../../components";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
+import { AlaSQLDatabase } from "../../../../context/scopedDb";
 
 /**
  * AlaSQL-based query builder that produces the complete table result set for bn-table.
@@ -19,6 +18,8 @@ export class DataQuery {
   private readonly config: TableComponentConfig;
   private hasPartOf: boolean = false;
   private i18n: Map<string | number, string>;
+  private db!: AlaSQLDatabase;
+  private fromExpr!: string;
 
   constructor(config: TableComponentConfig, i18n: Map<string | number, string>) {
     this.config = config;
@@ -39,12 +40,13 @@ export class DataQuery {
    * 8. Calculate REST columns (parent minus drilled children)
    * 9. Divide absolute variances by their denominator to produce relative variances
    *
+   * @param db - The shared alasql database.
+   * @param fromExpr - SQL FROM-clause expression naming the source table or filtered view.
    * @returns Array of row-group segments; each segment is an array of result rows.
    */
-  public execute(data: TableDataRow[]): DataQueryResultRow[][] {
-    if (data.length === 0) {
-      return [];
-    }
+  public execute(db: AlaSQLDatabase, fromExpr: string): DataQueryResultRow[][] {
+    this.db = db;
+    this.fromExpr = fromExpr;
 
     const queries: string[] = [];
     const sumGroupQueries: string[] = [];
@@ -70,12 +72,23 @@ export class DataQuery {
 
     // meta defines groups and the number detail rows in each group
     // Bsp:  0: Object { totalrowcnt: 7, rowgroup: "Umsatz" }
-    const meta = alasql<DataQueryResultRow[]>(
-      `SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated : ""}
-                       FROM ? ${groupsAggregated.length > 0 ? "GROUP BY " + groupsAggregated : ""}  
+    let meta: DataQueryResultRow[];
+    try {
+      meta = db.exec<DataQueryResultRow[]>(
+        `SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated : ""}
+                       FROM ${fromExpr} ${groupsAggregated.length > 0 ? "GROUP BY " + groupsAggregated : ""}
                        ORDER BY ${order[0]}`,
-      [data],
-    );
+      );
+    } catch (e) {
+      console.error("DataQuery: meta query failed", e);
+      return [];
+    }
+    if (
+      meta.length === 0 ||
+      (meta.length === 1 && (meta[0][QueryColumnNames.TOTALROWCOUNT] ?? 0) === 0 && groupsAggregated.length === 0)
+    ) {
+      return [];
+    }
 
     // Creates DataSelection for LIST
     (meta as unknown as DataQueryMetaRow[]).forEach((rowGroupEntry: DataQueryMetaRow) => {
@@ -102,17 +115,17 @@ export class DataQuery {
     // executes main queries
     queries.forEach((query) => {
       try {
-        res.push(alasql(query, [data]));
+        res.push(db.exec<DataQueryResultRow[]>(query));
       } catch (err) {
         console.error("DataQuery: SQL query execution failed", query, err);
       }
     });
 
     this.detectNaNCells(this.config.scenarios, res);
-    this.createThereOfDrillRows(scenarios, order, data, res);
-    this.createPartOfDrillRows(scenarios, order, sumGroupQueries, data, res);
+    this.createThereOfDrillRows(scenarios, order, res);
+    this.createPartOfDrillRows(scenarios, order, sumGroupQueries, res);
 
-    this.createThereOfDrillColumns(this.config.categoryThereOf, data, res);
+    this.createThereOfDrillColumns(this.config.categoryThereOf, res);
 
     this.calculateColumnGroupRest(res, this.config.categoryThereOf);
     this.calculateRelativeVariances(res, relativeScenarios);
@@ -159,31 +172,25 @@ export class DataQuery {
     scenarios: string,
     order: [string, string],
     sumGroupQueries: string[],
-    data: TableDataRow[],
     res: DataQueryResultRow[][],
   ) {
-    if (
-      this.config.partOf == null ||
-      this.config.partOf.length === 0 ||
-      this.config.type === TableType.LIST ||
-      data == null ||
-      data.length === 0
-    ) {
+    if (this.config.partOf == null || this.config.partOf.length === 0 || this.config.type === TableType.LIST) {
       return;
     }
 
     const drillQueries = this.createPartOfQuery(scenarios, order);
     let resDrill: DataQueryResultRow[] = []; // set of drill (subquery result injected into resultset)
 
+    const db = this.db;
     drillQueries.forEach(function (query) {
-      resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
+      resDrill.push(...db.exec<DataQueryResultRow[]>(query));
     });
 
     const scenarioNames = this.exctractScenarioNames(scenarios);
     const rowGroupSumResultRows: DataQueryResultRow[] = [];
 
     sumGroupQueries.forEach(function (query) {
-      rowGroupSumResultRows.push(...alasql<DataQueryResultRow[]>(query, [data]));
+      rowGroupSumResultRows.push(...db.exec<DataQueryResultRow[]>(query));
     });
 
     const rowGroupSumResultMap = new Map<string, DataQueryResultRow>();
@@ -228,7 +235,7 @@ export class DataQuery {
         ", SUM(ac1) as ac1, SUM(pp1) as pp1, SUM(dpp1_ac1_pos) as dpp1_ac1_pos, SUM(drpp1_ac1_pos) as drpp1_ac1_pos, SUM(dr_pp1)";
       querys.push(
         `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, 'REST' as ${QueryColumnNames.CATEGORY} ${rest_scenarios} as dr_pp1 FROM` +
-          ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, '${rowGroupEntry.rowGroup || "NO_GROUP"}' as ${QueryColumnNames.ROWGROUP}, ${groups} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ? ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
+          ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, '${rowGroupEntry.rowGroup || "NO_GROUP"}' as ${QueryColumnNames.ROWGROUP}, ${groups} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
           ` t WHERE t.rowNr > ${this.config.limit}`,
       );
     }
@@ -251,7 +258,7 @@ export class DataQuery {
                         '${rowGroupEntry.rowGroup || "NO_GROUP"}' as ${QueryColumnNames.ROWGROUP},
                         '${QueryColumnNames.CATEGORYINDEX}',
                         ${groups}                                    ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
-                 FROM ? ${queryWhereSection}
+                 FROM ${this.fromExpr} ${queryWhereSection}
                  GROUP BY ${groups}
                  ORDER BY ${order[0]} ${queryLimitSection}`);
   }
@@ -267,7 +274,7 @@ export class DataQuery {
                           ${querys.length}            as ${QueryColumnNames.ROWGROUPINDEX},
                           'GROUPHEAD'                 as ${QueryColumnNames.TYPE},
                           '${rowGroupEntry.rowGroup}' as ${QueryColumnNames.ROWGROUP} ${groupTitle}
-                   FROM ?
+                   FROM ${this.fromExpr}
                    GROUP BY '1'`);
     }
   }
@@ -293,7 +300,7 @@ export class DataQuery {
                           '${rowGroupEntry.rowGroup}' as ${QueryColumnNames.ROWGROUP},
                           ROWNUM()                    AS ${QueryColumnNames.ROWNR},
                           'GROUP_SUM'                 as ${QueryColumnNames.TYPE} ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
-                   FROM ?
+                   FROM ${this.fromExpr}
                    WHERE ${QueryColumnNames.ROWGROUP} = '${rowGroupEntry.rowGroup}'
                    ORDER BY ${order[0]} `);
       groupSumQuery.push(`SELECT ${querys.length}            as ${QueryColumnNames.ROWGROUPINDEX},
@@ -301,7 +308,7 @@ export class DataQuery {
                                  '${rowGroupEntry.rowGroup}' as ${QueryColumnNames.ROWGROUP},
                                  ROWNUM()                    AS ${QueryColumnNames.ROWNR},
                                  'GROUP_SUM'                 as ${QueryColumnNames.TYPE} ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
-                          FROM ?
+                          FROM ${this.fromExpr}
                           WHERE ${QueryColumnNames.ROWGROUP} = '${rowGroupEntry.rowGroup}'
                           ORDER BY ${order[0]} `);
     }
@@ -316,13 +323,13 @@ export class DataQuery {
                           '${title}'       as ${QueryColumnNames.ROWGROUP},
                           '='              as ${QueryColumnNames.OPERATION},
                           'SUM'            as ${QueryColumnNames.TYPE} ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
-                   FROM ?  `);
+                   FROM ${this.fromExpr}  `);
     }
     sumGroupQueries.push(`SELECT ${querys.length} as ${QueryColumnNames.ROWGROUPINDEX},
                                  'SUM_TOTAL'      as ${QueryColumnNames.ROWGROUP},
                                  '='              as ${QueryColumnNames.OPERATION},
                                  'SUM'            as ${QueryColumnNames.TYPE} ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
-                          FROM ?  `);
+                          FROM ${this.fromExpr}  `);
   }
 
   /**
@@ -416,12 +423,7 @@ export class DataQuery {
    * beneath their parent category row. Each thereof config entry produces a
    * filtered/grouped SQL query whose results are spliced into the result set.
    */
-  private createThereOfDrillRows(
-    scenarios: string,
-    order: [string, string],
-    data: TableDataRow[],
-    res: DataQueryResultRow[][],
-  ) {
+  private createThereOfDrillRows(scenarios: string, order: [string, string], res: DataQueryResultRow[][]) {
     // adds drill rows if setup in config
     // if there of is set drilldown row is displayed with absolute numbers,
     // if part of is also not null a relative percenatage based of the selected basis is displayed
@@ -465,17 +467,15 @@ export class DataQuery {
                                 ${QueryColumnNames.SUBCATEGORY},
                                 ${QueryColumnNames.ROWGROUP} as ${QueryColumnNames.ROWGROUP},
                                 ${scenarios}
-                         FROM ?
+                         FROM ${this.fromExpr}
                          WHERE ${fromString}
                          GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}
                          ORDER BY ${order[1]}`);
     });
 
-    // invertet Sort directon because the later used insertion which results into expected order direction
-    //drillQueries.push(`SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, null as operation, 'DRILLELEMENT' as ${QueryColumnNames.TYPE}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, ${QueryColumnNames.ROWGROUP}  as ${QueryColumnNames.ROWGROUP} , ${scenarios} FROM ? WHERE ${fromString} GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}  ORDER BY ${order[1]}`);
-
+    const db = this.db;
     drillQueries.forEach(function (query) {
-      resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
+      resDrill.push(...db.exec<DataQueryResultRow[]>(query));
     });
 
     this.injectDrillRowsToResultRows(resDrill, res);
@@ -688,7 +688,7 @@ export class DataQuery {
                               ${QueryColumnNames.CATEGORY},
                               ${groupName},
                               ${scenarios}
-                       FROM ?
+                       FROM ${this.fromExpr}
                        WHERE ${fromString}
                        GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.TYPE}
                        ORDER BY ${order[1]}`);
@@ -714,7 +714,6 @@ export class DataQuery {
    */
   private createThereOfDrillColumns(
     categoryThereOf: Map<string, Record<string, unknown>[]>,
-    data: TableDataRow[],
     res: DataQueryResultRow[][],
   ) {
     if (categoryThereOf == null || categoryThereOf.size === 0) {
@@ -723,6 +722,7 @@ export class DataQuery {
 
     const drillQueries: string[] = [];
     const resDrill: DataQueryResultRow[] = [];
+    const fromExpr = this.fromExpr;
 
     categoryThereOf.forEach((value, key) => {
       let whereClause = "1 <> 1 ";
@@ -737,7 +737,7 @@ export class DataQuery {
                                 columnGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, rowGroup, category, columnGroup, scenario`);
       drillQueries.push(`SELECT 'ENTRY'                                    as rowlevel,
@@ -748,7 +748,7 @@ export class DataQuery {
                                 columnSubGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, rowGroup, category, columnGroup, columnSubGroup, scenario`);
 
@@ -760,7 +760,7 @@ export class DataQuery {
                                 columnGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, rowGroup, category, subCategory, columnGroup, scenario`);
       drillQueries.push(`SELECT 'DRILLELEMENT'                             as rowlevel,
@@ -772,7 +772,7 @@ export class DataQuery {
                                 columnSubGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, rowGroup, category, subCategory, columnGroup, columnSubGroup, scenario`);
 
@@ -782,7 +782,7 @@ export class DataQuery {
                                 columnGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, rowGroup, columnGroup, scenario`);
       drillQueries.push(`SELECT 'GROUP_SUM'                                as rowlevel,
@@ -792,7 +792,7 @@ export class DataQuery {
                                 columnSubGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, rowGroup, columnGroup, columnSubGroup, scenario`);
 
@@ -801,7 +801,7 @@ export class DataQuery {
                                 columnGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, columnGroup, scenario`);
       drillQueries.push(`SELECT 'SUM'                                      as rowlevel,
@@ -810,13 +810,13 @@ export class DataQuery {
                                 columnSubGroup,
                                 '${key}'                                   as scenario,
                                 sum(${key} * transformOperator(operation)) as val
-                         FROM ?
+                         FROM ${fromExpr}
                          WHERE ${whereClause}
                          GROUP BY rowlevel, columnGroup, columnSubGroup, scenario`);
     });
 
     for (const query of drillQueries) {
-      resDrill.push(...alasql<DataQueryResultRow[]>(query, [data]));
+      resDrill.push(...this.db.exec<DataQueryResultRow[]>(query));
     }
 
     this.injectDrillColumnsToResultRows(resDrill, res);
