@@ -14,6 +14,15 @@
   display: inline-flex;
 }
 
+// Same as bn-layout-page: the card's grid cell wrappers are row-direction
+// flex containers; slotted children must fill the main (horizontal) axis,
+// otherwise they collapse to content width and auto-scaling components
+// measure a collapsed cell.
+::slotted(*) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .image {
   margin-right: 0.5em;
   margin-top: 0.5em;

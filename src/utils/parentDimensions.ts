@@ -155,6 +155,7 @@ function findConstrainedHeight(element: HTMLElement, debug = false): number {
   }
 
   if (debug) console.log("[height] NO constrained ancestor → viewport fallback");
-  // No constrained ancestor found — use viewport
-  return typeof window !== "undefined" ? window.innerHeight : 0;
+  // No constrained ancestor found — use viewport, applying the same
+  // equal-share division a marked fit-content region demands
+  return typeof window !== "undefined" ? window.innerHeight / rowShareDivisor : 0;
 }

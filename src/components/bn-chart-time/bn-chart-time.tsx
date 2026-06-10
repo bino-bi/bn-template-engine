@@ -854,18 +854,61 @@ export class Chart {
         forceUpdate(this);
       });
     });
+
+    this.settleParentHeight();
+  }
+
+  private _settleTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * The initial renders can measure mid-hydration, before ancestor CSS
+   * (fixed page height, overflow) is applied, so the height used for
+   * auto-fit may be a transient value — and the resize observer above
+   * deliberately ignores height changes. Re-measure on a short backoff
+   * schedule and re-render when the measurement no longer matches the
+   * height the last render actually used (_lastAppliedHeight, recorded
+   * in prepareDimension). The schedule is finite, so this cannot feed a
+   * render loop.
+   */
+  private settleParentHeight() {
+    const delays = [150, 400, 1000, 2500];
+
+    const check = () => {
+      this._settleTimer = null;
+      if (!this.element.isConnected) return;
+      const { height } = getParentDimensions(this.element);
+      // 8px threshold: hydration corrections are large (hundreds of px);
+      // small jitter must not cause re-renders, because every re-render
+      // gives the width-overflow font scaler a chance to ratchet down.
+      if (height > 0 && Math.abs(height - this._lastAppliedHeight) > 8 && !this._autoScaleGuard) {
+        forceUpdate(this);
+      }
+      const next = delays.shift();
+      if (next !== undefined) {
+        this._settleTimer = setTimeout(check, next);
+      }
+    };
+
+    this._settleTimer = setTimeout(check, delays.shift());
   }
 
   disconnectedCallback() {
     this.layoutObserver?.disconnect();
     this.layoutObserver = null;
+    if (this._settleTimer != null) {
+      clearTimeout(this._settleTimer);
+      this._settleTimer = null;
+    }
   }
+
+  private _lastAppliedHeight = 0;
 
   prepareDimension(): ParentDimensions {
     const parent = getParentDimensions(this.element);
     const scenariosList = this.prepareScenarios();
     const variancesList = this.prepareVariances();
     this.canvasWidthSegmented = parent.width / (scenariosList.length + variancesList.length || 1);
+    this._lastAppliedHeight = parent.height;
     return { width: this.canvasWidthSegmented, height: parent.height };
   }
 

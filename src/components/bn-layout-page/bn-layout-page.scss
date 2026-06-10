@@ -6,3 +6,13 @@
   display: block;
   overflow: hidden;
 }
+
+// The grid cell wrappers are row-direction flex containers: the cross axis
+// (vertical) stretches slotted children automatically, but on the main axis
+// (horizontal) flex items size to content. Without filling the main axis,
+// slotted content collapses to its intrinsic width and auto-scaling
+// components measure a collapsed cell instead of the real cell width.
+::slotted(*) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
