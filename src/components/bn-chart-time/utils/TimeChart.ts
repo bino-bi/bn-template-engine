@@ -1464,7 +1464,8 @@ export class TimeChart {
     const labelX = xBase - this.position.spacings.labelToColumn;
 
     if (prefixes.size > 1) {
-      // Overlay mode: one header per group, centered vertically on group's column height
+      // Overlay mode: one header per group — front group centered on its bar,
+      // back groups aligned with their bar's top edge
       const groupMap = new Map<string, typeof segments>();
       for (const seg of segments) {
         const prefix = getScenarioPrefix(seg.scenario);
@@ -1483,12 +1484,16 @@ export class TimeChart {
         groups.push({ prefix, segments: segs });
       }
 
-      groups.forEach((group) => {
+      groups.forEach((group, groupIdx) => {
         const groupTotal = group.segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
         const pixelPerUnit = group.segments[0].dataPoint.pixelPerUnit;
         const groupPixelHeight =
           this.stackConfig!.mode === StackMode.RELATIVE ? pixelPerUnit : groupTotal * pixelPerUnit;
-        const centerY = axisY - groupPixelHeight / 2;
+        // The front-most group (drawn last, e.g. AC) is fully visible, so its
+        // label is centered on the bar. Back groups are mostly hidden behind it
+        // and only peek out at the top, so their labels align with the bar's top edge.
+        const isFrontGroup = groupIdx === groups.length - 1;
+        const centerY = isFrontGroup ? axisY - groupPixelHeight / 2 : axisY - groupPixelHeight;
         const labelText = this.i18n.get(group.prefix + "1") || group.prefix.toUpperCase();
 
         new Label(

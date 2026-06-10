@@ -266,11 +266,15 @@ export class LayoutPage {
     };
   }
 
-  private getGridTemplateRows(name: string): string {
+  private getRowCount(name: string): number {
     const template = this.getTemplateAreas(name);
     const pattern = /"[\w\d\s.]+"/g;
     const matches = template.match(pattern);
-    const rowCount = matches ? matches.length : 1;
+    return matches ? matches.length : 1;
+  }
+
+  private getGridTemplateRows(name: string): string {
+    const rowCount = this.getRowCount(name);
 
     if (this.pageFitToContent) {
       return Array(rowCount).fill("auto").join(" ");
@@ -412,7 +416,17 @@ export class LayoutPage {
           date-link={this.titleDateLink}
         ></bn-title>
         <bn-body>
-          <div style={style}>{this.getSlots(arrOfSlots)}</div>
+          {/* data-bn-fit-content: tells auto-scaling components that heights
+              inside this grid are content-driven and unusable as a scaling
+              reference; the value is the grid's row count so they can fall
+              back to an equal-share cell height
+              (see findConstrainedHeight in utils/parentDimensions) */}
+          <div
+            style={style}
+            data-bn-fit-content={this.pageFitToContent ? String(this.getRowCount(this.pageLayout)) : null}
+          >
+            {this.getSlots(arrOfSlots)}
+          </div>
         </bn-body>
         <bn-footer
           text={this.footerText}

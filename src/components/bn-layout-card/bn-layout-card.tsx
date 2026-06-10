@@ -277,11 +277,15 @@ export class LayoutCard {
     return this.calculateFractions(matches[0]);
   }
 
-  private getGridTemplateRows(name: string): string {
+  private getRowCount(name: string): number {
     const template = this.getTemplatePattern(name);
     const pattern = /"[\w\d\s.]+"/g;
     const matches = template.match(pattern);
-    const rowCount = matches ? matches.length : 1;
+    return matches ? matches.length : 1;
+  }
+
+  private getGridTemplateRows(name: string): string {
+    const rowCount = this.getRowCount(name);
 
     if (this.cardFitToContent) {
       return Array(rowCount).fill("auto").join(" ");
@@ -430,7 +434,17 @@ export class LayoutCard {
           )}
         </div>
         <bn-body>
-          <div style={style}>{this.getSlots(arrOfSlots)}</div>
+          {/* data-bn-fit-content: tells auto-scaling components that heights
+              inside this grid are content-driven and unusable as a scaling
+              reference; the value is the grid's row count so they can fall
+              back to an equal-share cell height
+              (see findConstrainedHeight in utils/parentDimensions) */}
+          <div
+            style={style}
+            data-bn-fit-content={this.cardFitToContent ? String(this.getRowCount(this.cardLayout)) : null}
+          >
+            {this.getSlots(arrOfSlots)}
+          </div>
         </bn-body>
         <bn-footer text={this.footerText} page-number={0} display-page-number={"false"}></bn-footer>
       </bn-card>

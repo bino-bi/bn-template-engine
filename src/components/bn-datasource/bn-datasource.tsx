@@ -78,7 +78,7 @@ export class Datasource {
 
       // --- Leaving URL mode → clean up ---
       if (this.currentUrl !== null) {
-        this.clearPolling();
+        this.cancelInFlight();
         this.currentUrl = null;
       }
 
@@ -126,7 +126,7 @@ export class Datasource {
   }
 
   disconnectedCallback(): void {
-    this.clearPolling();
+    this.cancelInFlight();
     const db = this.stores?.db?.db;
     if (db && this.name) {
       if (db.tables[this.name] != null) {
@@ -172,19 +172,27 @@ export class Datasource {
     }
   }
 
-  /** Stops the polling timer and cancels any in-flight fetch. */
-  private clearPolling(): void {
+  /** Stops the polling timer (does NOT touch any in-flight fetch). */
+  private clearPollTimer(): void {
     if (this.pollTimerId !== null) {
       clearInterval(this.pollTimerId);
       this.pollTimerId = null;
     }
+  }
+
+  /** Stops the polling timer AND cancels any in-flight fetch. Use only when
+   *  leaving URL mode entirely (disconnect or body changed to inline). */
+  private cancelInFlight(): void {
+    this.clearPollTimer();
     this.abortController?.abort();
     this.abortController = null;
   }
 
-  /** Starts (or restarts) the polling timer if in URL mode with a positive interval. */
+  /** Starts (or restarts) the polling timer if in URL mode with a positive
+   *  interval. Does NOT abort the kick-off fetch issued by the caller — it
+   *  only resets the interval timer. */
   private startPolling(): void {
-    this.clearPolling();
+    this.clearPollTimer();
     if (this.currentUrl && this.interval > 0) {
       this.pollTimerId = setInterval(() => {
         if (this.currentUrl) {

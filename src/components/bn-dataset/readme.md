@@ -87,9 +87,10 @@ The body content is observed via `withBodyObserver` and may be:
 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
 2. **Static JSON** — set `static="true"` to bypass SQL and write the
    parsed body directly to the `datasets` store.
-3. **URL** — place an `http://` or `https://` URL in the body to fetch
-   JSON from a remote endpoint and write it to the `datasets` store.
-   Set the `interval` prop (in seconds) to enable periodic re-fetching.
+3. **URL** — place an `http://`/`https://` URL or a same-origin path
+   starting with `/` in the body to fetch JSON from an HTTP endpoint and
+   write it to the `datasets` store. Set the `interval` prop (in seconds)
+   to enable periodic re-fetching.
 
 ## Properties
 
