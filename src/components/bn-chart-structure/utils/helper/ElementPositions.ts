@@ -109,7 +109,7 @@ export class ElementPositions {
   }
 
   public getAxisTitlePositionY(): number {
-    return this.axisPosition.y - this.spacings.labelToAxis;
+    return this.axisPosition.y - this.spacings.labelToAxis - this.getTopScenarioLabelOverhang();
   }
 
   getNeedleWidth() {
@@ -184,7 +184,12 @@ export class ElementPositions {
 
   getScenarioLabelPositionOffsetY(isPrimaryBar: boolean) {
     if (isPrimaryBar) {
-      return this.getBarWidth() * 0.5 + this.spacings.scenarioLabelToBar;
+      // The label belongs to the last bar, but the axis line runs past that bar's
+      // center by (categoryWidth - scenarioOffset); place the label below the axis
+      // end so the line does not strike through it.
+      const belowBar = this.getBarWidth() * 0.5 + this.spacings.scenarioLabelToBar;
+      const belowAxisEnd = this.spacings.categoryWidth - this.spacings.scenarioOffset + this.spacings.labelToAxis;
+      return Math.max(belowBar, belowAxisEnd);
     }
 
     return -(this.getBarWidth() * 0.5 + this.spacings.scenarioLabelToBar);
@@ -258,7 +263,29 @@ export class ElementPositions {
   }
 
   private getAxisTitleOffset() {
-    return this.topSideLabelHeight;
+    // Title height plus the gap to the scenario labels that can stick out above the first bar
+    return this.topSideLabelHeight + this.spacings.labelToAxis + this.getTopScenarioLabelOverhang();
+  }
+
+  /**
+   * How far the scenario labels above the first bar (secondary bar label) or
+   * above the first marker (primary marker label) reach above the axis start.
+   * The title is moved up by this amount so it does not overlap them.
+   */
+  private getTopScenarioLabelOverhang(): number {
+    const barLabelOverhang =
+      this.fontSize +
+      this.spacings.barWidth * 0.5 +
+      this.spacings.scenarioLabelToBar -
+      this.spacings.categoryWidth * 0.5;
+    const markerLabelOverhang =
+      this.fontSize +
+      this.spacings.markerWidth * 0.5 +
+      this.spacings.scenarioLabelToBar +
+      this.spacings.markerOffset +
+      this.spacings.barWidth * 0.5 -
+      (this.spacings.categoryWidth * 0.5 + this.spacings.scenarioOffset);
+    return Math.max(0, barLabelOverhang, markerLabelOverhang);
   }
 
   private calculateSideLabelLength(titleLength: number, leftSideWidth: number, categoryWidth: number) {

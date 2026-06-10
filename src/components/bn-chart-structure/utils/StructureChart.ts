@@ -307,9 +307,11 @@ export class StructureChart {
   }
 
   public getAllocatedCanvasHeight(): number {
+    // Axis end plus the scenario label hanging below it (see getScenarioLabelPositionOffsetY)
     return (
-      (this.dataModel.length + 1) * this.position.spacings.categoryWidth +
-      this.styles.padding.top +
+      this.position.getAxisEndPositionY() +
+      this.position.spacings.labelToAxis +
+      this.position.fontSize +
       this.styles.padding.bottom
     );
   }
