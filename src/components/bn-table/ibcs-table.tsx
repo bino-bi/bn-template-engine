@@ -7,6 +7,7 @@ import { Table } from "./utils/Table";
 
 import { TableComponentConfig, TableComponentConfigAdapter } from "./utils/model/TableComponentConfig";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./utils/model/TableDrillGroup";
+import { TableAttribute } from "./utils/model/TableAttribute";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
 
 import { StringAdapter } from "../../utils/helper/StringAdapter";
@@ -84,6 +85,9 @@ export class IbcsTable {
 
   @Prop()
   categorythereof: Map<string, Record<string, unknown>[]> = new Map();
+
+  @Prop()
+  attributeColumns: TableAttribute[] = [];
 
   @Prop()
   type: TableType = TableType.LIST;
@@ -250,6 +254,7 @@ export class IbcsTable {
       thereOf: this.thereof,
       partOf: this.partof,
       categoryThereOf: this.categorythereof,
+      attributes: this.attributeColumns,
       order: this.order,
       type: this.type,
       limit: this.limit,

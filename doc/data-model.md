@@ -123,6 +123,41 @@ Used by `<bn-chart-time>` for time series visualization. The `dateInterval` prop
 | `setname` | `string` | Dataset identifier (used by structure charts) |
 | `operation` | `string` | `"+"` (default) or `"-"` — determines sign in aggregations |
 
+### Custom Fields
+
+Rows may carry additional user-defined fields prefixed with an underscore (e.g. `_leiter`, `_region`, `_product`). They pass through `<bn-datasource>` and `<bn-dataset>` untouched and can be consumed by `<bn-table>` via the `attributes` prop (see below). Standard visualization queries ignore them.
+
+## Attribute Columns (bn-table)
+
+The `attributes` prop on `<bn-table>` defines custom columns computed from dataset fields. It is a JSON object: keys are column labels, values are aggregate expressions evaluated over the rows that make up each table row.
+
+```html
+<bn-table
+  datasets="$umsatz"
+  scenarios="ac1,pp1"
+  attributes='{"Verkaufsleiter": "set(_leiter)", "Umsatz gesamt": "sum(ac1)"}'>
+</bn-table>
+```
+
+| Function | Result |
+|----------|--------|
+| `set(field)` | Unique values, joined with `", "` |
+| `first(field)` | First value |
+| `last(field)` | Last value |
+| `min(field)` | Minimum |
+| `max(field)` | Maximum |
+| `avg(field)` | Average |
+| `sum(field)` | Sum |
+| `lit(value)` | Constant value |
+
+`field` can be any dataset field — custom `_`-prefixed fields as well as standard ones like `ac1` or `date`. Behavior:
+
+- Attribute columns are placed after the category column, before the scenario columns.
+- Cells stay blank on `SUM`, `GROUP_SUM`, `GROUPHEAD`, `REST`, and `PARTELEMENT` rows; thereof drill rows compute values over the drilled subset.
+- `sum`/`avg` on scenario fields (`ac1`–`pl4`) respect the row operation sign, consistent with the built-in scenario columns.
+- Numeric results (`min`/`max`/`avg`/`sum`) are formatted like scenario value cells (measure scale and decimal digits, even when `data-format="percent"`); other results render as-is.
+- Column labels are looked up in the i18n map and fall back to the label verbatim.
+
 ## Generated Row Types
 
 When `<bn-table>` processes data, it generates additional rows:

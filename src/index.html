@@ -131,6 +131,25 @@
       "null", "columnSubGroupIndex": "null", "operation": "+", "setname": "de", "ac1": 674, "ac2": 418, "ac3": 256,
       "ac4": 142, "pp1": 620, "fc1": 701, "pl1": 670}
       ]</bn-datasource>
+    <!-- Regional revenue with a custom _leiter field for the table attributes demo page -->
+    <bn-datasource name='umsatz_leiter'>[
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Hamburg", "categoryIndex": 1, "subCategory": "Nord",
+      "subCategoryIndex": 1, "operation": "+", "setname": "de", "_leiter": "Meier", "ac1": 902, "pp1": 845, "pl1": 880},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Hamburg", "categoryIndex": 1, "subCategory": "Süd",
+      "subCategoryIndex": 2, "operation": "+", "setname": "de", "_leiter": "Schulz", "ac1": 510, "pp1": 530, "pl1": 520},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "München", "categoryIndex": 2, "subCategory": "Ost",
+      "subCategoryIndex": 1, "operation": "+", "setname": "de", "_leiter": "Huber", "ac1": 740, "pp1": 791, "pl1": 760},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "München", "categoryIndex": 2, "subCategory": "West",
+      "subCategoryIndex": 2, "operation": "+", "setname": "de", "_leiter": "Huber", "ac1": 380, "pp1": 350, "pl1": 370},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Berlin", "categoryIndex": 3, "subCategory": "Mitte",
+      "subCategoryIndex": 1, "operation": "+", "setname": "de", "_leiter": "Krause", "ac1": 655, "pp1": 612, "pl1": 640},
+      {"rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Personal", "categoryIndex": 1, "subCategory": "Fix",
+      "subCategoryIndex": 1, "operation": "-", "setname": "de", "_leiter": "Lehmann", "ac1": 420, "pp1": 400, "pl1": 410},
+      {"rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Personal", "categoryIndex": 1, "subCategory": "Variabel",
+      "subCategoryIndex": 2, "operation": "-", "setname": "de", "_leiter": "Lehmann", "ac1": 180, "pp1": 170, "pl1": 175},
+      {"rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Material", "categoryIndex": 2, "subCategory": "Einkauf",
+      "subCategoryIndex": 1, "operation": "-", "setname": "de", "_leiter": "Becker", "ac1": 310, "pp1": 295, "pl1": 300}
+      ]</bn-datasource>
     <bn-dataset name='all_umsatz' static='true'
       raw='false'>42a865b3c0538d02:H4sIAAAAAAAC/+SVz2rbQBDG32WuVYadnf1/S1IIhZ6alkJLD4qzTUMdSVgy/Ufepm/SFysray0lVk6NjaG3+Wa1MPP7xLcff0G5IAhEzhRQLmQqMdWLsos39eoHBHhd39y2MLZeVdfxOwQqYFEv13fVxapeNxCgWi+X8KA5fPnw5HJ9NXsj9x9dui67CAGkIH9C8oTFW8lBiCDEByjgc5res0FjjE1SQvDIZiPrJq7K7rauIMALKKBZEgSnOFUSgsO+bAiCFiJVEoIuYFV/yxO+u2vL7ieMvXH5NnZVeZdmu45QQLu+Oh+ZvXzYGW6p+2IAzoadH4izYUxigvyyibdtrHahy6OBzlarzdw9dLYaVb/TLHRm6zzqATyzRef1wJ6JfKbPROgP44ByxNkB5TCJiQMXsVv9+V19jbse8PF44IwjJMoeOIOOkpz3YLPxxoFh440Bw0EzOTiAA0pZLwcHlLKYxMSB93G5rGI7kzzqaAzQlv3EAG0Z/dMGaDJaDgZoMtiLPn2cJpnzx2lM4gAGkGZNOfY1YxLTEPpSN7vw9dHAJ6uUHsiTVZjELHfSVoht+JC2KEQOHzJC5/Ah0391CPIsxgeXxeMX901su3K9Kqtul795zP90Hj7tk7wiuSWvCOWT5KUlOZKXFvuLG/KS2WfykpGfJ/dPZ9HTiF6w3qIXjPof0J/No5f7RM9KKFQq02eFQiX5BH9h1Ja+wF708NnanDjEFu3zJM7ZLHy5l//+fB4+/6f//fkser7/9DcAAP//TacVVeQLAAA=</bn-dataset>
     <bn-dataset name='bilanz_bb_dataset' static='true'
@@ -182,6 +201,71 @@
         <bn-chart-structure datasets='$umsatz' chart-title='Stacked by dimensions (relative)' level='rowGroup'
           order='ac1' order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='300'
           show-measure-scale='true' scenarios='ac1' stack='{"by":"dimensions","mode":"relative"}'></bn-chart-structure>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         TABLE ATTRIBUTE COLUMNS
+         Custom columns computed from dataset fields via the attributes
+         prop, combined with the other table features: flat lists with a
+         filter, grouped tables with group sums, thereof/partof drills,
+         and opt tables with an operation column and a row limit.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='page_attributes' title-business-unit='Example Table Attribute Columns'
+      title-namespace='_system' title-date-start='2025-01-31' title-date-end='2025-12-31' title-date-format='month'
+      title-date-link='ytd' title-measures='[{&#34;name&#34;:&#34;Bruttoumsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,pp1' page-layout='2x2' page-format='xga' page-orientation='landscape'
+      footer-text='BinoBI Example Report - table attribute columns' footer-display-page-number='true'
+      page-fit-to-content="true">
+
+      <!-- flat list, filtered to one rowGroup: set() over the custom _leiter field -->
+      <div slot='slot-0' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Flat list + filter — set(_leiter)'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_leiter' filter="rowGroup = 'Umsatz'" scenarios='ac1,pp1'
+              variances='dac1_pp1_pos' measure-scale='_' measure-type='currency' measure-unit='EUR'
+              show-measure-scale='true' type='sum'
+              attributes='{"Verkaufsleiter": "set(_leiter)"}'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- grouped table: attributes per category row, blank on group head/sum and total rows -->
+      <div slot='slot-1' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Grouped + group sums — set() and sum()'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_leiter' scenarios='ac1,pp1' variances='dac1_pp1_pos' measure-scale='_'
+              measure-type='currency' measure-unit='EUR' show-measure-scale='true' grouped='true'
+              show-group-title='true' type='sum'
+              attributes='{"Verkaufsleiter": "set(_leiter)", "Plan gesamt": "sum(pl1)"}'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- thereof/partof drills: drill rows compute attributes over their subCategory subset,
+           partof percentage rows stay blank -->
+      <div slot='slot-2' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Thereof + partof drill — per subCategory'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_leiter' filter="rowGroup = 'Umsatz'" scenarios='ac1,pp1' measure-scale='_'
+              measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='sum'
+              thereof='[{"rowGroup": "Umsatz", "category": "Hamburg", "subCategory": ""},
+                        {"rowGroup": "Umsatz", "category": "München", "subCategory": "Ost"}]'
+              partof='[{"rowGroup": "Umsatz", "category": "Hamburg", "subCategory": ""}]'
+              attributes='{"Verkaufsleiter": "set(_leiter)", "Plan gesamt": "sum(pl1)"}'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- opt table: operation column, attributes after category, plain aggregates, REST row blank -->
+      <div slot='slot-3' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Opt + limit — first(), avg(), lit()'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_leiter' scenarios='ac1' order='ac1' order-direction='desc' limit='4'
+              measure-scale='_' measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='opt'
+              attributes='{"Verkaufsleiter": "first(_leiter)", "Durchschnitt": "avg(ac1)", "Region": "lit(DE)"}'></bn-table>
+          </div>
+        </bn-layout-card>
       </div>
     </bn-layout-page>
 

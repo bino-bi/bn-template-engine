@@ -159,6 +159,7 @@ export class Table {
       this.config.measureScale,
       this.config.measureUnit,
       this.config.showMeasureScale,
+      this.config.attributes,
     );
 
     this.bodyRows =
@@ -180,6 +181,7 @@ export class Table {
       this.config.measureScale,
       this.config.measureUnit,
       this.config.showMeasureScale,
+      this.config.attributes,
     );
     this.bodyRows =
       this.rowCount === 0 || !this.fromExpr

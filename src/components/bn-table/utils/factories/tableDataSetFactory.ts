@@ -2,6 +2,7 @@ import { TableRow } from "../elements";
 import { TableRowType, TableType } from "../model";
 import { DataQuery } from "../helper";
 
+import { TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Formatter } from "../../../../utils";
 import { I18nMode, DataFormat, TableCategoryWidth } from "../../../../utils/constants";
@@ -24,6 +25,7 @@ import { AlaSQLDatabase } from "../../../../context/scopedDb";
  */
 export class TableDataSetFactory {
   private normalizedHeader: { name: string; group: string; type: string; order: string | undefined }[] = [];
+  private attributesByAlias: Map<string, TableAttribute> = new Map();
 
   constructor() {}
 
@@ -42,16 +44,21 @@ export class TableDataSetFactory {
     measureScale: SiPrefix,
     measureUnit: string,
     showMeasureScale: boolean,
+    attributes: TableAttribute[] = [],
   ): TableRow[] {
     const header: TableRow[] = [];
 
-    this.normalizedHeader = this.normalizeHeader(type, scenarios);
+    this.attributesByAlias = new Map(attributes.map((attribute) => [attribute.alias, attribute]));
+    this.normalizedHeader = this.normalizeHeader(type, scenarios, attributes);
     const headerRow: TableRow = new TableRow(0, 0, TableRowType.HEADER);
     const separatorRow: TableRow = new TableRow(1, 0, TableRowType.SEPERATORLINE);
 
     for (const scenario of this.normalizedHeader) {
+      const attribute = this.attributesByAlias.get(scenario.name);
       headerRow.createElement(
-        Formatter.translateScenarioLabel(scenario.name, i18n),
+        attribute
+          ? i18n.get(attribute.label) || attribute.label
+          : Formatter.translateScenarioLabel(scenario.name, i18n),
         scenario.type,
         this.createColumnType(scenario),
         null,
@@ -111,6 +118,7 @@ export class TableDataSetFactory {
   private normalizeHeader(
     type: TableType,
     scenarios: readonly { name: string; group: string; type: string; order: string | undefined }[],
+    attributes: TableAttribute[],
   ): { name: string; group: string; type: string; order: string | undefined }[] {
     let header: { name: string; group: string; type: string; order: string | undefined }[] = [
       {
@@ -138,8 +146,16 @@ export class TableDataSetFactory {
       ];
     }
 
+    // attribute columns sit between the category column and the scenario columns
+    const attributeColumns = attributes.map((attribute) => ({
+      name: attribute.alias,
+      group: attribute.alias,
+      type: attribute.alias,
+      order: undefined,
+    }));
+
     // NOTE: scenarios are already sorted in setConfig
-    return [...header, ...scenarios];
+    return [...header, ...attributeColumns, ...scenarios];
   }
 
   /**
@@ -387,6 +403,11 @@ export class TableDataSetFactory {
     type: string,
     scenario: string,
   ): string | number {
+    if (this.attributesByAlias.has(scenario)) {
+      // attribute values render verbatim; rows without the column (e.g. SUM) stay blank
+      return value;
+    }
+
     if (Number.isNaN(Number(value)) === false) {
       return value;
     }
@@ -457,6 +478,10 @@ export class TableDataSetFactory {
    * @param value
    */
   private translateScenarioCSS(scenario: string, value: number): string {
+    if (this.attributesByAlias.has(scenario)) {
+      return "attribute";
+    }
+
     const scenarios = new VarianceScenario(scenario);
     let prefix = "pos";
 
@@ -474,6 +499,11 @@ export class TableDataSetFactory {
   private setCellType(scenario: string, scenariosUnitType: DataFormat) {
     if (scenario === "category") {
       return "";
+    }
+
+    const attribute = this.attributesByAlias.get(scenario);
+    if (attribute) {
+      return attribute.isNumeric ? "decimal" : "";
     }
 
     let unitType: string;

@@ -11,6 +11,7 @@ import {
   isValidMeasureType,
   isValidNumber,
   isValidTableType,
+  validateAttributesJsonStr,
   validateColumnThereOfJsonStr,
   validateOrderList,
   validatePartOfJsonStr,
@@ -44,6 +45,7 @@ import {
 } from "../../utils/constants";
 import { TableType } from "./utils/model";
 import { TableDrillGroup } from "./utils/model/TableDrillGroup";
+import { parseTableAttributeExpression, TableAttribute } from "./utils/model/TableAttribute";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
 
@@ -821,6 +823,34 @@ export class Table {
     }
   }
 
+  /**
+   * Stringified JSON object defining custom columns computed from dataset fields.<br />
+   * Keys are column labels, values are aggregate expressions over the rows that
+   * make up each table row.<br /><br />
+   * Functions: ```set // first // last // min // max // avg // sum // lit```<br />
+   * Fields can be standard dataset fields (e.g. ```ac1```) or custom fields
+   * prefixed with ```_``` (e.g. ```_leiter```); ```lit``` takes a constant value.<br /><br />
+   * example:<br />
+   * ```{"Verkaufsleiter": "set(_leiter)", "Umsatz gesamt": "sum(ac1)"}```
+   */
+  @Prop({ attribute: "attributes" }) tableAttributes: string = "";
+
+  @Watch("tableAttributes")
+  validateTableAttributes(newValue: string) {
+    const errId: string = "ERR_attributes";
+    const invalidElements: string[] = validateAttributesJsonStr(newValue);
+
+    if (invalidElements.length > 0) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "attributes: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
   componentWillLoad() {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
@@ -839,6 +869,7 @@ export class Table {
     this.validateMeasureType(this.measureType);
     this.validateMeasureScale(this.measureScale);
     this.validateColumnThereOf(this.columnthereof);
+    this.validateTableAttributes(this.tableAttributes);
     this.validateShowMeasureScale(this.showMeasureScale);
     this.validateBarColumns(this.barColumns);
     this.validateBarColumnWidth(this.barColumnWidth);
@@ -1130,6 +1161,27 @@ export class Table {
     return map;
   }
 
+  private prepareAttributes(): TableAttribute[] {
+    if (this.tableAttributes == null || this.tableAttributes.trim() === "") {
+      return [];
+    }
+
+    try {
+      const parsedString = JSON.parse(this.tableAttributes);
+      if (parsedString === null || typeof parsedString !== "object" || parsedString instanceof Array) {
+        return [];
+      }
+      return Object.entries(parsedString)
+        .map(([label, expression], index) =>
+          typeof expression === "string" ? parseTableAttributeExpression(label, `attr_${index}`, expression) : null,
+        )
+        .filter((attribute): attribute is TableAttribute => attribute !== null);
+    } catch (_e) {
+      // invalid JSON already reported by validateTableAttributes
+      return [];
+    }
+  }
+
   private prepareTableTitle(): string {
     if (this.tableTitle === "" || this.tableTitle == null) {
       return "SUM_TOTAL";
@@ -1270,6 +1322,7 @@ export class Table {
             partof={this.preparePartOf()}
             order={this.prepareOrder()}
             categorythereof={this.prepareColumnThereOf()}
+            attributeColumns={this.prepareAttributes()}
             type={this.prepareTableType()}
             category-width={this.prepareCategoryWidth()}
             dataFormatDigits={this.prepareDataFormatDigits()}

@@ -17,6 +17,7 @@ import {
   TableCategoryWidth,
   TableType,
 } from "./constants";
+import { isValidAttributeExpression } from "../components/bn-table/utils/model/TableAttribute";
 import { DateDistance, DateLink } from "./DateStringFactory";
 import { OrderColumn, OrderDirection } from "./model/Order";
 
@@ -258,6 +259,29 @@ export function validateThereOfJsonStr(value: string): string[] {
     }
   } catch (err) {
     console.error("validateThereOfJsonStr: failed to parse JSON", err);
+  }
+  return ["Invalid JSON structure"];
+}
+
+/**
+ * Validates the bn-table `attributes` prop: a JSON object mapping column labels
+ * to aggregate expressions like `set(_leiter)` or `sum(ac1)`.
+ * Returns the offending `label: expression` entries; empty array means valid.
+ */
+export function validateAttributesJsonStr(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  try {
+    const jsonObject = JSON.parse(value);
+    if (jsonObject !== null && typeof jsonObject === "object" && !(jsonObject instanceof Array)) {
+      return Object.entries(jsonObject)
+        .filter(([, expression]) => typeof expression !== "string" || !isValidAttributeExpression(expression))
+        .map(([label, expression]) => `${label}: ${expression}`);
+    }
+  } catch (err) {
+    console.error("validateAttributesJsonStr: failed to parse JSON", err);
   }
   return ["Invalid JSON structure"];
 }

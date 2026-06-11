@@ -85,6 +85,20 @@ function registerUdfs(): void {
     if (!dt) return undefined;
     return dt.startOf(normalizationLevel as Parameters<DateTime["startOf"]>[0]);
   }) as (...x: unknown[]) => unknown;
+
+  // Custom aggregate collecting unique values per group, used by bn-table attribute
+  // expressions like set(_leiter). alasql stages: 1 = init, 2 = accumulate, 3 = finalize.
+  alasql.aggr.SETAGG = (value: unknown, accumulator: unknown, stage: number): unknown => {
+    if (stage === 1) {
+      return value == null ? [] : [value];
+    }
+    const acc = accumulator as unknown[];
+    if (stage === 2) {
+      if (value != null && !acc.includes(value)) acc.push(value);
+      return acc;
+    }
+    return acc.join(", ");
+  };
 }
 
 /** Creates a fresh isolated database with its own subscriber map. */

@@ -1,5 +1,6 @@
 import { OrderDirection, TableType } from "../model";
 import { QueryGroups } from "./QueryGroup";
+import { TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Order } from "../../../../components";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
@@ -60,6 +61,8 @@ export class DataQuery {
       .toString();
     const relativeScenarios = this.getRelativeScenarios();
 
+    const attributesSQL = this.config.attributes.map((attribute) => this.translateAttributeSQL(attribute)).toString();
+
     const groups: QueryGroups = new QueryGroups(this.config);
     const groupsAggregated = this.config.grouped ? [QueryColumnNames.ROWGROUP, QueryColumnNames.ROWGROUPINDEX] : [];
 
@@ -105,7 +108,16 @@ export class DataQuery {
       }
 
       this.createGroupHeaderRow(rowGroupEntry, queries);
-      this.createDataRow(queries, rowGroupEntry, groups, scenarios, queryWhereSection, order, queryLimitSection);
+      this.createDataRow(
+        queries,
+        rowGroupEntry,
+        groups,
+        scenarios,
+        attributesSQL,
+        queryWhereSection,
+        order,
+        queryLimitSection,
+      );
       this.createRestRow(rowGroupEntry, queries, groups, scenarios, queryWhereSection, order);
       this.createGroupSumRow(queries, sumGroupQueries, rowGroupEntry, scenariosSUMQuery, order);
     });
@@ -122,7 +134,7 @@ export class DataQuery {
     });
 
     this.detectNaNCells(this.config.scenarios, res);
-    this.createThereOfDrillRows(scenarios, order, res);
+    this.createThereOfDrillRows(scenarios, attributesSQL, order, res);
     this.createPartOfDrillRows(scenarios, order, sumGroupQueries, res);
 
     this.createThereOfDrillColumns(this.config.categoryThereOf, res);
@@ -247,6 +259,7 @@ export class DataQuery {
     rowGroupEntry: DataQueryMetaRow,
     groups: QueryGroups,
     scenarios: string,
+    attributes: string,
     queryWhereSection: string,
     order: [string, string],
     queryLimitSection: string,
@@ -257,7 +270,7 @@ export class DataQuery {
                         'ENTRY'                                   as ${QueryColumnNames.TYPE},
                         '${rowGroupEntry.rowGroup || "NO_GROUP"}' as ${QueryColumnNames.ROWGROUP},
                         '${QueryColumnNames.CATEGORYINDEX}',
-                        ${groups}                                    ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
+                        ${groups}                                    ${scenarios.length > 0 ? ",".concat(scenarios) : ""} ${attributes.length > 0 ? ",".concat(attributes) : ""}
                  FROM ${this.fromExpr} ${queryWhereSection}
                  GROUP BY ${groups}
                  ORDER BY ${order[0]} ${queryLimitSection}`);
@@ -423,7 +436,12 @@ export class DataQuery {
    * beneath their parent category row. Each thereof config entry produces a
    * filtered/grouped SQL query whose results are spliced into the result set.
    */
-  private createThereOfDrillRows(scenarios: string, order: [string, string], res: DataQueryResultRow[][]) {
+  private createThereOfDrillRows(
+    scenarios: string,
+    attributes: string,
+    order: [string, string],
+    res: DataQueryResultRow[][],
+  ) {
     // adds drill rows if setup in config
     // if there of is set drilldown row is displayed with absolute numbers,
     // if part of is also not null a relative percenatage based of the selected basis is displayed
@@ -466,7 +484,7 @@ export class DataQuery {
                                 ${QueryColumnNames.CATEGORY},
                                 ${QueryColumnNames.SUBCATEGORY},
                                 ${QueryColumnNames.ROWGROUP} as ${QueryColumnNames.ROWGROUP},
-                                ${scenarios}
+                                ${scenarios} ${attributes.length > 0 ? ",".concat(attributes) : ""}
                          FROM ${this.fromExpr}
                          WHERE ${fromString}
                          GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}
@@ -610,6 +628,49 @@ export class DataQuery {
     }
 
     return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
+  }
+
+  /**
+   * Translates an attribute definition into a SQL aggregate expression aliased
+   * to the attribute's safe column alias (`attr_N`).
+   *
+   * `sum`/`avg` on scenario fields respect the row operation sign via
+   * `transformOperator`, consistent with {@link translateScenarioSQL}; for
+   * OPT/OPTNOTOTAL types the sign is already baked into the data.
+   */
+  private translateAttributeSQL(attribute: TableAttribute): string {
+    const field = `[${attribute.arg}]`;
+    const isScenarioField = /^(ac|pp|fc|pl)[1-4]$/.test(attribute.arg);
+    const useOperator =
+      isScenarioField && this.config.type !== TableType.OPT && this.config.type !== TableType.OPTNOTOTAL;
+
+    switch (attribute.fn) {
+      case "set":
+        return `SETAGG(${field}) as ${attribute.alias}`;
+      case "first":
+        return `FIRST(${field}) as ${attribute.alias}`;
+      case "last":
+        return `LAST(${field}) as ${attribute.alias}`;
+      case "min":
+        return `MIN(${field}) as ${attribute.alias}`;
+      case "max":
+        return `MAX(${field}) as ${attribute.alias}`;
+      case "avg":
+        return useOperator
+          ? `AVG(${field} * transformOperator(operation)) as ${attribute.alias}`
+          : `AVG(${field}) as ${attribute.alias}`;
+      case "sum":
+        return useOperator
+          ? `SUM(${field} * transformOperator(operation)) as ${attribute.alias}`
+          : `SUM(${field}) as ${attribute.alias}`;
+      case "lit":
+        return `${this.sqlLiteral(attribute.arg)} as ${attribute.alias}`;
+    }
+  }
+
+  /** Emits a raw lit() argument as a SQL literal: numeric when parseable, quoted string otherwise. */
+  private sqlLiteral(raw: string): string {
+    return raw !== "" && !Number.isNaN(Number(raw)) ? raw : `'${raw.replace(/'/g, "''")}'`;
   }
 
   /**

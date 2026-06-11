@@ -8,6 +8,7 @@ import { StringAdapter } from "../../../../utils/helper/StringAdapter";
 import { OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TableType } from "./index";
+import { TableAttribute } from "./TableAttribute";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./TableDrillGroup";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
 
@@ -40,6 +41,8 @@ export class TableComponentConfig {
   public categoryThereOf: Map<string, Record<string, unknown>[]> = new Map();
   /** Percentage-of-total sub-row definitions. */
   public partOf: TableDrillGroup[] = [];
+  /** Custom columns computed from dataset fields via aggregate expressions (see bn-table `attributes` prop). */
+  public attributes: TableAttribute[] = [];
   public sortOrder: Order = new OrderAdapter(new StringAdapter()).default();
   /** Table aggregation mode: LIST (flat), SUM (with totals), OPT (with optional totals), etc. */
   public type: TableType = TableType.LIST;
@@ -112,6 +115,10 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isArray(data.partOf)) {
       config.partOf = AdapterUtils.adaptArray(data.partOf, this.tableDrillGroupAdapter);
+    }
+
+    if (CompareUtil.isArray(data.attributes)) {
+      config.attributes = data.attributes as TableAttribute[];
     }
 
     if (CompareUtil.isExisting(data.order)) {

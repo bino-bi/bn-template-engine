@@ -17,6 +17,7 @@ import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/Ti
 import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
+import { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
 import { TableType } from "./components/bn-table/utils/model";
 import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
@@ -32,6 +33,7 @@ export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/Ti
 export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
+export { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
 export { TableType } from "./components/bn-table/utils/model";
 export { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 export { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
@@ -816,6 +818,11 @@ export namespace Components {
          */
         "showMeasureScale": string;
         /**
+          * Stringified JSON object defining custom columns computed from dataset fields.<br /> Keys are column labels, values are aggregate expressions over the rows that make up each table row.<br /><br /> Functions: ```set // first // last // min // max // avg // sum // lit```<br /> Fields can be standard dataset fields (e.g. ```ac1```) or custom fields prefixed with ```_``` (e.g. ```_leiter```); ```lit``` takes a constant value.<br /><br /> example:<br /> ```{"Verkaufsleiter": "set(_leiter)", "Umsatz gesamt": "sum(ac1)"}```
+          * @default ""
+         */
+        "tableAttributes": string;
+        /**
           * A not mundane tile which should describes the shown data.
           * @default ""
          */
@@ -1175,6 +1182,10 @@ export namespace Components {
      * not be used directly; use `bn-table` instead.
      */
     interface IbcsTable {
+        /**
+          * @default []
+         */
+        "attributeColumns": TableAttribute[];
         /**
           * @default 30
          */
@@ -2399,6 +2410,11 @@ declare namespace LocalJSX {
          */
         "showMeasureScale"?: string;
         /**
+          * Stringified JSON object defining custom columns computed from dataset fields.<br /> Keys are column labels, values are aggregate expressions over the rows that make up each table row.<br /><br /> Functions: ```set // first // last // min // max // avg // sum // lit```<br /> Fields can be standard dataset fields (e.g. ```ac1```) or custom fields prefixed with ```_``` (e.g. ```_leiter```); ```lit``` takes a constant value.<br /><br /> example:<br /> ```{"Verkaufsleiter": "set(_leiter)", "Umsatz gesamt": "sum(ac1)"}```
+          * @default ""
+         */
+        "tableAttributes"?: string;
+        /**
           * A not mundane tile which should describes the shown data.
           * @default ""
          */
@@ -2756,6 +2772,10 @@ declare namespace LocalJSX {
      */
     interface IbcsTable {
         /**
+          * @default []
+         */
+        "attributeColumns"?: TableAttribute[];
+        /**
           * @default 30
          */
         "barColumnMaxWidth"?: number;
@@ -3092,6 +3112,7 @@ declare namespace LocalJSX {
         "dataFormatDigitsPercent": number;
         "categoryWidth": string;
         "columnthereof": string | null;
+        "tableAttributes": string;
     }
     interface BnTemplateAttributes {
         "templateId": string;
