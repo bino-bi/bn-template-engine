@@ -51,6 +51,7 @@ export class ElementPositions {
   private leftSideLengthSync: number;
   private leftSideLabelLength: number;
   private topSideLabelHeight: number;
+  private hasStackedHeaders: boolean;
 
   // private smallestDataPoint: DataPoint;
 
@@ -63,6 +64,7 @@ export class ElementPositions {
     titleLength: number,
     leftSideWidth: number,
     categoryWidth: number,
+    hasStackedHeaders: boolean = false,
   ) {
     this.padding = padding;
     this.scaleFactors = scaleFactors;
@@ -71,6 +73,7 @@ export class ElementPositions {
     this.numberOfColumns = numberOfColumns;
     this.leftSideLengthSync = leftSideLengthSync;
     this.topSideLabelHeight = titleLength > 0 ? this.fontSize : 0;
+    this.hasStackedHeaders = hasStackedHeaders;
 
     this.leftSideLabelLength = this.calculateSideLabelLength(titleLength, leftSideWidth, categoryWidth);
     this.calculateSpacings();
@@ -109,7 +112,11 @@ export class ElementPositions {
   }
 
   public getAxisTitlePositionY(): number {
-    return this.axisPosition.y - this.spacings.labelToAxis - this.getTopScenarioLabelOverhang();
+    return this.axisPosition.y - this.spacings.labelToAxis - this.getTopLabelOverhang();
+  }
+
+  public getStackedHeaderPositionY(): number {
+    return this.getBarCenterPositionY(0) - this.spacings.barWidth * 0.5 - this.spacings.scenarioLabelToBar;
   }
 
   getNeedleWidth() {
@@ -263,8 +270,27 @@ export class ElementPositions {
   }
 
   private getAxisTitleOffset() {
-    // Title height plus the gap to the scenario labels that can stick out above the first bar
-    return this.topSideLabelHeight + this.spacings.labelToAxis + this.getTopScenarioLabelOverhang();
+    // Title height plus the gap to the labels that can stick out above the first bar
+    return this.topSideLabelHeight + this.spacings.labelToAxis + this.getTopLabelOverhang();
+  }
+
+  private getTopLabelOverhang(): number {
+    return this.hasStackedHeaders ? this.getStackedHeaderOverhang() : this.getTopScenarioLabelOverhang();
+  }
+
+  /**
+   * How far the stacked-segment header row (anchored just above the first bar)
+   * reaches above the axis start. The title is moved up by this amount so the
+   * header row sits between title and bars without overlapping either.
+   */
+  private getStackedHeaderOverhang(): number {
+    return Math.max(
+      0,
+      this.fontSize +
+        this.spacings.scenarioLabelToBar +
+        this.spacings.barWidth * 0.5 -
+        (this.spacings.categoryWidth * 0.5 + this.spacings.scenarioOffset),
+    );
   }
 
   /**

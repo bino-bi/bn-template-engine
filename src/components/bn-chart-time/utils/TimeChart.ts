@@ -148,6 +148,7 @@ export class TimeChart {
   private chartMode: ChartMode = ChartMode.BAR;
   private maxBars: number = 28;
   private stackConfig: StackConfigParsed | null = null;
+  private scenarioPropOrder: string[] = [];
   private lineFullWidth: boolean = true;
   private availableWidth: number = 0;
   private overflowConfig: OverflowConfig | null = null;
@@ -168,7 +169,7 @@ export class TimeChart {
     this.styles = styles;
     this.availableWidth = availableWidth;
     this.setConfig(config);
-    this.position = this.createElementPosition(config.scenarios);
+    this.position = this.createElementPosition(this.lastScenarios);
   }
 
   public updatePosition(scenarios: string[]) {
@@ -255,7 +256,8 @@ export class TimeChart {
   setConfig(config: TimeChartComponentConfig) {
     this.state = FactoryState.DIRTY;
 
-    this.sortScenariosbyVisualisationRules(config);
+    this.scenarioPropOrder = [...config.scenarios];
+    const scenarios = this.sortScenariosbyVisualisationRules(config.scenarios);
 
     this.setSource(config.filter);
     this.hideAxisLabels = config.hideAxisLabels || false;
@@ -265,7 +267,7 @@ export class TimeChart {
     this.intervalSpanLimit = config.intervalSpanLimit;
     this.dateInterval = this.findDateInterval(config.dateInterval);
 
-    this.dataModel = this.populateModel(config.scenarios, this.dateInterval, config.level, config.sortOrder);
+    this.dataModel = this.populateModel(scenarios, this.dateInterval, config.level, config.sortOrder);
     this.variancesDataModel = this.populateVarianceModel(config.variances, this.dataModel);
     this.title = config.title || Formatter.translateScenarioLabel(config?.variances?.toString(), this.i18n);
 
@@ -288,9 +290,9 @@ export class TimeChart {
     this.maxBars = config.maxBars;
     this.stackConfig = config.stackConfig;
     this.lineFullWidth = config.lineFullWidth;
-    this.lastScenarios = config.scenarios;
+    this.lastScenarios = scenarios;
 
-    this.updatePosition(config.scenarios);
+    this.updatePosition(scenarios);
   }
 
   public getFooter(): string {
@@ -300,9 +302,10 @@ export class TimeChart {
     return Formatter.translateScenarioLabel("in", this.i18n) + " " + this.measureScale.prefix + this.measureUnit;
   }
 
-  private sortScenariosbyVisualisationRules(config: TimeChartComponentConfig) {
+  /** Returns a new array; the input keeps the `scenarios` prop order (the config is reused across rebuilds). */
+  private sortScenariosbyVisualisationRules(scenarios: string[]): string[] {
     const self = this;
-    config.scenarios
+    return [...scenarios]
       .sort((n1, n2) => {
         return self.ruleSet.getScenarioSorIndex(n1) - self.ruleSet.getScenarioSorIndex(n2);
       })
@@ -1302,6 +1305,17 @@ export class TimeChart {
     return columnGroup;
   }
 
+  /** Restore the original `scenarios` prop order for stacked segments (IBCS sort reorders the slots). */
+  private sortSegmentsByPropOrder(segments: { value: number; scenario: string; dataPoint: DataPoint }[]): void {
+    if (this.scenarioPropOrder.length === 0) return;
+    const order = this.scenarioPropOrder;
+    segments.sort((a, b) => {
+      const ia = order.indexOf(a.scenario);
+      const ib = order.indexOf(b.scenario);
+      return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib);
+    });
+  }
+
   /**
    * Draw stacked bar columns. Supports stacking by scenario or by data dimension.
    * When stacking by scenario with multiple scenario types (e.g. ac+pl),
@@ -1325,6 +1339,7 @@ export class TimeChart {
             segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
           }
         }
+        this.sortSegmentsByPropOrder(segments);
       } else {
         const dp: DataPoint = elements["scenario1"];
         if (dp && !dp.isEmpty() && dp.value != null) {
@@ -1458,6 +1473,8 @@ export class TimeChart {
 
     if (segments.length === 0) return;
 
+    this.sortSegmentsByPropOrder(segments);
+
     const prefixes = new Set(segments.map((s) => getScenarioPrefix(s.scenario)));
     const axisY = this.position.getColumnPositionY();
     const xBase = this.position.getColumnCenterPositionX(0) - this.position.getColumnWidth() / 2;
@@ -1575,6 +1592,15 @@ export class TimeChart {
       if (dataModel.some((el: TimeChartDataModelEntry) => el[key] && !el[key].isEmpty())) {
         activeLayers.push(key);
       }
+    }
+
+    if (isScenarioStack && this.scenarioPropOrder.length > 0) {
+      const order = this.scenarioPropOrder;
+      activeLayers.sort((a, b) => {
+        const ia = order.indexOf((dataModel[0][a]?.scenario as string) ?? "");
+        const ib = order.indexOf((dataModel[0][b]?.scenario as string) ?? "");
+        return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib);
+      });
     }
 
     // Compute cumulative values

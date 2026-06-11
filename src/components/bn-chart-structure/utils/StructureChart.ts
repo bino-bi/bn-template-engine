@@ -89,6 +89,7 @@ export class StructureChart {
   private measureUnit: string = "";
   private dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
   private stackConfig: StackConfigParsed | null = null;
+  private scenarioPropOrder: string[] = [];
   private overflowConfig: OverflowConfig | null = null;
   private highestStackedTotal: number = 0;
   private db: AlaSQLDatabase;
@@ -134,6 +135,7 @@ export class StructureChart {
       this.titleLength,
       leftSideWidth,
       categoryWidth,
+      !!this.stackConfig && this.variancesDataModel.length === 0,
     );
   }
 
@@ -144,17 +146,18 @@ export class StructureChart {
   setConfig(config: StructureChartComponentConfig) {
     this.state = FactoryState.DIRTY;
 
-    this.sortScenariosbyVisualisationRules(config);
+    this.scenarioPropOrder = [...config.scenarios];
+    const scenarios = this.sortScenariosbyVisualisationRules(config.scenarios);
     this.hideCategories = config.hideCategories || false;
     this.limit = config.limit;
     this.pixelPerUnit = config.pixelPerUnit || 1;
     this.pixelPerPercentage = config.pixelPerPercentage || 100;
     this.setSource(config.filter);
-    this.dataModel = this.populateModel(config.scenarios, config.level, config.sortOrder);
+    this.dataModel = this.populateModel(scenarios, config.level, config.sortOrder);
 
     // Populate per-dimension stack segments when stacking by a data dimension
     if (config.stackConfig && config.stackConfig.by !== StackBy.SCENARIOS) {
-      this.populateDimensionStackSegments(config.scenarios, config.stackConfig, config.level);
+      this.populateDimensionStackSegments(scenarios, config.stackConfig, config.level);
     }
 
     this.variancesDataModel = this.populateVarianceModel(config.variances, this.dataModel);
@@ -176,9 +179,10 @@ export class StructureChart {
     this.updatePosition();
   }
 
-  private sortScenariosbyVisualisationRules(config: StructureChartComponentConfig) {
+  /** Returns a new array; the input keeps the `scenarios` prop order (the config is reused across rebuilds). */
+  private sortScenariosbyVisualisationRules(scenarios: string[]): string[] {
     const self = this;
-    config.scenarios
+    return [...scenarios]
       .sort((n1, n2) => {
         return self.ruleSet.getScenarioSorIndex(n1) - self.ruleSet.getScenarioSorIndex(n2);
       })
@@ -889,6 +893,17 @@ export class StructureChart {
     return barsGroup;
   }
 
+  /** Restore the original `scenarios` prop order for stacked segments (IBCS sort reorders the slots). */
+  private sortSegmentsByPropOrder(segments: { value: number; scenario: string; dataPoint: DataPoint }[]): void {
+    if (this.scenarioPropOrder.length === 0) return;
+    const order = this.scenarioPropOrder;
+    segments.sort((a, b) => {
+      const ia = order.indexOf(a.scenario);
+      const ib = order.indexOf(b.scenario);
+      return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib);
+    });
+  }
+
   /**
    * Draw stacked horizontal bars. Supports stacking by scenario or by data dimension.
    * When stacking by scenario with multiple scenario types (e.g. ac+pl),
@@ -912,6 +927,7 @@ export class StructureChart {
             segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
           }
         }
+        this.sortSegmentsByPropOrder(segments);
       } else {
         const dp: DataPoint = elements["scenario1"];
         if (dp && !dp.isEmpty() && dp.value != null) {
@@ -1051,7 +1067,7 @@ export class StructureChart {
 
       const total = orderedSegs.reduce((sum: number, s: { value: number }) => sum + Math.abs(s.value), 0);
       const axisX = this.position.getBarPositionX();
-      const headerY = this.position.getAxisTitlePositionY();
+      const headerY = this.position.getStackedHeaderPositionY();
       let cumulativePixels = 0;
 
       orderedSegs.forEach((seg: { label: string; value: number; dataPoint: DataPoint }) => {
@@ -1096,9 +1112,11 @@ export class StructureChart {
 
     if (segments.length === 0) return;
 
+    this.sortSegmentsByPropOrder(segments);
+
     const prefixes = new Set(segments.map((s) => getScenarioPrefix(s.scenario)));
     const axisX = this.position.getBarPositionX();
-    const headerY = this.position.getAxisTitlePositionY();
+    const headerY = this.position.getStackedHeaderPositionY();
 
     if (prefixes.size > 1) {
       // Overlay mode: one header per group, centered on group's bar extent
