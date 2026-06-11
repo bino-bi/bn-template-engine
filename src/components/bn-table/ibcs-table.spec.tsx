@@ -37,6 +37,7 @@ jest.mock("../../context/context-protocol", () => {
 
 import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
+import { getStores } from "../../context/context-protocol";
 import { IbcsTable } from "./ibcs-table";
 import { OrderDirection, TableType } from "./utils/model";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../utils/constants";
@@ -257,6 +258,12 @@ describe("IBCS Table Test", () => {
     },
   ];
 
+  // The component reads its rows from the scoped alasql db via `tableName`
+  // (the legacy `data` prop is gone) — register the fixture like bn-datasource does.
+  beforeAll(() => {
+    getStores(null).db.db.tables["dataSet2"] = { data: dataSet2 };
+  });
+
   it("should render table width colums and row dills and grouping in percent", async () => {
     const page = await newSpecPage({
       components: [IbcsTable],
@@ -280,7 +287,7 @@ describe("IBCS Table Test", () => {
           i18n-mode={I18nMode.META}
           showGroupTitle={false}
           show-measure-scale={true}
-          data={dataSet2}
+          tableName="dataSet2"
           category-width={TableCategoryWidth.W100}
           thereof={[
             {
@@ -1139,7 +1146,7 @@ describe("IBCS Table Test", () => {
           i18n={new Map([["SUM_TOTAL", "🤩"]])}
           i18n-mode={I18nMode.ALL}
           showGroupTitle={true}
-          data={dataSet2}
+          tableName="dataSet2"
           category-width={TableCategoryWidth.W100}
           thereof={[
             {
@@ -1940,7 +1947,7 @@ describe("IBCS Table Test", () => {
           i18n={new Map([["SUM_TOTAL", "🤩"]])}
           i18n-mode={I18nMode.ALL}
           showGroupTitle={true}
-          data={dataSet2}
+          tableName="dataSet2"
           category-width={TableCategoryWidth.W100}
           thereof={[
             {
@@ -2385,7 +2392,7 @@ describe("IBCS Table Test", () => {
           i18n={new Map([["SUM_TOTAL", "🤩"]])}
           i18n-mode={I18nMode.ALL}
           showGroupTitle={true}
-          data={dataSet2}
+          tableName="dataSet2"
           category-width={TableCategoryWidth.W100}
           thereof={[
             {
@@ -3046,6 +3053,10 @@ describe("IBCS Table Test", () => {
       },
     ];
 
+    beforeAll(() => {
+      getStores(null).db.db.tables["dataSet"] = { data: dataSet };
+    });
+
     it("should render empty tag because of missing dataset", async () => {
       const page = await newSpecPage({
         components: [IbcsTable],
@@ -3142,7 +3153,7 @@ describe("IBCS Table Test", () => {
             i18n={new Map([["SUM_TOTAL", "🤩"]])}
             i18n-mode={I18nMode.ALL}
             showGroupTitle={true}
-            data={dataSet}
+            tableName="dataSet"
             category-width={TableCategoryWidth.W100}
             thereof={[
               {
