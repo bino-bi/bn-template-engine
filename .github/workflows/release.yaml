@@ -22,6 +22,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           cache: npm
 
+      # npm trusted publishing (OIDC) requires npm 11.5.1+; Node 22 bundles npm 10
+      - run: npm install -g npm@^11.5.1
+
       - run: npm ci
 
       - name: Set version from tag
@@ -57,7 +60,7 @@ jobs:
           fi
 
       - name: Publish to npm
-        # --provenance add when public
+        # auth via npm trusted publishing (OIDC); provenance is generated automatically
         run: npm publish --tag ${{ steps.dist-tag.outputs.TAG }} --access public
 
       - name: Zip dist
