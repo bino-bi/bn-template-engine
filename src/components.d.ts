@@ -478,6 +478,10 @@ export namespace Components {
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         /**
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
+         */
+        "selectedStyle"?: string;
+        /**
           * JSON string of component-style overrides passed through to the inner `<bn-card>` element. Typically set via a `ComponentStyle` manifest rather than directly on the component.
          */
         "styles"?: string;
@@ -606,6 +610,10 @@ export namespace Components {
           * Page orientation. Default depends on the chosen format. <br /><br /> values:<br /> ```landscape // portrait```
          */
         "pageOrientation"?: string;
+        /**
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute.
+         */
+        "selectedStyle"?: string;
         /**
           * JSON string of component-style overrides passed through to the inner `<bn-page>` element. Typically set via a `ComponentStyle` manifest rather than directly on the component.
          */
@@ -2071,6 +2079,10 @@ declare namespace LocalJSX {
          */
         "footerText"?: string;
         /**
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
+         */
+        "selectedStyle"?: string;
+        /**
           * JSON string of component-style overrides passed through to the inner `<bn-card>` element. Typically set via a `ComponentStyle` manifest rather than directly on the component.
          */
         "styles"?: string;
@@ -2198,6 +2210,10 @@ declare namespace LocalJSX {
           * Page orientation. Default depends on the chosen format. <br /><br /> values:<br /> ```landscape // portrait```
          */
         "pageOrientation"?: string;
+        /**
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute.
+         */
+        "selectedStyle"?: string;
         /**
           * JSON string of component-style overrides passed through to the inner `<bn-page>` element. Typically set via a `ComponentStyle` manifest rather than directly on the component.
          */
@@ -3009,6 +3025,7 @@ declare namespace LocalJSX {
     }
     interface BnLayoutCardAttributes {
         "styles": string;
+        "selectedStyle": string;
         "titleImage": string;
         "titleBusinessUnit": string;
         "titleScenarios": string;
@@ -3040,6 +3057,7 @@ declare namespace LocalJSX {
     }
     interface BnLayoutPageAttributes {
         "styles": string;
+        "selectedStyle": string;
         "messageText": string;
         "messageImage": string;
         "titleBusinessUnit": string;
