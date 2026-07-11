@@ -3,6 +3,7 @@
 
 import { DataFormatDigits } from "../../../../components";
 import { Formatter } from "../../../../utils";
+import { WaterfallBarData } from "../helper/WaterfallCalculator";
 
 /** Min/max statistics for a single data column, used to scale inline bar charts. */
 export interface ColumnStats {
@@ -35,6 +36,7 @@ export class Cell {
   colSpan: number;
   isBarChart: boolean = false;
   columnStats?: ColumnStats;
+  waterfall?: WaterfallBarData;
   measureScale: number;
 
   constructor(

@@ -86,6 +86,21 @@ export function validateVariancesList(value: string): string[] {
   return invalidScenarios;
 }
 
+/**
+ * Validates a comma-separated list of bar column identifiers. Both base scenarios
+ * (e.g. `ac1`) and variances (e.g. `dac1_pp1_pos`) are valid entries.
+ * Returns items that fail validation.
+ */
+export function validateBarColumnsList(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  const invalidScenarios: string[] = value.split(",").filter((element) => !(element.toUpperCase().trim() in Scenarios));
+
+  return validateVariancesList(invalidScenarios.toString());
+}
+
 export function validateOrderList(value: string): string[] {
   if (isBlankInput(value)) {
     return [];

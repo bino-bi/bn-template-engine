@@ -43,7 +43,7 @@ export interface CellBarChartProps {
 }
 
 // Default fallback colors (should come from componentStyle)
-const DEFAULT_STYLES: CellBarChartStyles = {
+export const DEFAULT_STYLES: CellBarChartStyles = {
   positive: { stroke: "#008f96", fill: "#008f96", fillpattern: "solid" },
   negative: { stroke: "#ff0000", fill: "#ff0000", fillpattern: "solid" },
   neutral: { stroke: "#808080", fill: "#808080", fillpattern: "outlined" },
@@ -61,7 +61,7 @@ const DEFAULT_STYLES: CellBarChartStyles = {
   scaleFactor: 1,
 };
 
-const AXIS_COLOR = "#666666";
+export const AXIS_COLOR = "#666666";
 
 /**
  * Creates a unique pattern ID for the SVG defs
@@ -73,13 +73,18 @@ function getPatternId(prefix: string, color: string): string {
 /**
  * Renders SVG pattern definitions for hatched fills
  */
-const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = ({ styles }) => {
+export const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = ({ styles }) => {
   const s = styles.scaleFactor;
   const patternSize = 6 * s;
   const patterns: { id: string; stroke: string; fill: string }[] = [
     { id: getPatternId("pos", styles.positive.stroke), stroke: styles.positive.stroke, fill: styles.positive.fill },
     { id: getPatternId("neg", styles.negative.stroke), stroke: styles.negative.stroke, fill: styles.negative.fill },
     { id: getPatternId("neu", styles.neutral.stroke), stroke: styles.neutral.stroke, fill: styles.neutral.fill },
+    ...(["ac", "pp", "fc", "pl"] as const).map((type) => ({
+      id: getPatternId(type, styles.scenarios[type].stroke),
+      stroke: styles.scenarios[type].stroke,
+      fill: styles.scenarios[type].fill,
+    })),
   ];
 
   return (
@@ -97,7 +102,7 @@ const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = ({ styl
 /**
  * Formats a number for display with appropriate SI prefix.
  */
-function formatValue(value: number, isRelative: boolean, measureScale: number = 1): string {
+export function formatValue(value: number, isRelative: boolean, measureScale: number = 1): string {
   let scaledValue: number;
   let absValue: number;
   const prefix = value >= 0 ? "+" : "";
@@ -142,7 +147,7 @@ function isScenarioColumn(scenario: string): boolean {
 /**
  * Gets the scenario type from the column name (ac, pp, fc, pl).
  */
-function getScenarioType(scenario: string): "ac" | "pp" | "fc" | "pl" {
+export function getScenarioType(scenario: string): "ac" | "pp" | "fc" | "pl" {
   const scenarioPrefix = scenario.slice(0, 2).toLowerCase();
   if (scenarioPrefix === "pp") return "pp";
   if (scenarioPrefix === "fc") return "fc";
@@ -178,7 +183,7 @@ function getVarianceStyle(value: number, isPositiveGood: boolean, styles: CellBa
  * Scenarios (ac, pp, fc, pl) use scenario styles.
  * Variances (d_, dr_) use variance styles with pos/neg/neu coloring.
  */
-function getBarStyle(
+export function getBarStyle(
   scenario: string,
   value: number,
   isPositiveGood: boolean,
@@ -193,7 +198,7 @@ function getBarStyle(
 /**
  * Gets the fill value for a bar - either solid color, pattern URL, or transparent with stroke.
  */
-function getBarFill(varianceStyle: VarianceStyle, patternPrefix: string): string {
+export function getBarFill(varianceStyle: VarianceStyle, patternPrefix: string): string {
   const pattern = varianceStyle.fillpattern;
 
   if (pattern === "hatched") {
@@ -211,7 +216,7 @@ function getBarFill(varianceStyle: VarianceStyle, patternPrefix: string): string
 /**
  * Gets the stroke for a bar based on pattern type.
  */
-function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; strokeWidth: number } {
+export function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; strokeWidth: number } {
   const pattern = varianceStyle.fillpattern;
 
   if (pattern === "outlined") {

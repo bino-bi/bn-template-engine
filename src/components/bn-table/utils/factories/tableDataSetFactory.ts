@@ -1,11 +1,11 @@
 import { TableRow } from "../elements";
 import { ScenarioHeaderColumn, TableRowType, TableType } from "../model";
-import { DataQuery, INTERVAL_NONE } from "../helper";
+import { computeWaterfall, DataQuery, hasGroupingStructure, INTERVAL_NONE, WaterfallResult } from "../helper";
 
 import { TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Formatter } from "../../../../utils";
-import { I18nMode, DataFormat, TableCategoryWidth } from "../../../../utils/constants";
+import { I18nMode, DataFormat, Scenarios, TableCategoryWidth } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
@@ -234,6 +234,17 @@ export class TableDataSetFactory {
       config.interval !== INTERVAL_NONE,
     );
 
+    // Scenario bar columns render as a waterfall when grouping structure is present;
+    // interval/columnthereof composite columns are excluded and render as today
+    const waterfallColumns = (config.barColumns ?? []).filter((column) => column.toUpperCase().trim() in Scenarios);
+    const waterfallResult =
+      waterfallColumns.length > 0 &&
+      config.interval === INTERVAL_NONE &&
+      config.categoryThereOf.size === 0 &&
+      hasGroupingStructure(queryData)
+        ? computeWaterfall(queryData, waterfallColumns, config.type)
+        : undefined;
+
     for (const groupData of queryData) {
       // groupData is a collection of dataRows, each group base on a query and represents a 'row' group
       iGroupIndex += 1;
@@ -250,6 +261,7 @@ export class TableDataSetFactory {
           config.measureScale,
           config.barColumns,
           columnStatsMap,
+          waterfallResult,
         ),
       );
     }
@@ -387,6 +399,7 @@ export class TableDataSetFactory {
     measureScale?: SiPrefix,
     barColumns?: string[],
     columnStatsMap?: Map<string, ColumnStats>,
+    waterfallResult?: WaterfallResult,
   ): TableRow[] {
     const result: TableRow[] = [];
 
@@ -403,6 +416,14 @@ export class TableDataSetFactory {
         const value = this.getRawDataRowElement(rawDataRow, scenario);
         const isBarChart = barColumns?.includes(scenario.type) ?? false;
         const columnStats = isBarChart ? columnStatsMap?.get(scenario.type) : undefined;
+        // waterfall geometry only exists for plain scenario columns (no ## composites)
+        const waterfall =
+          isBarChart &&
+          scenario.bucket === undefined &&
+          scenario.name === scenario.group &&
+          scenario.name === scenario.type
+            ? waterfallResult?.get(rawDataRow, scenario.type)
+            : undefined;
 
         detailsRow.createElement(
           this.translateSumCellLabel(i18nMode, i18n, value, groupName, subCategory, type, scenario.type),
@@ -416,6 +437,8 @@ export class TableDataSetFactory {
           measureScale?.value,
           isBarChart,
           columnStats,
+          1,
+          waterfall,
         );
       }
 

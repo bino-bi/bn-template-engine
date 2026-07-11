@@ -15,6 +15,7 @@ import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { Order, OrderAdapter } from "../../utils/model/Order";
 import { CellBarChart, CellBarChartStyles } from "./utils/elements/CellBarChart";
+import { WaterfallBar } from "./utils/elements/WaterfallBar";
 import { Cell } from "./utils/elements/Cell";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
@@ -195,18 +196,35 @@ export class IbcsTable {
                     ) : (
                       ""
                     )}
-                    {cell.isBarChart && cell.columnStats && row.type !== TableRowType.SUM ? (
-                      <CellBarChart
-                        value={cell.value as number}
-                        scenario={cell.key}
-                        columnStats={cell.columnStats}
-                        height={18 * this.scaleFactor}
-                        isRelative={cell.key.startsWith("dr")}
-                        isPositiveGood={cell.key.endsWith("_pos")}
-                        measureScale={cell.measureScale}
-                        maxBarWidth={this.barColumnMaxWidth}
-                        styles={this.barChartStyles}
-                      />
+                    {cell.isBarChart &&
+                    cell.columnStats &&
+                    (cell.waterfall !== undefined || row.type !== TableRowType.SUM) ? (
+                      cell.waterfall !== undefined ? (
+                        <WaterfallBar
+                          value={cell.value as number}
+                          scenario={cell.key}
+                          columnStats={cell.columnStats}
+                          height={18 * this.scaleFactor}
+                          isRelative={false}
+                          isPositiveGood={cell.key.endsWith("_pos")}
+                          measureScale={cell.measureScale}
+                          maxBarWidth={this.barColumnMaxWidth}
+                          styles={this.barChartStyles}
+                          waterfall={cell.waterfall}
+                        />
+                      ) : (
+                        <CellBarChart
+                          value={cell.value as number}
+                          scenario={cell.key}
+                          columnStats={cell.columnStats}
+                          height={18 * this.scaleFactor}
+                          isRelative={cell.key.startsWith("dr")}
+                          isPositiveGood={cell.key.endsWith("_pos")}
+                          measureScale={cell.measureScale}
+                          maxBarWidth={this.barColumnMaxWidth}
+                          styles={this.barChartStyles}
+                        />
+                      )
                     ) : (
                       cell.draw(this.componentDataFormatDigits)
                     )}
@@ -389,7 +407,8 @@ export class IbcsTable {
     for (const row of this.table.getBody()) {
       if (row.type === TableRowType.SUM) continue;
       for (const cell of row.getCells()) {
-        if (cell.isBarChart && cell.columnStats && !cell.key.startsWith("dr")) {
+        // waterfall cells scale independently and must not skew variance auto-scaling
+        if (cell.isBarChart && cell.columnStats && !cell.key.startsWith("dr") && !cell.waterfall) {
           max = Math.max(max, cell.columnStats.absMax);
         }
       }
