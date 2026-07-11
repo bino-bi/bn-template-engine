@@ -75,6 +75,7 @@ export class TableRow {
     measureScale: number | null | undefined,
     isBarChart: boolean = false,
     columnStats?: ColumnStats,
+    colSpan: number = 1,
   ) {
     let cssStyle = cellStyle;
 
@@ -119,7 +120,7 @@ export class TableRow {
       cellType,
       prefix,
       prefixStyle,
-      1,
+      colSpan,
       measureScale,
     );
     cell.isBarChart = isBarChart;

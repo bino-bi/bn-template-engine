@@ -150,6 +150,66 @@
       {"rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Material", "categoryIndex": 2, "subCategory": "Einkauf",
       "subCategoryIndex": 1, "operation": "-", "setname": "de", "_leiter": "Becker", "ac1": 310, "pp1": 295, "pl1": 300}
       ]</bn-datasource>
+    <!-- Three years of yearly figures for the table interval demo page -->
+    <bn-datasource name='umsatz_interval'>[
+      {"date": "2023-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Logis", "categoryIndex": 1,
+      "operation": "+", "setname": "de", "ac1": 620, "pl1": 600},
+      {"date": "2024-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Logis", "categoryIndex": 1,
+      "operation": "+", "setname": "de", "ac1": 780, "pl1": 820},
+      {"date": "2025-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Logis", "categoryIndex": 1,
+      "operation": "+", "setname": "de", "ac1": 950, "pl1": 900},
+      {"date": "2023-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Gastro", "categoryIndex": 2,
+      "operation": "+", "setname": "de", "ac1": 410, "pl1": 430},
+      {"date": "2024-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Gastro", "categoryIndex": 2,
+      "operation": "+", "setname": "de", "ac1": 520, "pl1": 500},
+      {"date": "2025-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Gastro", "categoryIndex": 2,
+      "operation": "+", "setname": "de", "ac1": 640, "pl1": 660},
+      {"date": "2023-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Wellness", "categoryIndex": 3,
+      "operation": "+", "setname": "de", "ac1": 180, "pl1": 170},
+      {"date": "2024-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Wellness", "categoryIndex": 3,
+      "operation": "+", "setname": "de", "ac1": 260, "pl1": 300},
+      {"date": "2025-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Wellness", "categoryIndex": 3,
+      "operation": "+", "setname": "de", "ac1": 355, "pl1": 340},
+      {"date": "2023-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Shop", "categoryIndex": 4,
+      "operation": "+", "setname": "de", "ac1": 95, "pl1": 110},
+      {"date": "2024-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Shop", "categoryIndex": 4,
+      "operation": "+", "setname": "de", "ac1": 120, "pl1": 115},
+      {"date": "2025-06-15", "rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Shop", "categoryIndex": 4,
+      "operation": "+", "setname": "de", "ac1": 160, "pl1": 150},
+      {"date": "2023-06-15", "rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Personal", "categoryIndex": 1,
+      "operation": "-", "setname": "de", "ac1": 340, "pl1": 330},
+      {"date": "2024-06-15", "rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Personal", "categoryIndex": 1,
+      "operation": "-", "setname": "de", "ac1": 420, "pl1": 440},
+      {"date": "2025-06-15", "rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Personal", "categoryIndex": 1,
+      "operation": "-", "setname": "de", "ac1": 505, "pl1": 490},
+      {"date": "2023-06-15", "rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Material", "categoryIndex": 2,
+      "operation": "-", "setname": "de", "ac1": 150, "pl1": 160},
+      {"date": "2024-06-15", "rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Material", "categoryIndex": 2,
+      "operation": "-", "setname": "de", "ac1": 195, "pl1": 185},
+      {"date": "2025-06-15", "rowGroup": "Kosten", "rowGroupIndex": 2, "category": "Material", "categoryIndex": 2,
+      "operation": "-", "setname": "de", "ac1": 240, "pl1": 250}
+      ]</bn-datasource>
+    <!-- Same categories per country set (de/at/ch) for the interval='setname' demo -->
+    <bn-datasource name='umsatz_sets'>[
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Logis", "categoryIndex": 1, "operation": "+",
+      "setname": "de", "ac1": 902, "pl1": 880},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Gastro", "categoryIndex": 2, "operation": "+",
+      "setname": "de", "ac1": 584, "pl1": 610},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Wellness", "categoryIndex": 3, "operation": "+",
+      "setname": "de", "ac1": 210, "pl1": 200},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Logis", "categoryIndex": 1, "operation": "+",
+      "setname": "at", "ac1": 480, "pl1": 460},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Gastro", "categoryIndex": 2, "operation": "+",
+      "setname": "at", "ac1": 310, "pl1": 330},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Wellness", "categoryIndex": 3, "operation": "+",
+      "setname": "at", "ac1": 120, "pl1": 115},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Logis", "categoryIndex": 1, "operation": "+",
+      "setname": "ch", "ac1": 630, "pl1": 650},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Gastro", "categoryIndex": 2, "operation": "+",
+      "setname": "ch", "ac1": 405, "pl1": 390},
+      {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Wellness", "categoryIndex": 3, "operation": "+",
+      "setname": "ch", "ac1": 160, "pl1": 170}
+      ]</bn-datasource>
     <bn-dataset name='all_umsatz' static='true'
       raw='false'>42a865b3c0538d02:H4sIAAAAAAAC/+SVz2rbQBDG32WuVYadnf1/S1IIhZ6alkJLD4qzTUMdSVgy/Ufepm/SFysray0lVk6NjaG3+Wa1MPP7xLcff0G5IAhEzhRQLmQqMdWLsos39eoHBHhd39y2MLZeVdfxOwQqYFEv13fVxapeNxCgWi+X8KA5fPnw5HJ9NXsj9x9dui67CAGkIH9C8oTFW8lBiCDEByjgc5res0FjjE1SQvDIZiPrJq7K7rauIMALKKBZEgSnOFUSgsO+bAiCFiJVEoIuYFV/yxO+u2vL7ieMvXH5NnZVeZdmu45QQLu+Oh+ZvXzYGW6p+2IAzoadH4izYUxigvyyibdtrHahy6OBzlarzdw9dLYaVb/TLHRm6zzqATyzRef1wJ6JfKbPROgP44ByxNkB5TCJiQMXsVv9+V19jbse8PF44IwjJMoeOIOOkpz3YLPxxoFh440Bw0EzOTiAA0pZLwcHlLKYxMSB93G5rGI7kzzqaAzQlv3EAG0Z/dMGaDJaDgZoMtiLPn2cJpnzx2lM4gAGkGZNOfY1YxLTEPpSN7vw9dHAJ6uUHsiTVZjELHfSVoht+JC2KEQOHzJC5/Ah0391CPIsxgeXxeMX901su3K9Kqtul795zP90Hj7tk7wiuSWvCOWT5KUlOZKXFvuLG/KS2WfykpGfJ/dPZ9HTiF6w3qIXjPof0J/No5f7RM9KKFQq02eFQiX5BH9h1Ja+wF708NnanDjEFu3zJM7ZLHy5l//+fB4+/6f//fkser7/9DcAAP//TacVVeQLAAA=</bn-dataset>
     <bn-dataset name='bilanz_bb_dataset' static='true'
@@ -264,6 +324,63 @@
             <bn-table datasets='$umsatz_leiter' scenarios='ac1' order='ac1' order-direction='desc' limit='4'
               measure-scale='_' measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='opt'
               attributes='{"Verkaufsleiter": "first(_leiter)", "Durchschnitt": "avg(ac1)", "Region": "lit(DE)"}'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         TABLE INTERVAL DEMO
+         The interval attribute repeats the scenario/variance block once
+         per interval group (year/quarter/… or setname) under a spanning
+         header band.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='page_interval' title-business-unit='Example Table Interval Grouping'
+      title-namespace='_system' title-date-start='2023-01-01' title-date-end='2025-12-31' title-date-format='year'
+      title-measures='[{&#34;name&#34;:&#34;Bruttoumsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,pl1' page-layout='2x2' page-format='xga' page-orientation='landscape'
+      footer-text='BinoBI Example Report - table interval grouping' footer-display-page-number='true'
+      page-fit-to-content="true">
+
+      <!-- yearly blocks with AC and a ΔPL variance bar per year (screenshot layout) -->
+      <div slot='slot-0' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=year — AC | ΔPL per year'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_interval' filter="rowGroup = 'Umsatz'" scenarios='ac1'
+              variances='dac1_pl1_pos' bar-columns='dac1_pl1_pos' interval='year' measure-scale='_'
+              measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='sum'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- quarter buckets computed from the monthly time series -->
+      <div slot='slot-1' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=quarter — on monthly data'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_monthly' scenarios='ac1,pl1' interval='quarter' measure-scale='_'
+              measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='sum'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- non-date comparison: one block per setname, in order of first appearance -->
+      <div slot='slot-2' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=setname — de | at | ch'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_sets' scenarios='ac1' variances='dac1_pl1_pos' interval='setname'
+              measure-scale='_' measure-type='currency' measure-unit='EUR' show-measure-scale='true'
+              type='sum'></bn-table>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- grouped rows with per-year group sums, limit exercises the per-year REST row -->
+      <div slot='slot-3' data-bino-kind='Table'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=year — grouped + limit/REST'>
+          <div slot='card-slot-0' data-bino-kind='Table'>
+            <bn-table datasets='$umsatz_interval' scenarios='ac1' interval='year' grouped='true'
+              show-group-title='true' order='ac1' order-direction='desc' limit='3' measure-scale='_'
+              measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='sum'></bn-table>
           </div>
         </bn-layout-card>
       </div>

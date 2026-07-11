@@ -1,4 +1,4 @@
-import { VisualisationRuleSet, FactoryState } from "./model";
+import { VisualisationRuleSet, FactoryState, ScenarioHeaderColumn } from "./model";
 // import {IBCSRuleSet} from "../../../utils/ibcsRuleSet";
 import { TableDataSetFactory } from "./factories/tableDataSetFactory";
 import { TableRow } from "./elements";
@@ -7,6 +7,7 @@ import { TableComponentConfig } from "./model/TableComponentConfig";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { Order } from "../../../components";
 import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
+import { INTERVAL_NONE, IntervalBucket, queryIntervalBuckets, resolveIntervalGranularity } from "./helper";
 
 /**
  * High-level controller for IBCS table generation.
@@ -31,6 +32,7 @@ export class Table {
   private rowCount: number = 0;
   private headerRows: TableRow[] = [];
   private bodyRows: TableRow[] = [];
+  private intervalBuckets: IntervalBucket[] = [];
 
   /**
    * Initialises all Variables for the DataSet, created by the factory.
@@ -146,10 +148,13 @@ export class Table {
       this.rowCount = 0;
     }
 
+    this.prepareIntervalBuckets();
+
     const normalizedScenarios = this.normalizeScenarios(
       this.config.scenarios,
       this.config.categoryThereOf,
       this.config.sortOrder,
+      this.intervalBuckets,
     );
 
     this.headerRows = this.dataSetFactory.createHeader(
@@ -168,10 +173,13 @@ export class Table {
   }
 
   public update() {
+    this.prepareIntervalBuckets();
+
     const normalizedScenarios = this.normalizeScenarios(
       this.config.scenarios,
       this.config.categoryThereOf,
       this.config.sortOrder,
+      this.intervalBuckets,
     );
 
     this.headerRows = this.dataSetFactory.createHeader(
@@ -206,12 +214,51 @@ export class Table {
     return this.bodyRows;
   }
 
+  /**
+   * Resolves the interval configuration into the concrete bucket list.
+   * `auto` is narrowed to a concrete granularity (written back to the config so
+   * the query engine sees it); when no usable buckets exist the feature is
+   * deactivated. `columnthereof` takes precedence (both use the `##` namespace).
+   */
+  private prepareIntervalBuckets() {
+    this.intervalBuckets = [];
+    if (this.config.interval === INTERVAL_NONE || !this.fromExpr || this.config.categoryThereOf.size > 0) {
+      this.config.interval = INTERVAL_NONE;
+      return;
+    }
+
+    this.config.interval = resolveIntervalGranularity(this.db, this.fromExpr, this.config.interval);
+    this.intervalBuckets = queryIntervalBuckets(this.db, this.fromExpr, this.config.interval, this.config.locale);
+
+    if (this.intervalBuckets.length === 0) {
+      // e.g. date interval selected but the data carries no valid dates
+      this.config.interval = INTERVAL_NONE;
+    }
+  }
+
   private normalizeScenarios(
     scenarios: string[],
     categoryThereOf: Map<string, Record<string, unknown>[]>,
     order: Order,
-  ): { name: string; group: string; type: string; order: string | undefined }[] {
-    const normalizedScenarios: { name: string; group: string; type: string; order: string | undefined }[] = [];
+    intervalBuckets: IntervalBucket[] = [],
+  ): ScenarioHeaderColumn[] {
+    const normalizedScenarios: ScenarioHeaderColumn[] = [];
+
+    if (intervalBuckets.length > 0) {
+      for (const bucket of intervalBuckets) {
+        for (const scenario of scenarios) {
+          normalizedScenarios.push({
+            name: scenario,
+            group: scenario,
+            type: scenario,
+            order: order?.hierarchy?.at(0) === scenario ? order.direction : undefined,
+            bucket: bucket.key,
+            bucketLabel: bucket.label,
+          });
+        }
+      }
+      return normalizedScenarios;
+    }
 
     for (const scenario of scenarios) {
       if (categoryThereOf?.has(scenario)) {

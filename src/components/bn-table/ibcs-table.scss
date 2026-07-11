@@ -173,6 +173,14 @@ th.headerlabel {
   padding-bottom: 0em;
 }
 
+/* spanning interval band cells (bn-table `interval` attribute); must follow
+   th.headerlabel to win the border-bottom override */
+th.intervalGroup {
+  border-bottom: 0.1em solid black;
+  text-align: center;
+  font-weight: bold;
+}
+
 td.variance:after {
   content: "%";
 }

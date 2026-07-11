@@ -130,6 +130,28 @@ export interface ColumnNameMap {
 }
 
 /**
+ * Descriptor for a single header/data column derived from a scenario.
+ *
+ * The `name`/`group`/`type` triple encodes the column kind:
+ * - name === group === type -- plain scenario column (e.g. "ac1")
+ * - name === group, type differs -- columnGroup drill column (columnthereof)
+ * - otherwise -- columnSubGroup drill column
+ *
+ * When `bucket` is set the column belongs to an interval block (see the
+ * bn-table `interval` attribute): values are resolved from the composite
+ * key `<type>##<bucket>` and `bucketLabel` is rendered in the spanning
+ * interval header band.
+ */
+export interface ScenarioHeaderColumn {
+  name: string;
+  group: string;
+  type: string;
+  order: string | undefined;
+  bucket?: string;
+  bucketLabel?: string;
+}
+
+/**
  * IBCS scenario descriptor with visual properties for rendering.
  *
  * @property colorIndex - Index into the IBCS color palette (determines fill/stroke color).

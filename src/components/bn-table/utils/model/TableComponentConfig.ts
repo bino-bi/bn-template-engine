@@ -62,6 +62,10 @@ export class TableComponentConfig {
   public filter: string = "";
   /** Scenario columns to render as inline bar charts instead of numbers. */
   public barColumns: string[] = [];
+  /** Interval column grouping: "none", "setname" or a DateDistance value (see bn-table `interval` prop). */
+  public interval: string = "none";
+  /** Locale used for interval bucket labels. */
+  public locale: string = "de";
   constructor() {}
 }
 
@@ -164,6 +168,14 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isArray(data.barColumns)) {
       config.barColumns = data.barColumns as string[];
+    }
+
+    if (CompareUtil.isString(data.interval)) {
+      config.interval = data.interval;
+    }
+
+    if (CompareUtil.isString(data.locale)) {
+      config.locale = data.locale;
     }
 
     return config;

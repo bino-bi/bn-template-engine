@@ -1,6 +1,6 @@
 import { TableRow } from "../elements";
-import { TableRowType, TableType } from "../model";
-import { DataQuery } from "../helper";
+import { ScenarioHeaderColumn, TableRowType, TableType } from "../model";
+import { DataQuery, INTERVAL_NONE } from "../helper";
 
 import { TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
@@ -24,7 +24,7 @@ import { AlaSQLDatabase } from "../../../../context/scopedDb";
  * columnStats calculation.
  */
 export class TableDataSetFactory {
-  private normalizedHeader: { name: string; group: string; type: string; order: string | undefined }[] = [];
+  private normalizedHeader: ScenarioHeaderColumn[] = [];
   private attributesByAlias: Map<string, TableAttribute> = new Map();
 
   constructor() {}
@@ -39,7 +39,7 @@ export class TableDataSetFactory {
    */
   public createHeader(
     type: TableType,
-    scenarios: readonly { name: string; group: string; type: string; order: string | undefined }[],
+    scenarios: readonly ScenarioHeaderColumn[],
     i18n: Map<string | number, string>,
     measureScale: SiPrefix,
     measureUnit: string,
@@ -50,8 +50,14 @@ export class TableDataSetFactory {
 
     this.attributesByAlias = new Map(attributes.map((attribute) => [attribute.alias, attribute]));
     this.normalizedHeader = this.normalizeHeader(type, scenarios, attributes);
-    const headerRow: TableRow = new TableRow(0, 0, TableRowType.HEADER);
-    const separatorRow: TableRow = new TableRow(1, 0, TableRowType.SEPERATORLINE);
+    const hasIntervalColumns = this.normalizedHeader.some((column) => column.bucket !== undefined);
+
+    if (hasIntervalColumns) {
+      header.push(this.createIntervalBandRow());
+    }
+
+    const headerRow: TableRow = new TableRow(hasIntervalColumns ? 1 : 0, 0, TableRowType.HEADER);
+    const separatorRow: TableRow = new TableRow(hasIntervalColumns ? 2 : 1, 0, TableRowType.SEPERATORLINE);
 
     for (const scenario of this.normalizedHeader) {
       const attribute = this.attributesByAlias.get(scenario.name);
@@ -87,8 +93,55 @@ export class TableDataSetFactory {
     return header;
   }
 
+  /**
+   * Creates the spanning interval band row (e.g. `2023 | 2024 | 2025`) rendered
+   * above the scenario label row. Leading non-interval columns (category,
+   * operation, attributes) receive borderless filler cells; each run of
+   * consecutive columns of the same bucket is spanned by one label cell.
+   */
+  private createIntervalBandRow(): TableRow {
+    const bandRow: TableRow = new TableRow(0, 0, TableRowType.HEADER);
+
+    let index = 0;
+    while (index < this.normalizedHeader.length) {
+      const column = this.normalizedHeader[index];
+
+      if (column.bucket === undefined) {
+        bandRow.createElement(null, column.type, "filler", null, null, null, null, null, null);
+        index += 1;
+        continue;
+      }
+
+      let runLength = 1;
+      while (
+        index + runLength < this.normalizedHeader.length &&
+        this.normalizedHeader[index + runLength].bucket === column.bucket
+      ) {
+        runLength += 1;
+      }
+
+      bandRow.createElement(
+        column.bucketLabel,
+        column.type,
+        "intervalGroup",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        undefined,
+        runLength,
+      );
+      index += runLength;
+    }
+
+    return bandRow;
+  }
+
   private setHeaderPrefix(
-    scenario: { name: string; group: string; type: string; order: string | undefined },
+    scenario: ScenarioHeaderColumn,
     i18n: Map<string | number, string>,
     measureScale: SiPrefix,
     measureUnit: string,
@@ -117,10 +170,10 @@ export class TableDataSetFactory {
    */
   private normalizeHeader(
     type: TableType,
-    scenarios: readonly { name: string; group: string; type: string; order: string | undefined }[],
+    scenarios: readonly ScenarioHeaderColumn[],
     attributes: TableAttribute[],
-  ): { name: string; group: string; type: string; order: string | undefined }[] {
-    let header: { name: string; group: string; type: string; order: string | undefined }[] = [
+  ): ScenarioHeaderColumn[] {
+    let header: ScenarioHeaderColumn[] = [
       {
         name: QueryColumnNames.CATEGORY,
         group: QueryColumnNames.CATEGORY,
@@ -175,7 +228,11 @@ export class TableDataSetFactory {
     const queryData = new DataQuery(config, i18n).execute(db, fromExpr); // collection of all query results
 
     // Calculate column statistics for bar columns
-    const columnStatsMap = this.calculateColumnStatistics(queryData, config.barColumns);
+    const columnStatsMap = this.calculateColumnStatistics(
+      queryData,
+      config.barColumns,
+      config.interval !== INTERVAL_NONE,
+    );
 
     for (const groupData of queryData) {
       // groupData is a collection of dataRows, each group base on a query and represents a 'row' group
@@ -203,7 +260,11 @@ export class TableDataSetFactory {
   /**
    * Calculate min/max statistics for bar chart columns across all query data.
    */
-  private calculateColumnStatistics(queryData: DataQueryResultRow[][], barColumns: string[]): Map<string, ColumnStats> {
+  private calculateColumnStatistics(
+    queryData: DataQueryResultRow[][],
+    barColumns: string[],
+    intervalActive: boolean = false,
+  ): Map<string, ColumnStats> {
     const statsMap = new Map<string, ColumnStats>();
 
     if (!barColumns || barColumns.length === 0) {
@@ -221,12 +282,19 @@ export class TableDataSetFactory {
     for (const groupData of queryData) {
       for (const row of groupData) {
         for (const column of barColumns) {
-          const value = this.extractColumnValue(row, column);
-          if (value !== null && !isNaN(value)) {
-            const stats = statsMap.get(column)!;
-            stats.min = Math.min(stats.min, value);
-            stats.max = Math.max(stats.max, value);
-            valuesMap.get(column)!.push(Math.abs(value));
+          // with an active interval the rendered values live under the
+          // `column##bucket` keys; the plain column would hold the (larger)
+          // un-bucketed aggregate and skew the bar scaling
+          const values = intervalActive
+            ? this.extractIntervalColumnValues(row, column)
+            : [this.extractColumnValue(row, column)];
+          for (const value of values) {
+            if (value !== null && !isNaN(value)) {
+              const stats = statsMap.get(column)!;
+              stats.min = Math.min(stats.min, value);
+              stats.max = Math.max(stats.max, value);
+              valuesMap.get(column)!.push(Math.abs(value));
+            }
           }
         }
       }
@@ -251,6 +319,21 @@ export class TableDataSetFactory {
     }
 
     return statsMap;
+  }
+
+  /**
+   * Extract all per-bucket values of an interval column (`column##<bucketKey>`).
+   */
+  private extractIntervalColumnValues(row: DataQueryResultRow, column: string): (number | null)[] {
+    const prefix = column + "##";
+    const values: (number | null)[] = [];
+    for (const key of Object.keys(row)) {
+      if (key.startsWith(prefix)) {
+        const val = Number(row[key]);
+        values.push(isNaN(val) ? null : val);
+      }
+    }
+    return values;
   }
 
   /**
@@ -342,10 +425,12 @@ export class TableDataSetFactory {
     return result;
   }
 
-  private getRawDataRowElement(
-    rawDataRow: DataQueryResultRow,
-    scenario: { name: string; group: string; type: string },
-  ) {
+  private getRawDataRowElement(rawDataRow: DataQueryResultRow, scenario: ScenarioHeaderColumn) {
+    if (scenario.bucket !== undefined) {
+      // interval column: value lives under the composite bucket key
+      return rawDataRow[scenario.type + "##" + scenario.bucket];
+    }
+
     if (scenario.name === scenario.group && scenario.name === scenario.type) {
       // Default Sum Scenario (e.g. AC)
       return rawDataRow[scenario.name];
@@ -571,7 +656,7 @@ export class TableDataSetFactory {
     return null;
   }
 
-  private createColumnType(scenario: { name: string; group: string; type: string }) {
+  private createColumnType(scenario: ScenarioHeaderColumn) {
     if (scenario.name === scenario.group && scenario.name === scenario.type) {
       return "base";
     }
