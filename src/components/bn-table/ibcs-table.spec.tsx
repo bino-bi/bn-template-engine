@@ -768,13 +768,13 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             100,00%
           </td>
-          <td class=\"base decimal\" colspan=\"1\">
-            <span class=\"base prefix-first\"></span>
-            -
+          <td class=\"base decimal neg_pos\" colspan=\"1\">
+            <span class=\"base neg_pos prefix-first\"></span>
+            -9,0
           </td>
-          <td class=\"base percent\" colspan=\"1\">
-            <span class=\"base prefix-first\"></span>
-            -
+          <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
+            <span class=\"base neg_pos prefix-first relative_variance\"></span>
+            -90,00%
           </td>
         </tr>
         <tr class=\"sum\">
@@ -1624,9 +1624,9 @@ describe("IBCS Table Test", () => {
             <span class=\"base pos_pos prefix-first\"></span>
             9,0
           </td>
-          <td class=\"base percent\" colspan=\"1\">
-            <span class=\"base prefix-first\"></span>
-            -
+          <td class=\"base percent pos_pos relative_variance\" colspan=\"1\">
+            <span class=\"base pos_pos prefix-first relative_variance\"></span>
+            900,00%
           </td>
         </tr>
         <tr class=\"sum\">
@@ -2359,9 +2359,9 @@ describe("IBCS Table Test", () => {
                <span class=\"base pos_pos prefix-first\"></span>
                35,0
              </td>
-             <td class=\"base percent\" colspan=\"1\">
-               <span class=\"base prefix-first\"></span>
-               -
+             <td class=\"base percent pos_pos relative_variance\" colspan=\"1\">
+               <span class=\"base pos_pos prefix-first relative_variance\"></span>
+               700,00%
              </td>
            </tr>
          </tbody>
@@ -2768,9 +2768,9 @@ describe("IBCS Table Test", () => {
                 <span class=\"base pos_pos prefix-first\"></span>
                 9,0
               </td>
-              <td class=\"base percent\" colspan=\"1\">
-                <span class=\"base prefix-first\"></span>
-                -
+              <td class=\"base percent pos_pos relative_variance\" colspan=\"1\">
+                <span class=\"base pos_pos prefix-first relative_variance\"></span>
+                900,00%
               </td>
             </tr>
             <tr class=\"sum\">

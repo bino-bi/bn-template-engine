@@ -243,10 +243,12 @@ export class DataQuery {
   ) {
     // Generates REST Row; sumsup the Bottom (total number of rows - limit)
     if (rowGroupEntry.totalRowCnt - this.config.limit > 0 && this.config.limit !== 0) {
-      const rest_scenarios =
-        ", SUM(ac1) as ac1, SUM(pp1) as pp1, SUM(dpp1_ac1_pos) as dpp1_ac1_pos, SUM(drpp1_ac1_pos) as drpp1_ac1_pos, SUM(dr_pp1)";
+      // sums every column the inner subquery produces (scenario values, _cnt companions, dr_* denominators)
+      const restScenarios = this.exctractScenarioNames(scenarios)
+        .map((name) => `SUM(${name}) as ${name}`)
+        .join(", ");
       querys.push(
-        `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, 'REST' as ${QueryColumnNames.CATEGORY} ${rest_scenarios} as dr_pp1 FROM` +
+        `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, 'REST' as ${QueryColumnNames.CATEGORY} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
           ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, '${rowGroupEntry.rowGroup || "NO_GROUP"}' as ${QueryColumnNames.ROWGROUP}, ${groups} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
           ` t WHERE t.rowNr > ${this.config.limit}`,
       );
