@@ -670,7 +670,7 @@
             <bn-chart-time datasets='$umsatz_monthly' chart-mode='bar'
               stack='{&#34;by&#34;:&#34;scenarios&#34;,&#34;mode&#34;:&#34;relative&#34;}' date-interval='month'
               measure-scale='greatest' measure-unit='EUR' unit-scaling='auto' show-measure-scale='true'
-              scenarios='ac1,fc1,pl1'></bn-chart-time>
+              scenarios='ac1,ac2,ac3,ac4'></bn-chart-time>
           </div>
         </bn-layout-card>
       </div>
@@ -715,13 +715,13 @@
 
     <bn-layout-page data-bino-page='demo_stacked_bar_relative_full' title-business-unit='Stacked Bar (relative 100%)'
       title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
-      title-scenarios='ac1,fc1,pl1' page-layout='full' page-format='xga' page-orientation='landscape'
-      footer-text='Stacked bar chart, stack by scenarios, relative (100%) mode'>
+      title-scenarios='ac1,ac2,ac3,ac4' page-layout='full' page-format='xga' page-orientation='landscape'
+      footer-text='Stacked bar chart, stack by scenarios (ac1-ac4), relative (100%) mode'>
       <div slot='slot-0' data-bino-kind='ChartTime'>
         <bn-chart-time datasets='$umsatz_monthly' chart-mode='bar'
           stack='{&#34;by&#34;:&#34;scenarios&#34;,&#34;mode&#34;:&#34;relative&#34;}' date-interval='month'
           measure-scale='greatest' measure-unit='EUR' unit-scaling='auto' show-measure-scale='true'
-          scenarios='ac1,fc1,pl1'></bn-chart-time>
+          scenarios='ac1,ac2,ac3,ac4'></bn-chart-time>
       </div>
     </bn-layout-page>
 

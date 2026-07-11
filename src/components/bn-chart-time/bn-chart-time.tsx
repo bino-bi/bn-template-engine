@@ -454,7 +454,9 @@ export class Chart {
    *     scenario by this data dimension. Must be finer than `level`.
    * - `mode` (optional, default `"absolute"`):
    *   - `"absolute"` — additive stacking, axis shows absolute units.
-   *   - `"relative"` — 100% stacking, axis shows 0%–100%.
+   *   - `"relative"` — 100% stacking, axis shows 0%–100%. `unit-scaling` is
+   *     interpreted as pixels per percentage point (e.g. `0.4` → 40px full
+   *     stack); `"auto"` fits the stack to the available height as usual.
    *   - `"absolute-relative"` — bar height is absolute (real value), but
    *     segment labels inside show percentages.
    * - `order` (optional, default `"dataset"`): Segment order within each stack.
