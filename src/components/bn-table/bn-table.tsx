@@ -1312,9 +1312,9 @@ export class Table {
           <ibcs-table
             tableName={this.datasetName}
             dataVersion={this.dataVersion}
-            table-title={this.prepareTableTitle()}
+            tableTitle={this.prepareTableTitle()}
             scenarios={this.prepareScenarios()}
-            scenarios-data-format={this.prepareDataFormat()}
+            scenariosDataFormat={this.prepareDataFormat()}
             grouped={this.prepareGrouped()}
             limit={this.prepareLimit()}
             showGroupTitle={this.prepareShowGroupTitle()}
@@ -1324,13 +1324,13 @@ export class Table {
             categorythereof={this.prepareColumnThereOf()}
             attributeColumns={this.prepareAttributes()}
             type={this.prepareTableType()}
-            category-width={this.prepareCategoryWidth()}
+            categoryWidth={this.prepareCategoryWidth()}
             dataFormatDigits={this.prepareDataFormatDigits()}
             i18n={this.prepareI18n()}
-            i18n-mode={this.prepareI18nMode()}
-            measure-scale={this.prepareMeasureScale()}
-            measure-type={this.prepareMeasureType()}
-            measure-unit={this.prepareMeasureUnit()}
+            i18nMode={this.prepareI18nMode()}
+            measureScale={this.prepareMeasureScale()}
+            measureType={this.prepareMeasureType()}
+            measureUnit={this.prepareMeasureUnit()}
             showMeasureScale={this.prepareShowMeasureScale()}
             filter={this.prepareFilter()}
             barColumns={this.prepareBarColumns()}
