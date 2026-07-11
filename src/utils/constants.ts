@@ -178,6 +178,12 @@ export enum StackMode {
   ABSOLUTE_RELATIVE = "absolute-relative",
 }
 
+/**
+ * Value domain of a RELATIVE (100%) stack: the full stack spans 100 units,
+ * so pixelPerUnit is interpreted as pixels per percentage point.
+ */
+export const RELATIVE_STACK_UNITS = 100;
+
 /** Sort order of segments within a stacked bar. DATASET preserves the original data order. */
 export enum StackOrder {
   ASC = "asc",

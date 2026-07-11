@@ -25,7 +25,14 @@ import { ScaleFactorsTimeChart } from "./model/styles/ScaleFactorsTimeChart";
 import { DateTime } from "luxon";
 import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
-import { AggregationLevel, AxisLabelsMode, ChartMode, StackBy, StackMode } from "../../../utils/constants";
+import {
+  AggregationLevel,
+  AxisLabelsMode,
+  ChartMode,
+  RELATIVE_STACK_UNITS,
+  StackBy,
+  StackMode,
+} from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { DataFormatDigits, Order } from "../../../components";
 import { Formatter } from "../../../utils";
@@ -573,6 +580,13 @@ export class TimeChart {
     } else {
       min = this.smallestDataPointValue;
       max = this.highestDataPointValue;
+    }
+
+    // In relative (100%) stacking the vertical domain is 0..RELATIVE_STACK_UNITS percent,
+    // not the raw data values — use a virtual max so axis position, canvas height and
+    // auto-fit all agree on the percent domain.
+    if (this.stackConfig?.mode === StackMode.RELATIVE) {
+      max = new DataPoint(RELATIVE_STACK_UNITS, max.scenario, this.pixelPerUnit, max.variance);
     }
 
     // When overflow config is active, create a virtual max so the coordinate system
@@ -1505,7 +1519,9 @@ export class TimeChart {
         const groupTotal = group.segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
         const pixelPerUnit = group.segments[0].dataPoint.pixelPerUnit;
         const groupPixelHeight =
-          this.stackConfig!.mode === StackMode.RELATIVE ? pixelPerUnit : groupTotal * pixelPerUnit;
+          this.stackConfig!.mode === StackMode.RELATIVE
+            ? RELATIVE_STACK_UNITS * pixelPerUnit
+            : groupTotal * pixelPerUnit;
         // The front-most group (drawn last, e.g. AC) is fully visible, so its
         // label is centered on the bar. Back groups are mostly hidden behind it
         // and only peek out at the top, so their labels align with the bar's top edge.
@@ -1537,7 +1553,7 @@ export class TimeChart {
         let segmentHeight: number;
         if (this.stackConfig!.mode === StackMode.RELATIVE) {
           const proportion = total !== 0 ? Math.abs(seg.value) / total : 0;
-          segmentHeight = proportion * pixelPerUnit;
+          segmentHeight = proportion * RELATIVE_STACK_UNITS * pixelPerUnit;
         } else {
           segmentHeight = Math.abs(seg.value * pixelPerUnit);
         }
@@ -1641,7 +1657,7 @@ export class TimeChart {
         y:
           axisY -
           (stackMode === StackMode.RELATIVE
-            ? val * pixelPerUnit // pixelPerUnit acts as "height for 100%"
+            ? val * RELATIVE_STACK_UNITS * pixelPerUnit // val is a 0..1 cumulative proportion
             : val * pixelPerUnit),
       }));
     };

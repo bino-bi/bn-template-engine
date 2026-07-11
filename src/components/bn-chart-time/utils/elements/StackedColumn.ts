@@ -5,7 +5,7 @@ import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { HookLocation, Label } from "./Label";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
-import { StackMode } from "../../../../utils/constants";
+import { RELATIVE_STACK_UNITS, StackMode } from "../../../../utils/constants";
 
 /**
  * Renders a single segment within a stacked bar column in a time chart.
@@ -83,8 +83,8 @@ export class StackedColumn {
     if (this.stackMode === StackMode.RELATIVE) {
       // 100% stacked: segment height is proportion of total
       const proportion = this.totalValue !== 0 ? Math.abs(value) / Math.abs(this.totalValue) : 0;
-      // Use a fixed total height based on pixelPerUnit (total=1.0 for 100%)
-      const totalPixelHeight = pixelPerUnit; // pixelPerUnit represents the height for 100%
+      // Full stack spans RELATIVE_STACK_UNITS percent; pixelPerUnit = pixels per percentage point
+      const totalPixelHeight = RELATIVE_STACK_UNITS * pixelPerUnit;
       segmentHeight = proportion * totalPixelHeight;
       const baselinePixels = (this.baselineValue / Math.abs(this.totalValue)) * totalPixelHeight;
       yPos = axisY - baselinePixels - segmentHeight;
