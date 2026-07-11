@@ -5,6 +5,7 @@ import {
   isTableCategoryWidth,
   isValidBoolean,
   isValidDataFormat,
+  isValidDateFormat,
   isValidDirection,
   isValidInteger,
   isValidMeasureScale,
@@ -44,6 +45,7 @@ import {
   TableCategoryWidth,
 } from "../../utils/constants";
 import { TableType } from "./utils/model";
+import { INTERVAL_NONE, INTERVAL_SETNAME } from "./utils/helper/IntervalColumns";
 import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { parseTableAttributeExpression, TableAttribute } from "./utils/model/TableAttribute";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
@@ -79,6 +81,8 @@ export class Table {
   @State() private dataVersion: number = 0;
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
+  /** True when the active dataset contains rows with a blank `setname` (relevant for `interval='setname'`). */
+  @State() private hasBlankSetnames: boolean = false;
 
   /**
    * Controls proportional scaling of the entire table relative to the
@@ -161,12 +165,14 @@ export class Table {
 
     withDataset(
       this,
-      (name, _data) => {
+      (name, data) => {
         // Helpers query the shared alasql database directly by name; we just
         // record the active dataset and bump a version counter so Stencil
         // re-renders when the data changes.
         this.datasetName = name?.startsWith("$") ? name.substring(1) : name || "";
         this.dataVersion = this.dataVersion + 1;
+        this.hasBlankSetnames =
+          Array.isArray(data) && data.some((row) => isBlankInput((row?.setname ?? row?.setName) as string));
       },
       (_name, meta) => {
         this.datasetMeta = meta;
@@ -824,6 +830,37 @@ export class Table {
   }
 
   /**
+   * Repeats the entire scenario/variance column block once per interval group,
+   * rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with
+   * the configured columns).
+   * <br /><br />
+   * values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto```
+   * <br /><br />
+   * ```none``` (default) deactivates the feature. ```setname``` groups by the
+   * dataset's `setname` column (non-date comparison); rows with a blank setname
+   * raise a warning and are grouped under `—`. Date values bucket rows by the
+   * `date` column; ```auto``` detects the granularity from the date span.
+   * Cannot be combined with `columnthereof`.
+   */
+  @Prop() interval: string = "none";
+
+  @Watch("interval")
+  validateInterval(newValue: string) {
+    const errId: string = "ERR_interval";
+    const value = newValue?.trim().toLowerCase();
+
+    if (isBlankInput(newValue) || value === INTERVAL_NONE || value === INTERVAL_SETNAME || isValidDateFormat(value)) {
+      this.errors.remove(errId);
+    } else {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "interval: invalid value '" + newValue + "' is not supported.",
+      });
+    }
+  }
+
+  /**
    * Stringified JSON object defining custom columns computed from dataset fields.<br />
    * Keys are column labels, values are aggregate expressions over the rows that
    * make up each table row.<br /><br />
@@ -869,6 +906,7 @@ export class Table {
     this.validateMeasureType(this.measureType);
     this.validateMeasureScale(this.measureScale);
     this.validateColumnThereOf(this.columnthereof);
+    this.validateInterval(this.interval);
     this.validateTableAttributes(this.tableAttributes);
     this.validateShowMeasureScale(this.showMeasureScale);
     this.validateBarColumns(this.barColumns);
@@ -1161,6 +1199,62 @@ export class Table {
     return map;
   }
 
+  private prepareInterval(): string {
+    const conflictErrId = "ERR_intervalConflict";
+    const noDateErrId = "ERR_intervalNoDate";
+    const setnameErrId = "ERR_intervalSetname";
+
+    const interval = isBlankInput(this.interval) ? INTERVAL_NONE : this.interval.trim().toLowerCase();
+    const isValid = interval === INTERVAL_NONE || interval === INTERVAL_SETNAME || isValidDateFormat(interval);
+
+    // invalid values are already reported by validateInterval
+    if (!isValid || interval === INTERVAL_NONE) {
+      this.errors.remove(conflictErrId);
+      this.errors.remove(noDateErrId);
+      this.errors.remove(setnameErrId);
+      return INTERVAL_NONE;
+    }
+
+    if (this.columnthereof != null && this.columnthereof.trim() !== "") {
+      this.errors.addOrReplace({
+        id: conflictErrId,
+        type: "warning",
+        message: "interval: cannot be combined with columnthereof, interval is ignored.",
+      });
+      this.errors.remove(noDateErrId);
+      this.errors.remove(setnameErrId);
+      return INTERVAL_NONE;
+    }
+    this.errors.remove(conflictErrId);
+
+    if (interval === INTERVAL_SETNAME) {
+      if (this.hasBlankSetnames) {
+        this.errors.addOrReplace({
+          id: setnameErrId,
+          type: "warning",
+          message: "interval: rows with blank setname found, they are grouped under '—'.",
+        });
+      } else {
+        this.errors.remove(setnameErrId);
+      }
+      this.errors.remove(noDateErrId);
+      return INTERVAL_SETNAME;
+    }
+    this.errors.remove(setnameErrId);
+
+    if (this.datasetMeta && !this.datasetMeta.dateRange?.hasData) {
+      this.errors.addOrReplace({
+        id: noDateErrId,
+        type: "warning",
+        message: "interval: dataset has no date values, interval is ignored.",
+      });
+      return INTERVAL_NONE;
+    }
+    this.errors.remove(noDateErrId);
+
+    return interval;
+  }
+
   private prepareAttributes(): TableAttribute[] {
     if (this.tableAttributes == null || this.tableAttributes.trim() === "") {
       return [];
@@ -1334,6 +1428,7 @@ export class Table {
             showMeasureScale={this.prepareShowMeasureScale()}
             filter={this.prepareFilter()}
             barColumns={this.prepareBarColumns()}
+            interval={this.prepareInterval()}
             barColumnMaxWidth={this.prepareBarColumnWidth()}
             unitScaling={this.prepareUnitScaling()}
             percentageScaling={this.preparePercentageScaling()}

@@ -1,7 +1,9 @@
 import { OrderDirection, TableType } from "../model";
 import { QueryGroups } from "./QueryGroup";
+import { coerceBucketKey, INTERVAL_NONE, intervalBucketSQL } from "./IntervalColumns";
 import { TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
+import { TableDrillGroup } from "../model/TableDrillGroup";
 import { Order } from "../../../../components";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
@@ -136,6 +138,8 @@ export class DataQuery {
     this.detectNaNCells(this.config.scenarios, res);
     this.createThereOfDrillRows(scenarios, attributesSQL, order, res);
     this.createPartOfDrillRows(scenarios, order, sumGroupQueries, res);
+
+    this.createIntervalColumns(res);
 
     this.createThereOfDrillColumns(this.config.categoryThereOf, res);
 
@@ -573,6 +577,320 @@ export class DataQuery {
         }
       });
     });
+  }
+
+  /**
+   * Adds per-interval-bucket values to the result rows when the bn-table
+   * `interval` attribute is active. Side queries aggregate the source rows per
+   * bucket (`normalizeDate(date, …)` for date intervals, setname otherwise) at
+   * every row level (ENTRY, GROUP_SUM, SUM, DRILLELEMENT, PARTELEMENT) and the
+   * results are stored on the existing rows as composite keys
+   * `<scenario>##<bucketKey>` — the same convention as the columnthereof drill
+   * columns (which are mutually exclusive with interval).
+   *
+   * Row selection (ORDER BY / LIMIT) stays anchored on the un-bucketed base
+   * queries, so every bucket shows the same category set. REST values are
+   * computed in JS as the per-bucket sum of the categories that are not
+   * displayed, matching the un-bucketed REST query semantics.
+   */
+  private createIntervalColumns(res: DataQueryResultRow[][]) {
+    if (
+      this.config.interval === INTERVAL_NONE ||
+      this.config.categoryThereOf.size > 0 ||
+      this.config.scenarios.length === 0
+    ) {
+      return;
+    }
+
+    const separator = "##";
+    const bucketSource = `(SELECT *, ${intervalBucketSQL(this.config.interval)} as __interval FROM ${this.fromExpr}) as p`;
+    const scenarios = this.config.scenarios
+      .map((s) => this.translateScenarioSQL(s, false, this.config.type))
+      .toString();
+    const scenariosSUMQuery = this.config.scenarios
+      .map((s) => this.translateScenarioSQL(s, true, this.config.type))
+      .toString();
+    const entryAliases = this.exctractScenarioNames(scenarios);
+    const relativeScenarios = this.getRelativeScenarios();
+    const groups = new QueryGroups(this.config);
+    const isOpt = TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type;
+    const isSumTypeGrouped =
+      this.config.grouped &&
+      (TableType.SUM === this.config.type ||
+        TableType.SUMNOTOTAL === this.config.type ||
+        TableType.OPT === this.config.type ||
+        TableType.OPTNOTOTAL === this.config.type);
+    const hasPartOfActive = this.checkConfigForPartOf() && this.config.type !== TableType.LIST;
+
+    const exec = (query: string): DataQueryResultRow[] => {
+      try {
+        return this.db.exec<DataQueryResultRow[]>(query);
+      } catch (err) {
+        console.error("DataQuery: interval query failed", query, err);
+        return [];
+      }
+    };
+
+    // mirrors detectNaNCells + calculateRelativeVariances for a single bucket row
+    const finalizeBucketRow = (row: DataQueryResultRow): DataQueryResultRow => {
+      this.config.scenarios.forEach((scenario) => {
+        const varianceScenario = new VarianceScenario(scenario);
+        if (varianceScenario.isValid === true) {
+          if (row[varianceScenario.base + "_cnt"] === 0 || row[varianceScenario.delta + "_cnt"] === 0) {
+            row[scenario] = Number.NaN;
+          }
+        } else if (row[scenario + "_cnt"] === 0) {
+          row[scenario] = Number.NaN;
+        }
+      });
+      relativeScenarios.forEach((value: string, key: string) => {
+        row[key] = (row[key] as number) / (row[value] as number);
+      });
+      return row;
+    };
+
+    const writeBucketValues = (target: DataQueryResultRow, source: DataQueryResultRow, bucketKey: string) => {
+      for (const scenario of this.config.scenarios) {
+        target[scenario + separator + bucketKey] = source[scenario];
+      }
+    };
+
+    const entryRowsRaw = exec(
+      `SELECT ${groups}, __interval ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
+       FROM ${bucketSource}
+       GROUP BY ${groups}, __interval`,
+    );
+
+    // REST rows first: the math needs the raw (not yet finalized) entry aliases
+    if (this.config.limit > 0) {
+      for (let segmentIndex = 0; segmentIndex < res.length; segmentIndex++) {
+        const restRow = res[segmentIndex].find((row) => row.type === "ENTRY" && row.category === "REST");
+        if (!restRow) {
+          continue;
+        }
+
+        // nearest preceding segment holding the displayed ENTRY rows
+        let entrySegment: DataQueryResultRow[] | undefined;
+        for (let i = segmentIndex - 1; i >= 0 && !entrySegment; i--) {
+          const candidate = res[i].filter((row) => row.type === "ENTRY" && row.category !== "REST");
+          if (candidate.length > 0) {
+            entrySegment = candidate;
+          }
+        }
+        if (!entrySegment) {
+          continue;
+        }
+
+        const displayedCategories = new Set(entrySegment.map((row) => row.category));
+        const restGroup = entrySegment[0].rowGroup;
+
+        const restByBucket = new Map<string, DataQueryResultRow>();
+        for (const entryRow of entryRowsRaw) {
+          if (this.config.grouped && entryRow.rowGroup !== restGroup) {
+            continue;
+          }
+          if (displayedCategories.has(entryRow.category as string)) {
+            continue;
+          }
+          const bucketKey = coerceBucketKey(entryRow.__interval);
+          let bucketSum = restByBucket.get(bucketKey);
+          if (!bucketSum) {
+            bucketSum = {};
+            restByBucket.set(bucketKey, bucketSum);
+          }
+          for (const alias of entryAliases) {
+            bucketSum[alias] = ((bucketSum[alias] as number) ?? 0) + ((entryRow[alias] as number) ?? 0);
+          }
+        }
+
+        restByBucket.forEach((bucketSum, bucketKey) => {
+          writeBucketValues(restRow, finalizeBucketRow(bucketSum), bucketKey);
+        });
+      }
+    }
+
+    for (const entryRow of entryRowsRaw) {
+      const bucketKey = coerceBucketKey(entryRow.__interval);
+      finalizeBucketRow(entryRow);
+      for (const segment of res) {
+        for (const row of segment) {
+          if (row.type !== "ENTRY" || row.category === "REST" || row.category !== entryRow.category) {
+            continue;
+          }
+          if (this.config.grouped && row.rowGroup !== entryRow.rowGroup) {
+            continue;
+          }
+          if (isOpt && row.operation !== entryRow.operation) {
+            continue;
+          }
+          writeBucketValues(row, entryRow, bucketKey);
+        }
+      }
+    }
+
+    const groupTotalRowsRaw =
+      isSumTypeGrouped || (hasPartOfActive && this.config.grouped)
+        ? exec(
+            `SELECT ${QueryColumnNames.ROWGROUP}, __interval ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
+             FROM ${bucketSource}
+             GROUP BY ${QueryColumnNames.ROWGROUP}, __interval`,
+          )
+        : [];
+    const groupTotalsByKey = new Map<string, DataQueryResultRow>();
+    groupTotalRowsRaw.forEach((row) =>
+      groupTotalsByKey.set(`${row.rowGroup}${separator}${coerceBucketKey(row.__interval)}`, row),
+    );
+
+    if (isSumTypeGrouped) {
+      for (const totalRow of groupTotalRowsRaw) {
+        const bucketKey = coerceBucketKey(totalRow.__interval);
+        const finalized = finalizeBucketRow({ ...totalRow });
+        for (const segment of res) {
+          for (const row of segment) {
+            if (row.type === "GROUP_SUM" && row.rowGroup === totalRow.rowGroup) {
+              writeBucketValues(row, finalized, bucketKey);
+            }
+          }
+        }
+      }
+    }
+
+    const hasTotalSumRow = TableType.SUM === this.config.type || TableType.OPT === this.config.type;
+    const sumTotalRowsRaw =
+      hasTotalSumRow || (hasPartOfActive && !this.config.grouped)
+        ? exec(
+            `SELECT __interval ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
+             FROM ${bucketSource}
+             GROUP BY __interval`,
+          )
+        : [];
+    const sumTotalsByBucket = new Map<string, DataQueryResultRow>();
+    sumTotalRowsRaw.forEach((row) => sumTotalsByBucket.set(coerceBucketKey(row.__interval), row));
+
+    if (hasTotalSumRow) {
+      for (const totalRow of sumTotalRowsRaw) {
+        const bucketKey = coerceBucketKey(totalRow.__interval);
+        const finalized = finalizeBucketRow({ ...totalRow });
+        for (const segment of res) {
+          for (const row of segment) {
+            if (row.type === "SUM") {
+              writeBucketValues(row, finalized, bucketKey);
+            }
+          }
+        }
+      }
+    }
+
+    if (this.config.thereOf != null && this.config.thereOf.length > 0) {
+      const drillRows: DataQueryResultRow[] = [];
+      this.config.thereOf.forEach((element) => {
+        drillRows.push(
+          ...exec(
+            `SELECT ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, __interval ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
+             FROM ${bucketSource}
+             WHERE ${this.createThereOfWhereClause(element)}
+             GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, __interval`,
+          ),
+        );
+      });
+
+      for (const drillRow of drillRows) {
+        const bucketKey = coerceBucketKey(drillRow.__interval);
+        finalizeBucketRow(drillRow);
+        for (const segment of res) {
+          for (const row of segment) {
+            if (row.type !== "DRILLELEMENT" || row.category !== drillRow.category) {
+              continue;
+            }
+            if (
+              row.subCategory !== drillRow.subCategory &&
+              row.subCategory !== `${drillRow.subCategory} (${drillRow.rowGroup})`
+            ) {
+              continue;
+            }
+            writeBucketValues(row, drillRow, bucketKey);
+          }
+        }
+      }
+    }
+
+    if (hasPartOfActive) {
+      let partWhere = "1 <> 1 ";
+      this.config.partOf?.forEach((element) => {
+        partWhere += `OR (${QueryColumnNames.CATEGORY} = '${element.category}'`;
+        if (!(null == element.rowGroup || 0 === element.rowGroup.length || !element.rowGroup.trim())) {
+          partWhere += `and ${QueryColumnNames.ROWGROUP} = '${element.rowGroup}'`;
+        }
+        partWhere += `)`;
+      });
+
+      const groupName = this.config.grouped
+        ? `${QueryColumnNames.ROWGROUP}`
+        : `'SUM_TOTAL' as ${QueryColumnNames.ROWGROUP}`;
+
+      const partRowsRaw = exec(
+        `SELECT ${QueryColumnNames.CATEGORY}, ${groupName}, __interval ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
+         FROM ${bucketSource}
+         WHERE ${partWhere}
+         GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, __interval`,
+      );
+
+      // merge rows sharing (rowGroup, category, bucket) — mirrors reduceResDrillByCategoryGroups
+      const partByKey = new Map<string, DataQueryResultRow>();
+      for (const partRow of partRowsRaw) {
+        const key = `${partRow.rowGroup}${separator}${partRow.category}${separator}${coerceBucketKey(partRow.__interval)}`;
+        const existing = partByKey.get(key);
+        if (existing) {
+          for (const alias of entryAliases) {
+            existing[alias] = ((existing[alias] as number) ?? 0) + ((partRow[alias] as number) ?? 0);
+          }
+        } else {
+          partByKey.set(key, partRow);
+        }
+      }
+
+      partByKey.forEach((partRow) => {
+        const bucketKey = coerceBucketKey(partRow.__interval);
+        const totals = this.config.grouped
+          ? groupTotalsByKey.get(`${partRow.rowGroup}${separator}${bucketKey}`)
+          : sumTotalsByBucket.get(bucketKey);
+
+        for (const alias of entryAliases) {
+          partRow[alias] = (partRow[alias] as number) / (totals ? (totals[alias] as number) : Number.NaN);
+        }
+
+        finalizeBucketRow(partRow);
+        for (const segment of res) {
+          for (const row of segment) {
+            if (row.type === "PARTELEMENT" && row.category === partRow.category && row.rowGroup === partRow.rowGroup) {
+              writeBucketValues(row, partRow, bucketKey);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  /** Builds the thereof filter for interval side queries (mirrors the WHERE construction in createThereOfDrillRows). */
+  private createThereOfWhereClause(element: TableDrillGroup): string {
+    let isFirst = true;
+    let whereClause = "1 <> 1 OR ( ";
+
+    if (!(null == element.category || 0 === element.category.length || !element.category.trim())) {
+      whereClause += ` ${QueryColumnNames.CATEGORY} = '${element.category}'`;
+      isFirst = false;
+    }
+
+    if (!(null == element.rowGroup || 0 === element.rowGroup.length || !element.rowGroup.trim())) {
+      whereClause += ` ${isFirst ? "" : "AND"} ${QueryColumnNames.ROWGROUP} = '${element.rowGroup}'`;
+      isFirst = false;
+    }
+
+    if (!(null == element.subCategory || 0 === element.subCategory.length || !element.subCategory.trim())) {
+      whereClause += ` ${isFirst ? "" : "AND"} ${QueryColumnNames.SUBCATEGORY} = '${element.subCategory}'`;
+    }
+
+    return whereClause + `)`;
   }
 
   /** Collects all relative variance scenarios and maps each to its denominator column name. */

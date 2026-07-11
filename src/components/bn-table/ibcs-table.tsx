@@ -123,6 +123,9 @@ export class IbcsTable {
   barColumns: string[] = [];
 
   @Prop()
+  interval: string = "none";
+
+  @Prop()
   barColumnMaxWidth: number = 30;
 
   @Prop()
@@ -266,6 +269,8 @@ export class IbcsTable {
       showMeasureScale: this.showMeasureScale,
       filter: this.filter,
       barColumns: this.barColumns,
+      interval: this.interval,
+      locale: this.stores?.context?.state?.locale || "de",
     });
 
     return config;

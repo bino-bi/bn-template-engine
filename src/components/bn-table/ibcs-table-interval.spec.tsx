@@ -1,0 +1,265 @@
+// Mock MutationObserver for withComponentStyle mixin
+(global as any).MutationObserver = class {
+  constructor() {}
+  observe() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+};
+
+// Mock scoped stores so the component doesn't walk mock-doc DOM
+jest.mock("../../context/context-protocol", () => {
+  const { createStore } = require("@stencil/store");
+  const { SYSTEM_STYLE_DEFAULTS } = require("../../stores/componentStyles");
+  const { SYSTEM_I18N_DEFAULTS } = require("../../stores/internationalization");
+  const { createScopedDb } = require("../../context/scopedDb");
+
+  const mockStores = {
+    db: createScopedDb(),
+    datasetsMeta: createStore({}),
+    componentStyles: createStore({ _system: SYSTEM_STYLE_DEFAULTS }),
+    internationalization: createStore({ ...SYSTEM_I18N_DEFAULTS }),
+    assets: createStore({}),
+    context: createStore({ locale: "en" }),
+  };
+
+  return {
+    getStores: () => mockStores,
+    getOrCreateStores: () => mockStores,
+    clearStoresCache: () => {},
+  };
+});
+
+import { h } from "@stencil/core";
+import { newSpecPage, SpecPage } from "@stencil/core/testing";
+import { getStores } from "../../context/context-protocol";
+import { IbcsTable } from "./ibcs-table";
+import { OrderDirection, TableType } from "./utils/model";
+import { I18nMode } from "../../utils/constants";
+import { Order, OrderColumn } from "../../utils/model/Order";
+
+describe("IBCS Table interval columns", () => {
+  const yearRows: any[] = [
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "Hamburg", categoryIndex: 1, subCategory: "Nord", date: "2023-03-10", ac1: 10, pl1: 8 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "Hamburg", categoryIndex: 1, subCategory: "Nord", date: "2024-05-20", ac1: 20, pl1: 25 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "München", categoryIndex: 2, subCategory: "Ost", date: "2023-07-01", ac1: 5, pl1: 5 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "München", categoryIndex: 2, subCategory: "Ost", date: "2024-02-15", ac1: 7, pl1: 4 },
+  ];
+
+  const monthRows: any[] = [
+    { operation: "+", category: "Hamburg", categoryIndex: 1, date: "2023-03-05", ac1: 1 },
+    { operation: "+", category: "Hamburg", categoryIndex: 1, date: "2023-03-25", ac1: 2 },
+    { operation: "+", category: "Hamburg", categoryIndex: 1, date: "2023-04-02", ac1: 4 },
+  ];
+
+  const setRows: any[] = [
+    { operation: "+", category: "Hamburg", categoryIndex: 1, setname: "de", ac1: 1 },
+    { operation: "+", category: "Hamburg", categoryIndex: 1, setname: "at", ac1: 2 },
+    { operation: "+", category: "Hamburg", categoryIndex: 1, setname: "", ac1: 4 },
+  ];
+
+  const groupedRows: any[] = [
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "Hamburg", categoryIndex: 1, date: "2023-03-10", ac1: 10 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "Hamburg", categoryIndex: 1, date: "2024-05-20", ac1: 20 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "München", categoryIndex: 2, date: "2023-07-01", ac1: 5 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Umsatz", rowGroupIndex: 0, category: "München", categoryIndex: 2, date: "2024-02-15", ac1: 7 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Kosten", rowGroupIndex: 1, category: "Personal", categoryIndex: 1, date: "2023-04-01", ac1: 3 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "Kosten", rowGroupIndex: 1, category: "Personal", categoryIndex: 1, date: "2024-04-01", ac1: 4 },
+  ];
+
+  const sparseRows: any[] = [
+    { operation: "+", category: "Hamburg", categoryIndex: 1, date: "2023-03-10", ac1: 10 },
+    { operation: "+", category: "Hamburg", categoryIndex: 1, date: "2024-05-20", ac1: 20 },
+    { operation: "+", category: "Leipzig", categoryIndex: 2, date: "2023-06-01", ac1: 3 },
+  ];
+
+  const i18n = new Map([
+    ["SUM_TOTAL", "Summe"],
+    ["there_of", "davon"],
+    ["part_of", "anteil an"],
+  ]);
+
+  beforeAll(() => {
+    const tables = getStores(null).db.db.tables;
+    tables["yearData"] = { data: yearRows };
+    tables["monthData"] = { data: monthRows };
+    tables["setData"] = { data: setRows };
+    tables["groupedData"] = { data: groupedRows };
+    tables["sparseData"] = { data: sparseRows };
+  });
+
+  const renderTable = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
+    newSpecPage({
+      components: [IbcsTable],
+      template: () => (
+        <ibcs-table
+          scenarios={["ac1"]}
+          measure-scale="_"
+          order={
+            {
+              hierarchy: [OrderColumn.CATEGORY],
+              direction: OrderDirection.ASC,
+            } as Order
+          }
+          type={TableType.SUM}
+          i18n={i18n}
+          i18n-mode={I18nMode.META}
+          tableName="yearData"
+          interval="year"
+          {...extraProps}
+        ></ibcs-table>
+      ),
+    });
+
+  const headerRows = (page: SpecPage): Element[] => Array.from(page.root.shadowRoot.querySelectorAll("thead tr"));
+
+  const bandCells = (page: SpecPage): Element[] => Array.from(headerRows(page)[0].querySelectorAll("th"));
+
+  const cellTexts = (row: Element): string[] =>
+    Array.from(row.querySelectorAll("td")).map((cell) => cell.textContent.trim());
+
+  const findRowByFirstCell = (page: SpecPage, text: string): Element =>
+    Array.from(page.root.shadowRoot.querySelectorAll("tbody tr")).find(
+      (row) => row.querySelector("td")?.textContent.trim() === text,
+    );
+
+  it("renders a spanning band row with one label per bucket", async () => {
+    const page = await renderTable({ scenarios: ["ac1", "pl1"] });
+
+    expect(headerRows(page).length).toBe(3);
+
+    const cells = bandCells(page);
+    expect(cells.map((cell) => cell.textContent.trim())).toEqual(["", "2023", "2024"]);
+    // category filler spans one column, each year spans the two scenario columns
+    expect(cells[0].getAttribute("class")).toContain("filler");
+    expect(cells[0].getAttribute("colspan")).toBe("1");
+    expect(cells[1].getAttribute("class")).toContain("intervalGroup");
+    expect(cells[1].getAttribute("colspan")).toBe("2");
+    expect(cells[2].getAttribute("colspan")).toBe("2");
+  });
+
+  it("renders no band row when interval is none", async () => {
+    const page = await renderTable({ interval: "none" });
+
+    expect(headerRows(page).length).toBe(2);
+  });
+
+  it("renders per-year entry values and a per-year total row", async () => {
+    const page = await renderTable();
+
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "20,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "5,0", "7,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "15,0", "27,0"]);
+  });
+
+  it("aggregates dates of the same month into one bucket", async () => {
+    const page = await renderTable({ tableName: "monthData", interval: "month" });
+
+    expect(bandCells(page).map((cell) => cell.textContent.trim())).toEqual(["", "Mar 2023", "Apr 2023"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "3,0", "4,0"]);
+  });
+
+  it("groups by setname in order of first appearance, blanks under —", async () => {
+    const page = await renderTable({ tableName: "setData", interval: "setname" });
+
+    expect(bandCells(page).map((cell) => cell.textContent.trim())).toEqual(["", "de", "at", "—"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "1,0", "2,0", "4,0"]);
+  });
+
+  it("renders per-bucket group sums when grouped", async () => {
+    const page = await renderTable({ tableName: "groupedData", grouped: true, showGroupTitle: true });
+
+    const sumRows = Array.from(page.root.shadowRoot.querySelectorAll("tbody tr")).filter((row) =>
+      row.getAttribute("class")?.includes("sum"),
+    );
+
+    expect(sumRows.map((row) => cellTexts(row))).toEqual([
+      ["Umsatz", "15,0", "27,0"],
+      ["Kosten", "3,0", "4,0"],
+      ["Summe", "18,0", "31,0"],
+    ]);
+  });
+
+  it("computes per-bucket REST values from the not-displayed categories", async () => {
+    const page = await renderTable({
+      limit: 1,
+      order: { hierarchy: ["ac1"], direction: OrderDirection.DESC } as Order,
+    });
+
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "20,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "REST"))).toEqual(["REST", "5,0", "7,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "15,0", "27,0"]);
+  });
+
+  it("renders - for categories without rows in a bucket", async () => {
+    const page = await renderTable({ tableName: "sparseData" });
+
+    expect(cellTexts(findRowByFirstCell(page, "Leipzig"))).toEqual(["Leipzig", "3,0", "-"]);
+  });
+
+  it("computes absolute variances per bucket", async () => {
+    const page = await renderTable({ scenarios: ["ac1", "dac1_pl1_pos"] });
+
+    // per year: AC then ΔPL (10-8=2, 20-25=-5 | 5-5=0, 7-4=3)
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "2,0", "20,0", "-5,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "5,0", "0,0", "7,0", "3,0"]);
+  });
+
+  it("divides relative variances per bucket", async () => {
+    const page = await renderTable({ scenarios: ["ac1", "drac1_pl1_pos"] });
+
+    // 2023: (10-8)/8 = 25% -- 2024: (20-25)/25 = -20%
+    const hamburg = cellTexts(findRowByFirstCell(page, "Hamburg"));
+    expect(hamburg[2]).toContain("25");
+    expect(hamburg[4]).toContain("-20");
+  });
+
+  it("renders bar charts scaled by bucket values", async () => {
+    const page = await renderTable({
+      scenarios: ["ac1", "dac1_pl1_pos"],
+      barColumns: ["dac1_pl1_pos"],
+    });
+
+    const hamburg = findRowByFirstCell(page, "Hamburg");
+    const barCells = Array.from(hamburg.querySelectorAll("td")).filter((cell) => cell.querySelector("svg"));
+    expect(barCells.length).toBe(2); // one ΔPL bar per year
+  });
+
+  it("resolves auto to a concrete granularity from the date span", async () => {
+    const page = await renderTable({ interval: "auto" });
+
+    // 2023-03-10 .. 2024-05-20 is ~14 months -> month buckets, only where data exists
+    expect(bandCells(page).map((cell) => cell.textContent.trim())).toEqual([
+      "",
+      "Mar 2023",
+      "Jul 2023",
+      "Feb 2024",
+      "May 2024",
+    ]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "-", "-", "20,0"]);
+  });
+
+  it("fills thereof drill rows per bucket", async () => {
+    const page = await renderTable({
+      thereof: [{ rowGroup: "", category: "Hamburg", subCategory: "", partOf: "" }],
+    });
+
+    // the drill row's category cell carries the "davon" prefix
+    const nord = Array.from(page.root.shadowRoot.querySelectorAll("tbody tr")).find((row) =>
+      row.querySelector("td")?.textContent.includes("Nord"),
+    );
+    expect(cellTexts(nord)[0]).toContain("Nord");
+    expect(cellTexts(nord).slice(1)).toEqual(["10,0", "20,0"]);
+  });
+});

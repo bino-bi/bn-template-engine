@@ -27,6 +27,8 @@ describe("DQueryGroup Test", () => {
     showMeasureScale: false,
     filter: "",
     barColumns: [],
+    interval: "none",
+    locale: "de",
   };
 
   it("should return noCategory array", () => {

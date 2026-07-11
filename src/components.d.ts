@@ -765,6 +765,11 @@ export namespace Components {
          */
         "grouped": string;
         /**
+          * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `—`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`.
+          * @default "none"
+         */
+        "interval": string;
+        /**
           * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
           * @default 0
          */
@@ -1235,6 +1240,10 @@ export namespace Components {
           * @default I18nMode.ALL
          */
         "i18nMode": I18nMode;
+        /**
+          * @default "none"
+         */
+        "interval": string;
         /**
           * @default 0
          */
@@ -2365,6 +2374,11 @@ declare namespace LocalJSX {
          */
         "grouped"?: string;
         /**
+          * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `—`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`.
+          * @default "none"
+         */
+        "interval"?: string;
+        /**
           * Set the maximum number of rows for each group. The value 0 means *no limit* <br /><br /> rows wich where cut by the limit are cumulated as REST
           * @default 0
          */
@@ -2833,6 +2847,10 @@ declare namespace LocalJSX {
          */
         "i18nMode"?: I18nMode;
         /**
+          * @default "none"
+         */
+        "interval"?: string;
+        /**
           * @default 0
          */
         "limit"?: number;
@@ -3130,6 +3148,7 @@ declare namespace LocalJSX {
         "dataFormatDigitsPercent": number;
         "categoryWidth": string;
         "columnthereof": string | null;
+        "interval": string;
         "tableAttributes": string;
     }
     interface BnTemplateAttributes {
@@ -3213,6 +3232,7 @@ declare namespace LocalJSX {
         "showMeasureScale": boolean;
         "measureType": MeasureType;
         "filter": string;
+        "interval": string;
         "barColumnMaxWidth": number;
         "unitScaling": number;
         "percentageScaling": number;
