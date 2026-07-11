@@ -13,6 +13,7 @@ import {
   isValidNumber,
   isValidTableType,
   validateAttributesJsonStr,
+  validateBarColumnsList,
   validateColumnThereOfJsonStr,
   validateOrderList,
   validatePartOfJsonStr,
@@ -277,13 +278,19 @@ export class Table {
   }
 
   /**
-   * List of variance column names to render as bar charts instead of numbers.
+   * List of column names to render as bar charts instead of numbers.
    * <br /><br />
    * Absolute variances (d_*) render as horizontal bar charts.
    * Relative variances (dr_*) render as pin/dot charts.
+   * Scenario columns (ac1..pl4) render as horizontal bar charts; when the table
+   * contains grouping structure (sum rows, thereof, or partof) they automatically
+   * render as an IBCS waterfall — data rows cascade from the running total and
+   * sum rows anchor at zero. Waterfall columns auto-scale to fit the bar column
+   * width (unit-scaling does not apply) and are not supported in combination
+   * with `interval` or `columnthereof`.
    * <br /><br />
    * example:<br />
-   * ```dac1_pp1_pos,drac1_pp1_pos```
+   * ```dac1_pp1_pos,drac1_pp1_pos,ac1```
    */
   @Prop() readonly barColumns: string;
 
@@ -294,7 +301,7 @@ export class Table {
       this.errors.remove(errId);
       return;
     }
-    const invalidColumns: string[] = validateVariancesList(newValue);
+    const invalidColumns: string[] = validateBarColumnsList(newValue);
     if (invalidColumns.length > 0) {
       this.errors.addOrReplace({
         id: errId,

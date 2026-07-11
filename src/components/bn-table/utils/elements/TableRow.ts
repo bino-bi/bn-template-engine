@@ -1,6 +1,7 @@
 import { TableCategoryWidth } from "../../../../utils/constants";
 import { TableRowType } from "../model";
 import { Cell, ColumnStats } from "./Cell";
+import { WaterfallBarData } from "../helper/WaterfallCalculator";
 
 /**
  * Represents a single row in an IBCS table, containing an ordered list of Cells.
@@ -76,6 +77,7 @@ export class TableRow {
     isBarChart: boolean = false,
     columnStats?: ColumnStats,
     colSpan: number = 1,
+    waterfall?: WaterfallBarData,
   ) {
     let cssStyle = cellStyle;
 
@@ -125,6 +127,7 @@ export class TableRow {
     );
     cell.isBarChart = isBarChart;
     cell.columnStats = columnStats;
+    cell.waterfall = waterfall;
     this.elements.push(cell);
   }
 }
