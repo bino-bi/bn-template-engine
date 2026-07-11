@@ -25,6 +25,13 @@ export class LayoutPage {
   @Prop() styles?: string;
 
   /**
+   * Name of a registered component style (see `bn-component-style`) passed
+   * through to the inner `<bn-page>` element as its `selected-style`
+   * attribute.
+   */
+  @Prop() selectedStyle?: string;
+
+  /**
    * Message text displayed in the message row above the title.
    * If empty, the message row is omitted.
    */
@@ -399,8 +406,12 @@ export class LayoutPage {
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
 
     return (
-      // @ts-ignore
-      <bn-page styles={this.styles} format={this.pageFormat} orientation={this.pageOrientation}>
+      <bn-page // @ts-ignore
+        styles={this.styles}
+        selected-style={this.selectedStyle}
+        format={this.pageFormat}
+        orientation={this.pageOrientation}
+      >
         <bn-message text={this.messageText} image={this.messageImage}></bn-message>
         <bn-title // @ts-ignore
           namespace={this.titleNamespace}

@@ -43,6 +43,13 @@ export class LayoutCard {
   @Prop() styles?: string;
 
   /**
+   * Name of a registered component style (see `bn-component-style`) passed
+   * through to the inner `<bn-card>` element as its `selected-style`
+   * attribute.
+   */
+  @Prop() selectedStyle?: string;
+
+  /**
    * URL or asset name of the image displayed next to the card title.
    * The value is resolved via the scoped assets store: if it matches a
    * registered asset name, the stored URL is used; otherwise the raw value
@@ -409,8 +416,11 @@ export class LayoutCard {
     const style = this.getLayoutStyle();
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
     return (
-      // @ts-ignore
-      <bn-card styles={this.styles} class={this.setCardClass()}>
+      <bn-card // @ts-ignore
+        styles={this.styles}
+        selected-style={this.selectedStyle}
+        class={this.setCardClass()}
+      >
         <div class="cardtitle">
           <bn-title // @ts-ignore
             namespace={this.titleNamespace}
