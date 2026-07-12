@@ -143,6 +143,10 @@ export class StructureChart {
     this.styles = newStyle;
   }
 
+  public setRuleSet(ruleSet: VisualisationRuleSet) {
+    this.ruleSet = ruleSet || new IBCSRuleSet();
+  }
+
   setConfig(config: StructureChartComponentConfig) {
     this.state = FactoryState.DIRTY;
 

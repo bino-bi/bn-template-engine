@@ -25,6 +25,7 @@ export class LayoutCard {
       { propName: "titleVariances", ancestorAttr: "title-variances" },
       { propName: "titleOrder", ancestorAttr: "title-order" },
       { propName: "titleOrderDirection", ancestorAttr: "title-order-direction" },
+      { propName: "ruleset", ancestorAttr: "ruleset" },
     ]);
   }
 
@@ -48,6 +49,15 @@ export class LayoutCard {
    * attribute.
    */
   @Prop() selectedStyle?: string;
+
+  /**
+   * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to
+   * the inner `<bn-title>` element as its `ruleset` attribute. Supports
+   * `"inherited-page"` to take over the value from an ancestor
+   * `bn-layout-page`. Nested visualization components can reference it via
+   * `ruleset="inherited-closest"`.
+   */
+  @Prop() ruleset?: string;
 
   /**
    * URL or asset name of the image displayed next to the card title.
@@ -390,6 +400,7 @@ export class LayoutCard {
       { prop: "titleVariances", attr: "title-variances" },
       { prop: "titleOrder", attr: "title-order" },
       { prop: "titleOrderDirection", attr: "title-order-direction" },
+      { prop: "ruleset", attr: "ruleset" },
     ];
     for (const { prop, attr } of mappings) {
       const resolved = this.resolveInherited(prop, this[prop]);
@@ -424,6 +435,7 @@ export class LayoutCard {
         <div class="cardtitle">
           <bn-title // @ts-ignore
             namespace={this.titleNamespace}
+            ruleset={this.resolveInherited("ruleset", this.ruleset) ?? this.ruleset}
             business-unit={this.titleBusinessUnit}
             scenarios={this.resolveInherited("titleScenarios", this.titleScenarios) ?? this.titleScenarios}
             variances={this.resolveInherited("titleVariances", this.titleVariances) ?? this.titleVariances}

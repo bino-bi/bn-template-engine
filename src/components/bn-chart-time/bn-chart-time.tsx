@@ -22,6 +22,8 @@ import withScalingGroup from "../../utils/withScalingGroup";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import withRuleSet from "../../utils/withRuleSet";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
@@ -72,9 +74,18 @@ export class Chart {
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T>(q: (Style) => T) => T;
+  private readonly ruleSetConfig: () => RuleSetConfig;
   private readonly errors: ErrorDispatcher;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
+
+  /**
+   * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
+   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
+   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   */
+  @Prop({ reflect: true })
+  ruleset?: string;
 
   /**
    * Custom chart title
@@ -723,6 +734,7 @@ export class Chart {
     this.errors = withHasError(this);
     withScalingGroup(this);
     this.componentStyle = withComponentStyle(this);
+    this.ruleSetConfig = withRuleSet(this);
     this.t = withTranslation(this).t;
     this.resolveInherited = withInheritedProps(this, [
       { propName: "scenarios", ancestorAttr: "title-scenarios" },
@@ -1358,6 +1370,7 @@ export class Chart {
         lineFullWidth={this.prepareLineFullWidth()}
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension()}
+        ruleSetConfig={this.ruleSetConfig()}
       ></ibcs-chart-time>
     );
   }

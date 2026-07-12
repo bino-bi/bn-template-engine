@@ -42,7 +42,7 @@ export function isInheritedValue(value: string): boolean {
  * Uses the same traversal pattern as `findContextElement` in
  * `context-protocol.ts`.
  */
-function findAncestor(element: HTMLElement, mode: string): HTMLElement | undefined {
+export function findAncestor(element: HTMLElement, mode: string): HTMLElement | undefined {
   let current: Node | null = element.parentNode;
   while (current) {
     if (current instanceof HTMLElement) {

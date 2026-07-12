@@ -28,3 +28,27 @@ describe("bn-layout-page selected-style forwarding", () => {
     expect(inner.hasAttribute("selected-style")).toBe(false);
   });
 });
+
+describe("bn-layout-page ruleset forwarding", () => {
+  it("forwards ruleset to the inner bn-title", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      html: `<bn-layout-page ruleset="my-rules"></bn-layout-page>`,
+    });
+
+    const title = page.root.shadowRoot.querySelector("bn-title");
+    expect(title).not.toBeNull();
+    expect(title.getAttribute("ruleset")).toBe("my-rules");
+  });
+
+  it("omits ruleset on the inner bn-title when not set", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      template: () => <bn-layout-page></bn-layout-page>,
+    });
+
+    const title = page.root.shadowRoot.querySelector("bn-title");
+    expect(title).not.toBeNull();
+    expect(title.hasAttribute("ruleset")).toBe(false);
+  });
+});

@@ -7,6 +7,7 @@ import { TimePeriod, TimePeriodAdapter } from "./utils/model/TimePeriod";
 import { Order, OrderAdapter, OrderDirection } from "../../../utils/model/Order";
 import { I18nMode } from "../../../utils/constants";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { RuleSetConfig } from "../../../stores/ruleSets";
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
 
 @Component({
@@ -57,6 +58,9 @@ export class IbcsTitle {
   @Prop({ attribute: "i18n-mode" })
   i18nMode: I18nMode = I18nMode.ALL;
 
+  @Prop()
+  ruleSetConfig?: RuleSetConfig;
+
   private title: Title = new Title(new IBCSRuleSet());
 
   render() {
@@ -79,7 +83,7 @@ export class IbcsTitle {
   componentWillLoad() {
     const config: TitleConfig = this.prepareConfig();
 
-    this.title = new Title(new IBCSRuleSet());
+    this.title = new Title(new IBCSRuleSet(this.ruleSetConfig));
     this.title.setI18n(this.i18n);
     this.title.setConfig(config);
   }
@@ -88,6 +92,7 @@ export class IbcsTitle {
     const config: TitleConfig = this.prepareConfig();
 
     this.title.setI18n(this.i18n);
+    this.title.setRuleSet(new IBCSRuleSet(this.ruleSetConfig));
     this.title.setConfig(config);
   }
 

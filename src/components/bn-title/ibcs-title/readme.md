@@ -15,6 +15,7 @@
 | `intervalSpanLimit` | `interval-span-limit` |             | `number`                        | `28`                                                          |
 | `measures`          | --                    |             | `MeasureEntry[]`                | `[]`                                                          |
 | `order`             | --                    |             | `Order`                         | `{     hierarchy: [],     direction: OrderDirection.ASC,   }` |
+| `ruleSetConfig`     | --                    |             | `RuleSetConfig`                 | `undefined`                                                   |
 | `scenarios`         | --                    |             | `string[]`                      | `[]`                                                          |
 | `timeperiod`        | --                    |             | `TimePeriod`                    | `undefined`                                                   |
 
@@ -43,9 +44,9 @@ Type: `Promise<void>`
 
 #### Parameters
 
-| Name   | Type                                                                                                                                                                                                                                                                                                                                                                                                                                          | Description |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `data` | `{ businessUnit?: string; setBusinessUnit?: (businessUnit: string) => Promise<void>; setProps?: (data: Partial<IbcsTitle>) => Promise<void>; scenarios?: string[]; measures?: MeasureEntry[]; timeperiod?: TimePeriod; intervalSpanLimit?: number; order?: Order; i18n?: Map<string, string>; i18nMode?: I18nMode; render?: () => any; componentWillLoad?: () => void; componentWillUpdate?: () => void; componentWillRender?: () => void; }` |             |
+| Name   | Type                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Description |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `data` | `{ businessUnit?: string; setBusinessUnit?: (businessUnit: string) => Promise<void>; setProps?: (data: Partial<IbcsTitle>) => Promise<void>; scenarios?: string[]; measures?: MeasureEntry[]; timeperiod?: TimePeriod; intervalSpanLimit?: number; order?: Order; i18n?: Map<string, string>; i18nMode?: I18nMode; ruleSetConfig?: RuleSetConfig; render?: () => any; componentWillLoad?: () => void; componentWillUpdate?: () => void; componentWillRender?: () => void; }` |             |
 
 #### Returns
 

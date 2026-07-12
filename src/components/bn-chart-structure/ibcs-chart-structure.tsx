@@ -21,6 +21,7 @@ import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
 import { SVGStyleGroupAdapter } from "../../utils/model/styles/SVGStyleGroup";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import { PaddingAdapter } from "../../utils/model/styles/Padding";
 import { SVGStyleAdapter } from "../../utils/model/styles/SVGStyle";
 import { SVGVariancesStyleGroupAdapter } from "../../utils/model/styles/SVGVariancesStyleGroup";
@@ -92,6 +93,9 @@ export class IbcsChartStructure {
   @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
+  @Prop()
+  ruleSetConfig?: RuleSetConfig;
+
   private chart: StructureChart | undefined;
   private pattern: CustomPattern | undefined;
   private stores: ScopedStores | undefined;
@@ -134,7 +138,7 @@ export class IbcsChartStructure {
     const config: StructureChartComponentConfig = this.prepareConfig();
     const styles: StructureChartStyle = this.prepareStyle();
 
-    this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
+    this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
     this.autoFitScaling(config, styles);
     this.chart.setAvailableWidth(this.parentDimensions?.width || 0);
@@ -152,6 +156,7 @@ export class IbcsChartStructure {
 
     this.chart.setI18n(this.i18n);
     this.chart.setStyles(styles);
+    this.chart.setRuleSet(new IBCSRuleSet(this.ruleSetConfig));
     this.chart.setConfig(config);
     this.autoFitScaling(config, styles);
     this.chart.setAvailableWidth(this.parentDimensions?.width || 0);
@@ -179,7 +184,7 @@ export class IbcsChartStructure {
     if (!targetWidth || targetWidth <= 0) {
       if (autoUnit) config.pixelPerUnit = 1;
       if (autoPercent) config.pixelPerPercentage = 50;
-      this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
+      this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
       this.chart.setI18n(this.i18n);
       return;
     }
@@ -187,7 +192,7 @@ export class IbcsChartStructure {
     // First pass: set auto values to 1 and measure total width + bar extent
     if (autoUnit) config.pixelPerUnit = 1;
     if (autoPercent) config.pixelPerPercentage = 1;
-    this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
+    this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
     this.chart.toString();
     const svgWidth = this.chart.getAllocatedCanvasWidth();
@@ -214,7 +219,7 @@ export class IbcsChartStructure {
     }
 
     // Second pass with the corrected scaling
-    this.chart = new StructureChart(new IBCSRuleSet(), db, this.tableName, config, styles);
+    this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
   }
 
