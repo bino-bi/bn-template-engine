@@ -13,6 +13,7 @@ import { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, Meas
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
 import { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 import { ParentDimensions } from "./utils/parentDimensions";
+import { RuleSetConfig } from "./stores/ruleSets";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
@@ -29,6 +30,7 @@ export { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, Meas
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
 export { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 export { ParentDimensions } from "./utils/parentDimensions";
+export { RuleSetConfig } from "./stores/ruleSets";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
@@ -110,6 +112,10 @@ export namespace Components {
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
         /**
           * Controls proportional scaling of the chart to fit the available parent height.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
          */
@@ -233,6 +239,10 @@ export namespace Components {
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
         /**
           * Controls proportional scaling of the chart to fit the available parent width.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor  | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                              | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
          */
@@ -478,6 +488,10 @@ export namespace Components {
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to the inner `<bn-title>` element as its `ruleset` attribute. Supports `"inherited-page"` to take over the value from an ancestor `bn-layout-page`. Nested visualization components can reference it via `ruleset="inherited-closest"`.
+         */
+        "ruleset"?: string;
+        /**
           * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
          */
         "selectedStyle"?: string;
@@ -611,6 +625,10 @@ export namespace Components {
          */
         "pageOrientation"?: string;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to the inner `<bn-title>` element as its `ruleset` attribute. Nested visualization components can reference it via `ruleset="inherited-page"` / `ruleset="inherited-closest"`.
+         */
+        "ruleset"?: string;
+        /**
           * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute.
          */
         "selectedStyle"?: string;
@@ -690,6 +708,12 @@ export namespace Components {
           * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
          */
         "orientation": string;
+    }
+    interface BnRuleset {
+        /**
+          * @default "_default"
+         */
+        "name": string;
     }
     /**
      * Defines a named scaling value that chart and table components can reference
@@ -812,6 +836,10 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
           * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `ibcs-table` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.
           * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling — always render at base font size <bn-table scale="none" ...></bn-table>
          */
@@ -931,6 +959,10 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
           * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios": string;
@@ -1045,6 +1077,7 @@ export namespace Components {
           * @default 10
          */
         "pixelPerUnit": number;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
          */
@@ -1155,6 +1188,7 @@ export namespace Components {
           * @default 2
          */
         "pixelPerUnit": number;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
          */
@@ -1272,6 +1306,7 @@ export namespace Components {
           * @default 0.5
          */
         "percentageScaling": number;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 1
          */
@@ -1339,6 +1374,7 @@ export namespace Components {
           * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
          */
         "order": Order;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
          */
@@ -1498,6 +1534,12 @@ declare global {
         prototype: HTMLBnPageElement;
         new (): HTMLBnPageElement;
     };
+    interface HTMLBnRulesetElement extends Components.BnRuleset, HTMLStencilElement {
+    }
+    var HTMLBnRulesetElement: {
+        prototype: HTMLBnRulesetElement;
+        new (): HTMLBnRulesetElement;
+    };
     /**
      * Defines a named scaling value that chart and table components can reference
      * via their `unit-scaling` or `percentage-scaling` attributes.
@@ -1633,6 +1675,7 @@ declare global {
         "bn-layout-page": HTMLBnLayoutPageElement;
         "bn-message": HTMLBnMessageElement;
         "bn-page": HTMLBnPageElement;
+        "bn-ruleset": HTMLBnRulesetElement;
         "bn-scaling-group": HTMLBnScalingGroupElement;
         "bn-table": HTMLBnTableElement;
         "bn-template": HTMLBnTemplateElement;
@@ -1721,6 +1764,10 @@ declare namespace LocalJSX {
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
         /**
           * Controls proportional scaling of the chart to fit the available parent height.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
          */
@@ -1844,6 +1891,10 @@ declare namespace LocalJSX {
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
         /**
           * Controls proportional scaling of the chart to fit the available parent width.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor  | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                              | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
          */
@@ -2088,6 +2139,10 @@ declare namespace LocalJSX {
          */
         "footerText"?: string;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to the inner `<bn-title>` element as its `ruleset` attribute. Supports `"inherited-page"` to take over the value from an ancestor `bn-layout-page`. Nested visualization components can reference it via `ruleset="inherited-closest"`.
+         */
+        "ruleset"?: string;
+        /**
           * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
          */
         "selectedStyle"?: string;
@@ -2220,6 +2275,10 @@ declare namespace LocalJSX {
          */
         "pageOrientation"?: string;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to the inner `<bn-title>` element as its `ruleset` attribute. Nested visualization components can reference it via `ruleset="inherited-page"` / `ruleset="inherited-closest"`.
+         */
+        "ruleset"?: string;
+        /**
           * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute.
          */
         "selectedStyle"?: string;
@@ -2299,6 +2358,12 @@ declare namespace LocalJSX {
           * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
          */
         "orientation"?: string;
+    }
+    interface BnRuleset {
+        /**
+          * @default "_default"
+         */
+        "name"?: string;
     }
     /**
      * Defines a named scaling value that chart and table components can reference
@@ -2421,6 +2486,10 @@ declare namespace LocalJSX {
          */
         "percentageScaling"?: string | number;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
           * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `ibcs-table` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.
           * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling — always render at base font size <bn-table scale="none" ...></bn-table>
          */
@@ -2540,6 +2609,10 @@ declare namespace LocalJSX {
          */
         "orderDirection"?: string;
         /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
           * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
          */
         "scenarios"?: string;
@@ -2651,6 +2724,7 @@ declare namespace LocalJSX {
           * @default 10
          */
         "pixelPerUnit"?: number;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
          */
@@ -2761,6 +2835,7 @@ declare namespace LocalJSX {
           * @default 2
          */
         "pixelPerUnit"?: number;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
          */
@@ -2878,6 +2953,7 @@ declare namespace LocalJSX {
           * @default 0.5
          */
         "percentageScaling"?: number;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 1
          */
@@ -2945,6 +3021,7 @@ declare namespace LocalJSX {
           * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
          */
         "order"?: Order;
+        "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
          */
@@ -2957,6 +3034,7 @@ declare namespace LocalJSX {
     }
     interface BnChartStructureAttributes {
         "chartTitle": string;
+        "ruleset": string;
         "filter": string;
         "scenarios": string;
         "variances": string;
@@ -2974,6 +3052,7 @@ declare namespace LocalJSX {
         "scale": string;
     }
     interface BnChartTimeAttributes {
+        "ruleset": string;
         "chartTitle": string;
         "filter": string;
         "scenarios": string;
@@ -3044,6 +3123,7 @@ declare namespace LocalJSX {
     interface BnLayoutCardAttributes {
         "styles": string;
         "selectedStyle": string;
+        "ruleset": string;
         "titleImage": string;
         "titleBusinessUnit": string;
         "titleScenarios": string;
@@ -3076,6 +3156,7 @@ declare namespace LocalJSX {
     interface BnLayoutPageAttributes {
         "styles": string;
         "selectedStyle": string;
+        "ruleset": string;
         "messageText": string;
         "messageImage": string;
         "titleBusinessUnit": string;
@@ -3117,12 +3198,16 @@ declare namespace LocalJSX {
         "format": string;
         "orientation": string;
     }
+    interface BnRulesetAttributes {
+        "name": string;
+    }
     interface BnScalingGroupAttributes {
         "name": string;
         "value": number;
     }
     interface BnTableAttributes {
         "scale": string;
+        "ruleset": string;
         "tableTitle": string;
         "filter": string;
         "measureUnit": string;
@@ -3159,6 +3244,7 @@ declare namespace LocalJSX {
         "scale": string;
     }
     interface BnTitleAttributes {
+        "ruleset": string;
         "businessUnit": string;
         "scenarios": string;
         "variances": string;
@@ -3262,6 +3348,7 @@ declare namespace LocalJSX {
         "bn-layout-page": Omit<BnLayoutPage, keyof BnLayoutPageAttributes> & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes]?: BnLayoutPage[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `attr:${K}`]?: BnLayoutPageAttributes[K] } & { [K in keyof BnLayoutPage & keyof BnLayoutPageAttributes as `prop:${K}`]?: BnLayoutPage[K] };
         "bn-message": Omit<BnMessage, keyof BnMessageAttributes> & { [K in keyof BnMessage & keyof BnMessageAttributes]?: BnMessage[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `attr:${K}`]?: BnMessageAttributes[K] } & { [K in keyof BnMessage & keyof BnMessageAttributes as `prop:${K}`]?: BnMessage[K] };
         "bn-page": Omit<BnPage, keyof BnPageAttributes> & { [K in keyof BnPage & keyof BnPageAttributes]?: BnPage[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `attr:${K}`]?: BnPageAttributes[K] } & { [K in keyof BnPage & keyof BnPageAttributes as `prop:${K}`]?: BnPage[K] };
+        "bn-ruleset": Omit<BnRuleset, keyof BnRulesetAttributes> & { [K in keyof BnRuleset & keyof BnRulesetAttributes]?: BnRuleset[K] } & { [K in keyof BnRuleset & keyof BnRulesetAttributes as `attr:${K}`]?: BnRulesetAttributes[K] } & { [K in keyof BnRuleset & keyof BnRulesetAttributes as `prop:${K}`]?: BnRuleset[K] };
         "bn-scaling-group": Omit<BnScalingGroup, keyof BnScalingGroupAttributes> & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes]?: BnScalingGroup[K] } & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes as `attr:${K}`]?: BnScalingGroupAttributes[K] } & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes as `prop:${K}`]?: BnScalingGroup[K] } & OneOf<"name", BnScalingGroup["name"], BnScalingGroupAttributes["name"]> & OneOf<"value", BnScalingGroup["value"], BnScalingGroupAttributes["value"]>;
         "bn-table": Omit<BnTable, keyof BnTableAttributes> & { [K in keyof BnTable & keyof BnTableAttributes]?: BnTable[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `attr:${K}`]?: BnTableAttributes[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `prop:${K}`]?: BnTable[K] };
         "bn-template": Omit<BnTemplate, keyof BnTemplateAttributes> & { [K in keyof BnTemplate & keyof BnTemplateAttributes]?: BnTemplate[K] } & { [K in keyof BnTemplate & keyof BnTemplateAttributes as `attr:${K}`]?: BnTemplateAttributes[K] } & { [K in keyof BnTemplate & keyof BnTemplateAttributes as `prop:${K}`]?: BnTemplate[K] };
@@ -3343,6 +3430,7 @@ declare module "@stencil/core" {
             "bn-layout-page": LocalJSX.IntrinsicElements["bn-layout-page"] & JSXBase.HTMLAttributes<HTMLBnLayoutPageElement>;
             "bn-message": LocalJSX.IntrinsicElements["bn-message"] & JSXBase.HTMLAttributes<HTMLBnMessageElement>;
             "bn-page": LocalJSX.IntrinsicElements["bn-page"] & JSXBase.HTMLAttributes<HTMLBnPageElement>;
+            "bn-ruleset": LocalJSX.IntrinsicElements["bn-ruleset"] & JSXBase.HTMLAttributes<HTMLBnRulesetElement>;
             /**
              * Defines a named scaling value that chart and table components can reference
              * via their `unit-scaling` or `percentage-scaling` attributes.

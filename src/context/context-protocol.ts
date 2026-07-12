@@ -13,6 +13,7 @@
 
 import { createScopedStores } from "../stores/createScopedStores";
 import { Style } from "../stores/componentStyles";
+import { RuleSetConfig } from "../stores/ruleSets";
 import { ContextStore } from "../stores/context";
 import { DatasetMeta } from "../utils/model/DatasetMeta";
 import { ScopedDb } from "./scopedDb";
@@ -38,6 +39,7 @@ export interface ScopedStores {
   assets: StoreInstance<Record<string, string>>;
   context: StoreInstance<ContextStore>;
   scalingGroups: StoreInstance<Record<string, number>>;
+  ruleSets: StoreInstance<Record<string, RuleSetConfig>>;
 }
 
 /**

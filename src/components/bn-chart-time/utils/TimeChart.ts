@@ -187,6 +187,10 @@ export class TimeChart {
     this.styles = newStyle;
   }
 
+  public setRuleSet(ruleSet: VisualisationRuleSet) {
+    this.ruleSet = ruleSet || new IBCSRuleSet();
+  }
+
   public setAvailableWidth(w: number) {
     this.availableWidth = w;
   }

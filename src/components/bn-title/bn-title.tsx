@@ -17,6 +17,8 @@ import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import withRuleSet from "../../utils/withRuleSet";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import { Style } from "../../stores/componentStyles";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { I18nMode } from "../../utils/constants";
@@ -43,6 +45,7 @@ export class Title {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+  private readonly ruleSetConfig: () => RuleSetConfig;
 
   constructor() {
     withStyled(this);
@@ -50,7 +53,15 @@ export class Title {
     this.t = withTranslation(this).t;
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
+    this.ruleSetConfig = withRuleSet(this);
   }
+
+  /**
+   * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
+   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
+   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   */
+  @Prop({ reflect: true }) readonly ruleset?: string;
 
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
   @Prop() readonly businessUnit: string = "";
@@ -404,6 +415,7 @@ export class Title {
           order={this.prepareTitleOrder()}
           i18n={this.prepareI18n()}
           i18n-mode={this.prepareI18nMode()}
+          ruleSetConfig={this.ruleSetConfig()}
         ></ibcs-title>
       </Host>
     );

@@ -17,6 +17,7 @@ import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../utils/constan
 import { ParentDimensions } from "../../utils/parentDimensions";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { OrderDirection, OrderAdapter, Order } from "../../utils/model/Order";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
@@ -114,6 +115,9 @@ export class IbcsChartTime {
   @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
+  @Prop()
+  ruleSetConfig?: RuleSetConfig;
+
   drawElement: SVGElement | undefined;
   patternElement: HTMLSpanElement | undefined;
 
@@ -159,7 +163,14 @@ export class IbcsChartTime {
     const styles: TimeChartStyle = this.prepareStyle();
     const availableWidth = this.containerWidth || 0;
 
-    this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
+    this.chart = new TimeChart(
+      new IBCSRuleSet(this.ruleSetConfig),
+      this.getDb(),
+      this.tableName,
+      config,
+      styles,
+      availableWidth,
+    );
     this.chart.setI18n(this.i18n);
     this.autoFitScaling(config, styles);
     this.chart.setAvailableHeight(this.parentDimensions?.height || 0);
@@ -178,6 +189,7 @@ export class IbcsChartTime {
     this.chart.setI18n(this.i18n);
     this.chart.setStyles(styles);
     this.chart.setAvailableWidth(this.containerWidth || 0);
+    this.chart.setRuleSet(new IBCSRuleSet(this.ruleSetConfig));
     this.chart.setConfig(config);
     this.autoFitScaling(config, styles);
     this.chart.setAvailableHeight(this.parentDimensions?.height || 0);
@@ -204,7 +216,14 @@ export class IbcsChartTime {
     if (!targetHeight || targetHeight <= 0) {
       if (autoUnit) config.pixelPerUnit = 1;
       if (autoPercent) config.pixelPerPercentage = 50;
-      this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
+      this.chart = new TimeChart(
+        new IBCSRuleSet(this.ruleSetConfig),
+        this.getDb(),
+        this.tableName,
+        config,
+        styles,
+        availableWidth,
+      );
       this.chart.setI18n(this.i18n);
       return;
     }
@@ -212,7 +231,14 @@ export class IbcsChartTime {
     // First pass: set auto values to 1 and measure SVG height
     if (autoUnit) config.pixelPerUnit = 1;
     if (autoPercent) config.pixelPerPercentage = 1;
-    this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
+    this.chart = new TimeChart(
+      new IBCSRuleSet(this.ruleSetConfig),
+      this.getDb(),
+      this.tableName,
+      config,
+      styles,
+      availableWidth,
+    );
     this.chart.setI18n(this.i18n);
     this.chart.toString();
     const svgHeight = this.chart.getAllocatedCanvasHeight();
@@ -227,7 +253,14 @@ export class IbcsChartTime {
     if (autoPercent) config.pixelPerPercentage = ratio;
 
     // Second pass with the corrected scaling
-    this.chart = new TimeChart(new IBCSRuleSet(), this.getDb(), this.tableName, config, styles, availableWidth);
+    this.chart = new TimeChart(
+      new IBCSRuleSet(this.ruleSetConfig),
+      this.getDb(),
+      this.tableName,
+      config,
+      styles,
+      availableWidth,
+    );
     this.chart.setI18n(this.i18n);
   }
 

@@ -29,6 +29,8 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import withRuleSet from "../../utils/withRuleSet";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import { Style } from "../../stores/componentStyles";
 
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -72,6 +74,7 @@ export class Table {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+  private readonly ruleSetConfig: () => RuleSetConfig;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
   /** Last parent width seen, used to suppress ResizeObserver noise. */
@@ -163,6 +166,7 @@ export class Table {
     this.errors = withHasError(this);
     withScalingGroup(this);
     this.componentStyle = withComponentStyle(this);
+    this.ruleSetConfig = withRuleSet(this);
 
     withDataset(
       this,
@@ -188,6 +192,13 @@ export class Table {
       { propName: "orderDirection", ancestorAttr: "title-order-direction" },
     ]);
   }
+
+  /**
+   * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
+   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
+   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   */
+  @Prop({ reflect: true }) ruleset?: string;
 
   /**
    * A not mundane tile which should describes the shown data.
@@ -1440,6 +1451,7 @@ export class Table {
             unitScaling={this.prepareUnitScaling()}
             percentageScaling={this.preparePercentageScaling()}
             scaleFactor={effectiveFactor}
+            ruleSetConfig={this.ruleSetConfig()}
           ></ibcs-table>
         </div>
       </Host>

@@ -26,6 +26,10 @@ export class Title {
     this.setI18n(new Map<string, string>());
   }
 
+  public setRuleSet(ruleSet: IBCSRuleSet) {
+    this.ruleSet = ruleSet || new IBCSRuleSet();
+  }
+
   /**
    * Set Localisation Map
    * @param i18n

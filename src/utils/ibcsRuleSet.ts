@@ -1,4 +1,6 @@
+import { merge } from "@corex/deepmerge";
 import { ScenarioStyle, VisualisationRuleSet } from "../components/bn-table/utils/model";
+import { RuleSetConfig, SYSTEM_RULESET_DEFAULTS } from "../stores/ruleSets";
 import { VarianceScenario } from "./model/VarianceScenario";
 
 /**
@@ -13,6 +15,10 @@ import { VarianceScenario } from "./model/VarianceScenario";
  * Sort indices determine column display order: PP(100s) < PL(200s) < FC(300s) < AC(400s).
  * Variance columns add +1000 (absolute) or +2000 (relative) to the base sort index.
  * Within each group, variant number (1-4) adds multiples of 10.
+ *
+ * The built-in rules live in `SYSTEM_RULESET_DEFAULTS` (stores/ruleSets); an
+ * optional partial {@link RuleSetConfig} passed to the constructor is
+ * deep-merged over them, so `new IBCSRuleSet()` keeps the standard behavior.
  */
 export class IBCSRuleSet implements VisualisationRuleSet {
   public readonly _dateFormat = {
@@ -34,36 +40,17 @@ export class IBCSRuleSet implements VisualisationRuleSet {
     none: "[DATE]",
   };
   private _scenarioMap: Map<string, ScenarioStyle> = new Map<string, ScenarioStyle>();
-  private readonly _fallBackScenario: ScenarioStyle = {
-    name: "Series",
-    group: "Series",
-    colorIndex: 10,
-    sortIndex: 120,
-  };
+  private readonly _fallBackScenario: ScenarioStyle;
 
-  constructor() {
+  constructor(config?: RuleSetConfig) {
     // defines scenario sortIndex an colour   PP, PL, FC, AC,
+    const effective = merge([SYSTEM_RULESET_DEFAULTS, config ?? {}]) as RuleSetConfig;
 
-    this.createScenarioMapEntry("ac", "AC", 10, 400);
-    this.createScenarioMapEntry("fc", "FC", 30, 300);
-    this.createScenarioMapEntry("pl", "PL", 50, 200);
-    this.createScenarioMapEntry("bu", "BU", 50, 200);
-    this.createScenarioMapEntry("pp", "PP", 20, 100);
-    this.createScenarioMapEntry("py", "PY", 20, 100);
+    Object.entries(effective.scenarios).forEach(([key, scenario]) => {
+      this.createScenarioMapEntry(key, scenario.name ?? key, scenario.colorIndex ?? 10, scenario.sortIndex ?? 0);
+    });
 
-    this.createScenarioMapEntry("dac", "dAC", 10, 1400);
-    this.createScenarioMapEntry("dfc", "dFC", 30, 1300);
-    this.createScenarioMapEntry("dpl", "dPL", 50, 1200);
-    this.createScenarioMapEntry("dbu", "dBU", 50, 1200);
-    this.createScenarioMapEntry("dpp", "dPP", 20, 1100);
-    this.createScenarioMapEntry("dpy", "dPY", 20, 1100);
-
-    this.createScenarioMapEntry("drac", "drAC", 10, 2400);
-    this.createScenarioMapEntry("drfc", "drFC", 30, 2300);
-    this.createScenarioMapEntry("drpl", "drPL", 50, 2200);
-    this.createScenarioMapEntry("drbu", "drBU", 50, 2200);
-    this.createScenarioMapEntry("drpp", "drPP", 20, 2100);
-    this.createScenarioMapEntry("drpy", "drPY", 20, 2100);
+    this._fallBackScenario = effective.fallback as ScenarioStyle;
   }
 
   private createScenarioMapEntry(key: string, name: string, colorIndex: number, sortIndex: number) {

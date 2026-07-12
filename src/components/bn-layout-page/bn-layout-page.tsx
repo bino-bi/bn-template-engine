@@ -32,6 +32,14 @@ export class LayoutPage {
   @Prop() selectedStyle?: string;
 
   /**
+   * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to
+   * the inner `<bn-title>` element as its `ruleset` attribute. Nested
+   * visualization components can reference it via
+   * `ruleset="inherited-page"` / `ruleset="inherited-closest"`.
+   */
+  @Prop() ruleset?: string;
+
+  /**
    * Message text displayed in the message row above the title.
    * If empty, the message row is omitted.
    */
@@ -415,6 +423,7 @@ export class LayoutPage {
         <bn-message text={this.messageText} image={this.messageImage}></bn-message>
         <bn-title // @ts-ignore
           namespace={this.titleNamespace}
+          ruleset={this.ruleset}
           business-unit={this.titleBusinessUnit}
           scenarios={this.titleScenarios}
           variances={this.titleVariances}

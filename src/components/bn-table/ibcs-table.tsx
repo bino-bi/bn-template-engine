@@ -12,6 +12,7 @@ import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../uti
 
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { Order, OrderAdapter } from "../../utils/model/Order";
 import { CellBarChart, CellBarChartStyles } from "./utils/elements/CellBarChart";
@@ -98,6 +99,9 @@ export class IbcsTable {
 
   @Prop()
   dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 };
+
+  @Prop()
+  ruleSetConfig?: RuleSetConfig;
 
   @Prop({ mutable: true })
   i18n: Map<string, string> = new Map();
@@ -249,7 +253,7 @@ export class IbcsTable {
     this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(
       this.dataFormatDigits as unknown as Record<string, unknown>,
     );
-    this.table = new Table(new IBCSRuleSet(), db, this.tableName, config);
+    this.table = new Table(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config);
     this.table.setI18n(this.i18n);
     this.barChartStyles = this.prepareBarChartStyles();
   }
