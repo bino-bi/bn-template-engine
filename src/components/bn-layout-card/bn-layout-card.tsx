@@ -77,6 +77,8 @@ export class LayoutCard {
    * Name of the business unit displayed in the title header row.
    * If empty, the business unit row is omitted.
    *
+   * Rendered as sanitized HTML, so inline markup is supported.
+   *
    * @example
    * <bn-layout-card title-business-unit="Sales"></bn-layout-card>
    */

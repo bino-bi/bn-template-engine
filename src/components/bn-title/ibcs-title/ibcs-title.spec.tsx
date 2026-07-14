@@ -22,6 +22,26 @@ it("should render my component with only a Business Unit", async () => {
   `);
 });
 
+it("should render inline markup in the Business Unit", async () => {
+  const page = await newSpecPage({
+    components: [IbcsTitle],
+    template: () => <ibcs-title businessUnit="Acme <strong>Corp</strong><br />Group"></ibcs-title>,
+  });
+
+  const unit = page.root.shadowRoot.querySelector("div > div");
+  expect(unit.innerHTML).toBe("Acme <strong>Corp</strong><br>Group");
+});
+
+it("should sanitize dangerous markup in the Business Unit", async () => {
+  const page = await newSpecPage({
+    components: [IbcsTitle],
+    template: () => <ibcs-title businessUnit={`<script>alert(1)</script>Acme & Co`}></ibcs-title>,
+  });
+
+  const unit = page.root.shadowRoot.querySelector("div > div");
+  expect(unit.innerHTML).toBe("alert(1)Acme &amp; Co");
+});
+
 it("should render my component empty null values ", async () => {
   const businessUnit = undefined;
   const page = await newSpecPage({
