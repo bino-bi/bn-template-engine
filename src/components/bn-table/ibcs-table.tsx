@@ -55,8 +55,12 @@ export class IbcsTable {
   @Prop()
   dataVersion: number = 0;
 
+  /**
+   * Label of the grand-total row (`sum` / `opt` types only). The default
+   * `SUM_TOTAL` is an i18n key that resolves to the IBCS total symbol (❖).
+   */
   @Prop()
-  tableTitle: string = "SUM_TOTAL";
+  sumTitle: string = "SUM_TOTAL";
 
   @Prop()
   scenarios: string[] = [];
@@ -271,7 +275,7 @@ export class IbcsTable {
       db,
       fromExpr,
     ).adapt({
-      title: this.tableTitle,
+      title: this.sumTitle,
       scenarios: this.scenarios,
       scenariosUnitType: this.scenariosDataFormat,
       grouped: this.grouped,

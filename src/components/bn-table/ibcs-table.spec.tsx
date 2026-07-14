@@ -269,7 +269,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sample Table Title"
+          sum-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dac1_pp1_pos", "drac1_pp1_pos"]}
           scenarios-data-format={DataFormat.PERCENT}
           measure-scale="_"
@@ -338,7 +338,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" table-title=\"Sample Table Title\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" sum-title=\"Sample Table Title\">
       <mock:shadow-root>
     <table>
       <thead>
@@ -1129,7 +1129,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sample Table Title"
+          sum-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
           scenarios-data-format="decimal"
           measure-scale="_"
@@ -1189,7 +1189,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
       <mock:shadow-root>
     <table>
       <thead>
@@ -1930,7 +1930,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sample Table Title"
+          sum-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
           scenarios-data-format="decimal"
           measure-scale="_"
@@ -1990,7 +1990,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
          <mock:shadow-root>
        <table>
          <thead>
@@ -2375,7 +2375,7 @@ describe("IBCS Table Test", () => {
       components: [IbcsTable],
       template: () => (
         <ibcs-table
-          table-title="Sample Table Title"
+          sum-title="Sample Table Title"
           scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
           scenarios-data-format="decimal"
           measure-scale="_"
@@ -2435,7 +2435,7 @@ describe("IBCS Table Test", () => {
     });
 
     expect(page.root)
-      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
+      .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
           <mock:shadow-root>
         <table>
           <thead>
@@ -3062,7 +3062,7 @@ describe("IBCS Table Test", () => {
         components: [IbcsTable],
         template: () => (
           <ibcs-table
-            table-title="Sample Table Title"
+            sum-title="Sample Table Title"
             scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
             scenarios-data-format="decimal"
             measure-scale="_"
@@ -3122,7 +3122,7 @@ describe("IBCS Table Test", () => {
       });
 
       expect(page.root)
-        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
+        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
           <mock:shadow-root>
         <p class=\"warning\">
           ==No Data==
@@ -3136,7 +3136,7 @@ describe("IBCS Table Test", () => {
         components: [IbcsTable],
         template: () => (
           <ibcs-table
-            table-title="Sample Table Title"
+            sum-title="Sample Table Title"
             scenarios={["ac1", "pp1", "dpp1_ac1_pos", "drpp1_ac1_pos"]}
             scenarios-data-format="decimal"
             measure-scale="_"
@@ -3196,7 +3196,7 @@ describe("IBCS Table Test", () => {
       });
 
       expect(page.root)
-        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" table-title=\"Sample Table Title\">
+        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
             <mock:shadow-root>
           <table>
             <thead>

@@ -860,15 +860,15 @@ export namespace Components {
          */
         "showMeasureScale": string;
         /**
+          * Label of the grand-total row at the bottom of the table. Only rendered for `type="sum"` and `type="opt"`; the other table types have no total row. When empty, the IBCS total symbol (❖) is used.
+          * @default ""
+         */
+        "sumTitle": string;
+        /**
           * Stringified JSON object defining custom columns computed from dataset fields.<br /> Keys are column labels, values are aggregate expressions over the rows that make up each table row.<br /><br /> Functions: ```set // first // last // min // max // avg // sum // lit```<br /> Fields can be standard dataset fields (e.g. ```ac1```) or custom fields prefixed with ```_``` (e.g. ```_leiter```); ```lit``` takes a constant value.<br /><br /> example:<br /> ```{"Verkaufsleiter": "set(_leiter)", "Umsatz gesamt": "sum(ac1)"}```
           * @default ""
          */
         "tableAttributes": string;
-        /**
-          * A not mundane tile which should describes the shown data.
-          * @default ""
-         */
-        "tableTitle": string;
         /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
           * @default "[]"
@@ -1329,14 +1329,15 @@ export namespace Components {
          */
         "showMeasureScale": boolean;
         /**
+          * Label of the grand-total row (`sum` / `opt` types only). The default `SUM_TOTAL` is an i18n key that resolves to the IBCS total symbol (❖).
+          * @default "SUM_TOTAL"
+         */
+        "sumTitle": string;
+        /**
           * Name of the dataset (a table or view in the shared alasql database). The inner `Table` helper queries it directly — no array copy.
           * @default ""
          */
         "tableName": string;
-        /**
-          * @default "SUM_TOTAL"
-         */
-        "tableTitle": string;
         /**
           * @default []
          */
@@ -2511,15 +2512,15 @@ declare namespace LocalJSX {
          */
         "showMeasureScale"?: string;
         /**
+          * Label of the grand-total row at the bottom of the table. Only rendered for `type="sum"` and `type="opt"`; the other table types have no total row. When empty, the IBCS total symbol (❖) is used.
+          * @default ""
+         */
+        "sumTitle"?: string;
+        /**
           * Stringified JSON object defining custom columns computed from dataset fields.<br /> Keys are column labels, values are aggregate expressions over the rows that make up each table row.<br /><br /> Functions: ```set // first // last // min // max // avg // sum // lit```<br /> Fields can be standard dataset fields (e.g. ```ac1```) or custom fields prefixed with ```_``` (e.g. ```_leiter```); ```lit``` takes a constant value.<br /><br /> example:<br /> ```{"Verkaufsleiter": "set(_leiter)", "Umsatz gesamt": "sum(ac1)"}```
           * @default ""
          */
         "tableAttributes"?: string;
-        /**
-          * A not mundane tile which should describes the shown data.
-          * @default ""
-         */
-        "tableTitle"?: string;
         /**
           * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
           * @default "[]"
@@ -2977,14 +2978,15 @@ declare namespace LocalJSX {
          */
         "showMeasureScale"?: boolean;
         /**
+          * Label of the grand-total row (`sum` / `opt` types only). The default `SUM_TOTAL` is an i18n key that resolves to the IBCS total symbol (❖).
+          * @default "SUM_TOTAL"
+         */
+        "sumTitle"?: string;
+        /**
           * Name of the dataset (a table or view in the shared alasql database). The inner `Table` helper queries it directly — no array copy.
           * @default ""
          */
         "tableName"?: string;
-        /**
-          * @default "SUM_TOTAL"
-         */
-        "tableTitle"?: string;
         /**
           * @default []
          */
@@ -3210,7 +3212,7 @@ declare namespace LocalJSX {
     interface BnTableAttributes {
         "scale": string;
         "ruleset": string;
-        "tableTitle": string;
+        "sumTitle": string;
         "filter": string;
         "measureUnit": string;
         "scenarios": string;
@@ -3307,7 +3309,7 @@ declare namespace LocalJSX {
     interface IbcsTableAttributes {
         "tableName": string;
         "dataVersion": number;
-        "tableTitle": string;
+        "sumTitle": string;
         "scenariosDataFormat": DataFormat;
         "grouped": boolean;
         "limit": number;
