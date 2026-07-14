@@ -336,7 +336,15 @@ export class DataQuery {
   /** Generates a total SUM row across all groups (only for SUM / OPT table types). */
   private createTotalSumRow(querys: string[], sumGroupQueries: string[], scenariosSUMQuery: string) {
     if (TableType.SUM === this.config.type || TableType.OPT === this.config.type) {
-      const title = `${this.hasPartOf && this.config.grouped === false ? `${this.i18n.get("SUM_TOTAL") || "SUM_TOTAL"} ` : ""}${this.config.title}`;
+      // An empty label falls back to the SUM_TOTAL key, which tableDataSetFactory
+      // resolves to the IBCS total symbol (❖).
+      const label = this.config.title?.trim() || "SUM_TOTAL";
+      // In an ungrouped partof table the total row is what the "in % of ❖" rows
+      // refer to, so a custom label gets the symbol prepended. The default label
+      // already IS that symbol — prefixing it would yield the literal
+      // "❖ SUM_TOTAL", which no longer matches the key and stays untranslated.
+      const prefixSymbol = this.hasPartOf && this.config.grouped === false && label !== "SUM_TOTAL";
+      const title = prefixSymbol ? `${this.i18n.get("SUM_TOTAL") || "SUM_TOTAL"} ${label}` : label;
 
       querys.push(`SELECT ${querys.length} as ${QueryColumnNames.ROWGROUPINDEX},
                           '${title}'       as ${QueryColumnNames.ROWGROUP},

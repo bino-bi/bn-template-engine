@@ -201,9 +201,11 @@ export class Table {
   @Prop({ reflect: true }) ruleset?: string;
 
   /**
-   * A not mundane tile which should describes the shown data.
+   * Label of the grand-total row at the bottom of the table. Only rendered for
+   * `type="sum"` and `type="opt"`; the other table types have no total row.
+   * When empty, the IBCS total symbol (❖) is used.
    */
-  @Prop() tableTitle: string = "";
+  @Prop() sumTitle: string = "";
 
   /**
    * AlaSQL WHERE clause fragment injected into the data query to filter
@@ -1294,11 +1296,11 @@ export class Table {
     }
   }
 
-  private prepareTableTitle(): string {
-    if (this.tableTitle === "" || this.tableTitle == null) {
+  private prepareSumTitle(): string {
+    if (this.sumTitle === "" || this.sumTitle == null) {
       return "SUM_TOTAL";
     }
-    return this.tableTitle;
+    return this.sumTitle;
   }
 
   prepareShowMeasureScale(): boolean {
@@ -1424,7 +1426,7 @@ export class Table {
           <ibcs-table
             tableName={this.datasetName}
             dataVersion={this.dataVersion}
-            tableTitle={this.prepareTableTitle()}
+            sumTitle={this.prepareSumTitle()}
             scenarios={this.prepareScenarios()}
             scenariosDataFormat={this.prepareDataFormat()}
             grouped={this.prepareGrouped()}
