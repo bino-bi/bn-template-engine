@@ -63,7 +63,10 @@ export class Title {
    */
   @Prop({ reflect: true }) readonly ruleset?: string;
 
-  /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted */
+  /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
+   *  <br /><br />
+   *  Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
+   */
   @Prop() readonly businessUnit: string = "";
 
   /** List of scenarios displayed in card header.

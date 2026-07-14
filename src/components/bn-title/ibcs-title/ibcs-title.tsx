@@ -9,6 +9,7 @@ import { I18nMode } from "../../../utils/constants";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { RuleSetConfig } from "../../../stores/ruleSets";
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
+import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 
 @Component({
   tag: "ibcs-title",
@@ -66,7 +67,7 @@ export class IbcsTitle {
   render() {
     return (
       <div>
-        <div>{this.title.unit}</div>
+        <div innerHTML={sanitizeHtml(this.title.unit)}></div>
         <div>
           {this.title.measures.map((measure, index) => (
             <span>

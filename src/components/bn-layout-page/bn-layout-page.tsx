@@ -42,6 +42,11 @@ export class LayoutPage {
   /**
    * Message text displayed in the message row above the title.
    * If empty, the message row is omitted.
+   *
+   * Rendered as sanitized HTML, so inline markup is supported.
+   *
+   * @example
+   * <bn-layout-page message-text="Revenue <b>above plan</b><br />Q3 2026"></bn-layout-page>
    */
   @Prop() messageText: string = "";
 
@@ -58,6 +63,8 @@ export class LayoutPage {
   /**
    * Name of the business unit displayed in the title header row.
    * If empty, the business unit row is omitted.
+   *
+   * Rendered as sanitized HTML, so inline markup is supported.
    *
    * @example
    * <bn-layout-page title-business-unit="Group Controlling"></bn-layout-page>

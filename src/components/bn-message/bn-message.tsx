@@ -4,6 +4,7 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { sanitizeHtml } from "../../utils/sanitizeHtml";
 
 @Component({
   tag: "bn-message",
@@ -40,8 +41,11 @@ export class Footer {
   }
 
   /**
-   *  Message text.
-   *  <br />If empty string (`''` or `null`) the footer row is omitted
+   *  Message text. Rendered as HTML, sanitized against XSS
+   *  (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their
+   *  attributes are kept; event handlers and `javascript:` URLs are stripped).
+   *  <br />Use `<br />` for an explicit line break.
+   *  <br />If empty string (`''` or `null`) the message row is omitted
    */
   @Prop({ mutable: true })
   text: string;
@@ -75,7 +79,7 @@ export class Footer {
     return (
       <Host id={this.text || this.image ? "container-page-message" : "container"} style={this.getFontStyles()}>
         <div id="message-text">
-          {this.text != null && this.text !== "" ? <span class="note">{this.text}</span> : ""}
+          {this.text != null && this.text !== "" ? <span class="note" innerHTML={sanitizeHtml(this.text)}></span> : ""}
         </div>
         <div id="page-image">
           {this.image != null && this.image !== "" ? <img class="image" src={this.prepareAssetUrl(this.image)} /> : ""}

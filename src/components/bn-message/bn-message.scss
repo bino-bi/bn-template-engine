@@ -9,7 +9,7 @@
 }
 
 :host(#container-page-message) {
-  height: 4.55em;
+  min-height: 4.55em;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   border-bottom: 0.1em solid #ddd;
@@ -21,11 +21,15 @@ div#message-text {
   display: inline;
 }
 
+span.note p {
+  margin: 0;
+}
+
 .image {
   z-index: 2;
   background-color: transparent;
   border: transparent;
   height: 4em;
   width: auto;
-  display: inline;
+  display: block;
 }

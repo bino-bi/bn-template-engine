@@ -18,15 +18,25 @@ When used inside `<bn-layout-page>`, set the message props on the layout compone
 
 The `image` prop accepts either an HTTP URL or a registered asset name.
 
+### HTML Content
+
+The `text` prop is rendered as HTML. Safe inline tags (`<b>`, `<i>`, `<strong>`, `<em>`, `<br>`, `<a>`, …) are
+allowed; event handlers, `javascript:` URLs and unknown tags are stripped. Use `<br />` for an explicit line
+break — a newline character in the value does not break the line.
+
+```html
+<bn-message text="Revenue <b>above plan</b><br />Q3 2026"></bn-message>
+```
+
 <!-- Auto Generated Below -->
 
 
 ## Properties
 
-| Property | Attribute | Description                                                                                                                                                                                                                                        | Type     | Default     |
-| -------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `image`  | `image`   | /**    Url of the cards logo/ pictogram.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png``` | `string` | `undefined` |
-| `text`   | `text`    | Message text. <br />If empty string (`''` or `null`) the footer row is omitted                                                                                                                                                                     | `string` | `undefined` |
+| Property | Attribute | Description                                                                                                                                                                                                                                                                                                            | Type     | Default     |
+| -------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `image`  | `image`   | /**    Url of the cards logo/ pictogram.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```                                                                     | `string` | `undefined` |
+| `text`   | `text`    | Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; event handlers and `javascript:` URLs are stripped). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted | `string` | `undefined` |
 
 
 ## Dependencies

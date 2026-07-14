@@ -500,7 +500,7 @@ export namespace Components {
          */
         "styles"?: string;
         /**
-          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.
+          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
           * @example <bn-layout-card title-business-unit="Sales"></bn-layout-card>
           * @default ""
          */
@@ -576,7 +576,8 @@ export namespace Components {
          */
         "messageImage": string;
         /**
-          * Message text displayed in the message row above the title. If empty, the message row is omitted.
+          * Message text displayed in the message row above the title. If empty, the message row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
+          * @example <bn-layout-page message-text="Revenue <b>above plan</b><br />Q3 2026"></bn-layout-page>
           * @default ""
          */
         "messageText": string;
@@ -637,7 +638,7 @@ export namespace Components {
          */
         "styles"?: string;
         /**
-          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.
+          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
           * @example <bn-layout-page title-business-unit="Group Controlling"></bn-layout-page>
           * @default ""
          */
@@ -695,7 +696,7 @@ export namespace Components {
          */
         "image": string;
         /**
-          * Message text. <br />If empty string (`''` or `null`) the footer row is omitted
+          * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; event handlers and `javascript:` URLs are stripped). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
          */
         "text": string;
     }
@@ -922,7 +923,7 @@ export namespace Components {
      */
     interface BnTitle {
         /**
-          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
+          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted <br /><br /> Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
           * @default ""
          */
         "businessUnit": string;
@@ -2151,7 +2152,7 @@ declare namespace LocalJSX {
          */
         "styles"?: string;
         /**
-          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.
+          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
           * @example <bn-layout-card title-business-unit="Sales"></bn-layout-card>
           * @default ""
          */
@@ -2226,7 +2227,8 @@ declare namespace LocalJSX {
          */
         "messageImage"?: string;
         /**
-          * Message text displayed in the message row above the title. If empty, the message row is omitted.
+          * Message text displayed in the message row above the title. If empty, the message row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
+          * @example <bn-layout-page message-text="Revenue <b>above plan</b><br />Q3 2026"></bn-layout-page>
           * @default ""
          */
         "messageText"?: string;
@@ -2287,7 +2289,7 @@ declare namespace LocalJSX {
          */
         "styles"?: string;
         /**
-          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.
+          * Name of the business unit displayed in the title header row. If empty, the business unit row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
           * @example <bn-layout-page title-business-unit="Group Controlling"></bn-layout-page>
           * @default ""
          */
@@ -2345,7 +2347,7 @@ declare namespace LocalJSX {
          */
         "image"?: string;
         /**
-          * Message text. <br />If empty string (`''` or `null`) the footer row is omitted
+          * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; event handlers and `javascript:` URLs are stripped). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
          */
         "text"?: string;
     }
@@ -2572,7 +2574,7 @@ declare namespace LocalJSX {
      */
     interface BnTitle {
         /**
-          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
+          * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted <br /><br /> Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
           * @default ""
          */
         "businessUnit"?: string;
