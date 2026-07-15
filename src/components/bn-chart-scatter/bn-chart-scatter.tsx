@@ -325,7 +325,7 @@ export class ChartScatter {
     const currentWidth = host.scrollWidth;
     const currentFactor = this.appliedScaleFactor;
 
-    if (currentWidth <= parentWidth + 1) {
+    if (!Number.isFinite(currentWidth) || currentWidth <= parentWidth + 1) {
       this.errors.remove("AUTO_scale");
       return;
     }

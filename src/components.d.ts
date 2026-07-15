@@ -7,7 +7,7 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 import { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
-import { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig } from "./utils/xy/model/AxisConfig";
+import { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
 import { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 import { XYChartStyle } from "./utils/xy/model/XYChartStyle";
 import { RuleSetConfig } from "./stores/ruleSets";
@@ -28,7 +28,7 @@ import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/Measu
 import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
 export { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 export { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
-export { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig } from "./utils/xy/model/AxisConfig";
+export { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
 export { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 export { XYChartStyle } from "./utils/xy/model/XYChartStyle";
 export { RuleSetConfig } from "./stores/ruleSets";
@@ -57,6 +57,93 @@ export namespace Components {
     interface BnBody {
     }
     interface BnCard {
+    }
+    /**
+     * SVG bubble chart following IBCS template C10.
+     * Subscribes to a dataset (via `withDataset`) and renders an XY bubble
+     * portfolio: bubble **area** is proportional to the size measure, marks
+     * compose series hues with scenario treatments, an optional comparison
+     * family overlays behind the primary set (10D), and `share` draws pie
+     * sectors inside the bubbles (10E). The heavy SVG rendering is performed
+     * by the inner `ibcs-chart-bubble` element; this facade validates props,
+     * resolves auto-detected metadata, and computes styles.
+     */
+    interface BnChartBubble {
+        /**
+          * Plot aspect ratio as `"w:h"` (default `"16:9"`). XY charts have no data-driven height; this is the explicit height control.
+          * @default "16:9"
+         */
+        "aspect": string;
+        /**
+          * Custom chart title
+          * @default ""
+         */
+        "chartTitle": string;
+        /**
+          * Comparison scenario family (`ac`/`pp`/`fc`/`pl`) overlaid behind the primary set from the same slot numbers (IBCS 10D). Must differ from the primary family; invalid with variance-token axes.
+          * @default ""
+         */
+        "compareWith": string;
+        /**
+          * Small-multiple panels (IBCS 10E/10F/10G). JSON object: `{"level":"rowgroup"|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.
+          * @default ""
+         */
+        "facet": string;
+        /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
+          * @default ""
+         */
+        "filter": string;
+        /**
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.
+          * @default ""
+         */
+        "labels": string;
+        /**
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom"}`.
+          * @default ""
+         */
+        "legend": string;
+        /**
+          * Point identity level: `auto` (deepest populated level from the dataset meta), `category`, or `subcategory`.
+          * @default "auto"
+         */
+        "level": string;
+        /**
+          * Maximum number of bubbles per panel (0 = unlimited); keeps the top N by size.
+          * @default 0
+         */
+        "limit": number;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario treatments and display names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
+          * Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.
+         */
+        "scale"?: string;
+        /**
+          * Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).
+          * @default "auto"
+         */
+        "seriesLevel": string;
+        /**
+          * Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare token; the measure holds a fraction 0..1 of the bubble.
+          * @default ""
+         */
+        "share": string;
+        /**
+          * Bubble size mapping (required). Bubble **area** is proportional to the value; values must be >= 0. JSON object or bare token: `{"measure":"ac3","label":"Net sales","unit":"mEUR", "group":"netsales-area"}`. `group` references a `bn-scaling-group` for cross-chart value→area synchronization.
+         */
+        "size": string;
+        /**
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`.
+         */
+        "x": string;
+        /**
+          * Y axis mapping — same shape as `x`.
+         */
+        "y": string;
     }
     /**
      * SVG scattergram following IBCS template C09.
@@ -1105,6 +1192,89 @@ export namespace Components {
         "internationalizationKeys": () => Promise<string[]>;
     }
     /**
+     * Inner presentational element of `bn-chart-bubble`: owns the
+     * {@link BubbleChart} orchestrator and emits its SVG string. All props
+     * arrive validated and parsed from the facade.
+     */
+    interface IbcsChartBubble {
+        /**
+          * Plot aspect ratio, width/height.
+          * @default 16 / 9
+         */
+        "aspect": number;
+        /**
+          * @default ""
+         */
+        "chartTitle": string;
+        /**
+          * Comparison scenario family, or `null` (10D overlay).
+          * @default null
+         */
+        "compareFamily": string | null;
+        /**
+          * @default 0
+         */
+        "containerWidth": number;
+        /**
+          * Bumped by the facade when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion": number;
+        /**
+          * The facade's error dispatcher — data warnings are synced through it (stable ids).
+         */
+        "errors"?: ErrorDispatcher;
+        /**
+          * @default null
+         */
+        "facet": FacetConfig | null;
+        /**
+          * @default ""
+         */
+        "filter": string;
+        /**
+          * @default new Map()
+         */
+        "i18n": Map<string, string>;
+        "labels": LabelConfig;
+        "legend": LegendConfig;
+        /**
+          * @default 0
+         */
+        "limit": number;
+        /**
+          * @default "category"
+         */
+        "pointLevel": PointLevel;
+        "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default null
+         */
+        "seriesLevel": GroupLevel | null;
+        /**
+          * @default null
+         */
+        "share": ShareConfig | null;
+        "size": SizeConfig;
+        /**
+          * Scaling-group mode: area px² per data unit (0 = local sizing).
+          * @default 0
+         */
+        "sizeAreaPerUnit": number;
+        "styles": XYChartStyle | undefined;
+        /**
+          * Name of the dataset (table or view in the scoped alasql database).
+          * @default ""
+         */
+        "tableName": string;
+        /**
+          * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+         */
+        "translate"?: (key: string, data?: object) => string;
+        "x": AxisConfig;
+        "y": AxisConfig;
+    }
+    /**
      * Inner presentational element of `bn-chart-scatter`: owns the
      * {@link ScatterChart} orchestrator and emits its SVG string. All props
      * arrive validated and parsed from the facade.
@@ -1562,6 +1732,22 @@ declare global {
         new (): HTMLBnCardElement;
     };
     /**
+     * SVG bubble chart following IBCS template C10.
+     * Subscribes to a dataset (via `withDataset`) and renders an XY bubble
+     * portfolio: bubble **area** is proportional to the size measure, marks
+     * compose series hues with scenario treatments, an optional comparison
+     * family overlays behind the primary set (10D), and `share` draws pie
+     * sectors inside the bubbles (10E). The heavy SVG rendering is performed
+     * by the inner `ibcs-chart-bubble` element; this facade validates props,
+     * resolves auto-detected metadata, and computes styles.
+     */
+    interface HTMLBnChartBubbleElement extends Components.BnChartBubble, HTMLStencilElement {
+    }
+    var HTMLBnChartBubbleElement: {
+        prototype: HTMLBnChartBubbleElement;
+        new (): HTMLBnChartBubbleElement;
+    };
+    /**
      * SVG scattergram following IBCS template C09.
      * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
      * with series hues, selective labels, highlight bands, and hyperbolic
@@ -1798,6 +1984,17 @@ declare global {
         new (): HTMLEditorCompanionElement;
     };
     /**
+     * Inner presentational element of `bn-chart-bubble`: owns the
+     * {@link BubbleChart} orchestrator and emits its SVG string. All props
+     * arrive validated and parsed from the facade.
+     */
+    interface HTMLIbcsChartBubbleElement extends Components.IbcsChartBubble, HTMLStencilElement {
+    }
+    var HTMLIbcsChartBubbleElement: {
+        prototype: HTMLIbcsChartBubbleElement;
+        new (): HTMLIbcsChartBubbleElement;
+    };
+    /**
      * Inner presentational element of `bn-chart-scatter`: owns the
      * {@link ScatterChart} orchestrator and emits its SVG string. All props
      * arrive validated and parsed from the facade.
@@ -1844,6 +2041,7 @@ declare global {
         "bn-asset": HTMLBnAssetElement;
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
+        "bn-chart-bubble": HTMLBnChartBubbleElement;
         "bn-chart-scatter": HTMLBnChartScatterElement;
         "bn-chart-structure": HTMLBnChartStructureElement;
         "bn-chart-time": HTMLBnChartTimeElement;
@@ -1867,6 +2065,7 @@ declare global {
         "bn-title": HTMLBnTitleElement;
         "bn-tree": HTMLBnTreeElement;
         "editor-companion": HTMLEditorCompanionElement;
+        "ibcs-chart-bubble": HTMLIbcsChartBubbleElement;
         "ibcs-chart-scatter": HTMLIbcsChartScatterElement;
         "ibcs-chart-structure": HTMLIbcsChartStructureElement;
         "ibcs-chart-time": HTMLIbcsChartTimeElement;
@@ -1886,6 +2085,93 @@ declare namespace LocalJSX {
     interface BnBody {
     }
     interface BnCard {
+    }
+    /**
+     * SVG bubble chart following IBCS template C10.
+     * Subscribes to a dataset (via `withDataset`) and renders an XY bubble
+     * portfolio: bubble **area** is proportional to the size measure, marks
+     * compose series hues with scenario treatments, an optional comparison
+     * family overlays behind the primary set (10D), and `share` draws pie
+     * sectors inside the bubbles (10E). The heavy SVG rendering is performed
+     * by the inner `ibcs-chart-bubble` element; this facade validates props,
+     * resolves auto-detected metadata, and computes styles.
+     */
+    interface BnChartBubble {
+        /**
+          * Plot aspect ratio as `"w:h"` (default `"16:9"`). XY charts have no data-driven height; this is the explicit height control.
+          * @default "16:9"
+         */
+        "aspect"?: string;
+        /**
+          * Custom chart title
+          * @default ""
+         */
+        "chartTitle"?: string;
+        /**
+          * Comparison scenario family (`ac`/`pp`/`fc`/`pl`) overlaid behind the primary set from the same slot numbers (IBCS 10D). Must differ from the primary family; invalid with variance-token axes.
+          * @default ""
+         */
+        "compareWith"?: string;
+        /**
+          * Small-multiple panels (IBCS 10E/10F/10G). JSON object: `{"level":"rowgroup"|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.
+          * @default ""
+         */
+        "facet"?: string;
+        /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
+          * @default ""
+         */
+        "filter"?: string;
+        /**
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.
+          * @default ""
+         */
+        "labels"?: string;
+        /**
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom"}`.
+          * @default ""
+         */
+        "legend"?: string;
+        /**
+          * Point identity level: `auto` (deepest populated level from the dataset meta), `category`, or `subcategory`.
+          * @default "auto"
+         */
+        "level"?: string;
+        /**
+          * Maximum number of bubbles per panel (0 = unlimited); keeps the top N by size.
+          * @default 0
+         */
+        "limit"?: number;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario treatments and display names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
+          * Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.
+         */
+        "scale"?: string;
+        /**
+          * Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).
+          * @default "auto"
+         */
+        "seriesLevel"?: string;
+        /**
+          * Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare token; the measure holds a fraction 0..1 of the bubble.
+          * @default ""
+         */
+        "share"?: string;
+        /**
+          * Bubble size mapping (required). Bubble **area** is proportional to the value; values must be >= 0. JSON object or bare token: `{"measure":"ac3","label":"Net sales","unit":"mEUR", "group":"netsales-area"}`. `group` references a `bn-scaling-group` for cross-chart value→area synchronization.
+         */
+        "size": string;
+        /**
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`.
+         */
+        "x": string;
+        /**
+          * Y axis mapping — same shape as `x`.
+         */
+        "y": string;
     }
     /**
      * SVG scattergram following IBCS template C09.
@@ -2929,6 +3215,89 @@ declare namespace LocalJSX {
     interface EditorCompanion {
     }
     /**
+     * Inner presentational element of `bn-chart-bubble`: owns the
+     * {@link BubbleChart} orchestrator and emits its SVG string. All props
+     * arrive validated and parsed from the facade.
+     */
+    interface IbcsChartBubble {
+        /**
+          * Plot aspect ratio, width/height.
+          * @default 16 / 9
+         */
+        "aspect"?: number;
+        /**
+          * @default ""
+         */
+        "chartTitle"?: string;
+        /**
+          * Comparison scenario family, or `null` (10D overlay).
+          * @default null
+         */
+        "compareFamily"?: string | null;
+        /**
+          * @default 0
+         */
+        "containerWidth"?: number;
+        /**
+          * Bumped by the facade when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion"?: number;
+        /**
+          * The facade's error dispatcher — data warnings are synced through it (stable ids).
+         */
+        "errors"?: ErrorDispatcher;
+        /**
+          * @default null
+         */
+        "facet"?: FacetConfig | null;
+        /**
+          * @default ""
+         */
+        "filter"?: string;
+        /**
+          * @default new Map()
+         */
+        "i18n"?: Map<string, string>;
+        "labels": LabelConfig;
+        "legend": LegendConfig;
+        /**
+          * @default 0
+         */
+        "limit"?: number;
+        /**
+          * @default "category"
+         */
+        "pointLevel"?: PointLevel;
+        "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default null
+         */
+        "seriesLevel"?: GroupLevel | null;
+        /**
+          * @default null
+         */
+        "share"?: ShareConfig | null;
+        "size": SizeConfig;
+        /**
+          * Scaling-group mode: area px² per data unit (0 = local sizing).
+          * @default 0
+         */
+        "sizeAreaPerUnit"?: number;
+        "styles"?: XYChartStyle | undefined;
+        /**
+          * Name of the dataset (table or view in the scoped alasql database).
+          * @default ""
+         */
+        "tableName"?: string;
+        /**
+          * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+         */
+        "translate"?: (key: string, data?: object) => string;
+        "x": AxisConfig;
+        "y": AxisConfig;
+    }
+    /**
      * Inner presentational element of `bn-chart-scatter`: owns the
      * {@link ScatterChart} orchestrator and emits its SVG string. All props
      * arrive validated and parsed from the facade.
@@ -3367,6 +3736,24 @@ declare namespace LocalJSX {
     interface BnAssetAttributes {
         "name": string;
     }
+    interface BnChartBubbleAttributes {
+        "ruleset": string;
+        "chartTitle": string;
+        "filter": string;
+        "x": string;
+        "y": string;
+        "size": string;
+        "share": string;
+        "compareWith": string;
+        "level": string;
+        "seriesLevel": string;
+        "facet": string;
+        "labels": string;
+        "legend": string;
+        "aspect": string;
+        "limit": number;
+        "scale": string;
+    }
     interface BnChartScatterAttributes {
         "ruleset": string;
         "chartTitle": string;
@@ -3615,6 +4002,19 @@ declare namespace LocalJSX {
         "edgeStyle": EdgeStyleType;
         "showOperators": string;
     }
+    interface IbcsChartBubbleAttributes {
+        "tableName": string;
+        "dataVersion": number;
+        "chartTitle": string;
+        "compareFamily": string | null;
+        "pointLevel": PointLevel;
+        "seriesLevel": GroupLevel | null;
+        "aspect": number;
+        "limit": number;
+        "filter": string;
+        "sizeAreaPerUnit": number;
+        "containerWidth": number;
+    }
     interface IbcsChartScatterAttributes {
         "tableName": string;
         "dataVersion": number;
@@ -3696,6 +4096,7 @@ declare namespace LocalJSX {
         "bn-asset": Omit<BnAsset, keyof BnAssetAttributes> & { [K in keyof BnAsset & keyof BnAssetAttributes]?: BnAsset[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `attr:${K}`]?: BnAssetAttributes[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `prop:${K}`]?: BnAsset[K] } & OneOf<"name", BnAsset["name"], BnAssetAttributes["name"]>;
         "bn-body": BnBody;
         "bn-card": BnCard;
+        "bn-chart-bubble": Omit<BnChartBubble, keyof BnChartBubbleAttributes> & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes]?: BnChartBubble[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `attr:${K}`]?: BnChartBubbleAttributes[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `prop:${K}`]?: BnChartBubble[K] } & OneOf<"x", BnChartBubble["x"], BnChartBubbleAttributes["x"]> & OneOf<"y", BnChartBubble["y"], BnChartBubbleAttributes["y"]> & OneOf<"size", BnChartBubble["size"], BnChartBubbleAttributes["size"]>;
         "bn-chart-scatter": Omit<BnChartScatter, keyof BnChartScatterAttributes> & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes]?: BnChartScatter[K] } & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes as `attr:${K}`]?: BnChartScatterAttributes[K] } & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes as `prop:${K}`]?: BnChartScatter[K] } & OneOf<"x", BnChartScatter["x"], BnChartScatterAttributes["x"]> & OneOf<"y", BnChartScatter["y"], BnChartScatterAttributes["y"]>;
         "bn-chart-structure": Omit<BnChartStructure, keyof BnChartStructureAttributes> & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes]?: BnChartStructure[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `attr:${K}`]?: BnChartStructureAttributes[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `prop:${K}`]?: BnChartStructure[K] } & OneOf<"scenarios", BnChartStructure["scenarios"], BnChartStructureAttributes["scenarios"]> & OneOf<"variances", BnChartStructure["variances"], BnChartStructureAttributes["variances"]> & OneOf<"unitScaling", BnChartStructure["unitScaling"], BnChartStructureAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartStructure["percentageScaling"], BnChartStructureAttributes["percentageScaling"]> & OneOf<"level", BnChartStructure["level"], BnChartStructureAttributes["level"]> & OneOf<"order", BnChartStructure["order"], BnChartStructureAttributes["order"]> & OneOf<"orderDirection", BnChartStructure["orderDirection"], BnChartStructureAttributes["orderDirection"]>;
         "bn-chart-time": Omit<BnChartTime, keyof BnChartTimeAttributes> & { [K in keyof BnChartTime & keyof BnChartTimeAttributes]?: BnChartTime[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `attr:${K}`]?: BnChartTimeAttributes[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `prop:${K}`]?: BnChartTime[K] } & OneOf<"scenarios", BnChartTime["scenarios"], BnChartTimeAttributes["scenarios"]> & OneOf<"variances", BnChartTime["variances"], BnChartTimeAttributes["variances"]> & OneOf<"unitScaling", BnChartTime["unitScaling"], BnChartTimeAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartTime["percentageScaling"], BnChartTimeAttributes["percentageScaling"]> & OneOf<"level", BnChartTime["level"], BnChartTimeAttributes["level"]> & OneOf<"order", BnChartTime["order"], BnChartTimeAttributes["order"]> & OneOf<"orderDirection", BnChartTime["orderDirection"], BnChartTimeAttributes["orderDirection"]> & OneOf<"dateInterval", BnChartTime["dateInterval"], BnChartTimeAttributes["dateInterval"]> & OneOf<"axisLabelsMode", BnChartTime["axisLabelsMode"], BnChartTimeAttributes["axisLabelsMode"]>;
@@ -3719,6 +4120,7 @@ declare namespace LocalJSX {
         "bn-title": Omit<BnTitle, keyof BnTitleAttributes> & { [K in keyof BnTitle & keyof BnTitleAttributes]?: BnTitle[K] } & { [K in keyof BnTitle & keyof BnTitleAttributes as `attr:${K}`]?: BnTitleAttributes[K] } & { [K in keyof BnTitle & keyof BnTitleAttributes as `prop:${K}`]?: BnTitle[K] };
         "bn-tree": Omit<BnTree, keyof BnTreeAttributes> & { [K in keyof BnTree & keyof BnTreeAttributes]?: BnTree[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `attr:${K}`]?: BnTreeAttributes[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `prop:${K}`]?: BnTree[K] } & OneOf<"edges", BnTree["edges"], BnTreeAttributes["edges"]>;
         "editor-companion": EditorCompanion;
+        "ibcs-chart-bubble": Omit<IbcsChartBubble, keyof IbcsChartBubbleAttributes> & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes]?: IbcsChartBubble[K] } & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes as `attr:${K}`]?: IbcsChartBubbleAttributes[K] } & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes as `prop:${K}`]?: IbcsChartBubble[K] };
         "ibcs-chart-scatter": Omit<IbcsChartScatter, keyof IbcsChartScatterAttributes> & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes]?: IbcsChartScatter[K] } & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes as `attr:${K}`]?: IbcsChartScatterAttributes[K] } & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes as `prop:${K}`]?: IbcsChartScatter[K] };
         "ibcs-chart-structure": Omit<IbcsChartStructure, keyof IbcsChartStructureAttributes> & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes]?: IbcsChartStructure[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `attr:${K}`]?: IbcsChartStructureAttributes[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `prop:${K}`]?: IbcsChartStructure[K] };
         "ibcs-chart-time": Omit<IbcsChartTime, keyof IbcsChartTimeAttributes> & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes]?: IbcsChartTime[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `attr:${K}`]?: IbcsChartTimeAttributes[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `prop:${K}`]?: IbcsChartTime[K] };
@@ -3733,6 +4135,17 @@ declare module "@stencil/core" {
             "bn-asset": LocalJSX.IntrinsicElements["bn-asset"] & JSXBase.HTMLAttributes<HTMLBnAssetElement>;
             "bn-body": LocalJSX.IntrinsicElements["bn-body"] & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
             "bn-card": LocalJSX.IntrinsicElements["bn-card"] & JSXBase.HTMLAttributes<HTMLBnCardElement>;
+            /**
+             * SVG bubble chart following IBCS template C10.
+             * Subscribes to a dataset (via `withDataset`) and renders an XY bubble
+             * portfolio: bubble **area** is proportional to the size measure, marks
+             * compose series hues with scenario treatments, an optional comparison
+             * family overlays behind the primary set (10D), and `share` draws pie
+             * sectors inside the bubbles (10E). The heavy SVG rendering is performed
+             * by the inner `ibcs-chart-bubble` element; this facade validates props,
+             * resolves auto-detected metadata, and computes styles.
+             */
+            "bn-chart-bubble": LocalJSX.IntrinsicElements["bn-chart-bubble"] & JSXBase.HTMLAttributes<HTMLBnChartBubbleElement>;
             /**
              * SVG scattergram following IBCS template C09.
              * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
@@ -3854,6 +4267,12 @@ declare module "@stencil/core" {
              * design time (e.g. for autocompletion or property pickers).
              */
             "editor-companion": LocalJSX.IntrinsicElements["editor-companion"] & JSXBase.HTMLAttributes<HTMLEditorCompanionElement>;
+            /**
+             * Inner presentational element of `bn-chart-bubble`: owns the
+             * {@link BubbleChart} orchestrator and emits its SVG string. All props
+             * arrive validated and parsed from the facade.
+             */
+            "ibcs-chart-bubble": LocalJSX.IntrinsicElements["ibcs-chart-bubble"] & JSXBase.HTMLAttributes<HTMLIbcsChartBubbleElement>;
             /**
              * Inner presentational element of `bn-chart-scatter`: owns the
              * {@link ScatterChart} orchestrator and emits its SVG string. All props
