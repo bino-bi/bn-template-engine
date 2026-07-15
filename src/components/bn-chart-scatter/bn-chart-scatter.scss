@@ -1,0 +1,10 @@
+:host {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}

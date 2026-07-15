@@ -60,8 +60,8 @@ This renders an IBCS-compliant table comparing actual vs. plan revenue with an a
 Data flows through three layers:
 
 ```
-bn-datasource  →  bn-dataset  →  Visualization (bn-table, bn-chart-time, bn-chart-structure)
-   (raw JSON)     (SQL query)       (renders IBCS output)
+bn-datasource  →  bn-dataset  →  Visualization (bn-table, bn-chart-time, bn-chart-structure,
+   (raw JSON)     (SQL query)       bn-chart-scatter, bn-chart-bubble — renders IBCS output)
 ```
 
 1. **`<bn-datasource>`** — Receives raw JSON data and stores it by name
@@ -83,7 +83,9 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
   │   ├── <bn-body>          Content area
   │   │   ├── <bn-table>     Data table
   │   │   ├── <bn-chart-time>      Time series chart
-  │   │   └── <bn-chart-structure>  Structure chart
+  │   │   ├── <bn-chart-structure>  Structure chart
+  │   │   ├── <bn-chart-scatter>   XY scattergram (IBCS C09)
+  │   │   └── <bn-chart-bubble>    Bubble portfolio chart (IBCS C10)
   │   └── <bn-footer>        Footer
   │
   └── <bn-template>          Multi-page wrapper (optional)
@@ -106,6 +108,8 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 | [`<bn-table>`](src/components/bn-table/readme.md) | IBCS data table with grouping, drill-down, and variances |
 | [`<bn-chart-time>`](src/components/bn-chart-time/readme.md) | Time series bar/line chart |
 | [`<bn-chart-structure>`](src/components/bn-chart-structure/readme.md) | Categorical/structural bar chart |
+| [`<bn-chart-scatter>`](src/components/bn-chart-scatter/readme.md) | XY scattergram with iso-lines and highlight bands (IBCS C09) |
+| [`<bn-chart-bubble>`](src/components/bn-chart-bubble/readme.md) | Area-true bubble chart with scenario overlay and pie shares (IBCS C10) |
 
 ### Layout
 

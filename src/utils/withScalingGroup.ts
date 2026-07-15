@@ -37,6 +37,9 @@ const withScalingGroup = (component: any) => {
     if (typeof component.validatePercentageScaling === "function") {
       component.validatePercentageScaling(component.percentageScaling);
     }
+    if (typeof component.validateSizeScaling === "function") {
+      component.validateSizeScaling();
+    }
   };
 
   const connectedCallback = component["connectedCallback"];

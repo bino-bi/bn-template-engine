@@ -14,6 +14,8 @@
 import { ScaleFactorsTimeChart } from "../components/bn-chart-time/utils/model";
 import { SVGStyleGroup, SVGVariancesStyleGroup } from "../utils/model";
 import { ScaleFactorsStructureChart } from "../components/bn-chart-structure/utils/model";
+import { ScaleFactorsXYChart } from "../utils/xy/model/ScaleFactorsXYChart";
+import { XY_SERIES_PALETTE } from "../utils/xy/SeriesPalette";
 
 /** Visual properties for `bn-tree` node edges and operator badges. */
 export interface TreeStyle {
@@ -38,6 +40,8 @@ export interface Style {
   "bn-text": TextStyle;
   "bn-chart-time": TimeChartStyle;
   "bn-chart-structure": StructureChartStyle;
+  "bn-chart-scatter": XYChartStyle;
+  "bn-chart-bubble": XYChartStyle;
   "bn-tree": TreeStyle;
   "bn-grid": GridStyle;
 }
@@ -88,6 +92,52 @@ export interface StructureChartStyle {
     bottom: number;
   };
 }
+
+/**
+ * IBCS styling for the XY charts (`bn-chart-scatter`, `bn-chart-bubble`):
+ * scale factors, axis styles, the series hue palette, and padding.
+ *
+ * Axis style roles: `ac` = plot frame, `pp` = gridlines, `fc` = reference
+ * lines and iso-curves, `pl` = highlight band fill.
+ */
+export interface XYChartStyle {
+  scaleFactors: ScaleFactorsXYChart;
+  axisStyles: SVGStyleGroup;
+  seriesColors: string[];
+  padding: {
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
+  };
+}
+
+const xyChartStyleDefaults = (): XYChartStyle => ({
+  scaleFactors: {
+    pointRadius: 0.4,
+    bubbleMaxRadius: 3.2,
+    bubbleMinRadius: 0.35,
+    axisTickLength: 0.35,
+    labelToMark: 0.3,
+    legendSwatch: 0.9,
+    panelGap: 1.6,
+    refLineWidth: 1,
+    gridLineWidth: 1,
+  },
+  axisStyles: {
+    ac: { stroke: "#A6A6A6", fill: "#A6A6A6", width: 1 },
+    fc: { stroke: "#808080", fill: "#808080", width: 1 },
+    pp: { stroke: "#D9D9D9", fill: "#D9D9D9", width: 1 },
+    pl: { stroke: "#EFEFEF", fill: "#EFEFEF", width: 1 },
+  },
+  seriesColors: [...XY_SERIES_PALETTE],
+  padding: {
+    top: 10,
+    left: 10,
+    right: 10,
+    bottom: 10,
+  },
+});
 
 export const SYSTEM_STYLE_DEFAULTS: Style = {
   global: {
@@ -183,6 +233,8 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
       bottom: 10,
     },
   },
+  "bn-chart-scatter": xyChartStyleDefaults(),
+  "bn-chart-bubble": xyChartStyleDefaults(),
   "bn-tree": {
     edgeColor: "#404040",
     edgeWidth: 1,

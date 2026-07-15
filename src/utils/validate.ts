@@ -20,6 +20,7 @@ import {
 import { isValidAttributeExpression } from "../components/bn-table/utils/model/TableAttribute";
 import { DateDistance, DateLink } from "./DateStringFactory";
 import { OrderColumn, OrderDirection } from "./model/Order";
+import { resolveMeasure } from "./xy/VarianceMeasure";
 
 /**
  * Checks whether a value is blank, null, undefined, or the string `"null"`.
@@ -508,4 +509,17 @@ export function validateTreeEdgesJson(value: string): string[] {
     console.error("validateTreeEdgesJson: failed to parse JSON", e);
     return ["edges: invalid JSON structure"];
   }
+}
+
+/**
+ * Checks whether a value is a valid XY chart measure token: a scenario
+ * column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix
+ * optional — spec §4.4 of the scatter/bubble charts).
+ */
+export function isValidMeasureToken(value: string): boolean {
+  if (isBlankInput(value)) {
+    return false;
+  }
+
+  return resolveMeasure(value) !== null;
 }

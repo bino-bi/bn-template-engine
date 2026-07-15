@@ -1,0 +1,152 @@
+import { G } from "@svgdotjs/svg.js";
+import { Formatter } from "../formatter";
+import { Rect } from "./FacetGrid";
+import { NumericScale } from "./NumericScale";
+import { HighlightRange } from "./model/AxisConfig";
+import { XYChartStyle } from "./model/XYChartStyle";
+
+/** Tick rendering configuration for one panel. */
+export interface TickRenderConfig {
+  ticksX: number[];
+  ticksY: number[];
+  xDecimals: number;
+  yDecimals: number;
+  /** Outer-edge panels only (facet grids label outer edges, 10F/10G style). */
+  showXLabels: boolean;
+  showYLabels: boolean;
+}
+
+/**
+ * Per-panel plot frame for the XY charts: highlight bands, gridlines,
+ * reference lines, the frame rectangle, tick labels, and the panel title.
+ *
+ * Style roles are taken from the `axisStyles` scenario group:
+ * `ac` = frame + tick labels, `pp` = gridlines, `fc` = reference lines
+ * and iso-curves, `pl` = highlight band fill.
+ */
+export class XYFrame {
+  constructor(
+    private readonly xScale: NumericScale,
+    private readonly yScale: NumericScale,
+    private readonly rect: Rect,
+    private readonly styles: XYChartStyle,
+  ) {}
+
+  private get em(): number {
+    return this.styles.fontStyles.size;
+  }
+
+  private fontFamily(): string {
+    return this.styles.fontStyles.font.replace(/^[\d.]+px\s*/, "");
+  }
+
+  /** Shaded bands behind everything; open ends run to the domain edge. */
+  public drawBands(group: G, xHighlight?: HighlightRange, yHighlight?: HighlightRange): void {
+    const fill = this.styles.axisStyles.pl.fill;
+
+    if (xHighlight !== undefined && (xHighlight.from !== undefined || xHighlight.to !== undefined)) {
+      const from = this.xScale.scale(xHighlight.from ?? this.xScale.domainMin);
+      const to = this.xScale.scale(xHighlight.to ?? this.xScale.domainMax);
+      group
+        .rect(Math.abs(to - from), this.rect.height)
+        .move(Math.min(from, to), this.rect.y)
+        .fill(fill);
+    }
+
+    if (yHighlight !== undefined && (yHighlight.from !== undefined || yHighlight.to !== undefined)) {
+      const from = this.yScale.scale(yHighlight.from ?? this.yScale.domainMin);
+      const to = this.yScale.scale(yHighlight.to ?? this.yScale.domainMax);
+      group
+        .rect(this.rect.width, Math.abs(from - to))
+        .move(this.rect.x, Math.min(from, to))
+        .fill(fill);
+    }
+  }
+
+  /** Horizontal gridlines at the y ticks; vertical ones only when `ticksX` is given. */
+  public drawGrid(group: G, ticksY: number[], ticksX?: number[]): void {
+    const stroke = { color: this.styles.axisStyles.pp.stroke, width: this.styles.scaleFactors.gridLineWidth };
+
+    for (const tick of ticksY) {
+      const y = this.yScale.scale(tick);
+      group.line(this.rect.x, y, this.rect.x + this.rect.width, y).stroke(stroke);
+    }
+
+    if (ticksX !== undefined) {
+      for (const tick of ticksX) {
+        const x = this.xScale.scale(tick);
+        group.line(x, this.rect.y, x, this.rect.y + this.rect.height).stroke(stroke);
+      }
+    }
+  }
+
+  /** Thin reference lines at the given axis values (10A quadrant crosshair). */
+  public drawRefLines(group: G, xRef?: number, yRef?: number): void {
+    const stroke = { color: this.styles.axisStyles.fc.stroke, width: this.styles.scaleFactors.refLineWidth };
+
+    if (xRef !== undefined) {
+      const x = this.xScale.scale(xRef);
+      group.line(x, this.rect.y, x, this.rect.y + this.rect.height).stroke(stroke);
+    }
+
+    if (yRef !== undefined) {
+      const y = this.yScale.scale(yRef);
+      group.line(this.rect.x, y, this.rect.x + this.rect.width, y).stroke(stroke);
+    }
+  }
+
+  /** The four-sided thin plot frame (as in the IBCS template images). */
+  public drawFrame(group: G): void {
+    group
+      .rect(this.rect.width, this.rect.height)
+      .move(this.rect.x, this.rect.y)
+      .fill("none")
+      .stroke({ color: this.styles.axisStyles.ac.stroke, width: this.styles.scaleFactors.gridLineWidth });
+  }
+
+  /** Tick labels along the outer edges (no tick marks — template style). */
+  public drawTickLabels(group: G, config: TickRenderConfig): void {
+    const gap = this.styles.scaleFactors.axisTickLength * this.em;
+    const font = { size: this.styles.fontStyles.size, anchor: "start" as string };
+    const family = this.fontFamily();
+    const color = this.styles.fontStyles.color;
+
+    if (config.showXLabels) {
+      for (const tick of config.ticksX) {
+        const x = this.xScale.scale(tick);
+        group
+          .text(Formatter.number(tick, "decimal", config.xDecimals, config.xDecimals))
+          .font({ ...font, anchor: "middle" })
+          .fill(color)
+          .attr({ x, y: this.rect.y + this.rect.height + gap + this.em * 0.8, "font-family": family });
+      }
+    }
+
+    if (config.showYLabels) {
+      for (const tick of config.ticksY) {
+        const y = this.yScale.scale(tick);
+        group
+          .text(Formatter.number(tick, "decimal", config.yDecimals, config.yDecimals))
+          .font({ ...font, anchor: "end" })
+          .fill(color)
+          .attr({ x: this.rect.x - gap, y: y + this.em * 0.35, "font-family": family });
+      }
+    }
+  }
+
+  /** Facet panel title, top-left inside the panel, bold (10F "Europe"/"RoW"). */
+  public drawPanelTitle(group: G, title: string): void {
+    if (title === "") {
+      return;
+    }
+    group
+      .text(title)
+      .font({ size: this.styles.fontStyles.size, weight: "bold", anchor: "start" })
+      .fill(this.styles.fontStyles.color)
+      .attr({
+        x: this.rect.x + 0.5 * this.em,
+        y: this.rect.y + 1.2 * this.em,
+        "font-family": this.fontFamily(),
+      });
+  }
+}
