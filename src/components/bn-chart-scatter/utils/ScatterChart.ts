@@ -222,7 +222,17 @@ export class ScatterChart {
 
     // Reserved column right of the frame: legend and/or iso exit labels.
     const isoActive = this.config.iso !== null;
-    const isoLabelReserve = isoActive ? 3 * em : 0;
+    const isoLabelReserve = isoActive
+      ? Math.max(
+          3 * em,
+          this.textWidth(this.config.iso!.label ?? "", true) + em,
+          this.textWidth(
+            this.config.iso!.unit !== undefined && this.config.iso!.unit !== ""
+              ? `${inWord} ${this.config.iso!.unit}`
+              : "",
+          ) + em,
+        )
+      : 0;
     const rightReserve =
       this.config.legend.position === "right"
         ? Math.max(showLegend ? legendSize.width + em : 0, isoLabelReserve)
@@ -371,18 +381,21 @@ export class ScatterChart {
     anchor: "start" | "end",
   ): void {
     const label = axis.label ?? "";
-    const suffix = axis.unit !== undefined && axis.unit !== "" ? ` ${inWord} ${axis.unit}` : "";
+    const suffix = axis.unit !== undefined && axis.unit !== "" ? `${inWord} ${axis.unit}` : "";
 
+    // SVG collapses leading whitespace in text nodes — position the suffix
+    // with an explicit gap instead.
+    const gap = 0.3 * this.em;
     if (anchor === "start") {
       this.drawText(group, label, x, y, { bold: true });
       if (suffix !== "") {
-        this.drawText(group, suffix, x + this.textWidth(label, true), y, {});
+        this.drawText(group, suffix, x + this.textWidth(label, true) + gap, y, {});
       }
+    } else if (suffix !== "") {
+      this.drawText(group, suffix, x, y, { anchor: "end" });
+      this.drawText(group, label, x - this.textWidth(suffix) - gap, y, { anchor: "end", bold: true });
     } else {
-      if (suffix !== "") {
-        this.drawText(group, suffix, x, y, { anchor: "end" });
-      }
-      this.drawText(group, label, x - this.textWidth(suffix), y, { anchor: "end", bold: true });
+      this.drawText(group, label, x, y, { anchor: "end", bold: true });
     }
   }
 
@@ -545,7 +558,7 @@ export class ScatterChart {
 
     // Edge caption ("Gross profit in mUSD"), once, above the topmost k label.
     if (topExit !== null && iso.label !== undefined && iso.label !== "") {
-      const suffix = iso.unit !== undefined && iso.unit !== "" ? ` ${inWord} ${iso.unit}` : "";
+      const suffix = iso.unit !== undefined && iso.unit !== "" ? `${inWord} ${iso.unit}` : "";
       this.drawText(group, iso.label, topExit.x + 0.4 * this.em, topExit.y - 1.6 * this.em, { bold: true });
       if (suffix !== "") {
         this.drawText(group, suffix, topExit.x + 0.4 * this.em, topExit.y - 0.5 * this.em, {});

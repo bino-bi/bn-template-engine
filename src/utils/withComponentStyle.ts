@@ -31,11 +31,12 @@ const withComponentStyle = (component: any) => {
 
   const updateStyle = () => {
     const state = stores.componentStyles.state;
-    style = merge([
-      state["_system"] || ({} as Style),
-      state["_default"] || ({} as Style),
-      state[selectedStyle] || ({} as Style),
-    ]);
+    // Arrays overwrite instead of concatenating: ordered color lists like
+    // seriesColors/stackColors must be replaced wholesale by an override.
+    style = merge(
+      [state["_system"] || ({} as Style), state["_default"] || ({} as Style), state[selectedStyle] || ({} as Style)],
+      { arrayMergeType: "overwrite" },
+    );
   };
 
   const observer = new MutationObserver((mutations) => {

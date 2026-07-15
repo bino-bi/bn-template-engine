@@ -30,7 +30,10 @@ jest.mock("../../context/context-protocol", () => {
   const mockStores = {
     db: createScopedDb(),
     datasetsMeta: createStore({}),
-    componentStyles: createStore({ _system: SYSTEM_STYLE_DEFAULTS }),
+    componentStyles: createStore({
+      _system: SYSTEM_STYLE_DEFAULTS,
+      "blue-series": { "bn-chart-bubble": { seriesColors: ["#123456"] } },
+    }),
     internationalization: createStore({ ...SYSTEM_I18N_DEFAULTS }),
     assets: createStore({}),
     context: createStore({ locale: "en" }),
@@ -77,6 +80,25 @@ const chartRadii = (host: Element): number[] => {
 };
 
 const groupedRadius = (areaPerUnit: number): number => Math.sqrt((areaPerUnit * VALUE) / Math.PI);
+
+describe("bn-chart-bubble named style overrides", () => {
+  it("replaces seriesColors wholesale (arrays overwrite, they don't concatenate)", async () => {
+    seedData();
+
+    const page = await newSpecPage({
+      components: [ChartBubble, IbcsChartBubble],
+      html: `<bn-chart-bubble datasets="portfolio" selected-style="blue-series"
+        x="ac1" y="ac2" size="ac3"></bn-chart-bubble>`,
+    });
+    await page.waitForChanges();
+
+    const inner = page.root!.shadowRoot!.querySelector("ibcs-chart-bubble")!;
+    const markup = inner.shadowRoot!.querySelector("div")!.innerHTML;
+    // The single series takes the override's FIRST color — with the old
+    // concatenating merge it would still render the default palette.
+    expect(markup).toContain("#123456");
+  });
+});
 
 describe("bn-chart-bubble scaling-group synchronization", () => {
   it("renders identical radii for identical values across chart instances", async () => {

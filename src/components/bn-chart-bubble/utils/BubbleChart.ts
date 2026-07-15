@@ -88,6 +88,7 @@ export class BubbleChart {
   private canvasHeight: number = 0;
   private i18nMap: Map<string, string> = new Map();
   private hatchPatterns: Set<number> = new Set();
+  private scaleOverflowCount: number = 0;
   private svgRoot: Svg | null = null;
 
   constructor(
@@ -276,6 +277,7 @@ export class BubbleChart {
   private draw(container: Svg): void {
     this.warnings = this.data.warnings.slice();
     this.hatchPatterns.clear();
+    this.scaleOverflowCount = 0;
     this.svgRoot = container;
     const em = this.em;
     const padding = this.styles.padding;
@@ -413,6 +415,10 @@ export class BubbleChart {
       }
     }
 
+    if (this.scaleOverflowCount > 0) {
+      this.addWarningOnce("bubble-scale-overflow", { count: String(this.scaleOverflowCount) });
+    }
+
     // Stable, empty hook for a future annotation layer (spec §12).
     container.group().addClass("annotations");
   }
@@ -427,18 +433,21 @@ export class BubbleChart {
     anchor: "start" | "end",
   ): void {
     const label = axis.label ?? "";
-    const suffix = axis.unit !== undefined && axis.unit !== "" ? ` ${inWord} ${axis.unit}` : "";
+    const suffix = axis.unit !== undefined && axis.unit !== "" ? `${inWord} ${axis.unit}` : "";
 
+    // SVG collapses leading whitespace in text nodes — position the suffix
+    // with an explicit gap instead.
+    const gap = 0.3 * this.em;
     if (anchor === "start") {
       this.drawText(group, label, x, y, { bold: true });
       if (suffix !== "") {
-        this.drawText(group, suffix, x + this.textWidth(label, true), y, {});
+        this.drawText(group, suffix, x + this.textWidth(label, true) + gap, y, {});
       }
+    } else if (suffix !== "") {
+      this.drawText(group, suffix, x, y, { anchor: "end" });
+      this.drawText(group, label, x - this.textWidth(suffix) - gap, y, { anchor: "end", bold: true });
     } else {
-      if (suffix !== "") {
-        this.drawText(group, suffix, x, y, { anchor: "end" });
-      }
-      this.drawText(group, label, x - this.textWidth(suffix), y, { anchor: "end", bold: true });
+      this.drawText(group, label, x, y, { anchor: "end", bold: true });
     }
   }
 
@@ -523,7 +532,7 @@ export class BubbleChart {
       const r = radiusScale.radius(point.size ?? 0);
 
       if (this.config.sizeAreaPerUnit > 0 && this.bubbleExceedsPanel(panel.rect, cx, cy, r)) {
-        this.addWarningOnce("bubble-scale-overflow", {});
+        this.scaleOverflowCount++;
       }
 
       if (point.compare != null) {
