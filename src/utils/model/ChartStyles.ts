@@ -1,10 +1,11 @@
 import { Pattern } from "@svgdotjs/svg.js";
 import { ScaleFactorsStructureChart } from "../../components/bn-chart-structure/utils/model";
 import { ScaleFactorsTimeChart } from "../../components/bn-chart-time/utils/model";
+import { ScaleFactorsXYChart } from "../xy/model/ScaleFactorsXYChart";
 
 /** Resolved chart styling configuration combining scale factors, fonts, scenario colors, and SVG patterns. */
 export interface BinoChartSyles {
-  scaleFactors: ScaleFactorsTimeChart | ScaleFactorsStructureChart | null;
+  scaleFactors: ScaleFactorsTimeChart | ScaleFactorsStructureChart | ScaleFactorsXYChart | null;
   fontStyles: {
     font: string;
     size: number;
