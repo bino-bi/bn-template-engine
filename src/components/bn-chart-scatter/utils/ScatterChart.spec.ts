@@ -120,6 +120,15 @@ describe("ScatterChart", () => {
     expect(warning!.data.names).toBe("Nope");
   });
 
+  it("cycles the palette with a warning when there are more series than colors (xy-series-overflow)", () => {
+    const rows = Array.from({ length: 8 }, (_, i) =>
+      row({ category: `S${i}`, categoryIndex: i, subCategory: `P${i}`, subCategoryIndex: i, ac1: i + 1, ac2: i + 1 }),
+    );
+    const chart = makeChart(rows);
+    chart.toString();
+    expect(chart.getWarnings().map((w) => w.code)).toContain("xy-series-overflow");
+  });
+
   it("renders 2000 points within the performance budget (spec §10)", () => {
     const rows: Record<string, unknown>[] = [];
     for (let i = 0; i < 2000; i++) {

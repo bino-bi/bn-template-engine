@@ -162,6 +162,27 @@ describe("bn-chart-scatter validation matrix", () => {
   });
 });
 
+describe("bn-chart-scatter data-warning transport", () => {
+  it("syncs orchestrator warnings to has-error with translated, interpolated messages", async () => {
+    const { getStores } = require("../../context/context-protocol");
+    const db = getStores(null).db.db;
+    db.tables["dupes"] = {
+      data: [
+        { operation: "+", category: "RX", categoryIndex: 1, ac1: 1, ac2: 2 },
+        { operation: "+", category: "RX", categoryIndex: 1, ac1: 3, ac2: 4 },
+      ],
+    };
+
+    const page = await renderScatter(`datasets="dupes" x="ac1" y="ac2" level="category"`);
+    const warning = readErrors(page).find((e) => e.id === "WARN_xy-duplicate-point");
+    expect(warning).toBeDefined();
+    expect(warning!.type).toBe("warning");
+    // The en bundle message with {{count}}/{{names}} interpolated.
+    expect(warning!.message).toContain("1 duplicate point");
+    expect(warning!.message).toContain("RX");
+  });
+});
+
 describe("bn-chart-scatter getDataStructure", () => {
   it("returns the field map with live mapping descriptions", async () => {
     const page = await renderScatter(`x='{"measure":"ac1","label":"Margin"}' y="ac2"`);
