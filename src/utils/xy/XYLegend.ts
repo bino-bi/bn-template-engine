@@ -48,11 +48,13 @@ export class XYLegend {
   }
 
   private textWidth(text: string, bold: boolean = false): number {
-    return CalculateSize(text, {
+    const width = CalculateSize(text, {
       font: this.styles.fontStyles.font,
       fontSize: this.styles.fontStyles.size + "px",
       fontWeight: bold ? "bold" : "normal",
     }).width;
+    // calculate-size needs a live DOM; fall back to an estimate in test environments.
+    return Number.isFinite(width) && width > 0 ? width : text.length * 0.6 * this.em;
   }
 
   private rows(model: LegendModel): { text: string; bold: boolean; treatment: MarkTreatment | null }[] {
