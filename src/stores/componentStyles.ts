@@ -14,6 +14,7 @@
 import { ScaleFactorsTimeChart } from "../components/bn-chart-time/utils/model";
 import { SVGStyleGroup, SVGVariancesStyleGroup } from "../utils/model";
 import { ScaleFactorsStructureChart } from "../components/bn-chart-structure/utils/model";
+import { ScaleFactorsBulletChart } from "../components/bn-chart-bullet/utils/model/BulletChartStyle";
 import { ScaleFactorsXYChart } from "../utils/xy/model/ScaleFactorsXYChart";
 import { XY_SERIES_PALETTE } from "../utils/xy/SeriesPalette";
 
@@ -42,6 +43,7 @@ export interface Style {
   "bn-chart-structure": StructureChartStyle;
   "bn-chart-scatter": XYChartStyle;
   "bn-chart-bubble": XYChartStyle;
+  "bn-chart-bullet": BulletChartStyle;
   "bn-tree": TreeStyle;
   "bn-grid": GridStyle;
 }
@@ -85,6 +87,25 @@ export interface StructureChartStyle {
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
   stackColors: string[];
+  padding: {
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
+  };
+}
+
+/**
+ * IBCS styling for `bn-chart-bullet`: scale factors, scenario colors for the
+ * actual bar and target marker, variance colors, the qualitative range-band
+ * grays (max two bands), and padding.
+ */
+export interface BulletChartStyle {
+  scaleFactors: ScaleFactorsBulletChart;
+  axisStyles: SVGStyleGroup;
+  barStyles: SVGStyleGroup;
+  varianceStyles: SVGVariancesStyleGroup;
+  rangeColors: string[];
   padding: {
     top: number;
     left: number;
@@ -235,6 +256,44 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
   },
   "bn-chart-scatter": xyChartStyleDefaults(),
   "bn-chart-bubble": xyChartStyleDefaults(),
+  "bn-chart-bullet": {
+    scaleFactors: {
+      rowHeight: 1.9,
+      barHeight: 0.66,
+      varianceHeight: 0.4,
+      targetTickHeight: 1.1,
+      targetLineWidth: 2,
+      axisLineWidth: 1,
+      labelToBar: 0.3,
+      labelToAxis: 0.3,
+      axisTickLength: 0.35,
+      tickStripHeight: 1.2,
+    },
+    axisStyles: {
+      ac: { stroke: "#121212", fill: "#121212", width: 0.1 },
+      fc: { stroke: "#121212", fill: "#ffffff", width: 0.1, dasharray: "10 5 5 5" },
+      pp: { stroke: "#606060", fill: "#606060", width: 0.1 },
+      pl: { stroke: "#121212", fill: "#ffffff", width: 0.1 },
+    },
+    barStyles: {
+      ac: { stroke: "#404040", fill: "#404040", width: 0.1 },
+      fc: { stroke: "#404040", fill: "#ffffff", width: 0.5, dasharray: "4 3" },
+      pp: { stroke: "#A6A6A6", fill: "#A6A6A6", width: 0.1 },
+      pl: { stroke: "#404040", fill: "#ffffff", width: 0.1 },
+    },
+    varianceStyles: {
+      pos: { stroke: "#008f96", fill: "#008f96", width: 0.1 },
+      neg: { stroke: "#ff0000", fill: "#ff0000", width: 0.1 },
+      neu: { stroke: "#808080", fill: "#808080", width: 0.1 },
+    },
+    rangeColors: ["#D9D9D9", "#EFEFEF"],
+    padding: {
+      top: 10,
+      left: 10,
+      right: 10,
+      bottom: 10,
+    },
+  },
   "bn-tree": {
     edgeColor: "#404040",
     edgeWidth: 1,

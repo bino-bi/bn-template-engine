@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="de">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+  <title>bn-chart-bullet — IBCS bullet graph examples</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet">
+  <script type="module" src="/build/bn-template-engine.esm.js"></script>
+  <script nomodule src="/build/bn-template-engine.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; font-family: 'Noto Sans', sans-serif; }
+    section { width: 1240px; margin: 24px auto; }
+    h2 { font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  </style>
+</head>
+
+<body>
+  <bn-context locale="de">
+
+    <bn-component-style>
+      { "global": { "fontFamily": "'Noto Sans', sans-serif", "fontSizePx": 13.3333 } }
+    </bn-component-style>
+    <bn-datasource name="kpis">
+      [{"category": "Revenue", "categoryIndex": 1, "operation": "+", "ac1": 272.5, "pl1": 250.0},
+       {"category": "Profit", "categoryIndex": 2, "operation": "+", "ac1": 22.5, "pl1": 27.0},
+       {"category": "Avg. Order Size", "categoryIndex": 3, "operation": "+", "ac1": 325.0, "pl1": 550.0},
+       {"category": "New Customers", "categoryIndex": 4, "operation": "+", "ac1": 1650.0, "pl1": 2100.0},
+       {"category": "Customer Satisf.", "categoryIndex": 5, "operation": "+", "ac1": 4.6, "pl1": 4.4},
+       {"category": "Op. Costs", "categoryIndex": 6, "operation": "-", "ac1": 48.2, "pl1": 45.0}]
+    </bn-datasource>
+    <bn-dataset name="kpiBullets" datasources="kpis">SELECT * FROM kpis</bn-dataset>
+
+    <bn-datasource name="kpisForecast">
+      [{"category": "Revenue", "categoryIndex": 1, "operation": "+", "ac1": 272.5, "fc1": 300.0},
+       {"category": "Profit", "categoryIndex": 2, "operation": "+", "ac1": 22.5, "fc1": 25.0},
+       {"category": "New Customers", "categoryIndex": 3, "operation": "+", "ac1": 1650.0, "fc1": 1800.0}]
+    </bn-datasource>
+    <bn-dataset name="kpiForecastBullets" datasources="kpisForecast">SELECT * FROM kpisForecast</bn-dataset>
+
+    <section>
+      <h2>1 — IBCS default: everything auto-detected (actual ac1, target pl1, normalized, variances)</h2>
+      <bn-chart-bullet datasets="kpiBullets"></bn-chart-bullet>
+    </section>
+
+    <section>
+      <h2>2 — explicit measures with labels and unit</h2>
+      <bn-chart-bullet datasets="kpiBullets" chart-title="KPI overview vs. plan — 2026"
+        actual='{"measure":"ac1","label":"AC","unit":"norm."}'
+        target='{"measure":"pl1","label":"Plan"}'></bn-chart-bullet>
+    </section>
+
+    <section>
+      <h2>3 — classic Stephen Few look: per-row scales, gray bands, no variances</h2>
+      <bn-chart-bullet datasets="kpiBullets" chart-title="KPI overview (classic bullet)"
+        normalize="none" ranges="[0.6, 0.9]" variances="none"></bn-chart-bullet>
+    </section>
+
+    <section>
+      <h2>4 — ordered by actual (desc), limited to 4 rows, integer labels</h2>
+      <bn-chart-bullet datasets="kpiBullets" order="ac1" order-direction="desc" limit="4"
+        labels='{"decimals":0}'></bn-chart-bullet>
+    </section>
+
+    <section>
+      <h2>5 — target fallback: dataset without pl → fc1 auto-detected (dashed marker)</h2>
+      <bn-chart-bullet datasets="kpiForecastBullets"></bn-chart-bullet>
+    </section>
+
+  </bn-context>
+</body>
+
+</html>
