@@ -12,9 +12,11 @@ import { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 import { XYChartStyle } from "./utils/xy/model/XYChartStyle";
 import { RuleSetConfig } from "./stores/ruleSets";
 import { ErrorDispatcher } from "./utils/withHasError";
-import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
-import { Order } from "./utils/model/Order";
+import { BulletLabelConfig, BulletMeasureConfig } from "./components/bn-chart-bullet/utils/model/BulletConfig";
 import { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
+import { Order } from "./utils/model/Order";
+import { BulletChartStyle } from "./components/bn-chart-bullet/utils/model/BulletChartStyle";
+import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
 import { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 import { ParentDimensions } from "./utils/parentDimensions";
@@ -33,9 +35,11 @@ export { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 export { XYChartStyle } from "./utils/xy/model/XYChartStyle";
 export { RuleSetConfig } from "./stores/ruleSets";
 export { ErrorDispatcher } from "./utils/withHasError";
-export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
-export { Order } from "./utils/model/Order";
+export { BulletLabelConfig, BulletMeasureConfig } from "./components/bn-chart-bullet/utils/model/BulletConfig";
 export { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
+export { Order } from "./utils/model/Order";
+export { BulletChartStyle } from "./components/bn-chart-bullet/utils/model/BulletChartStyle";
+export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
 export { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 export { ParentDimensions } from "./utils/parentDimensions";
@@ -144,6 +148,90 @@ export namespace Components {
           * Y axis mapping — same shape as `x`.
          */
         "y": string;
+    }
+    /**
+     * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
+     * a target marker.
+     * Subscribes to a dataset (via `withDataset`) and renders in the IBCS
+     * default mode with **normalized targets** — every row is scaled to
+     * fractions of its target so one continuous target line spans all rows and
+     * KPIs become visually comparable — plus integrated variance bars in the
+     * IBCS variance colors. The classic Stephen Few look is opt-in via
+     * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
+     * gray bands). Actual and target scenarios are auto-detected from the
+     * dataset meta when not set. The heavy SVG rendering is performed by the
+     * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+     * auto-detected metadata, and computes styles.
+     */
+    interface BnChartBullet {
+        /**
+          * Actual-value measure. JSON object or a bare scenario slot as shorthand: `{"measure":"ac1","label":"Revenue","unit":"EUR k"}`. Only plain scenario slots (`ac1`…`pl4`) are allowed — variance tokens are not. Empty or `"auto"` auto-detects (`ac1`, else the first available scenario).
+          * @default ""
+         */
+        "actual": string;
+        /**
+          * Custom chart title
+          * @default ""
+         */
+        "chartTitle": string;
+        /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
+          * @default ""
+         */
+        "filter": string;
+        /**
+          * Value labels. JSON object: `{"show":"auto"|"none","decimals":1}`.
+          * @default ""
+         */
+        "labels": string;
+        /**
+          * KPI row level: `auto` (deepest populated level from the dataset meta), `rowgroup`, `category`, or `subcategory`.
+          * @default "auto"
+         */
+        "level": string;
+        /**
+          * Maximum number of KPI rows (0 = unlimited). Truncates — there is no REST aggregate, summing heterogeneous KPIs would be meaningless.
+          * @default 0
+         */
+        "limit": number;
+        /**
+          * Target normalization: `target` (default — rows share an aligned target position, the IBCS-comparable form) or `none` (classic per-row scales with tick strips).
+          * @default "target"
+         */
+        "normalize": string;
+        /**
+          * Sort key(s) of the KPI rows: hierarchy columns or scenario slots (e.g. `"ac1"`), comma-separated for multi-level sorting. Empty or `"auto"` uses the dataset's suggested order.
+          * @default ""
+         */
+        "order": string;
+        /**
+          * Sorting direction: `asc` or `desc`.
+          * @default ""
+         */
+        "orderDirection": string;
+        /**
+          * Qualitative range bands as a JSON array of ascending fractions of the target, at most two — e.g. `[0.6, 0.9]` (IBCS rejects a third band of arbitrary length). Classic mode only; ignored while `normalize` is `"target"`.
+          * @default ""
+         */
+        "ranges": string;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario treatments and display names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
+          * Font-size auto-fit: `""`/`auto` shrink to the parent height (with/without a warning), `none` disables, a number applies a fixed factor.
+         */
+        "scale"?: string;
+        /**
+          * Target measure — same shape as `actual`. Empty or `"auto"` auto-detects (`pl1` > `pp1` > `fc1`); without any target scenario the chart renders actual bars only.
+          * @default ""
+         */
+        "target": string;
+        /**
+          * Variance bars between actual and target: `auto` (default — drawn in normalized mode, favorable/unfavorable in the IBCS variance colors) or `none`.
+          * @default "auto"
+         */
+        "variances": string;
     }
     /**
      * SVG scattergram following IBCS template C09.
@@ -1275,6 +1363,76 @@ export namespace Components {
         "y": AxisConfig;
     }
     /**
+     * Inner presentational element of `bn-chart-bullet`: owns the
+     * {@link BulletChart} orchestrator and emits its SVG string. All props
+     * arrive validated and parsed from the facade.
+     */
+    interface IbcsChartBullet {
+        "actual": BulletMeasureConfig;
+        /**
+          * @default ""
+         */
+        "chartTitle": string;
+        /**
+          * @default 0
+         */
+        "containerWidth": number;
+        /**
+          * Bumped by the facade when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion": number;
+        /**
+          * The facade's error dispatcher — data warnings are synced through it (stable ids).
+         */
+        "errors"?: ErrorDispatcher;
+        /**
+          * @default ""
+         */
+        "filter": string;
+        /**
+          * @default new Map()
+         */
+        "i18n": Map<string, string>;
+        "labels": BulletLabelConfig;
+        /**
+          * @default AggregationLevel.CATEGORY
+         */
+        "level": AggregationLevel;
+        /**
+          * @default 0
+         */
+        "limit": number;
+        /**
+          * @default "target"
+         */
+        "normalize": "target" | "none";
+        "order": Order;
+        /**
+          * @default []
+         */
+        "ranges": number[];
+        "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default true
+         */
+        "showVariances": boolean;
+        "styles": BulletChartStyle | undefined;
+        /**
+          * Name of the dataset (table or view in the scoped alasql database).
+          * @default ""
+         */
+        "tableName": string;
+        /**
+          * @default null
+         */
+        "target": BulletMeasureConfig | null;
+        /**
+          * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+         */
+        "translate"?: (key: string, data?: object) => string;
+    }
+    /**
      * Inner presentational element of `bn-chart-scatter`: owns the
      * {@link ScatterChart} orchestrator and emits its SVG string. All props
      * arrive validated and parsed from the facade.
@@ -1748,6 +1906,26 @@ declare global {
         new (): HTMLBnChartBubbleElement;
     };
     /**
+     * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
+     * a target marker.
+     * Subscribes to a dataset (via `withDataset`) and renders in the IBCS
+     * default mode with **normalized targets** — every row is scaled to
+     * fractions of its target so one continuous target line spans all rows and
+     * KPIs become visually comparable — plus integrated variance bars in the
+     * IBCS variance colors. The classic Stephen Few look is opt-in via
+     * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
+     * gray bands). Actual and target scenarios are auto-detected from the
+     * dataset meta when not set. The heavy SVG rendering is performed by the
+     * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+     * auto-detected metadata, and computes styles.
+     */
+    interface HTMLBnChartBulletElement extends Components.BnChartBullet, HTMLStencilElement {
+    }
+    var HTMLBnChartBulletElement: {
+        prototype: HTMLBnChartBulletElement;
+        new (): HTMLBnChartBulletElement;
+    };
+    /**
      * SVG scattergram following IBCS template C09.
      * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
      * with series hues, selective labels, highlight bands, and hyperbolic
@@ -1995,6 +2173,17 @@ declare global {
         new (): HTMLIbcsChartBubbleElement;
     };
     /**
+     * Inner presentational element of `bn-chart-bullet`: owns the
+     * {@link BulletChart} orchestrator and emits its SVG string. All props
+     * arrive validated and parsed from the facade.
+     */
+    interface HTMLIbcsChartBulletElement extends Components.IbcsChartBullet, HTMLStencilElement {
+    }
+    var HTMLIbcsChartBulletElement: {
+        prototype: HTMLIbcsChartBulletElement;
+        new (): HTMLIbcsChartBulletElement;
+    };
+    /**
      * Inner presentational element of `bn-chart-scatter`: owns the
      * {@link ScatterChart} orchestrator and emits its SVG string. All props
      * arrive validated and parsed from the facade.
@@ -2042,6 +2231,7 @@ declare global {
         "bn-body": HTMLBnBodyElement;
         "bn-card": HTMLBnCardElement;
         "bn-chart-bubble": HTMLBnChartBubbleElement;
+        "bn-chart-bullet": HTMLBnChartBulletElement;
         "bn-chart-scatter": HTMLBnChartScatterElement;
         "bn-chart-structure": HTMLBnChartStructureElement;
         "bn-chart-time": HTMLBnChartTimeElement;
@@ -2066,6 +2256,7 @@ declare global {
         "bn-tree": HTMLBnTreeElement;
         "editor-companion": HTMLEditorCompanionElement;
         "ibcs-chart-bubble": HTMLIbcsChartBubbleElement;
+        "ibcs-chart-bullet": HTMLIbcsChartBulletElement;
         "ibcs-chart-scatter": HTMLIbcsChartScatterElement;
         "ibcs-chart-structure": HTMLIbcsChartStructureElement;
         "ibcs-chart-time": HTMLIbcsChartTimeElement;
@@ -2172,6 +2363,90 @@ declare namespace LocalJSX {
           * Y axis mapping — same shape as `x`.
          */
         "y": string;
+    }
+    /**
+     * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
+     * a target marker.
+     * Subscribes to a dataset (via `withDataset`) and renders in the IBCS
+     * default mode with **normalized targets** — every row is scaled to
+     * fractions of its target so one continuous target line spans all rows and
+     * KPIs become visually comparable — plus integrated variance bars in the
+     * IBCS variance colors. The classic Stephen Few look is opt-in via
+     * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
+     * gray bands). Actual and target scenarios are auto-detected from the
+     * dataset meta when not set. The heavy SVG rendering is performed by the
+     * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+     * auto-detected metadata, and computes styles.
+     */
+    interface BnChartBullet {
+        /**
+          * Actual-value measure. JSON object or a bare scenario slot as shorthand: `{"measure":"ac1","label":"Revenue","unit":"EUR k"}`. Only plain scenario slots (`ac1`…`pl4`) are allowed — variance tokens are not. Empty or `"auto"` auto-detects (`ac1`, else the first available scenario).
+          * @default ""
+         */
+        "actual"?: string;
+        /**
+          * Custom chart title
+          * @default ""
+         */
+        "chartTitle"?: string;
+        /**
+          * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
+          * @default ""
+         */
+        "filter"?: string;
+        /**
+          * Value labels. JSON object: `{"show":"auto"|"none","decimals":1}`.
+          * @default ""
+         */
+        "labels"?: string;
+        /**
+          * KPI row level: `auto` (deepest populated level from the dataset meta), `rowgroup`, `category`, or `subcategory`.
+          * @default "auto"
+         */
+        "level"?: string;
+        /**
+          * Maximum number of KPI rows (0 = unlimited). Truncates — there is no REST aggregate, summing heterogeneous KPIs would be meaningless.
+          * @default 0
+         */
+        "limit"?: number;
+        /**
+          * Target normalization: `target` (default — rows share an aligned target position, the IBCS-comparable form) or `none` (classic per-row scales with tick strips).
+          * @default "target"
+         */
+        "normalize"?: string;
+        /**
+          * Sort key(s) of the KPI rows: hierarchy columns or scenario slots (e.g. `"ac1"`), comma-separated for multi-level sorting. Empty or `"auto"` uses the dataset's suggested order.
+          * @default ""
+         */
+        "order"?: string;
+        /**
+          * Sorting direction: `asc` or `desc`.
+          * @default ""
+         */
+        "orderDirection"?: string;
+        /**
+          * Qualitative range bands as a JSON array of ascending fractions of the target, at most two — e.g. `[0.6, 0.9]` (IBCS rejects a third band of arbitrary length). Classic mode only; ignored while `normalize` is `"target"`.
+          * @default ""
+         */
+        "ranges"?: string;
+        /**
+          * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario treatments and display names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+         */
+        "ruleset"?: string;
+        /**
+          * Font-size auto-fit: `""`/`auto` shrink to the parent height (with/without a warning), `none` disables, a number applies a fixed factor.
+         */
+        "scale"?: string;
+        /**
+          * Target measure — same shape as `actual`. Empty or `"auto"` auto-detects (`pl1` > `pp1` > `fc1`); without any target scenario the chart renders actual bars only.
+          * @default ""
+         */
+        "target"?: string;
+        /**
+          * Variance bars between actual and target: `auto` (default — drawn in normalized mode, favorable/unfavorable in the IBCS variance colors) or `none`.
+          * @default "auto"
+         */
+        "variances"?: string;
     }
     /**
      * SVG scattergram following IBCS template C09.
@@ -3298,6 +3573,76 @@ declare namespace LocalJSX {
         "y": AxisConfig;
     }
     /**
+     * Inner presentational element of `bn-chart-bullet`: owns the
+     * {@link BulletChart} orchestrator and emits its SVG string. All props
+     * arrive validated and parsed from the facade.
+     */
+    interface IbcsChartBullet {
+        "actual": BulletMeasureConfig;
+        /**
+          * @default ""
+         */
+        "chartTitle"?: string;
+        /**
+          * @default 0
+         */
+        "containerWidth"?: number;
+        /**
+          * Bumped by the facade when the dataset changes; triggers re-render.
+          * @default 0
+         */
+        "dataVersion"?: number;
+        /**
+          * The facade's error dispatcher — data warnings are synced through it (stable ids).
+         */
+        "errors"?: ErrorDispatcher;
+        /**
+          * @default ""
+         */
+        "filter"?: string;
+        /**
+          * @default new Map()
+         */
+        "i18n"?: Map<string, string>;
+        "labels": BulletLabelConfig;
+        /**
+          * @default AggregationLevel.CATEGORY
+         */
+        "level"?: AggregationLevel;
+        /**
+          * @default 0
+         */
+        "limit"?: number;
+        /**
+          * @default "target"
+         */
+        "normalize"?: "target" | "none";
+        "order": Order;
+        /**
+          * @default []
+         */
+        "ranges"?: number[];
+        "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default true
+         */
+        "showVariances"?: boolean;
+        "styles"?: BulletChartStyle | undefined;
+        /**
+          * Name of the dataset (table or view in the scoped alasql database).
+          * @default ""
+         */
+        "tableName"?: string;
+        /**
+          * @default null
+         */
+        "target"?: BulletMeasureConfig | null;
+        /**
+          * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+         */
+        "translate"?: (key: string, data?: object) => string;
+    }
+    /**
      * Inner presentational element of `bn-chart-scatter`: owns the
      * {@link ScatterChart} orchestrator and emits its SVG string. All props
      * arrive validated and parsed from the facade.
@@ -3754,6 +4099,22 @@ declare namespace LocalJSX {
         "limit": number;
         "scale": string;
     }
+    interface BnChartBulletAttributes {
+        "ruleset": string;
+        "chartTitle": string;
+        "filter": string;
+        "actual": string;
+        "target": string;
+        "ranges": string;
+        "normalize": string;
+        "variances": string;
+        "level": string;
+        "order": string;
+        "orderDirection": string;
+        "limit": number;
+        "labels": string;
+        "scale": string;
+    }
     interface BnChartScatterAttributes {
         "ruleset": string;
         "chartTitle": string;
@@ -4015,6 +4376,17 @@ declare namespace LocalJSX {
         "sizeAreaPerUnit": number;
         "containerWidth": number;
     }
+    interface IbcsChartBulletAttributes {
+        "tableName": string;
+        "dataVersion": number;
+        "chartTitle": string;
+        "normalize": "target" | "none";
+        "showVariances": boolean;
+        "level": AggregationLevel;
+        "limit": number;
+        "filter": string;
+        "containerWidth": number;
+    }
     interface IbcsChartScatterAttributes {
         "tableName": string;
         "dataVersion": number;
@@ -4097,6 +4469,7 @@ declare namespace LocalJSX {
         "bn-body": BnBody;
         "bn-card": BnCard;
         "bn-chart-bubble": Omit<BnChartBubble, keyof BnChartBubbleAttributes> & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes]?: BnChartBubble[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `attr:${K}`]?: BnChartBubbleAttributes[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `prop:${K}`]?: BnChartBubble[K] } & OneOf<"x", BnChartBubble["x"], BnChartBubbleAttributes["x"]> & OneOf<"y", BnChartBubble["y"], BnChartBubbleAttributes["y"]> & OneOf<"size", BnChartBubble["size"], BnChartBubbleAttributes["size"]>;
+        "bn-chart-bullet": Omit<BnChartBullet, keyof BnChartBulletAttributes> & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes]?: BnChartBullet[K] } & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes as `attr:${K}`]?: BnChartBulletAttributes[K] } & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes as `prop:${K}`]?: BnChartBullet[K] };
         "bn-chart-scatter": Omit<BnChartScatter, keyof BnChartScatterAttributes> & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes]?: BnChartScatter[K] } & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes as `attr:${K}`]?: BnChartScatterAttributes[K] } & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes as `prop:${K}`]?: BnChartScatter[K] } & OneOf<"x", BnChartScatter["x"], BnChartScatterAttributes["x"]> & OneOf<"y", BnChartScatter["y"], BnChartScatterAttributes["y"]>;
         "bn-chart-structure": Omit<BnChartStructure, keyof BnChartStructureAttributes> & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes]?: BnChartStructure[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `attr:${K}`]?: BnChartStructureAttributes[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `prop:${K}`]?: BnChartStructure[K] } & OneOf<"scenarios", BnChartStructure["scenarios"], BnChartStructureAttributes["scenarios"]> & OneOf<"variances", BnChartStructure["variances"], BnChartStructureAttributes["variances"]> & OneOf<"unitScaling", BnChartStructure["unitScaling"], BnChartStructureAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartStructure["percentageScaling"], BnChartStructureAttributes["percentageScaling"]> & OneOf<"level", BnChartStructure["level"], BnChartStructureAttributes["level"]> & OneOf<"order", BnChartStructure["order"], BnChartStructureAttributes["order"]> & OneOf<"orderDirection", BnChartStructure["orderDirection"], BnChartStructureAttributes["orderDirection"]>;
         "bn-chart-time": Omit<BnChartTime, keyof BnChartTimeAttributes> & { [K in keyof BnChartTime & keyof BnChartTimeAttributes]?: BnChartTime[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `attr:${K}`]?: BnChartTimeAttributes[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `prop:${K}`]?: BnChartTime[K] } & OneOf<"scenarios", BnChartTime["scenarios"], BnChartTimeAttributes["scenarios"]> & OneOf<"variances", BnChartTime["variances"], BnChartTimeAttributes["variances"]> & OneOf<"unitScaling", BnChartTime["unitScaling"], BnChartTimeAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartTime["percentageScaling"], BnChartTimeAttributes["percentageScaling"]> & OneOf<"level", BnChartTime["level"], BnChartTimeAttributes["level"]> & OneOf<"order", BnChartTime["order"], BnChartTimeAttributes["order"]> & OneOf<"orderDirection", BnChartTime["orderDirection"], BnChartTimeAttributes["orderDirection"]> & OneOf<"dateInterval", BnChartTime["dateInterval"], BnChartTimeAttributes["dateInterval"]> & OneOf<"axisLabelsMode", BnChartTime["axisLabelsMode"], BnChartTimeAttributes["axisLabelsMode"]>;
@@ -4121,6 +4494,7 @@ declare namespace LocalJSX {
         "bn-tree": Omit<BnTree, keyof BnTreeAttributes> & { [K in keyof BnTree & keyof BnTreeAttributes]?: BnTree[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `attr:${K}`]?: BnTreeAttributes[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `prop:${K}`]?: BnTree[K] } & OneOf<"edges", BnTree["edges"], BnTreeAttributes["edges"]>;
         "editor-companion": EditorCompanion;
         "ibcs-chart-bubble": Omit<IbcsChartBubble, keyof IbcsChartBubbleAttributes> & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes]?: IbcsChartBubble[K] } & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes as `attr:${K}`]?: IbcsChartBubbleAttributes[K] } & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes as `prop:${K}`]?: IbcsChartBubble[K] };
+        "ibcs-chart-bullet": Omit<IbcsChartBullet, keyof IbcsChartBulletAttributes> & { [K in keyof IbcsChartBullet & keyof IbcsChartBulletAttributes]?: IbcsChartBullet[K] } & { [K in keyof IbcsChartBullet & keyof IbcsChartBulletAttributes as `attr:${K}`]?: IbcsChartBulletAttributes[K] } & { [K in keyof IbcsChartBullet & keyof IbcsChartBulletAttributes as `prop:${K}`]?: IbcsChartBullet[K] };
         "ibcs-chart-scatter": Omit<IbcsChartScatter, keyof IbcsChartScatterAttributes> & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes]?: IbcsChartScatter[K] } & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes as `attr:${K}`]?: IbcsChartScatterAttributes[K] } & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes as `prop:${K}`]?: IbcsChartScatter[K] };
         "ibcs-chart-structure": Omit<IbcsChartStructure, keyof IbcsChartStructureAttributes> & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes]?: IbcsChartStructure[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `attr:${K}`]?: IbcsChartStructureAttributes[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `prop:${K}`]?: IbcsChartStructure[K] };
         "ibcs-chart-time": Omit<IbcsChartTime, keyof IbcsChartTimeAttributes> & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes]?: IbcsChartTime[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `attr:${K}`]?: IbcsChartTimeAttributes[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `prop:${K}`]?: IbcsChartTime[K] };
@@ -4146,6 +4520,21 @@ declare module "@stencil/core" {
              * resolves auto-detected metadata, and computes styles.
              */
             "bn-chart-bubble": LocalJSX.IntrinsicElements["bn-chart-bubble"] & JSXBase.HTMLAttributes<HTMLBnChartBubbleElement>;
+            /**
+             * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
+             * a target marker.
+             * Subscribes to a dataset (via `withDataset`) and renders in the IBCS
+             * default mode with **normalized targets** — every row is scaled to
+             * fractions of its target so one continuous target line spans all rows and
+             * KPIs become visually comparable — plus integrated variance bars in the
+             * IBCS variance colors. The classic Stephen Few look is opt-in via
+             * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
+             * gray bands). Actual and target scenarios are auto-detected from the
+             * dataset meta when not set. The heavy SVG rendering is performed by the
+             * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+             * auto-detected metadata, and computes styles.
+             */
+            "bn-chart-bullet": LocalJSX.IntrinsicElements["bn-chart-bullet"] & JSXBase.HTMLAttributes<HTMLBnChartBulletElement>;
             /**
              * SVG scattergram following IBCS template C09.
              * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
@@ -4273,6 +4662,12 @@ declare module "@stencil/core" {
              * arrive validated and parsed from the facade.
              */
             "ibcs-chart-bubble": LocalJSX.IntrinsicElements["ibcs-chart-bubble"] & JSXBase.HTMLAttributes<HTMLIbcsChartBubbleElement>;
+            /**
+             * Inner presentational element of `bn-chart-bullet`: owns the
+             * {@link BulletChart} orchestrator and emits its SVG string. All props
+             * arrive validated and parsed from the facade.
+             */
+            "ibcs-chart-bullet": LocalJSX.IntrinsicElements["ibcs-chart-bullet"] & JSXBase.HTMLAttributes<HTMLIbcsChartBulletElement>;
             /**
              * Inner presentational element of `bn-chart-scatter`: owns the
              * {@link ScatterChart} orchestrator and emits its SVG string. All props

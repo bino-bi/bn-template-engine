@@ -1,0 +1,9 @@
+:host {
+  position: relative;
+  display: inline-block;
+}
+
+.warning {
+  font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
+  color: var(--bn-font-color, black);
+}
