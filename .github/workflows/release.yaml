@@ -69,7 +69,7 @@ jobs:
           zip -r ../bn-template-engine-${{ steps.version.outputs.VERSION }}.zip .
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: Release ${{ steps.version.outputs.VERSION }}
@@ -85,7 +85,7 @@ jobs:
           path: releases-repo
 
       - name: Create release in releases repository
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           repository: bino-bi/bn-template-engine-releases
           token: ${{ secrets.GH_RELEASES_TOKEN }}
