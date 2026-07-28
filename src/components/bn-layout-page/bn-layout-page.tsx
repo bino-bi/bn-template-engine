@@ -162,8 +162,19 @@ export class LayoutPage {
 
   /**
    * Namespace used for title translations via the internationalization store.
+   * Applies to the title only.
+   *
+   * @deprecated Use `i18nNamespace` instead.
    */
-  @Prop() titleNamespace: string = "_system";
+  @Prop() titleNamespace: string;
+
+  /**
+   * I18n namespace for this page's title and, via default inheritance, every
+   * descendant component (their own `i18n-namespace` wins). Reflected so
+   * descendants can resolve it from the `i18n-namespace` attribute. Takes
+   * precedence over the deprecated `titleNamespace`.
+   */
+  @Prop({ reflect: true }) i18nNamespace: string;
 
   /**
    * Page size format. Determines the pixel dimensions of the rendered page.
@@ -429,7 +440,7 @@ export class LayoutPage {
       >
         <bn-message text={this.messageText} image={this.messageImage}></bn-message>
         <bn-title // @ts-ignore
-          namespace={this.titleNamespace}
+          i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
           ruleset={this.ruleset}
           business-unit={this.titleBusinessUnit}
           scenarios={this.titleScenarios}

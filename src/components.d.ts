@@ -700,6 +700,9 @@ export namespace Components {
     }
     interface BnInternationalization {
         "code": string;
+        /**
+          * @default "_system"
+         */
         "namespace": string;
     }
     interface BnLayoutCard {
@@ -746,6 +749,10 @@ export namespace Components {
          */
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
+        /**
+          * I18n namespace for this card's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+         */
+        "i18nNamespace": string;
         /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to the inner `<bn-title>` element as its `ruleset` attribute. Supports `"inherited-page"` to take over the value from an ancestor `bn-layout-page`. Nested visualization components can reference it via `ruleset="inherited-closest"`.
          */
@@ -794,8 +801,8 @@ export namespace Components {
          */
         "titleMeasures"?: string;
         /**
-          * Namespace used for title translations via the internationalization store.
-          * @default "_system"
+          * Namespace used for title translations via the internationalization store. Applies to the title only.
+          * @deprecated Use `i18nNamespace` instead.
          */
         "titleNamespace": string;
         /**
@@ -828,6 +835,10 @@ export namespace Components {
          */
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
+        /**
+          * I18n namespace for this page's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+         */
+        "i18nNamespace": string;
         /**
           * URL or asset name of the image displayed in the message row. If the value is not an HTTP URL it is looked up in the asset store. If empty, the image is omitted.
           * @example <bn-layout-page message-image="debug/concordia.png"></bn-layout-page>
@@ -926,8 +937,8 @@ export namespace Components {
          */
         "titleMeasures"?: string;
         /**
-          * Namespace used for title translations via the internationalization store.
-          * @default "_system"
+          * Namespace used for title translations via the internationalization store. Applies to the title only.
+          * @deprecated Use `i18nNamespace` instead.
          */
         "titleNamespace": string;
         /**
@@ -2923,6 +2934,9 @@ declare namespace LocalJSX {
     }
     interface BnInternationalization {
         "code"?: string;
+        /**
+          * @default "_system"
+         */
         "namespace"?: string;
     }
     interface BnLayoutCard {
@@ -2968,6 +2982,10 @@ declare namespace LocalJSX {
           * @default ""
          */
         "footerText"?: string;
+        /**
+          * I18n namespace for this card's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+         */
+        "i18nNamespace"?: string;
         /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) passed through to the inner `<bn-title>` element as its `ruleset` attribute. Supports `"inherited-page"` to take over the value from an ancestor `bn-layout-page`. Nested visualization components can reference it via `ruleset="inherited-closest"`.
          */
@@ -3016,8 +3034,8 @@ declare namespace LocalJSX {
          */
         "titleMeasures"?: string;
         /**
-          * Namespace used for title translations via the internationalization store.
-          * @default "_system"
+          * Namespace used for title translations via the internationalization store. Applies to the title only.
+          * @deprecated Use `i18nNamespace` instead.
          */
         "titleNamespace"?: string;
         /**
@@ -3049,6 +3067,10 @@ declare namespace LocalJSX {
           * Text displayed in the page footer. If empty, the footer text is omitted.
          */
         "footerText"?: string;
+        /**
+          * I18n namespace for this page's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+         */
+        "i18nNamespace"?: string;
         /**
           * URL or asset name of the image displayed in the message row. If the value is not an HTTP URL it is looked up in the asset store. If empty, the image is omitted.
           * @example <bn-layout-page message-image="debug/concordia.png"></bn-layout-page>
@@ -3147,8 +3169,8 @@ declare namespace LocalJSX {
          */
         "titleMeasures"?: string;
         /**
-          * Namespace used for title translations via the internationalization store.
-          * @default "_system"
+          * Namespace used for title translations via the internationalization store. Applies to the title only.
+          * @deprecated Use `i18nNamespace` instead.
          */
         "titleNamespace"?: string;
         /**
@@ -4251,6 +4273,7 @@ declare namespace LocalJSX {
         "titleDateFormat": string;
         "titleDateLink": string;
         "titleNamespace": string;
+        "i18nNamespace": string;
         "footerText": string;
         "cardLayout": | "full"
     | "split-vertical"
@@ -4285,6 +4308,7 @@ declare namespace LocalJSX {
         "titleDateFormat": string;
         "titleDateLink": string;
         "titleNamespace": string;
+        "i18nNamespace": string;
         "pageFormat": string;
         "pageOrientation": string;
         "pageNumber": string;
