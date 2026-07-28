@@ -56,6 +56,14 @@ export class IbcsTable {
   dataVersion: number = 0;
 
   /**
+   * Name of a registered component style, forwarded by the outer `bn-table`.
+   * Reflected so the `withComponentStyle` mixin can read the `selected-style`
+   * attribute from the host element.
+   */
+  @Prop({ reflect: true })
+  selectedStyle?: string;
+
+  /**
    * Label of the grand-total row (`sum` / `opt` types only). The default
    * `SUM_TOTAL` is an i18n key that resolves to the IBCS total symbol (❖).
    */

@@ -1109,6 +1109,10 @@ export namespace Components {
          */
         "scenarios": string;
         /**
+          * Name of a registered component style (see `bn-component-style`). Forwarded to the inner `ibcs-table` so bar-chart colors and fonts follow the selected style as well.
+         */
+        "selectedStyle"?: string;
+        /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
           * @default "true"
          */
@@ -1804,6 +1808,10 @@ export namespace Components {
           * @default DataFormat.DECIMAL
          */
         "scenariosDataFormat": DataFormat;
+        /**
+          * Name of a registered component style, forwarded by the outer `bn-table`. Reflected so the `withComponentStyle` mixin can read the `selected-style` attribute from the host element.
+         */
+        "selectedStyle"?: string;
         /**
           * @default true
          */
@@ -3322,6 +3330,10 @@ declare namespace LocalJSX {
          */
         "scenarios"?: string;
         /**
+          * Name of a registered component style (see `bn-component-style`). Forwarded to the inner `ibcs-table` so bar-chart colors and fonts follow the selected style as well.
+         */
+        "selectedStyle"?: string;
+        /**
           * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
           * @default "true"
          */
@@ -4015,6 +4027,10 @@ declare namespace LocalJSX {
          */
         "scenariosDataFormat"?: DataFormat;
         /**
+          * Name of a registered component style, forwarded by the outer `bn-table`. Reflected so the `withComponentStyle` mixin can read the `selected-style` attribute from the host element.
+         */
+        "selectedStyle"?: string;
+        /**
           * @default true
          */
         "showGroupTitle"?: boolean;
@@ -4307,6 +4323,7 @@ declare namespace LocalJSX {
     interface BnTableAttributes {
         "scale": string;
         "ruleset": string;
+        "selectedStyle": string;
         "sumTitle": string;
         "filter": string;
         "measureUnit": string;
@@ -4439,6 +4456,7 @@ declare namespace LocalJSX {
     interface IbcsTableAttributes {
         "tableName": string;
         "dataVersion": number;
+        "selectedStyle": string;
         "sumTitle": string;
         "scenariosDataFormat": DataFormat;
         "grouped": boolean;
