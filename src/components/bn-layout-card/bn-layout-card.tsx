@@ -175,16 +175,19 @@ export class LayoutCard {
 
   /**
    * Namespace used for title translations via the internationalization store.
+   * Applies to the title only.
    *
    * @deprecated Use `i18nNamespace` instead.
    */
-  @Prop() titleNamespace: string = "_system";
+  @Prop() titleNamespace: string;
 
   /**
-   * I18n namespace used for title translations via the internationalization
-   * store. Takes precedence over the deprecated `titleNamespace`.
+   * I18n namespace for this card's title and, via default inheritance, every
+   * descendant component (their own `i18n-namespace` wins). Reflected so
+   * descendants can resolve it from the `i18n-namespace` attribute. Takes
+   * precedence over the deprecated `titleNamespace`.
    */
-  @Prop() i18nNamespace: string;
+  @Prop({ reflect: true }) i18nNamespace: string;
 
   /**
    * Text displayed in the card footer. If empty, the footer text is omitted.
@@ -444,7 +447,7 @@ export class LayoutCard {
       >
         <div class="cardtitle">
           <bn-title // @ts-ignore
-            namespace={this.i18nNamespace ?? this.titleNamespace}
+            i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
             ruleset={this.resolveInherited("ruleset", this.ruleset) ?? this.ruleset}
             business-unit={this.titleBusinessUnit}
             scenarios={this.resolveInherited("titleScenarios", this.titleScenarios) ?? this.titleScenarios}

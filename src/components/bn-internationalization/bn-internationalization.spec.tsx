@@ -142,3 +142,69 @@ describe("translation lookups via bn-text", () => {
     expect(textContent(page)).toBe("global.ac1");
   });
 });
+
+describe("i18n-namespace resolution", () => {
+  const EXTERNAL = `<bn-internationalization code="en" namespace="external">{"global": {"ac1": "Audited"}}</bn-internationalization>`;
+  const OTHER = `<bn-internationalization code="en" namespace="other">{"global": {"ac1": "Other"}}</bn-internationalization>`;
+  const textContent = (page: { body: HTMLElement }): string =>
+    page.body.querySelector("bn-text").shadowRoot.querySelector("span.container").innerHTML;
+
+  it("resolves the element's own i18n-namespace attribute", async () => {
+    const page = await renderI18n(
+      `<div>${EXTERNAL}<bn-text i18n-namespace="external" value="\${t('global.ac1')}"></bn-text></div>`,
+    );
+
+    expect(textContent(page)).toBe("Audited");
+  });
+
+  it("still honors the deprecated namespace attribute", async () => {
+    const page = await renderI18n(
+      `<div>${EXTERNAL}<bn-text namespace="external" value="\${t('global.ac1')}"></bn-text></div>`,
+    );
+
+    expect(textContent(page)).toBe("Audited");
+  });
+
+  it("inherits from the nearest ancestor carrying i18n-namespace", async () => {
+    const page = await renderI18n(
+      `<div i18n-namespace="external">${EXTERNAL}<div><bn-text value="\${t('global.ac1')}"></bn-text></div></div>`,
+    );
+
+    expect(textContent(page)).toBe("Audited");
+  });
+
+  it("nearest ancestor wins over an outer one", async () => {
+    const page = await renderI18n(
+      `<div i18n-namespace="other">${EXTERNAL}${OTHER}
+        <div i18n-namespace="external"><bn-text value="\${t('global.ac1')}"></bn-text></div>
+      </div>`,
+    );
+
+    expect(textContent(page)).toBe("Audited");
+  });
+
+  it("the element's own attribute wins over ancestors", async () => {
+    const page = await renderI18n(
+      `<div i18n-namespace="other">${EXTERNAL}${OTHER}
+        <bn-text i18n-namespace="external" value="\${t('global.ac1')}"></bn-text>
+      </div>`,
+    );
+
+    expect(textContent(page)).toBe("Audited");
+  });
+
+  it("falls back to _system per key when the namespace lacks it", async () => {
+    // "external" has no global.pl1, the built-in _system bundle does.
+    const page = await renderI18n(
+      `<div i18n-namespace="external">${EXTERNAL}<bn-text value="\${t('global.pl1')}"></bn-text></div>`,
+    );
+
+    expect(textContent(page)).toBe("PL");
+  });
+
+  it("uses _system when no element provides a namespace", async () => {
+    const page = await renderI18n(`<bn-text value="\${t('global.ac1')}"></bn-text>`);
+
+    expect(textContent(page)).toBe("AC");
+  });
+});

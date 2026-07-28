@@ -26,9 +26,9 @@ Translations are stored per **namespace**, per **language code**, as a flat key-
 store[namespace][code][key] → label
 ```
 
-- Every component resolves keys against the namespace named by its own `namespace` DOM attribute; if the attribute is absent, or the key is missing there, the built-in `_system` namespace is used as a per-key fallback.
-- If a key is missing in both places, `t()` returns the key itself (it never throws).
-- `<bn-layout-page>` and `<bn-layout-card>` forward their `i18nNamespace` prop (deprecated alias: `titleNamespace`) as the `namespace` attribute of their internal `<bn-title>`.
+- Every component resolves its namespace from the `i18n-namespace` DOM attribute, with **default inheritance**: the element's own attribute wins (the deprecated `namespace` attribute is honored as a fallback); otherwise the nearest ancestor carrying `i18n-namespace` provides it — a layout card, layout page, tree, grid, or the `<bn-context>` itself, crossing shadow boundaries; otherwise the built-in `_system` namespace is used.
+- Keys missing from the resolved namespace fall back to `_system` per key; if a key is missing in both places, `t()` returns the key itself (it never throws).
+- `<bn-layout-page>` and `<bn-layout-card>` reflect their `i18nNamespace` prop as the `i18n-namespace` attribute (so descendants inherit it) and forward it — falling back to the deprecated, title-only `titleNamespace` — to their internal `<bn-title>`.
 
 The **namespace is a storage slot, not a key prefix**. Keys are stored verbatim (after flattening); the component-style prefixes below are part of the key itself.
 
@@ -111,14 +111,20 @@ Multiple `<bn-internationalization>` elements for the same namespace and code me
 
 ### Named Namespaces
 
-A non-default namespace is an alternative bundle that only elements carrying a matching `namespace` attribute consult (missing keys still fall back to `_system` per key). Keys inside must use the same fully-prefixed shape as the built-ins:
+A non-default namespace is an alternative bundle that only elements resolving a matching `i18n-namespace` consult (missing keys still fall back to `_system` per key). Set the attribute on the component itself or on any ancestor — layout pages/cards, trees, grids, and `<bn-context>` all work as providers thanks to default inheritance. Keys inside must use the same fully-prefixed shape as the built-ins:
 
 ```html
 <bn-internationalization code="en" namespace="external">
   { "global": { "ac1": "Actuals (audited)" } }
 </bn-internationalization>
 
-<bn-table namespace="external" scenarios="ac1,pl1"></bn-table>
+<!-- directly on the component ... -->
+<bn-table i18n-namespace="external" scenarios="ac1,pl1"></bn-table>
+
+<!-- ... or inherited from an enclosing layout page -->
+<bn-layout-page i18n-namespace="external">
+  <div slot="slot-0"><bn-table scenarios="ac1,pl1"></bn-table></div>
+</bn-layout-page>
 ```
 
 ## Using Translations in bn-text
