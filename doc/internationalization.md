@@ -16,31 +16,45 @@ Set the `locale` prop on `<bn-context>`:
 </bn-context>
 ```
 
-The locale determines which built-in translation bundle is used for scenario labels, sort indicators, table headings, and title connectors.
+The locale determines which translation bundle is used for scenario labels, sort indicators, table headings, and title connectors. Built-in bundles exist for exactly `en` and `de`; the lookup is an exact string match (there is no BCP 47 normalization — `de-DE` does not match `de`).
 
-## Built-in Labels
+## How Lookups Work
 
-### Scenario Labels
+Translations are stored per **namespace**, per **language code**, as a flat key-value map:
+
+```
+store[namespace][code][key] → label
+```
+
+- Every component resolves keys against the namespace named by its own `namespace` DOM attribute; if the attribute is absent, or the key is missing there, the built-in `_system` namespace is used as a per-key fallback.
+- If a key is missing in both places, `t()` returns the key itself (it never throws).
+- `<bn-layout-page>` and `<bn-layout-card>` forward their `i18nNamespace` prop (deprecated alias: `titleNamespace`) as the `namespace` attribute of their internal `<bn-title>`.
+
+The **namespace is a storage slot, not a key prefix**. Keys are stored verbatim (after flattening); the component-style prefixes below are part of the key itself.
+
+## Built-in Keys
+
+### Scenario Labels (key prefix `global.`)
 
 | Key | English | German |
 |-----|---------|--------|
-| `ac1` | AC | AC |
-| `ac2` | AC2 | AC2 |
-| `pp1` | PY | PY |
-| `pp2` | PY2 | PY2 |
-| `fc1` | FC | FC |
-| `fc2` | FC2 | FC2 |
-| `pl1` | PL | PL |
-| `pl2` | PL2 | PL2 |
+| `global.ac1` | AC | AC |
+| `global.pp1` | PY | PY |
+| `global.fc1` | FC | FC |
+| `global.pl1` | PL | PL |
 
-(Slots 3 and 4 follow the same pattern: AC3, AC4, PY3, PY4, etc.)
+(Slots 2–4 follow the same pattern: `global.ac2` → AC2, `global.pp3` → PY3, etc.)
 
-### Variance Symbols
+### Sort Indicators & Variance Symbols (key prefix `global.`)
 
 | Key | Value | Description |
 |-----|-------|-------------|
-| `ibcssymbol_delta_ac` | `Δ{%}` | Absolute variance (e.g., ΔPY) |
-| `ibcssymbol_delta_ac_relative` | `Δ{%}%` | Relative variance (e.g., ΔPY%) |
+| `global.ORDER_asc` | ↑ | Ascending sort indicator |
+| `global.ORDER_desc` | ↓ | Descending sort indicator |
+| `global.ibcssymbol_delta_ac` | `Δ{%}` | Absolute variance (e.g., ΔPY) |
+| `global.ibcssymbol_delta_generic` | `Δ({%})` | Absolute variance, generic form |
+| `global.ibcssymbol_delta_ac_relative` | `Δ{%}%` | Relative variance (e.g., ΔPY%) |
+| `global.ibcssymbol_delta_generic_relative` | `Δ({%})%` | Relative variance, generic form |
 
 The `{%}` token is replaced at render time with the comparison scenario abbreviation.
 
@@ -48,6 +62,7 @@ The `{%}` token is replaced at render time with the comparison scenario abbrevia
 
 | Key | English | German |
 |-----|---------|--------|
+| `bn-table.in` | in | in |
 | `bn-table.there_of` | there of | davon |
 | `bn-table.part_of` | in % of | in % von |
 | `bn-table.SUM_TOTAL` | ❖ | ❖ |
@@ -57,21 +72,25 @@ The `{%}` token is replaced at render time with the comparison scenario abbrevia
 
 | Key | English | German |
 |-----|---------|--------|
-| `bn-title.SEPARATOR_WS` | `, ` | `, ` |
+| `bn-title.SEPERATOR_WS` | `, ` | `, ` |
 | `bn-title.CONNECTOR_WS` | ` and ` | ` und ` |
 | `bn-title.in` | in | in |
 
+Note the key really is spelled `SEPERATOR_WS`.
+
+The XY and bullet charts have additional message keys under `bn-chart-scatter.`, `bn-chart-bubble.`, and `bn-chart-bullet.` — see `src/stores/internationalization.ts` for the complete list.
+
 ## Custom Translations
 
-Override or add translations with `<bn-internationalization>`:
+Override or add translations with `<bn-internationalization>`. Without a `namespace` attribute the payload is **merged into `_system`**, so partial overrides apply on top of the built-ins and every component picks them up:
 
 ```html
 <bn-context locale="en">
 
-  <bn-internationalization code="en" namespace="bn-table">
+  <bn-internationalization code="en">
     {
-      "there_of": "of which",
-      "SUM_TOTAL": "Total"
+      "global": { "ac1": "Actual", "pl1": "Budget", "pp1": "Prior Year" },
+      "bn-table": { "there_of": "of which", "SUM_TOTAL": "Total" }
     }
   </bn-internationalization>
 
@@ -79,58 +98,39 @@ Override or add translations with `<bn-internationalization>`:
 </bn-context>
 ```
 
+Nested objects are flattened with dot-separated keys, so the payload above stores `global.ac1`, `bn-table.there_of`, … — exactly the built-in key shape. A flat payload (`{"global.ac1": "Actual"}`) is equivalent.
+
+Multiple `<bn-internationalization>` elements for the same namespace and code merge in document order (later elements win per key).
+
 ### Props
 
 | Prop | Description |
 |------|-------------|
-| `code` | Language code (e.g., `"en"`, `"de"`) |
-| `namespace` | Translation namespace (e.g., `"bn-table"`, `"bn-title"`) |
+| `code` | Language code (e.g., `"en"`, `"de"`). Must match the `<bn-context>` locale to take effect. |
+| `namespace` | Storage namespace. Defaults to `_system` (the bundle all components read). |
 
-### Namespace System
+### Named Namespaces
 
-Translations are stored in a flat key-value map with namespaced keys. The `namespace` prop is prepended to each key:
-
-```
-namespace="bn-table" + key "there_of" → stored as "bn-table.there_of"
-```
-
-Global keys (scenario labels, variance symbols) have no namespace prefix.
-
-To override global scenario labels:
+A non-default namespace is an alternative bundle that only elements carrying a matching `namespace` attribute consult (missing keys still fall back to `_system` per key). Keys inside must use the same fully-prefixed shape as the built-ins:
 
 ```html
-<bn-internationalization code="en">
-  {
-    "ac1": "Actual",
-    "pl1": "Budget",
-    "pp1": "Prior Year"
-  }
+<bn-internationalization code="en" namespace="external">
+  { "global": { "ac1": "Actuals (audited)" } }
 </bn-internationalization>
+
+<bn-table namespace="external" scenarios="ac1,pl1"></bn-table>
 ```
-
-## Nested Translation Objects
-
-The JSON body can use nested objects. They are automatically flattened with dot-separated keys:
-
-```html
-<bn-internationalization code="en" namespace="custom">
-  {
-    "labels": {
-      "revenue": "Net Revenue",
-      "costs": "Operating Costs"
-    }
-  }
-</bn-internationalization>
-```
-
-This stores `"custom.labels.revenue"` and `"custom.labels.costs"`.
 
 ## Using Translations in bn-text
 
-The `<bn-text>` component can reference translations with the `t()` function:
+The `<bn-text>` component can reference translations with the `t()` function. `bn-text` reads the default `_system` namespace, so custom keys registered without a namespace are directly addressable:
 
 ```html
-<bn-text value="${t('custom.labels.revenue')}: ${data.revenue.ac1}"></bn-text>
+<bn-internationalization code="en">
+  { "labels": { "revenue": "Net Revenue" } }
+</bn-internationalization>
+
+<bn-text value="${t('labels.revenue')}: ${data.revenue.ac1}"></bn-text>
 ```
 
 ## Full Example
@@ -138,21 +138,11 @@ The `<bn-text>` component can reference translations with the `t()` function:
 ```html
 <bn-context locale="en">
 
-  <!-- Override scenario labels globally -->
+  <!-- Partial override of built-in labels; merges into _system -->
   <bn-internationalization code="en">
     {
-      "ac1": "Actual",
-      "pl1": "Budget",
-      "pp1": "Prior Year",
-      "fc1": "Forecast"
-    }
-  </bn-internationalization>
-
-  <!-- Override table-specific labels -->
-  <bn-internationalization code="en" namespace="bn-table">
-    {
-      "there_of": "of which",
-      "SUM_TOTAL": "Grand Total"
+      "global": { "ac1": "Actual", "pl1": "Budget", "pp1": "Prior Year", "fc1": "Forecast" },
+      "bn-table": { "there_of": "of which", "SUM_TOTAL": "Grand Total" }
     }
   </bn-internationalization>
 

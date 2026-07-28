@@ -25,13 +25,14 @@ export class Internationalization {
       if (!this.stores) this.stores = getStores(this.element);
       try {
         const i18n = flattenObject(JSON.parse(data));
+        const ns = this.namespace || "_system";
 
-        // @ts-ignore
-        const namespace = { ...this.stores.internationalization.get(this.namespace) };
-        namespace[this.code] = i18n;
+        const namespace = { ...(this.stores.internationalization.get(ns) as Record<string, unknown>) };
+        // Merge over the existing bundle (built-ins or earlier manifests) so
+        // partial overrides don't wipe unrelated keys.
+        namespace[this.code] = { ...(namespace[this.code] as Record<string, string>), ...i18n };
 
-        // @ts-ignore
-        this.stores.internationalization.set(this.namespace, namespace);
+        this.stores.internationalization.set(ns, namespace);
       } catch (e) {
         console.error(e);
       }
@@ -39,7 +40,7 @@ export class Internationalization {
   }
 
   @Prop() code: string;
-  @Prop() namespace: string;
+  @Prop() namespace: string = "_system";
 
   render() {
     return <Host />;

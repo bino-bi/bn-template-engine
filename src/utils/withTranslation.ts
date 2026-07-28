@@ -11,7 +11,8 @@ import { runIfExisits } from "./utils";
  * - A key starting with `.` (e.g. `.label`) is expanded to `<component-tag>.label`,
  *   allowing components to reference their own translations concisely.
  * - If the key is not found in the component's namespace, the `_system` namespace
- *   is used as a fallback.
+ *   is used as a fallback; if it is missing there too (or the locale is unknown),
+ *   the key itself is returned.
  *
  * **Mustache-style interpolation:** `{{variable}}` placeholders in translation
  * templates are replaced with values from the optional `data` object.
@@ -71,13 +72,12 @@ const withTranslation = (component: any) => {
     const locales = stores.internationalization.state;
     const locale = stores.context.state.locale;
 
-    let currentNamespace = namespace;
-
-    if (locales[currentNamespace]?.[locale]?.[key] == null) {
-      currentNamespace = "_system";
+    // Per-key fallback chain: element namespace → _system → the key itself.
+    // Never throws — a missing key or unknown locale must not blank the component.
+    const tpl = locales[namespace]?.[locale]?.[key] ?? locales["_system"]?.[locale]?.[key];
+    if (tpl == null) {
+      return key;
     }
-
-    const tpl = locales[currentNamespace][locale][key];
     return tpl.replace(/{{([\s\S]+?)}}/g, (_: string, k: string) => data?.[k.trim()] ?? "");
   };
 
