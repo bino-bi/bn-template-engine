@@ -201,6 +201,13 @@ export class Table {
   @Prop({ reflect: true }) ruleset?: string;
 
   /**
+   * Name of a registered component style (see `bn-component-style`). Forwarded
+   * to the inner `ibcs-table` so bar-chart colors and fonts follow the selected
+   * style as well.
+   */
+  @Prop() selectedStyle?: string;
+
+  /**
    * Label of the grand-total row at the bottom of the table. Only rendered for
    * `type="sum"` and `type="opt"`; the other table types have no total row.
    * When empty, the IBCS total symbol (❖) is used.
@@ -1454,6 +1461,7 @@ export class Table {
             percentageScaling={this.preparePercentageScaling()}
             scaleFactor={effectiveFactor}
             ruleSetConfig={this.ruleSetConfig()}
+            selectedStyle={this.selectedStyle}
           ></ibcs-table>
         </div>
       </Host>
