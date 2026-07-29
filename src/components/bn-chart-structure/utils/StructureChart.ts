@@ -66,6 +66,9 @@ export class StructureChart {
   private position: ElementPositions;
   public styles: StructureChartStyle;
   private title: string = "";
+  /** Raw config inputs the title derives from; kept so setI18n can recompute it. */
+  private configTitle: string = "";
+  private configVariances: string[] = [];
   private smallestDataPointValue: DataPoint = new DataPoint(0, Scenario.AC1, 1, Scenario.NEU);
   private highestDataPointValue: DataPoint = new DataPoint(0, Scenario.AC1, 1, Scenario.NEU);
   private smallestVarianceDataPointValue: DataPoint = new DataPoint(0, Scenario.AC1, 1, Scenario.NEU);
@@ -166,7 +169,9 @@ export class StructureChart {
 
     this.variancesDataModel = this.populateVarianceModel(config.variances, this.dataModel);
 
-    this.title = config.title || Formatter.translateScenarioLabel(config?.variances?.toString(), this.i18n);
+    this.configTitle = config.title;
+    this.configVariances = config?.variances ?? [];
+    this.updateTitle();
 
     this.smallestDataPointValue = this.findSmallestDataPointValue(this.dataModel);
     this.smallestVarianceDataPointValue = this.findSmallestDataPointValue(this.variancesDataModel);
@@ -208,6 +213,15 @@ export class StructureChart {
    */
   public setI18n(i18n: Map<string, string>) {
     this.i18n = this.createI18n(i18n);
+    // The variance title bakes translated scenario labels in, and setI18n
+    // arrives after the constructor's setConfig — recompute it here so the
+    // first render doesn't keep the built-in labels (e.g. ΔPY vs ΔVorjahr).
+    this.updateTitle();
+  }
+
+  /** Derives the variance title from the stored config and the current i18n map. */
+  private updateTitle() {
+    this.title = this.configTitle || Formatter.translateScenarioLabel(this.configVariances?.toString(), this.i18n);
   }
 
   private createI18n(i18n: Map<string, string>): Map<string, string> {
