@@ -114,7 +114,8 @@ const de = flattenObject({
     CONNECTOR_WS: " und ",
     in: "in",
   },
-  "bn-chart": {},
+  "bn-chart-time": { "no-data": "==Keine Daten==" },
+  "bn-chart-structure": { "no-data": "==Keine Daten==" },
   "bn-chart-scatter": {
     ...xyChartKeysDe,
     "xy-iso-domain": "Iso-Linien benötigen einen strikt positiven Wertebereich auf beiden Achsen; übersprungen.",
@@ -151,6 +152,7 @@ const de = flattenObject({
     part_of: "in % von",
     SUM_TOTAL: "❖",
     REST: "REST",
+    "no-data": "==Keine Daten==",
   },
 });
 
@@ -184,7 +186,8 @@ const en = flattenObject({
     CONNECTOR_WS: " and ",
     in: "in",
   },
-  "bn-chart": {},
+  "bn-chart-time": { "no-data": "==No Data==" },
+  "bn-chart-structure": { "no-data": "==No Data==" },
   "bn-chart-scatter": {
     ...xyChartKeysEn,
     "xy-iso-domain": "Iso-lines need a strictly positive domain on both axes; skipped.",
@@ -213,12 +216,14 @@ const en = flattenObject({
     "bullet-ranges-invalid": "ranges: expected up to 2 ascending positive fractions of the target ({{detail}}).",
   },
   "bn-table": {
+    in: "in",
     category: " ",
     operation: " ",
     there_of: "there of",
     part_of: "in % of",
     SUM_TOTAL: "❖",
     REST: "REST",
+    "no-data": "==No Data==",
   },
 });
 
