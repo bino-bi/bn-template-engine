@@ -173,8 +173,12 @@ export class LayoutPage {
    * descendant component (their own `i18n-namespace` wins). Reflected so
    * descendants can resolve it from the `i18n-namespace` attribute. Takes
    * precedence over the deprecated `titleNamespace`.
+   *
+   * The attribute name is pinned: Stencil's default dash-casing would turn
+   * `i18nNamespace` into `i-1-8n-namespace`, which `findAncestorWithAttr` does
+   * not match, silently breaking inheritance for anyone setting the property.
    */
-  @Prop({ reflect: true }) i18nNamespace: string;
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace: string;
 
   /**
    * Page size format. Determines the pixel dimensions of the rendered page.

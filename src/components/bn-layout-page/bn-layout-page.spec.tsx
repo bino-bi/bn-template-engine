@@ -52,3 +52,42 @@ describe("bn-layout-page ruleset forwarding", () => {
     expect(title.hasAttribute("ruleset")).toBe(false);
   });
 });
+
+describe("bn-layout-page i18n namespace attribute", () => {
+  it("reads the i18n-namespace attribute into the prop and forwards it to the title", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      template: () => <bn-layout-page i18n-namespace="audited"></bn-layout-page>,
+    });
+
+    expect((page.root as HTMLBnLayoutPageElement).i18nNamespace).toBe("audited");
+    expect(page.root.shadowRoot.querySelector("bn-title").getAttribute("i18n-namespace")).toBe("audited");
+  });
+
+  it("reflects the prop back as i18n-namespace, not Stencil's dash-cased i-1-8n-namespace", async () => {
+    // withTranslation's ancestor lookup matches on the literal `i18n-namespace`
+    // attribute, so the reflected name is load-bearing for inheritance.
+    // The bn-context wrapper is only there because componentDidUpdate reads it.
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      html: `<bn-context><bn-layout-page></bn-layout-page></bn-context>`,
+    });
+
+    const element = page.body.querySelector("bn-layout-page") as HTMLBnLayoutPageElement;
+    element.i18nNamespace = "audited";
+    await page.waitForChanges();
+
+    expect(element.getAttribute("i18n-namespace")).toBe("audited");
+    expect(element.hasAttribute("i-1-8n-namespace")).toBe(false);
+  });
+
+  it("falls back to the deprecated titleNamespace for the title only", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      template: () => <bn-layout-page title-namespace="legacy"></bn-layout-page>,
+    });
+
+    expect(page.root.shadowRoot.querySelector("bn-title").getAttribute("i18n-namespace")).toBe("legacy");
+    expect(page.root.hasAttribute("i18n-namespace")).toBe(false);
+  });
+});

@@ -8,7 +8,8 @@
  * **Token pattern**: Variance symbols use `{%}` as a placeholder for the
  * scenario abbreviation. For example, `"Δ{%}"` becomes `"ΔPY"` when the
  * comparison scenario is "PY". The `{%}` replacement is performed at render
- * time by the `withTranslation` mixin.
+ * time by `Formatter.translateScenarioLabel` — not by `withTranslation`,
+ * which only interpolates `{{mustache}}` placeholders.
  *
  * @module stores/internationalization
  */
@@ -115,7 +116,7 @@ const de = flattenObject({
     in: "in",
   },
   "bn-chart-time": { "no-data": "==Keine Daten==" },
-  "bn-chart-structure": { "no-data": "==Keine Daten==" },
+  "bn-chart-structure": { "no-data": "==Keine Daten==", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysDe,
     "xy-iso-domain": "Iso-Linien benötigen einen strikt positiven Wertebereich auf beiden Achsen; übersprungen.",
@@ -187,7 +188,7 @@ const en = flattenObject({
     in: "in",
   },
   "bn-chart-time": { "no-data": "==No Data==" },
-  "bn-chart-structure": { "no-data": "==No Data==" },
+  "bn-chart-structure": { "no-data": "==No Data==", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysEn,
     "xy-iso-domain": "Iso-lines need a strictly positive domain on both axes; skipped.",

@@ -755,7 +755,7 @@ export class Chart {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["no-data"];
+    const i18nMetaLabelsLocal = ["no-data", "REST"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));

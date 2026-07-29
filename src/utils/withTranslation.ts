@@ -26,7 +26,9 @@ import { findAncestorWithAttr } from "./withInheritedProps";
  *   the key itself is returned.
  *
  * **Mustache-style interpolation:** `{{variable}}` placeholders in translation
- * templates are replaced with values from the optional `data` object.
+ * templates are replaced with values from the optional `data` object. The
+ * separate `{%}` scenario token used by the variance symbols is substituted
+ * later, by `Formatter.translateScenarioLabel`.
  *
  * @param component - The Stencil component instance
  * @returns Object containing the `t` translation function

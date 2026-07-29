@@ -860,7 +860,9 @@ export class StructureChart {
           this.position.getCategoryPositionX(isPositive),
           this.position.getBarCenterPositionY(index),
           "",
-          elements.category,
+          // Category labels come from the data, but the synthetic "REST"
+          // overflow bucket is engine-generated and translatable, as in bn-table.
+          this.i18n.get(elements.category) || elements.category,
           this.styles,
           HookLocation.Center,
           textHook,
