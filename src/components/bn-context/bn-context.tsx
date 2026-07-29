@@ -23,6 +23,15 @@ export class Context {
 
   @Prop() locale: string;
 
+  /**
+   * Default i18n namespace for every component inside this context.
+   * Resolved at runtime from the `i18n-namespace` attribute by the nearest
+   * ancestor lookup in `withTranslation`; a namespace set on a page, card,
+   * tree, grid, or the component itself wins. Declared so the attribute is
+   * part of the typed public API rather than a bare DOM attribute.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace: string;
+
   @Watch("locale")
   setLocale(newValue: string) {
     this.stores.context.state.locale = newValue;

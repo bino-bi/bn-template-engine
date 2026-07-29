@@ -113,6 +113,23 @@ describe("IBCS Table limit REST row", () => {
     expect(cellTexts(restRow).slice(0, 5)).toEqual(["REST", "28,0", "30,0", "30,0", "30,0"]);
   });
 
+  it("translates the REST label even in META mode", async () => {
+    // REST is engine-generated, not a data value, so it is translated like
+    // SUM_TOTAL rather than being gated behind I18nMode.ALL.
+    const page = await renderTable({
+      i18n: new Map([
+        ["SUM_TOTAL", "Summe"],
+        ["REST", "Übrige"],
+      ]),
+    });
+
+    const restRow = findRowByFirstCell(page, "Übrige");
+
+    expect(restRow).toBeDefined();
+    expect(cellTexts(restRow)[0]).toEqual("Übrige");
+    expect(findRowByFirstCell(page, "Berlin")).toBeDefined();
+  });
+
   it("computes absolute and relative variances in the REST row", async () => {
     const page = await renderTable();
 

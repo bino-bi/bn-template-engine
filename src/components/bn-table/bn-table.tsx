@@ -1093,7 +1093,7 @@ export class Table {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL", "no-data"];
+    const i18nMetaLabelsLocal = ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL", "no-data", "REST"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system

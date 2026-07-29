@@ -40,9 +40,10 @@ You can use multiple `<bn-context>` elements on the same page. Each one has its 
 
 ## Properties
 
-| Property | Attribute | Description | Type     | Default     |
-| -------- | --------- | ----------- | -------- | ----------- |
-| `locale` | `locale`  |             | `string` | `undefined` |
+| Property        | Attribute        | Description                                                                                                                                                                                                                                                                                                                                         | Type     | Default     |
+| --------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `i18nNamespace` | `i18n-namespace` | Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute. | `string` | `undefined` |
+| `locale`        | `locale`         |                                                                                                                                                                                                                                                                                                                                                     | `string` | `undefined` |
 
 
 ----------------------------------------------

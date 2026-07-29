@@ -533,7 +533,9 @@ export class TableDataSetFactory {
     }
 
     if (this.isEntryCategory(type, scenario)) {
-      if (i18nMode === I18nMode.ALL) {
+      // "REST" is always translated, like SUM_TOTAL below: it is not a data
+      // value but the engine's own label for the limit-overflow row.
+      if (i18nMode === I18nMode.ALL || value === "REST") {
         return `${i18n.get(value) || value}`;
       }
 

@@ -169,6 +169,15 @@ export class ChartTree {
    */
   @Prop({ attribute: "edge-style" }) edgeStyle: EdgeStyleType = "orthogonal";
 
+  /**
+   * I18n namespace inherited by this tree's children (their own namespace
+   * wins). Resolved at runtime from the `i18n-namespace` attribute by the
+   * nearest ancestor lookup in `withTranslation`; the tree renders no
+   * translated text itself. Declared so the attribute is part of the typed
+   * public API rather than a bare DOM attribute.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace: string;
+
   @Watch("edgeStyle")
   validateEdgeStyle(newValue: string) {
     const errId = "ERR_edgeStyle";

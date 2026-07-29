@@ -89,7 +89,6 @@ export class Table {
       ["pp4", "PY4"],
       ["fc4", "FC4"],
       ["pl4", "PL4"],
-      ["in", "in"],
       ["category", " "],
       ["operation", " "],
       ["there_of", "davon"],

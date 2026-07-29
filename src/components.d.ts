@@ -557,6 +557,10 @@ export namespace Components {
         "name": string;
     }
     interface BnContext {
+        /**
+          * Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+         */
+        "i18nNamespace": string;
         "locale": string;
     }
     /**
@@ -667,6 +671,10 @@ export namespace Components {
          */
         "columnHeaders": string;
         /**
+          * I18n namespace inherited by this grid's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the grid renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+         */
+        "i18nNamespace": string;
+        /**
           * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
           * @default "auto"
          */
@@ -750,7 +758,7 @@ export namespace Components {
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         /**
-          * I18n namespace for this card's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+          * I18n namespace for this card's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.  The attribute name is pinned: Stencil's default dash-casing would turn `i18nNamespace` into `i-1-8n-namespace`, which `findAncestorWithAttr` does not match, silently breaking inheritance for anyone setting the property.
          */
         "i18nNamespace": string;
         /**
@@ -836,7 +844,7 @@ export namespace Components {
         "footerText"?: string;
         "getNumberOfSlot": (name: string) => Promise<number>;
         /**
-          * I18n namespace for this page's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+          * I18n namespace for this page's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.  The attribute name is pinned: Stencil's default dash-casing would turn `i18nNamespace` into `i-1-8n-namespace`, which `findAncestorWithAttr` does not match, silently breaking inheritance for anyone setting the property.
          */
         "i18nNamespace": string;
         /**
@@ -1267,6 +1275,10 @@ export namespace Components {
           * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
          */
         "edges": string;
+        /**
+          * I18n namespace inherited by this tree's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the tree renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+         */
+        "i18nNamespace": string;
         /**
           * Spacing between hierarchy levels in pixels.
           * @default 60
@@ -2796,6 +2808,10 @@ declare namespace LocalJSX {
         "name"?: string;
     }
     interface BnContext {
+        /**
+          * Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+         */
+        "i18nNamespace"?: string;
         "locale"?: string;
     }
     /**
@@ -2906,6 +2922,10 @@ declare namespace LocalJSX {
          */
         "columnHeaders"?: string;
         /**
+          * I18n namespace inherited by this grid's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the grid renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+         */
+        "i18nNamespace"?: string;
+        /**
           * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
           * @default "auto"
          */
@@ -2988,7 +3008,7 @@ declare namespace LocalJSX {
          */
         "footerText"?: string;
         /**
-          * I18n namespace for this card's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+          * I18n namespace for this card's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.  The attribute name is pinned: Stencil's default dash-casing would turn `i18nNamespace` into `i-1-8n-namespace`, which `findAncestorWithAttr` does not match, silently breaking inheritance for anyone setting the property.
          */
         "i18nNamespace"?: string;
         /**
@@ -3073,7 +3093,7 @@ declare namespace LocalJSX {
          */
         "footerText"?: string;
         /**
-          * I18n namespace for this page's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.
+          * I18n namespace for this page's title and, via default inheritance, every descendant component (their own `i18n-namespace` wins). Reflected so descendants can resolve it from the `i18n-namespace` attribute. Takes precedence over the deprecated `titleNamespace`.  The attribute name is pinned: Stencil's default dash-casing would turn `i18nNamespace` into `i-1-8n-namespace`, which `findAncestorWithAttr` does not match, silently breaking inheritance for anyone setting the property.
          */
         "i18nNamespace"?: string;
         /**
@@ -3504,6 +3524,10 @@ declare namespace LocalJSX {
           * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
          */
         "edges": string;
+        /**
+          * I18n namespace inherited by this tree's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the tree renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+         */
+        "i18nNamespace"?: string;
         /**
           * Spacing between hierarchy levels in pixels.
           * @default 60
@@ -4231,6 +4255,7 @@ declare namespace LocalJSX {
     }
     interface BnContextAttributes {
         "locale": string;
+        "i18nNamespace": string;
     }
     interface BnDatasetAttributes {
         "name": string;
@@ -4256,6 +4281,7 @@ declare namespace LocalJSX {
         "columnHeaders": string;
         "showRowHeaders": string;
         "showColumnHeaders": string;
+        "i18nNamespace": string;
         "showBorders": string;
         "rowHeaderWidth": string;
         "cellGap": string;
@@ -4412,6 +4438,7 @@ declare namespace LocalJSX {
         "levelSpacing": number;
         "nodeSpacing": number;
         "edgeStyle": EdgeStyleType;
+        "i18nNamespace": string;
         "showOperators": string;
     }
     interface IbcsChartBubbleAttributes {

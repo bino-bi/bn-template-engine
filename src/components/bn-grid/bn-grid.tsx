@@ -107,6 +107,15 @@ export class Grid {
    */
   @Prop({ attribute: "show-column-headers" }) showColumnHeaders: string = "true";
 
+  /**
+   * I18n namespace inherited by this grid's children (their own namespace
+   * wins). Resolved at runtime from the `i18n-namespace` attribute by the
+   * nearest ancestor lookup in `withTranslation`; the grid renders no
+   * translated text itself. Declared so the attribute is part of the typed
+   * public API rather than a bare DOM attribute.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace: string;
+
   @Watch("showColumnHeaders")
   validateShowColumnHeaders(newValue: string) {
     const errId = "ERR_showColumnHeaders";
