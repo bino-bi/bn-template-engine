@@ -15,6 +15,8 @@ export class TitleConfig {
   i18nMode: I18nMode = I18nMode.ALL;
   order?: Order | undefined;
   intervalSpanLimit: number = 32;
+  /** Locale used for the date-link labels; set from the bn-context locale. */
+  locale: string = "de";
 
   constructor() {}
 }
@@ -56,6 +58,10 @@ export class TitleConifgAdapter implements IAdapter<TitleConfig> {
 
     if (CompareUtil.isExisting(data.order)) {
       config.order = this.orderAdapter.adapt(data.order as Record<string, unknown>);
+    }
+
+    if (CompareUtil.isString(data.locale)) {
+      config.locale = data.locale;
     }
 
     return config;

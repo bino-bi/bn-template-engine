@@ -1872,6 +1872,11 @@ export namespace Components {
          */
         "intervalSpanLimit": number;
         /**
+          * Locale used to format the date-link labels (e.g. "en", "de").
+          * @default "de"
+         */
+        "locale": string;
+        /**
           * @default []
          */
         "measures": MeasureEntry[];
@@ -4101,6 +4106,11 @@ declare namespace LocalJSX {
          */
         "intervalSpanLimit"?: number;
         /**
+          * Locale used to format the date-link labels (e.g. "en", "de").
+          * @default "de"
+         */
+        "locale"?: string;
+        /**
           * @default []
          */
         "measures"?: MeasureEntry[];
@@ -4504,6 +4514,7 @@ declare namespace LocalJSX {
         "businessUnit": string;
         "intervalSpanLimit": number;
         "i18nMode": I18nMode;
+        "locale": string;
     }
 
     interface IntrinsicElements {

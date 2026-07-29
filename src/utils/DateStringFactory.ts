@@ -77,10 +77,30 @@ export class DateStringFactory {
     none: "[DATE]",
   };
 
+  /**
+   * Per-locale overrides for the patterns whose literals are language-specific.
+   *
+   * The base maps above are German (`KW` = Kalenderwoche, `dd.MM.yyyy`); a
+   * locale listed here replaces only the entries it names. Locales that are not
+   * listed keep the base patterns, so adding a bundle never silently reformats
+   * existing reports. Luxon's `LLL` (month) and `q` (quarter) tokens are already
+   * locale-aware through `setLocale`, so they need no override.
+   */
+  private static readonly LOCALE_DATE_FORMAT: Record<string, Partial<DateFormat>> = {
+    en: { week: "'W'WW yyyy", day: "MM/dd/yyyy", fallback: "MM/dd/yyyy" },
+  };
+
+  private static readonly LOCALE_DATE_FORMAT_SHORT: Record<string, Partial<DateFormat>> = {
+    en: { week: "'W'WW", fallback: "MM/dd/yyyy" },
+  };
+
   private dateFormat: DateFormat;
   private dateLinkFormat: DateLinkFormat;
   private dateFormatShort: DateFormat;
   private locale: string = "de";
+  /** Set once a caller supplies an explicit map, so `setLocale` stops overwriting it. */
+  private dateFormatPinned: boolean = false;
+  private dateFormatShortPinned: boolean = false;
 
   constructor() {
     this.dateFormat = this._dateFormat;
@@ -94,14 +114,32 @@ export class DateStringFactory {
 
   public setDateFormat(dateFormat: DateFormat) {
     this.dateFormat = dateFormat;
+    this.dateFormatPinned = true;
   }
 
   public setDateFormatShort(dateFormatShort: DateFormat) {
     this.dateFormatShort = dateFormatShort;
+    this.dateFormatShortPinned = true;
   }
 
+  /**
+   * Selects the locale used for Luxon's localized tokens and swaps in the
+   * locale's pattern overrides. An explicit `setDateFormat` /
+   * `setDateFormatShort` always wins, whatever the call order.
+   */
   public setLocale(locale: string) {
     this.locale = locale;
+
+    if (!this.dateFormatPinned) {
+      this.dateFormat = { ...this._dateFormat, ...(DateStringFactory.LOCALE_DATE_FORMAT[locale] || {}) };
+    }
+
+    if (!this.dateFormatShortPinned) {
+      this.dateFormatShort = {
+        ...this._dateFormatShort,
+        ...(DateStringFactory.LOCALE_DATE_FORMAT_SHORT[locale] || {}),
+      };
+    }
   }
 
   /**

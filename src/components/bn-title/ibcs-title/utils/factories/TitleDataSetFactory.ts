@@ -58,6 +58,8 @@ export class TitleDataSetFactory implements Formatter {
    * @param time
    * @param order
    * @param i18n
+   * @param spanLimit
+   * @param locale Locale used to format the date-link labels.
    */
   public createDimension(
     scenarios: string[],
@@ -65,11 +67,14 @@ export class TitleDataSetFactory implements Formatter {
     order: Order | null | undefined,
     i18n: Map<string, string>,
     spanLimit: number,
+    locale: string = "de",
   ): string {
     let formatedTime: string = "";
 
     if (time !== undefined) {
-      formatedTime = new DateStringFactory().getDateLinkString(time.start, time.end, time.link, time.format, spanLimit);
+      const dateStringFactory = new DateStringFactory();
+      dateStringFactory.setLocale(locale);
+      formatedTime = dateStringFactory.getDateLinkString(time.start, time.end, time.link, time.format, spanLimit);
     }
 
     const formatedScenarios: string = scenarios
