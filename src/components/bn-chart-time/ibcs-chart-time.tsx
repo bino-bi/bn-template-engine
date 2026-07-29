@@ -322,6 +322,7 @@ export class IbcsChartTime {
       maxBars: this.maxBars,
       stackConfig: this.stackConfig,
       lineFullWidth: this.lineFullWidth,
+      locale: this.stores?.context?.state?.locale || "de",
     });
   }
 

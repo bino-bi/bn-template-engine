@@ -89,6 +89,7 @@ export class Title {
         this.config.order,
         this.i18n,
         this.config.intervalSpanLimit,
+        this.config.locale,
       );
       this.state = FactoryState.UP_TO_DATE;
     }

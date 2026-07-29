@@ -6,7 +6,7 @@ describe("Basis Test Data Structure", () => {
   const dateStringFactory: DateStringFactory = new DateStringFactory();
   dateStringFactory.setLocale("en");
   it("Test DateString", () => {
-    const expected = "01.05.2020";
+    const expected = "05/01/2020";
     expect(dateStringFactory.getDateString(DateTime.fromISO("2020-05-01T02:00:00+02:00"))).toEqual(expected);
   });
 
@@ -63,7 +63,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test AutoCalculation Month", () => {
-    const expected = "KW18..KW23 2020";
+    const expected = "W18..W23 2020";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2020-05-01T02:00:00+02:00"),
@@ -89,7 +89,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test AutoCalculation days", () => {
-    const expected = "01.05.2020..10.05.2020";
+    const expected = "05/01/2020..05/10/2020";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2020-05-01T02:00:00+02:00"),
@@ -102,7 +102,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test END Week", () => {
-    const expected = "KW31.";
+    const expected = "W31.";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -115,7 +115,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test START Week", () => {
-    const expected = ".KW22";
+    const expected = ".W22";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -128,7 +128,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test AutoCalculation Week End", () => {
-    const expected = "KW31.";
+    const expected = "W31.";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -141,7 +141,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test AutoCalculation Week Start", () => {
-    const expected = ".KW22";
+    const expected = ".W22";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -201,7 +201,7 @@ describe("No EndDate Selected", () => {
   });
 
   it("Date2 Missing + AVG ", () => {
-    const expected = "Ø01.10.2021";
+    const expected = "Ø10/01/2021";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
@@ -218,7 +218,7 @@ describe("clean up visualisation if start and end (formated) ist identical", () 
   const dateStringFactory: DateStringFactory = new DateStringFactory();
   dateStringFactory.setLocale("en");
   it("Both Dates, Interval ", () => {
-    const expected = "01.10.2021";
+    const expected = "10/01/2021";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
@@ -231,7 +231,7 @@ describe("clean up visualisation if start and end (formated) ist identical", () 
   });
 
   it("Both Dates, CUM ", () => {
-    const expected = "01.10.2021_01.10.2021";
+    const expected = "10/01/2021_10/01/2021";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
@@ -244,7 +244,7 @@ describe("clean up visualisation if start and end (formated) ist identical", () 
   });
 
   it("Both Dates, AVG -> diplays Date1 ", () => {
-    const expected = "Ø01.10.2021";
+    const expected = "Ø10/01/2021";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
@@ -270,7 +270,7 @@ describe("clean up visualisation if start and end (formated) ist identical", () 
   });
 
   it("Two Dates, AVG -> diplays Date1 .. Date2 ", () => {
-    const expected = "Ø01.10.2021..01.11.2021";
+    const expected = "Ø10/01/2021..11/01/2021";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
@@ -309,7 +309,7 @@ describe("clean up visualisation if start and end (formated) ist identical", () 
   });
 
   it("Two Dates, AVG -> diplays Date1 .. Date2 ", () => {
-    const expected = "Ø01.10.2021";
+    const expected = "Ø10/01/2021";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
@@ -335,7 +335,7 @@ describe("clean up visualisation if start and end (formated) ist identical", () 
   });
 
   it("Two Dates, AVG -> diplays WK ", () => {
-    const expected = "ØKW18 2023";
+    const expected = "ØW18 2023";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-05-01T02:00:00+02:00"),
@@ -643,4 +643,62 @@ describe("datesBetween Range length", () => {
   })
 
  */
+});
+
+describe("Locale-dependent patterns", () => {
+  const may1 = DateTime.fromISO("2020-05-01T02:00:00+02:00");
+  const week = DateTime.fromISO("2023-05-01T02:00:00+02:00");
+
+  it("keeps the German patterns for de", () => {
+    const factory = new DateStringFactory();
+    factory.setLocale("de");
+
+    expect(factory.getDateString(may1, DateDistance.DAY)).toEqual("01.05.2020");
+    expect(factory.getDateString(week, DateDistance.WEEK)).toEqual("KW18 2023");
+    expect(factory.getDateString(may1, DateDistance.MONTH)).toEqual("Mai 2020");
+  });
+
+  it("uses English patterns for en", () => {
+    const factory = new DateStringFactory();
+    factory.setLocale("en");
+
+    expect(factory.getDateString(may1, DateDistance.DAY)).toEqual("05/01/2020");
+    expect(factory.getDateString(week, DateDistance.WEEK)).toEqual("W18 2023");
+    expect(factory.getDateString(may1, DateDistance.MONTH)).toEqual("May 2020");
+  });
+
+  it("falls back to the German patterns for an unknown locale", () => {
+    const factory = new DateStringFactory();
+    factory.setLocale("fr");
+
+    expect(factory.getDateString(may1, DateDistance.DAY)).toEqual("01.05.2020");
+    expect(factory.getDateString(week, DateDistance.WEEK)).toEqual("KW18 2023");
+  });
+
+  it("lets an explicit format win over the locale defaults, whatever the call order", () => {
+    const custom = {
+      year: "yyyy",
+      quarter: "yyyy",
+      month: "yyyy",
+      week: "'CW'WW",
+      day: "yyyy-MM-dd",
+      hour: "TT",
+      minute: "TT",
+      second: "TT",
+      millisecond: "TT",
+      fallback: "yyyy-MM-dd",
+    };
+
+    const before = new DateStringFactory();
+    before.setDateFormat(custom);
+    before.setLocale("en");
+
+    const after = new DateStringFactory();
+    after.setLocale("en");
+    after.setDateFormat(custom);
+
+    expect(before.getDateString(may1, DateDistance.DAY)).toEqual("2020-05-01");
+    expect(after.getDateString(may1, DateDistance.DAY)).toEqual("2020-05-01");
+    expect(before.getDateString(week, DateDistance.WEEK)).toEqual("CW18");
+  });
 });

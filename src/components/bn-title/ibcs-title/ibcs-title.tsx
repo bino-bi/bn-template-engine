@@ -59,6 +59,10 @@ export class IbcsTitle {
   @Prop({ attribute: "i18n-mode" })
   i18nMode: I18nMode = I18nMode.ALL;
 
+  /** Locale used to format the date-link labels (e.g. "en", "de"). */
+  @Prop()
+  locale: string = "de";
+
   @Prop()
   ruleSetConfig?: RuleSetConfig;
 
@@ -119,6 +123,7 @@ export class IbcsTitle {
       intervalSpanLimit: this.intervalSpanLimit,
       i18nMode: this.i18nMode,
       order: this.order,
+      locale: this.locale,
     });
   }
 }

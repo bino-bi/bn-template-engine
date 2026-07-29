@@ -26,6 +26,7 @@ import { Order, OrderDirection } from "../../utils/model/Order";
 import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
 import { DateDistance, DateLink } from "../../utils/DateStringFactory";
 import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
+import { getStores } from "../../context/context-protocol";
 
 /**
  * Composes an IBCS-compliant report title block.
@@ -339,6 +340,10 @@ export class Title {
     return I18nMode.META;
   }
 
+  private prepareLocale(): string {
+    return getStores(this.element).context.state.locale || "de";
+  }
+
   private prepareTitleOrder(): Order {
     if (isBlankInput(this.order) || isBlankInput(this.orderDirection)) {
       return null;
@@ -418,6 +423,7 @@ export class Title {
           order={this.prepareTitleOrder()}
           i18n={this.prepareI18n()}
           i18n-mode={this.prepareI18nMode()}
+          locale={this.prepareLocale()}
           ruleSetConfig={this.ruleSetConfig()}
         ></ibcs-title>
       </Host>

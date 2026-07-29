@@ -71,6 +71,8 @@ export class TimeChartComponentConfig {
   public stackConfig: StackConfigParsed | null = null;
   /** When true, line charts extend to the full width of the chart area. */
   public lineFullWidth: boolean = true;
+  /** Locale used for date-axis labels and SQL date normalization; set from the bn-context locale. */
+  public locale: string = "de";
   constructor(
     public data: TimeChartDataRow[],
     public scenarios: string[],
@@ -193,6 +195,10 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isBoolean(data.lineFullWidth)) {
       config.lineFullWidth = data.lineFullWidth;
+    }
+
+    if (CompareUtil.isString(data.locale)) {
+      config.locale = data.locale;
     }
 
     return config;

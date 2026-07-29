@@ -270,6 +270,9 @@ export class TimeChart {
   setConfig(config: TimeChartComponentConfig) {
     this.state = FactoryState.DIRTY;
 
+    // Must precede setSource/populateModel: the locale is baked into the
+    // normalizeDate() SQL as well as into the axis date labels.
+    this.locale = config.locale;
     this.scenarioPropOrder = [...config.scenarios];
     const scenarios = this.sortScenariosbyVisualisationRules(config.scenarios);
 
@@ -1013,6 +1016,7 @@ export class TimeChart {
 
   private createDateFactory(): DateStringFactory {
     const factory: DateStringFactory = new DateStringFactory();
+    factory.setLocale(this.locale);
     return factory;
   }
 
