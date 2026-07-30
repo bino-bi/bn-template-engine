@@ -10,7 +10,6 @@ import {
   isValidInteger,
   isValidMeasureScale,
   isValidMeasureType,
-  isValidNumber,
   isValidTableType,
   validateAttributesJsonStr,
   validateBarColumnsList,
@@ -36,7 +35,7 @@ import { Style } from "../../stores/componentStyles";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions } from "../../utils/parentDimensions";
-import { parseScaling } from "../../utils/scaling";
+import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import {
@@ -357,25 +356,29 @@ export class Table {
   }
 
   /**
-   * Pixels per unit for absolute variance bar charts (ΔPY).
-   * Controls bar width: barWidth = value × unitScaling.
+   * Data units displayed per 1 em of bar length for absolute variance bar
+   * charts (ΔPY) — map-scale semantics: a larger value means smaller bars.
    * Bars exceeding barColumnWidth are shown with an arrow indicator.
-   * <br /><br />
-   * Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling.
-   * <br /><br />
-   * Default: 0.01
    *
-   * @example unit-scaling="0.01"
+   * | Value            | Behavior                                                       |
+   * |------------------|----------------------------------------------------------------|
+   * | `"auto"`         | Auto-fit the largest bar to the bar column width               |
+   * | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`         |
+   * | group name       | References a `<bn-scaling-group>` for synchronized scaling     |
+   * | invalid / unknown | Auto-fit + `AUTO_unitScaling` warning                         |
+   *
+   * Default: `"100"` (1 em of bar represents 100 units)
+   *
+   * @example unit-scaling="1M"
    * @example unit-scaling="revenue-scale"
    */
-  @Prop() unitScaling: string | number = 0.01;
+  @Prop() unitScaling: string | number = "100";
 
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
     const errId: string = "ERR_unitScaling";
-    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -387,25 +390,28 @@ export class Table {
   }
 
   /**
-   * Scaling for relative variance pin charts (ΔPY%).
-   * <br /><br />
-   * Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling.
-   * <br /><br />
-   * Example: 0.5 means 100% = 50 pixels width.
-   * <br /><br />
-   * Default: 0.5
+   * Percentage points displayed per 1 em of pin length for relative variance
+   * pin charts (ΔPY%) — a larger value means shorter pins.
    *
-   * @example percentage-scaling="0.5"
+   * | Value            | Behavior                                                       |
+   * |------------------|----------------------------------------------------------------|
+   * | `"auto"`         | Auto-fit the largest pin to the pin area                       |
+   * | `"10"`, `"2.5"`  | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` |
+   * | group name       | References a `<bn-scaling-group>` for synchronized scaling     |
+   * | invalid / unknown | Auto-fit + `AUTO_percentageScaling` warning                   |
+   *
+   * Default: `"2"` (a +2 % variance pin is 1 em long)
+   *
+   * @example percentage-scaling="10"
    * @example percentage-scaling="pct-scale"
    */
-  @Prop() percentageScaling: string | number = 0.5;
+  @Prop() percentageScaling: string | number = "2";
 
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
     const errId: string = "ERR_percentageScaling";
-    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -717,7 +723,7 @@ export class Table {
    *  original value.
    *  <br /><br />
    *  values:  <br />
-   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
+   *  ```_ // k // M // G // T // P // E // Z // Y // m // my (μ) // n // p // f // a // z // y // GREATEST // LEAST```
    *  <br /><br />
    *  SiPrefix overview:
    *  ```     "Y":  1E+24,```<br />
@@ -730,7 +736,7 @@ export class Table {
    *  ```     "k":  1000,```<br />
    *  <br />
    *  ```     "m":  0.001,```<br />
-   *  ```    "μ":  0.000001,```<br />
+   *  ```    "my" (μ):  0.000001,```<br />
    *  ```     "n":  0.000000001,```<br />
    *  ```     "p":  0.000000000001,```<br />
    *  ```     "f":  0.000000000000001,```<br />
@@ -1344,25 +1350,92 @@ export class Table {
     return this.barColumns.split(",").map((col) => col.trim());
   }
 
+  private autoUnitWarningActive = false;
+  private autoPctWarningActive = false;
+  private lastReportedUnitsPerEm?: number;
+  private lastReportedPpPerEm?: number;
+
   private prepareUnitScaling(): number {
-    if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
-      return this.pixelPerUnitGroupMap.get(this.unitScaling as string)!;
+    const resolved = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap);
+    if (resolved.kind === "value") {
+      this.errors.remove("AUTO_unitScaling");
+      this.autoUnitWarningActive = false;
+      this.lastReportedUnitsPerEm = undefined;
+      // Inner ibcs-table expects em per unit; the attribute is units per em.
+      return 1 / resolved.value;
     }
-    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === "auto") {
+    if (resolved.kind === "auto") {
+      this.errors.remove("AUTO_unitScaling");
+      this.autoUnitWarningActive = false;
+      this.lastReportedUnitsPerEm = undefined;
       return 0;
     }
-    return Number(this.unitScaling);
+    this.autoUnitWarningActive = true;
+    this.errors.addOrReplace({
+      id: "AUTO_unitScaling",
+      type: "warning",
+      message: `unit-scaling: invalid value "${resolved.raw}" — auto-fitting to the bar column width.`,
+    });
+    return 0;
   }
 
   private preparePercentageScaling(): number {
-    if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
-      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string)!;
+    const resolved = resolveScalingValue(this.percentageScaling, this.pixelPerUnitGroupMap);
+    if (resolved.kind === "value") {
+      this.errors.remove("AUTO_percentageScaling");
+      this.autoPctWarningActive = false;
+      this.lastReportedPpPerEm = undefined;
+      // Inner ibcs-table expects em per percentage point.
+      return 1 / resolved.value;
     }
-    if ((this.percentageScaling as string)?.toString().trim().toLowerCase() === "auto") {
+    if (resolved.kind === "auto") {
+      this.errors.remove("AUTO_percentageScaling");
+      this.autoPctWarningActive = false;
+      this.lastReportedPpPerEm = undefined;
       return 0;
     }
-    return Number(this.percentageScaling);
+    this.autoPctWarningActive = true;
+    this.errors.addOrReplace({
+      id: "AUTO_percentageScaling",
+      type: "warning",
+      message: `percentage-scaling: invalid value "${resolved.raw}" — auto-fitting to the pin area.`,
+    });
+    return 0;
   }
+
+  /**
+   * Receives the auto-fitted scaling values from the inner ibcs-table
+   * (em per unit / em per percentage point) and surfaces them in the AUTO_*
+   * warnings, converted back to the attribute's units-per-em form so users
+   * can copy them into a bn-scaling-group.
+   */
+  private handleAutoScalingReport = (report: AutoScalingReport): void => {
+    const changed = (next: number, last?: number): boolean =>
+      last === undefined || Math.abs(next - last) > Math.abs(next) * 1e-3;
+
+    if (report.unit !== undefined && report.unit > 0 && this.autoUnitWarningActive) {
+      const unitsPerEm = 1 / report.unit;
+      if (changed(unitsPerEm, this.lastReportedUnitsPerEm)) {
+        this.lastReportedUnitsPerEm = unitsPerEm;
+        this.errors.addOrReplace({
+          id: "AUTO_unitScaling",
+          type: "warning",
+          message: `unit-scaling: invalid value "${this.unitScaling}" — auto-fitted to 1 em ≈ ${formatScalingValue(unitsPerEm)} units.`,
+        });
+      }
+    }
+    if (report.percentage !== undefined && report.percentage > 0 && this.autoPctWarningActive) {
+      const ppPerEm = 1 / report.percentage;
+      if (changed(ppPerEm, this.lastReportedPpPerEm)) {
+        this.lastReportedPpPerEm = ppPerEm;
+        this.errors.addOrReplace({
+          id: "AUTO_percentageScaling",
+          type: "warning",
+          message: `percentage-scaling: invalid value "${this.percentageScaling}" — auto-fitted to 1 em ≈ ${formatScalingValue(ppPerEm)} percentage points.`,
+        });
+      }
+    }
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public getDataStructure(): any {
@@ -1459,6 +1532,7 @@ export class Table {
             barColumnMaxWidth={this.prepareBarColumnWidth()}
             unitScaling={this.prepareUnitScaling()}
             percentageScaling={this.preparePercentageScaling()}
+            reportAutoScaling={this.handleAutoScalingReport}
             scaleFactor={effectiveFactor}
             ruleSetConfig={this.ruleSetConfig()}
             selectedStyle={this.selectedStyle}

@@ -329,12 +329,12 @@ export function isValidMeasureType(value: string): boolean {
 
 /**
  * Validates a measure-scale attribute value.
- * Accepted values: `"_"` (no scaling), SI prefix letters (k, M, G, T, P, E, Z, Y, m, etc.),
- * or auto-detection modes `"GREATEST"` / `"LEAST"`.
+ * Accepted values: `"_"` (no scaling), SI prefix letters (k, M, G, T, P, E, Z, Y, m, etc.;
+ * micro as `"my"` or `"μ"`), or auto-detection modes `"GREATEST"` / `"LEAST"`.
  */
 export function isValidMeasureScale(value: string): boolean {
   return (
-    ["_", "k", "M", "G", "T", "P", "E", "Z", "Y", "m", "μ", "n", "p", "P", "f", "a", "z", "y"].includes(
+    ["_", "k", "M", "G", "T", "P", "E", "Z", "Y", "m", "my", "μ", "n", "p", "f", "a", "z", "y"].includes(
       value?.trim(),
     ) || ["GREATEST", "LEAST"].includes(value?.trim().toUpperCase())
   );

@@ -744,16 +744,21 @@ export class ChartBubble {
   }
 
   /**
-   * Scaling-group mode: the group value is area px² per data unit; the
-   * effective auto-fit factor applies squared because it scales an area.
+   * Scaling-group mode: the group value is data units per em² of bubble
+   * area; the inner chart expects area px² per unit, so the effective font
+   * size applies squared.
    */
   private prepareSizeAreaPerUnit(): number {
     const group = this.prepareSize()?.group;
     if (group === undefined || !this.pixelPerUnitGroupMap.has(group)) {
       return 0;
     }
-    const effectiveFactor = this.getEffectiveScaleFactor();
-    return this.pixelPerUnitGroupMap.get(group)! * effectiveFactor * effectiveFactor;
+    const unitsPerEm2 = this.pixelPerUnitGroupMap.get(group)!;
+    if (!(unitsPerEm2 > 0)) {
+      return 0;
+    }
+    const effFontPx = this.getEffectiveFontPx();
+    return (effFontPx * effFontPx) / unitsPerEm2;
   }
 
   private i18nLocalKeys(): string[] {
@@ -793,6 +798,12 @@ export class ChartBubble {
     if (mode === "factor") return factor!;
     if (mode === "auto" || mode === "empty") return this.appliedScaleFactor;
     return 1;
+  }
+
+  /** Effective font size in px: base font from the style store × effective scale factor. */
+  private getEffectiveFontPx(): number {
+    const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
+    return baseFontSize * this.getEffectiveScaleFactor();
   }
 
   private getFontStyles(): { [key: string]: string } {

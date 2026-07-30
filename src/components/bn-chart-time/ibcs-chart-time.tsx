@@ -15,6 +15,7 @@ import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsT
 import { DateDistance } from "../../utils/DateStringFactory";
 import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../utils/constants";
 import { ParentDimensions } from "../../utils/parentDimensions";
+import { AutoScalingReport } from "../../utils/scaling";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
@@ -51,6 +52,15 @@ export class IbcsChartTime {
   @Prop() pixelPerUnit: number = 2; //2
 
   @Prop() pixelPerPercentage: number = 50; //2
+
+  /**
+   * Internal wrapper channel: called with the auto-fitted values (px for one
+   * data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so
+   * the outer `bn-chart-time` can surface them in its AUTO_* warnings.
+   * Not for end users.
+   */
+  @Prop() reportAutoScaling?: (report: AutoScalingReport) => void;
+
   @Prop() limit: number = 0;
 
   @Prop() leftSideOffsetForHorizontalSync: number = -1;
@@ -211,6 +221,13 @@ export class IbcsChartTime {
       return; // Both explicit — nothing to auto-fit
     }
 
+    const reportResolved = () => {
+      this.reportAutoScaling?.({
+        unit: autoUnit ? config.pixelPerUnit : undefined,
+        percentage: autoPercent ? config.pixelPerPercentage : undefined,
+      });
+    };
+
     const targetHeight = this.parentDimensions?.height;
     const availableWidth = this.containerWidth || 0;
     if (!targetHeight || targetHeight <= 0) {
@@ -225,6 +242,7 @@ export class IbcsChartTime {
         availableWidth,
       );
       this.chart.setI18n(this.i18n);
+      reportResolved();
       return;
     }
 
@@ -244,6 +262,7 @@ export class IbcsChartTime {
     const svgHeight = this.chart.getAllocatedCanvasHeight();
 
     if (svgHeight <= 0) {
+      reportResolved();
       return;
     }
 
@@ -262,6 +281,7 @@ export class IbcsChartTime {
       availableWidth,
     );
     this.chart.setI18n(this.i18n);
+    reportResolved();
   }
 
   public async componentWillRender() {

@@ -65,7 +65,7 @@ describe("Data Analyzer Test", () => {
     });
   });
 
-  it("returns 1000 if data is  < 1.000.000", () => {
+  it("returns 1000000 for a negative value beyond a million (ABS path)", () => {
     const scenarios = ["ac1", "ac2", "ac3"];
 
     const data = [
@@ -125,7 +125,7 @@ describe("Data Analyzer Test", () => {
     });
   });
 
-  it("returns 0.000001 if mode is μ", () => {
+  it("returns 0.000001 if mode is my", () => {
     const scenarios = ["ac1", "ac2", "ac3"];
 
     const data = [
@@ -137,7 +137,7 @@ describe("Data Analyzer Test", () => {
     expect(callMeasureScale(data, scenarios, "my")).toEqual(new SiPrefix("my", 0.000001));
   });
 
-  it("returns 0.000001 if mode is μ", () => {
+  it("normalizes the Unicode micro sign μ to my", () => {
     const scenarios = ["ac1", "ac2", "ac3"];
 
     const data = [
@@ -146,7 +146,7 @@ describe("Data Analyzer Test", () => {
       { category: "test3", ac1: 1000, ac2: 1000, ac3: 100 },
     ];
 
-    expect(callMeasureScale(data, scenarios, "my")).toEqual({
+    expect(callMeasureScale(data, scenarios, "μ")).toEqual({
       prefix: "my",
       value: 0.000001,
     });
@@ -246,6 +246,35 @@ describe("Data Analyzer Test", () => {
     expect(callMeasureScale(data, scenarios, "GREATEST")).toEqual({
       prefix: "",
       value: 1,
+    });
+  });
+
+  describe("magnitude edge cases (log10-based prefix picking)", () => {
+    const scenarios = ["ac1", "ac2", "ac3"];
+    const row = (value: number) => [{ category: "test", ac1: 1, ac2: 1, ac3: value }];
+
+    it("picks n for 1e-7 (exponential toString notation)", () => {
+      expect(callMeasureScale(row(1e-7), scenarios, "LEAST")).toEqual({ prefix: "n", value: 1e-9 });
+    });
+
+    it("picks Y for 1e24", () => {
+      expect(callMeasureScale(row(1e24), scenarios, "GREATEST")).toEqual({ prefix: "Y", value: 1e24 });
+    });
+
+    it("picks my for the boundary value 0.0005", () => {
+      expect(callMeasureScale(row(0.0005), scenarios, "LEAST")).toEqual({ prefix: "my", value: 1e-6 });
+    });
+
+    it("picks f for the femto range 1e-15 (previously hit the stray P)", () => {
+      expect(callMeasureScale(row(1e-15), scenarios, "LEAST")).toEqual({ prefix: "f", value: 1e-15 });
+    });
+
+    it("keeps the identity prefix between 0.001 and 1000", () => {
+      expect(callMeasureScale(row(0.5), scenarios, "LEAST")).toEqual({ prefix: "", value: 1 });
+    });
+
+    it("clamps magnitudes beyond the SI range to the outermost prefix", () => {
+      expect(callMeasureScale(row(1e27), scenarios, "GREATEST")).toEqual({ prefix: "Y", value: 1e24 });
     });
   });
 });

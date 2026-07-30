@@ -10,6 +10,7 @@ import {
   validateScenarioList,
   validateVariancesList,
   isValidBoolean,
+  isValidMeasureScale,
   isValidTableType,
   isValidInteger,
   validateThereOfJsonStr,
@@ -609,5 +610,22 @@ describe("validateColumnThereOfJsonStr test", () => {
     const valid = "";
 
     expect(validateColumnThereOfJsonStr(valid)).toEqual([]);
+  });
+});
+
+describe("isValidMeasureScale", () => {
+  it.each(["_", "k", "M", "G", "T", "P", "E", "Z", "Y", "m", "my", "μ", "n", "p", "f", "a", "z", "y"])(
+    "accepts SI prefix %j",
+    (prefix) => {
+      expect(isValidMeasureScale(prefix)).toBe(true);
+    },
+  );
+
+  it.each(["GREATEST", "greatest", "LEAST", "least"])("accepts auto-detection mode %j", (mode) => {
+    expect(isValidMeasureScale(mode)).toBe(true);
+  });
+
+  it.each(["", "x", "kk", "K", "mu"])("rejects %j", (value) => {
+    expect(isValidMeasureScale(value)).toBe(false);
   });
 });

@@ -24,8 +24,8 @@ export interface CellBarChartStyles {
   fontColor: string;
   fontSize: number;
   fontFamily: string;
-  unitScaling: number; // Pixels per unit for absolute variance bars
-  percentageScaling: number; // Pixels per percentage point for relative variance pins
+  unitScaling: number; // Em per data unit for absolute variance bars (bar px = |value| × unitScaling × fontSize)
+  percentageScaling: number; // Em per percentage point for relative variance pins
   scaleFactor: number; // Proportional scaling factor for all pixel constants
 }
 
@@ -56,8 +56,8 @@ export const DEFAULT_STYLES: CellBarChartStyles = {
   fontColor: "#000000",
   fontSize: 11,
   fontFamily: "'Noto Sans', sans-serif",
-  unitScaling: 0.01, // Default: 1000 units = 10 pixels
-  percentageScaling: 0.5, // Default: 100% = 50 pixels
+  unitScaling: 0.01, // Default: 100 units per em of bar
+  percentageScaling: 0.5, // Default: 2 percentage points per em of pin
   scaleFactor: 1,
 };
 
