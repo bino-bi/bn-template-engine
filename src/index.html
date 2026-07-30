@@ -22,7 +22,10 @@
 
 <body>
   <bn-context locale='de'>
-    <bn-scaling-group name="revenue" value="0.001"></bn-scaling-group>
+    <!-- Shared bar scale: 1 em of bar = 13.3k units. Referenced by the two
+         "Top 10 products" structure charts below so their bars are directly
+         comparable. -->
+    <bn-scaling-group name="revenue" value="13.3k"></bn-scaling-group>
     <bn-component-style
       name='corporate_design_extern'>{&#34;color&#34;:&#34;#333333&#34;,&#34;fontFamily&#34;:&#34;Arial&#34;,&#34;fontSize&#34;:&#34;12px&#34;}</bn-component-style>
     <bn-asset name='logo'>/assets/files/logo</bn-asset>
@@ -229,12 +232,12 @@
       footer-display-page-number='true' page-fit-to-content="true">
       <div slot='slot-0' data-bino-kind='ChartStructure'>
         <bn-chart-structure datasets='$umsatz' chart-title='Top 10 products by revenue' level='category' order='ac1'
-          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='0.001' percentage-scaling='0.01'
+          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='revenue' percentage-scaling='1.3k'
           show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
       </div>
       <div slot='slot-1' data-bino-kind='Table'>
         <bn-chart-structure datasets='$umsatz' chart-title='Top 10 products by revenue' level='category' order='ac1'
-          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='0.002' percentage-scaling='0.001'
+          order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='revenue' percentage-scaling='13.3k'
           show-measure-scale='true' limit='10' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
       </div>
     </bn-layout-page>
@@ -252,14 +255,15 @@
       footer-display-page-number='true' page-fit-to-content="true">
       <div slot='slot-0' data-bino-kind='ChartStructure'>
         <bn-chart-structure datasets='$umsatz_monthly' chart-title='Stacked by scenarios (absolute)' level='category'
-          order='ac1' order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='0.01'
+          order='ac1' order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='1.3k'
           show-measure-scale='true' scenarios='ac4,ac1,ac2,ac3'
           stack='{"by":"scenarios","mode":"absolute"}'></bn-chart-structure>
       </div>
       <div slot='slot-1' data-bino-kind='ChartStructure'>
-        <!-- relative mode: unit-scaling is the full-bar width in px (each bar is normalized to 1.0) -->
+        <!-- relative mode: each bar is normalized to 1.0, so unit-scaling='0.044'
+             units per em makes the full bar 1/0.044 ≈ 22.5 em wide -->
         <bn-chart-structure datasets='$umsatz' chart-title='Stacked by dimensions (relative)' level='rowGroup'
-          order='ac1' order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='300'
+          order='ac1' order-direction='desc' measure-scale='k' measure-unit='EUR' unit-scaling='0.044'
           show-measure-scale='true' scenarios='ac1' stack='{"by":"dimensions","mode":"relative"}'></bn-chart-structure>
       </div>
     </bn-layout-page>
@@ -403,7 +407,7 @@
       <div slot='slot-0' data-bino-kind='ChartStructure'>
         <bn-chart-structure datasets='$umsatz' chart-title='Chart inherits from page' level='category'
           scenarios='inherited-page' variances='inherited-page' order='inherited-page' order-direction='inherited-page'
-          unit-scaling='0.001' measure-scale='k' measure-unit='EUR' show-measure-scale='true'
+          unit-scaling='13.3k' measure-scale='k' measure-unit='EUR' show-measure-scale='true'
           limit='10'></bn-chart-structure>
       </div>
 
@@ -411,8 +415,8 @@
       <div slot='slot-1' data-bino-kind='Table'>
         <bn-table datasets='$umsatz' scenarios='inherited-page' variances='inherited-page' order='inherited-page'
           order-direction='inherited-page' measure-scale='k' measure-type='currency' measure-unit='EUR' grouped='true'
-          show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='0.001'
-          percentage-scaling='0.5'></bn-table>
+          show-group-title='true' show-measure-scale='true' limit='4' type='sum' unit-scaling='1k'
+          percentage-scaling='2'></bn-table>
       </div>
     </bn-layout-page>
 
@@ -632,7 +636,7 @@
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz' measure-scale='greatest' measure-type='currency' measure-unit='EUR'
               scenarios='ac1,fc1' variances='dac1_fc1_pos' order='ac1' order-direction='desc' show-measure-scale='true'
-              limit='3' type='sum' unit-scaling='0.001'></bn-table>
+              limit='3' type='sum' unit-scaling='1k'></bn-table>
           </div>
         </bn-layout-card>
       </div>
@@ -642,7 +646,7 @@
           title-business-unit='FitToContent Card (Chart)'>
           <div slot='card-slot-0' data-bino-kind='ChartStructure'>
             <bn-chart-structure datasets='$umsatz' chart-title='Top 5' level='category' order='ac1'
-              order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='0.001'
+              order-direction='desc' measure-scale='greatest' measure-unit='EUR' unit-scaling='13.3k'
               show-measure-scale='true' limit='5' scenarios='ac1,fc1' variances='dac1_fc1_pos'></bn-chart-structure>
           </div>
         </bn-layout-card>
@@ -734,7 +738,7 @@
         <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Time 3'>
           <div slot='card-slot-0'>
             <bn-chart-time datasets='$umsatz' chart-mode='bar' date-interval='month' measure-scale='greatest'
-              measure-unit='EUR' unit-scaling='0.4' scenarios='ac1,fc1'></bn-chart-time>
+              measure-unit='EUR' unit-scaling='33' scenarios='ac1,fc1'></bn-chart-time>
           </div>
         </bn-layout-card>
       </div>
@@ -851,12 +855,12 @@
 <!-- <bn-page> -->
 <!-- <bn-table scale="auto" datasets='$Charts_Time' sum-title='Revenue Overview' scenarios='ac1,pp1,fc1,pl1'
         variances='dac1_pp1_pos,drac1_pp1_pos,dac1_pl1_pos,drac1_pl1_pos' bar-columns='dac1_pp1_pos,drac1_pp1_pos'
-        unit-scaling='0.02' percentage-scaling='0.5' grouped='true' type='sum' level='category' order='category'
+        unit-scaling='50' percentage-scaling='2' grouped='true' type='sum' level='category' order='category'
         order-direction='asc' measure-unit='EUR' show-measure-scale='true' category-width='w15'></bn-table> -->
 
 <!-- <bn-chart-time chart-mode="line" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
-        unit-scaling='0.1' show-overlay-avg='false'></bn-chart-time> -->
+        unit-scaling='133' show-overlay-avg='false'></bn-chart-time> -->
 
 <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
-        unit-scaling='0.05' show-overlay-avg='false'></bn-chart-time> -->
+        unit-scaling='267' show-overlay-avg='false'></bn-chart-time> -->
 <!-- </bn-page> -->

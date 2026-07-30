@@ -140,7 +140,7 @@
 
       <!-- <bn-table datasets="$Charts_Time" order="ac1" order-direction="desc" measure-scale="k" measure-type="currency"
         measure-unit="EUR" grouped="true" show-group-title="true" show-measure-scale="true" limit="4" type="sum"
-        scenarios="ac1,fc1,pl1,pp1" variances="drac1_fc1_pos" bar-columns="ac1,drac1_fc1_pos" unit-scaling="0.001"
+        scenarios="ac1,fc1,pl1,pp1" variances="drac1_fc1_pos" bar-columns="ac1,drac1_fc1_pos" unit-scaling="1k"
         percentage-scaling="1" thereof='[{"rowGroup":"Afrika","category":"Getraenke","subCategory":"A"}]'
         partof='[{"rowGroup":null,"category":"Logis"}]' bar-column-width="w10"
         columnthereof='[{"scenario":"ac1","name":null,"subGroups": ["A","B"]}]'></bn-table> -->
@@ -153,10 +153,10 @@
         columnthereof='[{"scenario":"ac1","name":null,"subGroups": ["A","B"]}]'></bn-table> -->
 
       <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" level='category' scenarios='ac1'
-        unit-scaling='0.1' show-overlay-avg='false' stack='{"by":"category","mode":"absolute"}'></bn-chart-time> -->
+        unit-scaling='133' show-overlay-avg='false' stack='{"by":"category","mode":"absolute"}'></bn-chart-time> -->
 
       <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" level='subCategory' scenarios='ac1'
-        unit-scaling='0.1' show-overlay-avg='false'></bn-chart-time> -->
+        unit-scaling='133' show-overlay-avg='false'></bn-chart-time> -->
 
     </bn-page>
 
@@ -169,12 +169,12 @@
 <!-- <bn-page> -->
 <!-- <bn-table scale="auto" datasets='$Charts_Time' sum-title='Revenue Overview' scenarios='ac1,pp1,fc1,pl1'
         variances='dac1_pp1_pos,drac1_pp1_pos,dac1_pl1_pos,drac1_pl1_pos' bar-columns='dac1_pp1_pos,drac1_pp1_pos'
-        unit-scaling='0.02' percentage-scaling='0.5' grouped='true' type='sum' level='category' order='category'
+        unit-scaling='50' percentage-scaling='2' grouped='true' type='sum' level='category' order='category'
         order-direction='asc' measure-unit='EUR' show-measure-scale='true' category-width='w15'></bn-table> -->
 
 <!-- <bn-chart-time chart-mode="line" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
-        unit-scaling='0.1' show-overlay-avg='false'></bn-chart-time> -->
+        unit-scaling='133' show-overlay-avg='false'></bn-chart-time> -->
 
 <!-- <bn-chart-time chart-mode="bar" datasets='$Charts_Time' date-interval="month" scenarios='ac1,pp1,pl1'
-        unit-scaling='0.05' show-overlay-avg='false'></bn-chart-time> -->
+        unit-scaling='267' show-overlay-avg='false'></bn-chart-time> -->
 <!-- </bn-page> -->
