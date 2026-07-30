@@ -16,6 +16,7 @@ import { BulletLabelConfig, BulletMeasureConfig } from "./components/bn-chart-bu
 import { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 import { Order } from "./utils/model/Order";
 import { BulletChartStyle } from "./components/bn-chart-bullet/utils/model/BulletChartStyle";
+import { AutoScalingReport } from "./utils/scaling";
 import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
 import { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
@@ -39,6 +40,7 @@ export { BulletLabelConfig, BulletMeasureConfig } from "./components/bn-chart-bu
 export { AggregationLevel, AxisLabelsMode, ChartMode, DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "./utils/constants";
 export { Order } from "./utils/model/Order";
 export { BulletChartStyle } from "./components/bn-chart-bullet/utils/model/BulletChartStyle";
+export { AutoScalingReport } from "./utils/scaling";
 export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
 export { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
@@ -366,8 +368,8 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Controls scaling of relative variance bars (pixels per percentage point).  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available width                                   | | not set / `""` | Same as auto with warning                                     | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
-          * @example percentage-scaling="50"
+          * Percentage points displayed per 1 em of bar length for relative variances — a larger value means shorter bars.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available width                                   | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
+          * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
@@ -404,9 +406,9 @@ export namespace Components {
          */
         "stack": string;
         /**
-          * Controls horizontal bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container width (no warning) | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
+          * Data units displayed per 1 em of bar length (horizontal bars) — map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container width         | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
           * @example unit-scaling="auto"
-          * @example unit-scaling="0.05"
+          * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
@@ -475,7 +477,7 @@ export namespace Components {
          */
         "maxBars": number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // my (μ) // n // p // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "my" (μ):  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
           * @default "greatest"
          */
         "measureScale": string;
@@ -493,8 +495,8 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
-          * @example percentage-scaling="50"
+          * Percentage points displayed per 1 em of pin/bar length for relative variances — a larger value means shorter pins.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
+          * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
@@ -539,9 +541,9 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * Controls vertical bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container height             | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |
+          * Data units displayed per 1 em of bar length (vertical bars) — map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container height        | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
           * @example unit-scaling="auto"
-          * @example unit-scaling="0.05"
+          * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
@@ -996,23 +998,25 @@ export namespace Components {
     }
     /**
      * Defines a named scaling value that chart and table components can reference
-     * via their `unit-scaling` or `percentage-scaling` attributes.
+     * via their `unit-scaling` or `percentage-scaling` attributes, or a bubble
+     * chart via its `size` spec's `group` key.
      * Multiple components sharing the same group name will use the same scaling
      * value, allowing synchronized scaling across an entire page or section.
-     * The reserved name `"auto"` is not allowed and will be ignored with a warning.
-     * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+     * The reserved name `"auto"` is not allowed, and neither is a name that would
+     * parse as a number/SI value (e.g. `"1M"`); both are rejected with a warning.
+     * @example <bn-scaling-group name="revenue" value="250k"></bn-scaling-group>
      * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
      * <bn-table unit-scaling="revenue" ...></bn-table>
      */
     interface BnScalingGroup {
         /**
-          * Unique name identifying this scaling group. Components reference this name in their `unit-scaling` or `percentage-scaling` attributes.  The name `"auto"` is reserved and cannot be used.
+          * Unique name identifying this scaling group. Components reference this name in their `unit-scaling` or `percentage-scaling` attributes, or in a bubble chart's `size.group`.  The name `"auto"` is reserved, and names that parse as a number/SI value (`"100"`, `"1M"`) are rejected — they would be ambiguous with a literal scaling value.
          */
         "name": string;
         /**
-          * The scaling value (pixels per data unit or pixels per percentage point, depending on which attribute references this group).
+          * The scaling value: a positive number with optional SI suffix (`k`/`K` = 1e3, `M` = 1e6, `G` = 1e9, `T` = 1e12), e.g. `"250k"` or `2.5`.  The unit depends on which attribute references this group: - from `unit-scaling`: data units per 1 em of bar length - from `percentage-scaling`: percentage points per 1 em of pin length - from a bubble chart's `size.group`: data units per 1 em² of bubble area
          */
-        "value": number;
+        "value": string | number;
     }
     /**
      * Public-facing wrapper for the IBCS table component.
@@ -1078,7 +1082,7 @@ export namespace Components {
          */
         "limit": number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // my (μ) // n // p // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "my" (μ):  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
           * @default "greatest"
          */
         "measureScale": string;
@@ -1108,10 +1112,10 @@ export namespace Components {
          */
         "partof": string;
         /**
-          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
-          * @example percentage-scaling="0.5"
+          * Percentage points displayed per 1 em of pin length for relative variance pin charts (ΔPY%) — a larger value means shorter pins.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest pin to the pin area                       | | `"10"`, `"2.5"`  | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_percentageScaling` warning                   |  Default: `"2"` (a +2 % variance pin is 1 em long)
+          * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
-          * @default 0.5
+          * @default "2"
          */
         "percentageScaling": string | number;
         /**
@@ -1162,10 +1166,10 @@ export namespace Components {
          */
         "type": string;
         /**
-          * Pixels per unit for absolute variance bar charts (ΔPY). Controls bar width: barWidth = value × unitScaling. Bars exceeding barColumnWidth are shown with an arrow indicator. <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Default: 0.01
-          * @example unit-scaling="0.01"
+          * Data units displayed per 1 em of bar length for absolute variance bar charts (ΔPY) — map-scale semantics: a larger value means smaller bars. Bars exceeding barColumnWidth are shown with an arrow indicator.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest bar to the bar column width               | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`         | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_unitScaling` warning                         |  Default: `"100"` (1 em of bar represents 100 units)
+          * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
-          * @default 0.01
+          * @default "100"
          */
         "unitScaling": string | number;
         /**
@@ -1589,6 +1593,10 @@ export namespace Components {
           * @default 10
          */
         "pixelPerUnit": number;
+        /**
+          * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
+         */
+        "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
@@ -1700,6 +1708,10 @@ export namespace Components {
           * @default 2
          */
         "pixelPerUnit": number;
+        /**
+          * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
+         */
+        "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
@@ -1818,6 +1830,10 @@ export namespace Components {
           * @default 0.5
          */
         "percentageScaling": number;
+        /**
+          * Internal wrapper channel: called with the auto-fitted scaling values (em per unit / em per percentage point) whenever one of them was auto-resolved, so the outer `bn-table` can surface them in its AUTO_* warnings. Not for end users.
+         */
+        "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 1
@@ -2114,11 +2130,13 @@ declare global {
     };
     /**
      * Defines a named scaling value that chart and table components can reference
-     * via their `unit-scaling` or `percentage-scaling` attributes.
+     * via their `unit-scaling` or `percentage-scaling` attributes, or a bubble
+     * chart via its `size` spec's `group` key.
      * Multiple components sharing the same group name will use the same scaling
      * value, allowing synchronized scaling across an entire page or section.
-     * The reserved name `"auto"` is not allowed and will be ignored with a warning.
-     * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+     * The reserved name `"auto"` is not allowed, and neither is a name that would
+     * parse as a number/SI value (e.g. `"1M"`); both are rejected with a warning.
+     * @example <bn-scaling-group name="revenue" value="250k"></bn-scaling-group>
      * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
      * <bn-table unit-scaling="revenue" ...></bn-table>
      */
@@ -2617,8 +2635,8 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Controls scaling of relative variance bars (pixels per percentage point).  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available width                                   | | not set / `""` | Same as auto with warning                                     | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
-          * @example percentage-scaling="50"
+          * Percentage points displayed per 1 em of bar length for relative variances — a larger value means shorter bars.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available width                                   | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
+          * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
@@ -2655,9 +2673,9 @@ declare namespace LocalJSX {
          */
         "stack"?: string;
         /**
-          * Controls horizontal bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container width (no warning) | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
+          * Data units displayed per 1 em of bar length (horizontal bars) — map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container width         | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |  When using a custom value that causes the chart to exceed its container, a `WARN_overflow` error is emitted.
           * @example unit-scaling="auto"
-          * @example unit-scaling="0.05"
+          * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
@@ -2726,7 +2744,7 @@ declare namespace LocalJSX {
          */
         "maxBars"?: number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // my (μ) // n // p // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "my" (μ):  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
           * @default "greatest"
          */
         "measureScale"?: string;
@@ -2744,8 +2762,8 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Pixels per percentage point for relative variance bars/pins.  | Value          | Behavior                                                      | |----------------|---------------------------------------------------------------| | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            | | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    | | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
-          * @example percentage-scaling="50"
+          * Percentage points displayed per 1 em of pin/bar length for relative variances — a larger value means shorter pins.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
+          * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
          */
         "percentageScaling": string | number;
@@ -2790,9 +2808,9 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
-          * Controls vertical bar scaling (pixels per data unit).  | Value          | Behavior                                                        | |----------------|-----------------------------------------------------------------| | `"auto"`       | Auto-fit bars to fill the available container height             | | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              | | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       | | group name     | References a `<bn-scaling-group>` for synchronized scaling      |
+          * Data units displayed per 1 em of bar length (vertical bars) — map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container height        | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
           * @example unit-scaling="auto"
-          * @example unit-scaling="0.05"
+          * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
@@ -3245,23 +3263,25 @@ declare namespace LocalJSX {
     }
     /**
      * Defines a named scaling value that chart and table components can reference
-     * via their `unit-scaling` or `percentage-scaling` attributes.
+     * via their `unit-scaling` or `percentage-scaling` attributes, or a bubble
+     * chart via its `size` spec's `group` key.
      * Multiple components sharing the same group name will use the same scaling
      * value, allowing synchronized scaling across an entire page or section.
-     * The reserved name `"auto"` is not allowed and will be ignored with a warning.
-     * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+     * The reserved name `"auto"` is not allowed, and neither is a name that would
+     * parse as a number/SI value (e.g. `"1M"`); both are rejected with a warning.
+     * @example <bn-scaling-group name="revenue" value="250k"></bn-scaling-group>
      * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
      * <bn-table unit-scaling="revenue" ...></bn-table>
      */
     interface BnScalingGroup {
         /**
-          * Unique name identifying this scaling group. Components reference this name in their `unit-scaling` or `percentage-scaling` attributes.  The name `"auto"` is reserved and cannot be used.
+          * Unique name identifying this scaling group. Components reference this name in their `unit-scaling` or `percentage-scaling` attributes, or in a bubble chart's `size.group`.  The name `"auto"` is reserved, and names that parse as a number/SI value (`"100"`, `"1M"`) are rejected — they would be ambiguous with a literal scaling value.
          */
         "name": string;
         /**
-          * The scaling value (pixels per data unit or pixels per percentage point, depending on which attribute references this group).
+          * The scaling value: a positive number with optional SI suffix (`k`/`K` = 1e3, `M` = 1e6, `G` = 1e9, `T` = 1e12), e.g. `"250k"` or `2.5`.  The unit depends on which attribute references this group: - from `unit-scaling`: data units per 1 em of bar length - from `percentage-scaling`: percentage points per 1 em of pin length - from a bubble chart's `size.group`: data units per 1 em² of bubble area
          */
-        "value": number;
+        "value": string | number;
     }
     /**
      * Public-facing wrapper for the IBCS table component.
@@ -3327,7 +3347,7 @@ declare namespace LocalJSX {
          */
         "limit"?: number;
         /**
-          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "μ":  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
+          * Sets the SiPrefix of the Mesaurements and converts the original value. <br /><br /> values:  <br /> ```_ // k // M // G // T // P // E // Z // Y // m // my (μ) // n // p // f // a // z // y // GREATEST // LEAST``` <br /><br /> SiPrefix overview: ```     "Y":  1E+24,```<br /> ```    "Z":  1E+21,```<br /> ```   "E":  1E+18,```<br /> ```     "P":  1E+15,```<br /> ```     "T":  1E+12,```<br /> ```     "G":  1000000000,```<br /> ```     "M":  1000000,```<br /> ```     "k":  1000,```<br /> <br /> ```     "m":  0.001,```<br /> ```    "my" (μ):  0.000001,```<br /> ```     "n":  0.000000001,```<br /> ```     "p":  0.000000000001,```<br /> ```     "f":  0.000000000000001,```<br /> ```     "a":  0.000000000000000001,```<br /> ```     "z":  0.000000000000000000001,```<br /> ```     "y":  0.000000000000000000000001,```<br /> <br /><br /> Special modes: ```GREATEST``` seaches for the bigest (farest to zero) Value in the dataset and sets this value to SiPrefix<br /> ```LEAST```    searches for smallest (closest to zero) Value in the dataset and sets this value to SiPrefix<br /> <br /><br /> ```_```        is the value for no SiPrefix the value is displayed as in the dataset stored.
           * @default "greatest"
          */
         "measureScale"?: string;
@@ -3357,10 +3377,10 @@ declare namespace LocalJSX {
          */
         "partof"?: string;
         /**
-          * Scaling for relative variance pin charts (ΔPY%). <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Example: 0.5 means 100% = 50 pixels width. <br /><br /> Default: 0.5
-          * @example percentage-scaling="0.5"
+          * Percentage points displayed per 1 em of pin length for relative variance pin charts (ΔPY%) — a larger value means shorter pins.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest pin to the pin area                       | | `"10"`, `"2.5"`  | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_percentageScaling` warning                   |  Default: `"2"` (a +2 % variance pin is 1 em long)
+          * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
-          * @default 0.5
+          * @default "2"
          */
         "percentageScaling"?: string | number;
         /**
@@ -3411,10 +3431,10 @@ declare namespace LocalJSX {
          */
         "type"?: string;
         /**
-          * Pixels per unit for absolute variance bar charts (ΔPY). Controls bar width: barWidth = value × unitScaling. Bars exceeding barColumnWidth are shown with an arrow indicator. <br /><br /> Accepts a number, `"auto"`, or a `<bn-scaling-group>` name for synchronized scaling. <br /><br /> Default: 0.01
-          * @example unit-scaling="0.01"
+          * Data units displayed per 1 em of bar length for absolute variance bar charts (ΔPY) — map-scale semantics: a larger value means smaller bars. Bars exceeding barColumnWidth are shown with an arrow indicator.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest bar to the bar column width               | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`         | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_unitScaling` warning                         |  Default: `"100"` (1 em of bar represents 100 units)
+          * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
-          * @default 0.01
+          * @default "100"
          */
         "unitScaling"?: string | number;
         /**
@@ -3835,6 +3855,10 @@ declare namespace LocalJSX {
           * @default 10
          */
         "pixelPerUnit"?: number;
+        /**
+          * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
+         */
+        "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
@@ -3946,6 +3970,10 @@ declare namespace LocalJSX {
           * @default 2
          */
         "pixelPerUnit"?: number;
+        /**
+          * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
+         */
+        "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default []
@@ -4064,6 +4092,10 @@ declare namespace LocalJSX {
           * @default 0.5
          */
         "percentageScaling"?: number;
+        /**
+          * Internal wrapper channel: called with the auto-fitted scaling values (em per unit / em per percentage point) whenever one of them was auto-resolved, so the outer `bn-table` can surface them in its AUTO_* warnings. Not for end users.
+         */
+        "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 1
@@ -4378,7 +4410,7 @@ declare namespace LocalJSX {
     }
     interface BnScalingGroupAttributes {
         "name": string;
-        "value": number;
+        "value": string;
     }
     interface BnTableAttributes {
         "scale": string;
@@ -4688,11 +4720,13 @@ declare module "@stencil/core" {
             "bn-ruleset": LocalJSX.IntrinsicElements["bn-ruleset"] & JSXBase.HTMLAttributes<HTMLBnRulesetElement>;
             /**
              * Defines a named scaling value that chart and table components can reference
-             * via their `unit-scaling` or `percentage-scaling` attributes.
+             * via their `unit-scaling` or `percentage-scaling` attributes, or a bubble
+             * chart via its `size` spec's `group` key.
              * Multiple components sharing the same group name will use the same scaling
              * value, allowing synchronized scaling across an entire page or section.
-             * The reserved name `"auto"` is not allowed and will be ignored with a warning.
-             * @example <bn-scaling-group name="revenue" value="0.05"></bn-scaling-group>
+             * The reserved name `"auto"` is not allowed, and neither is a name that would
+             * parse as a number/SI value (e.g. `"1M"`); both are rejected with a warning.
+             * @example <bn-scaling-group name="revenue" value="250k"></bn-scaling-group>
              * <bn-chart-structure unit-scaling="revenue" ...></bn-chart-structure>
              * <bn-table unit-scaling="revenue" ...></bn-table>
              */

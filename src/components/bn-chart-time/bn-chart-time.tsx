@@ -27,7 +27,7 @@ import { RuleSetConfig } from "../../stores/ruleSets";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
-import { parseScaling } from "../../utils/scaling";
+import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { TimeChartStyle } from "./utils/model";
@@ -221,17 +221,18 @@ export class Chart {
   }
 
   /**
-   * Controls vertical bar scaling (pixels per data unit).
+   * Data units displayed per 1 em of bar length (vertical bars) — map-scale
+   * semantics: a larger value means smaller bars.
    *
-   * | Value          | Behavior                                                        |
-   * |----------------|-----------------------------------------------------------------|
-   * | `"auto"`       | Auto-fit bars to fill the available container height             |
-   * | not set / `""` | Same as auto, but emits `AUTO_unitScaling` warning              |
-   * | `"0.03"`, `1`  | Explicit pixels-per-unit value; bars scale proportionally       |
-   * | group name     | References a `<bn-scaling-group>` for synchronized scaling      |
+   * | Value              | Behavior                                                    |
+   * |--------------------|-------------------------------------------------------------|
+   * | `"auto"`           | Auto-fit bars to fill the available container height        |
+   * | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          |
+   * | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        |
+   * | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
    *
    * @example unit-scaling="auto"
-   * @example unit-scaling="0.05"
+   * @example unit-scaling="1M"
    * @example unit-scaling="revenue-scale"
    */
   @Prop() unitScaling!: string | number;
@@ -239,9 +240,8 @@ export class Chart {
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
     const errId: string = "ERR_unitScaling";
-    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -253,16 +253,17 @@ export class Chart {
   }
 
   /**
-   * Pixels per percentage point for relative variance bars/pins.
+   * Percentage points displayed per 1 em of pin/bar length for relative
+   * variances — a larger value means shorter pins.
    *
-   * | Value          | Behavior                                                      |
-   * |----------------|---------------------------------------------------------------|
-   * | `"auto"`       | Auto-fit to available height (same two-pass as unit-scaling)  |
-   * | not set / `""` | Same as auto with `AUTO_percentageScaling` warning            |
-   * | `"50"`, `1.5`  | Explicit pixels-per-percentage-point value                    |
-   * | group name     | References a `<bn-scaling-group>` for synchronized scaling    |
+   * | Value             | Behavior                                                      |
+   * |-------------------|---------------------------------------------------------------|
+   * | `"auto"`          | Auto-fit to available height (same two-pass as unit-scaling)  |
+   * | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            |
+   * | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` |
+   * | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
    *
-   * @example percentage-scaling="50"
+   * @example percentage-scaling="10"
    * @example percentage-scaling="pct-scale"
    */
   @Prop() percentageScaling!: string | number;
@@ -270,9 +271,8 @@ export class Chart {
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
     const errId: string = "ERR_percentageScaling";
-    const isAuto = (newValue as string)?.toString().trim().toLowerCase() === "auto";
 
-    if (!isAuto && !isValidNumber(newValue as number) && !this.pixelPerUnitGroupMap.has(newValue as string)) {
+    if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -609,7 +609,7 @@ export class Chart {
    *  original value.
    *  <br /><br />
    *  values:  <br />
-   *  ```_ // k // M // G // T // P // E // Z // Y // m // μ // n // p // P // f // a // z // y // GREATEST // LEAST```
+   *  ```_ // k // M // G // T // P // E // Z // Y // m // my (μ) // n // p // f // a // z // y // GREATEST // LEAST```
    *  <br /><br />
    *  SiPrefix overview:
    *  ```     "Y":  1E+24,```<br />
@@ -622,7 +622,7 @@ export class Chart {
    *  ```     "k":  1000,```<br />
    *  <br />
    *  ```     "m":  0.001,```<br />
-   *  ```    "μ":  0.000001,```<br />
+   *  ```    "my" (μ):  0.000001,```<br />
    *  ```     "n":  0.000000001,```<br />
    *  ```     "p":  0.000000000001,```<br />
    *  ```     "f":  0.000000000000001,```<br />
@@ -985,56 +985,105 @@ export class Chart {
     return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
   }
 
+  private autoUnitWarningActive = false;
+  private autoPctWarningActive = false;
+  private lastReportedUnitsPerEm?: number;
+  private lastReportedPpPerEm?: number;
+
+  /** "not set" for blank input, `invalid value "x"` otherwise — for AUTO_* messages. */
+  private static describeScalingInput(raw: string): string {
+    return raw === "" ? "not set" : `invalid value "${raw}"`;
+  }
+
   private preparePixelPerUnit(): number {
-    if (this.pixelPerUnitGroupMap.has(this.unitScaling as string)) {
+    const resolved = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap);
+    if (resolved.kind === "value") {
       this.errors.remove("AUTO_unitScaling");
-      return this.pixelPerUnitGroupMap.get(this.unitScaling as string);
+      this.autoUnitWarningActive = false;
+      this.lastReportedUnitsPerEm = undefined;
+      // The attribute is data units per em; the inner chart expects px for one data unit.
+      return this.getEffectiveFontPx() / resolved.value;
     }
 
     // Explicit 'auto' → auto-calculate silently
-    if ((this.unitScaling as string)?.toString().trim().toLowerCase() === "auto") {
+    if (resolved.kind === "auto") {
       this.errors.remove("AUTO_unitScaling");
+      this.autoUnitWarningActive = false;
+      this.lastReportedUnitsPerEm = undefined;
       return 0;
     }
 
-    const numeric = Number(this.unitScaling);
-    if (!isNaN(numeric) && numeric > 0) {
-      this.errors.remove("AUTO_unitScaling");
-      return numeric;
-    }
-
     // Not set / invalid → auto-calculate with warning
+    this.autoUnitWarningActive = true;
     this.errors.addOrReplace({
       id: "AUTO_unitScaling",
       type: "warning",
-      message: `unit-scaling: not set, auto-calculated to fit available space.`,
+      message: `unit-scaling: ${Chart.describeScalingInput(resolved.raw)}, auto-calculated to fit available space.`,
     });
     return 0;
   }
 
   private preparePixelPerPercentage(): number {
-    if (this.pixelPerUnitGroupMap.has(this.percentageScaling as string)) {
-      return this.pixelPerUnitGroupMap.get(this.percentageScaling as string);
+    const resolved = resolveScalingValue(this.percentageScaling, this.pixelPerUnitGroupMap);
+    if (resolved.kind === "value") {
+      this.errors.remove("AUTO_percentageScaling");
+      this.autoPctWarningActive = false;
+      this.lastReportedPpPerEm = undefined;
+      // The attribute is percentage points per em; the inner chart expects
+      // px per 1.0 fraction (= per 100 percentage points).
+      return (100 * this.getEffectiveFontPx()) / resolved.value;
     }
 
-    if ((this.percentageScaling as string)?.toString().trim().toLowerCase() === "auto") {
+    if (resolved.kind === "auto") {
       this.errors.remove("AUTO_percentageScaling");
+      this.autoPctWarningActive = false;
+      this.lastReportedPpPerEm = undefined;
       return 0;
     }
 
-    const numeric = Number(this.percentageScaling);
-    if (!isNaN(numeric) && numeric > 0) {
-      this.errors.remove("AUTO_percentageScaling");
-      return numeric * 100;
-    }
-
+    this.autoPctWarningActive = true;
     this.errors.addOrReplace({
       id: "AUTO_percentageScaling",
       type: "warning",
-      message: `percentage-scaling: not set, auto-calculated to fit available space.`,
+      message: `percentage-scaling: ${Chart.describeScalingInput(resolved.raw)}, auto-calculated to fit available space.`,
     });
     return 0;
   }
+
+  /**
+   * Receives the auto-fitted values from the inner ibcs-chart-time (px per
+   * unit / px per 1.0 fraction) and surfaces them in the AUTO_* warnings,
+   * converted back to the attribute's units-per-em form so users can copy
+   * them into a bn-scaling-group.
+   */
+  private handleAutoScalingReport = (report: AutoScalingReport): void => {
+    const changed = (next: number, last?: number): boolean =>
+      last === undefined || Math.abs(next - last) > Math.abs(next) * 1e-3;
+    const effFontPx = this.getEffectiveFontPx();
+
+    if (report.unit !== undefined && report.unit > 0 && this.autoUnitWarningActive) {
+      const unitsPerEm = effFontPx / report.unit;
+      if (changed(unitsPerEm, this.lastReportedUnitsPerEm)) {
+        this.lastReportedUnitsPerEm = unitsPerEm;
+        this.errors.addOrReplace({
+          id: "AUTO_unitScaling",
+          type: "warning",
+          message: `unit-scaling: ${Chart.describeScalingInput(String(this.unitScaling ?? "").trim())}, auto-fitted to 1 em ≈ ${formatScalingValue(unitsPerEm)} units.`,
+        });
+      }
+    }
+    if (report.percentage !== undefined && report.percentage > 0 && this.autoPctWarningActive) {
+      const ppPerEm = (100 * effFontPx) / report.percentage;
+      if (changed(ppPerEm, this.lastReportedPpPerEm)) {
+        this.lastReportedPpPerEm = ppPerEm;
+        this.errors.addOrReplace({
+          id: "AUTO_percentageScaling",
+          type: "warning",
+          message: `percentage-scaling: ${Chart.describeScalingInput(String(this.percentageScaling ?? "").trim())}, auto-fitted to 1 em ≈ ${formatScalingValue(ppPerEm)} percentage points.`,
+        });
+      }
+    }
+  };
 
   private prepareLevel(): AggregationLevel {
     const isAuto = this.level?.trim().toLowerCase() === "auto";
@@ -1332,7 +1381,6 @@ export class Chart {
     const preparedI18n: Map<string, string> = this.prepareI18n();
     const preparedStyle: TimeChartStyle = this.prepareStyle();
     const fullParentWidth = getParentDimensions(this.element).width;
-    const effectiveFactor = this.getEffectiveScaleFactor();
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
     const stackConfig = this.prepareStackConfig();
@@ -1347,8 +1395,9 @@ export class Chart {
         scenarios={effectiveScenarios}
         variances={[localScenarioString]}
         hideAxisLabels={this.prepareHideAxisLabels(idx)}
-        pixelPerUnit={ppu > 0 ? ppu * effectiveFactor : 0}
-        pixelPerPercentage={ppp > 0 ? ppp * effectiveFactor : 0}
+        pixelPerUnit={ppu}
+        pixelPerPercentage={ppp}
+        reportAutoScaling={this.handleAutoScalingReport}
         limit={this.prepareLimit()}
         leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
         styles={preparedStyle}
@@ -1380,6 +1429,12 @@ export class Chart {
     if (mode === "factor") return factor!;
     if (mode === "auto" || mode === "empty") return this.appliedScaleFactor;
     return 1;
+  }
+
+  /** Effective font size in px: base font from the style store × effective scale factor. */
+  private getEffectiveFontPx(): number {
+    const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
+    return baseFontSize * this.getEffectiveScaleFactor();
   }
 
   private getFontStyles(): { [key: string]: string } {

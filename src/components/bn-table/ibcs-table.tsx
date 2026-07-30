@@ -20,6 +20,7 @@ import { WaterfallBar } from "./utils/elements/WaterfallBar";
 import { Cell } from "./utils/elements/Cell";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
+import { AutoScalingReport } from "../../utils/scaling";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 
 /**
@@ -150,6 +151,15 @@ export class IbcsTable {
 
   @Prop()
   percentageScaling: number = 0.5;
+
+  /**
+   * Internal wrapper channel: called with the auto-fitted scaling values
+   * (em per unit / em per percentage point) whenever one of them was
+   * auto-resolved, so the outer `bn-table` can surface them in its AUTO_*
+   * warnings. Not for end users.
+   */
+  @Prop()
+  reportAutoScaling?: (report: AutoScalingReport) => void;
 
   @Prop()
   scaleFactor: number = 1;
@@ -317,6 +327,17 @@ export class IbcsTable {
    * Scenario styles (ac, pp, fc, pl) use barStyles for IBCS-compliant grayscale coloring.
    */
   private prepareBarChartStyles(): CellBarChartStyles {
+    const autoUnit = !(this.unitScaling > 0);
+    const autoPercent = !(this.percentageScaling > 0);
+    const resolvedUnit = autoUnit ? this.autoUnitScaling() : this.unitScaling;
+    const resolvedPercent = autoPercent ? this.autoPercentageScaling() : this.percentageScaling;
+    if (autoUnit || autoPercent) {
+      this.reportAutoScaling?.({
+        unit: autoUnit ? resolvedUnit : undefined,
+        percentage: autoPercent ? resolvedPercent : undefined,
+      });
+    }
+
     return this.componentStyle(($) => {
       const varianceStyles = $["bn-chart-time"]?.["varianceStyles"];
       const barStyles = $["bn-chart-time"]?.["barStyles"];
@@ -375,8 +396,8 @@ export class IbcsTable {
         fontColor: $["global"]?.["fontColor"] || "#000000",
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor,
         fontFamily: $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-        unitScaling: this.unitScaling > 0 ? this.unitScaling : this.autoUnitScaling(),
-        percentageScaling: this.percentageScaling > 0 ? this.percentageScaling : this.autoPercentageScaling(),
+        unitScaling: resolvedUnit,
+        percentageScaling: resolvedPercent,
         scaleFactor: this.scaleFactor,
       };
     });

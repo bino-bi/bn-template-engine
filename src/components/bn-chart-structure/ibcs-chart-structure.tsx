@@ -16,6 +16,7 @@ import { StructureChartStylesAdapter, StructureChartStyle } from "./utils/model/
 import { Order, OrderAdapter, OrderDirection } from "../../utils/model/Order";
 import { AggregationLevel } from "../../utils/constants";
 import { ParentDimensions } from "../../utils/parentDimensions";
+import { AutoScalingReport } from "../../utils/scaling";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
@@ -53,6 +54,14 @@ export class IbcsChartStructure {
   @Prop() pixelPerUnit: number = 10;
 
   @Prop() pixelPerPercentage: number = 50;
+
+  /**
+   * Internal wrapper channel: called with the auto-fitted values (px for one
+   * data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so
+   * the outer `bn-chart-structure` can surface them in its AUTO_* warnings.
+   * Not for end users.
+   */
+  @Prop() reportAutoScaling?: (report: AutoScalingReport) => void;
 
   @Prop() limit: number = 0;
 
@@ -179,6 +188,13 @@ export class IbcsChartStructure {
       return; // Both explicit — nothing to auto-fit
     }
 
+    const reportResolved = () => {
+      this.reportAutoScaling?.({
+        unit: autoUnit ? config.pixelPerUnit : undefined,
+        percentage: autoPercent ? config.pixelPerPercentage : undefined,
+      });
+    };
+
     const targetWidth = this.parentDimensions?.width;
     const db = this.getDb();
     if (!targetWidth || targetWidth <= 0) {
@@ -186,6 +202,7 @@ export class IbcsChartStructure {
       if (autoPercent) config.pixelPerPercentage = 50;
       this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
       this.chart.setI18n(this.i18n);
+      reportResolved();
       return;
     }
 
@@ -198,6 +215,7 @@ export class IbcsChartStructure {
     const svgWidth = this.chart.getAllocatedCanvasWidth();
 
     if (svgWidth <= 0) {
+      reportResolved();
       return;
     }
 
@@ -221,6 +239,7 @@ export class IbcsChartStructure {
     // Second pass with the corrected scaling
     this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
+    reportResolved();
   }
 
   public async componentWillRender() {

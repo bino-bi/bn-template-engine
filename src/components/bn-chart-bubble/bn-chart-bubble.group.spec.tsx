@@ -50,6 +50,7 @@ jest.mock("../../context/context-protocol", () => {
 
 import { newSpecPage } from "@stencil/core/testing";
 import { getStores } from "../../context/context-protocol";
+import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { ChartBubble } from "./bn-chart-bubble";
 import { IbcsChartBubble } from "./ibcs-chart-bubble";
 
@@ -79,7 +80,11 @@ const chartRadii = (host: Element): number[] => {
   return [...markup.matchAll(/<circle r="([\d.]+)"/g)].map((m) => Number(m[1]));
 };
 
-const groupedRadius = (areaPerUnit: number): number => Math.sqrt((areaPerUnit * VALUE) / Math.PI);
+// The group value is data units per em² of bubble area; the wrapper converts
+// it to area px² per unit via the effective font size (factor 1 here).
+const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
+const groupedRadius = (unitsPerEm2: number): number =>
+  Math.sqrt((BASE_FONT * BASE_FONT * VALUE) / unitsPerEm2 / Math.PI);
 
 describe("bn-chart-bubble named style overrides", () => {
   it("replaces seriesColors wholesale (arrays overwrite, they don't concatenate)", async () => {

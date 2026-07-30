@@ -39,7 +39,7 @@ export class DataAnalyzer {
   /** SI prefixes for large numbers, ordered by magnitude (k=10^3 .. Y=10^24). */
   private static unitsGreat = ["k", "M", "G", "T", "P", "E", "Z", "Y"];
   /** SI prefixes for small numbers, ordered by magnitude (m=10^-3 .. y=10^-24). */
-  private static unitsLeast = ["m", "my", "n", "p", "P", "f", "a", "z", "y"];
+  private static unitsLeast = ["m", "my", "n", "p", "f", "a", "z", "y"];
 
   /**
    * Determines the appropriate SI prefix for scaling displayed values.
@@ -60,6 +60,11 @@ export class DataAnalyzer {
   ): SiPrefix {
     if (mode === "_") {
       return new SiPrefix();
+    }
+
+    // Accept the Unicode micro sign as an alias for the ASCII "my" key.
+    if (mode === "μ") {
+      mode = "my";
     }
 
     if (mode != null) {
@@ -102,20 +107,24 @@ export class DataAnalyzer {
     return this.determinePrefix(Math.abs(num));
   }
 
-  /** Maps an absolute numeric value to the best-fitting SI prefix based on digit count. */
+  /**
+   * Maps an absolute numeric value to the best-fitting SI prefix based on
+   * its decimal magnitude. Values in (0.001, 1000) keep the identity prefix.
+   * Magnitudes beyond the covered SI range clamp to the outermost prefix.
+   */
   private static determinePrefix(num: number): SiPrefix {
-    if (num >= 1000) {
-      const floor = Math.floor(Math.floor(Math.abs(num)).toString().length / 3);
-      const value = +Math.pow(1000, floor);
+    if (!Number.isFinite(num) || num <= 0) {
+      return new SiPrefix();
+    }
 
-      return new SiPrefix(this.unitsGreat[floor - 1], value);
+    if (num >= 1000) {
+      const idx = Math.min(Math.floor(Math.log10(num) / 3), this.unitsGreat.length) - 1;
+      return new SiPrefix(this.unitsGreat[idx], Math.pow(1000, idx + 1));
     }
 
     if (num <= 0.001) {
-      const floor = Math.floor(Math.abs(num).toString().length / 3);
-      const value = +(1 / Math.pow(1000, floor));
-
-      return new SiPrefix(this.unitsLeast[floor - 1], value);
+      const idx = Math.min(-Math.floor(Math.log10(num) / 3), this.unitsLeast.length) - 1;
+      return new SiPrefix(this.unitsLeast[idx], Math.pow(1000, -(idx + 1)));
     }
 
     return new SiPrefix();

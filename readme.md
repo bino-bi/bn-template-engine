@@ -146,10 +146,12 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 |-----------|-------------|
 | [`<bn-component-style>`](src/components/bn-component-style/readme.md) | Theme/style configuration |
 | [`<bn-internationalization>`](src/components/bn-internationalization/readme.md) | Translation/locale configuration |
+| [`<bn-scaling-group>`](src/components/bn-scaling-group/readme.md) | Named scaling value shared across charts and tables |
 
 ## Concept Guides
 
 - [Data Model](doc/data-model.md) — Scenarios, variances, grouping fields, operations
+- [Scaling](doc/scaling.md) — Units-per-em bar scaling, scaling groups, `scale`, `measure-scale`
 - [Theming](doc/theming.md) — Colors, fonts, chart styles, style layers
 - [Internationalization](doc/internationalization.md) — Locale setup, translations, scenario labels
 - [Installation](doc/installation.md) — npm, CDN, framework integration
