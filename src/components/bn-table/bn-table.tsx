@@ -333,7 +333,10 @@ export class Table {
   }
 
   /**
-   *  Set width of bar chart columns. Controls the max bar/pin width in pixels.
+   *  Set the total width of bar chart columns, in em of the table font — the same
+   *  unit and vocabulary as ```categoryWidth```, so ```bar-column-width="w15"```
+   *  renders exactly as wide as ```category-width="w15"```. The bar/pin drawing
+   *  area is that width minus the value-label gutters.
    *  <br /><br />
    *  values:<br />
    *  ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
@@ -810,9 +813,12 @@ export class Table {
   }
 
   /**
-   *  Set width of category column. <br />
+   *  Set width of category column, in em of the table font. <br />
    *  If INF is selected the columns scaling to the min space they need
    *  seperatly.
+   *  <br /><br />
+   *  The column is fixed at this width; a category label too long to fit is
+   *  truncated with an ellipsis.
    *  <br /><br />
    *  values:<br />
    *  ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```

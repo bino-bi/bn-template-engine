@@ -148,15 +148,24 @@ Inline bar/pin charts (`bar-columns`) are scaled in data units per em:
 
 See the [Scaling guide](../../../doc/scaling.md) for the full model.
 
-## Category Width
+## Column Widths
 
-Control the width of the category (label) column:
+`category-width` and `bar-column-width` share one vocabulary: `wN` means **N em of the
+table font**, so the same `N` gives the same rendered width for both.
 
 ```html
-<bn-table category-width="w25" scenarios="ac1,pl1"></bn-table>
+<!-- category column and bar column are both 25 em wide -->
+<bn-table category-width="w25" bar-column-width="w25" bar-columns="dac1_pl1" scenarios="ac1,pl1"></bn-table>
 ```
 
-Values: `w5`, `w10`, `w15`, `w20`, `w25`, `w50`, `inf` (full available width).
+`category-width` values: `w5`, `w10`, `w15`, `w20`, `w25`, `w50`, `w100`, `inf`
+(`inf` = as wide as the labels need). A label too long for the column is truncated
+with an ellipsis.
+
+`bar-column-width` values: `w5`, `w10`, `w15`, `w20`, `w25`, `w30`, `w40`, `w60`, `w80`,
+`w100`. The value is the **total** column width — the bar or pin drawing area is that
+width minus the value-label gutters, split across both sides of the axis when the column
+contains positive and negative values.
 
 ## Row Limit
 
@@ -221,7 +230,7 @@ not be used directly; use `bn-table` instead.
 | Property              | Attribute               | Description                                                                                                                                                                                                                              | Type                                                                                                                                                                                                           | Default                                                       |
 | --------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | `attributeColumns`    | --                      |                                                                                                                                                                                                                                          | `TableAttribute[]`                                                                                                                                                                                             | `[]`                                                          |
-| `barColumnMaxWidth`   | `bar-column-max-width`  |                                                                                                                                                                                                                                          | `number`                                                                                                                                                                                                       | `30`                                                          |
+| `barColumnMaxWidth`   | `bar-column-max-width`  | Total width of a bar chart column, in em of the table font — the same unit `categoryWidth` uses, so the two render at the same width for the same value.                                                                                 | `number`                                                                                                                                                                                                       | `30`                                                          |
 | `barColumns`          | --                      |                                                                                                                                                                                                                                          | `string[]`                                                                                                                                                                                                     | `[]`                                                          |
 | `categoryWidth`       | `category-width`        |                                                                                                                                                                                                                                          | `TableCategoryWidth.INF \| TableCategoryWidth.W10 \| TableCategoryWidth.W100 \| TableCategoryWidth.W15 \| TableCategoryWidth.W20 \| TableCategoryWidth.W25 \| TableCategoryWidth.W5 \| TableCategoryWidth.W50` | `TableCategoryWidth.INF`                                      |
 | `categorythereof`     | --                      |                                                                                                                                                                                                                                          | `Map<string, Record<string, unknown>[]>`                                                                                                                                                                       | `new Map()`                                                   |

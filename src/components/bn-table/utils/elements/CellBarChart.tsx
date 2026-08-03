@@ -1,5 +1,9 @@
 import { h, FunctionalComponent } from "@stencil/core";
 import { ColumnStats } from "./Cell";
+import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "../helper/barColumnGeometry";
+
+/** Matches SYSTEM_STYLE_DEFAULTS.global.fontSizePx; only used when `styles` is omitted. */
+const DEFAULT_EM_PX = 13.3333;
 
 export interface VarianceStyle {
   stroke: string;
@@ -22,7 +26,14 @@ export interface CellBarChartStyles {
   // Scenario styles (for ac, pp, fc, pl columns)
   scenarios: ScenarioStyles;
   fontColor: string;
+  /**
+   * SVG label font size in px — BAR_LABEL_FONT_RATIO × emPx. It is also the multiplier in
+   * the unitScaling / percentageScaling math below, so changing it rescales every user-set
+   * scaling value. Column geometry deliberately uses emPx instead.
+   */
   fontSize: number;
+  /** The table's true em in px (`global.fontSizePx` × scaleFactor) — column geometry only. */
+  emPx: number;
   fontFamily: string;
   unitScaling: number; // Em per data unit for absolute variance bars (bar px = |value| × unitScaling × fontSize)
   percentageScaling: number; // Em per percentage point for relative variance pins
@@ -38,7 +49,8 @@ export interface CellBarChartProps {
   isPositiveGood: boolean;
   formattedValue?: string;
   measureScale?: number;
-  maxBarWidth?: number;
+  /** Total column width in table em — see barColumnGeometry.ts. */
+  columnWidthEm?: number;
   styles?: CellBarChartStyles;
 }
 
@@ -54,7 +66,8 @@ export const DEFAULT_STYLES: CellBarChartStyles = {
     pl: { stroke: "#404040", fill: "#ffffff", fillpattern: "outlined" },
   },
   fontColor: "#000000",
-  fontSize: 11,
+  fontSize: DEFAULT_EM_PX * BAR_LABEL_FONT_RATIO,
+  emPx: DEFAULT_EM_PX,
   fontFamily: "'Noto Sans', sans-serif",
   unitScaling: 0.01, // Default: 100 units per em of bar
   percentageScaling: 0.5, // Default: 2 percentage points per em of pin
@@ -262,10 +275,11 @@ function renderZigzagBreak(breakX: number, breakGap: number, yTop: number, barHe
 /**
  * Renders an absolute variance bar chart (d_ prefix).
  * Horizontal bar with centered axis, green for positive, red for negative.
- * When a bar exceeds maxBarWidth it is drawn as an overdrive bar:
+ * When a bar exceeds the geometry's cut width it is drawn as an overdrive bar:
  * base segment + zigzag break + proportional overdrive stub (like structure chart).
  *
- * Layout: [left label area][bar area with axis][right label area]
+ * Layout: [left label area][bar area with axis][right label area], summing to
+ * exactly `columnWidthEm` em — see barColumnGeometry.ts.
  */
 const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const {
@@ -276,19 +290,21 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     isPositiveGood,
     formattedValue,
     measureScale,
-    maxBarWidth: maxBarWidthEm = 10,
+    columnWidthEm = 10,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
 
-  const labelAreaWidth = 38 * s;
-  const maxBarWidth = maxBarWidthEm * fs;
-
-  // Overdrive layout constants
-  const breakGap = 4 * s;
-  const overdriveZoneWidth = maxBarWidth * 0.15;
-  const cutWidth = maxBarWidth - breakGap - overdriveZoneWidth;
+  // Adaptive axis placement based on data range
+  const hasNeg = columnStats.min < 0;
+  const hasPos = columnStats.max > 0;
+  const { totalWidth, axisX, breakGap, overdriveZoneWidth, cutWidth, labelGap } = absoluteBarGeometry(
+    columnWidthEm,
+    styles.emPx,
+    hasNeg,
+    hasPos,
+  );
 
   // Direct unit scaling via fontSize
   const scaledWidth = Math.abs(value) * styles.unitScaling * fs;
@@ -300,17 +316,8 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const overflowAmount = Math.max(0, scaledWidth - cutWidth);
   const overdriveWidth = maxOverflow > 0 ? (overflowAmount / maxOverflow) * overdriveZoneWidth : 0;
 
-  // Adaptive axis placement based on data range
-  const hasNeg = columnStats.min < 0;
-  const hasPos = columnStats.max > 0;
-  const negBarWidth = hasNeg ? maxBarWidth : 0;
-  const posBarWidth = hasPos ? maxBarWidth : 0;
-  const barAreaWidth = negBarWidth + posBarWidth;
-  const totalWidth = (hasNeg ? labelAreaWidth : 0) + barAreaWidth + (hasPos ? labelAreaWidth : 0);
-
   const padding = 2 * s;
   const barHeight = height - padding * 2;
-  const axisX = (hasNeg ? labelAreaWidth : 0) + negBarWidth;
   const barY = padding;
   const isPositive = value >= 0;
 
@@ -335,7 +342,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
 
   // Label position accounts for overdrive
   const totalVisualWidth = isExtreme ? cutWidth + breakGap + overdriveWidth : scaledWidth;
-  const labelX = isPositive ? axisX + totalVisualWidth + 4 * s : axisX - totalVisualWidth - 4 * s;
+  const labelX = isPositive ? axisX + totalVisualWidth + labelGap : axisX - totalVisualWidth - labelGap;
   const labelAnchor = isPositive ? "start" : "end";
 
   return (
@@ -395,7 +402,8 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
  * Renders a relative variance pin chart (dr_ prefix).
  * Thin horizontal line from axis with dot at end and value label.
  *
- * Layout: [pin area with axis][label area on right]
+ * Layout: [pin area with axis][label area on right], summing to exactly
+ * `columnWidthEm` em — see barColumnGeometry.ts.
  * Uses percentageScaling to determine pin length (pixels per percentage point).
  */
 const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
@@ -407,26 +415,17 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     isPositiveGood,
     formattedValue,
     measureScale,
-    maxBarWidth: maxBarWidthEm = 10,
+    columnWidthEm = 10,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
 
-  // Pin length is ~2/3 of bar width for visual balance
-  const maxPinLength = Math.round(maxBarWidthEm * 0.67 * fs);
-  const pinPadding = 5 * s;
-
   // Adaptive axis placement based on data range
   const hasNeg = columnStats.min < 0;
   const hasPos = columnStats.max > 0;
-  const negPinWidth = hasNeg ? maxPinLength + pinPadding : 0;
-  const posPinWidth = hasPos ? maxPinLength + pinPadding : 0;
-  const pinAreaWidth = negPinWidth + posPinWidth;
-  const labelAreaWidth = 45 * s;
-  const totalWidth = pinAreaWidth + labelAreaWidth;
+  const { totalWidth, maxPinLength, axisX, labelX } = relativePinGeometry(columnWidthEm, styles.emPx, hasNeg, hasPos);
 
-  const axisX = negPinWidth;
   const centerY = height / 2;
 
   // Direct unit scaling via fontSize
@@ -443,9 +442,6 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const dotRadius = 3 * s;
 
   const displayValue = formattedValue || formatValue(value, true, measureScale);
-
-  // Label always on the right side after the pin area
-  const labelX = pinAreaWidth + 4 * s;
 
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart relative-variance" style={{ overflow: "visible" }}>

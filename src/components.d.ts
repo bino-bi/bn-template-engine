@@ -1028,7 +1028,7 @@ export namespace Components {
      */
     interface BnTable {
         /**
-          * Set width of bar chart columns. Controls the max bar/pin width in pixels. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
+          * Set the total width of bar chart columns, in em of the table font — the same unit and vocabulary as ```categoryWidth```, so ```bar-column-width="w15"``` renders exactly as wide as ```category-width="w15"```. The bar/pin drawing area is that width minus the value-label gutters. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
           * @default "w10"
          */
         "barColumnWidth": string;
@@ -1037,7 +1037,7 @@ export namespace Components {
          */
         "barColumns": string;
         /**
-          * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
+          * Set width of category column, in em of the table font. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> The column is fixed at this width; a category label too long to fit is truncated with an ellipsis. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
           * @default "w15"
          */
         "categoryWidth": string;
@@ -1758,6 +1758,7 @@ export namespace Components {
          */
         "attributeColumns": TableAttribute[];
         /**
+          * Total width of a bar chart column, in em of the table font — the same unit `categoryWidth` uses, so the two render at the same width for the same value.
           * @default 30
          */
         "barColumnMaxWidth": number;
@@ -3293,7 +3294,7 @@ declare namespace LocalJSX {
      */
     interface BnTable {
         /**
-          * Set width of bar chart columns. Controls the max bar/pin width in pixels. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
+          * Set the total width of bar chart columns, in em of the table font — the same unit and vocabulary as ```categoryWidth```, so ```bar-column-width="w15"``` renders exactly as wide as ```category-width="w15"```. The bar/pin drawing area is that width minus the value-label gutters. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
           * @default "w10"
          */
         "barColumnWidth"?: string;
@@ -3302,7 +3303,7 @@ declare namespace LocalJSX {
          */
         "barColumns"?: string;
         /**
-          * Set width of category column. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
+          * Set width of category column, in em of the table font. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> The column is fixed at this width; a category label too long to fit is truncated with an ellipsis. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
           * @default "w15"
          */
         "categoryWidth"?: string;
@@ -4020,6 +4021,7 @@ declare namespace LocalJSX {
          */
         "attributeColumns"?: TableAttribute[];
         /**
+          * Total width of a bar chart column, in em of the table font — the same unit `categoryWidth` uses, so the two render at the same width for the same value.
           * @default 30
          */
         "barColumnMaxWidth"?: number;

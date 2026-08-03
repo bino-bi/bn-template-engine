@@ -70,7 +70,7 @@ export enum TableType {
   OPTNOTOTAL = "optnototal",
 }
 
-/** Width of the category label column as a percentage of the table width. INF = auto/infinite. */
+/** Width of the category label column, in em of the table font. INF = auto/infinite. */
 export enum TableCategoryWidth {
   INF = "inf",
   W100 = "w100",
@@ -82,7 +82,7 @@ export enum TableCategoryWidth {
   W5 = "w5",
 }
 
-/** Width preset for inline bar/pin chart columns. Value = max bar width in em. */
+/** Width preset for inline bar/pin chart columns. Value = total column width in em. */
 export enum TableBarColumnWidth {
   W5 = "w5",
   W10 = "w10",
@@ -96,7 +96,7 @@ export enum TableBarColumnWidth {
   W100 = "w100",
 }
 
-/** Maps TableBarColumnWidth presets to max bar width in em. */
+/** Maps TableBarColumnWidth presets to total bar column width in em. */
 export const BAR_COLUMN_WIDTH_EM: Record<TableBarColumnWidth, number> = {
   [TableBarColumnWidth.W5]: 5,
   [TableBarColumnWidth.W10]: 10,

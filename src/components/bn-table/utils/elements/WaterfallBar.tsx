@@ -11,6 +11,7 @@ import {
   PatternDefs,
 } from "./CellBarChart";
 import { WaterfallBarData } from "../helper/WaterfallCalculator";
+import { waterfallGeometry } from "../helper/barColumnGeometry";
 
 export interface WaterfallBarProps extends CellBarChartProps {
   waterfall: WaterfallBarData;
@@ -31,15 +32,7 @@ export interface WaterfallBarProps extends CellBarChartProps {
  * guides marking their parent bar's extent.
  */
 export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
-  const {
-    value,
-    scenario,
-    height,
-    measureScale,
-    maxBarWidth: maxBarWidthEm = 10,
-    styles = DEFAULT_STYLES,
-    waterfall,
-  } = props;
+  const { value, scenario, height, measureScale, columnWidthEm = 10, styles = DEFAULT_STYLES, waterfall } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
 
@@ -53,9 +46,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
     );
   }
 
-  const labelAreaWidth = 38 * s;
-  const barAreaWidth = maxBarWidthEm * fs;
-  const totalWidth = labelAreaWidth + barAreaWidth + labelAreaWidth;
+  const { totalWidth, labelAreaWidth, barAreaWidth, labelGap } = waterfallGeometry(columnWidthEm, styles.emPx);
   const pxPerUnit = barAreaWidth / range;
   const xOf = (coordinate: number) => labelAreaWidth + (coordinate - waterfall.min) * pxPerUnit;
 
@@ -77,7 +68,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const displayValue = formatValue(value, waterfall.kind === "partof", measureScale).replace(/^\+/, "");
 
   const pointsLeft = endX < startX;
-  const labelX = pointsLeft ? barX - 4 * s : barX + barWidth + 4 * s;
+  const labelX = pointsLeft ? barX - labelGap : barX + barWidth + labelGap;
   const labelAnchor = pointsLeft ? "end" : "start";
 
   return (

@@ -22,6 +22,14 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 import { AutoScalingReport } from "../../utils/scaling";
 import { getStores, ScopedStores } from "../../context/context-protocol";
+import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "./utils/helper/barColumnGeometry";
+
+/** Aggregated column statistics driving the auto-fit of one scaling family. */
+interface BarColumnStats {
+  absMax: number;
+  hasNeg: boolean;
+  hasPos: boolean;
+}
 
 /**
  * Internal rendering engine for `bn-table`.
@@ -143,6 +151,10 @@ export class IbcsTable {
   @Prop()
   interval: string = "none";
 
+  /**
+   * Total width of a bar chart column, in em of the table font — the same unit
+   * `categoryWidth` uses, so the two render at the same width for the same value.
+   */
   @Prop()
   barColumnMaxWidth: number = 30;
 
@@ -234,7 +246,7 @@ export class IbcsTable {
                           isRelative={false}
                           isPositiveGood={cell.key.endsWith("_pos")}
                           measureScale={cell.measureScale}
-                          maxBarWidth={this.barColumnMaxWidth}
+                          columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                           waterfall={cell.waterfall}
                         />
@@ -247,7 +259,7 @@ export class IbcsTable {
                           isRelative={cell.key.startsWith("dr")}
                           isPositiveGood={cell.key.endsWith("_pos")}
                           measureScale={cell.measureScale}
-                          maxBarWidth={this.barColumnMaxWidth}
+                          columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                         />
                       )
@@ -394,7 +406,8 @@ export class IbcsTable {
         },
         /* eslint-enable @typescript-eslint/no-explicit-any */
         fontColor: $["global"]?.["fontColor"] || "#000000",
-        fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor,
+        fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * BAR_LABEL_FONT_RATIO * this.scaleFactor,
+        emPx: ($["global"]?.["fontSizePx"] || 13.3333) * this.scaleFactor,
         fontFamily: $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
         unitScaling: resolvedUnit,
         percentageScaling: resolvedPercent,
@@ -403,19 +416,25 @@ export class IbcsTable {
     });
   }
 
+  /** The table's true em in px — the unit `.category-wN` and the bar columns share. */
+  private emPx(): number {
+    return this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * this.scaleFactor;
+  }
+
   /**
    * Auto-calculate unitScaling so the largest absolute variance bar
-   * fills ~80% of the bar column width.
+   * fills ~80% of its side of the bar area, without tripping the overdrive break.
    */
   private autoUnitScaling(): number {
-    const fs = this.componentStyle(($) => ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor);
-    const maxBarWidthPx = this.barColumnMaxWidth * fs;
-    const targetWidth = maxBarWidthPx * 0.8;
-
-    const absMax = this.getMaxAbsValue();
+    const emPx = this.emPx();
+    const fs = emPx * BAR_LABEL_FONT_RATIO;
+    const { absMax, hasNeg, hasPos } = this.getAbsBarColumnStats();
     if (absMax <= 0 || fs <= 0) {
       return 0.01;
     }
+
+    const { maxBarWidth, cutWidth } = absoluteBarGeometry(this.barColumnMaxWidth, emPx, hasNeg, hasPos);
+    const targetWidth = Math.min(maxBarWidth * 0.8, cutWidth);
     return targetWidth / (absMax * fs);
   }
 
@@ -424,50 +443,48 @@ export class IbcsTable {
    * fills ~80% of the pin area.
    */
   private autoPercentageScaling(): number {
-    const fs = this.componentStyle(($) => ($["global"]?.["fontSizePx"] || 13.3333) * 0.85 * this.scaleFactor);
-    const maxPinLength = Math.round(this.barColumnMaxWidth * 0.67 * fs);
-    const targetLength = maxPinLength * 0.8;
-
-    const maxPct = this.getMaxRelativeValue();
+    const emPx = this.emPx();
+    const fs = emPx * BAR_LABEL_FONT_RATIO;
+    const { absMax: maxPct, hasNeg, hasPos } = this.getRelativeBarColumnStats();
     if (maxPct <= 0 || fs <= 0) {
       return 0.5;
     }
-    return targetLength / (maxPct * fs);
+
+    const { maxPinLength } = relativePinGeometry(this.barColumnMaxWidth, emPx, hasNeg, hasPos);
+    return (maxPinLength * 0.8) / (maxPct * fs);
   }
 
   /**
-   * Find the maximum absolute value across all absolute variance columns (d_*) in the table body.
+   * Maximum value and sign coverage across all absolute variance columns (d_*) in the table body.
+   * Sign coverage decides how much of the column the bar area gets (see barColumnGeometry.ts);
+   * OR-ing it across columns keeps the single shared scaling inside the narrowest bar area.
    */
-  private getMaxAbsValue(): number {
-    if (!this.table) return 0;
-    let max = 0;
-    for (const row of this.table.getBody()) {
-      if (row.type === TableRowType.SUM) continue;
-      for (const cell of row.getCells()) {
-        // waterfall cells scale independently and must not skew variance auto-scaling
-        if (cell.isBarChart && cell.columnStats && !cell.key.startsWith("dr") && !cell.waterfall) {
-          max = Math.max(max, cell.columnStats.absMax);
-        }
-      }
-    }
-    return max;
+  private getAbsBarColumnStats(): BarColumnStats {
+    // waterfall cells scale independently and must not skew variance auto-scaling
+    return this.collectBarColumnStats((cell) => !cell.key.startsWith("dr") && !cell.waterfall, 1);
   }
 
   /**
-   * Find the maximum percentage value across all relative variance columns (dr_*) in the table body.
-   * Values are stored as decimals (e.g. 0.2 = 20%), returned as percentage (20).
+   * Same for the relative variance columns (dr_*). Values are stored as decimals
+   * (e.g. 0.2 = 20%), returned as percentage (20).
    */
-  private getMaxRelativeValue(): number {
-    if (!this.table) return 0;
-    let max = 0;
+  private getRelativeBarColumnStats(): BarColumnStats {
+    return this.collectBarColumnStats((cell) => cell.key.startsWith("dr"), 100);
+  }
+
+  private collectBarColumnStats(accept: (cell: Cell) => boolean, valueFactor: number): BarColumnStats {
+    const stats: BarColumnStats = { absMax: 0, hasNeg: false, hasPos: false };
+    if (!this.table) return stats;
+
     for (const row of this.table.getBody()) {
       if (row.type === TableRowType.SUM) continue;
       for (const cell of row.getCells()) {
-        if (cell.isBarChart && cell.columnStats && cell.key.startsWith("dr")) {
-          max = Math.max(max, cell.columnStats.absMax * 100);
-        }
+        if (!cell.isBarChart || !cell.columnStats || !accept(cell)) continue;
+        stats.absMax = Math.max(stats.absMax, cell.columnStats.absMax * valueFactor);
+        stats.hasNeg = stats.hasNeg || cell.columnStats.min < 0;
+        stats.hasPos = stats.hasPos || cell.columnStats.max > 0;
       }
     }
-    return max;
+    return stats;
   }
 }
