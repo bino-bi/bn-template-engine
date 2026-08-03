@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+  Regression fixture for `bar-column-width` / `category-width` parity.
+
+  Unlike the other examples this one loads the LOCAL dev build, so it has to be
+  served from the dev server:
+
+      npm start                          # (or the preview tool)
+      cp examples/width-parity.html www/
+      open http://localhost:3333/width-parity.html
+
+  A full `stencil build` empties www/, so re-copy it after one.
+-->
+<html dir="ltr" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>bar-column-width vs category-width parity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet">
+  <script type="module" src="/build/bn-template-engine.esm.js"></script>
+  <script nomodule src="/build/bn-template-engine.js"></script>
+  <style>
+    html, body { margin: 0; padding: 16px; font-family: 'Noto Sans', sans-serif; }
+    h2 { font-size: 13px; margin: 20px 0 4px; color: #444; }
+    #out { white-space: pre; font: 11px/1.55 ui-monospace, Menlo, monospace; background: #f4f4f4; padding: 12px; }
+  </style>
+</head>
+
+<body>
+  <bn-context locale="en">
+    <!-- dac1_pp1: +20 / -20 / +50 -> two-sided.  dac1_pl1: +20 / +20 / +50 -> positive only. -->
+    <bn-datasource name="parity">[
+      {"setName":"de","date":"2025-01-01","operation":"+","rowGroup":"G","rowGroupIndex":1,
+       "category":"Alpha","categoryIndex":1,"subCategory":"Alpha","subCategoryIndex":1,
+       "ac1":120,"pp1":100,"pl1":100,"fc1":110},
+      {"setName":"de","date":"2025-01-01","operation":"+","rowGroup":"G","rowGroupIndex":1,
+       "category":"Beta","categoryIndex":2,"subCategory":"Beta","subCategoryIndex":2,
+       "ac1":80,"pp1":100,"pl1":60,"fc1":90},
+      {"setName":"de","date":"2025-01-01","operation":"+","rowGroup":"G","rowGroupIndex":1,
+       "category":"Gamma","categoryIndex":3,"subCategory":"Gamma","subCategoryIndex":3,
+       "ac1":150,"pp1":100,"pl1":100,"fc1":140}
+    ]</bn-datasource>
+
+    <!-- probes whether .category-wN caps the column or only floors it -->
+    <bn-datasource name="parityLong">[
+      {"setName":"de","date":"2025-01-01","operation":"+","rowGroup":"G","rowGroupIndex":1,
+       "category":"A very long category label that does not fit into fifteen em",
+       "categoryIndex":1,"subCategory":"L","subCategoryIndex":1,
+       "ac1":120,"pp1":100,"pl1":100,"fc1":110},
+      {"setName":"de","date":"2025-01-01","operation":"+","rowGroup":"G","rowGroupIndex":1,
+       "category":"Beta","categoryIndex":2,"subCategory":"Beta","subCategoryIndex":2,
+       "ac1":80,"pp1":100,"pl1":60,"fc1":90}
+    ]</bn-datasource>
+
+    <h2>w15 &mdash; absolute variance bar (two-sided data)</h2>
+    <bn-table id="abs15" datasets="$parity" scale="none" level="category" order="category" order-direction="asc"
+      scenarios="ac1,pp1" variances="dac1_pp1_pos" bar-columns="dac1_pp1_pos"
+      category-width="w15" bar-column-width="w15" unit-scaling="auto"></bn-table>
+
+    <h2>w15 &mdash; absolute variance bar (positive-only data)</h2>
+    <bn-table id="absPos15" datasets="$parity" scale="none" level="category" order="category" order-direction="asc"
+      scenarios="ac1,pl1" variances="dac1_pl1_pos" bar-columns="dac1_pl1_pos"
+      category-width="w15" bar-column-width="w15" unit-scaling="auto"></bn-table>
+
+    <h2>w15 &mdash; relative variance pin</h2>
+    <bn-table id="rel15" datasets="$parity" scale="none" level="category" order="category" order-direction="asc"
+      scenarios="ac1,pp1" variances="drac1_pp1_pos" bar-columns="drac1_pp1_pos"
+      category-width="w15" bar-column-width="w15" percentage-scaling="auto"></bn-table>
+
+    <h2>w15 &mdash; waterfall (scenario bar column, grouped)</h2>
+    <bn-table id="wf15" datasets="$parity" scale="none" level="category" order="category" order-direction="asc"
+      type="sum" grouped="true" scenarios="ac1" bar-columns="ac1"
+      category-width="w15" bar-column-width="w15"></bn-table>
+
+    <h2>w5 &mdash; degenerate clamp</h2>
+    <bn-table id="abs5" datasets="$parity" scale="none" level="category" order="category" order-direction="asc"
+      scenarios="ac1,pp1" variances="dac1_pp1_pos" bar-columns="dac1_pp1_pos"
+      category-width="w5" bar-column-width="w5" unit-scaling="auto"></bn-table>
+
+    <h2>w25 &mdash; wide</h2>
+    <bn-table id="abs25" datasets="$parity" scale="none" level="category" order="category" order-direction="asc"
+      scenarios="ac1,pp1" variances="dac1_pp1_pos" bar-columns="dac1_pp1_pos"
+      category-width="w25" bar-column-width="w25" unit-scaling="auto"></bn-table>
+
+    <h2>w15 &mdash; long category label</h2>
+    <bn-table id="long15" datasets="$parityLong" scale="none" level="category" order="category" order-direction="asc"
+      scenarios="ac1,pp1" variances="dac1_pp1_pos" bar-columns="dac1_pp1_pos"
+      category-width="w15" bar-column-width="w15" unit-scaling="auto"></bn-table>
+  </bn-context>
+
+  <h2>Measurements</h2>
+  <div id="out">measuring&hellip;</div>
+
+  <script type="module">
+    const CASES = [
+      { id: 'abs15', n: 15, label: 'abs two-sided' },
+      { id: 'absPos15', n: 15, label: 'abs positive-only' },
+      { id: 'rel15', n: 15, label: 'relative pin' },
+      { id: 'wf15', n: 15, label: 'waterfall' },
+      { id: 'abs5', n: 5, label: 'abs two-sided' },
+      { id: 'abs25', n: 25, label: 'abs two-sided' },
+      { id: 'long15', n: 15, label: 'long label' },
+    ];
+
+    const innerOf = (id) =>
+      document.getElementById(id)?.shadowRoot?.querySelector('ibcs-table')?.shadowRoot;
+
+    const measure = () => {
+      const lines = [
+        'case                          N     em   expect   svg[w]   barTd   catTd      Δ  verdict',
+        '─'.repeat(88),
+      ];
+
+      for (const { id, n, label } of CASES) {
+        const root = innerOf(id);
+        const table = root?.querySelector('table');
+        if (!table) { lines.push(`${id}: not rendered`); continue; }
+
+        const em = parseFloat(getComputedStyle(table).fontSize);
+        const catTd = root.querySelector('td[class*="category-w"]');
+        const barTd = [...root.querySelectorAll('td')].find((td) => td.querySelector('svg.cell-bar-chart'));
+        const svg = barTd?.querySelector('svg.cell-bar-chart');
+        if (!catTd || !svg) { lines.push(`${id}: no bar/category cell`); continue; }
+
+        // `.category-wN` is a border box of N em; a bar cell is its SVG plus the
+        // 0.5em padding from `td:has(.cell-bar-chart)`. Both must land on N em.
+        const expected = n * em;
+        const bar = barTd.getBoundingClientRect().width;
+        const cat = catTd.getBoundingClientRect().width;
+
+        lines.push(
+          `${(id + ' (' + label + ')').padEnd(30)}` +
+          `${String(n).padStart(2)} ${em.toFixed(2).padStart(6)} ` +
+          `${expected.toFixed(2).padStart(8)} ${parseFloat(svg.getAttribute('width')).toFixed(2).padStart(8)} ` +
+          `${bar.toFixed(2).padStart(7)} ${cat.toFixed(2).padStart(7)} ` +
+          `${(bar - cat).toFixed(2).padStart(6)}  ${Math.abs(bar - expected) < 0.6 ? 'PASS' : 'FAIL'}`
+        );
+      }
+      document.getElementById('out').textContent = lines.join('\n');
+    };
+
+    // setTimeout rather than requestAnimationFrame: rAF is throttled to never in a
+    // hidden/non-painting tab, which would leave the report stuck on "measuring…".
+    let attempts = 0;
+    const poll = setInterval(() => {
+      const ready = CASES.every(({ id }) => innerOf(id)?.querySelector('table'));
+      if (ready || ++attempts > 60) {
+        clearInterval(poll);
+        setTimeout(measure, 100);
+      }
+    }, 150);
+  </script>
+</body>
+
+</html>
