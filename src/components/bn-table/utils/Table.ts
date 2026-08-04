@@ -46,7 +46,6 @@ export class Table {
     this.config = this.initConfig(config);
     this.i18n = this.initI18n(new Map<string, string>());
     this.setSource(tableName, config.filter);
-    this.state = FactoryState.DIRTY;
   }
 
   /**
@@ -130,7 +129,22 @@ export class Table {
     this.config = this.initConfig(config);
   }
 
+  /**
+   * Resolves the dataset (a table or view in the shared alasql database),
+   * caches its row count, and marks the rows stale.
+   *
+   * Deliberately does NOT build header/body rows. The constructor runs before
+   * the component calls {@link setI18n}, so rows built here would carry the
+   * built-in fallback labels and be thrown away by the first `update()` — the
+   * whole N+1 query pass, run twice per render, for a result that was wrong.
+   *
+   * `fromExpr` and `rowCount` must stay eager: `hasNoData()` reads `rowCount`
+   * and the component consults it before any `getHeader()`/`getBody()` call
+   * would trigger the deferred update.
+   */
   public setSource(tableName: string, filter: string) {
+    this.state = FactoryState.DIRTY;
+
     if (!tableName) {
       this.fromExpr = "";
       this.rowCount = 0;
@@ -146,29 +160,6 @@ export class Table {
       // Table may not exist yet (e.g. datasource hasn't loaded). Treat as empty.
       this.rowCount = 0;
     }
-
-    this.prepareIntervalBuckets();
-
-    const normalizedScenarios = this.normalizeScenarios(
-      this.config.scenarios,
-      this.config.categoryThereOf,
-      this.config.sortOrder,
-      this.intervalBuckets,
-    );
-
-    this.headerRows = this.dataSetFactory.createHeader(
-      this.config.type,
-      normalizedScenarios,
-      this.i18n,
-      this.config.measureScale,
-      this.config.measureUnit,
-      this.config.showMeasureScale,
-      this.config.attributes,
-    );
-
-    this.bodyRows =
-      this.rowCount === 0 ? [] : this.dataSetFactory.createBodyRows(this.config, this.i18n, this.db, this.fromExpr);
-    this.state = FactoryState.UP_TO_DATE;
   }
 
   public update() {
