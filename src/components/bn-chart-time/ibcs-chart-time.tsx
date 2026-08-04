@@ -257,10 +257,10 @@ export class IbcsChartTime {
       );
       this.chart.setI18n(this.i18n);
     };
-    // toString() runs draw(), which finalizes positions — an undrawn chart
+    // layout() runs draw(), which finalizes positions — an undrawn chart
     // reports a stale allocated height.
     const measure = () => {
-      this.chart.toString();
+      this.chart.layout();
       return this.chart.getAllocatedCanvasHeight();
     };
 

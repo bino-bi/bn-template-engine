@@ -216,10 +216,10 @@ export class IbcsChartStructure {
       this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
       this.chart.setI18n(this.i18n);
     };
-    // toString() runs draw(), which finalizes positions — an undrawn chart
+    // layout() runs draw(), which finalizes positions — an undrawn chart
     // reports a stale allocated width.
     const measure = () => {
-      this.chart.toString();
+      this.chart.layout();
       return this.chart.getAllocatedCanvasWidth();
     };
 

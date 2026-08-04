@@ -156,8 +156,11 @@ export class Label {
     const text = label.text(prefix + valueStr);
     text.move(this.x, this.y);
 
-    const boxWidth: number = text.bbox().w;
-    const boxHeight: number = text.bbox().h;
+    // One bbox() per label, not two: svg.js caches nothing, and on a detached
+    // tree each call clones the subtree into the document to measure it.
+    const box = text.bbox();
+    const boxWidth: number = box.w;
+    const boxHeight: number = box.h;
 
     if (this.maxWidth != null && boxWidth > this.maxWidth) {
       this.group?.remove();

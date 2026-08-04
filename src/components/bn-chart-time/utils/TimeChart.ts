@@ -35,6 +35,7 @@ import {
 } from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
+import { drawAttached } from "../../../utils/measurementHost";
 import { DataFormatDigits, Order } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
@@ -469,9 +470,22 @@ export class TimeChart {
     });
   }
 
+  /**
+   * Runs `draw()` purely for its side effects — it is what finalizes the
+   * positions and the allocated-area fields that `getAllocatedCanvas*()` read.
+   *
+   * The auto-fit solver measures the chart once per iteration and only needs
+   * those numbers, so it calls this instead of {@link toString}: the XML
+   * serialization of a tree that is immediately discarded is pure overhead.
+   */
+  public layout(): void {
+    const container = new Svg();
+    drawAttached(container, () => this.draw(container));
+  }
+
   public toString(): string {
     const container = new Svg();
-    this.draw(container);
+    drawAttached(container, () => this.draw(container));
     container.id("drawCanvas");
     container.width(this.getAllocatedCanvasWidth());
     container.height(this.getAllocatedCanvasHeight());
@@ -1118,9 +1132,12 @@ export class TimeChart {
       this.position,
       axisLabelGroup,
     ).draw();
+    // svg.js's width()/height() getters each default to their own bbox() call,
+    // so reading both measures the group twice. Measure once.
+    const axisBox = axisLabelGroup.bbox();
     this.axisCategoryArea = {
-      height: axisLabelGroup.height() as number,
-      width: axisLabelGroup.width() as number,
+      height: axisBox.height,
+      width: axisBox.width,
     };
   }
 
@@ -1152,9 +1169,10 @@ export class TimeChart {
       }
     }
 
+    const columnBox = columnGroup.bbox();
     this.scenariosArea = {
-      height: (columnGroup.height() as number) + this.styles.padding.top + this.styles.padding.bottom + heightOffset,
-      width: (columnGroup.width() as number) + this.position.spacings.columnWidth,
+      height: columnBox.height + this.styles.padding.top + this.styles.padding.bottom + heightOffset,
+      width: columnBox.width + this.position.spacings.columnWidth,
     };
   }
 
@@ -1230,9 +1248,10 @@ export class TimeChart {
     // Use getColumnPositionY() (the axis baseline) as the minimum height
     // so that axis date labels drawn below are not cut off.
     const axisY = this.position.getColumnPositionY();
+    const lineBox = lineGroup.bbox();
     this.scenariosArea = {
-      height: Math.max((lineGroup.height() as number) + this.styles.padding.top, axisY) + this.styles.padding.bottom,
-      width: (lineGroup.width() as number) + this.position.spacings.columnWidth,
+      height: Math.max(lineBox.height + this.styles.padding.top, axisY) + this.styles.padding.bottom,
+      width: lineBox.width + this.position.spacings.columnWidth,
     };
   }
 
@@ -1301,9 +1320,12 @@ export class TimeChart {
       axisLabelGroup,
     ).draw();
 
+    // svg.js's width()/height() getters each default to their own bbox() call,
+    // so reading both measures the group twice. Measure once.
+    const axisBox = axisLabelGroup.bbox();
     this.axisCategoryArea = {
-      height: axisLabelGroup.height() as number,
-      width: axisLabelGroup.width() as number,
+      height: axisBox.height,
+      width: axisBox.width,
     };
   }
 
@@ -1373,9 +1395,10 @@ export class TimeChart {
       }
     });
 
+    const varianceBox = columnGroup.bbox();
     this.scenariosArea = {
-      height: (columnGroup.height() as number) + this.styles.padding.top + this.styles.padding.bottom,
-      width: (columnGroup.width() as number) + this.position.spacings.columnWidth,
+      height: varianceBox.height + this.styles.padding.top + this.styles.padding.bottom,
+      width: varianceBox.width + this.position.spacings.columnWidth,
     };
 
     return columnGroup;
@@ -1517,9 +1540,10 @@ export class TimeChart {
       }
     });
 
+    const stackBox = stackGroup.bbox();
     this.scenariosArea = {
-      height: (stackGroup.height() as number) + this.styles.padding.top + this.styles.padding.bottom,
-      width: (stackGroup.width() as number) + this.position.spacings.columnWidth,
+      height: stackBox.height + this.styles.padding.top + this.styles.padding.bottom,
+      width: stackBox.width + this.position.spacings.columnWidth,
     };
   }
 
@@ -1742,9 +1766,10 @@ export class TimeChart {
       areaFill.drawBoundaryLine();
     }
 
+    const areaBox = areaGroup.bbox();
     this.scenariosArea = {
-      height: (areaGroup.height() as number) + this.styles.padding.top + this.styles.padding.bottom,
-      width: (areaGroup.width() as number) + this.position.spacings.columnWidth,
+      height: areaBox.height + this.styles.padding.top + this.styles.padding.bottom,
+      width: areaBox.width + this.position.spacings.columnWidth,
     };
   }
 
