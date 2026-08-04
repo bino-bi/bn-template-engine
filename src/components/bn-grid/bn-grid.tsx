@@ -1,5 +1,16 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, h, Host, Method, Prop, State, Watch } from "@stencil/core";
 import { isValidBoolean } from "../../utils/validate";
+import {
+  ComponentLayoutState,
+  GridCellElement,
+  LayoutElement,
+  LayoutStateOptions,
+  LAYOUT_STATE_VERSION,
+  measure,
+  originsFor,
+  readDiagnostics,
+  resolveStandaloneId,
+} from "../../utils/layoutState";
 import withComponentStatus from "../../utils/withComponentStatus";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
@@ -166,6 +177,84 @@ export class Grid {
     withComponentStatus(this);
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
+  }
+
+  /**
+   * Lazily generates this grid's layout state: host box (context- and
+   * component-relative, CSS px), the grid region and row/column counts. With
+   * `detail: "full"` the title, every header and every data cell (with its
+   * slot name) is listed with its geometry.
+   *
+   * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+   */
+  @Method()
+  async getLayoutState(options?: LayoutStateOptions): Promise<ComponentLayoutState> {
+    const detail = options?.detail ?? "summary";
+    const origins = originsFor(this.element);
+    const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
+    const { rows, columns } = this.gridConfig;
+
+    const state: ComponentLayoutState = {
+      version: LAYOUT_STATE_VERSION,
+      tag: this.element.localName,
+      id: resolveStandaloneId(this.element),
+      slot: this.element.getAttribute("slot") ?? undefined,
+      rect: measure(this.element, origins),
+      em: { fontSizePx, appliedScaleFactor: 1 },
+      regions: [],
+      metadata: {
+        title: this.chartTitle || undefined,
+        rowCount: rows.length,
+        columnCount: columns.length,
+        cellCount: rows.length * columns.length,
+      },
+      diagnostics: readDiagnostics(this.element),
+    };
+
+    const container = this.element.shadowRoot?.querySelector(".grid-container");
+    if (container) state.regions.push({ id: "grid", rect: measure(container, origins) });
+
+    if (detail !== "full" || !container) {
+      return state;
+    }
+
+    const elements: LayoutElement[] = [];
+    const push = (entry: GridCellElement) => elements.push(entry);
+
+    const title = container.querySelector(".grid-title");
+    if (title) {
+      push({ kind: "gridTitle", label: title.textContent?.trim() || undefined, rect: measure(title, origins) });
+    }
+    container.querySelectorAll(".grid-header-col").forEach((header, index) => {
+      push({
+        kind: "gridHeader",
+        columnId: columns[index]?.id,
+        label: header.textContent?.trim() || undefined,
+        rect: measure(header, origins),
+      });
+    });
+    container.querySelectorAll(".grid-header-row").forEach((header, index) => {
+      push({
+        kind: "gridHeader",
+        rowId: rows[index]?.id,
+        label: header.textContent?.trim() || undefined,
+        rect: measure(header, origins),
+      });
+    });
+    // Data cells render row-major (see renderDataCells), so index i maps to
+    // row i / columns.length, column i % columns.length.
+    container.querySelectorAll(".grid-cell").forEach((cell, index) => {
+      push({
+        kind: "gridCell",
+        rowId: columns.length > 0 ? rows[Math.floor(index / columns.length)]?.id : undefined,
+        columnId: columns.length > 0 ? columns[index % columns.length]?.id : undefined,
+        slot: cell.querySelector("slot")?.getAttribute("name") ?? undefined,
+        rect: measure(cell, origins),
+      });
+    });
+
+    state.elements = elements;
+    return state;
   }
 
   /**

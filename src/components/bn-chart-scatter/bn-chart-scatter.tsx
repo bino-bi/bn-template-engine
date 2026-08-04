@@ -1,4 +1,5 @@
-import { Component, Element, forceUpdate, h, Host, Prop, State, Watch, writeTask } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, writeTask } from "@stencil/core";
+import { ComponentLayoutState, LayoutStateOptions, collectXYFacadeState, originsFor } from "../../utils/layoutState";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { getParentDimensions } from "../../utils/parentDimensions";
@@ -675,6 +676,32 @@ export class ChartScatter {
         padding: $[tag]["padding"],
       } as unknown as XYChartStyle;
     });
+  }
+
+  /**
+   * Lazily generates this chart's layout state: host box (context- and
+   * component-relative, CSS px), the canvas region, point count and
+   * diagnostics. With `detail: "full"` the rendered marks and labels are
+   * listed with their geometry (tag-classified — XY marks carry no ids).
+   *
+   * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+   */
+  @Method()
+  async getLayoutState(options?: LayoutStateOptions): Promise<ComponentLayoutState> {
+    const detail = options?.detail ?? "summary";
+    const origins = originsFor(this.element);
+    const rawFactor = this.getEffectiveScaleFactor();
+    // Auto-scale can be mid-measurement (or unmeasurable in tests) — report a sane factor.
+    const factor = Number.isFinite(rawFactor) && rawFactor > 0 ? rawFactor : 1;
+    const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
+    return collectXYFacadeState(
+      this.element,
+      "ibcs-chart-scatter",
+      this.chartTitle || undefined,
+      { fontSizePx, appliedScaleFactor: factor },
+      origins,
+      detail,
+    );
   }
 
   protected getEffectiveScaleFactor(): number {

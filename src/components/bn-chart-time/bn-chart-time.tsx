@@ -1,4 +1,4 @@
-import { Component, Element, forceUpdate, h, Host, Prop, State, Watch, writeTask } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, writeTask } from "@stencil/core";
 import {
   isBlankInput,
   isValidAxisLabelsMode,
@@ -36,6 +36,17 @@ import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
 import { StackConfigParsed } from "./utils/model/TimeChartComponentConfig";
 import { DateDistance } from "../../utils/DateStringFactory";
+import {
+  ComponentLayoutState,
+  LAYOUT_STATE_VERSION,
+  LayoutStateOptions,
+  ScalingInfo,
+  collectChartFacadeLayout,
+  measure,
+  originsFor,
+  readDiagnostics,
+  resolveStandaloneId,
+} from "../../utils/layoutState";
 
 enum AggregationLevel {
   ROWGROUP = "rowGroup",
@@ -1085,6 +1096,8 @@ export class Chart {
   private autoPctWarningActive = false;
   private lastReportedUnitsPerEm?: number;
   private lastReportedPpPerEm?: number;
+  /** Last auto-fit report from the inner chart (px/unit, px/1.0), kept for getLayoutState(). */
+  private lastAutoScalingReport?: AutoScalingReport;
 
   /** "not set" for blank input, `invalid value "x"` otherwise — for AUTO_* messages. */
   private static describeScalingInput(raw: string): string {
@@ -1153,6 +1166,11 @@ export class Chart {
    * them into a bn-scaling-group.
    */
   private handleAutoScalingReport = (report: AutoScalingReport): void => {
+    // A report only carries the auto-resolved quantities — keep the other one.
+    this.lastAutoScalingReport = {
+      unit: report.unit ?? this.lastAutoScalingReport?.unit,
+      percentage: report.percentage ?? this.lastAutoScalingReport?.percentage,
+    };
     const changed = (next: number, last?: number): boolean =>
       last === undefined || Math.abs(next - last) > Math.abs(next) * 1e-3;
     const effFontPx = this.getEffectiveFontPx();
@@ -1518,6 +1536,88 @@ export class Chart {
         ruleSetConfig={this.ruleSetConfig()}
       ></ibcs-chart-time>
     );
+  }
+
+  /**
+   * Lazily generates this chart's layout state: host box (context- and
+   * component-relative, CSS px), one `canvas:<segment>` region per rendered
+   * segment (base + variances), metadata (scenarios, bar count), diagnostics
+   * and resolved scaling. With `detail: "full"` every bar, label and axis of
+   * every segment is listed with its geometry.
+   *
+   * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+   */
+  @Method()
+  async getLayoutState(options?: LayoutStateOptions): Promise<ComponentLayoutState> {
+    const detail = options?.detail ?? "summary";
+    const origins = originsFor(this.element);
+    const rawFactor = this.getEffectiveScaleFactor();
+    // Auto-scale can be mid-measurement (or unmeasurable in tests) — report a sane factor.
+    const factor = Number.isFinite(rawFactor) && rawFactor > 0 ? rawFactor : 1;
+    const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
+
+    const variances = this.prepareVariances();
+    const layout = collectChartFacadeLayout(this.element, "ibcs-chart-time", ["base", ...variances], origins, detail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const firstInner = this.element.shadowRoot?.querySelector("ibcs-chart-time") as any;
+
+    const state: ComponentLayoutState = {
+      version: LAYOUT_STATE_VERSION,
+      tag: this.element.localName,
+      id: resolveStandaloneId(this.element),
+      slot: this.element.getAttribute("slot") ?? undefined,
+      rect: measure(this.element, origins),
+      em: { fontSizePx, appliedScaleFactor: factor },
+      regions: layout.regions,
+      metadata: {
+        title: this.chartTitle || undefined,
+        scenarios: firstInner?.scenarios ?? [],
+        variances,
+        barCount: layout.barCount,
+        chartMode: this.chartMode || undefined,
+        hasNoData: layout.barCount === 0,
+      },
+      diagnostics: readDiagnostics(this.element),
+      scaling: this.resolveScalingInfo(fontSizePx),
+    };
+    if (layout.elements) state.elements = layout.elements;
+    return state;
+  }
+
+  /**
+   * Resolved value scaling without re-triggering validation side effects.
+   * The inner chart's scale unit is px per unit / px per 1.0 fraction;
+   * auto-fitted values come from the last inner report.
+   */
+  private resolveScalingInfo(effFontPx: number): ScalingInfo {
+    const info: ScalingInfo = {};
+    const unit = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap);
+    if (unit.kind === "value") {
+      info.unitMode = "fixed";
+      info.unitsPerEm = unit.value;
+      info.unitPxPerUnit = effFontPx / unit.value;
+    } else {
+      info.unitMode = "auto";
+      const pxPerUnit = this.lastAutoScalingReport?.unit;
+      if (pxPerUnit !== undefined && pxPerUnit > 0) {
+        info.unitPxPerUnit = pxPerUnit;
+        info.unitsPerEm = effFontPx / pxPerUnit;
+      }
+    }
+    const pct = resolveScalingValue(this.percentageScaling, this.pixelPerUnitGroupMap);
+    if (pct.kind === "value") {
+      info.percentageMode = "fixed";
+      info.percentagePointsPerEm = pct.value;
+      info.percentagePxPerPoint = effFontPx / pct.value;
+    } else {
+      info.percentageMode = "auto";
+      const pxPerFraction = this.lastAutoScalingReport?.percentage;
+      if (pxPerFraction !== undefined && pxPerFraction > 0) {
+        info.percentagePxPerPoint = pxPerFraction / 100;
+        info.percentagePointsPerEm = (100 * effFontPx) / pxPerFraction;
+      }
+    }
+    return info;
   }
 
   private getEffectiveScaleFactor(): number {

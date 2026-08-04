@@ -5,6 +5,8 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
+import { TableLayoutDetail } from "./components/bn-table/ibcs-table";
 import { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 import { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 import { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
@@ -27,8 +29,13 @@ import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-t
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 import { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
 import { TableType } from "./components/bn-table/utils/model";
+import { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/ibcs-table";
+import { TableRow } from "./components/bn-table/utils/elements";
+import { Element } from "@stencil/core";
 import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
+export { CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
+export { TableLayoutDetail } from "./components/bn-table/ibcs-table";
 export { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 export { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 export { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
@@ -51,6 +58,9 @@ export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-t
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 export { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
 export { TableType } from "./components/bn-table/utils/model";
+export { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/ibcs-table";
+export { TableRow } from "./components/bn-table/utils/elements";
+export { Element } from "@stencil/core";
 export { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
 export { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
 export namespace Components {
@@ -100,6 +110,11 @@ export namespace Components {
           * @default ""
          */
         "filter": string;
+        /**
+          * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), the canvas region, point count and diagnostics. With `detail: "full"` the rendered marks and labels are listed with their geometry (tag-classified — XY marks carry no ids).
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
         /**
           * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.
           * @default ""
@@ -181,6 +196,11 @@ export namespace Components {
           * @default ""
          */
         "filter": string;
+        /**
+          * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), the canvas region and diagnostics. With `detail: "full"` the rendered marks and labels are listed with their geometry (tag-classified — bullet marks carry no ids).
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
         /**
           * Value labels. JSON object: `{"show":"auto"|"none","decimals":1}`.
           * @default ""
@@ -265,6 +285,11 @@ export namespace Components {
          */
         "filter": string;
         /**
+          * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), the canvas region, point count and diagnostics. With `detail: "full"` the rendered marks and labels are listed with their geometry (tag-classified — XY marks carry no ids).
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+        /**
           * Hyperbolic iso-lines `x·y = k` (IBCS 09C/09D). JSON object: `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD", "highlight":{"from":3}}`. Requires a strictly positive plot domain.
           * @default ""
          */
@@ -333,6 +358,11 @@ export namespace Components {
           * @default ""
          */
         "filter": string;
+        /**
+          * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), one `canvas:<segment>` region per rendered segment (base + variances), metadata (scenarios, bar count), diagnostics and resolved scaling. With `detail: "full"` every bar, label and axis of every segment is listed with its geometry.
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
         /**
           * Aggregation level that determines which hierarchy dimension each bar represents.  | Value              | Bars represent            | |--------------------|---------------------------| | `"rowGroup"`       | Row groups                | | `"rowGroupIndex"`  | Row groups (dataset order)| | `"category"`       | Categories                | | `"categoryIndex"`  | Categories (dataset order)| | `"subCategory"`    | Sub-categories            | | `"subCategoryIndex"` | Sub-categories (dataset order)| | `"auto"`           | Auto-detect from dataset metadata (no warning) | | not set / `""`     | Auto-detect with `AUTO_level` warning          |  Index variants preserve the original dataset order instead of sorting alphabetically. When `stack.by` is `"dimensions"`, the chart automatically stacks by the next-lower level (e.g. level `"rowGroup"` stacks by category).
           * @example level="category"
@@ -453,6 +483,11 @@ export namespace Components {
          */
         "filter": string;
         /**
+          * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), one `canvas:<segment>` region per rendered segment (base + variances), metadata (scenarios, bar count), diagnostics and resolved scaling. With `detail: "full"` every bar, label and axis of every segment is listed with its geometry.
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+        /**
           * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
           * @default 28
          */
@@ -559,6 +594,11 @@ export namespace Components {
         "name": string;
     }
     interface BnContext {
+        /**
+          * Lazily generates a JSON-serializable snapshot of the rendered report: every visual descendant with its position and size (context- and component-relative, CSS px), render metadata, diagnostics and — with `detail: "full"` — per-element geometry (bars, labels, axes, cells).  Nothing is tracked during rendering; each call measures the DOM at that moment. Call it after the report has settled (e.g. when `window.componentRegisterIsRenderedResult` is true) for final geometry.
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<LayoutState>;
         /**
           * Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
          */
@@ -672,6 +712,11 @@ export namespace Components {
           * @default "[]"
          */
         "columnHeaders": string;
+        /**
+          * Lazily generates this grid's layout state: host box (context- and component-relative, CSS px), the grid region and row/column counts. With `detail: "full"` the title, every header and every data cell (with its slot name) is listed with its geometry.
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
         /**
           * I18n namespace inherited by this grid's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the grid renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
          */
@@ -1067,6 +1112,11 @@ export namespace Components {
          */
         "filter": string;
         /**
+          * Lazily generates this table's layout state: host box (context- and component-relative, CSS px), header/body regions, row/column/cell counts, diagnostics and resolved scaling. With `detail: "full"` every cell is listed with its geometry, model value, column key and in-cell bar chart.
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+        /**
           * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
           * @default "false"
          */
@@ -1279,6 +1329,11 @@ export namespace Components {
           * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
          */
         "edges": string;
+        /**
+          * Lazily generates this tree's layout state: host box (context- and component-relative, CSS px), the grid region and node/edge counts. With `detail: "full"` every node (slotted content), edge path and operator is listed with its geometry.
+          * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+         */
+        "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
         /**
           * I18n namespace inherited by this tree's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the tree renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
          */
@@ -1787,6 +1842,10 @@ export namespace Components {
           * @default ""
          */
         "filter": string;
+        /**
+          * Collects the table's layout-state contribution: header/body regions, counts, and — with `detail: "full"` — per-cell geometry paired with the table model (values, column keys, in-cell bar charts). Called by the outer `bn-table`; not for end users.
+         */
+        "getLayoutDetail": (origins: Origins, detail: "summary" | "full") => Promise<TableLayoutDetail1>;
         /**
           * @default false
          */

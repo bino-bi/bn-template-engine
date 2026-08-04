@@ -1,5 +1,18 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, h, Host, Method, Prop, State, Watch } from "@stencil/core";
 import { isValidBoolean, isValidNumber } from "../../utils/validate";
+import {
+  ComponentLayoutState,
+  EdgeElement,
+  LabelElement,
+  LayoutElement,
+  LayoutStateOptions,
+  LAYOUT_STATE_VERSION,
+  NodeElement,
+  measure,
+  originsFor,
+  readDiagnostics,
+  resolveStandaloneId,
+} from "../../utils/layoutState";
 import withComponentStatus from "../../utils/withComponentStatus";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
@@ -219,6 +232,80 @@ export class ChartTree {
     withComponentStatus(this);
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
+  }
+
+  /**
+   * Lazily generates this tree's layout state: host box (context- and
+   * component-relative, CSS px), the grid region and node/edge counts. With
+   * `detail: "full"` every node (slotted content), edge path and operator is
+   * listed with its geometry.
+   *
+   * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+   */
+  @Method()
+  async getLayoutState(options?: LayoutStateOptions): Promise<ComponentLayoutState> {
+    const detail = options?.detail ?? "summary";
+    const origins = originsFor(this.element);
+    const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
+
+    const state: ComponentLayoutState = {
+      version: LAYOUT_STATE_VERSION,
+      tag: this.element.localName,
+      id: resolveStandaloneId(this.element),
+      slot: this.element.getAttribute("slot") ?? undefined,
+      rect: measure(this.element, origins),
+      em: { fontSizePx, appliedScaleFactor: 1 },
+      regions: [],
+      metadata: {
+        nodeCount: this.treeConfig?.allNodes.size ?? 0,
+        edgeCount: this.treeConfig?.edges.length ?? 0,
+      },
+      diagnostics: readDiagnostics(this.element),
+    };
+
+    const grid = this.element.shadowRoot?.querySelector(".tree-grid");
+    if (grid) state.regions.push({ id: "grid", rect: measure(grid, origins) });
+
+    if (detail !== "full" || !this.treeConfig) {
+      return state;
+    }
+
+    const elements: LayoutElement[] = [];
+    for (const nodeId of this.treeConfig.allNodes) {
+      const slotted = this.element.querySelector(`[slot="${nodeId}"]`);
+      if (!slotted) continue;
+      const node: NodeElement = { kind: "node", nodeId, rect: measure(slotted, origins) };
+      elements.push(node);
+    }
+
+    // Pair model edges with the rendered paths, replicating renderEdges()'s
+    // skip of edges whose node rects are missing.
+    const paths = Array.from(this.element.shadowRoot?.querySelectorAll("svg.edge-layer path") ?? []);
+    let pathIndex = 0;
+    for (const edge of this.treeConfig.edges) {
+      if (!this.nodeRects.get(edge.from) || !this.nodeRects.get(edge.to)) continue;
+      const pathEl = paths[pathIndex++];
+      if (!pathEl) break;
+      const edgeElement: EdgeElement = {
+        kind: "edge",
+        from: edge.from,
+        to: edge.to,
+        operator: edge.operator,
+        path: pathEl.getAttribute("d") ?? undefined,
+        rect: measure(pathEl, origins),
+      };
+      elements.push(edgeElement);
+    }
+
+    this.element.shadowRoot?.querySelectorAll("svg.edge-layer g.operator-group").forEach((group) => {
+      const text = group.textContent?.trim() ?? "";
+      if (!text) return;
+      const operator: LabelElement = { kind: "label", role: "operator", text, rect: measure(group, origins) };
+      elements.push(operator);
+    });
+
+    state.elements = elements;
+    return state;
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Component, Element, forceUpdate, h, Host, Prop, State, Watch, writeTask } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, writeTask } from "@stencil/core";
 import {
   isBlankInput,
   isTableBarColumnWidth,
@@ -52,6 +52,17 @@ import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { parseTableAttributeExpression, TableAttribute } from "./utils/model/TableAttribute";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
+import {
+  ComponentLayoutState,
+  LAYOUT_STATE_VERSION,
+  LayoutStateOptions,
+  ScalingInfo,
+  measure,
+  originsFor,
+  readDiagnostics,
+  resolveStandaloneId,
+} from "../../utils/layoutState";
+import { TableLayoutDetail } from "./ibcs-table";
 
 /**
  * Public-facing wrapper for the IBCS table component.
@@ -1360,6 +1371,8 @@ export class Table {
   private autoPctWarningActive = false;
   private lastReportedUnitsPerEm?: number;
   private lastReportedPpPerEm?: number;
+  /** Last auto-fit report from the inner table (em/unit, em/pp), kept for getLayoutState(). */
+  private lastAutoScalingReport?: AutoScalingReport;
 
   private prepareUnitScaling(): number {
     const resolved = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap);
@@ -1416,6 +1429,11 @@ export class Table {
    * can copy them into a bn-scaling-group.
    */
   private handleAutoScalingReport = (report: AutoScalingReport): void => {
+    // A report only carries the auto-resolved quantities — keep the other one.
+    this.lastAutoScalingReport = {
+      unit: report.unit ?? this.lastAutoScalingReport?.unit,
+      percentage: report.percentage ?? this.lastAutoScalingReport?.percentage,
+    };
     const changed = (next: number, last?: number): boolean =>
       last === undefined || Math.abs(next - last) > Math.abs(next) * 1e-3;
 
@@ -1480,6 +1498,90 @@ export class Table {
     };
 
     return dataSetStructure;
+  }
+
+  /**
+   * Lazily generates this table's layout state: host box (context- and
+   * component-relative, CSS px), header/body regions, row/column/cell counts,
+   * diagnostics and resolved scaling. With `detail: "full"` every cell is
+   * listed with its geometry, model value, column key and in-cell bar chart.
+   *
+   * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+   */
+  @Method()
+  async getLayoutState(options?: LayoutStateOptions): Promise<ComponentLayoutState> {
+    const detail = options?.detail ?? "summary";
+    const origins = originsFor(this.element);
+    const rawFactor = this.getEffectiveScaleFactor();
+    // Auto-scale can be mid-measurement (or unmeasurable in tests) — report a sane factor.
+    const effectiveFactor = Number.isFinite(rawFactor) && rawFactor > 0 ? rawFactor : 1;
+    const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * effectiveFactor;
+
+    const state: ComponentLayoutState = {
+      version: LAYOUT_STATE_VERSION,
+      tag: this.element.localName,
+      id: resolveStandaloneId(this.element),
+      slot: this.element.getAttribute("slot") ?? undefined,
+      rect: measure(this.element, origins),
+      em: { fontSizePx, appliedScaleFactor: effectiveFactor },
+      regions: [],
+      metadata: {},
+      diagnostics: readDiagnostics(this.element),
+      scaling: this.resolveScalingInfo(fontSizePx),
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const inner = this.element.shadowRoot?.querySelector("ibcs-table") as any;
+    if (inner) {
+      const scenarios: string[] = inner.scenarios ?? [];
+      state.metadata.scenarios = scenarios.filter((name) => !name.startsWith("d"));
+      state.metadata.variances = scenarios.filter((name) => name.startsWith("d"));
+      if (typeof inner.getLayoutDetail === "function") {
+        const layoutDetail: TableLayoutDetail = await inner.getLayoutDetail(origins, detail);
+        state.regions = layoutDetail.regions;
+        state.metadata = { ...state.metadata, ...layoutDetail.metadata };
+        state.diagnostics = [...state.diagnostics, ...layoutDetail.diagnostics];
+        if (layoutDetail.elements) state.elements = layoutDetail.elements;
+        if (layoutDetail.table) state.table = layoutDetail.table;
+      }
+    }
+    return state;
+  }
+
+  /**
+   * Resolved value scaling without re-triggering validation side effects.
+   * The table's internal scale unit is em per unit / em per percentage point;
+   * auto-fitted values come from the last inner report.
+   */
+  private resolveScalingInfo(emPx: number): ScalingInfo {
+    const info: ScalingInfo = {};
+    const unit = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap);
+    if (unit.kind === "value") {
+      info.unitMode = "fixed";
+      info.unitsPerEm = unit.value;
+      info.unitPxPerUnit = emPx / unit.value;
+    } else {
+      info.unitMode = "auto";
+      const emPerUnit = this.lastAutoScalingReport?.unit;
+      if (emPerUnit !== undefined && emPerUnit > 0) {
+        info.unitsPerEm = 1 / emPerUnit;
+        info.unitPxPerUnit = emPerUnit * emPx;
+      }
+    }
+    const pct = resolveScalingValue(this.percentageScaling, this.pixelPerUnitGroupMap);
+    if (pct.kind === "value") {
+      info.percentageMode = "fixed";
+      info.percentagePointsPerEm = pct.value;
+      info.percentagePxPerPoint = emPx / pct.value;
+    } else {
+      info.percentageMode = "auto";
+      const emPerPoint = this.lastAutoScalingReport?.percentage;
+      if (emPerPoint !== undefined && emPerPoint > 0) {
+        info.percentagePointsPerEm = 1 / emPerPoint;
+        info.percentagePxPerPoint = emPerPoint * emPx;
+      }
+    }
+    return info;
   }
 
   private getEffectiveScaleFactor(): number {

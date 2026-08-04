@@ -77,6 +77,28 @@ Supports configurable borders, title, and header visibility.
 | `showRowHeaders`    | `show-row-headers`    | Whether to display row headers.                                                                                                                                                                                                                                                                                                   | `string` | `"true"`    |
 
 
+## Methods
+
+### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
+
+Lazily generates this grid's layout state: host box (context- and
+component-relative, CSS px), the grid region and row/column counts. With
+`detail: "full"` the title, every header and every data cell (with its
+slot name) is listed with its geometry.
+
+#### Parameters
+
+| Name      | Type                 | Description                                              |
+| --------- | -------------------- | -------------------------------------------------------- |
+| `options` | `LayoutStateOptions` | - `{ detail: "summary" \| "full" }`, default `"summary"` |
+
+#### Returns
+
+Type: `Promise<ComponentLayoutState>`
+
+
+
+
 ----------------------------------------------
 
 developed by Bino Bi

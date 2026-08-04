@@ -263,6 +263,29 @@ not be used directly; use `bn-table` instead.
 | `unitScaling`         | `unit-scaling`          |                                                                                                                                                                                                                                          | `number`                                                                                                                                                                                                       | `0.01`                                                        |
 
 
+## Methods
+
+### `getLayoutDetail(origins: Origins, detail: "summary" | "full") => Promise<TableLayoutDetail>`
+
+Collects the table's layout-state contribution: header/body regions,
+counts, and — with `detail: "full"` — per-cell geometry paired with the
+table model (values, column keys, in-cell bar charts). Called by the
+outer `bn-table`; not for end users.
+
+#### Parameters
+
+| Name      | Type                  | Description |
+| --------- | --------------------- | ----------- |
+| `origins` | `Origins`             |             |
+| `detail`  | `"summary" \| "full"` |             |
+
+#### Returns
+
+Type: `Promise<TableLayoutDetail>`
+
+
+
+
 ## Dependencies
 
 ### Used by

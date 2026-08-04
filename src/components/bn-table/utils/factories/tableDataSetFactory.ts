@@ -29,6 +29,11 @@ export class TableDataSetFactory {
 
   constructor() {}
 
+  /** Effective column list (category/operation + attributes + scenarios × buckets), set by createHeader(). */
+  public getNormalizedHeader(): ScenarioHeaderColumn[] {
+    return this.normalizedHeader;
+  }
+
   /**
    * Creates Tableheader based on the configured scenarios (in config)
    * the created header is stored in the dataset json

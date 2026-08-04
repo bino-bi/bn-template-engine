@@ -69,7 +69,7 @@ const storesCache = new WeakMap<HTMLElement, ScopedStores>();
  * Walks up the DOM tree (crossing shadow boundaries) to find the nearest
  * `<bn-context>` ancestor element.
  */
-function findContextElement(element: HTMLElement): HTMLElement | undefined {
+export function findContextElement(element: HTMLElement): HTMLElement | undefined {
   let current: Node | null = element.parentNode;
   while (current) {
     if (current instanceof HTMLElement && (current as HTMLElement).nodeName?.toLowerCase() === "bn-context") {

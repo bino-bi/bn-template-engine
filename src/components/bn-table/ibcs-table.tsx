@@ -1,6 +1,17 @@
-import { Component, Element, h, Host, Prop } from "@stencil/core";
+import { Component, Element, h, Host, Method, Prop } from "@stencil/core";
 
 import { OrderDirection, TableRowType, TableType } from "./utils/model";
+import {
+  CellElement,
+  ComponentMetadata,
+  LayoutDiagnosticItem,
+  LayoutElement,
+  LayoutRegion,
+  Origins,
+  TableDetail,
+  TableRowInfo,
+  measure,
+} from "../../utils/layoutState";
 
 import { TableRow } from "./utils/elements";
 import { Table } from "./utils/Table";
@@ -29,6 +40,15 @@ interface BarColumnStats {
   absMax: number;
   hasNeg: boolean;
   hasPos: boolean;
+}
+
+/** Layout-state contribution of the inner table, merged by `bn-table.getLayoutState()`. */
+export interface TableLayoutDetail {
+  regions: LayoutRegion[];
+  metadata: ComponentMetadata;
+  diagnostics: LayoutDiagnosticItem[];
+  elements?: LayoutElement[];
+  table?: TableDetail;
 }
 
 /**
@@ -183,6 +203,103 @@ export class IbcsTable {
 
   constructor() {
     this.componentStyle = withComponentStyle(this);
+  }
+
+  /**
+   * Collects the table's layout-state contribution: header/body regions,
+   * counts, and — with `detail: "full"` — per-cell geometry paired with the
+   * table model (values, column keys, in-cell bar charts). Called by the
+   * outer `bn-table`; not for end users.
+   */
+  @Method()
+  async getLayoutDetail(origins: Origins, detail: "summary" | "full"): Promise<TableLayoutDetail> {
+    const result: TableLayoutDetail = { regions: [], metadata: {}, diagnostics: [] };
+    const tableEl = this.element.shadowRoot?.querySelector("table");
+    result.metadata.hasNoData = this.table?.hasNoData() ?? true;
+    if (!this.table || !tableEl) {
+      return result;
+    }
+
+    const thead = tableEl.querySelector("thead");
+    const tbody = tableEl.querySelector("tbody");
+    if (thead) result.regions.push({ id: "header", rect: measure(thead, origins) });
+    if (tbody) result.regions.push({ id: "body", rect: measure(tbody, origins) });
+
+    const headerRows = this.table.getHeader();
+    const bodyRows = this.table.getBody();
+    const columns = this.table.getColumns();
+    result.metadata.headerRowCount = headerRows.length;
+    result.metadata.rowCount = bodyRows.length;
+    result.metadata.columnCount = columns.length;
+    result.metadata.cellCount = bodyRows.reduce((count, row) => count + row.getCells().length, 0);
+
+    if (detail !== "full") {
+      return result;
+    }
+
+    const rows: TableRowInfo[] = [];
+    const elements: LayoutElement[] = [];
+    const walk = (section: "header" | "body", modelRows: TableRow[], container: Element | null) => {
+      const domRows = container ? Array.from(container.children).filter((child) => child.localName === "tr") : [];
+      modelRows.forEach((row, rowIndex) => {
+        const tr = domRows[rowIndex];
+        if (!tr) return;
+        rows.push({ section, index: rowIndex, type: row.type, rect: measure(tr, origins) });
+
+        const cells = row.getCells();
+        const domCells = Array.from(tr.children);
+        if (cells.length !== domCells.length) {
+          result.diagnostics.push({
+            id: `LAYOUT_cellPairing_${section}_${rowIndex}`,
+            type: "warning",
+            message: `layout-state: model/DOM cell count mismatch in ${section} row ${rowIndex} (${cells.length} vs ${domCells.length}); cell details skipped for this row.`,
+          });
+          return;
+        }
+
+        cells.forEach((cell, cellIndex) => {
+          const domCell = domCells[cellIndex];
+          const entry: CellElement = {
+            kind: section === "header" ? "headerCell" : "cell",
+            row: rowIndex,
+            column: cell.index,
+            key: cell.key || undefined,
+            colSpan: cell.colSpan,
+            value: cell.value ?? undefined,
+            text: domCell.textContent?.trim() || undefined,
+            type: cell.type || undefined,
+            rect: measure(domCell, origins),
+          };
+          const barSvg = domCell.querySelector("svg.cell-bar-chart");
+          if (barSvg) {
+            entry.bar = {
+              variant: barSvg.classList.contains("waterfall-bar")
+                ? "waterfall"
+                : barSvg.classList.contains("relative-variance")
+                  ? "relative"
+                  : "absolute",
+              rect: measure(barSvg, origins),
+            };
+          }
+          elements.push(entry);
+        });
+      });
+    };
+    walk("header", headerRows, thead);
+    walk("body", bodyRows, tbody);
+
+    result.elements = elements;
+    result.table = {
+      rows,
+      columns: columns.map((column, index) => ({
+        index,
+        key: column.name,
+        group: column.group,
+        type: column.type,
+        bucket: column.bucket,
+      })),
+    };
+    return result;
   }
 
   render() {

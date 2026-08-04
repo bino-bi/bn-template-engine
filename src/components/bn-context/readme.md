@@ -46,6 +46,32 @@ You can use multiple `<bn-context>` elements on the same page. Each one has its 
 | `locale`        | `locale`         |                                                                                                                                                                                                                                                                                                                                                     | `string` | `undefined` |
 
 
+## Methods
+
+### `getLayoutState(options?: LayoutStateOptions) => Promise<LayoutState>`
+
+Lazily generates a JSON-serializable snapshot of the rendered report:
+every visual descendant with its position and size (context- and
+component-relative, CSS px), render metadata, diagnostics and — with
+`detail: "full"` — per-element geometry (bars, labels, axes, cells).
+
+Nothing is tracked during rendering; each call measures the DOM at that
+moment. Call it after the report has settled (e.g. when
+`window.componentRegisterIsRenderedResult` is true) for final geometry.
+
+#### Parameters
+
+| Name      | Type                 | Description                                              |
+| --------- | -------------------- | -------------------------------------------------------- |
+| `options` | `LayoutStateOptions` | - `{ detail: "summary" \| "full" }`, default `"summary"` |
+
+#### Returns
+
+Type: `Promise<LayoutState>`
+
+
+
+
 ----------------------------------------------
 
 developed by Bino Bi

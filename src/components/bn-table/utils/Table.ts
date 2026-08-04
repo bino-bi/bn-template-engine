@@ -213,6 +213,15 @@ export class Table {
     return this.bodyRows;
   }
 
+  /** Effective column definitions: category/operation + attributes + scenarios × interval buckets. */
+  public getColumns(): ScenarioHeaderColumn[] {
+    if (this.state === FactoryState.DIRTY) {
+      this.update();
+    }
+
+    return this.dataSetFactory.getNormalizedHeader();
+  }
+
   /**
    * Resolves the interval configuration into the concrete bucket list.
    * `auto` is narrowed to a concrete granularity (written back to the config so

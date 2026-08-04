@@ -84,6 +84,28 @@ Layout is computed via CSS Grid with an SVG overlay for edge paths.
 | `showOperators`      | `show-operators` | Show operator labels between sibling nodes.                                                                                                                                                                                                                                                                                       | `string`                                 | `"true"`       |
 
 
+## Methods
+
+### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
+
+Lazily generates this tree's layout state: host box (context- and
+component-relative, CSS px), the grid region and node/edge counts. With
+`detail: "full"` every node (slotted content), edge path and operator is
+listed with its geometry.
+
+#### Parameters
+
+| Name      | Type                 | Description                                              |
+| --------- | -------------------- | -------------------------------------------------------- |
+| `options` | `LayoutStateOptions` | - `{ detail: "summary" \| "full" }`, default `"summary"` |
+
+#### Returns
+
+Type: `Promise<ComponentLayoutState>`
+
+
+
+
 ----------------------------------------------
 
 developed by Bino Bi
