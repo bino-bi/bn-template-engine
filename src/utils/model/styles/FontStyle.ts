@@ -3,6 +3,13 @@ import { CompareUtil } from "../../helper/CompareUtil";
 
 export class FontStyle {
   public font: string = "16px Arial";
+  /**
+   * Font family alone, without the size that {@link font} bakes into its CSS
+   * shorthand. Charts write this onto the SVG as a presentation attribute so a
+   * measured element carries its own font instead of inheriting one from
+   * wherever it happens to be measured.
+   */
+  public family: string = "Arial";
   public size: number = 16;
   public color: string = "#000000";
   public background: string = "#ffffff";
@@ -17,6 +24,10 @@ export class FontStyleAdapter implements IAdapter<FontStyle> {
 
     if (CompareUtil.isString(data.font)) {
       fontStyle.font = data.font;
+    }
+
+    if (CompareUtil.isString(data.family)) {
+      fontStyle.family = data.family;
     }
 
     if (CompareUtil.isNumber(data.size)) {

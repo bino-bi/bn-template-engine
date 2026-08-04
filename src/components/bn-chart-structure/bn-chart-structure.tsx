@@ -1015,6 +1015,7 @@ export class Chart {
         },
         fontStyles: {
           font: `${scaledFontSize}px ${$["global"]["fontFamily"]}`,
+          family: $["global"]["fontFamily"],
           size: scaledFontSize,
           color: $["global"]["fontColor"],
           background: $["global"]["fontBackgroundColor"],

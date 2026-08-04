@@ -493,8 +493,32 @@ export class TimeChart {
     return container.svg();
   }
 
+  /**
+   * Writes the chart's font onto the SVG root as presentation attributes.
+   *
+   * `font-size` and `font-family` are inherited, so a `<text>` with neither of
+   * its own takes whatever its ancestor chain supplies. That chain is not stable
+   * across the places this SVG gets measured: drawn detached, svg.js's `bbox()`
+   * clones the element into a sandbox under `document.body`, where it inherits
+   * the document default — 16px Times — instead of the chart's real font. Every
+   * label was measured ~9% too wide as a result, which over-allocated label
+   * space and pushed labels past the `maxWidth` threshold that drops them.
+   *
+   * Setting the font here makes a measurement independent of where it happens.
+   * Stylesheet rules still win over presentation attributes, so this changes
+   * nothing about how the chart renders in place — the CSS and this attribute
+   * resolve to the same value, both being `fontSizePx * effectiveScaleFactor`.
+   */
+  private applyFontToContainer(svgContainer: Svg): void {
+    svgContainer.attr({
+      "font-size": this.styles.fontStyles.size,
+      "font-family": this.styles.fontStyles.family,
+    });
+  }
+
   public draw(svgContainer: Svg): void {
     this.cleanSVGforRedraw(svgContainer);
+    this.applyFontToContainer(svgContainer);
 
     if (this.state === FactoryState.DIRTY) {
       this.state = FactoryState.UP_TO_DATE;
