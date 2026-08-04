@@ -512,6 +512,55 @@
     </bn-layout-page>
 
     <!-- ═══════════════════════════════════════════════════════════════
+         OVERFLOW REPRO — sandbox xi2yhengahefyte
+         Mixed ± variance (ΔPY −13..+12) in fixed 512×341 cells.
+         A/C: everything auto → must never exceed the cell.
+         B/D: fixed scaling far too small → WARN_overflow error expected.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-datasource name='cities_overflow'>[
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Amsterdam", "categoryIndex": 1, "operation": "+",
+      "ac1": 159, "pp1": 147},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Auckland", "categoryIndex": 2, "operation": "+",
+      "ac1": 156, "pp1": 151},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "San Francisco", "categoryIndex": 3, "operation": "+",
+      "ac1": 152, "pp1": 149},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Munich", "categoryIndex": 4, "operation": "+",
+      "ac1": 151, "pp1": 150},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Dubai", "categoryIndex": 5, "operation": "+",
+      "ac1": 149, "pp1": 155},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Zurich", "categoryIndex": 6, "operation": "+",
+      "ac1": 149, "pp1": 151},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Mexico City", "categoryIndex": 7, "operation": "+",
+      "ac1": 147, "pp1": 149},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Madrid", "categoryIndex": 8, "operation": "+",
+      "ac1": 141, "pp1": 149},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Seoul", "categoryIndex": 9, "operation": "+",
+      "ac1": 141, "pp1": 146},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Mumbai", "categoryIndex": 10, "operation": "+",
+      "ac1": 137, "pp1": 150}
+    ]</bn-datasource>
+    <div id='overflow-repro' style='display: flex; flex-wrap: wrap; gap: 16px; padding: 8px;'>
+      <div id='overflow-repro-a' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
+        <bn-chart-structure datasets='$cities_overflow' chart-title='Revenue by City (auto)' level='category'
+          order='ac1' order-direction='desc' scale='auto' unit-scaling='auto' percentage-scaling='auto'
+          scenarios='ac1,pp1' variances='dac1_pp1_pos'></bn-chart-structure>
+      </div>
+      <div id='overflow-repro-b' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
+        <bn-chart-structure datasets='$cities_overflow' chart-title='Revenue by City (fixed)' level='category'
+          order='ac1' order-direction='desc' scale='none' unit-scaling='2' scenarios='ac1,pp1'
+          variances='dac1_pp1_pos'></bn-chart-structure>
+      </div>
+      <div id='overflow-repro-c' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
+        <bn-chart-time datasets='$umsatz_monthly' chart-mode='bar' date-interval='month' chart-title='Trend (auto)'
+          scenarios='ac1,pp1' variances='dac1_pp1_pos'></bn-chart-time>
+      </div>
+      <div id='overflow-repro-d' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
+        <bn-chart-time datasets='$umsatz_monthly' chart-mode='bar' date-interval='month' chart-title='Trend (fixed)'
+          scale='none' unit-scaling='2' scenarios='ac1,pp1' variances='dac1_pp1_pos'></bn-chart-time>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
          LAYOUT TEST 1: 3-Column Grid (1fr distribution)
          Verifies that 3 equal columns share space perfectly with no
          pixel gap from rounding (was 33%+33%+33%=99% before fix).

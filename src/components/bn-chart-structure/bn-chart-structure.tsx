@@ -573,20 +573,20 @@ export class Chart {
 
     if (mode !== "auto" && mode !== "empty") {
       this._autoScaleGuard = false;
-      this.checkWidthOverflow();
+      this.checkOverflow();
       return;
     }
 
     if (this._autoScaleGuard) {
       this._autoScaleGuard = false;
-      this.checkWidthOverflow();
+      this.checkOverflow();
       return;
     }
 
     const host = this.element;
     const { height: parentHeight } = getParentDimensions(host);
     if (parentHeight <= 0) {
-      this.checkWidthOverflow();
+      this.checkOverflow();
       return;
     }
 
@@ -608,7 +608,7 @@ export class Chart {
       // Content fits. Don't reset to factor 1 — the content only fits
       // BECAUSE of the current factor. Resetting would cause oscillation.
       this.errors.remove("AUTO_scale");
-      this.checkWidthOverflow();
+      this.checkOverflow();
       return;
     }
 
@@ -620,7 +620,7 @@ export class Chart {
     // SVG charts have non-linear scaling so we use a wider tolerance
     // than tables to avoid oscillation from sub-pixel rounding.
     if (Math.abs(computedFactor - currentFactor) < 0.01) {
-      this.checkWidthOverflow();
+      this.checkOverflow();
       return;
     }
 
@@ -641,7 +641,10 @@ export class Chart {
       this.appliedScaleFactor = computedFactor;
     });
 
-    this.checkWidthOverflow();
+    // Check with the current (pre-factor) content so overflow is reported
+    // even if the scheduled re-render stalls; the follow-up render re-checks
+    // in the guard branch and clears any transiently reported overflow.
+    this.checkOverflow();
   }
 
   componentDidLoad() {
@@ -680,26 +683,73 @@ export class Chart {
   }
 
   /**
-   * Emits an error when a custom unit-scaling value causes the chart to exceed its container width.
-   * Skipped for auto/unset unit-scaling since auto-fit handles width.
+   * Content width from the rendered SVG width attributes (segments render
+   * side by side) — immune to the inner hosts' overflow:hidden clipping:
+   * flex items with hidden overflow shrink below their content size, so the
+   * host's scrollWidth cannot see the overflow. Falls back to scrollWidth
+   * before the inner charts have rendered.
    */
-  private checkWidthOverflow(): void {
+  private measureContentWidth(): number {
+    const inners = this.element.shadowRoot?.querySelectorAll("ibcs-chart-structure");
+    let total = 0;
+    let found = false;
+    inners?.forEach((inner) => {
+      const width = parseFloat(inner.shadowRoot?.querySelector("svg#drawCanvas")?.getAttribute("width") ?? "");
+      if (!Number.isNaN(width)) {
+        total += width;
+        found = true;
+      }
+    });
+    // scrollWidth additionally sees non-SVG chrome, but is blind to clipped
+    // segments (see above) — take the larger of the two measurements.
+    return found ? Math.max(total, this.element.scrollWidth) : this.element.scrollWidth;
+  }
+
+  /**
+   * Reports a WARN_overflow item when the rendered chart exceeds its
+   * container. Overflow attributable to a fixed scaling attribute is an
+   * error (width: unit-scaling / percentage-scaling, height: scale);
+   * overflow in fully-auto mode is a warning — auto-fit prevents it by
+   * construction, so it only fires when the content cannot fit at any scale.
+   */
+  private checkOverflow(): void {
     const errId = "WARN_overflow";
-    if (resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind !== "value") {
-      // Auto (explicit or fallback) fits the width by construction.
+    const parent = getParentDimensions(this.element);
+    const contentWidth = this.measureContentWidth();
+    const contentHeight = this.element.scrollHeight;
+    const widthOver = parent.width > 0 && contentWidth > parent.width + 1;
+    const heightOver = parent.height > 0 && contentHeight > parent.height + 1;
+
+    if (!widthOver && !heightOver) {
       this.errors.remove(errId);
       return;
     }
-    const parent = getParentDimensions(this.element);
-    if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "error",
-        message: `Chart exceeds available width (${this.element.scrollWidth}px > ${Math.round(parent.width)}px). Increase unit-scaling or set to "auto".`,
-      });
-    } else {
-      this.errors.remove(errId);
-    }
+
+    const hasRelativeVariance = this.prepareVariances().some((variance) => variance.startsWith("dr"));
+    const fixedUnit = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind === "value";
+    const fixedPercent =
+      hasRelativeVariance && resolveScalingValue(this.percentageScaling, this.pixelPerUnitGroupMap).kind === "value";
+    const { mode } = parseScaling(this.scale);
+    const fixedScale = mode !== "auto" && mode !== "empty";
+
+    const fixedAttrs: string[] = [];
+    if (widthOver && fixedUnit) fixedAttrs.push("unit-scaling");
+    if (widthOver && fixedPercent) fixedAttrs.push("percentage-scaling");
+    if (heightOver && fixedScale) fixedAttrs.push("scale");
+
+    const dims: string[] = [];
+    if (widthOver) dims.push(`width (${Math.round(contentWidth)}px > ${Math.round(parent.width)}px)`);
+    if (heightOver) dims.push(`height (${Math.round(contentHeight)}px > ${Math.round(parent.height)}px)`);
+
+    this.errors.addOrReplace({
+      id: errId,
+      type: fixedAttrs.length > 0 ? "error" : "warning",
+      message:
+        `Chart exceeds available ${dims.join(" and ")}. ` +
+        (fixedAttrs.length > 0
+          ? `Adjust ${fixedAttrs.join(" / ")} or set to "auto".`
+          : "Content does not fit even at minimum auto scaling; enlarge the container."),
+    });
   }
 
   prepareDimension(): ParentDimensions {
