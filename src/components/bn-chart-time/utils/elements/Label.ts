@@ -176,8 +176,11 @@ export class Label {
     const text = label.text(labelStr);
     text.move(this.x, this.y);
 
-    const boxWidth: number = text.bbox().w;
-    const boxHeight: number = text.bbox().h;
+    // One bbox() per label, not two: svg.js caches nothing, and on a detached
+    // tree each call clones the subtree into the document to measure it.
+    const box = text.bbox();
+    const boxWidth: number = box.w;
+    const boxHeight: number = box.h;
 
     let rectX: number = 0;
     let rectY: number = 0;
