@@ -352,6 +352,18 @@ export class StructureChart {
     return "<svg></svg>";
   }
 
+  /**
+   * Runs `draw()` purely for its side effects — it is what finalizes the
+   * positions that `getAllocatedCanvas*()` read.
+   *
+   * The auto-fit solver measures the chart once per iteration and only needs
+   * those numbers, so it calls this instead of {@link toString}: the XML
+   * serialization of a tree that is immediately discarded is pure overhead.
+   */
+  public layout(): void {
+    this.draw(new Svg());
+  }
+
   public toString(): string {
     const container = new Svg();
     this.draw(container);
