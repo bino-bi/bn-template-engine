@@ -790,8 +790,10 @@ export class Chart {
         found = true;
       }
     });
-    // scrollWidth additionally sees non-SVG chrome, so take the larger
-    return found ? Math.max(widest, this.element.scrollWidth) : this.element.scrollWidth;
+    // scrollWidth additionally sees non-SVG chrome, so take the larger.
+    // Floor the fractional SVG width so borderline sub-pixel overhangs are
+    // judged with the same integer tolerance as the scroll metrics.
+    return found ? Math.max(Math.floor(widest), this.element.scrollWidth) : this.element.scrollWidth;
   }
 
   /** Content height as the sum of the vertically stacked segment SVGs. */
@@ -806,8 +808,10 @@ export class Chart {
         found = true;
       }
     });
-    // scrollHeight additionally sees non-SVG chrome (e.g. the footer)
-    return found ? Math.max(total, this.element.scrollHeight) : this.element.scrollHeight;
+    // scrollHeight additionally sees non-SVG chrome (e.g. the footer).
+    // Floor the fractional SVG heights so borderline sub-pixel overhangs are
+    // judged with the same integer tolerance as the scroll metrics.
+    return found ? Math.max(Math.floor(total), this.element.scrollHeight) : this.element.scrollHeight;
   }
 
   /**

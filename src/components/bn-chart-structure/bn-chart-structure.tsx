@@ -702,7 +702,9 @@ export class Chart {
     });
     // scrollWidth additionally sees non-SVG chrome, but is blind to clipped
     // segments (see above) — take the larger of the two measurements.
-    return found ? Math.max(total, this.element.scrollWidth) : this.element.scrollWidth;
+    // Floor the fractional SVG widths so borderline sub-pixel overhangs are
+    // judged with the same integer tolerance as the scroll metrics.
+    return found ? Math.max(Math.floor(total), this.element.scrollWidth) : this.element.scrollWidth;
   }
 
   /**
