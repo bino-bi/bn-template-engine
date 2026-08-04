@@ -93,6 +93,12 @@ div {
   font-style: italic;
 }
 
+svg#drawCanvas {
+  /* Inline SVGs sit on a text baseline and add a ~4px line-box gap below;
+     the fitted chart must not spend its container budget on that. */
+  display: block;
+}
+
 .footer {
   margin: 0.2em;
   font-size: 0.6em;

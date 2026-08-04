@@ -18,6 +18,7 @@ import { ScenarioFactory } from "./factories";
 import CalculateSize from "calculate-size";
 import { Formatter } from "../../../utils";
 import { AggregationLevel, StackBy, StackMode } from "../../../utils/constants";
+import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
@@ -284,29 +285,38 @@ export class StructureChart {
   }
 
   /**
-   * Returns the data value whose bar extent is proportional to pixelPerUnit.
-   * Used by autoFitScaling to separate fixed vs variable width components.
+   * Total bar extent (data units) proportional to pixelPerUnit, covering
+   * BOTH sides of the axis (left side scales with negative values, right
+   * side with positive ones). Used by autoFitScaling to separate fixed
+   * from variable width components.
    */
-  public getMaxBarValue(): number {
-    // Stacked: bar extent = highestStackedTotal * ppu (or just ppu for relative)
-    if (this.stackConfig != null && this.highestStackedTotal > 0) {
-      if (this.stackConfig.mode === StackMode.RELATIVE) {
-        return 1;
-      }
-      return this.highestStackedTotal;
-    }
-
-    // Non-stacked: bar extent = highestDataPointValue * ppu
+  public getUnitBarExtent(): number {
+    const stacked = this.stackConfig != null && this.highestStackedTotal > 0;
     const vt = this.getVarianceType();
-    if (vt === VarianceType.NONE && this.highestDataPointValue?.value != null) {
-      return Math.abs(this.highestDataPointValue.value);
-    }
-    if (vt === VarianceType.ABSOLUTE && this.highestVarianceDataPointValue?.value != null) {
-      return Math.abs(this.highestVarianceDataPointValue.value);
-    }
+    const isVariance = vt !== VarianceType.NONE;
+    const highest = isVariance ? this.highestVarianceDataPointValue : this.highestDataPointValue;
+    const smallest = isVariance ? this.smallestVarianceDataPointValue : this.smallestDataPointValue;
 
-    // RELATIVE variance depends on pixelPerPercentage, not pixelPerUnit
-    return 0;
+    return computeUnitBarExtent({
+      // Relative stacks span exactly 1 * ppu; absolute stacks the max row total
+      fixedDomain: stacked ? (this.stackConfig.mode === StackMode.RELATIVE ? 1 : this.highestStackedTotal) : undefined,
+      relativeVariance: vt === VarianceType.RELATIVE,
+      maxPositive: highest?.value ?? 0,
+      minNegative: smallest?.value ?? 0,
+    });
+  }
+
+  /**
+   * Total bar extent (fraction units) proportional to pixelPerPercentage.
+   * Only relative variances scale with it; each side clamps at +/-145%
+   * because clipped needles render as fixed-size arrows.
+   */
+  public getPercentBarExtent(): number {
+    return computePercentBarExtent({
+      relativeVariance: this.getVarianceType() === VarianceType.RELATIVE,
+      maxPositive: this.highestVarianceDataPointValue?.value ?? 0,
+      minNegative: this.smallestVarianceDataPointValue?.value ?? 0,
+    });
   }
 
   public getAllocatedCanvasWidth(): number {

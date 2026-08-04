@@ -17,6 +17,7 @@ import { Order, OrderAdapter, OrderDirection } from "../../utils/model/Order";
 import { AggregationLevel } from "../../utils/constants";
 import { ParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport } from "../../utils/scaling";
+import { MIN_PIXEL_SCALE, solveAutoFitStep } from "../../utils/autoFit";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
@@ -149,8 +150,14 @@ export class IbcsChartStructure {
 
     this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
     this.chart.setI18n(this.i18n);
+    // The broken-bar overdrive exists to absorb MANUAL scaling overflow.
+    // autoFitScaling mutates config.pixelPerUnit to the solved value, so
+    // remember auto mode beforehand and skip the overdrive for it — the
+    // fitted chart fits by construction, and the overdrive's rough overhead
+    // estimate would falsely re-engage on it.
+    const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.chart.setAvailableWidth(this.parentDimensions?.width || 0);
+    this.chart.setAvailableWidth(unitWasAuto ? 0 : this.parentDimensions?.width || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
@@ -167,17 +174,25 @@ export class IbcsChartStructure {
     this.chart.setStyles(styles);
     this.chart.setRuleSet(new IBCSRuleSet(this.ruleSetConfig));
     this.chart.setConfig(config);
+    // See componentWillLoad: no broken-bar overdrive for auto-fitted scaling
+    const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.chart.setAvailableWidth(this.parentDimensions?.width || 0);
+    this.chart.setAvailableWidth(unitWasAuto ? 0 : this.parentDimensions?.width || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
 
   /**
-   * Two-pass auto-fit for pixelPerUnit and/or pixelPerPercentage.
-   * When either is 0 (auto mode), renders a measurement pass at 1,
-   * computes the ratio to fit the available width, and rebuilds.
+   * Auto-fit for pixelPerUnit and/or pixelPerPercentage (0 = auto mode).
    * Structure charts grow horizontally, so we fit to width.
+   *
+   * The chart width is affine in the pixel scales (width = fixed labels +
+   * bar extent × scale), but label clamps flip between passes, so a single
+   * analytic solve is not enough: measure at 1, solve, then verify against
+   * fresh measurements and re-solve until the chart fits. The loop never
+   * ends on an overshoot — the last fitting values are restored, or when
+   * even the minimum scale cannot fit (labels alone exceed the container)
+   * the values are floored and the wrapper reports the overflow.
    * Explicit (> 0) values are never overridden.
    */
   private autoFitScaling(config: StructureChartComponentConfig, styles: StructureChartStyle): void {
@@ -197,48 +212,107 @@ export class IbcsChartStructure {
 
     const targetWidth = this.parentDimensions?.width;
     const db = this.getDb();
+    const rebuild = () => {
+      this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
+      this.chart.setI18n(this.i18n);
+    };
+    // toString() runs draw(), which finalizes positions — an undrawn chart
+    // reports a stale allocated width.
+    const measure = () => {
+      this.chart.toString();
+      return this.chart.getAllocatedCanvasWidth();
+    };
+
     if (!targetWidth || targetWidth <= 0) {
       if (autoUnit) config.pixelPerUnit = 1;
       if (autoPercent) config.pixelPerPercentage = 50;
-      this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
-      this.chart.setI18n(this.i18n);
+      rebuild();
       reportResolved();
       return;
     }
 
-    // First pass: set auto values to 1 and measure total width + bar extent
+    // Measurement pass: render the auto quantities at 1
     if (autoUnit) config.pixelPerUnit = 1;
     if (autoPercent) config.pixelPerPercentage = 1;
-    this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
-    this.chart.setI18n(this.i18n);
-    this.chart.toString();
-    const svgWidth = this.chart.getAllocatedCanvasWidth();
+    rebuild();
+    let width = measure();
 
-    if (svgWidth <= 0) {
+    if (width <= 0) {
       reportResolved();
       return;
     }
 
-    // Separate fixed parts (labels, padding, spacing) from variable part (bar extent).
-    // totalWidth(ppu) = fixedWidth + maxBarValue * ppu
-    // Solving for ppu:  ppu = (targetWidth - fixedWidth) / maxBarValue
-    const maxBarValue = this.chart.getMaxBarValue();
-    if (autoUnit) {
-      if (maxBarValue > 0) {
-        const fixedWidth = svgWidth - maxBarValue; // at ppu=1, barExtent = maxBarValue * 1
-        config.pixelPerUnit = Math.max(0.001, (targetWidth - fixedWidth) / maxBarValue);
-      } else {
-        config.pixelPerUnit = (targetWidth * 0.9) / svgWidth;
+    // Fallback for auto quantities nothing scales with (no bar extent):
+    // plain ratio against the measurement pass, as before.
+    const ratioFallback = Math.max(MIN_PIXEL_SCALE, (targetWidth * 0.9) / width);
+    const EPS = 0.5;
+    const MAX_CORRECTIONS = 3;
+    let solvedUnit = false;
+    let solvedPercent = false;
+    let fitting: { ppu: number; ppp: number } | null = null;
+
+    for (let iteration = 0; iteration <= MAX_CORRECTIONS; iteration++) {
+      const step = solveAutoFitStep({
+        target: targetWidth,
+        measured: width,
+        unitExtent: autoUnit ? this.chart.getUnitBarExtent() : 0,
+        pctExtent: autoPercent ? this.chart.getPercentBarExtent() : 0,
+        currentPpu: config.pixelPerUnit,
+        currentPpp: config.pixelPerPercentage,
+      });
+      if (step.ppu === undefined && step.ppp === undefined) {
+        break; // nothing scales with the auto values — fallback below
+      }
+      if (autoUnit && step.ppu !== undefined) {
+        config.pixelPerUnit = step.ppu;
+        solvedUnit = true;
+      }
+      if (autoPercent && step.ppp !== undefined) {
+        config.pixelPerPercentage = step.ppp;
+        solvedPercent = true;
+      }
+      rebuild();
+      width = measure();
+      if (width <= targetWidth + EPS) {
+        fitting = { ppu: config.pixelPerUnit, ppp: config.pixelPerPercentage };
+        if (width >= targetWidth * 0.98) {
+          break; // fits and tight — done
+        }
+        // else a released label clamp left slack — loop once more to grow into it
       }
     }
-    if (autoPercent) {
-      // Same ratio approach: scale percentage bars to fill ~90% of width
-      config.pixelPerPercentage = (targetWidth * 0.9) / svgWidth;
+
+    // Auto quantities the solver never touched get the ratio fallback
+    let needsRebuild = false;
+    if (autoUnit && !solvedUnit) {
+      config.pixelPerUnit = ratioFallback;
+      needsRebuild = true;
+    }
+    if (autoPercent && !solvedPercent) {
+      config.pixelPerPercentage = ratioFallback;
+      needsRebuild = true;
     }
 
-    // Second pass with the corrected scaling
-    this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
-    this.chart.setI18n(this.i18n);
+    // Never end on an overshoot
+    if (width > targetWidth + EPS) {
+      if (fitting) {
+        // Restore the last values that fit (fallback quantities have no extent)
+        if (solvedUnit) config.pixelPerUnit = fitting.ppu;
+        if (solvedPercent) config.pixelPerPercentage = fitting.ppp;
+      } else {
+        // Even the solved minimum overshoots (labels alone exceed the
+        // container) — shrink proportionally; the wrapper reports this.
+        const shrink = targetWidth / width;
+        if (autoUnit) config.pixelPerUnit = Math.max(MIN_PIXEL_SCALE, config.pixelPerUnit * shrink);
+        if (autoPercent) config.pixelPerPercentage = Math.max(MIN_PIXEL_SCALE, config.pixelPerPercentage * shrink);
+      }
+      needsRebuild = true;
+    }
+
+    if (needsRebuild) {
+      rebuild();
+    }
+
     reportResolved();
   }
 

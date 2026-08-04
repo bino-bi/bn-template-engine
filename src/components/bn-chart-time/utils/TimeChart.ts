@@ -34,6 +34,7 @@ import {
   StackMode,
 } from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
+import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
 import { DataFormatDigits, Order } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
@@ -427,6 +428,45 @@ export class TimeChart {
       : this.scenariosArea.height;
 
     return Math.max(analyticalHeight, bboxHeight);
+  }
+
+  /**
+   * Total column extent (data units) proportional to pixelPerUnit, covering
+   * both sides of the axis (negative columns extend below it). Mirrors the
+   * DataPoints getAllocatedCanvasHeight allocates with; used by autoFitScaling
+   * to separate fixed from variable height components.
+   */
+  public getUnitBarExtent(): number {
+    const isRelative =
+      this.isVarianceChart() &&
+      this.variancesDataModel.some((e: TimeChartDataModelEntry) => e.type === VarianceType.RELATIVE);
+    const usesVariance = this.isVarianceChart();
+    const highest = usesVariance ? this.highestVarianceDataPointValue : this.highestDataPointValue;
+    const smallest = usesVariance ? this.smallestVarianceDataPointValue : this.smallestDataPointValue;
+
+    return computeUnitBarExtent({
+      // Relative stacks span exactly RELATIVE_STACK_UNITS * ppu
+      fixedDomain: this.stackConfig?.mode === StackMode.RELATIVE ? RELATIVE_STACK_UNITS : undefined,
+      relativeVariance: isRelative,
+      maxPositive: highest?.value ?? 0,
+      minNegative: this.isOnSameAxisSide() ? 0 : (smallest?.value ?? 0),
+    });
+  }
+
+  /**
+   * Total column extent (fraction units) proportional to pixelPerPercentage.
+   * Only relative variances scale with it; each side clamps at +/-145%.
+   */
+  public getPercentBarExtent(): number {
+    const isRelative =
+      this.isVarianceChart() &&
+      this.variancesDataModel.some((e: TimeChartDataModelEntry) => e.type === VarianceType.RELATIVE);
+
+    return computePercentBarExtent({
+      relativeVariance: isRelative,
+      maxPositive: this.highestVarianceDataPointValue?.value ?? 0,
+      minNegative: this.isOnSameAxisSide() ? 0 : (this.smallestVarianceDataPointValue?.value ?? 0),
+    });
   }
 
   public toString(): string {

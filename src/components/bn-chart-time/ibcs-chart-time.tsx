@@ -16,6 +16,7 @@ import { DateDistance } from "../../utils/DateStringFactory";
 import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../utils/constants";
 import { ParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport } from "../../utils/scaling";
+import { MIN_PIXEL_SCALE, solveAutoFitStep } from "../../utils/autoFit";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
@@ -182,8 +183,14 @@ export class IbcsChartTime {
       availableWidth,
     );
     this.chart.setI18n(this.i18n);
+    // The broken-bar overdrive exists to absorb MANUAL scaling overflow.
+    // autoFitScaling mutates config.pixelPerUnit to the solved value, so
+    // remember auto mode beforehand and skip the overdrive for it — the
+    // fitted chart fits by construction, and the overdrive's rough overhead
+    // estimate would falsely re-engage on it.
+    const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.chart.setAvailableHeight(this.parentDimensions?.height || 0);
+    this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
@@ -201,16 +208,25 @@ export class IbcsChartTime {
     this.chart.setAvailableWidth(this.containerWidth || 0);
     this.chart.setRuleSet(new IBCSRuleSet(this.ruleSetConfig));
     this.chart.setConfig(config);
+    // See componentWillLoad: no broken-bar overdrive for auto-fitted scaling
+    const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.chart.setAvailableHeight(this.parentDimensions?.height || 0);
+    this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
   }
 
   /**
-   * Two-pass auto-fit for pixelPerUnit and/or pixelPerPercentage.
-   * When either is 0 (auto mode), renders a measurement pass at 1,
-   * computes the ratio to fit ~90% of the available height, and rebuilds.
+   * Auto-fit for pixelPerUnit and/or pixelPerPercentage (0 = auto mode).
+   * Time charts grow vertically, so we fit to height.
+   *
+   * The chart height is affine in the pixel scales (height = fixed labels +
+   * column extent × scale), but label allocations shift between passes, so a
+   * single analytic solve is not enough: measure at 1, solve, then verify
+   * against fresh measurements and re-solve until the chart fits. The loop
+   * never ends on an overshoot — the last fitting values are restored, or
+   * when even the minimum scale cannot fit (labels alone exceed the
+   * container) the values are floored and the wrapper reports the overflow.
    * Explicit (> 0) values are never overridden.
    */
   private autoFitScaling(config: TimeChartComponentConfig, styles: TimeChartStyle): void {
@@ -230,9 +246,7 @@ export class IbcsChartTime {
 
     const targetHeight = this.parentDimensions?.height;
     const availableWidth = this.containerWidth || 0;
-    if (!targetHeight || targetHeight <= 0) {
-      if (autoUnit) config.pixelPerUnit = 1;
-      if (autoPercent) config.pixelPerPercentage = 50;
+    const rebuild = () => {
       this.chart = new TimeChart(
         new IBCSRuleSet(this.ruleSetConfig),
         this.getDb(),
@@ -242,45 +256,104 @@ export class IbcsChartTime {
         availableWidth,
       );
       this.chart.setI18n(this.i18n);
+    };
+    // toString() runs draw(), which finalizes positions — an undrawn chart
+    // reports a stale allocated height.
+    const measure = () => {
+      this.chart.toString();
+      return this.chart.getAllocatedCanvasHeight();
+    };
+
+    if (!targetHeight || targetHeight <= 0) {
+      if (autoUnit) config.pixelPerUnit = 1;
+      if (autoPercent) config.pixelPerPercentage = 50;
+      rebuild();
       reportResolved();
       return;
     }
 
-    // First pass: set auto values to 1 and measure SVG height
+    // Measurement pass: render the auto quantities at 1
     if (autoUnit) config.pixelPerUnit = 1;
     if (autoPercent) config.pixelPerPercentage = 1;
-    this.chart = new TimeChart(
-      new IBCSRuleSet(this.ruleSetConfig),
-      this.getDb(),
-      this.tableName,
-      config,
-      styles,
-      availableWidth,
-    );
-    this.chart.setI18n(this.i18n);
-    this.chart.toString();
-    const svgHeight = this.chart.getAllocatedCanvasHeight();
+    rebuild();
+    let height = measure();
 
-    if (svgHeight <= 0) {
+    if (height <= 0) {
       reportResolved();
       return;
     }
 
-    // Scale so the chart fits in ~90% of the available height
-    const ratio = (targetHeight * 0.9) / svgHeight;
-    if (autoUnit) config.pixelPerUnit = ratio;
-    if (autoPercent) config.pixelPerPercentage = ratio;
+    // Fallback for auto quantities nothing scales with (no column extent):
+    // plain ratio against the measurement pass, as before.
+    const ratioFallback = Math.max(MIN_PIXEL_SCALE, (targetHeight * 0.9) / height);
+    const EPS = 0.5;
+    const MAX_CORRECTIONS = 3;
+    let solvedUnit = false;
+    let solvedPercent = false;
+    let fitting: { ppu: number; ppp: number } | null = null;
 
-    // Second pass with the corrected scaling
-    this.chart = new TimeChart(
-      new IBCSRuleSet(this.ruleSetConfig),
-      this.getDb(),
-      this.tableName,
-      config,
-      styles,
-      availableWidth,
-    );
-    this.chart.setI18n(this.i18n);
+    for (let iteration = 0; iteration <= MAX_CORRECTIONS; iteration++) {
+      const step = solveAutoFitStep({
+        target: targetHeight,
+        measured: height,
+        unitExtent: autoUnit ? this.chart.getUnitBarExtent() : 0,
+        pctExtent: autoPercent ? this.chart.getPercentBarExtent() : 0,
+        currentPpu: config.pixelPerUnit,
+        currentPpp: config.pixelPerPercentage,
+      });
+      if (step.ppu === undefined && step.ppp === undefined) {
+        break; // nothing scales with the auto values — fallback below
+      }
+      if (autoUnit && step.ppu !== undefined) {
+        config.pixelPerUnit = step.ppu;
+        solvedUnit = true;
+      }
+      if (autoPercent && step.ppp !== undefined) {
+        config.pixelPerPercentage = step.ppp;
+        solvedPercent = true;
+      }
+      rebuild();
+      height = measure();
+      if (height <= targetHeight + EPS) {
+        fitting = { ppu: config.pixelPerUnit, ppp: config.pixelPerPercentage };
+        if (height >= targetHeight * 0.98) {
+          break; // fits and tight — done
+        }
+        // else the label allocation left slack — loop once more to grow into it
+      }
+    }
+
+    // Auto quantities the solver never touched get the ratio fallback
+    let needsRebuild = false;
+    if (autoUnit && !solvedUnit) {
+      config.pixelPerUnit = ratioFallback;
+      needsRebuild = true;
+    }
+    if (autoPercent && !solvedPercent) {
+      config.pixelPerPercentage = ratioFallback;
+      needsRebuild = true;
+    }
+
+    // Never end on an overshoot
+    if (height > targetHeight + EPS) {
+      if (fitting) {
+        // Restore the last values that fit (fallback quantities have no extent)
+        if (solvedUnit) config.pixelPerUnit = fitting.ppu;
+        if (solvedPercent) config.pixelPerPercentage = fitting.ppp;
+      } else {
+        // Even the solved minimum overshoots (labels alone exceed the
+        // container) — shrink proportionally; the wrapper reports this.
+        const shrink = targetHeight / height;
+        if (autoUnit) config.pixelPerUnit = Math.max(MIN_PIXEL_SCALE, config.pixelPerUnit * shrink);
+        if (autoPercent) config.pixelPerPercentage = Math.max(MIN_PIXEL_SCALE, config.pixelPerPercentage * shrink);
+      }
+      needsRebuild = true;
+    }
+
+    if (needsRebuild) {
+      rebuild();
+    }
+
     reportResolved();
   }
 

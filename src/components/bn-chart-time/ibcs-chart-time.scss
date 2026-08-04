@@ -90,7 +90,13 @@ div {
 }
 
 .footer-hide {
-  margin: 0.2em;
-  font-size: 0.6em;
-  opacity: 0;
+  /* Fully removed from layout: an invisible footer must not consume height
+     that the height-fitted chart was given to fill. */
+  display: none;
+}
+
+svg#drawCanvas {
+  /* Inline SVGs sit on a text baseline and add a ~4px line-box gap below;
+     the height-fitted chart must not spend its budget on that. */
+  display: block;
 }
