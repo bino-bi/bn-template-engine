@@ -195,6 +195,13 @@ async function capture(page, outDir) {
   // Tripwires: assumptions that must stay true for the capture to be meaningful.
   const warnings = [];
   const all = result.page + Object.values(result.components).join("");
+  // A component that rendered before its dataset resolved falls back to the
+  // no-data branch. That is a degraded run, not a real output change — surface
+  // it rather than letting it masquerade as a diff.
+  const noData = (result.page.match(/class="warning"/g) || []).length;
+  if (noData > 0) {
+    warnings.push(`${noData} component(s) rendered the no-data branch — likely a degraded run, re-capture before trusting a diff`);
+  }
   if (/Svgjs[A-Z]/.test(all)) {
     warnings.push("svg.js auto-generated ids present — the global id counter is now observable");
   }
@@ -283,6 +290,16 @@ async function main() {
 
   const summaries = [];
   try {
+    // Throwaway load first. The very first navigation after a build pays cold
+    // HTTP and module-compile costs, and that has been observed to let charts
+    // render before their datasets resolve — which shows up as a spurious diff
+    // in run 1 only. Warming up keeps every measured run on equal footing.
+    const warm = await browser.newPage();
+    await warm.setViewport(VIEWPORT);
+    await warm.goto(url, { waitUntil: "load", timeout: 60000 });
+    await new Promise((r) => setTimeout(r, MIN_SETTLE_MS));
+    await warm.close();
+
     for (let run = 1; run <= runs; run++) {
       const page = await browser.newPage();
       await page.setViewport(VIEWPORT);
