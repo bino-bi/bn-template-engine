@@ -154,6 +154,7 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 - [Scaling](doc/scaling.md) — Units-per-em bar scaling, scaling groups, `scale`, `measure-scale`
 - [Theming](doc/theming.md) — Colors, fonts, chart styles, style layers
 - [Internationalization](doc/internationalization.md) — Locale setup, translations, scenario labels
+- [Layout State](doc/layout-state.md) — `getLayoutState()`: machine-readable geometry, metadata and diagnostics of a rendered report
 - [Installation](doc/installation.md) — npm, CDN, framework integration
 
 ## Browser Support
