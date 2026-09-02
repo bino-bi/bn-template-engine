@@ -38,6 +38,7 @@ The scaling attributes on `bn-table`, `bn-chart-time`, and `bn-chart-structure` 
 
 ### Fixed
 
+- `bn-chart-time`: the measure-scale footer ("in kEUR") floated beside the base chart's SVG whenever the SVG was narrow enough to fit next to it, shifting the base chart right by the footer width while the variance segments stayed put. Base and variance bars were misaligned by exactly that width. The footer now always sits above the SVG.
 - Chart wrappers: stale `AUTO_percentageScaling` warning was not cleared when a scaling group resolved.
 - SI prefix tables: removed a stray `"P"` (peta) from the negative-prefix table (femto range was shifted); `measure-scale` now accepts both `"my"` and `"μ"` for micro; magnitude→prefix picking is now `Math.log10`-based and handles exponential notation (`1e-7`, `1e24`) and boundary values correctly.
 
