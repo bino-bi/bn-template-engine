@@ -60,6 +60,9 @@ import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { AutoScalingReport } from "../../utils/scaling";
 import { BarElement, LabelElement } from "../../utils/layoutState";
 import { Chart } from "./bn-chart-time";
+import { getStores } from "../../context/context-protocol";
+import { resolveHostFont } from "../../utils/testing/hostFont";
+import { join } from "path";
 
 const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
 
@@ -159,5 +162,35 @@ describe("bn-chart-time.getLayoutState", () => {
     expect(state.scaling.unitMode).toBe("auto");
     expect(state.scaling.unitPxPerUnit).toBe(2);
     expect(state.scaling.unitsPerEm).toBeCloseTo(BASE_FONT / 2, 12);
+  });
+});
+
+// Standalone (no bn-page / bn-layout-page ancestor) the host has nothing to
+// inherit the theme font from, so its own :host rule must consume the custom
+// properties the render writes. mock-doc has no CSS cascade, so the rule is
+// resolved against those properties instead of read via getComputedStyle.
+describe("bn-chart-time host font", () => {
+  const STYLESHEET = join(__dirname, "bn-chart-time.scss");
+
+  afterEach(() => {
+    getStores(null).componentStyles.state["_default"] = undefined;
+  });
+
+  it("applies the theme font on the host without a page ancestor", async () => {
+    const page = await renderChart("");
+    expect(page.doc.querySelector("bn-page, bn-layout-page")).toBeNull();
+
+    const font = resolveHostFont(STYLESHEET, page.root!);
+    expect(font.fontFamily).toBe(SYSTEM_STYLE_DEFAULTS.global.fontFamily);
+    expect(font.fontFamily).toContain("Noto Sans");
+    expect(font.fontSize).toBe(`${BASE_FONT}px`);
+    expect(font.color).toBe(SYSTEM_STYLE_DEFAULTS.global.fontColor);
+  });
+
+  it("forwards a global.fontFamily override from the ComponentStyle store", async () => {
+    getStores(null).componentStyles.state["_default"] = { global: { fontFamily: "Comic Sans MS" } } as any;
+    const page = await renderChart("");
+
+    expect(resolveHostFont(STYLESHEET, page.root!).fontFamily).toBe("Comic Sans MS");
   });
 });

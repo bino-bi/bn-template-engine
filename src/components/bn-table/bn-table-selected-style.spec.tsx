@@ -56,6 +56,9 @@ import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
 import { Table } from "./bn-table";
 import { IbcsTable } from "./ibcs-table";
+import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
+import { resolveHostFont } from "../../utils/testing/hostFont";
+import { join } from "path";
 
 describe("bn-table selected-style forwarding", () => {
   it("forwards selected-style to the inner ibcs-table", async () => {
@@ -78,5 +81,23 @@ describe("bn-table selected-style forwarding", () => {
     const inner = page.root.shadowRoot.querySelector("ibcs-table");
     expect(inner).not.toBeNull();
     expect(inner.hasAttribute("selected-style")).toBe(false);
+  });
+});
+
+// Same contract as the bn-chart-time host-font spec: the host must carry the
+// theme font itself when no page ancestor provides one.
+describe("bn-table host font", () => {
+  it("applies the theme font on the host without a page ancestor", async () => {
+    const page = await newSpecPage({
+      components: [Table, IbcsTable],
+      template: () => <bn-table scale="none"></bn-table>,
+    });
+    expect(page.doc.querySelector("bn-page, bn-layout-page")).toBeNull();
+
+    const font = resolveHostFont(join(__dirname, "bn-table.css"), page.root);
+    expect(font.fontFamily).toBe(SYSTEM_STYLE_DEFAULTS.global.fontFamily);
+    expect(font.fontFamily).toContain("Noto Sans");
+    expect(font.fontSize).toBe(`${SYSTEM_STYLE_DEFAULTS.global.fontSizePx}px`);
+    expect(font.color).toBe(SYSTEM_STYLE_DEFAULTS.global.fontColor);
   });
 });

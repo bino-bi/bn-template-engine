@@ -2,4 +2,7 @@
   display: inline-block;
   position: relative;
   overflow: hidden;
+  font-family: var(--bn-font-family, "Noto Sans", sans-serif);
+  font-size: var(--bn-font-size, 13.3333px);
+  color: var(--bn-font-color, #000000);
 }

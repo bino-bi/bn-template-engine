@@ -58,6 +58,8 @@ import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { BarElement } from "../../utils/layoutState";
 import { Chart } from "./bn-chart-structure";
+import { resolveHostFont } from "../../utils/testing/hostFont";
+import { join } from "path";
 
 const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
 
@@ -117,5 +119,20 @@ describe("bn-chart-structure.getLayoutState", () => {
     expect(state.scaling.unitMode).toBe("fixed");
     expect(state.scaling.unitsPerEm).toBe(1000000);
     expect(state.scaling.unitPxPerUnit).toBeCloseTo(BASE_FONT / 1000000, 12);
+  });
+});
+
+// Same contract as the bn-chart-time host-font spec: the host must carry the
+// theme font itself when no page ancestor provides one.
+describe("bn-chart-structure host font", () => {
+  it("applies the theme font on the host without a page ancestor", async () => {
+    const page = await renderChart("");
+    expect(page.doc.querySelector("bn-page, bn-layout-page")).toBeNull();
+
+    const font = resolveHostFont(join(__dirname, "bn-chart-structure.scss"), page.root!);
+    expect(font.fontFamily).toBe(SYSTEM_STYLE_DEFAULTS.global.fontFamily);
+    expect(font.fontFamily).toContain("Noto Sans");
+    expect(font.fontSize).toBe(`${BASE_FONT}px`);
+    expect(font.color).toBe(SYSTEM_STYLE_DEFAULTS.global.fontColor);
   });
 });
