@@ -516,6 +516,8 @@
          Mixed ± variance (ΔPY −13..+12) in fixed 512×341 cells.
          A/C: everything auto → must never exceed the cell.
          B/D: fixed scaling far too small → WARN_overflow error expected.
+         E/F: a table with more rows than the cell can show → WARN_overflow,
+              a warning in auto mode (E), an error with scale='none' (F).
          ═══════════════════════════════════════════════════════════════ -->
     <bn-datasource name='cities_overflow'>[
       {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Amsterdam", "categoryIndex": 1, "operation": "+",
@@ -539,6 +541,34 @@
       {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Mumbai", "categoryIndex": 10, "operation": "+",
       "ac1": 137, "pp1": 150}
     ]</bn-datasource>
+    <!-- 12 categories in 7 row groups: with group titles and subtotals the table renders
+         far taller than the 341 px cell below, so the bottom rows and the grand total are clipped. -->
+    <bn-datasource name='cities_overflow_tall'>[
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Product", "categoryIndex": 1, "operation": "+",
+      "ac1": 412, "pp1": 388},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Service", "categoryIndex": 2, "operation": "+",
+      "ac1": 205, "pp1": 198},
+      {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Licence", "categoryIndex": 3, "operation": "+",
+      "ac1": 141, "pp1": 156},
+      {"rowGroup": "Cost of Sales", "rowGroupIndex": 2, "category": "Material", "categoryIndex": 4, "operation": "-",
+      "ac1": 187, "pp1": 171},
+      {"rowGroup": "Cost of Sales", "rowGroupIndex": 2, "category": "Logistics", "categoryIndex": 5, "operation": "-",
+      "ac1": 64, "pp1": 69},
+      {"rowGroup": "Marketing", "rowGroupIndex": 3, "category": "Campaigns", "categoryIndex": 6, "operation": "-",
+      "ac1": 52, "pp1": 44},
+      {"rowGroup": "Marketing", "rowGroupIndex": 3, "category": "Events", "categoryIndex": 7, "operation": "-",
+      "ac1": 31, "pp1": 38},
+      {"rowGroup": "Research", "rowGroupIndex": 4, "category": "Development", "categoryIndex": 8, "operation": "-",
+      "ac1": 96, "pp1": 88},
+      {"rowGroup": "Administration", "rowGroupIndex": 5, "category": "Personnel", "categoryIndex": 9, "operation": "-",
+      "ac1": 78, "pp1": 74},
+      {"rowGroup": "Administration", "rowGroupIndex": 5, "category": "Facilities", "categoryIndex": 10, "operation": "-",
+      "ac1": 27, "pp1": 29},
+      {"rowGroup": "Other Operating", "rowGroupIndex": 6, "category": "Miscellaneous", "categoryIndex": 11, "operation": "-",
+      "ac1": 19, "pp1": 24},
+      {"rowGroup": "Financials", "rowGroupIndex": 7, "category": "Interest", "categoryIndex": 12, "operation": "-",
+      "ac1": 34, "pp1": 31}
+    ]</bn-datasource>
     <div id='overflow-repro' style='display: flex; flex-wrap: wrap; gap: 16px; padding: 8px;'>
       <div id='overflow-repro-a' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
         <bn-chart-structure datasets='$cities_overflow' chart-title='Revenue by City (auto)' level='category'
@@ -557,6 +587,17 @@
       <div id='overflow-repro-d' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
         <bn-chart-time datasets='$umsatz_monthly' chart-mode='bar' date-interval='month' chart-title='Trend (fixed)'
           scale='none' unit-scaling='2' scenarios='ac1,pp1' variances='dac1_pp1_pos'></bn-chart-time>
+      </div>
+      <div id='overflow-repro-e' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
+        <bn-table datasets='$cities_overflow_tall' measure-scale='greatest' measure-type='currency'
+          measure-unit='EUR' scenarios='ac1,pp1' variances='dac1_pp1_pos' grouped='true' show-group-title='true'
+          show-measure-scale='true' type='sum' unit-scaling='auto' percentage-scaling='auto'></bn-table>
+      </div>
+      <div id='overflow-repro-f' style='width: 512px; height: 341px; overflow: hidden; outline: 1px solid #999;'>
+        <bn-table datasets='$cities_overflow_tall' measure-scale='greatest' measure-type='currency'
+          measure-unit='EUR' scenarios='ac1,pp1' variances='dac1_pp1_pos' grouped='true' show-group-title='true'
+          show-measure-scale='true' type='sum' scale='none' unit-scaling='auto'
+          percentage-scaling='auto'></bn-table>
       </div>
     </div>
 
