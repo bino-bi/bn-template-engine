@@ -137,6 +137,16 @@ export class Table {
    * `"none"` or `"auto"`) fall back to the default behaviour (auto + warning)
    * and emit an `ERR_scale` warning.
    *
+   * **Only the width is fitted.** A table that renders taller than its
+   * constrained parent is clipped by the layout cell — bottom rows and the
+   * grand total simply disappear — so every render reports the measured
+   * overflow as a `WARN_overflow` item in `has-error`: an `error` when the
+   * size is pinned by `scale` (`"none"` or a factor), a `warning` in auto
+   * mode. The same item reports a width overflow, which only a fixed `scale`
+   * can produce. Setting `scale="auto"` does not fix a height overflow: give
+   * the component more space, reduce rows (`limit`), or set a smaller fixed
+   * `scale`.
+   *
    * @example
    * // Auto-scale to parent (silent)
    * <bn-table scale="auto" ...></bn-table>
@@ -995,18 +1005,23 @@ export class Table {
     // Only auto-scale for 'auto' and 'empty' (blank) modes
     if (mode !== "auto" && mode !== "empty") {
       this._autoScaleGuard = false;
+      this.checkOverflow();
       return;
     }
 
     // Skip re-measurement after the state-triggered re-render
     if (this._autoScaleGuard) {
       this._autoScaleGuard = false;
+      this.checkOverflow();
       return;
     }
 
     const host = this.element;
     const { width: parentWidth } = getParentDimensions(host);
-    if (parentWidth <= 0) return;
+    if (parentWidth <= 0) {
+      this.checkOverflow();
+      return;
+    }
 
     this._lastScaledParentWidth = parentWidth;
 
@@ -1020,6 +1035,7 @@ export class Table {
     // rounding and causes oscillation (reset → overflow → scale → reset).
     if (currentWidth <= parentWidth + 1) {
       this.errors.remove("AUTO_scale");
+      this.checkOverflow();
       return;
     }
 
@@ -1030,6 +1046,7 @@ export class Table {
 
     // Only apply if the change is significant (> 0.1% of current factor).
     if (Math.abs(computedFactor - currentFactor) < 0.001) {
+      this.checkOverflow();
       return;
     }
 
@@ -1052,6 +1069,48 @@ export class Table {
     this._autoScaleGuard = true;
     writeTask(() => {
       this.appliedScaleFactor = computedFactor;
+    });
+
+    // Check with the current (pre-factor) content so overflow is reported
+    // even if the scheduled re-render stalls; the follow-up render re-checks
+    // in the guard branch and clears any transiently reported overflow.
+    this.checkOverflow();
+  }
+
+  /**
+   * Reports a WARN_overflow item when the rendered table exceeds its
+   * container. The table only auto-fits its WIDTH, so nothing prevents it
+   * from growing taller than the layout cell, which clips the bottom rows
+   * (grand total included) without a trace — this item is the only signal.
+   * Overflow under a fixed `scale` is an error: the author pinned the size.
+   * In auto mode it is a warning.
+   */
+  private checkOverflow(): void {
+    const errId = "WARN_overflow";
+    const parent = getParentDimensions(this.element);
+    const contentWidth = this.element.scrollWidth;
+    const contentHeight = this.element.scrollHeight;
+    const widthOver = parent.width > 0 && contentWidth > parent.width + 1;
+    const heightOver = parent.height > 0 && contentHeight > parent.height + 1;
+
+    if (!widthOver && !heightOver) {
+      this.errors.remove(errId);
+      return;
+    }
+
+    const { mode } = parseScaling(this.scale);
+    const fixedScale = mode !== "auto" && mode !== "empty";
+
+    const dims: string[] = [];
+    if (widthOver) dims.push(`width (${Math.round(contentWidth)}px > ${Math.round(parent.width)}px)`);
+    if (heightOver) dims.push(`height (${Math.round(contentHeight)}px > ${Math.round(parent.height)}px)`);
+
+    this.errors.addOrReplace({
+      id: errId,
+      type: fixedScale ? "error" : "warning",
+      message:
+        `Table exceeds available ${dims.join(" and ")}. ` +
+        "Give the component more space, reduce rows (e.g. limit), or set a smaller scale.",
     });
   }
 
