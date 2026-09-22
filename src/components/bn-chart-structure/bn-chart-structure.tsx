@@ -198,6 +198,11 @@ export class Chart {
   validateUnitScaling(newValue: string | number) {
     const errId: string = "ERR_unitScaling";
 
+    if (isBlankInput(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
+
     if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
         id: errId,
@@ -227,6 +232,11 @@ export class Chart {
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
     const errId: string = "ERR_percentageScaling";
+
+    if (isBlankInput(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
 
     if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
@@ -264,6 +274,11 @@ export class Chart {
   @Watch("level")
   validateLevel(newValue: string) {
     const errId: string = "ERR_level";
+
+    if (isBlankInput(newValue)) {
+      this.errors.remove(errId);
+      return;
+    }
 
     if (!isValidLevel(newValue)) {
       this.errors.addOrReplace({
@@ -326,7 +341,7 @@ export class Chart {
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
     const errId: string = "ERR_orderDirection";
-    if (isInheritedValue(newValue)) {
+    if (isInheritedValue(newValue) || isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
     }
