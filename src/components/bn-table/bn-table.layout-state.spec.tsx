@@ -142,6 +142,18 @@ describe("ibcs-table.getLayoutDetail", () => {
     const relBar = bodyCells.find((c) => c.key === "drac1_pp1_pos");
     expect(relBar.bar?.variant).toBe("relative");
   });
+
+  it("reports no data and no regions when the dataset has no rows", async () => {
+    getStores(null).db.db.tables["layoutEmptyDs"] = { data: [] };
+    const page = await newSpecPage({
+      components: [IbcsTable],
+      template: () => <ibcs-table scenarios={["ac1"]} measure-scale="_" tableName="layoutEmptyDs" />,
+    });
+    const detail: TableLayoutDetail = await page.rootInstance.getLayoutDetail(origins, "summary");
+
+    expect(detail.metadata.hasNoData).toBe(true);
+    expect(detail.regions).toEqual([]);
+  });
 });
 
 describe("bn-table.getLayoutState", () => {
@@ -163,6 +175,7 @@ describe("bn-table.getLayoutState", () => {
     expect(state.em.appliedScaleFactor).toBe(1);
     expect(state.metadata.hasNoData).toBe(true);
     expect(state.elements).toBeUndefined();
+    expect(page.root.classList.contains("no-data")).toBe(true);
   });
 
   it("reports fixed scaling resolved from the attributes", async () => {

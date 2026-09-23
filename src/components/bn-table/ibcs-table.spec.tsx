@@ -3122,11 +3122,11 @@ describe("IBCS Table Test", () => {
       });
 
       expect(page.root)
-        .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
+        .toEqualHtml(`<ibcs-table category-width=\"w100\" class=\"no-data\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
           <mock:shadow-root>
-        <p class=\"warning\">
+        <div class=\"empty-state\">
           No Data
-        </p>
+        </div>
           </mock:shadow-root>
       </ibcs-table>`);
     });

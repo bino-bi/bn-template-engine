@@ -71,10 +71,18 @@ describe("IBCS Table no-data label", () => {
     expect(page.root.shadowRoot.textContent.trim()).toEqual("No Data");
   });
 
+  it("renders the message in the empty-state box instead of a table", async () => {
+    const page = await renderTable(new Map());
+
+    expect(page.root.classList.contains("no-data")).toBe(true);
+    expect(page.root.shadowRoot.querySelector(".empty-state").textContent.trim()).toEqual("No Data");
+    expect(page.root.shadowRoot.querySelector("table")).toBeNull();
+  });
+
   it("renders no text when the no-data label is set to an empty string", async () => {
     const page = await renderTable(new Map([["no-data", ""]]));
 
-    expect(page.root.shadowRoot.querySelector("p.warning")).not.toBeNull();
+    expect(page.root.shadowRoot.querySelector(".empty-state")).not.toBeNull();
     expect(page.root.shadowRoot.textContent.trim()).toEqual("");
   });
 });

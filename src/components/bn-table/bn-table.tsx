@@ -63,6 +63,7 @@ import {
   resolveStandaloneId,
 } from "../../utils/layoutState";
 import { TableLayoutDetail } from "./ibcs-table";
+import { syncEmptyState } from "../../utils/emptyState";
 
 /**
  * Public-facing wrapper for the IBCS table component.
@@ -75,7 +76,7 @@ import { TableLayoutDetail } from "./ibcs-table";
  */
 @Component({
   tag: "bn-table",
-  styleUrl: "bn-table.css",
+  styleUrl: "bn-table.scss",
   shadow: true,
 })
 export class Table {
@@ -1000,6 +1001,8 @@ export class Table {
   private _autoScaleGuard = false;
 
   componentDidRender() {
+    syncEmptyState(this.element, "ibcs-table");
+
     const { mode } = parseScaling(this.scale);
 
     // Only auto-scale for 'auto' and 'empty' (blank) modes

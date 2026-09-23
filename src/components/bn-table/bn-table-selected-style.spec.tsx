@@ -94,7 +94,7 @@ describe("bn-table host font", () => {
     });
     expect(page.doc.querySelector("bn-page, bn-layout-page")).toBeNull();
 
-    const font = resolveHostFont(join(__dirname, "bn-table.css"), page.root);
+    const font = resolveHostFont(join(__dirname, "bn-table.scss"), page.root);
     expect(font.fontFamily).toBe(SYSTEM_STYLE_DEFAULTS.global.fontFamily);
     expect(font.fontFamily).toContain("Noto Sans");
     expect(font.fontSize).toBe(`${SYSTEM_STYLE_DEFAULTS.global.fontSizePx}px`);

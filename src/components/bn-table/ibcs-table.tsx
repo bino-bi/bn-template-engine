@@ -310,7 +310,7 @@ export class IbcsTable {
 
       if (this.table.hasNoData()) {
         const errorMsg: string = this.i18n.get("no-data") ?? "No Data";
-        return <p class="warning">{errorMsg}</p>;
+        return <div class="empty-state">{errorMsg}</div>;
       }
 
       return (
@@ -392,7 +392,7 @@ export class IbcsTable {
       );
     };
 
-    return <Host>{helper()}</Host>;
+    return <Host class={{ "no-data": this.table?.hasNoData() === true }}>{helper()}</Host>;
   }
 
   componentWillRender() {

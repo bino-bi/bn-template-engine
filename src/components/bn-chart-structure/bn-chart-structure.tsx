@@ -42,6 +42,7 @@ import {
   readDiagnostics,
   resolveStandaloneId,
 } from "../../utils/layoutState";
+import { syncEmptyState } from "../../utils/emptyState";
 
 /**
  * SVG structure (categorical) bar chart following IBCS standards.
@@ -595,6 +596,8 @@ export class Chart {
   private _autoScaleGuard = false;
 
   componentDidRender() {
+    syncEmptyState(this.element, "ibcs-chart-structure");
+
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {

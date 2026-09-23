@@ -60,6 +60,7 @@ import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { AutoScalingReport } from "../../utils/scaling";
 import { BarElement, LabelElement } from "../../utils/layoutState";
 import { Chart } from "./bn-chart-time";
+import { IbcsChartTime } from "./ibcs-chart-time";
 import { getStores } from "../../context/context-protocol";
 import { resolveHostFont } from "../../utils/testing/hostFont";
 import { join } from "path";
@@ -162,6 +163,24 @@ describe("bn-chart-time.getLayoutState", () => {
     expect(state.scaling.unitMode).toBe("auto");
     expect(state.scaling.unitPxPerUnit).toBe(2);
     expect(state.scaling.unitsPerEm).toBeCloseTo(BASE_FONT / 2, 12);
+  });
+
+  // The real inner is registered here. Fixed scaling skips the inner's
+  // auto-fit, which draws the SVG and needs getBBox (missing in mock-doc).
+  it("reports no data when every segment renders the empty state", async () => {
+    const page = await newSpecPage({
+      components: [Chart, IbcsChartTime],
+      html: `<bn-chart-time scenarios="ac1" variances="dac1_pp1_pos" scale="none" unit-scaling="100" percentage-scaling="2"></bn-chart-time>`,
+    });
+    const state = await page.rootInstance.getLayoutState();
+
+    expect(state.regions).toEqual([]);
+    expect(state.metadata.barCount).toBe(0);
+    expect(state.metadata.hasNoData).toBe(true);
+    const inners = Array.from(page.root!.shadowRoot!.querySelectorAll("ibcs-chart-time"));
+    expect(inners).toHaveLength(2);
+    expect(inners.every((inner) => inner.classList.contains("no-data"))).toBe(true);
+    expect(page.root!.classList.contains("no-data")).toBe(true);
   });
 });
 
