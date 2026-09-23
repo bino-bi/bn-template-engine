@@ -123,7 +123,7 @@ export class IbcsChartStructure {
     }
 
     if (this.chart.hasNoData()) {
-      const errorMsg: string = this.i18n.get("no-data") || "==No Data==";
+      const errorMsg: string = this.i18n.get("no-data") ?? "No Data";
       return (
         <Host>
           <p class="warning">{errorMsg}</p>

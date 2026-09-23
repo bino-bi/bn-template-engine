@@ -3125,7 +3125,7 @@ describe("IBCS Table Test", () => {
         .toEqualHtml(`<ibcs-table category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
           <mock:shadow-root>
         <p class=\"warning\">
-          ==No Data==
+          No Data
         </p>
           </mock:shadow-root>
       </ibcs-table>`);

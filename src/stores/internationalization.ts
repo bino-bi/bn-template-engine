@@ -54,7 +54,7 @@ const globalLabelKeys = [
 const xyChartKeysDe = {
   axis: { in: "in" },
   legend: { title: "" },
-  "no-data": "==Keine Daten==",
+  "no-data": "Keine Daten",
   "xy-prop-json": "{{prop}}: ungültiges JSON.",
   "xy-measure-invalid": "{{prop}}: '{{measure}}' ist weder eine Szenario-Spalte noch ein Varianz-Token.",
   "xy-family-mixed": "Alle Kennzahlen müssen zur selben Szenario-Familie gehören (gefunden: {{families}}).",
@@ -71,7 +71,7 @@ const xyChartKeysDe = {
 const xyChartKeysEn = {
   axis: { in: "in" },
   legend: { title: "" },
-  "no-data": "==No Data==",
+  "no-data": "No Data",
   "xy-prop-json": "{{prop}}: invalid JSON.",
   "xy-measure-invalid": "{{prop}}: '{{measure}}' is neither a scenario column nor a variance token.",
   "xy-family-mixed": "All measures must share one scenario family (found: {{families}}).",
@@ -115,8 +115,8 @@ const de = flattenObject({
     CONNECTOR_WS: " und ",
     in: "in",
   },
-  "bn-chart-time": { "no-data": "==Keine Daten==" },
-  "bn-chart-structure": { "no-data": "==Keine Daten==", REST: "REST" },
+  "bn-chart-time": { "no-data": "Keine Daten" },
+  "bn-chart-structure": { "no-data": "Keine Daten", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysDe,
     "xy-iso-domain": "Iso-Linien benötigen einen strikt positiven Wertebereich auf beiden Achsen; übersprungen.",
@@ -133,7 +133,7 @@ const de = flattenObject({
   },
   "bn-chart-bullet": {
     axis: { in: "in" },
-    "no-data": "==Keine Daten==",
+    "no-data": "Keine Daten",
     target: "Ziel",
     "bullet-prop-json": "{{prop}}: ungültiges JSON.",
     "bullet-measure-invalid": "{{prop}}: '{{measure}}' ist keine Szenario-Spalte (ac1…pl4).",
@@ -153,7 +153,7 @@ const de = flattenObject({
     part_of: "in % von",
     SUM_TOTAL: "❖",
     REST: "REST",
-    "no-data": "==Keine Daten==",
+    "no-data": "Keine Daten",
   },
 });
 
@@ -187,8 +187,8 @@ const en = flattenObject({
     CONNECTOR_WS: " and ",
     in: "in",
   },
-  "bn-chart-time": { "no-data": "==No Data==" },
-  "bn-chart-structure": { "no-data": "==No Data==", REST: "REST" },
+  "bn-chart-time": { "no-data": "No Data" },
+  "bn-chart-structure": { "no-data": "No Data", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysEn,
     "xy-iso-domain": "Iso-lines need a strictly positive domain on both axes; skipped.",
@@ -204,7 +204,7 @@ const en = flattenObject({
   },
   "bn-chart-bullet": {
     axis: { in: "in" },
-    "no-data": "==No Data==",
+    "no-data": "No Data",
     target: "Target",
     "bullet-prop-json": "{{prop}}: invalid JSON.",
     "bullet-measure-invalid": "{{prop}}: '{{measure}}' is not a scenario column (ac1…pl4).",
@@ -224,7 +224,7 @@ const en = flattenObject({
     part_of: "in % of",
     SUM_TOTAL: "❖",
     REST: "REST",
-    "no-data": "==No Data==",
+    "no-data": "No Data",
   },
 });
 
