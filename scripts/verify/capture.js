@@ -198,7 +198,7 @@ async function capture(page, outDir) {
   // A component that rendered before its dataset resolved falls back to the
   // no-data branch. That is a degraded run, not a real output change — surface
   // it rather than letting it masquerade as a diff.
-  const noData = (result.page.match(/class="warning"/g) || []).length;
+  const noData = (result.page.match(/class="empty-state"/g) || []).length;
   if (noData > 0) {
     warnings.push(`${noData} component(s) rendered the no-data branch — likely a degraded run, re-capture before trusting a diff`);
   }

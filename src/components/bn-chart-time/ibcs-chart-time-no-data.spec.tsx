@@ -42,4 +42,15 @@ describe("IBCS Chart Time no-data label", () => {
 
     expect(page.root.shadowRoot.textContent.trim()).toEqual("No Data");
   });
+
+  it("renders the message in the empty-state box instead of a canvas", async () => {
+    const page = await newSpecPage({
+      components: [IbcsChartTime],
+      template: () => <ibcs-chart-time scenarios={["ac1"]} i18n={new Map()} tableName="emptyData"></ibcs-chart-time>,
+    });
+
+    expect(page.root.classList.contains("no-data")).toBe(true);
+    expect(page.root.shadowRoot.querySelector(".empty-state").textContent.trim()).toEqual("No Data");
+    expect(page.root.shadowRoot.querySelector("svg#drawCanvas")).toBeNull();
+  });
 });

@@ -211,3 +211,13 @@ describe("bn-chart-bullet getDataStructure", () => {
     expect(fields.fc4).toEqual({ type: "number", isOptional: true, description: "" });
   });
 });
+
+describe("bn-chart-bullet empty state", () => {
+  it("marks the host no-data when the chart has no rows", async () => {
+    const page = await renderBullet(``);
+    const inner = page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")!;
+
+    expect(inner.classList.contains("no-data")).toBe(true);
+    expect(page.root!.classList.contains("no-data")).toBe(true);
+  });
+});

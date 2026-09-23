@@ -47,6 +47,7 @@ import {
   readDiagnostics,
   resolveStandaloneId,
 } from "../../utils/layoutState";
+import { syncEmptyState } from "../../utils/emptyState";
 
 enum AggregationLevel {
   ROWGROUP = "rowGroup",
@@ -898,6 +899,8 @@ export class Chart {
   }
 
   componentDidRender() {
+    syncEmptyState(this.element, "ibcs-chart-time");
+
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {

@@ -31,6 +31,7 @@ import {
 } from "../../utils/xy/model/AxisConfig";
 import { GroupLevel, PointLevel } from "../../utils/xy/model/XYChartDataRow";
 import { XYChartStyle } from "../../utils/xy/model/XYChartStyle";
+import { syncEmptyState } from "../../utils/emptyState";
 
 const HIERARCHY_DEPTH: Record<string, number> = { rowGroup: 0, category: 1, subCategory: 2 };
 
@@ -292,6 +293,8 @@ export class ChartScatter {
   private _lastObservedWidth = 0;
 
   componentDidRender() {
+    syncEmptyState(this.element, "ibcs-chart-scatter");
+
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {

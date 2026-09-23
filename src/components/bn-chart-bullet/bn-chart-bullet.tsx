@@ -26,6 +26,7 @@ import {
   toBulletLabelConfig,
   toBulletMeasureConfig,
 } from "./utils/model/BulletConfig";
+import { syncEmptyState } from "../../utils/emptyState";
 
 /** Auto-detection preference for the target scenario. */
 const TARGET_SLOT_PREFERENCE = ["pl1", "pp1", "fc1"];
@@ -324,6 +325,8 @@ export class ChartBullet {
   private _lastScaledParentHeight = 0;
 
   componentDidRender() {
+    syncEmptyState(this.element, "ibcs-chart-bullet");
+
     // Bullet height is data-driven (rows × rowHeight), so the auto-fit
     // scales against the parent HEIGHT — the structure-chart variant, not
     // the width-based XY one.
