@@ -309,7 +309,7 @@ export class IbcsTable {
       }
 
       if (this.table.hasNoData()) {
-        const errorMsg: string = this.i18n.get("no-data") || "==No Data==";
+        const errorMsg: string = this.i18n.get("no-data") ?? "No Data";
         return <p class="warning">{errorMsg}</p>;
       }
 
