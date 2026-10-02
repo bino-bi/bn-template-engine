@@ -203,6 +203,21 @@ describe("BulletChart", () => {
     expect(svg.indexOf("Bravo")).toBeLessThan(svg.indexOf("Alpha"));
   });
 
+  it("applies desc to the first of two order columns", () => {
+    const svg = makeChart(
+      [
+        row({ category: "Alpha", categoryIndex: 1, ac1: 100, pl1: 100 }),
+        row({ category: "Bravo", categoryIndex: 2, ac1: -50, pl1: 100 }),
+        row({ category: "Charlie", categoryIndex: 3, ac1: 110, pl1: 100 }),
+      ],
+      baseConfig({ order: new Order(["ac1", "category"], OrderDirection.DESC) }),
+    ).toString();
+    const drawn = ["Alpha", "Bravo", "Charlie"].sort((a, b) => svg.indexOf(a) - svg.indexOf(b));
+
+    // ac1: Charlie 110, Alpha 100, Bravo -50
+    expect(drawn).toEqual(["Charlie", "Alpha", "Bravo"]);
+  });
+
   it("grows the canvas height linearly with the row count", () => {
     const one = makeChart([row()]);
     const three = makeChart([

@@ -211,7 +211,7 @@ export class BulletChart {
   private createOrderStr(level: AggregationLevel, sortOrder: Order): string {
     let orderStr = `${level.toLowerCase()}`;
     if (sortOrder.hierarchy.length >= 1) {
-      orderStr = `${sortOrder.hierarchy.toString()} ${sortOrder?.direction}`;
+      orderStr = sortOrder.hierarchy.map((column) => `${column} ${sortOrder.direction}`).toString();
     }
     return orderStr;
   }

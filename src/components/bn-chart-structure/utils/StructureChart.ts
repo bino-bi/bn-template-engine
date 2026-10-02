@@ -632,7 +632,7 @@ export class StructureChart {
   private createOrderStr(level: AggregationLevel, sortOrder: Order) {
     let orderStr = `${level.toLowerCase()}`;
     if (sortOrder.hierarchy.length >= 1) {
-      orderStr = `${sortOrder.hierarchy.toString()} ${sortOrder?.direction}`;
+      orderStr = sortOrder.hierarchy.map((column) => `${column} ${sortOrder.direction}`).toString();
     }
     return orderStr;
   }
