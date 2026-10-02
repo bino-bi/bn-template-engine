@@ -36,6 +36,15 @@ The scaling attributes on `bn-table`, `bn-chart-time`, and `bn-chart-structure` 
 
 **Migration** (old → new, base font 13.3333 px): charts `new = 13.3333 / old` (both attributes); table `new = 1 / old`; bubble groups `new = 177.77 / old`. See [doc/scaling.md](doc/scaling.md).
 
+#### `bn-text`: `value` is a template with placeholders, not JavaScript
+
+`value` is no longer evaluated. Only these placeholders are replaced:
+
+- `${data.<dataset>[<row>].<field>}` and `${data['<name>'][<row>].<field>}` (`this.data` is accepted too)
+- `${t('<key>')}` and `${t('<key>', { name: 'text', count: 3, value: data.kpi[0].ac1 })}`
+
+Any other `${...}` (arithmetic, method calls, conditions) is printed as written. Dataset values and translations are HTML-escaped, so markup inside a value or a translation is shown as text. A backslash or a backtick in the text is printed as it is. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning to `has-error`. This also happens while a dataset is still loading and for a dataset without rows. `ERR_value_eval` is gone.
+
 #### Sanitized HTML: disallowed elements are removed with their content
 
 Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title `business-unit`.
@@ -58,6 +67,7 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 ### Security
 
 - Sanitized HTML (`bn-text`, `bn-message`, title `business-unit`) was parsed in the live document, so an `<img onerror>` or `<audio onerror>` inside a disallowed element ran its handler before it was removed, and `<a href="java&#x09;script:...">` passed the URL check. The HTML is now parsed in a separate inert document and URLs are checked with the URL parser.
+- `bn-text` evaluated `value` with `new Function`. The pattern check in front of it did not stop expressions such as `${t['constr'+'uctor']('...')()}`, so a template could run any JavaScript, and dataset values were joined into the markup unescaped. The evaluator is replaced by a placeholder parser and every resolved value is HTML-escaped.
 
 ## [v0.39.0] - 2026-01-21
 

@@ -1234,11 +1234,12 @@ export namespace Components {
     "templateId": string;
   }
   /**
-   * Renders a template-driven text block with dataset interpolation.
-   * The `value` prop is evaluated as a JavaScript template literal in a
-   * sandboxed scope (`data` and `t` are available) and sanitized against
-   * XSS before being injected as HTML. Supports auto-scaling to fit the
-   * parent container.
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
    */
   interface BnText {
     /**
@@ -1246,7 +1247,7 @@ export namespace Components {
      */
     "scale"?: string;
     /**
-      * Template string rendered as HTML. Supports JavaScript template literal syntax - use `${data.<dataset>}` to interpolate dataset values and `${t('<key>')}` for translated strings.  The template is evaluated in a sandboxed scope (only `data` and `t` are accessible; globals like `window`/`document` are blocked) and the output is sanitized against XSS (only safe HTML tags and attributes are kept).
+      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
       * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
      */
     "value"?: string;
@@ -2227,11 +2228,12 @@ declare global {
     new(): HTMLBnTemplateElement;
   };
   /**
-   * Renders a template-driven text block with dataset interpolation.
-   * The `value` prop is evaluated as a JavaScript template literal in a
-   * sandboxed scope (`data` and `t` are available) and sanitized against
-   * XSS before being injected as HTML. Supports auto-scaling to fit the
-   * parent container.
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
    */
   interface HTMLBnTextElement extends Components.BnText, HTMLStencilElement {
   }
@@ -3509,11 +3511,12 @@ declare namespace LocalJSX {
     "templateId"?: string;
   }
   /**
-   * Renders a template-driven text block with dataset interpolation.
-   * The `value` prop is evaluated as a JavaScript template literal in a
-   * sandboxed scope (`data` and `t` are available) and sanitized against
-   * XSS before being injected as HTML. Supports auto-scaling to fit the
-   * parent container.
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
    */
   interface BnText {
     /**
@@ -3521,7 +3524,7 @@ declare namespace LocalJSX {
      */
     "scale"?: string;
     /**
-      * Template string rendered as HTML. Supports JavaScript template literal syntax - use `${data.<dataset>}` to interpolate dataset values and `${t('<key>')}` for translated strings.  The template is evaluated in a sandboxed scope (only `data` and `t` are accessible; globals like `window`/`document` are blocked) and the output is sanitized against XSS (only safe HTML tags and attributes are kept).
+      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
       * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
      */
     "value"?: string;
@@ -4803,11 +4806,12 @@ declare module "@stencil/core" {
       "bn-table": LocalJSX.IntrinsicElements["bn-table"] & JSXBase.HTMLAttributes<HTMLBnTableElement>;
       "bn-template": LocalJSX.IntrinsicElements["bn-template"] & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
       /**
-       * Renders a template-driven text block with dataset interpolation.
-       * The `value` prop is evaluated as a JavaScript template literal in a
-       * sandboxed scope (`data` and `t` are available) and sanitized against
-       * XSS before being injected as HTML. Supports auto-scaling to fit the
-       * parent container.
+       * Renders a text block from a template with dataset and translation
+       * placeholders.
+       * The `value` prop is markup with `${...}` placeholders. Placeholders are
+       * looked up, never evaluated. Resolved values are HTML-escaped and the
+       * result is sanitized before it is inserted. Supports auto-scaling to fit
+       * the parent container.
        */
       "bn-text": LocalJSX.IntrinsicElements["bn-text"] & JSXBase.HTMLAttributes<HTMLBnTextElement>;
       /**

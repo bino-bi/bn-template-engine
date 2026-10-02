@@ -9,16 +9,16 @@ import { BinoTextStyles } from "../../utils/model/TextStyles";
 import { getParentDimensions } from "../../utils/parentDimensions";
 import { parseScaling } from "../../utils/scaling";
 import { sanitizeHtml } from "../../utils/sanitizeHtml";
-
-const DANGEROUS_PATTERN = /\b(__proto__|globalThis)\b|\.constructor\b/;
+import { renderTemplate } from "./utils/template";
 
 /**
- * Renders a template-driven text block with dataset interpolation.
+ * Renders a text block from a template with dataset and translation
+ * placeholders.
  *
- * The `value` prop is evaluated as a JavaScript template literal in a
- * sandboxed scope (`data` and `t` are available) and sanitized against
- * XSS before being injected as HTML. Supports auto-scaling to fit the
- * parent container.
+ * The `value` prop is markup with `${...}` placeholders. Placeholders are
+ * looked up, never evaluated. Resolved values are HTML-escaped and the
+ * result is sanitized before it is inserted. Supports auto-scaling to fit
+ * the parent container.
  */
 @Component({
   tag: "bn-text",
@@ -40,13 +40,17 @@ export class Text {
   }
 
   /**
-   * Template string rendered as HTML. Supports JavaScript template literal
-   * syntax - use `${data.<dataset>}` to interpolate dataset values and
-   * `${t('<key>')}` for translated strings.
+   * Template string rendered as HTML. These placeholders are replaced:
+   * `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}`
+   * (for names such as the datasource reference `$revenue`), `${t('<key>')}`
+   * and `${t('<key>', { <name>: <text, number or data path> })}`. Any other
+   * text, including any other `${...}`, is printed as written. Nothing is
+   * evaluated.
    *
-   * The template is evaluated in a sandboxed scope (only `data` and `t` are
-   * accessible; globals like `window`/`document` are blocked) and the output
-   * is sanitized against XSS (only safe HTML tags and attributes are kept).
+   * Resolved values are HTML-escaped, so dataset values and translations are
+   * shown as text. Markup written in the template is kept if it is on the
+   * allowlist; other elements are removed with their content. A placeholder
+   * that does not resolve renders empty and adds a `WARN_value_path` warning.
    *
    * @example
    * // plain text
@@ -116,33 +120,6 @@ export class Text {
   componentWillLoad() {
     this.validateValue(this.value);
     this.validateScaling(this.scale);
-  }
-
-  private evalTemplate(template: string): string {
-    if (!template) return "";
-    if (DANGEROUS_PATTERN.test(template)) {
-      this.errors.addOrReplace({ id: "ERR_value_eval", type: "error", message: "Template contains forbidden pattern" });
-      return "";
-    }
-    try {
-      const scope = { data: this.data, t: this.t };
-      const sandbox = new Proxy(scope, {
-        has: () => true,
-        get: (target, key) => (key === Symbol.unscopables ? undefined : target[key]),
-        set: () => true,
-      });
-      const fn = new Function("sandbox", "with(sandbox){try{return`" + template + '`}catch(e){return""}}');
-      const result = fn.call(sandbox, sandbox);
-      this.errors.remove("ERR_value_eval");
-      return result != null ? String(result) : "";
-    } catch (e) {
-      this.errors.addOrReplace({
-        id: "ERR_value_eval",
-        type: "error",
-        message: `Template evaluation failed: ${e instanceof Error ? e.message : String(e)}`,
-      });
-      return "";
-    }
   }
 
   private prepareStyle(): BinoTextStyles {
@@ -241,7 +218,17 @@ export class Text {
   }
 
   componentDidRender() {
-    this.container.innerHTML = sanitizeHtml(this.evalTemplate(this.value));
+    const { html, unknown } = renderTemplate(this.value ?? "", this.data, this.t);
+    if (unknown.length > 0) {
+      this.errors.addOrReplace({
+        id: "WARN_value_path",
+        type: "warning",
+        message: `Unknown template path: ${unknown.join(", ")}`,
+      });
+    } else {
+      this.errors.remove("WARN_value_path");
+    }
+    this.container.innerHTML = sanitizeHtml(html);
     this.applyScaling(this.prepareStyle().fontStyles.size);
   }
 
