@@ -74,3 +74,67 @@ describe("bn-dataset SQL body", () => {
     expect(errors(page.root).find((e) => e.id === "ERR_sql")?.type).toBe("error");
   });
 });
+
+describe("bn-dataset body and src", () => {
+  const REMOTE = [{ category: "remote", ac1: 2 }];
+  const realFetch = global.fetch;
+  const fetchMock = jest.fn(async () => ({ json: async () => REMOTE }));
+
+  beforeEach(() => {
+    fetchMock.mockClear();
+    (global as any).fetch = fetchMock;
+    db().tables["sales_src"] = { data: LOCAL };
+  });
+
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  it("reads a body that starts with a comment as SQL", async () => {
+    await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="commented" datasources="sales_src">/* c */ SELECT * FROM sales_src</bn-dataset>`,
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(db().exec("SELECT * FROM commented")).toEqual(LOCAL);
+  });
+
+  it("does not fetch a body that looks like a URL", async () => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="urlbody">https://example.com/sales.json</bn-dataset>`,
+    });
+    consoleError.mockRestore();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("fetches src and ignores the body, also when an upstream datasource changes", async () => {
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="remote" datasources="sales_src" src="/sales.json">SELECT * FROM sales_src</bn-dataset>`,
+    });
+    await page.waitForChanges();
+
+    expect(fetchMock).toHaveBeenCalledWith("/sales.json", expect.anything());
+    expect(db().exec("SELECT * FROM remote")).toEqual(REMOTE);
+
+    getStores(null).db.notify("sales_src");
+    expect(db().exec("SELECT * FROM remote")).toEqual(REMOTE);
+  });
+
+  it("returns to the body when src is removed", async () => {
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="switched" datasources="sales_src" src="/sales.json">SELECT * FROM sales_src</bn-dataset>`,
+    });
+    await page.waitForChanges();
+
+    page.root.removeAttribute("src");
+    await page.waitForChanges();
+
+    expect(db().exec("SELECT * FROM switched")).toEqual(LOCAL);
+  });
+});

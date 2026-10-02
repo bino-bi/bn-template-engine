@@ -608,14 +608,13 @@ export namespace Components {
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
    * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-   * The body content is observed via `withBodyObserver` and may be:
+   * The body content is observed via `withBodyObserver` and is always inline:
    * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
-   * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-   *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-   *    to enable periodic re-fetching.
+   * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * to enable periodic re-fetching.
    */
   interface BnDataset {
     /**
@@ -624,7 +623,7 @@ export namespace Components {
      */
     "datasources": string;
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval": number;
@@ -638,6 +637,10 @@ export namespace Components {
      */
     "raw": boolean;
     /**
+      * URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).
+     */
+    "src"?: string;
+    /**
       * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
       * @default false
      */
@@ -648,16 +651,16 @@ export namespace Components {
    * Data can be provided in three ways:
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-   * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-   * In URL mode the component fetches JSON from the URL. Set the `interval`
-   * prop (in seconds) to enable periodic re-fetching (polling).
+   * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    (polling).
+   * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
   interface BnDatasource {
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval": number;
@@ -666,10 +669,14 @@ export namespace Components {
      */
     "name": string;
     /**
-      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored in URL mode.
+      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored when `src` is set.
       * @default true
      */
     "raw": boolean;
+    /**
+      * URL to fetch the JSON from. When set, the body is ignored.
+     */
+    "src"?: string;
   }
   interface BnFooter {
     /**
@@ -2101,14 +2108,13 @@ declare global {
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
    * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-   * The body content is observed via `withBodyObserver` and may be:
+   * The body content is observed via `withBodyObserver` and is always inline:
    * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
-   * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-   *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-   *    to enable periodic re-fetching.
+   * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * to enable periodic re-fetching.
    */
   interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
   }
@@ -2121,10 +2127,10 @@ declare global {
    * Data can be provided in three ways:
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-   * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-   * In URL mode the component fetches JSON from the URL. Set the `interval`
-   * prop (in seconds) to enable periodic re-fetching (polling).
+   * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    (polling).
+   * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
@@ -2901,14 +2907,13 @@ declare namespace LocalJSX {
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
    * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-   * The body content is observed via `withBodyObserver` and may be:
+   * The body content is observed via `withBodyObserver` and is always inline:
    * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
-   * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-   *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-   *    to enable periodic re-fetching.
+   * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * to enable periodic re-fetching.
    */
   interface BnDataset {
     /**
@@ -2917,7 +2922,7 @@ declare namespace LocalJSX {
      */
     "datasources"?: string;
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval"?: number;
@@ -2931,6 +2936,10 @@ declare namespace LocalJSX {
      */
     "raw"?: boolean;
     /**
+      * URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).
+     */
+    "src"?: string;
+    /**
       * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
       * @default false
      */
@@ -2941,16 +2950,16 @@ declare namespace LocalJSX {
    * Data can be provided in three ways:
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-   * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-   * In URL mode the component fetches JSON from the URL. Set the `interval`
-   * prop (in seconds) to enable periodic re-fetching (polling).
+   * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    (polling).
+   * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
   interface BnDatasource {
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval"?: number;
@@ -2959,10 +2968,14 @@ declare namespace LocalJSX {
      */
     "name": string;
     /**
-      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored in URL mode.
+      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored when `src` is set.
       * @default true
      */
     "raw"?: boolean;
+    /**
+      * URL to fetch the JSON from. When set, the body is ignored.
+     */
+    "src"?: string;
   }
   interface BnFooter {
     /**
@@ -4367,11 +4380,13 @@ declare namespace LocalJSX {
     "static": boolean;
     "raw": boolean;
     "interval": number;
+    "src": string;
   }
   interface BnDatasourceAttributes {
     "name": string;
     "raw": boolean;
     "interval": number;
+    "src": string;
   }
   interface BnFooterAttributes {
     "pageNumber": number | null;
@@ -4753,14 +4768,13 @@ declare module "@stencil/core" {
       /**
        * Queries data from one or more `bn-datasource` entries via AlaSQL and
        * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-       * The body content is observed via `withBodyObserver` and may be:
+       * The body content is observed via `withBodyObserver` and is always inline:
        * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
        * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
        *    parsed body directly to the `datasets` store.
-       * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-       *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-       *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-       *    to enable periodic re-fetching.
+       * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+       * write it to the `datasets` store. Set the `interval` prop (in seconds)
+       * to enable periodic re-fetching.
        */
       "bn-dataset": LocalJSX.IntrinsicElements["bn-dataset"] & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
       /**
@@ -4768,10 +4782,10 @@ declare module "@stencil/core" {
        * Data can be provided in three ways:
        * 1. **Inline JSON** - Place JSON text inside the element body (default).
        * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-       * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-       *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-       * In URL mode the component fetches JSON from the URL. Set the `interval`
-       * prop (in seconds) to enable periodic re-fetching (polling).
+       * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+       *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+       *    (polling).
+       * The body is always inline data and is ignored while `src` is set.
        * Other components (e.g. `bn-dataset`) reference the stored data by the
        * `name` prop to run queries against it.
        */

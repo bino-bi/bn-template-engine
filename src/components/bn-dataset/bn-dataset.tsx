@@ -12,14 +12,14 @@ import { computeContentHash, decodeCompressedContent } from "../../utils/content
  * Queries data from one or more `bn-datasource` entries via AlaSQL and
  * writes the result to the `datasets` store (+ computed `DatasetMeta`).
  *
- * The body content is observed via `withBodyObserver` and may be:
+ * The body content is observed via `withBodyObserver` and is always inline:
  * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
  * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
  *    parsed body directly to the `datasets` store.
- * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
- *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
- *    write it to the `datasets` store. Set the `interval` prop (in seconds)
- *    to enable periodic re-fetching.
+ *
+ * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+ * write it to the `datasets` store. Set the `interval` prop (in seconds)
+ * to enable periodic re-fetching.
  */
 @Component({
   tag: "bn-dataset",
@@ -42,49 +42,7 @@ export class Dataset {
       this.executeQuery();
     });
 
-    withBodyObserver(this, (data) => {
-      const trimmed = data.trim();
-
-      // --- URL mode ---
-      if (this.isUrl(trimmed)) {
-        if (trimmed === this.currentUrl) return;
-        this.currentUrl = trimmed;
-        this.lastBodyHash = null;
-        this.errors.remove("ERR_sql");
-        this.fetchAndStore(trimmed);
-        this.startPolling();
-        return;
-      }
-
-      // --- Leaving URL mode → clean up ---
-      if (this.currentUrl !== null) {
-        this.cancelInFlight();
-        this.currentUrl = null;
-      }
-
-      let contentHash: string;
-      let body: string;
-
-      if (!this.raw && this.static) {
-        try {
-          const decoded = decodeCompressedContent(data);
-          contentHash = decoded.hash;
-          body = decoded.json;
-        } catch (e) {
-          console.error("Error decoding compressed dataset", e, String(data).slice(0, 200));
-          return;
-        }
-      } else {
-        contentHash = computeContentHash(data);
-        body = data;
-      }
-
-      if (contentHash === this.lastBodyHash) return;
-      this.lastBodyHash = contentHash;
-
-      this.query = body;
-      this.executeQuery();
-    });
+    withBodyObserver(this, (data) => this.sync(data));
   }
   /**
    * Unique (template scope) name of the datasource
@@ -113,12 +71,19 @@ export class Dataset {
   @Prop() raw: boolean = true;
 
   /**
-   * Polling interval in **seconds** for URL mode.
-   * When set and the body content is a URL, the component re-fetches
-   * data at this interval. Has no effect for SQL, inline JSON or
-   * compressed content. Set to `0` or leave unset to disable polling.
+   * Polling interval in **seconds** for `src`.
+   * When set together with `src`, the component re-fetches data at this
+   * interval. Has no effect for SQL, inline JSON or compressed content.
+   * Set to `0` or leave unset to disable polling.
    */
   @Prop() interval: number = 0;
+
+  /**
+   * URL to fetch the dataset JSON from. When set, the body is ignored and
+   * the fetched payload is written directly to the `datasets` store
+   * (`static` and `raw` do not apply).
+   */
+  @Prop() src?: string;
 
   private query!: string;
   private lastBodyHash: string | null = null;
@@ -132,6 +97,51 @@ export class Dataset {
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   /** AbortController for cancelling in-flight fetch requests. */
   private abortController: AbortController | null = null;
+
+  /** Loads from `src` when it is set, otherwise from the inline body. */
+  private sync(data: string): void {
+    // --- URL mode ---
+    if (this.src) {
+      if (this.src === this.currentUrl) return;
+      this.currentUrl = this.src;
+      this.lastBodyHash = null;
+      // an upstream notify must not rebuild the view from the body while src is set
+      this.query = "";
+      this.errors.remove("ERR_sql");
+      this.fetchAndStore(this.src);
+      this.startPolling();
+      return;
+    }
+
+    // --- Leaving URL mode → clean up ---
+    if (this.currentUrl !== null) {
+      this.cancelInFlight();
+      this.currentUrl = null;
+    }
+
+    let contentHash: string;
+    let body: string;
+
+    if (!this.raw && this.static) {
+      try {
+        const decoded = decodeCompressedContent(data);
+        contentHash = decoded.hash;
+        body = decoded.json;
+      } catch (e) {
+        console.error("Error decoding compressed dataset", e, String(data).slice(0, 200));
+        return;
+      }
+    } else {
+      contentHash = computeContentHash(data);
+      body = data;
+    }
+
+    if (contentHash === this.lastBodyHash) return;
+    this.lastBodyHash = contentHash;
+
+    this.query = body;
+    this.executeQuery();
+  }
 
   executeQuery() {
     if (!this.stores) this.stores = getStores(this.element);
@@ -233,6 +243,12 @@ export class Dataset {
     }
   }
 
+  @Watch("src")
+  onSrcChange(): void {
+    // a detached element must not fetch or poll; the body callback reads src again on connect
+    if (this.element.isConnected) this.sync(this.element.textContent ?? "");
+  }
+
   disconnectedCallback(): void {
     this.cancelInFlight();
     if (this.stores?.db?.db && this.name) {
@@ -252,16 +268,6 @@ export class Dataset {
       }
       this.stores.db.notify(this.name);
     }
-  }
-
-  /**
-   * Returns `true` if the text is a fetchable URL: an absolute `http(s)://`
-   * URL, or a same-origin path starting with `/` (but not `//`, which is a
-   * protocol-relative URL we treat as inline-mode escape).
-   */
-  private isUrl(text: string): boolean {
-    if (text.startsWith("http://") || text.startsWith("https://")) return true;
-    return text.startsWith("/") && !text.startsWith("//");
   }
 
   /**
@@ -300,7 +306,7 @@ export class Dataset {
   }
 
   /** Stops the polling timer AND cancels any in-flight fetch. Use only when
-   *  leaving URL mode entirely (disconnect or body changed to inline). */
+   *  leaving URL mode entirely (disconnect or `src` removed). */
   private cancelInFlight(): void {
     this.clearPollTimer();
     this.abortController?.abort();

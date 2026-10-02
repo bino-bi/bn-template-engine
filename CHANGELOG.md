@@ -57,6 +57,19 @@ AlaSQL runs text between double backticks as JavaScript. A `filter` (on `bn-tabl
 
 `width`, `height`, `position`, `top`, `right`, `bottom`, `left`, `font-size`, `grid-column` and `grid-row` are parsed by the browser before they are written to the engine's stylesheet. A value that is not valid for its property is ignored, as before. New: a value with a trailing semicolon (`width="100px;"`), with more than one declaration (`width="10px; color: red"`) or with `!important` is ignored as a whole.
 
+#### `bn-dataset` / `bn-datasource`: the URL moves from the body to `src`
+
+A body that started with `/`, `http://` or `https://` used to be fetched as a URL, so SQL that began with a `/* comment */` was requested from the server instead of being run. The body is now always inline content. To load JSON from an endpoint, set the new `src` attribute:
+
+```html
+<!-- before -->
+<bn-dataset name="sales" interval="30">https://example.com/api/sales.json</bn-dataset>
+<!-- after -->
+<bn-dataset name="sales" interval="30" src="https://example.com/api/sales.json"></bn-dataset>
+```
+
+While `src` is set the body is ignored. `interval` keeps its meaning.
+
 #### Sanitized HTML: disallowed elements are removed with their content
 
 Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title `business-unit`.
