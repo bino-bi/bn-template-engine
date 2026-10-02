@@ -36,6 +36,15 @@ The scaling attributes on `bn-table`, `bn-chart-time`, and `bn-chart-structure` 
 
 **Migration** (old → new, base font 13.3333 px): charts `new = 13.3333 / old` (both attributes); table `new = 1 / old`; bubble groups `new = 177.77 / old`. See [doc/scaling.md](doc/scaling.md).
 
+#### Sanitized HTML: disallowed elements are removed with their content
+
+Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title `business-unit`.
+
+- An element that is not on the allowlist is removed together with everything inside it. Before, it was replaced by its text.
+- `code`, `pre`, `blockquote` and `del` are new on the allowlist.
+- `style` is kept only when it is exactly `text-align: left`, `center` or `right`.
+- `href` and `src` accept `http:`, `https:`, `mailto:` and relative URLs. `src` also accepts `data:` URLs. Any other URL is removed.
+
 ### Fixed
 
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.
@@ -45,6 +54,10 @@ The scaling attributes on `bn-table`, `bn-chart-time`, and `bn-chart-structure` 
 - Chart wrappers: stale `AUTO_percentageScaling` warning was not cleared when a scaling group resolved.
 - `bn-chart-structure` / `bn-chart-time`: an optional attribute that was simply not set produced a warning of its own - `level: invalid value(s) 'undefined' are not supported.` and the same for `order-direction`, `unit-scaling`, `percentage-scaling`, `date-interval` and `axis-labels-mode` - next to the correct `AUTO_<field>` notice for the very same blank value. On a report with many charts these drowned out the real warnings. An omitted field now yields only its documented `AUTO_<field>` notice; `ERR_<field>` is reserved for a value that was written and is wrong.
 - SI prefix tables: removed a stray `"P"` (peta) from the negative-prefix table (femto range was shifted); `measure-scale` now accepts both `"my"` and `"μ"` for micro; magnitude→prefix picking is now `Math.log10`-based and handles exponential notation (`1e-7`, `1e24`) and boundary values correctly.
+
+### Security
+
+- Sanitized HTML (`bn-text`, `bn-message`, title `business-unit`) was parsed in the live document, so an `<img onerror>` or `<audio onerror>` inside a disallowed element ran its handler before it was removed, and `<a href="java&#x09;script:...">` passed the URL check. The HTML is now parsed in a separate inert document and URLs are checked with the URL parser.
 
 ## [v0.39.0] - 2026-01-21
 
