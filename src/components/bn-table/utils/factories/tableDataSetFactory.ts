@@ -18,6 +18,7 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
 import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
+import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 
 /**
  * Transforms raw query results into structured TableRow collections for header and body.
@@ -584,6 +585,10 @@ export class TableDataSetFactory {
     }
 
     if ("GROUPHEAD" === type && value == null) {
+      return value;
+    }
+
+    if (value === NOT_AVAILABLE) {
       return value;
     }
 

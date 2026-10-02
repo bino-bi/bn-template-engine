@@ -11,7 +11,8 @@ import { Scenario } from "./index";
  * vice versa) so that visual encoding always reflects the economic meaning.
  */
 export class DataPoint {
-  public value: number | null;
+  /** undefined on a relative variance: the reference is 0, shown as "n/a". */
+  public value: number | null | undefined;
   /** Scenario identifier (e.g. Scenario.AC1) or raw string. */
   public scenario: Scenario | string | null;
   /** Vertical scale: pixels per one data unit. */
@@ -20,7 +21,7 @@ export class DataPoint {
   public variance: Scenario | string;
 
   constructor(
-    value: number | null,
+    value: number | null | undefined,
     scenario: Scenario | string | null,
     pixelPerUnit: number | null,
     variance: Scenario | string | null,

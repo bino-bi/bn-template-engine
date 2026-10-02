@@ -97,6 +97,10 @@ Every number used to be printed in the German format (`1.234,5`, `5,20%`), whate
 
 With several columns in `order`, `order-direction` was applied to the last column only (`order="rowGroup,category"` with `desc` sorted the groups ascending). It now applies to every column. Row groups followed `order` only for a `rowGroup` or `rowGroupIndex` entry; with any other order (the default `category`, a scenario) they came in the order of the data rows. They now follow the entries of `order` that exist per group: `rowGroup` and `rowGroupIndex` directly, a scenario such as `ac1` by the group sum. Without such an entry (for example the default `order="category"`) groups are sorted by `rowGroupIndex` ascending.
 
+#### Relative variances divide by the absolute reference
+
+A relative variance was computed as `(a - b) / b`. Against a negative reference the sign was flipped: -80 against -100 is better by 20 but was shown as `-20%`. Against a reference of 0 the result was `∞%`; in a table bar column with automatic scaling this collapsed all pins of the column, and `bn-chart-time` drew a full pin labelled `+∞%`. `bn-table` and `bn-chart-time` now compute `(a - b) / |b|` and show `n/a` without a bar or pin when the reference is 0. This includes 0 against 0, which was `-` in the table and nothing in the time chart. Missing data is shown as before.
+
 ### Fixed
 
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.

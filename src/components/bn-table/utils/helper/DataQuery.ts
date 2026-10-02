@@ -9,6 +9,7 @@ import { Scenarios } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
+import { NOT_AVAILABLE, relativeVariance } from "../../../../utils/relativeVariance";
 
 /**
  * AlaSQL-based query builder that produces the complete table result set for bn-table.
@@ -532,14 +533,15 @@ export class DataQuery {
 
   /**
    * Converts absolute variance columns into relative (percentage) variances by dividing
-   * each `dr_*` cell by its denominator column (the delta scenario's aggregated value).
+   * each `dr_*` cell by the absolute value of its denominator column (the delta scenario's
+   * aggregated value). A denominator of 0 gives NOT_AVAILABLE.
    */
   private calculateRelativeVariances(res: DataQueryResultRow[][], relativeScenarios: Map<string, string>) {
     res.forEach((group) => {
       group.forEach((row: DataQueryResultRow) => {
         if (row[QueryColumnNames.TYPE] !== "GROUPHEAD") {
           relativeScenarios.forEach((value: string, key: string) => {
-            row[key] = (row[key] as number) / (row[value] as number);
+            row[key] = relativeVariance(row[key] as number, row[value] as number) ?? NOT_AVAILABLE;
           });
         }
       });
@@ -662,7 +664,7 @@ export class DataQuery {
         }
       });
       relativeScenarios.forEach((value: string, key: string) => {
-        row[key] = (row[key] as number) / (row[value] as number);
+        row[key] = relativeVariance(row[key] as number, row[value] as number) ?? NOT_AVAILABLE;
       });
       return row;
     };

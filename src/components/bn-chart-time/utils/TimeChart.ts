@@ -39,6 +39,7 @@ import { drawAttached } from "../../../utils/measurementHost";
 import { DataFormatDigits, Order } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { relativeVariance } from "../../../utils/relativeVariance";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
@@ -1045,7 +1046,7 @@ export class TimeChart {
     scenarios: VarianceScenario,
     element: TimeChartDataModelEntry,
     scenarioMap: Map<string, string>,
-  ): number | null {
+  ): number | null | undefined {
     const scenarioBase = scenarioMap.get(scenarios.base);
     const scenarioDelta = scenarioMap.get(scenarios.delta);
 
@@ -1060,7 +1061,8 @@ export class TimeChart {
     const isRelativeVariance = scenarios.type === VarianceType.RELATIVE;
 
     if (isRelativeVariance) {
-      return (element[scenarioBase].value - element[scenarioDelta].value) / element[scenarioDelta].value;
+      // NaN marks a bucket without data and stays empty; undefined is a reference of 0 and is shown as "n/a"
+      return relativeVariance(element[scenarioBase].value - element[scenarioDelta].value, element[scenarioDelta].value);
     } else {
       return element[scenarioBase].value - element[scenarioDelta].value;
     }

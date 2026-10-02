@@ -36,6 +36,7 @@ import { getStores, ScopedStores } from "../../context/context-protocol";
 import { buildFromExpr } from "../../context/scopedDb";
 import { ErrorDispatcher } from "../../utils/withHasError";
 import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "./utils/helper/barColumnGeometry";
+import { NOT_AVAILABLE } from "../../utils/relativeVariance";
 
 /** Aggregated column statistics driving the auto-fit of one scaling family. */
 interface BarColumnStats {
@@ -361,6 +362,7 @@ export class IbcsTable {
                     )}
                     {cell.isBarChart &&
                     cell.columnStats &&
+                    cell.value !== NOT_AVAILABLE &&
                     (cell.waterfall !== undefined || row.type !== TableRowType.SUM) ? (
                       cell.waterfall !== undefined ? (
                         <WaterfallBar
