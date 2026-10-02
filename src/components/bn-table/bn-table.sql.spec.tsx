@@ -156,15 +156,38 @@ describe("bn-table: data values in queries", () => {
     expect(cellTexts(totalRow)[0]).toBe("Men's total");
   });
 
+  it("builds the REST row of limit for row groups with an apostrophe", async () => {
+    getStores(null).db.db.tables["sqlLimitDs"] = {
+      data: [
+        row("Men's Wear", 0, "O'Neill", "", 10),
+        row("Men's Wear", 0, "Levi's", "", 20),
+        row(payloadGroup, 1, "Toys", "", 7),
+        row(payloadGroup, 1, "Games", "", 3),
+      ],
+    };
+    const page = await renderTable({ datasets: "sqlLimitDs", limit: "1" });
+
+    expect(bodyRows(page).filter((r) => cellTexts(r)[0] === ".REST")).toHaveLength(2);
+    expect(errors(page).some((e) => e.id === "ERR_sql")).toBe(false);
+    expect(pwned()).toBeUndefined();
+  });
+
   it.each([
-    ["a scenario that is not an identifier", "ac1,ac 1"],
-    ["a query that AlaSQL rejects", "ac1,from"],
-  ])("reports ERR_sql and renders no table for %s", async (_name, scenarios) => {
+    ["a scenario that is not an identifier", { scenarios: "ac1,ac 1" }, 'invalid identifier "ac 1"'],
+    [
+      "a columnthereof key that is not an identifier",
+      { columnthereof: '[{"scenario":"ac1+0","name":"DE","subGroups":[]}]' },
+      'invalid identifier "ac1+0"',
+    ],
+    ["a query that AlaSQL rejects", { scenarios: "ac1,from" }, "Parse error"],
+  ])("reports ERR_sql and renders no table for %s", async (_name, props, message) => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
-    const page = await renderTable({ scenarios });
+    const page = await renderTable(props);
     consoleError.mockRestore();
 
-    expect(errors(page).find((e) => e.id === "ERR_sql")?.type).toBe("error");
+    const error = errors(page).find((e) => e.id === "ERR_sql");
+    expect(error?.type).toBe("error");
+    expect(error?.message).toContain(message);
     expect(inner(page).shadowRoot.querySelector("table")).toBeNull();
   });
 

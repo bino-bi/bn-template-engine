@@ -188,6 +188,8 @@ test("sanitizeHtml: no handler runs, no payload element survives", async () => {
     `<details open ontoggle=${SET_GLOBAL}>x</details>`,
     `<svg><image href=x onerror=${SET_GLOBAL}></image></svg>`,
     `<a href="java&#x09;script:${SET_GLOBAL}">x</a>`,
+    // a control named "tagName" shadows that property on its form
+    `<form><input name="tagName"></form>`,
   ];
   // The marker proves the text was rendered at all.
   const { page } = await open(
@@ -203,9 +205,9 @@ test("sanitizeHtml: no handler runs, no payload element survives", async () => {
       host.shadowRoot.querySelectorAll("a").forEach((a) => a.click());
       return {
         marker: host.shadowRoot.querySelectorAll("b").length,
-        survivors: [...host.shadowRoot.querySelectorAll("font, audio, details, svg, image, a[href], img[onerror]")].map(
-          (el) => el.outerHTML,
-        ),
+        survivors: [
+          ...host.shadowRoot.querySelectorAll("font, audio, details, svg, image, form, input, a[href], img[onerror]"),
+        ].map((el) => el.outerHTML),
       };
     }),
   );
@@ -268,16 +270,28 @@ test("bn-table: row groups with quotes and backticks all render and add up", asy
   assert.equal(await pwned(page), undefined);
 });
 
-test("bn-table: a filter with double backticks is rejected", async () => {
+const FILTER_HOSTS = [
+  "bn-table",
+  "bn-chart-time",
+  "bn-chart-structure",
+  "bn-chart-bullet",
+  "bn-chart-scatter",
+  "bn-chart-bubble",
+];
+
+test("filter: double backticks are rejected by the table and the charts", async () => {
   // The second one has no double backtick until AlaSQL strips the comments.
   const filters = [`1 = \`\`${SET_GLOBAL}\`\``, `1 = \`/**/\`${SET_GLOBAL}\`/**/\``];
   const { page } = await open(
-    sales() + filters.map((f) => `<bn-table datasets="sales" scenarios="ac1" filter="${esc(f)}"></bn-table>`).join(""),
+    sales() +
+      FILTER_HOSTS.flatMap((tag) =>
+        filters.map((f) => `<${tag} datasets="sales" scenarios="ac1" filter="${esc(f)}"></${tag}>`),
+      ).join(""),
   );
-  const errors = await page.$$eval("bn-table", (els) =>
+  const errors = await page.$$eval(FILTER_HOSTS.join(","), (els) =>
     els.map((el) => JSON.parse(el.getAttribute("has-error") ?? "[]")),
   );
-  assert.equal(errors.length, filters.length);
+  assert.equal(errors.length, FILTER_HOSTS.length * filters.length);
   for (const items of errors) {
     assert.ok(
       items.some((item) => item.id === "ERR_filter" && item.type === "error"),

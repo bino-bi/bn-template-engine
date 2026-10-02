@@ -23,7 +23,7 @@ describe("sanitizeHtml", () => {
     "<script>alert(1)</script>",
     "<font><img src=x onerror=alert(1)></font>",
     "<audio src=x onerror=alert(1)>",
-    "<details open ontoggle=alert(1)>",
+    "<details open ontoggle=alert(1)>x</details>",
     "<svg><image href=x onerror=alert(1)>",
     `<form><input name="tagName"></form>`,
   ])("removes %s with its content", (html) => {
