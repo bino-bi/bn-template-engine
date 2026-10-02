@@ -1028,7 +1028,7 @@ export namespace Components {
      */
     "image": string;
     /**
-      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; event handlers and `javascript:` URLs are stripped). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
+      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; any other element is removed with its content, and links keep only `http:`, `https:`, `mailto:` and relative URLs). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
      */
     "text": string;
   }
@@ -3320,7 +3320,7 @@ declare namespace LocalJSX {
      */
     "image"?: string;
     /**
-      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; event handlers and `javascript:` URLs are stripped). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
+      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; any other element is removed with its content, and links keep only `http:`, `https:`, `mailto:` and relative URLs). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
      */
     "text"?: string;
   }
