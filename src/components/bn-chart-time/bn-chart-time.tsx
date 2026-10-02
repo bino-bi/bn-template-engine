@@ -1341,6 +1341,8 @@ export class Chart {
         stackColors: $["bn-chart-time"]["stackColors"],
         padding: $["bn-chart-time"]["padding"],
         pattern: null,
+        // placeholder, ibcs-chart-time sets the locale of its context
+        locale: "de",
       };
     });
   }

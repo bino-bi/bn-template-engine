@@ -369,12 +369,15 @@ export class IbcsChartStructure {
   }
 
   private prepareStyle(): StructureChartStyle {
-    return new StructureChartStylesAdapter(
+    const styles = new StructureChartStylesAdapter(
       new ScaleFactorsStructureChartAdapter(),
       new FontStyleAdapter(),
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
       new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
       new PaddingAdapter(),
     ).adapt(this.styles as unknown as Record<string, unknown>);
+    styles.locale = getStores(this.element).context?.state?.locale || "de";
+
+    return styles;
   }
 }

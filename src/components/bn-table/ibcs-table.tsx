@@ -319,6 +319,8 @@ export class IbcsTable {
         return <div class="empty-state">{errorMsg}</div>;
       }
 
+      const locale = this.stores?.context?.state?.locale;
+
       return (
         <table>
           <thead>
@@ -387,7 +389,7 @@ export class IbcsTable {
                         />
                       )
                     ) : (
-                      cell.draw(this.componentDataFormatDigits)
+                      cell.draw(this.componentDataFormatDigits, locale)
                     )}
                   </td>
                 ))}

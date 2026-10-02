@@ -89,6 +89,10 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 - `bucket` in the `getLayoutState()` table detail is now `2024-01-01T00:00:00.000Z` instead of a local offset such as `2024-01-01T00:00:00.000+01:00`.
 - Not changed: the SQL date functions (`YEAR`, `MONTH`, `DAY`) in a `filter` or a dataset query still use the time zone of the browser. In New York `YEAR([date]) = 2024` leaves out `2024-01-01T00:00:00Z`. Compare the text instead: `[date] >= '2024-01-01'`.
 
+#### Numbers follow the `bn-context` locale
+
+Every number used to be printed in the German format (`1.234,5`, `5,20%`), whatever the locale was. Tables and charts now format numbers with `Intl.NumberFormat` for the locale of their `bn-context`: `locale="en"`, which is also the default when no locale is set, prints `1,234.5` and `5.20%`; `locale="de"` prints as before. A report that relied on German numbers without setting a locale has to set `<bn-context locale="de">`. A locale the browser does not know falls back to the German format. A space in front of the percent sign is removed in every locale. Percent labels inside stacked bars of `bn-chart-time` and `bn-chart-structure` use the same format (`45,0%` for `de`, before always `45.0%`).
+
 ### Fixed
 
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.
@@ -101,6 +105,7 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 - `bn-dataset`, `bn-datasource`: changing `name` left the data under the old name. A static dataset kept its old table, a SQL dataset was never registered under the new name, and a `src` dataset moved only with the next poll. The old table or view is now dropped, its consumers are notified, and the data loads again under the new name. A SQL dataset whose source was renamed or removed now delivers no rows and sets `ERR_sql`, so a table behind it does not keep the old numbers.
 - `bn-dataset`, `bn-datasource`: an element that was removed and attached again stayed empty, did not restart polling and kept writing to the `bn-context` it came from. It now loads again in the context it is attached to.
 - `bn-datasource`, `bn-dataset`: `window.componentRegisterIsRenderedResult` became `true` while the first request for `src` was still running, so a PDF could be rendered with empty tables. The component now counts as rendering until that request has succeeded, failed or been cancelled. Polling requests (`interval`) do not hold the flag, and a poll tick that comes while the first request is still running is skipped instead of cancelling it. An element that is removed and attached again no longer counts as rendering forever.
+- `bn-table` and all charts: a small negative value that rounds to zero was printed as `-0,0` or `-0,0%`. It is printed as `0,0` or `0,0%` now.
 
 ### Security
 

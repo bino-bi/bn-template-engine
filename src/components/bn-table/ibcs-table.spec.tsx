@@ -25,7 +25,7 @@ jest.mock("../../context/context-protocol", () => {
     componentStyles: createStore({ _system: SYSTEM_STYLE_DEFAULTS }),
     internationalization: createStore({ ...SYSTEM_I18N_DEFAULTS }),
     assets: createStore({}),
-    context: createStore({ locale: "en" }),
+    context: createStore({ locale: "de" }),
   };
 
   return {

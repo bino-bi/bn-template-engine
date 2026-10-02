@@ -18,6 +18,8 @@ Set the `locale` prop on `<bn-context>`:
 
 The locale determines which translation bundle is used for scenario labels, sort indicators, table headings, and title connectors. Built-in bundles exist for exactly `en` and `de`; the lookup is an exact string match (there is no BCP 47 normalization - `de-DE` does not match `de`).
 
+The locale also sets the number format of tables and charts: `en` prints `1,234.5` and `5.20%`, `de` prints `1.234,5` and `5,20%`. A locale the browser does not know prints German numbers.
+
 ## How Lookups Work
 
 Translations are stored per **namespace**, per **language code**, as a flat key-value map:

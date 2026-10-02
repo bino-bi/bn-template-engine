@@ -25,6 +25,8 @@ import { ScaleFactorsStructureChart, ScaleFactorsStructureChartAdapter } from ".
 export class StructureChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
   public stackColors: string[] = ["#000000", "#c0c0c0", "#808080"];
+  /** Locale for number labels. */
+  public locale: string = "de";
 
   constructor(
     public scaleFactors: ScaleFactorsStructureChart,

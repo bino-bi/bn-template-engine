@@ -72,6 +72,17 @@ describe("BubbleChart", () => {
     expect(svg).toContain('class="annotations"');
   });
 
+  it("formats the value label in the locale of the style", () => {
+    const db = createScopedDb().db;
+    db.tables["bubbleData"] = { data: [row()] };
+    const styles = defaultStyles();
+    styles.locale = "en";
+    const svg = new BubbleChart(new IBCSRuleSet(), db, "`bubbleData`", baseConfig(), styles, 1000).toString();
+    expect(svg).toContain(">32.0</tspan>");
+    // axis tick
+    expect(svg).toContain(">0.30</tspan>");
+  });
+
   it("draws the size legend caption from the size spec", () => {
     const chart = makeChart([row()], baseConfig({ size: { measure: "ac3", label: "Net sales", unit: "mEUR" } }));
     chart.setI18n(new Map([["axis.in", "in"]]));

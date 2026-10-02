@@ -76,7 +76,7 @@ export class Cell {
     return result;
   }
 
-  public draw(dataFormatDigits: DataFormatDigits) {
+  public draw(dataFormatDigits: DataFormatDigits, locale?: string) {
     let cellValue = this.value;
 
     if (cellValue === "undefined" || cellValue === undefined || cellValue == null) {
@@ -100,7 +100,7 @@ export class Cell {
       scale = dataFormatDigits.decimal;
     }
 
-    return Formatter.number(Number(cellValue), this.type, digitsMin, scale);
+    return Formatter.number(Number(cellValue), this.type, digitsMin, scale, 1, locale);
   }
 
   drawPrefix() {

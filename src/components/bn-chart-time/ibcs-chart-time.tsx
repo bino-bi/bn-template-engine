@@ -420,12 +420,15 @@ export class IbcsChartTime {
   }
 
   private prepareStyle(): TimeChartStyle {
-    return new TimeChartStylesAdapter(
+    const styles = new TimeChartStylesAdapter(
       new ScaleFactorsTimeChartAdapter(),
       new FontStyleAdapter(),
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
       new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
       new PaddingAdapter(),
     ).adapt(this.styles as unknown as Record<string, unknown>);
+    styles.locale = getStores(this.element).context?.state?.locale || "de";
+
+    return styles;
   }
 }

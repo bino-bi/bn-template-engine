@@ -628,7 +628,7 @@ export class BubbleChart {
 
   /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. */
   private drawValueLabel(group: G, cx: number, cy: number, r: number, value: number, fill: string): void {
-    const text = Formatter.number(value, "decimal", 1, 1);
+    const text = Formatter.number(value, "decimal", 1, 1, 1, this.styles.locale);
     const width = this.textWidth(text);
     if (width + 0.4 * this.em > 2 * r) {
       return;
@@ -669,6 +669,6 @@ export class BubbleChart {
   }
 
   private formatTick(value: number, decimals: number): string {
-    return Formatter.number(value, "decimal", decimals, decimals);
+    return Formatter.number(value, "decimal", decimals, decimals, 1, this.styles.locale);
   }
 }

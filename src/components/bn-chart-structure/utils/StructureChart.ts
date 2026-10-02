@@ -852,7 +852,7 @@ export class StructureChart {
   }
 
   private calculateTextBoxWidth(value: number): number {
-    return CalculateSize(Formatter.number(value, "decimal", 1, 0), {
+    return CalculateSize(Formatter.number(value, "decimal", 1, 0, 1, this.styles.locale), {
       font: this.styles.fontStyles.font,
       fontSize: this.styles.fontStyles.size + "px",
     }).width;
@@ -874,7 +874,7 @@ export class StructureChart {
     }).width;
 
     const labelWidth =
-      CalculateSize(Formatter.number(value, "decimal", 1, 1), {
+      CalculateSize(Formatter.number(value, "decimal", 1, 1, 1, this.styles.locale), {
         font: this.styles.fontStyles.font,
         fontSize: this.styles.fontStyles.size + "px",
       }).width + signWidth;
