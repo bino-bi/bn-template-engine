@@ -19,7 +19,7 @@ class StyleSheet {
 
   apply(data: Map<string, ClassStyle>) {
     data.forEach((value) => this.cache.set(value.className, value.style));
-    this.tag.innerHTML = Array.from(this.cache.values())
+    this.tag.textContent = Array.from(this.cache.values())
       .map((value) => value)
       .join("\n");
   }

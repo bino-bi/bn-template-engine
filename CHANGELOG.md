@@ -53,6 +53,10 @@ When one of the table's queries fails, the table is not rendered and `has-error`
 
 AlaSQL runs text between double backticks as JavaScript. A `filter` (on `bn-table` and the five charts) that contains a double backtick is not sent to AlaSQL: the component shows its no-data state and `has-error` gets an `ERR_filter` item of type `error`. A `bn-dataset` SQL body with a double backtick is not registered and the dataset gets an `ERR_sql` item. A SQL body that AlaSQL cannot parse now also sets `ERR_sql` (before: console only). Two backticks with only a comment between them count as a double backtick.
 
+#### Layout attributes take exactly one CSS value
+
+`width`, `height`, `position`, `top`, `right`, `bottom`, `left`, `font-size`, `grid-column` and `grid-row` are parsed by the browser before they are written to the engine's stylesheet. A value that is not valid for its property is ignored, as before. New: a value with a trailing semicolon (`width="100px;"`), with more than one declaration (`width="10px; color: red"`) or with `!important` is ignored as a whole.
+
 #### Sanitized HTML: disallowed elements are removed with their content
 
 Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title `business-unit`.
@@ -77,6 +81,7 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 - Sanitized HTML (`bn-text`, `bn-message`, title `business-unit`) was parsed in the live document, so an `<img onerror>` or `<audio onerror>` inside a disallowed element ran its handler before it was removed, and `<a href="java&#x09;script:...">` passed the URL check. The HTML is now parsed in a separate inert document and URLs are checked with the URL parser.
 - `bn-text` evaluated `value` with `new Function`. The pattern check in front of it did not stop expressions such as `${t['constr'+'uctor']('...')()}`, so a template could run any JavaScript, and dataset values were joined into the markup unescaped. The evaluator is replaced by a placeholder parser and every resolved value is HTML-escaped.
 - `bn-table` pasted row values (row group names) and free-text settings (`sum-title`, `thereof`, `partof`, `columnthereof` names, `lit(...)` attributes) into quoted SQL literals. A value with an apostrophe such as `Men's Wear` broke its query, and a crafted value could run as AlaSQL inline JavaScript. These values are now passed to AlaSQL as query parameters.
+- Layout attributes were pasted into a stylesheet in the document head, so a value could close its rule and add rules for the host page (`width="10px;} body{display:none"`). Only the browser's own serialization of a value it accepted for that property is written now.
 
 ## [v0.39.0] - 2026-01-21
 
