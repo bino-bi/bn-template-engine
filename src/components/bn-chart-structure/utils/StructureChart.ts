@@ -21,6 +21,7 @@ import { AggregationLevel, StackBy, StackMode } from "../../../utils/constants";
 import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { relativeVariance } from "../../../utils/relativeVariance";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { Order, OrderColumn } from "../../../utils/model/Order";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
@@ -813,7 +814,7 @@ export class StructureChart {
     scenarios: VarianceScenario,
     element: StructureChartDataModelEntry,
     scenarioMap: Map<string, string>,
-  ): number | null {
+  ): number | null | undefined {
     const scenarioBase = scenarioMap.get(scenarios.base);
     const scenarioDelta = scenarioMap.get(scenarios.delta);
 
@@ -824,7 +825,8 @@ export class StructureChart {
     const isRelativeVarianze = scenarios.type === VarianceType.RELATIVE;
 
     if (isRelativeVarianze) {
-      return (element[scenarioBase].value - element[scenarioDelta].value) / element[scenarioDelta].value;
+      // NaN marks a category without data and stays empty; undefined is a reference of 0 and is shown as "n/a"
+      return relativeVariance(element[scenarioBase].value - element[scenarioDelta].value, element[scenarioDelta].value);
     } else {
       return element[scenarioBase].value - element[scenarioDelta].value;
     }

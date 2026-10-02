@@ -1,4 +1,5 @@
 import { Scenarios } from "../constants";
+import { relativeVariance } from "../relativeVariance";
 
 /**
  * Variance-token parser for XY chart axis measures.
@@ -34,7 +35,7 @@ export class VarianceMeasure {
   /**
    * Computes the variance value, mirroring the null-safe math of the
    * existing charts: absolute = `base - delta`, relative =
-   * `(base - delta) / delta`. Returns `null` when either operand is
+   * `(base - delta) / |delta|`. Returns `null` when either operand is
    * missing or a relative variance would divide by zero.
    */
   public compute(base: number | null | undefined, delta: number | null | undefined): number | null {
@@ -46,7 +47,7 @@ export class VarianceMeasure {
       if (delta === 0) {
         return null;
       }
-      return (base - delta) / delta;
+      return relativeVariance(base - delta, delta) ?? null;
     }
 
     return base - delta;

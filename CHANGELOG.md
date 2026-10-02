@@ -99,7 +99,7 @@ With several columns in `order`, `order-direction` was applied to the last colum
 
 #### Relative variances divide by the absolute reference
 
-A relative variance was computed as `(a - b) / b`. Against a negative reference the sign was flipped: -80 against -100 is better by 20 but was shown as `-20%`. Against a reference of 0 the result was `∞%`; in a table bar column with automatic scaling this collapsed all pins of the column, and `bn-chart-time` drew a full pin labelled `+∞%`. `bn-table` and `bn-chart-time` now compute `(a - b) / |b|` and show `n/a` without a bar or pin when the reference is 0. This includes 0 against 0, which was `-` in the table and nothing in the time chart. Missing data is shown as before.
+A relative variance was computed as `(a - b) / b`. Against a negative reference the sign was flipped: -80 against -100 is better by 20 but was shown as `-20%`. Against a reference of 0 the result was `∞%`; in a table bar column with automatic scaling this collapsed all pins of the column, and `bn-chart-time` and `bn-chart-structure` drew a full pin labelled `+∞%`. `bn-table`, `bn-chart-time` and `bn-chart-structure` now compute `(a - b) / |b|` and show `n/a` without a bar or pin when the reference is 0. This includes 0 against 0, which was `-` in the table and nothing in the two charts. A reference whose sum is 0 only up to float rounding (for example 1234.56 - 1000.1 - 234.46) counts as 0 too. Missing data is shown as before. `bn-chart-bubble` and `bn-chart-scatter` use the same formula; a point with a reference of 0 is left out as before.
 
 ### Fixed
 

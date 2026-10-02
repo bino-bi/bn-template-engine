@@ -59,7 +59,7 @@ Variance columns are computed from scenario pairs. They follow a naming pattern:
 | Variance | Meaning |
 |----------|---------|
 | `dac1_pl1_pos` | Absolute: AC1 minus PL1, favorable when positive |
-| `drac1_pp1_neg` | Relative %: (AC1 - PP1) / PP1, unfavorable when positive |
+| `drac1_pp1_neg` | Relative %: (AC1 - PP1) / \|PP1\|, unfavorable when positive |
 | `dac1_fc1_neu` | Absolute: AC1 minus FC1, neutral (no color coding) |
 
 The `direction` determines the IBCS color coding in charts and tables:
