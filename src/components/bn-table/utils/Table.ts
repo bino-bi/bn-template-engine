@@ -294,4 +294,9 @@ export class Table {
   hasNoData() {
     return this.rowCount === 0;
   }
+
+  /** True once the body was built and the grouped table has rows with a blank rowGroup. */
+  public hasBlankRowGroup(): boolean {
+    return this.dataSetFactory.hasBlankRowGroup;
+  }
 }

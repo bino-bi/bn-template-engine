@@ -427,6 +427,15 @@ export class IbcsTable {
         message: `Query failed: ${e instanceof Error ? e.message : e}`,
       });
     }
+    if (this.table?.hasBlankRowGroup()) {
+      this.errors?.addOrReplace({
+        id: "WARN_blankRowGroup",
+        type: "warning",
+        message: "grouped: rows with blank rowGroup found, they are grouped under '-'.",
+      });
+    } else {
+      this.errors?.remove("WARN_blankRowGroup");
+    }
     this.barChartStyles = this.prepareBarChartStyles();
   }
 

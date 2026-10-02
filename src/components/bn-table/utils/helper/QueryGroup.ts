@@ -3,6 +3,9 @@ import { TableType } from "../model";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { QueryColumnNames } from "../../../../utils/model";
 
+/** '', null and a missing rowGroup are one group. */
+export const BLANK_SAFE_ROWGROUP = `IFNULL(${QueryColumnNames.ROWGROUP}, '')`;
+
 /**
  * Manages the GROUP BY column list for DataQuery's SQL statements.
  *
@@ -29,8 +32,14 @@ export class QueryGroups {
     }
   }
 
+  /** GROUP BY list. */
   toString(): string {
-    return this.groups.map((s) => `${s}`).toString();
+    return this.groups.map((s) => (s === QueryColumnNames.ROWGROUP ? BLANK_SAFE_ROWGROUP : s)).toString();
+  }
+
+  /** SELECT list for the GROUP BY columns. */
+  select(): string {
+    return this.groups.map((s) => (s === QueryColumnNames.ROWGROUP ? `${BLANK_SAFE_ROWGROUP} as ${s}` : s)).toString();
   }
 
   noCategory(): string[] {

@@ -1,6 +1,13 @@
 import { TableRow } from "../elements";
 import { ScenarioHeaderColumn, TableRowType, TableType } from "../model";
-import { computeWaterfall, DataQuery, hasGroupingStructure, INTERVAL_NONE, WaterfallResult } from "../helper";
+import {
+  BLANK_BUCKET_LABEL,
+  computeWaterfall,
+  DataQuery,
+  hasGroupingStructure,
+  INTERVAL_NONE,
+  WaterfallResult,
+} from "../helper";
 
 import { TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
@@ -26,6 +33,8 @@ import { AlaSQLDatabase } from "../../../../context/scopedDb";
 export class TableDataSetFactory {
   private normalizedHeader: ScenarioHeaderColumn[] = [];
   private attributesByAlias: Map<string, TableAttribute> = new Map();
+  /** Set by createBodyRows(): the grouped table has rows with a blank rowGroup. */
+  public hasBlankRowGroup = false;
 
   constructor() {}
 
@@ -230,7 +239,9 @@ export class TableDataSetFactory {
     const bodyRows: TableRow[] = [];
 
     let iGroupIndex: number = -1; // index used in detailRow JSON to count the current group
-    const queryData = new DataQuery(config, i18n).execute(db, fromExpr); // collection of all query results
+    const dataQuery = new DataQuery(config, i18n);
+    const queryData = dataQuery.execute(db, fromExpr); // collection of all query results
+    this.hasBlankRowGroup = dataQuery.hasBlankRowGroup;
 
     // Calculate column statistics for bar columns
     const columnStatsMap = this.calculateColumnStatistics(
@@ -411,7 +422,8 @@ export class TableDataSetFactory {
     for (const rawDataRow of groupData) {
       iRowIndex += 1;
       // create next table row
-      const groupName = rawDataRow[QueryColumnNames.ROWGROUP];
+      const rowGroup = rawDataRow[QueryColumnNames.ROWGROUP];
+      const groupName = rowGroup === "" ? BLANK_BUCKET_LABEL : rowGroup;
       const subCategory = rawDataRow[QueryColumnNames.SUBCATEGORY];
       const type = rawDataRow[QueryColumnNames.TYPE];
       const isSecondElement = rawDataRow[QueryColumnNames.ROWNR] >= 2;

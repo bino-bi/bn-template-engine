@@ -45,6 +45,14 @@ describe("DQueryGroup Test", () => {
   it("should return string", () => {
     const queryGroup = new QueryGroups(config);
 
-    expect(queryGroup.toString()).toEqual("operation,category,categoryIndex,rowGroup,rowGroupIndex");
+    expect(queryGroup.toString()).toEqual("operation,category,categoryIndex,IFNULL(rowGroup, ''),rowGroupIndex");
+  });
+
+  it("should return the select list with the rowGroup alias", () => {
+    const queryGroup = new QueryGroups(config);
+
+    expect(queryGroup.select()).toEqual(
+      "operation,category,categoryIndex,IFNULL(rowGroup, '') as rowGroup,rowGroupIndex",
+    );
   });
 });
