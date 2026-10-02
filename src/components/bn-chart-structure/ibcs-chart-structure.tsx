@@ -159,7 +159,7 @@ export class IbcsChartStructure {
     this.autoFitScaling(config, styles);
     this.chart.setAvailableWidth(unitWasAuto ? 0 : this.parentDimensions?.width || 0);
     this.pattern = new CustomPattern(this.chart.styles);
-    this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
+    this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
   }
 
   public async componentWillUpdate() {
@@ -179,7 +179,7 @@ export class IbcsChartStructure {
     this.autoFitScaling(config, styles);
     this.chart.setAvailableWidth(unitWasAuto ? 0 : this.parentDimensions?.width || 0);
     this.pattern = new CustomPattern(this.chart.styles);
-    this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
+    this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
   }
 
   /**
