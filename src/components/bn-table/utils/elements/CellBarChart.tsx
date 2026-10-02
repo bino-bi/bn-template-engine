@@ -308,7 +308,8 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
 
   // Direct unit scaling via fontSize
   const scaledWidth = Math.abs(value) * styles.unitScaling * fs;
-  const isExtreme = scaledWidth > cutWidth;
+  // auto scaling puts the largest bar on the cut, float rounding must not turn it into an overdrive bar
+  const isExtreme = scaledWidth - cutWidth > 1e-6;
 
   // Compute proportional overdrive width across the column
   const maxScaledWidth = columnStats.absMax * styles.unitScaling * fs;

@@ -310,6 +310,9 @@ export class TableDataSetFactory {
     // Iterate through all groups and rows
     for (const groupData of queryData) {
       for (const row of groupData) {
+        // sum rows draw no bar (a waterfall takes its extent from WaterfallBarData), so they must not stretch the scale
+        const type = row[QueryColumnNames.TYPE];
+        if (type === TableRowType.SUM || type === TableRowType.GROUPSUM) continue;
         for (const column of barColumns) {
           // with an active interval the rendered values live under the
           // `column##bucket` keys; the plain column would hold the (larger)
