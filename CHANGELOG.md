@@ -98,6 +98,8 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 - Chart wrappers: stale `AUTO_percentageScaling` warning was not cleared when a scaling group resolved.
 - `bn-chart-structure` / `bn-chart-time`: an optional attribute that was simply not set produced a warning of its own - `level: invalid value(s) 'undefined' are not supported.` and the same for `order-direction`, `unit-scaling`, `percentage-scaling`, `date-interval` and `axis-labels-mode` - next to the correct `AUTO_<field>` notice for the very same blank value. On a report with many charts these drowned out the real warnings. An omitted field now yields only its documented `AUTO_<field>` notice; `ERR_<field>` is reserved for a value that was written and is wrong.
 - SI prefix tables: removed a stray `"P"` (peta) from the negative-prefix table (femto range was shifted); `measure-scale` now accepts both `"my"` and `"μ"` for micro; magnitude→prefix picking is now `Math.log10`-based and handles exponential notation (`1e-7`, `1e24`) and boundary values correctly.
+- `bn-dataset`, `bn-datasource`: changing `name` left the data under the old name. A static dataset kept its old table, a SQL dataset was never registered under the new name, and a `src` dataset moved only with the next poll. The old table or view is now dropped, its consumers are notified, and the data loads again under the new name. A SQL dataset whose source was renamed or removed now delivers no rows and sets `ERR_sql`, so a table behind it does not keep the old numbers.
+- `bn-dataset`, `bn-datasource`: an element that was removed and attached again stayed empty, did not restart polling and kept writing to the `bn-context` it came from. It now loads again in the context it is attached to.
 
 ### Security
 
