@@ -132,7 +132,7 @@ export class StackedColumn {
           .setSegmentFill(fillColor)
           .forceStringTypeDraw();
       } else {
-        // Pass raw numeric value — Label.draw() formats with measureScale
+        // Pass raw numeric value - Label.draw() formats with measureScale
         new Label(this.group, xPos, labelY, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
           .setSegmentFill(fillColor)
           .draw(true, dataFormatDigits, measureScale);

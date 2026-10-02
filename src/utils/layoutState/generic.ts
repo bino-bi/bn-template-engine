@@ -19,7 +19,7 @@ export function readFontSizePx(el: HTMLElement): number {
 
 /**
  * Layout state for a visual component without its own `getLayoutState()`:
- * host box, identity, em context and diagnostics — no regions or elements.
+ * host box, identity, em context and diagnostics - no regions or elements.
  * The caller (`bn-context`) overwrites `id` with its document-order identity.
  */
 export function buildGenericState(el: HTMLElement, origins: Origins): ComponentLayoutState {

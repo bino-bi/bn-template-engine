@@ -61,7 +61,7 @@ export function observeParentResize(
       h = target.clientHeight;
     }
 
-    // Only fire when the parent genuinely resized — not when the
+    // Only fire when the parent genuinely resized - not when the
     // child's own scaling caused a sub-pixel content reflow.
     if (Math.abs(w - lastWidth) <= SIZE_THRESHOLD_PX && Math.abs(h - lastHeight) <= SIZE_THRESHOLD_PX) {
       return;

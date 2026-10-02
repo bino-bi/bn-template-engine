@@ -282,7 +282,7 @@ export class LayoutCard {
       height = "fit-content";
     }
 
-    // Width is always 100% — the card is bounded by its parent grid cell.
+    // Width is always 100% - the card is bounded by its parent grid cell.
     // Using fit-content for width creates a circular dependency where the
     // card width depends on child content but children need the card width
     // for auto-scaling.

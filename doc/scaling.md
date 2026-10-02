@@ -16,7 +16,7 @@ The rest of this guide covers the other three.
 ## The units-per-em model
 
 `unit-scaling` declares **how many data units are represented by 1 em of bar
-length** — map-scale semantics, like `1:25000` on a map. A larger value means
+length** - map-scale semantics, like `1:25000` on a map. A larger value means
 more data per em, i.e. **smaller bars**.
 
 ```html
@@ -95,7 +95,7 @@ Bubble size encodes value as *area* (IBCS), so the group value for
 
 Two bubble charts sharing a group render identical values with identical
 areas. An unknown `size.group` name is a blocking error
-(`ERR_xy_scale_group`) — there is no auto fallback for bubble area.
+(`ERR_xy_scale_group`) - there is no auto fallback for bubble area.
 
 ## Interaction with `scale`
 

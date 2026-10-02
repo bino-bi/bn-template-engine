@@ -4,7 +4,7 @@ export enum I18nMode {
   META = "meta",
 }
 
-/** Unit type of the measured values — affects default formatting and SI prefix behavior. */
+/** Unit type of the measured values - affects default formatting and SI prefix behavior. */
 export enum MeasureType {
   CURRENCY = "currency",
   VOLUME = "volume",
@@ -59,7 +59,7 @@ export enum DataFormat {
  * - LIST: no aggregation, rows displayed as-is
  * - SUM: simple sum per group with a grand total row
  * - SUMNOTOTAL: sum per group without a grand total
- * - OPT: operation-aware aggregation — rows with operation="-" subtract from the group sum
+ * - OPT: operation-aware aggregation - rows with operation="-" subtract from the group sum
  * - OPTNOTOTAL: operation-aware aggregation without a grand total
  */
 export enum TableType {

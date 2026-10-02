@@ -22,7 +22,7 @@ The `image` prop accepts either an HTTP URL or a registered asset name.
 
 The `text` prop is rendered as HTML. Safe inline tags (`<b>`, `<i>`, `<strong>`, `<em>`, `<br>`, `<a>`, …) are
 allowed; event handlers, `javascript:` URLs and unknown tags are stripped. Use `<br />` for an explicit line
-break — a newline character in the value does not break the line.
+break - a newline character in the value does not break the line.
 
 ```html
 <bn-message text="Revenue <b>above plan</b><br />Q3 2026"></bn-message>

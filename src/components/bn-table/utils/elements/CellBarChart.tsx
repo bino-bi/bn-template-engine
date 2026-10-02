@@ -27,12 +27,12 @@ export interface CellBarChartStyles {
   scenarios: ScenarioStyles;
   fontColor: string;
   /**
-   * SVG label font size in px — BAR_LABEL_FONT_RATIO × emPx. It is also the multiplier in
+   * SVG label font size in px - BAR_LABEL_FONT_RATIO × emPx. It is also the multiplier in
    * the unitScaling / percentageScaling math below, so changing it rescales every user-set
    * scaling value. Column geometry deliberately uses emPx instead.
    */
   fontSize: number;
-  /** The table's true em in px (`global.fontSizePx` × scaleFactor) — column geometry only. */
+  /** The table's true em in px (`global.fontSizePx` × scaleFactor) - column geometry only. */
   emPx: number;
   fontFamily: string;
   unitScaling: number; // Em per data unit for absolute variance bars (bar px = |value| × unitScaling × fontSize)
@@ -49,7 +49,7 @@ export interface CellBarChartProps {
   isPositiveGood: boolean;
   formattedValue?: string;
   measureScale?: number;
-  /** Total column width in table em — see barColumnGeometry.ts. */
+  /** Total column width in table em - see barColumnGeometry.ts. */
   columnWidthEm?: number;
   styles?: CellBarChartStyles;
 }
@@ -279,7 +279,7 @@ function renderZigzagBreak(breakX: number, breakGap: number, yTop: number, barHe
  * base segment + zigzag break + proportional overdrive stub (like structure chart).
  *
  * Layout: [left label area][bar area with axis][right label area], summing to
- * exactly `columnWidthEm` em — see barColumnGeometry.ts.
+ * exactly `columnWidthEm` em - see barColumnGeometry.ts.
  */
 const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const {
@@ -403,7 +403,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
  * Thin horizontal line from axis with dot at end and value label.
  *
  * Layout: [pin area with axis][label area on right], summing to exactly
- * `columnWidthEm` em — see barColumnGeometry.ts.
+ * `columnWidthEm` em - see barColumnGeometry.ts.
  * Uses percentageScaling to determine pin length (pixels per percentage point).
  */
 const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {

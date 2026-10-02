@@ -8,7 +8,7 @@ import { QueryColumnNames } from "../../../../utils/model";
  *
  * The `transformOperator` AlaSQL UDF (which maps `"+"`/`"-"` to +1/-1 for
  * sign-aware SUMs) is registered globally by `scopedDb.ts` when the shared
- * database is created — no per-component registration is needed here.
+ * database is created - no per-component registration is needed here.
  *
  * The GROUP BY columns are composed dynamically: always category + categoryIndex,
  * plus operation for OPT types, plus rowGroup/rowGroupIndex when grouping is active.

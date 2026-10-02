@@ -25,7 +25,7 @@ export interface AreaPoint {
 
 /**
  * Draws an SVG path filling the area between an upper boundary polyline
- * and a lower boundary polyline — used for stacked area charts.
+ * and a lower boundary polyline - used for stacked area charts.
  */
 export class AreaFill {
   private readonly group: G;

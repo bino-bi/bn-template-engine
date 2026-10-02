@@ -1,5 +1,5 @@
 // Cross-component scaling-group sync: a bn-table and a bn-chart-structure
-// sharing one group must resolve to the same em-ratio — the table passes
+// sharing one group must resolve to the same em-ratio - the table passes
 // em-per-unit (1/v) to ibcs-table, the chart passes px-per-unit
 // (effFontPx/v) to ibcs-chart-structure, so chartPx / effFontPx must equal
 // the table's value.

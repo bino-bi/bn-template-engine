@@ -28,14 +28,14 @@ Same layout options as `<bn-layout-page>`: `full`, `split-vertical`, `split-hori
 
 Title configuration is passed through to the inner [`<bn-title>`](../bn-title/readme.md):
 
-- `title-business-unit` — Organization name
-- `title-scenarios` — Scenario list
-- `title-variances` — Variance list
-- `title-measures` — JSON measure array
-- `title-image` — Image URL or asset name for the card header
-- `title-order` / `title-order-direction` — Sort indicator
-- `title-date-start` / `title-date-end` — Date range
-- `title-date-format` / `title-date-link` — Date formatting
+- `title-business-unit` - Organization name
+- `title-scenarios` - Scenario list
+- `title-variances` - Variance list
+- `title-measures` - JSON measure array
+- `title-image` - Image URL or asset name for the card header
+- `title-order` / `title-order-direction` - Sort indicator
+- `title-date-start` / `title-date-end` - Date range
+- `title-date-format` / `title-date-link` - Date formatting
 
 ### Border
 

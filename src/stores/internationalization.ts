@@ -8,7 +8,7 @@
  * **Token pattern**: Variance symbols use `{%}` as a placeholder for the
  * scenario abbreviation. For example, `"Δ{%}"` becomes `"ΔPY"` when the
  * comparison scenario is "PY". The `{%}` replacement is performed at render
- * time by `Formatter.translateScenarioLabel` — not by `withTranslation`,
+ * time by `Formatter.translateScenarioLabel` - not by `withTranslation`,
  * which only interpolates `{{mustache}}` placeholders.
  *
  * @module stores/internationalization

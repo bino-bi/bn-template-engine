@@ -435,7 +435,7 @@ export class BubbleChart {
     const label = axis.label ?? "";
     const suffix = axis.unit !== undefined && axis.unit !== "" ? `${inWord} ${axis.unit}` : "";
 
-    // SVG collapses leading whitespace in text nodes — position the suffix
+    // SVG collapses leading whitespace in text nodes - position the suffix
     // with an explicit gap instead.
     const gap = 0.3 * this.em;
     if (anchor === "start") {
@@ -513,7 +513,7 @@ export class BubbleChart {
     panel.frame.drawRefLines(group, this.config.x.refLine, this.config.y.refLine);
     panel.frame.drawFrame(group);
 
-    // Comparison set renders in its own group BEHIND the primary set (10D) —
+    // Comparison set renders in its own group BEHIND the primary set (10D) -
     // the z-order is structural, independent of rule-set sort indices.
     const compareGroup = group.group().id("compare");
     const primaryGroup = group.group().id("primary");
@@ -543,7 +543,7 @@ export class BubbleChart {
         this.drawBubble(compareGroup, ccx, ccy, cr, compareTreatment, seriesIndex, hue);
         labeler.registerMark(ccx, ccy, cr);
 
-        // Comparison bubbles carry a value label only when large enough — never a share slice.
+        // Comparison bubbles carry a value label only when large enough - never a share slice.
         if (this.config.labels.values && point.compare.size !== undefined && cr >= 1.2 * em) {
           this.drawValueLabel(compareGroup, ccx, ccy, cr, point.compare.size, compareTreatment.fill);
         }
@@ -639,7 +639,7 @@ export class BubbleChart {
     });
   }
 
-  /** Name labels — bubbles are few, named entities; labels prefer the spot above (10A). */
+  /** Name labels - bubbles are few, named entities; labels prefer the spot above (10A). */
   private drawNameLabels(group: G, labeler: PointLabeler, marks: BubbleMark[]): void {
     // Rank by size descending: big bubbles claim their labels first.
     const ranked = [...marks].sort((a, b) => (b.point.size ?? 0) - (a.point.size ?? 0));

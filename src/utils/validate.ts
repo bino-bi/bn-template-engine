@@ -514,7 +514,7 @@ export function validateTreeEdgesJson(value: string): string[] {
 /**
  * Checks whether a value is a valid XY chart measure token: a scenario
  * column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix
- * optional — spec §4.4 of the scatter/bubble charts).
+ * optional - spec §4.4 of the scatter/bubble charts).
  */
 export function isValidMeasureToken(value: string): boolean {
   if (isBlankInput(value)) {

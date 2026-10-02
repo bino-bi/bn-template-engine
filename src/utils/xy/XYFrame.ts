@@ -104,7 +104,7 @@ export class XYFrame {
       .stroke({ color: this.styles.axisStyles.ac.stroke, width: this.styles.scaleFactors.gridLineWidth });
   }
 
-  /** Tick labels along the outer edges (no tick marks — template style). */
+  /** Tick labels along the outer edges (no tick marks - template style). */
   public drawTickLabels(group: G, config: TickRenderConfig): void {
     const gap = this.styles.scaleFactors.axisTickLength * this.em;
     const font = { size: this.styles.fontStyles.size, anchor: "start" as string };

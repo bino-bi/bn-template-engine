@@ -349,7 +349,7 @@ export class TimeChart {
   public setI18n(i18n: Map<string, string>) {
     this.i18n = this.createI18n(i18n);
     // The variance title bakes translated scenario labels in, and setI18n
-    // arrives after the constructor's setConfig — recompute it here so the
+    // arrives after the constructor's setConfig - recompute it here so the
     // first render doesn't keep the built-in labels (e.g. ΔPY vs ΔVorjahr).
     this.updateTitle();
   }
@@ -361,7 +361,7 @@ export class TimeChart {
 
   /**
    * Resolves the dataset (a table or view in the shared alasql database) and
-   * caches its row count. Subsequent queries reference the source by name —
+   * caches its row count. Subsequent queries reference the source by name -
    * alasql doesn't have to ingest a fresh array per call.
    */
   public setSource(filter: string): void {
@@ -381,7 +381,7 @@ export class TimeChart {
   }
 
   public getAllocatedCanvasWidth(): number {
-    // Analytical calculation — doesn't rely on text bbox (unreliable in detached SVGs)
+    // Analytical calculation - doesn't rely on text bbox (unreliable in detached SVGs)
     const axisEnd = this.position.getAxisEndPositionX();
     // Buffer for the last date label extending beyond axis end
     const labelBuffer = this.styles.fontStyles.size * 3;
@@ -403,7 +403,7 @@ export class TimeChart {
       return 0;
     }
 
-    // Analytical calculation — doesn't rely on text bbox
+    // Analytical calculation - doesn't rely on text bbox
     const isRelative =
       this.isVarianceChart() &&
       this.variancesDataModel.some((e: TimeChartDataModelEntry) => e.type === VarianceType.RELATIVE);
@@ -413,7 +413,7 @@ export class TimeChart {
 
     let analyticalHeight: number;
     if (!this.isOnSameAxisSide()) {
-      // Bars extend below axis — account for negative bar + its data label
+      // Bars extend below axis - account for negative bar + its data label
       const min = this.isVarianceChart() ? this.smallestVarianceDataPointValue : this.smallestDataPointValue;
       const minScaled = Math.abs(min.getScaledUnit());
       analyticalHeight =
@@ -471,7 +471,7 @@ export class TimeChart {
   }
 
   /**
-   * Runs `draw()` purely for its side effects — it is what finalizes the
+   * Runs `draw()` purely for its side effects - it is what finalizes the
    * positions and the allocated-area fields that `getAllocatedCanvas*()` read.
    *
    * The auto-fit solver measures the chart once per iteration and only needs
@@ -500,13 +500,13 @@ export class TimeChart {
    * its own takes whatever its ancestor chain supplies. That chain is not stable
    * across the places this SVG gets measured: drawn detached, svg.js's `bbox()`
    * clones the element into a sandbox under `document.body`, where it inherits
-   * the document default — 16px Times — instead of the chart's real font. Every
+   * the document default - 16px Times - instead of the chart's real font. Every
    * label was measured ~9% too wide as a result, which over-allocated label
    * space and pushed labels past the `maxWidth` threshold that drops them.
    *
    * Setting the font here makes a measurement independent of where it happens.
    * Stylesheet rules still win over presentation attributes, so this changes
-   * nothing about how the chart renders in place — the CSS and this attribute
+   * nothing about how the chart renders in place - the CSS and this attribute
    * resolve to the same value, both being `fontSizePx * effectiveScaleFactor`.
    */
   private applyFontToContainer(svgContainer: Svg): void {
@@ -682,7 +682,7 @@ export class TimeChart {
     }
 
     // In relative (100%) stacking the vertical domain is 0..RELATIVE_STACK_UNITS percent,
-    // not the raw data values — use a virtual max so axis position, canvas height and
+    // not the raw data values - use a virtual max so axis position, canvas height and
     // auto-fit all agree on the percent domain.
     if (this.stackConfig?.mode === StackMode.RELATIVE) {
       max = new DataPoint(RELATIVE_STACK_UNITS, max.scenario, this.pixelPerUnit, max.variance);
@@ -1233,7 +1233,7 @@ export class TimeChart {
     }
 
     // Sort by z-order: lowest priority first so SVG groups are created in correct render order
-    // PL(4) → FC(3) → PP(2) → AC(1) — AC geometry on top of PP geometry
+    // PL(4) → FC(3) → PP(2) → AC(1) - AC geometry on top of PP geometry
     scenarios.sort((a, b) => {
       const pa = SCENARIO_PRIORITY[a.scenarioType] || 99;
       const pb = SCENARIO_PRIORITY[b.scenarioType] || 99;
@@ -1299,7 +1299,7 @@ export class TimeChart {
           offset *= -1;
         }
 
-        // Get the date label — use smart/short logic when full-width shows all labels
+        // Get the date label - use smart/short logic when full-width shows all labels
         let datelabel: string;
         if (this.lineFullWidth && this.availableWidth > 0) {
           if (this.axisLabelsMode === AxisLabelsMode.SMART) {
@@ -1605,7 +1605,7 @@ export class TimeChart {
     const labelX = xBase - this.position.spacings.labelToColumn;
 
     if (prefixes.size > 1) {
-      // Overlay mode: one header per group — front group centered on its bar,
+      // Overlay mode: one header per group - front group centered on its bar,
       // back groups aligned with their bar's top edge
       const groupMap = new Map<string, typeof segments>();
       for (const seg of segments) {

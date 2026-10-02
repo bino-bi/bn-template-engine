@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) — same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as ibcs-table.spec.tsx.
 
 // Mock MutationObserver for the withComponentStyle/withTranslation mixins.
 
@@ -72,7 +72,7 @@ const readErrors = (page: { root?: HTMLElement }): ErrorEntry[] => {
 };
 
 describe("bn-chart-bullet validation matrix", () => {
-  it("renders with zero attributes — everything auto-detects", async () => {
+  it("renders with zero attributes - everything auto-detects", async () => {
     const page = await renderBullet(``);
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);
     expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).not.toBeNull();
@@ -94,7 +94,7 @@ describe("bn-chart-bullet validation matrix", () => {
     expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).toBeNull();
   });
 
-  it("rejects variance tokens — bullet measures are plain scenario slots", async () => {
+  it("rejects variance tokens - bullet measures are plain scenario slots", async () => {
     const page = await renderBullet(`actual="drac1_pl1"`);
     const error = readErrors(page).find((e) => e.id === "ERR_bullet_measure_actual");
     expect(error).toBeDefined();

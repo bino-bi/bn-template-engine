@@ -71,7 +71,7 @@ export const withStyled = (component: any) => {
   };
 
   component["disconnectedCallback"] = () => {
-    // MutationObserver has no per-element unobserve — the shared observer
+    // MutationObserver has no per-element unobserve - the shared observer
     // automatically stops firing for elements removed from the DOM.
     runIfExisits(cstrDisconnectedCallback, component);
   };

@@ -108,7 +108,7 @@ describe("resolveXYData", () => {
 
     const result = resolveXYData(rows, baseOptions());
     expect(result.totalPoints).toBe(2);
-    // First row wins — deterministic.
+    // First row wins - deterministic.
     expect(result.facets[0].points[0].x).toBe(0.1);
 
     const warning = result.warnings.find((w) => w.code === "xy-duplicate-point");

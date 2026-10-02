@@ -14,7 +14,7 @@ import { BulletLabelConfig, BulletMeasureConfig } from "./model/BulletConfig";
 /** Prepared configuration handed to the bullet orchestrator by the inner element. */
 export interface BulletChartConfig {
   chartTitle: string;
-  /** Resolved actual measure — always a plain scenario slot. */
+  /** Resolved actual measure - always a plain scenario slot. */
   actual: BulletMeasureConfig;
   /** Resolved target measure, `null` when no target scenario is available. */
   target: BulletMeasureConfig | null;
@@ -24,7 +24,7 @@ export interface BulletChartConfig {
   showVariances: boolean;
   level: AggregationLevel;
   order: Order;
-  /** 0 = all rows; positive values truncate (no REST aggregate — summing heterogeneous KPIs is meaningless). */
+  /** 0 = all rows; positive values truncate (no REST aggregate - summing heterogeneous KPIs is meaningless). */
   limit: number;
   labels: BulletLabelConfig;
 }
@@ -43,8 +43,8 @@ interface BulletRowModel {
 /**
  * SVG orchestrator for `bn-chart-bullet` (IBCS bullet graph).
  *
- * One horizontal row per KPI: a solid AC bar, a target marker, and — in the
- * default normalized mode — an integrated variance bar between actual and
+ * One horizontal row per KPI: a solid AC bar, a target marker, and - in the
+ * default normalized mode - an integrated variance bar between actual and
  * target. Normalization maps every row to fractions of its target, so one
  * continuous target line spans all rows (IBCS: normalized target values).
  * Classic mode (`normalize: "none"`) draws per-row scales with tick strips
@@ -90,7 +90,7 @@ export class BulletChart {
 
     let result: Record<string, unknown>[];
     try {
-      // transformOperator maps the operation strings to ±1 — alasql cannot MIN/MAX over VARCHAR columns.
+      // transformOperator maps the operation strings to ±1 - alasql cannot MIN/MAX over VARCHAR columns.
       result = db.exec<Record<string, unknown>[]>(
         `SELECT ${this.createSelectString(level, order)}, ${measureSelect},
                 MIN(transformOperator(operation)) as opMin, MAX(transformOperator(operation)) as opMax
@@ -172,7 +172,7 @@ export class BulletChart {
 
   /**
    * Favorable/unfavorable direction of the actual-vs-target variance.
-   * `operation: "-"` marks cost-type KPIs, inverting the reading — the sign
+   * `operation: "-"` marks cost-type KPIs, inverting the reading - the sign
    * flip philosophy of the structure chart's `DataPoint.getVarianceStyle()`,
    * keyed on the row operation because bullet variances are implicit rather
    * than user-declared `_pos`/`_neg` tokens.

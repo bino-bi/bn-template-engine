@@ -52,8 +52,8 @@ You can use multiple `<bn-context>` elements on the same page. Each one has its 
 
 Lazily generates a JSON-serializable snapshot of the rendered report:
 every visual descendant with its position and size (context- and
-component-relative, CSS px), render metadata, diagnostics and — with
-`detail: "full"` — per-element geometry (bars, labels, axes, cells).
+component-relative, CSS px), render metadata, diagnostics and - with
+`detail: "full"` - per-element geometry (bars, labels, axes, cells).
 
 Nothing is tracked during rendering; each call measures the DOM at that
 moment. Call it after the report has settled (e.g. when

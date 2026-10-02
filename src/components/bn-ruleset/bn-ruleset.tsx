@@ -32,7 +32,7 @@ export class Ruleset {
         this.errors.addOrReplace({
           id: "JSON_PARSE",
           type: "error",
-          message: `bn-ruleset: Failed to parse JSON body — ${(e as Error).message}`,
+          message: `bn-ruleset: Failed to parse JSON body - ${(e as Error).message}`,
         });
         console.error(e);
       }

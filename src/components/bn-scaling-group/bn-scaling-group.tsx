@@ -34,7 +34,7 @@ export class ScalingGroup {
    * attributes, or in a bubble chart's `size.group`.
    *
    * The name `"auto"` is reserved, and names that parse as a number/SI value
-   * (`"100"`, `"1M"`) are rejected — they would be ambiguous with a literal
+   * (`"100"`, `"1M"`) are rejected - they would be ambiguous with a literal
    * scaling value.
    */
   @Prop() name!: string;
@@ -87,14 +87,14 @@ export class ScalingGroup {
   }
 
   /**
-   * Removes the store entry for `name` — but only if it still holds the value
+   * Removes the store entry for `name` - but only if it still holds the value
    * this element wrote (another bn-scaling-group with the same name may have
    * overwritten it).
    */
   private removeEntryIfOurs(name?: string): void {
     if (!name || !this.stores) return;
     if (this.storedName === name && this.stores.scalingGroups.state[name] === this.storedValue) {
-      // @ts-ignore – dynamic key
+      // @ts-ignore - dynamic key
       this.stores.scalingGroups.set(name, undefined);
     }
     if (this.storedName === name) {
@@ -138,7 +138,7 @@ export class ScalingGroup {
       this.errors.addOrReplace({
         id: "ERR_numeric_name",
         type: "warning",
-        message: `bn-scaling-group: name "${trimmedName}" is not allowed — it would be ambiguous with a numeric scaling value.`,
+        message: `bn-scaling-group: name "${trimmedName}" is not allowed - it would be ambiguous with a numeric scaling value.`,
       });
       return;
     }
@@ -150,7 +150,7 @@ export class ScalingGroup {
       this.errors.addOrReplace({
         id: "ERR_invalid_value",
         type: "warning",
-        message: `bn-scaling-group: invalid value "${this.value}" — must be a positive number, optionally with k/M/G/T suffix.`,
+        message: `bn-scaling-group: invalid value "${this.value}" - must be a positive number, optionally with k/M/G/T suffix.`,
       });
       return;
     }
@@ -173,7 +173,7 @@ export class ScalingGroup {
       this.removeEntryIfOurs(this.storedName);
     }
 
-    // @ts-ignore – dynamic key
+    // @ts-ignore - dynamic key
     this.stores.scalingGroups.set(trimmedName, parsedValue.value);
     this.storedName = trimmedName;
     this.storedValue = parsedValue.value;

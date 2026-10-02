@@ -5,7 +5,7 @@
  * XY charts compose two orthogonal encodings: the **series hue** (which
  * product line / group a point belongs to) and the **scenario treatment**
  * (solid / tinted / hatched / outlined, selected through the rule-set
- * `colorIndex`). Tints and shades are computed colors, never opacity —
+ * `colorIndex`). Tints and shades are computed colors, never opacity -
  * opacity creates blend artifacts where marks overlap.
  */
 
@@ -32,12 +32,12 @@ export function mixHex(hexA: string, hexB: string, ratioOfB: number): string {
   return `#${channel(1)}${channel(3)}${channel(5)}`;
 }
 
-/** Light variant of a series hue (60% white) — the PP/PY treatment. */
+/** Light variant of a series hue (60% white) - the PP/PY treatment. */
 export function tint(hex: string): string {
   return mixHex(hex, "#ffffff", 0.6);
 }
 
-/** Dark variant of a series hue (25% black) — used for pie-share slices. */
+/** Dark variant of a series hue (25% black) - used for pie-share slices. */
 export function shade(hex: string): string {
   return mixHex(hex, "#000000", 0.25);
 }

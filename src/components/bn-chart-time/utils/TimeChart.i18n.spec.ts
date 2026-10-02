@@ -59,7 +59,7 @@ describe("TimeChart variance title i18n", () => {
     // Constructor runs setConfig with the built-in default map.
     expect(chartTitle(chart)).toBe("ΔPY");
 
-    // The component calls setI18n after construction — the title must pick
+    // The component calls setI18n after construction - the title must pick
     // up the translated scenario label instead of keeping the default.
     chart.setI18n(new Map([["pp1", "Vorjahr"]]));
     expect(chartTitle(chart)).toBe("ΔVorjahr");

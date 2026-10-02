@@ -1,4 +1,4 @@
-// bn-tree.getLayoutState: structure assertions (mock-doc zero rects — no
+// bn-tree.getLayoutState: structure assertions (mock-doc zero rects - no
 // geometry numbers). Node rects are refreshed manually because mock-doc does
 // not run the requestAnimationFrame measurement pass.
 //
@@ -79,7 +79,7 @@ describe("bn-tree.getLayoutState", () => {
 
   it("lists nodes, edges and operators at full detail", async () => {
     const page = await renderTree();
-    // mock-doc never fires the rAF measurement pass — run it by hand.
+    // mock-doc never fires the rAF measurement pass - run it by hand.
     (page.rootInstance as any).updateNodeRects();
     await page.waitForChanges();
 

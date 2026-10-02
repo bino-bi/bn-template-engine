@@ -48,9 +48,9 @@ You can define multiple datasources and join them in a single dataset query:
 Ingests data and writes it to the scoped `datasources` store.
 
 Data can be provided in three ways:
-1. **Inline JSON** — Place JSON text inside the element body (default).
-2. **Compressed payload** — Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-3. **URL** — Place an `http://`/`https://` URL or a same-origin path
+1. **Inline JSON** - Place JSON text inside the element body (default).
+2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
+3. **URL** - Place an `http://`/`https://` URL or a same-origin path
    starting with `/` in the body to fetch JSON from an HTTP endpoint.
 
 In URL mode the component fetches JSON from the URL. Set the `interval`

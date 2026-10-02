@@ -1,5 +1,5 @@
 // bn-chart-structure.getLayoutState: structure-level assertions only (twin of
-// the bn-chart-time layout-state spec — the walker is shared, so this spec
+// the bn-chart-time layout-state spec - the walker is shared, so this spec
 // covers the structure facade's wiring, not the walker again).
 //
 // jest.mock must physically precede the imports (Stencil's transform does

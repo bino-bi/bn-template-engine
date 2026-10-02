@@ -284,7 +284,7 @@
 
       <!-- flat list, filtered to one rowGroup: set() over the custom _leiter field -->
       <div slot='slot-0' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Flat list + filter — set(_leiter)'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Flat list + filter - set(_leiter)'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_leiter' filter="rowGroup = 'Umsatz'" scenarios='ac1,pp1'
               variances='dac1_pp1_pos' measure-scale='_' measure-type='currency' measure-unit='EUR'
@@ -296,7 +296,7 @@
 
       <!-- grouped table: attributes per category row, blank on group head/sum and total rows -->
       <div slot='slot-1' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Grouped + group sums — set() and sum()'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Grouped + group sums - set() and sum()'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_leiter' scenarios='ac1,pp1' variances='dac1_pp1_pos' measure-scale='_'
               measure-type='currency' measure-unit='EUR' show-measure-scale='true' grouped='true'
@@ -309,7 +309,7 @@
       <!-- thereof/partof drills: drill rows compute attributes over their subCategory subset,
            partof percentage rows stay blank -->
       <div slot='slot-2' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Thereof + partof drill — per subCategory'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Thereof + partof drill - per subCategory'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_leiter' filter="rowGroup = 'Umsatz'" scenarios='ac1,pp1' measure-scale='_'
               measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='sum'
@@ -323,7 +323,7 @@
 
       <!-- opt table: operation column, attributes after category, plain aggregates, REST row blank -->
       <div slot='slot-3' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Opt + limit — first(), avg(), lit()'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Opt + limit - first(), avg(), lit()'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_leiter' scenarios='ac1' order='ac1' order-direction='desc' limit='4'
               measure-scale='_' measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='opt'
@@ -348,7 +348,7 @@
 
       <!-- yearly blocks with AC and a ΔPL variance bar per year (screenshot layout) -->
       <div slot='slot-0' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=year — AC | ΔPL per year'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=year - AC | ΔPL per year'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_interval' filter="rowGroup = 'Umsatz'" scenarios='ac1'
               variances='dac1_pl1_pos' bar-columns='dac1_pl1_pos' interval='year' measure-scale='_'
@@ -359,7 +359,7 @@
 
       <!-- quarter buckets computed from the monthly time series -->
       <div slot='slot-1' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=quarter — on monthly data'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=quarter - on monthly data'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_monthly' scenarios='ac1,pl1' interval='quarter' measure-scale='_'
               measure-type='currency' measure-unit='EUR' show-measure-scale='true' type='sum'></bn-table>
@@ -369,7 +369,7 @@
 
       <!-- non-date comparison: one block per setname, in order of first appearance -->
       <div slot='slot-2' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=setname — de | at | ch'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=setname - de | at | ch'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_sets' scenarios='ac1' variances='dac1_pl1_pos' interval='setname'
               measure-scale='_' measure-type='currency' measure-unit='EUR' show-measure-scale='true'
@@ -380,7 +380,7 @@
 
       <!-- grouped rows with per-year group sums, limit exercises the per-year REST row -->
       <div slot='slot-3' data-bino-kind='Table'>
-        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=year — grouped + limit/REST'>
+        <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='interval=year - grouped + limit/REST'>
           <div slot='card-slot-0' data-bino-kind='Table'>
             <bn-table datasets='$umsatz_interval' scenarios='ac1' interval='year' grouped='true'
               show-group-title='true' order='ac1' order-direction='desc' limit='3' measure-scale='_'
@@ -421,14 +421,14 @@
     </bn-layout-page>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         AUTO UNIT SCALING TEST — WITH CARDS
+         AUTO UNIT SCALING TEST - WITH CARDS
          measure-scale="greatest" on all components (auto SI prefix)
          ═══════════════════════════════════════════════════════════════ -->
-    <bn-layout-page data-bino-page='scaling_with_cards' title-business-unit='Auto Unit Scaling — With Cards'
+    <bn-layout-page data-bino-page='scaling_with_cards' title-business-unit='Auto Unit Scaling - With Cards'
       title-namespace='_system' title-date-start='2025-01-31' title-date-end='2025-12-31' title-date-format='month'
       title-date-link='ytd' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
       title-scenarios='ac1,fc1,pl1' title-variances='dac1_fc1_pos' title-order='ac1' title-order-direction='desc'
-      page-layout='2x2' page-format='xga' page-orientation='landscape' footer-text='Auto Unit Scaling — Cards'
+      page-layout='2x2' page-format='xga' page-orientation='landscape' footer-text='Auto Unit Scaling - Cards'
       footer-display-page-number='true' page-fit-to-content='true'>
 
       <div slot='slot-0' data-bino-kind='ChartStructure'>
@@ -475,14 +475,14 @@
     </bn-layout-page>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         AUTO UNIT SCALING TEST — WITHOUT CARDS, fitContent DISABLED
+         AUTO UNIT SCALING TEST - WITHOUT CARDS, fitContent DISABLED
          Same components, no card wrappers, page-fit-to-content="false"
          ═══════════════════════════════════════════════════════════════ -->
-    <bn-layout-page data-bino-page='scaling_no_cards' title-business-unit='Auto Unit Scaling — No Cards, No FitContent'
+    <bn-layout-page data-bino-page='scaling_no_cards' title-business-unit='Auto Unit Scaling - No Cards, No FitContent'
       title-namespace='_system' title-date-start='2025-01-31' title-date-end='2025-12-31' title-date-format='month'
       title-date-link='ytd' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
       title-scenarios='ac1,fc1,pl1' title-variances='dac1_fc1_pos' title-order='ac1' title-order-direction='desc'
-      page-layout='2x2' page-format='xga' page-orientation='landscape' footer-text='Auto Unit Scaling — No Cards'
+      page-layout='2x2' page-format='xga' page-orientation='landscape' footer-text='Auto Unit Scaling - No Cards'
       footer-display-page-number='true'>
 
       <div slot='slot-0' data-bino-kind='ChartStructure'>
@@ -512,7 +512,7 @@
     </bn-layout-page>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         OVERFLOW REPRO — sandbox xi2yhengahefyte
+         OVERFLOW REPRO - sandbox xi2yhengahefyte
          Mixed ± variance (ΔPY −13..+12) in fixed 512×341 cells.
          A/C: everything auto → must never exceed the cell.
          B/D: fixed scaling far too small → WARN_overflow error expected.
@@ -609,7 +609,7 @@
     <bn-layout-page data-bino-page='test_3col_grid' title-business-unit='Layout Test: 3-Column Grid (1fr)'
       title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
       title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='3-over-1' page-format='xga'
-      page-orientation='landscape' footer-text='3 equal columns on top row — no pixel gaps expected'>
+      page-orientation='landscape' footer-text='3 equal columns on top row - no pixel gaps expected'>
 
       <div slot='slot-0' data-bino-kind='ChartStructure'>
         <bn-chart-structure datasets='$umsatz' chart-title='Col 1 (auto)' level='category' order='ac1'
@@ -678,7 +678,7 @@
 
     <!-- ═══════════════════════════════════════════════════════════════
          LAYOUT TEST 3: Scale Modes Comparison
-         One page with explicit scale factors, auto, and none — to
+         One page with explicit scale factors, auto, and none - to
          verify each mode renders correctly without clipping.
          ═══════════════════════════════════════════════════════════════ -->
     <bn-layout-page data-bino-page='test_scale_modes' title-business-unit='Layout Test: Scale Mode Comparison'
@@ -712,13 +712,13 @@
     <!-- ═══════════════════════════════════════════════════════════════
          LAYOUT TEST 4: FitToContent Cards
          page-fit-to-content="true" with cards that also use
-         card-fit-to-content="true" — verifies height-only shrink.
+         card-fit-to-content="true" - verifies height-only shrink.
          ═══════════════════════════════════════════════════════════════ -->
     <bn-layout-page data-bino-page='test_fit_to_content' title-business-unit='Layout Test: FitToContent (height only)'
       title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Revenue&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
       title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='split-vertical' page-format='xga'
       page-orientation='landscape' page-fit-to-content='true'
-      footer-text='Both cards use card-fit-to-content=true — should shrink to content height, full width'>
+      footer-text='Both cards use card-fit-to-content=true - should shrink to content height, full width'>
 
       <div slot='slot-0'>
         <bn-layout-card card-layout='full' card-show-border='true' card-fit-to-content='true'
@@ -751,7 +751,7 @@
     <bn-layout-page data-bino-page='test_dense_grid' title-business-unit='Layout Test: Dense 3x3 Grid'
       title-namespace='_system' title-scenarios='ac1,fc1' title-variances='dac1_fc1_pos' page-layout='3x3'
       page-format='xga' page-orientation='landscape'
-      footer-text='9 cells with auto-scaled content — tests min scale floor (0.3)'>
+      footer-text='9 cells with auto-scaled content - tests min scale floor (0.3)'>
 
       <div slot='slot-0'>
         <bn-layout-card card-layout='full' card-show-border='true' title-business-unit='Table 1'>

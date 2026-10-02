@@ -5,7 +5,7 @@ IBCS-compliant web components for business intelligence visualizations.
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![npm version](https://img.shields.io/npm/v/@bino-bi/bn-template-engine)](https://www.npmjs.com/package/@bino-bi/bn-template-engine)
 
-**bn-template-engine** is a [Stencil.js](https://stenciljs.com/) web component library that renders tables and charts following [IBCS (International Business Communication Standards)](https://www.ibcs.com/). It supports multi-scenario comparisons (actual, forecast, plan, previous period), variance calculations, hierarchical data grouping, and more — all as standard Web Components that work in any HTML page or framework.
+**bn-template-engine** is a [Stencil.js](https://stenciljs.com/) web component library that renders tables and charts following [IBCS (International Business Communication Standards)](https://www.ibcs.com/). It supports multi-scenario comparisons (actual, forecast, plan, previous period), variance calculations, hierarchical data grouping, and more - all as standard Web Components that work in any HTML page or framework.
 
 ## Installation
 
@@ -61,12 +61,12 @@ Data flows through three layers:
 
 ```
 bn-datasource  →  bn-dataset  →  Visualization (bn-table, bn-chart-time, bn-chart-structure,
-   (raw JSON)     (SQL query)       bn-chart-scatter, bn-chart-bubble — renders IBCS output)
+   (raw JSON)     (SQL query)       bn-chart-scatter, bn-chart-bubble - renders IBCS output)
 ```
 
-1. **`<bn-datasource>`** — Receives raw JSON data and stores it by name
-2. **`<bn-dataset>`** — Queries datasources using [AlaSQL](https://alasql.org/) and stores results
-3. **Visualization components** — Subscribe to datasets and render tables or charts
+1. **`<bn-datasource>`** - Receives raw JSON data and stores it by name
+2. **`<bn-dataset>`** - Queries datasources using [AlaSQL](https://alasql.org/) and stores results
+3. **Visualization components** - Subscribe to datasets and render tables or charts
 
 All components must be wrapped in a **`<bn-context>`** element, which provides scoped state management and locale configuration.
 
@@ -150,12 +150,12 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 
 ## Concept Guides
 
-- [Data Model](doc/data-model.md) — Scenarios, variances, grouping fields, operations
-- [Scaling](doc/scaling.md) — Units-per-em bar scaling, scaling groups, `scale`, `measure-scale`
-- [Theming](doc/theming.md) — Colors, fonts, chart styles, style layers
-- [Internationalization](doc/internationalization.md) — Locale setup, translations, scenario labels
-- [Layout State](doc/layout-state.md) — `getLayoutState()`: machine-readable geometry, metadata and diagnostics of a rendered report
-- [Installation](doc/installation.md) — npm, CDN, framework integration
+- [Data Model](doc/data-model.md) - Scenarios, variances, grouping fields, operations
+- [Scaling](doc/scaling.md) - Units-per-em bar scaling, scaling groups, `scale`, `measure-scale`
+- [Theming](doc/theming.md) - Colors, fonts, chart styles, style layers
+- [Internationalization](doc/internationalization.md) - Locale setup, translations, scenario labels
+- [Layout State](doc/layout-state.md) - `getLayoutState()`: machine-readable geometry, metadata and diagnostics of a rendered report
+- [Installation](doc/installation.md) - npm, CDN, framework integration
 
 ## Browser Support
 

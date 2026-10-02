@@ -13,8 +13,8 @@ import { findAncestorWithAttr } from "./withInheritedProps";
  * 1. The host element's own `i18n-namespace` attribute (the deprecated
  *    `namespace` attribute is honored as a fallback).
  * 2. Otherwise the `i18n-namespace` attribute of the nearest ancestor that
- *    carries one — a layout card, layout page, tree, grid, or the
- *    `bn-context` itself — crossing shadow boundaries. The resolved ancestor
+ *    carries one - a layout card, layout page, tree, grid, or the
+ *    `bn-context` itself - crossing shadow boundaries. The resolved ancestor
  *    is observed so attribute changes re-render the component.
  * 3. Otherwise the built-in `_system` namespace.
  *
@@ -113,7 +113,7 @@ const withTranslation = (component: any) => {
     const locale = stores.context.state.locale;
 
     // Per-key fallback chain: resolved namespace → _system → the key itself.
-    // Never throws — a missing key or unknown locale must not blank the component.
+    // Never throws - a missing key or unknown locale must not blank the component.
     const tpl = locales[namespace]?.[locale]?.[key] ?? locales["_system"]?.[locale]?.[key];
     if (tpl == null) {
       return key;

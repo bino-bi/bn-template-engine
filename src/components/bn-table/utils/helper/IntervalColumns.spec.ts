@@ -63,11 +63,11 @@ describe("IntervalColumns helpers", () => {
     expect(buckets.map((bucket) => bucket.label)).toEqual(["Mar 2023", "May 2024"]);
   });
 
-  it("queries setname buckets in order of first appearance, blanks as —", () => {
+  it("queries setname buckets in order of first appearance, blanks as -", () => {
     const buckets = queryIntervalBuckets(db, "`intervalSets`", "setname", "en");
 
     expect(buckets.map((bucket) => bucket.key)).toEqual(["de", "at", ""]);
-    expect(buckets.map((bucket) => bucket.label)).toEqual(["de", "at", "—"]);
+    expect(buckets.map((bucket) => bucket.label)).toEqual(["de", "at", "-"]);
   });
 
   it("passes concrete granularities through and resolves auto from the date span", () => {

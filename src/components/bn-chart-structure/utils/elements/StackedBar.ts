@@ -112,7 +112,7 @@ export class StackedBar {
           .setMaxWidth(availableWidth)
           .draw();
       } else {
-        // Pass raw numeric value — Label.draw() formats with measureScale
+        // Pass raw numeric value - Label.draw() formats with measureScale
         new Label(this.group, labelX, yPos, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
           .setSegmentFill(fillColor)
           .setMaxWidth(availableWidth)

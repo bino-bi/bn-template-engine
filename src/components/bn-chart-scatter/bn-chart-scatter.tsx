@@ -66,7 +66,7 @@ export class ChartScatter {
   private readonly ruleSetConfig: () => RuleSetConfig;
   private readonly errors: ErrorDispatcher;
   private layoutObserver: LayoutObserverHandle | null = null;
-  /** Ids of currently-active blocking errors — the chart renders empty while any is set. */
+  /** Ids of currently-active blocking errors - the chart renders empty while any is set. */
   private readonly activeErrors: Set<string> = new Set();
 
   /**
@@ -105,7 +105,7 @@ export class ChartScatter {
   }
 
   /**
-   * Y axis mapping — same shape as `x`.
+   * Y axis mapping - same shape as `x`.
    */
   @Prop() y!: string;
   @Watch("y")
@@ -139,7 +139,7 @@ export class ChartScatter {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `level: invalid value '${newValue}' — expected ${valid.join("/")}; using 'auto'.`,
+        message: `level: invalid value '${newValue}' - expected ${valid.join("/")}; using 'auto'.`,
       });
     }
   }
@@ -159,7 +159,7 @@ export class ChartScatter {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `series-level: invalid value '${newValue}' — expected ${valid.join("/")}; using 'auto'.`,
+        message: `series-level: invalid value '${newValue}' - expected ${valid.join("/")}; using 'auto'.`,
       });
     }
   }
@@ -208,7 +208,7 @@ export class ChartScatter {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `aspect: invalid value '${newValue}' — expected "w:h" (e.g. "16:9"); using the default.`,
+        message: `aspect: invalid value '${newValue}' - expected "w:h" (e.g. "16:9"); using the default.`,
       });
     }
   }
@@ -227,7 +227,7 @@ export class ChartScatter {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `limit: invalid value '${newValue}' — expected a non-negative integer; using 0.`,
+        message: `limit: invalid value '${newValue}' - expected a non-negative integer; using 0.`,
       });
     }
   }
@@ -249,7 +249,7 @@ export class ChartScatter {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `scale: invalid value '${newValue}' — expected none/auto or a positive number.`,
+        message: `scale: invalid value '${newValue}' - expected none/auto or a positive number.`,
       });
     } else {
       this.errors.remove(errId);
@@ -359,7 +359,7 @@ export class ChartScatter {
   }
 
   componentDidLoad() {
-    // Watch for size changes (window resize, card relayout) — width only.
+    // Watch for size changes (window resize, card relayout) - width only.
     this.layoutObserver = observeParentResize(this.element, () => {
       if (this._autoScaleGuard) return;
       const { width } = getParentDimensions(this.element);
@@ -498,7 +498,7 @@ export class ChartScatter {
     if (config === null || !isValidMeasureToken(config.measure)) {
       return null;
     }
-    // An inverted explicit domain would silently swallow all points — ignore it.
+    // An inverted explicit domain would silently swallow all points - ignore it.
     if (config.min !== undefined && config.max !== undefined && config.min >= config.max) {
       this.errors.addOrReplace({
         id: `WARN_xy_domain_${prop}`,
@@ -685,7 +685,7 @@ export class ChartScatter {
    * Lazily generates this chart's layout state: host box (context- and
    * component-relative, CSS px), the canvas region, point count and
    * diagnostics. With `detail: "full"` the rendered marks and labels are
-   * listed with their geometry (tag-classified — XY marks carry no ids).
+   * listed with their geometry (tag-classified - XY marks carry no ids).
    *
    * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
    */
@@ -694,7 +694,7 @@ export class ChartScatter {
     const detail = options?.detail ?? "summary";
     const origins = originsFor(this.element);
     const rawFactor = this.getEffectiveScaleFactor();
-    // Auto-scale can be mid-measurement (or unmeasurable in tests) — report a sane factor.
+    // Auto-scale can be mid-measurement (or unmeasurable in tests) - report a sane factor.
     const factor = Number.isFinite(rawFactor) && rawFactor > 0 ? rawFactor : 1;
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
     return collectXYFacadeState(

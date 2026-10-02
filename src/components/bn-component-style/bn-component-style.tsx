@@ -33,7 +33,7 @@ export class ComponentStyle {
         this.errors.addOrReplace({
           id: "JSON_PARSE",
           type: "error",
-          message: `bn-component-style: Failed to parse JSON body — ${(e as Error).message}`,
+          message: `bn-component-style: Failed to parse JSON body - ${(e as Error).message}`,
         });
         console.error(e);
       }

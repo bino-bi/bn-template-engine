@@ -82,7 +82,7 @@ export class IbcsChartBubble {
   @Prop() containerWidth: number = 0;
   @Prop() ruleSetConfig?: RuleSetConfig;
 
-  /** The facade's error dispatcher — data warnings are synced through it (stable ids). */
+  /** The facade's error dispatcher - data warnings are synced through it (stable ids). */
   @Prop() errors?: ErrorDispatcher;
 
   /** Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). */

@@ -341,7 +341,7 @@ export class DataQuery {
       const label = this.config.title?.trim() || "SUM_TOTAL";
       // In an ungrouped partof table the total row is what the "in % of ❖" rows
       // refer to, so a custom label gets the symbol prepended. The default label
-      // already IS that symbol — prefixing it would yield the literal
+      // already IS that symbol - prefixing it would yield the literal
       // "❖ SUM_TOTAL", which no longer matches the key and stays untranslated.
       const prefixSymbol = this.hasPartOf && this.config.grouped === false && label !== "SUM_TOTAL";
       const title = prefixSymbol ? `${this.i18n.get("SUM_TOTAL") || "SUM_TOTAL"} ${label}` : label;
@@ -593,7 +593,7 @@ export class DataQuery {
    * bucket (`normalizeDate(date, …)` for date intervals, setname otherwise) at
    * every row level (ENTRY, GROUP_SUM, SUM, DRILLELEMENT, PARTELEMENT) and the
    * results are stored on the existing rows as composite keys
-   * `<scenario>##<bucketKey>` — the same convention as the columnthereof drill
+   * `<scenario>##<bucketKey>` - the same convention as the columnthereof drill
    * columns (which are mutually exclusive with interval).
    *
    * Row selection (ORDER BY / LIMIT) stays anchored on the un-bucketed base
@@ -843,7 +843,7 @@ export class DataQuery {
          GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, __interval`,
       );
 
-      // merge rows sharing (rowGroup, category, bucket) — mirrors reduceResDrillByCategoryGroups
+      // merge rows sharing (rowGroup, category, bucket) - mirrors reduceResDrillByCategoryGroups
       const partByKey = new Map<string, DataQueryResultRow>();
       for (const partRow of partRowsRaw) {
         const key = `${partRow.rowGroup}${separator}${partRow.category}${separator}${coerceBucketKey(partRow.__interval)}`;

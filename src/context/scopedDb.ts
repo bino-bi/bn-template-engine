@@ -68,7 +68,7 @@ function toDateTime(value: unknown): DateTime | undefined {
 
 /**
  * AlaSQL custom functions (UDFs) live on the `alasql.fn` global, not per-DB.
- * Register them once at module load — multiple contexts share the registrations.
+ * Register them once at module load - multiple contexts share the registrations.
  *
  * Signatures are widened to `(...x: unknown[]) => unknown` to satisfy alasql's
  * `userDefinedFunction` type; argument validation happens inside each UDF.

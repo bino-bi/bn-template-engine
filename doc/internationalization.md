@@ -16,7 +16,7 @@ Set the `locale` prop on `<bn-context>`:
 </bn-context>
 ```
 
-The locale determines which translation bundle is used for scenario labels, sort indicators, table headings, and title connectors. Built-in bundles exist for exactly `en` and `de`; the lookup is an exact string match (there is no BCP 47 normalization — `de-DE` does not match `de`).
+The locale determines which translation bundle is used for scenario labels, sort indicators, table headings, and title connectors. Built-in bundles exist for exactly `en` and `de`; the lookup is an exact string match (there is no BCP 47 normalization - `de-DE` does not match `de`).
 
 ## How Lookups Work
 
@@ -26,9 +26,9 @@ Translations are stored per **namespace**, per **language code**, as a flat key-
 store[namespace][code][key] → label
 ```
 
-- Every component resolves its namespace from the `i18n-namespace` DOM attribute, with **default inheritance**: the element's own attribute wins (the deprecated `namespace` attribute is honored as a fallback); otherwise the nearest ancestor carrying `i18n-namespace` provides it — a layout card, layout page, tree, grid, or the `<bn-context>` itself, crossing shadow boundaries; otherwise the built-in `_system` namespace is used.
+- Every component resolves its namespace from the `i18n-namespace` DOM attribute, with **default inheritance**: the element's own attribute wins (the deprecated `namespace` attribute is honored as a fallback); otherwise the nearest ancestor carrying `i18n-namespace` provides it - a layout card, layout page, tree, grid, or the `<bn-context>` itself, crossing shadow boundaries; otherwise the built-in `_system` namespace is used.
 - Keys missing from the resolved namespace fall back to `_system` per key; if a key is missing in both places, `t()` returns the key itself (it never throws).
-- `<bn-layout-page>` and `<bn-layout-card>` reflect their `i18nNamespace` prop as the `i18n-namespace` attribute (so descendants inherit it) and forward it — falling back to the deprecated, title-only `titleNamespace` — to their internal `<bn-title>`.
+- `<bn-layout-page>` and `<bn-layout-card>` reflect their `i18nNamespace` prop as the `i18n-namespace` attribute (so descendants inherit it) and forward it - falling back to the deprecated, title-only `titleNamespace` - to their internal `<bn-title>`.
 
 The **namespace is a storage slot, not a key prefix**. Keys are stored verbatim (after flattening); the component-style prefixes below are part of the key itself.
 
@@ -43,7 +43,7 @@ The **namespace is a storage slot, not a key prefix**. Keys are stored verbatim 
 | `global.fc1` | FC | FC |
 | `global.pl1` | PL | PL |
 
-(Slots 2–4 follow the same pattern: `global.ac2` → AC2, `global.pp3` → PY3, etc.)
+(Slots 2-4 follow the same pattern: `global.ac2` → AC2, `global.pp3` → PY3, etc.)
 
 ### Sort Indicators & Variance Symbols (key prefix `global.`)
 
@@ -78,7 +78,7 @@ The `{%}` token is replaced at render time with the comparison scenario abbrevia
 
 Note the key really is spelled `SEPERATOR_WS`.
 
-The XY and bullet charts have additional message keys under `bn-chart-scatter.`, `bn-chart-bubble.`, and `bn-chart-bullet.` — see `src/stores/internationalization.ts` for the complete list.
+The XY and bullet charts have additional message keys under `bn-chart-scatter.`, `bn-chart-bubble.`, and `bn-chart-bullet.` - see `src/stores/internationalization.ts` for the complete list.
 
 ## Custom Translations
 
@@ -98,7 +98,7 @@ Override or add translations with `<bn-internationalization>`. Without a `namesp
 </bn-context>
 ```
 
-Nested objects are flattened with dot-separated keys, so the payload above stores `global.ac1`, `bn-table.there_of`, … — exactly the built-in key shape. A flat payload (`{"global.ac1": "Actual"}`) is equivalent.
+Nested objects are flattened with dot-separated keys, so the payload above stores `global.ac1`, `bn-table.there_of`, … - exactly the built-in key shape. A flat payload (`{"global.ac1": "Actual"}`) is equivalent.
 
 Multiple `<bn-internationalization>` elements for the same namespace and code merge in document order (later elements win per key).
 
@@ -111,7 +111,7 @@ Multiple `<bn-internationalization>` elements for the same namespace and code me
 
 ### Named Namespaces
 
-A non-default namespace is an alternative bundle that only elements resolving a matching `i18n-namespace` consult (missing keys still fall back to `_system` per key). Set the attribute on the component itself or on any ancestor — layout pages/cards, trees, grids, and `<bn-context>` all work as providers thanks to default inheritance. Keys inside must use the same fully-prefixed shape as the built-ins:
+A non-default namespace is an alternative bundle that only elements resolving a matching `i18n-namespace` consult (missing keys still fall back to `_system` per key). Set the attribute on the component itself or on any ancestor - layout pages/cards, trees, grids, and `<bn-context>` all work as providers thanks to default inheritance. Keys inside must use the same fully-prefixed shape as the built-ins:
 
 ```html
 <bn-internationalization code="en" namespace="external">

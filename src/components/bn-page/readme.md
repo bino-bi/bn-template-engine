@@ -33,8 +33,8 @@ Page container that defines the output dimensions and orientation. Place [`<bn-t
 
 ### Orientation
 
-- `landscape` — wider than tall (default for screen formats)
-- `portrait` — taller than wide
+- `landscape` - wider than tall (default for screen formats)
+- `portrait` - taller than wide
 
 <!-- Auto Generated Below -->
 

@@ -80,7 +80,7 @@ function startServer(root) {
  *
  * Excludes Stencil's build-derived bookkeeping (s-id / c-id / sty-id /
  * class="hydrated") and injected <style> blocks, whose scoping hashes change
- * with any code edit. Numbers are never rounded — rounding would forfeit the
+ * with any code edit. Numbers are never rounded - rounding would forfeit the
  * byte-identity claim.
  */
 const SERIALIZER = `
@@ -196,19 +196,19 @@ async function capture(page, outDir) {
   const warnings = [];
   const all = result.page + Object.values(result.components).join("");
   // A component that rendered before its dataset resolved falls back to the
-  // no-data branch. That is a degraded run, not a real output change — surface
+  // no-data branch. That is a degraded run, not a real output change - surface
   // it rather than letting it masquerade as a diff.
   const noData = (result.page.match(/class="empty-state"/g) || []).length;
   if (noData > 0) {
-    warnings.push(`${noData} component(s) rendered the no-data branch — likely a degraded run, re-capture before trusting a diff`);
+    warnings.push(`${noData} component(s) rendered the no-data branch - likely a degraded run, re-capture before trusting a diff`);
   }
   if (/Svgjs[A-Z]/.test(all)) {
-    warnings.push("svg.js auto-generated ids present — the global id counter is now observable");
+    warnings.push("svg.js auto-generated ids present - the global id counter is now observable");
   }
   // Literal error ids (ERR_/AUTO_/WARN_/INFO_) can hit 21 chars by coincidence,
   // so exclude them rather than flagging every long id.
   if (/"id":"(?!ERR_|AUTO_|WARN_|INFO_)[A-Za-z0-9_-]{21}"/.test(all)) {
-    warnings.push("nanoid-shaped id present — withHasError is minting ids into the DOM");
+    warnings.push("nanoid-shaped id present - withHasError is minting ids into the DOM");
   }
 
   return { componentCount: Object.keys(result.components).length, hostCounts: result.hostCounts, warnings };
@@ -292,7 +292,7 @@ async function main() {
   try {
     // Throwaway load first. The very first navigation after a build pays cold
     // HTTP and module-compile costs, and that has been observed to let charts
-    // render before their datasets resolve — which shows up as a spurious diff
+    // render before their datasets resolve - which shows up as a spurious diff
     // in run 1 only. Warming up keeps every measured run on equal footing.
     const warm = await browser.newPage();
     await warm.setViewport(VIEWPORT);
@@ -368,7 +368,7 @@ async function main() {
       const outDir = path.join(outRoot, `run${run}`);
       const captured = await capture(page, outDir);
 
-      // Chrome's own accounting — no source instrumentation, so it reads the
+      // Chrome's own accounting - no source instrumentation, so it reads the
       // same way on any code state. ScriptDuration is the number that moves
       // when redundant work is removed; settleMs cannot show it because it is
       // dominated by the fixed MIN_SETTLE_MS floor.

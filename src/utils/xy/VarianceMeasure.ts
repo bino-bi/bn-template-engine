@@ -6,7 +6,7 @@ import { Scenarios } from "../constants";
  * Reuses the engine's variance grammar (`d{base}_{delta}_{sentiment}` /
  * `dr{base}_{delta}_{sentiment}`) with one deviation from
  * {@link VarianceScenario}: on axes the trailing sentiment segment is
- * **optional and ignored** — position encodes the value, there is no
+ * **optional and ignored** - position encodes the value, there is no
  * pos/neg coloring. The regex is anchored, so partial matches inside a
  * longer token are rejected.
  */
@@ -82,7 +82,7 @@ export function scenarioFamily(slot: string): string {
   return slot.replace(/\d+$/, "");
 }
 
-/** Slot number (`1`–`4`) of a plain scenario slot. */
+/** Slot number (`1`-`4`) of a plain scenario slot. */
 export function scenarioSlotNumber(slot: string): string {
   return slot.replace(/^[a-z]+/, "");
 }

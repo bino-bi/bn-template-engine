@@ -28,7 +28,7 @@ export class IsoCurves {
   }
 
   /**
-   * Picks 2–4 nice k values from the 1-2-5 ladder spanning the central
+   * Picks 2-4 nice k values from the 1-2-5 ladder spanning the central
    * product range of the data (products = `x·y` per point).
    */
   public static autoK(products: number[]): number[] {

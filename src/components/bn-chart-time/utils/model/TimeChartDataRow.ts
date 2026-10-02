@@ -132,7 +132,7 @@ export class TimeChartDataRowAdapter implements IAdapter<TimeChartDataRow> {
       return timestamp;
     }
 
-    console.warn(`TimeChartDataRow: invalid date value '${date}' — skipping row`);
+    console.warn(`TimeChartDataRow: invalid date value '${date}' - skipping row`);
     return undefined;
   }
 

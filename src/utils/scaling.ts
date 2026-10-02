@@ -39,7 +39,7 @@ const SCALING_SI_SUFFIX: Record<string, number> = { k: 1e3, K: 1e3, M: 1e6, G: 1
 
 /**
  * Positive decimal with optional whitespace and optional single SI suffix.
- * No sign, no exponent notation — keeps the grammar unambiguous against
+ * No sign, no exponent notation - keeps the grammar unambiguous against
  * scaling-group names.
  */
 const SCALING_NUMBER_RE = /^(\d+(?:\.\d+)?|\.\d+)\s*([kKMGT])?$/;
@@ -117,7 +117,7 @@ const SCALING_FORMAT_STEPS: [number, string][] = [
 /**
  * Formats a positive value with the same SI suffixes the parser accepts,
  * rounded to 3 significant digits (`250000` -> `"250k"`). Values just below
- * a suffix boundary may round up across it (`999999` -> `"1000k"`) — fine
+ * a suffix boundary may round up across it (`999999` -> `"1000k"`) - fine
  * for warning messages, which is all this is used for.
  */
 export function formatScalingValue(value: number): string {

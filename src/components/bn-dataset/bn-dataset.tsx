@@ -12,10 +12,10 @@ import { computeContentHash, decodeCompressedContent } from "../../utils/content
  * writes the result to the `datasets` store (+ computed `DatasetMeta`).
  *
  * The body content is observed via `withBodyObserver` and may be:
- * 1. **SQL** (default) — AlaSQL query against referenced `datasources`.
- * 2. **Static JSON** — set `static="true"` to bypass SQL and write the
+ * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
+ * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
  *    parsed body directly to the `datasets` store.
- * 3. **URL** — place an `http://`/`https://` URL or a same-origin path
+ * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
  *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
  *    write it to the `datasets` store. Set the `interval` prop (in seconds)
  *    to enable periodic re-fetching.
@@ -161,7 +161,7 @@ export class Dataset {
         try {
           db.exec(`DROP VIEW \`${this.name}\``);
         } catch (_e) {
-          /* not registered as a view — fine */
+          /* not registered as a view - fine */
         }
         if (db.tables[this.name] != null) {
           delete db.tables[this.name];
@@ -200,7 +200,7 @@ export class Dataset {
   private publish(result: unknown): void {
     if (this.latestResult === result) {
       // Even if the materialized object reference is unchanged, upstream data may have moved
-      // (notably for views) — fire notify so consumers re-render against the fresh table state.
+      // (notably for views) - fire notify so consumers re-render against the fresh table state.
       this.stores.db.notify(this.name);
       return;
     }
@@ -229,7 +229,7 @@ export class Dataset {
       try {
         db.exec(`DROP VIEW \`${this.name}\``);
       } catch (_e) {
-        // not registered as a view — fine
+        // not registered as a view - fine
       }
       if (db.tables[this.name] != null) {
         delete db.tables[this.name];
@@ -297,7 +297,7 @@ export class Dataset {
   }
 
   /** Starts (or restarts) the polling timer if in URL mode with a positive
-   *  interval. Does NOT abort the kick-off fetch issued by the caller — it
+   *  interval. Does NOT abort the kick-off fetch issued by the caller - it
    *  only resets the interval timer. */
   private startPolling(): void {
     this.clearPollTimer();

@@ -17,12 +17,12 @@ export interface DataQueryResultRow {
   subCategory?: string;
   rowNr?: number;
   rowGroupIndex?: number;
-  /** `"+"` or `"-"` — determines if values add to or subtract from group aggregations. */
+  /** `"+"` or `"-"` - determines if values add to or subtract from group aggregations. */
   operation?: string;
   [key: string]: string | number | null | undefined;
 }
 
-/** Category count per row group — used for pagination and rendering row group headers. */
+/** Category count per row group - used for pagination and rendering row group headers. */
 export interface DataQueryMetaRow {
   totalRowCnt: number;
   rowGroup?: string;

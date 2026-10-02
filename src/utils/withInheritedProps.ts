@@ -68,8 +68,8 @@ export function findAncestor(element: HTMLElement, mode: string): HTMLElement | 
  * Walks up the DOM tree (crossing shadow boundaries) to find the nearest
  * ancestor element that carries the given attribute, whatever its tag.
  * Used for attributes that inherit by default (e.g. `i18n-namespace`), where
- * any container — layout card, layout page, tree, grid, or the `bn-context`
- * itself — can act as the provider.
+ * any container - layout card, layout page, tree, grid, or the `bn-context`
+ * itself - can act as the provider.
  */
 export function findAncestorWithAttr(element: HTMLElement, attr: string): HTMLElement | undefined {
   let current: Node | null = element.parentNode;

@@ -215,7 +215,7 @@ export class StructureChart {
   public setI18n(i18n: Map<string, string>) {
     this.i18n = this.createI18n(i18n);
     // The variance title bakes translated scenario labels in, and setI18n
-    // arrives after the constructor's setConfig — recompute it here so the
+    // arrives after the constructor's setConfig - recompute it here so the
     // first render doesn't keep the built-in labels (e.g. ΔPY vs ΔVorjahr).
     this.updateTitle();
   }
@@ -353,7 +353,7 @@ export class StructureChart {
   }
 
   /**
-   * Runs `draw()` purely for its side effects — it is what finalizes the
+   * Runs `draw()` purely for its side effects - it is what finalizes the
    * positions that `getAllocatedCanvas*()` read.
    *
    * The auto-fit solver measures the chart once per iteration and only needs
@@ -380,14 +380,14 @@ export class StructureChart {
    * its own takes whatever its ancestor chain supplies. That chain is not stable
    * across the places this SVG gets measured: drawn detached, svg.js's `bbox()`
    * clones the element into a sandbox under `document.body`, where it inherits
-   * the document default — 16px Times — instead of the chart's real font. Every
+   * the document default - 16px Times - instead of the chart's real font. Every
    * label was measured ~9% too wide as a result, which over-allocated label
    * space and pushed labels past the `maxWidth` threshold in {@link Label} that
    * drops them entirely.
    *
    * Setting the font here makes a measurement independent of where it happens.
    * Stylesheet rules still win over presentation attributes, so this changes
-   * nothing about how the chart renders in place — the CSS and this attribute
+   * nothing about how the chart renders in place - the CSS and this attribute
    * resolve to the same value, both being `fontSizePx * effectiveScaleFactor`.
    */
   private applyFontToContainer(svgContainer: Svg): void {

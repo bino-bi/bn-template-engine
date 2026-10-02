@@ -3,7 +3,7 @@
  *
  * `bar-column-width="wN"` and `category-width="wN"` both mean "N em of the table font",
  * so both columns render at the same width for the same N. The em used here is the TRUE
- * table em (`--bn-font-size`, i.e. `global.fontSizePx × scaleFactor`) — deliberately NOT
+ * table em (`--bn-font-size`, i.e. `global.fontSizePx × scaleFactor`) - deliberately NOT
  * `CellBarChartStyles.fontSize`, which is 0.85 of it and doubles as the unitScaling /
  * percentageScaling basis.
  *
@@ -20,7 +20,7 @@ export const BAR_LABEL_FONT_RATIO = 0.85;
  * Horizontal padding of a bar cell, in table em:
  * `td:has(.cell-bar-chart) { padding: 0 0.25em }` (ibcs-table.scss:320).
  * With `box-sizing: border-box` the SVG has to be that much narrower than the requested
- * column width, so the cell's border box lands on exactly N em — the same box
+ * column width, so the cell's border box lands on exactly N em - the same box
  * `.category-wN` (ibcs-table.scss:50-83) produces.
  */
 const BAR_CELL_PADDING_EM = 0.5;
@@ -49,7 +49,7 @@ function sideCount(hasNeg: boolean, hasPos: boolean): number {
 }
 
 export interface AbsoluteBarGeometry {
-  /** SVG width — the cell's content box. */
+  /** SVG width - the cell's content box. */
   totalWidth: number;
   /** Width of one value-label gutter; one is drawn per side in use. */
   labelAreaWidth: number;

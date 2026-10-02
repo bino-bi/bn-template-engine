@@ -104,7 +104,7 @@ describe("BubbleChart", () => {
     });
 
     it("lists the scenario families in the legend with their rule-set display names", () => {
-      // The system default names the pp family "PP" — the 10D "PY" label
+      // The system default names the pp family "PP" - the 10D "PY" label
       // comes from renaming it via <bn-ruleset> (spec §6.1).
       const chart = makeChart([row()], baseConfig({ compareFamily: "pp" }));
       const svg = chart.toString();

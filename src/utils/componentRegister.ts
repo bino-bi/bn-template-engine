@@ -18,7 +18,7 @@ export enum ComponentStatus {
  * The 500 ms debounce prevents premature "rendered" signals during rapid
  * successive re-renders.
  *
- * Status counts are maintained incrementally — `updateStatus` adjusts running
+ * Status counts are maintained incrementally - `updateStatus` adjusts running
  * counters instead of iterating all entries, making it O(1) per update.
  */
 export namespace ComponentRegister {

@@ -1,4 +1,4 @@
-// getLayoutState / getLayoutDetail: structure and model-derived values only —
+// getLayoutState / getLayoutDetail: structure and model-derived values only -
 // mock-doc returns zeroed rects, so geometry numbers are not asserted here.
 //
 // jest.mock must physically precede the imports (Stencil's transform does

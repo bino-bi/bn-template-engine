@@ -1,4 +1,4 @@
-// jest.mock calls must physically precede the imports — Stencil's jest
+// jest.mock calls must physically precede the imports - Stencil's jest
 // transform does not hoist them (same pattern as ibcs-table.spec.tsx).
 
 type StoreCallback = (key: string, newValue: number | undefined) => void;

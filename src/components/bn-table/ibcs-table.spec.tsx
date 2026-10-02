@@ -1,4 +1,4 @@
-// @ts-nocheck — Pre-existing baseline failures (see CLAUDE.md/MEMORY.md). Type-checking
+// @ts-nocheck - Pre-existing baseline failures (see CLAUDE.md/MEMORY.md). Type-checking
 // is suppressed so the alasql-shared-db refactor can land; rewriting these 4000 lines
 // of fixtures to use a `<bn-context>` wrapper is a separate task.
 
@@ -259,7 +259,7 @@ describe("IBCS Table Test", () => {
   ];
 
   // The component reads its rows from the scoped alasql db via `tableName`
-  // (the legacy `data` prop is gone) — register the fixture like bn-datasource does.
+  // (the legacy `data` prop is gone) - register the fixture like bn-datasource does.
   beforeAll(() => {
     getStores(null).db.db.tables["dataSet2"] = { data: dataSet2 };
   });

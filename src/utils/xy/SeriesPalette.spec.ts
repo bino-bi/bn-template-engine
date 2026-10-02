@@ -49,7 +49,7 @@ describe("SeriesPalette", () => {
       expect(dot.strokeWidth).toBe(0.75);
     });
 
-    it("colorIndex 20 (pp/py): tinted fill — computed color, not opacity", () => {
+    it("colorIndex 20 (pp/py): tinted fill - computed color, not opacity", () => {
       const treatment = markTreatment(20, hue, "bubble");
       expect(treatment.fill).toBe(tint(hue));
       expect(treatment.fill).not.toBe(hue);

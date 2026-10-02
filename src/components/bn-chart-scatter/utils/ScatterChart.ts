@@ -383,7 +383,7 @@ export class ScatterChart {
     const label = axis.label ?? "";
     const suffix = axis.unit !== undefined && axis.unit !== "" ? `${inWord} ${axis.unit}` : "";
 
-    // SVG collapses leading whitespace in text nodes — position the suffix
+    // SVG collapses leading whitespace in text nodes - position the suffix
     // with an explicit gap instead.
     const gap = 0.3 * this.em;
     if (anchor === "start") {

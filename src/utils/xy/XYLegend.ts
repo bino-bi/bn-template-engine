@@ -29,7 +29,7 @@ export interface LegendSize {
 
 /**
  * Series-color legend + bubble-size caption for the XY charts
- * (IBCS requires a legend explaining colors — and, for bubbles, size).
+ * (IBCS requires a legend explaining colors - and, for bubbles, size).
  * Positioned by the orchestrator: right column (default) or bottom row.
  */
 export class XYLegend {

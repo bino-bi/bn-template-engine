@@ -38,7 +38,7 @@ All `bn-*` components must be wrapped in a `<bn-context>` element. Each componen
 - **Language:** All code, comments, and documentation must be in English
 - **Formatting:** Prettier is enforced via pre-commit hook (`npm run format`)
 - **Linting:** ESLint runs in CI (`npm run lint`)
-- **Types:** Avoid `any` — use proper interfaces. Avoid `@ts-ignore` unless required by the mixin pattern
+- **Types:** Avoid `any` - use proper interfaces. Avoid `@ts-ignore` unless required by the mixin pattern
 - **Tests:** Add or update tests for any changed behavior
 
 ### Running a Single Test
@@ -52,7 +52,7 @@ npx stencil test --spec -- src/path/to/file.spec.ts
 1. Fork the repository and create a feature branch from `master`
 2. Make your changes, ensuring lint and tests pass locally
 3. Write a clear PR description explaining **what** changed and **why**
-4. Keep PRs focused — one feature or fix per PR
+4. Keep PRs focused - one feature or fix per PR
 5. A maintainer will review and may request changes
 
 ### Commit Messages

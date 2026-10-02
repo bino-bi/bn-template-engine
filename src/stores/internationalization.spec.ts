@@ -4,7 +4,7 @@ import { SYSTEM_I18N_DEFAULTS, globalLabelKeys } from "./internationalization";
  * Keys each component requests from its own namespace at render time.
  *
  * `withTranslation` returns the *key itself* when a lookup misses, and that
- * string is truthy — so a requested key with no bundle entry silently defeats
+ * string is truthy - so a requested key with no bundle entry silently defeats
  * every downstream `|| "fallback"` and prints the raw key into the report.
  * Keeping this list next to the bundles is what makes that failure loud.
  *

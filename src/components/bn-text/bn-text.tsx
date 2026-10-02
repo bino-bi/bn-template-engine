@@ -41,7 +41,7 @@ export class Text {
 
   /**
    * Template string rendered as HTML. Supports JavaScript template literal
-   * syntax — use `${data.<dataset>}` to interpolate dataset values and
+   * syntax - use `${data.<dataset>}` to interpolate dataset values and
    * `${t('<key>')}` for translated strings.
    *
    * The template is evaluated in a sandboxed scope (only `data` and `t` are
@@ -65,7 +65,7 @@ export class Text {
 
   /**
    * Controls font-size scaling relative to the available parent space.
-   * Scaling considers both width and height — the tighter constraint wins.
+   * Scaling considers both width and height - the tighter constraint wins.
    *
    * | Value          | Behavior                                                       |
    * |----------------|----------------------------------------------------------------|

@@ -135,7 +135,7 @@ export class Table {
    *
    * Deliberately does NOT build header/body rows. The constructor runs before
    * the component calls {@link setI18n}, so rows built here would carry the
-   * built-in fallback labels and be thrown away by the first `update()` — the
+   * built-in fallback labels and be thrown away by the first `update()` - the
    * whole N+1 query pass, run twice per render, for a result that was wrong.
    *
    * `fromExpr` and `rowCount` must stay eager: `hasNoData()` reads `rowCount`

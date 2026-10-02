@@ -21,7 +21,7 @@ describe("bn-context.getLayoutState", () => {
         </bn-context>
       ),
     });
-    // The `name` fallback is an attribute, not a typed prop — set it directly.
+    // The `name` fallback is an attribute, not a typed prop - set it directly.
     page.root.querySelectorAll("bn-table")[1].setAttribute("name", "sales");
     return page;
   };

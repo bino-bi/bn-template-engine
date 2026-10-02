@@ -6,9 +6,9 @@ bn-template-engine uses a three-layer styling system. Customize fonts, colors, c
 
 Styles are resolved by merging three layers (later layers override earlier ones):
 
-1. **`_system`** — Built-in IBCS-compliant defaults. Cannot be overridden directly.
-2. **`_default`** — Global user-level overrides. Applied to all components.
-3. **Named styles** — Component-specific overrides keyed by a custom name.
+1. **`_system`** - Built-in IBCS-compliant defaults. Cannot be overridden directly.
+2. **`_default`** - Global user-level overrides. Applied to all components.
+3. **Named styles** - Component-specific overrides keyed by a custom name.
 
 ## Usage
 

@@ -36,9 +36,9 @@ const TARGET_SLOT_PREFERENCE = ["pl1", "pp1", "fc1"];
  * a target marker.
  *
  * Subscribes to a dataset (via `withDataset`) and renders in the IBCS
- * default mode with **normalized targets** — every row is scaled to
+ * default mode with **normalized targets** - every row is scaled to
  * fractions of its target so one continuous target line spans all rows and
- * KPIs become visually comparable — plus integrated variance bars in the
+ * KPIs become visually comparable - plus integrated variance bars in the
  * IBCS variance colors. The classic Stephen Few look is opt-in via
  * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
  * gray bands). Actual and target scenarios are auto-detected from the
@@ -68,7 +68,7 @@ export class ChartBullet {
   private readonly ruleSetConfig: () => RuleSetConfig;
   private readonly errors: ErrorDispatcher;
   private layoutObserver: LayoutObserverHandle | null = null;
-  /** Ids of currently-active blocking errors — the chart renders empty while any is set. */
+  /** Ids of currently-active blocking errors - the chart renders empty while any is set. */
   private readonly activeErrors: Set<string> = new Set();
 
   /**
@@ -96,7 +96,7 @@ export class ChartBullet {
   /**
    * Actual-value measure. JSON object or a bare scenario slot as shorthand:
    * `{"measure":"ac1","label":"Revenue","unit":"EUR k"}`. Only plain
-   * scenario slots (`ac1`…`pl4`) are allowed — variance tokens are not.
+   * scenario slots (`ac1`…`pl4`) are allowed - variance tokens are not.
    * Empty or `"auto"` auto-detects (`ac1`, else the first available
    * scenario).
    */
@@ -107,7 +107,7 @@ export class ChartBullet {
   }
 
   /**
-   * Target measure — same shape as `actual`. Empty or `"auto"` auto-detects
+   * Target measure - same shape as `actual`. Empty or `"auto"` auto-detects
    * (`pl1` > `pp1` > `fc1`); without any target scenario the chart renders
    * actual bars only.
    */
@@ -119,7 +119,7 @@ export class ChartBullet {
 
   /**
    * Qualitative range bands as a JSON array of ascending fractions of the
-   * target, at most two — e.g. `[0.6, 0.9]` (IBCS rejects a third band of
+   * target, at most two - e.g. `[0.6, 0.9]` (IBCS rejects a third band of
    * arbitrary length). Classic mode only; ignored while `normalize` is
    * `"target"`.
    */
@@ -149,7 +149,7 @@ export class ChartBullet {
   }
 
   /**
-   * Target normalization: `target` (default — rows share an aligned target
+   * Target normalization: `target` (default - rows share an aligned target
    * position, the IBCS-comparable form) or `none` (classic per-row scales
    * with tick strips).
    */
@@ -160,7 +160,7 @@ export class ChartBullet {
   }
 
   /**
-   * Variance bars between actual and target: `auto` (default — drawn in
+   * Variance bars between actual and target: `auto` (default - drawn in
    * normalized mode, favorable/unfavorable in the IBCS variance colors) or
    * `none`.
    */
@@ -214,13 +214,13 @@ export class ChartBullet {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `order-direction: invalid value '${newValue}' — expected asc/desc; using asc.`,
+        message: `order-direction: invalid value '${newValue}' - expected asc/desc; using asc.`,
       });
     }
   }
 
   /**
-   * Maximum number of KPI rows (0 = unlimited). Truncates — there is no
+   * Maximum number of KPI rows (0 = unlimited). Truncates - there is no
    * REST aggregate, summing heterogeneous KPIs would be meaningless.
    */
   @Prop() limit: number = 0;
@@ -233,7 +233,7 @@ export class ChartBullet {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `limit: invalid value '${newValue}' — expected a non-negative integer; using 0.`,
+        message: `limit: invalid value '${newValue}' - expected a non-negative integer; using 0.`,
       });
     }
   }
@@ -281,7 +281,7 @@ export class ChartBullet {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `scale: invalid value '${newValue}' — expected none/auto or a positive number.`,
+        message: `scale: invalid value '${newValue}' - expected none/auto or a positive number.`,
       });
     } else {
       this.errors.remove(errId);
@@ -328,7 +328,7 @@ export class ChartBullet {
     syncEmptyState(this.element, "ibcs-chart-bullet");
 
     // Bullet height is data-driven (rows × rowHeight), so the auto-fit
-    // scales against the parent HEIGHT — the structure-chart variant, not
+    // scales against the parent HEIGHT - the structure-chart variant, not
     // the width-based XY one.
     const { mode } = parseScaling(this.scale);
 
@@ -353,7 +353,7 @@ export class ChartBullet {
     const currentHeight = host.scrollHeight;
     const currentFactor = this.appliedScaleFactor;
 
-    // Content fits at the current factor — don't reset to 1, it only fits
+    // Content fits at the current factor - don't reset to 1, it only fits
     // BECAUSE of the current factor (resetting would oscillate).
     if (currentHeight <= parentHeight + 1) {
       this.errors.remove("AUTO_scale");
@@ -385,7 +385,7 @@ export class ChartBullet {
   }
 
   componentDidLoad() {
-    // Watch for size changes (window resize, card relayout) — height only.
+    // Watch for size changes (window resize, card relayout) - height only.
     this.layoutObserver = observeParentResize(this.element, () => {
       if (this._autoScaleGuard) return;
       const { height } = getParentDimensions(this.element);
@@ -448,7 +448,7 @@ export class ChartBullet {
     this.setBlockingError(jsonId, null);
 
     if (data === null) {
-      // Blank is valid — the measure is auto-detected.
+      // Blank is valid - the measure is auto-detected.
       this.setBlockingError(measureId, null);
       this.errors.remove(fieldsId);
       return;
@@ -456,7 +456,7 @@ export class ChartBullet {
 
     const measure = ((data.measure as string) ?? "").trim();
     const ref = resolveMeasure(measure);
-    // Plain scenario slots only — the bullet variance is implicit
+    // Plain scenario slots only - the bullet variance is implicit
     // (actual vs target), variance tokens have no meaning here.
     if (measure.toLowerCase() !== "auto" && (ref === null || ref.kind !== "scenario")) {
       this.setBlockingError(measureId, this.t(".bullet-measure-invalid", { prop, measure }));
@@ -474,7 +474,7 @@ export class ChartBullet {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `${prop}: invalid value '${raw}' — expected ${valid.join("/")}; using '${fallback}'.`,
+        message: `${prop}: invalid value '${raw}' - expected ${valid.join("/")}; using '${fallback}'.`,
       });
     }
   }
@@ -502,7 +502,7 @@ export class ChartBullet {
 
   /**
    * Resolved actual measure. Blank/`auto` auto-detects `ac1`, else the
-   * first `ac*` slot, else the first available scenario — blank (unlike an
+   * first `ac*` slot, else the first available scenario - blank (unlike an
    * explicit `auto`) additionally raises the `AUTO_actual` info warning
    * (structure-chart convention).
    */
@@ -707,7 +707,7 @@ export class ChartBullet {
    * Lazily generates this chart's layout state: host box (context- and
    * component-relative, CSS px), the canvas region and diagnostics. With
    * `detail: "full"` the rendered marks and labels are listed with their
-   * geometry (tag-classified — bullet marks carry no ids).
+   * geometry (tag-classified - bullet marks carry no ids).
    *
    * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
    */
@@ -716,7 +716,7 @@ export class ChartBullet {
     const detail = options?.detail ?? "summary";
     const origins = originsFor(this.element);
     const rawFactor = this.getEffectiveScaleFactor();
-    // Auto-scale can be mid-measurement (or unmeasurable in tests) — report a sane factor.
+    // Auto-scale can be mid-measurement (or unmeasurable in tests) - report a sane factor.
     const factor = Number.isFinite(rawFactor) && rawFactor > 0 ? rawFactor : 1;
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
     return collectXYFacadeState(

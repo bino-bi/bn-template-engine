@@ -80,7 +80,7 @@ export interface ParsedSpec {
 /** Result of converting an untyped record into a typed config. */
 export interface SpecResult<T> {
   config: T | null;
-  /** Sub-fields present but not part of the spec (forward compat — warning, never error). */
+  /** Sub-fields present but not part of the spec (forward compat - warning, never error). */
   unknownKeys: string[];
   /** Sub-fields present with an unusable type/value. */
   invalidFields: string[];

@@ -33,7 +33,7 @@ export interface UnitExtentInputs {
 
 /**
  * Total bar extent (in data units) that scales linearly with pixelPerUnit.
- * Counts BOTH sides of the axis — a chart with values -13..+12 spans 25
+ * Counts BOTH sides of the axis - a chart with values -13..+12 spans 25
  * units, not 12 (fitting only the positive side is how charts used to
  * overshoot their container).
  */
@@ -93,7 +93,7 @@ export interface AutoFitStepInputs {
 /**
  * Solves the affine size model for the target and returns corrected scale
  * values (floored at {@link MIN_PIXEL_SCALE}). Returns an empty object when
- * nothing scales with the solved values (both extents 0) — callers fall back
+ * nothing scales with the solved values (both extents 0) - callers fall back
  * to a ratio heuristic. Only the quantities whose extent is > 0 are returned.
  */
 export function solveAutoFitStep(inputs: AutoFitStepInputs): { ppu?: number; ppp?: number } {

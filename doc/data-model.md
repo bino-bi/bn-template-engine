@@ -6,9 +6,9 @@ This document describes the data schema used by bn-template-engine components. D
 
 Each row in a dataset represents a data point with:
 
-- **Dimensions** — categorical fields for grouping and labeling (category, rowGroup, etc.)
-- **Scenarios** — numeric values for different business scenarios (actual, plan, forecast, previous period)
-- **Operation** — whether the row adds (`"+"`) or subtracts (`"-"`) in aggregations
+- **Dimensions** - categorical fields for grouping and labeling (category, rowGroup, etc.)
+- **Scenarios** - numeric values for different business scenarios (actual, plan, forecast, previous period)
+- **Operation** - whether the row adds (`"+"`) or subtracts (`"-"`) in aggregations
 
 ## Scenarios
 
@@ -64,9 +64,9 @@ Variance columns are computed from scenario pairs. They follow a naming pattern:
 
 The `direction` determines the IBCS color coding in charts and tables:
 
-- `pos` — Green/teal when the value is favorable (positive difference is good)
-- `neg` — Red when the value is unfavorable (positive difference is bad)
-- `neu` — Gray, no direction judgment
+- `pos` - Green/teal when the value is favorable (positive difference is good)
+- `neg` - Red when the value is unfavorable (positive difference is bad)
+- `neu` - Gray, no direction judgment
 
 To display variances, pass them as a comma-separated list to the `variances` prop:
 
@@ -121,7 +121,7 @@ Used by `<bn-chart-time>` for time series visualization. The `dateInterval` prop
 | Field | Type | Description |
 |-------|------|-------------|
 | `setname` | `string` | Dataset identifier (used by structure charts) |
-| `operation` | `string` | `"+"` (default) or `"-"` — determines sign in aggregations |
+| `operation` | `string` | `"+"` (default) or `"-"` - determines sign in aggregations |
 
 ### Custom Fields
 
@@ -150,11 +150,11 @@ The `attributes` prop on `<bn-table>` defines custom columns computed from datas
 | `sum(field)` | Sum |
 | `lit(value)` | Constant value |
 
-`field` can be any dataset field — custom `_`-prefixed fields as well as standard ones like `ac1` or `date`. Behavior:
+`field` can be any dataset field - custom `_`-prefixed fields as well as standard ones like `ac1` or `date`. Behavior:
 
 - Attribute columns are placed after the category column, before the scenario columns.
 - Cells stay blank on `SUM`, `GROUP_SUM`, `GROUPHEAD`, `REST`, and `PARTELEMENT` rows; thereof drill rows compute values over the drilled subset.
-- `sum`/`avg` on scenario fields (`ac1`–`pl4`) respect the row operation sign, consistent with the built-in scenario columns.
+- `sum`/`avg` on scenario fields (`ac1`-`pl4`) respect the row operation sign, consistent with the built-in scenario columns.
 - Numeric results (`min`/`max`/`avg`/`sum`) are formatted like scenario value cells (measure scale and decimal digits, even when `data-format="percent"`); other results render as-is.
 - Column labels are looked up in the i18n map and fall back to the label verbatim.
 
@@ -174,7 +174,7 @@ When `<bn-table>` processes data, it generates additional rows:
 
 ## Count Fields
 
-Each scenario has a corresponding `_cnt` field (e.g., `ac1_cnt`) that tracks the number of non-null values. These are used internally for variance validation — a variance is only computed when both the base and delta scenarios have data.
+Each scenario has a corresponding `_cnt` field (e.g., `ac1_cnt`) that tracks the number of non-null values. These are used internally for variance validation - a variance is only computed when both the base and delta scenarios have data.
 
 ## Complete Example
 

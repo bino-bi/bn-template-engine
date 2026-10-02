@@ -88,7 +88,7 @@ function getVisualParent(element: HTMLElement): HTMLElement | null {
  * Ancestors inside a fit-content layout region (marked with
  * `data-bn-fit-content` by bn-layout-page / bn-layout-card) are skipped
  * even when they clip overflow: their height is derived from their own
- * content — including the measuring component itself — so using it for
+ * content - including the measuring component itself - so using it for
  * auto-scaling creates a feedback loop where the chart inflates the cell
  * and then reads the inflated cell back as "available height". The marker
  * value carries the grid's row count; the constraint found above the
@@ -102,7 +102,7 @@ function findConstrainedHeight(element: HTMLElement, debug = false): number {
   let rowShareDivisor = 1;
 
   while (current) {
-    // A fit-content region sizes itself from its content — every height
+    // A fit-content region sizes itself from its content - every height
     // measured below this point is circular. Discard inner candidates and
     // keep walking for a content-independent constraint further up.
     if (current.hasAttribute("data-bn-fit-content")) {
@@ -155,7 +155,7 @@ function findConstrainedHeight(element: HTMLElement, debug = false): number {
   }
 
   if (debug) console.log("[height] NO constrained ancestor → viewport fallback");
-  // No constrained ancestor found — use viewport, applying the same
+  // No constrained ancestor found - use viewport, applying the same
   // equal-share division a marked fit-content region demands
   return typeof window !== "undefined" ? window.innerHeight / rowShareDivisor : 0;
 }

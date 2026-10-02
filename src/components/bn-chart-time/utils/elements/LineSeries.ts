@@ -318,7 +318,7 @@ export class LineSeries {
         );
 
         if (placement === null) {
-          continue; // All positions collide with higher-priority labels — hide
+          continue; // All positions collide with higher-priority labels - hide
         }
 
         labelX = placement.labelX;

@@ -23,7 +23,7 @@ export interface WaterfallBarProps extends CellBarChartProps {
  * All rows of a column share the same coordinate system: the geometry's
  * min/max extents (value units, always including zero) are mapped onto the
  * bar area, so bars always fit and the zero axis sits at the same x position
- * in every row. Fixed unit scaling is deliberately not applied — a clipped
+ * in every row. Fixed unit scaling is deliberately not applied - a clipped
  * bar would break the start position of every subsequent bar.
  *
  * Layout: [left label area][bar area][right label area]
@@ -64,7 +64,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const fillValue = getBarFill(barStyle, getScenarioType(scenario));
   const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
 
-  // Scenario values carry no variance sentiment — labels are unsigned per IBCS
+  // Scenario values carry no variance sentiment - labels are unsigned per IBCS
   const displayValue = formatValue(value, waterfall.kind === "partof", measureScale).replace(/^\+/, "");
 
   const pointsLeft = endX < startX;

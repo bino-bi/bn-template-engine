@@ -22,14 +22,14 @@ level and order come from the dataset meta. Explicit form:
 ```html
 <bn-chart-bullet
   datasets="kpis"
-  chart-title="KPI overview vs. plan — 2026"
+  chart-title="KPI overview vs. plan - 2026"
   actual='{"measure":"ac1","label":"AC","unit":"norm."}'
   target='{"measure":"pl1","label":"Plan"}'>
 </bn-chart-bullet>
 ```
 
 Only plain scenario slots (`ac1`…`pl4`) are allowed for `actual`/`target`
-— the bullet variance is implicit (actual vs target), variance tokens
+- the bullet variance is implicit (actual vs target), variance tokens
 have no meaning here.
 
 ## Classic mode
@@ -51,7 +51,7 @@ default normalized mode.
   (actual below a cost target is favorable).
 - Rows are aggregated with a plain `SUM` per level value (no
   operation-driven sign flip), so cost KPIs show positive magnitudes;
-  `limit` truncates to the first N rows — there is no REST aggregate,
+  `limit` truncates to the first N rows - there is no REST aggregate,
   summing heterogeneous KPIs would be meaningless.
 - Rows whose target is missing or not positive cannot be normalized and
   render as label + value only (with a warning); without any target
@@ -74,7 +74,7 @@ arrive validated and parsed from the facade.
 | `chartTitle`          | `chart-title`     |                                                                                           | `string`                                                                                                                                                                                          | `""`                        |
 | `containerWidth`      | `container-width` |                                                                                           | `number`                                                                                                                                                                                          | `0`                         |
 | `dataVersion`         | `data-version`    | Bumped by the facade when the dataset changes; triggers re-render.                        | `number`                                                                                                                                                                                          | `0`                         |
-| `errors`              | --                | The facade's error dispatcher — data warnings are synced through it (stable ids).         | `ErrorDispatcher`                                                                                                                                                                                 | `undefined`                 |
+| `errors`              | --                | The facade's error dispatcher - data warnings are synced through it (stable ids).         | `ErrorDispatcher`                                                                                                                                                                                 | `undefined`                 |
 | `filter`              | `filter`          |                                                                                           | `string`                                                                                                                                                                                          | `""`                        |
 | `i18n`                | --                |                                                                                           | `Map<string, string>`                                                                                                                                                                             | `new Map()`                 |
 | `labels` _(required)_ | --                |                                                                                           | `BulletLabelConfig`                                                                                                                                                                               | `undefined`                 |

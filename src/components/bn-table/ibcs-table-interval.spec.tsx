@@ -170,10 +170,10 @@ describe("IBCS Table interval columns", () => {
     expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "3,0", "4,0"]);
   });
 
-  it("groups by setname in order of first appearance, blanks under —", async () => {
+  it("groups by setname in order of first appearance, blanks under -", async () => {
     const page = await renderTable({ tableName: "setData", interval: "setname" });
 
-    expect(bandCells(page).map((cell) => cell.textContent.trim())).toEqual(["", "de", "at", "—"]);
+    expect(bandCells(page).map((cell) => cell.textContent.trim())).toEqual(["", "de", "at", "-"]);
     expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "1,0", "2,0", "4,0"]);
   });
 

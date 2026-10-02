@@ -7,7 +7,7 @@ export enum OrderDirection {
   DESC = "desc",
 }
 
-/** Valid columns for ORDER BY in AlaSQL queries — includes hierarchy dimensions and all 16 scenario slots. */
+/** Valid columns for ORDER BY in AlaSQL queries - includes hierarchy dimensions and all 16 scenario slots. */
 export enum OrderColumn {
   ROWGROUP = "rowGroup",
   ROWGROUPINDEX = "rowGroupIndex",

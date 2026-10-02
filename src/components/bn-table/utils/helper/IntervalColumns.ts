@@ -7,7 +7,7 @@ export const INTERVAL_NONE = "none";
 /** `interval` value grouping by the dataset's `setname` column. */
 export const INTERVAL_SETNAME = "setname";
 /** Label rendered for the bucket collecting rows with a blank setname. */
-export const BLANK_BUCKET_LABEL = "—";
+export const BLANK_BUCKET_LABEL = "-";
 
 /** A single interval column block: stable lookup key + display label. */
 export interface IntervalBucket {
@@ -89,7 +89,7 @@ export function resolveIntervalGranularity(db: AlaSQLDatabase, fromExpr: string,
  * Queries the distinct interval buckets of the source data.
  * Date buckets are sorted chronologically ascending and labeled locale-aware;
  * setname buckets keep their order of first appearance in the data, blank
- * setnames are collected in a trailing-position "—" bucket where they occur.
+ * setnames are collected in a trailing-position "-" bucket where they occur.
  */
 export function queryIntervalBuckets(
   db: AlaSQLDatabase,

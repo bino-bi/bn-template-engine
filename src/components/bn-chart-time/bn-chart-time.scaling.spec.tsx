@@ -64,7 +64,7 @@ const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
 
 // The inner ibcs-chart-time stays unregistered (its SVG engine needs getBBox,
 // which mock-doc lacks). Stencil's vdom then materializes number props as
-// attributes and function props as element properties — both readable.
+// attributes and function props as element properties - both readable.
 type InnerChart = {
   pixelPerUnit: number;
   pixelPerPercentage: number;

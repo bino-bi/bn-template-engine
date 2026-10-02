@@ -152,7 +152,7 @@ export class IbcsChartStructure {
     this.chart.setI18n(this.i18n);
     // The broken-bar overdrive exists to absorb MANUAL scaling overflow.
     // autoFitScaling mutates config.pixelPerUnit to the solved value, so
-    // remember auto mode beforehand and skip the overdrive for it — the
+    // remember auto mode beforehand and skip the overdrive for it - the
     // fitted chart fits by construction, and the overdrive's rough overhead
     // estimate would falsely re-engage on it.
     const unitWasAuto = config.pixelPerUnit <= 0;
@@ -190,7 +190,7 @@ export class IbcsChartStructure {
    * bar extent × scale), but label clamps flip between passes, so a single
    * analytic solve is not enough: measure at 1, solve, then verify against
    * fresh measurements and re-solve until the chart fits. The loop never
-   * ends on an overshoot — the last fitting values are restored, or when
+   * ends on an overshoot - the last fitting values are restored, or when
    * even the minimum scale cannot fit (labels alone exceed the container)
    * the values are floored and the wrapper reports the overflow.
    * Explicit (> 0) values are never overridden.
@@ -200,7 +200,7 @@ export class IbcsChartStructure {
     const autoPercent = config.pixelPerPercentage <= 0;
 
     if (!autoUnit && !autoPercent) {
-      return; // Both explicit — nothing to auto-fit
+      return; // Both explicit - nothing to auto-fit
     }
 
     const reportResolved = () => {
@@ -216,7 +216,7 @@ export class IbcsChartStructure {
       this.chart = new StructureChart(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config, styles);
       this.chart.setI18n(this.i18n);
     };
-    // layout() runs draw(), which finalizes positions — an undrawn chart
+    // layout() runs draw(), which finalizes positions - an undrawn chart
     // reports a stale allocated width.
     const measure = () => {
       this.chart.layout();
@@ -261,7 +261,7 @@ export class IbcsChartStructure {
         currentPpp: config.pixelPerPercentage,
       });
       if (step.ppu === undefined && step.ppp === undefined) {
-        break; // nothing scales with the auto values — fallback below
+        break; // nothing scales with the auto values - fallback below
       }
       if (autoUnit && step.ppu !== undefined) {
         config.pixelPerUnit = step.ppu;
@@ -276,9 +276,9 @@ export class IbcsChartStructure {
       if (width <= targetWidth + EPS) {
         fitting = { ppu: config.pixelPerUnit, ppp: config.pixelPerPercentage };
         if (width >= targetWidth * 0.98) {
-          break; // fits and tight — done
+          break; // fits and tight - done
         }
-        // else a released label clamp left slack — loop once more to grow into it
+        // else a released label clamp left slack - loop once more to grow into it
       }
     }
 
@@ -301,7 +301,7 @@ export class IbcsChartStructure {
         if (solvedPercent) config.pixelPerPercentage = fitting.ppp;
       } else {
         // Even the solved minimum overshoots (labels alone exceed the
-        // container) — shrink proportionally; the wrapper reports this.
+        // container) - shrink proportionally; the wrapper reports this.
         const shrink = targetWidth / width;
         if (autoUnit) config.pixelPerUnit = Math.max(MIN_PIXEL_SCALE, config.pixelPerUnit * shrink);
         if (autoPercent) config.pixelPerPercentage = Math.max(MIN_PIXEL_SCALE, config.pixelPerPercentage * shrink);

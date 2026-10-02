@@ -2,7 +2,7 @@
 export type TableAttributeFn = "set" | "first" | "last" | "min" | "max" | "avg" | "sum" | "lit";
 
 const EXPRESSION_REGEX = /^\s*(set|first|last|min|max|avg|sum|lit)\(\s*(.*?)\s*\)\s*$/;
-/** Field arguments must be plain identifiers — keeps user input out of SQL syntax. */
+/** Field arguments must be plain identifiers - keeps user input out of SQL syntax. */
 const FIELD_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 const NUMERIC_FNS: readonly TableAttributeFn[] = ["min", "max", "avg", "sum"];

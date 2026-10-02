@@ -9,7 +9,7 @@ export interface Rect {
 /**
  * Small-multiple panel layout: divides a drawing area into equal panels,
  * wrapping row-major at `columns`. Axis tick labels render on the outer
- * edges only (IBCS 10F/10G style) — the `isOuterLeft`/`isOuterBottom`
+ * edges only (IBCS 10F/10G style) - the `isOuterLeft`/`isOuterBottom`
  * flags tell the renderer which panels carry them.
  */
 export class FacetGrid {

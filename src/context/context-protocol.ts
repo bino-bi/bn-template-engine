@@ -44,7 +44,7 @@ export interface ScopedStores {
 
 /**
  * Module-level registry mapping `<bn-context>` DOM elements to their stores.
- * Stores are created lazily by `getOrCreateStores()` — whichever component
+ * Stores are created lazily by `getOrCreateStores()` - whichever component
  * initializes first triggers creation for its ancestor `<bn-context>`.
  */
 const contextRegistry = new WeakMap<HTMLElement, ScopedStores>();

@@ -99,7 +99,7 @@ describe("bn-chart-bubble named style overrides", () => {
 
     const inner = page.root!.shadowRoot!.querySelector("ibcs-chart-bubble")!;
     const markup = inner.shadowRoot!.querySelector("div")!.innerHTML;
-    // The single series takes the override's FIRST color — with the old
+    // The single series takes the override's FIRST color - with the old
     // concatenating merge it would still render the default palette.
     expect(markup).toContain("#123456");
   });

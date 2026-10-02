@@ -16,8 +16,8 @@ import { Svg } from "@svgdotjs/svg.js";
  * `getBBox()` succeed, which skips the clone entirely.
  *
  * The host is styled exactly like svg.js's own parser sandbox (see
- * `parser()` in @svgdotjs/svg.js) so the measurement context — and therefore
- * every measured value — is identical to what the retry path produced.
+ * `parser()` in @svgdotjs/svg.js) so the measurement context - and therefore
+ * every measured value - is identical to what the retry path produced.
  */
 const HOST_ID = "bn-measurement-host";
 const HOST_CSS = "opacity:0;position:absolute;left:-100%;top:-100%;overflow:hidden";

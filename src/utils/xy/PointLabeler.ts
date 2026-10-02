@@ -42,11 +42,11 @@ const DIAGONAL = Math.SQRT1_2;
  * Selective point labeling with greedy collision-free placement for the XY
  * charts. Composes the existing {@link LabelCollisionManager} (AABB
  * register/hasCollision core); marks are pre-registered as bounding
- * squares — conservative for circles, acceptable for label proximity.
+ * squares - conservative for circles, acceptable for label proximity.
  *
  * Placement tries eight anchors clockwise from north and rejects positions
  * that leave the frame or collide with marks or other labels; unplaceable
- * labels are dropped (IBCS wants proximate labels — no leader lines).
+ * labels are dropped (IBCS wants proximate labels - no leader lines).
  */
 export class PointLabeler {
   constructor(

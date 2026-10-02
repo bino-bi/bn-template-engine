@@ -48,7 +48,7 @@ export interface SVGVariancesStyleGroup {
   [index: string]: SVGStyle;
 }
 
-/** SVG polygon fill pattern definition — used for forecast (FC) hatching with foreground/background layers. */
+/** SVG polygon fill pattern definition - used for forecast (FC) hatching with foreground/background layers. */
 export interface SVGPolgonPattern {
   foreground: string;
   background: string;

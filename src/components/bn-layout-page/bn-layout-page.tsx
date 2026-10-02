@@ -291,7 +291,7 @@ export class LayoutPage {
       height = "fit-content";
     }
 
-    // Width is always 100% — page width is fixed by page format (XGA, A4, etc.).
+    // Width is always 100% - page width is fixed by page format (XGA, A4, etc.).
     // Using fit-content for width makes the grid indefinite, causing CSS Grid to
     // treat percentage column tracks as "auto" (content-sized), which breaks
     // equal column splits and auto-scaling in child components.

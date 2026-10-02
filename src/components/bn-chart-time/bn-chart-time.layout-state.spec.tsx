@@ -1,4 +1,4 @@
-// bn-chart-time.getLayoutState: structure and model-derived values only —
+// bn-chart-time.getLayoutState: structure and model-derived values only -
 // mock-doc returns zeroed rects, so geometry numbers are not asserted here.
 // The inner ibcs-chart-time stays unregistered (its SVG engine needs getBBox);
 // a hand-built shadow root with the real id conventions stands in for it.

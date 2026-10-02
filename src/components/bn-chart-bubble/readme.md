@@ -34,7 +34,7 @@ value→area mapping (the group value is bubble area in px² per data unit):
 <bn-chart-bubble size='{"measure":"ac3","label":"Net sales","unit":"mEUR","group":"netsales-area"}' …>
 ```
 
-In group mode bubbles render true-size — they may intentionally overflow
+In group mode bubbles render true-size - they may intentionally overflow
 the panel (a warning is raised). For cross-chart **axis** comparability,
 pin `min`/`max` identically on the charts.
 
@@ -65,7 +65,7 @@ arrive validated and parsed from the facade.
 | `compareFamily`       | `compare-family`     | Comparison scenario family, or `null` (10D overlay).                                      | `string`                                    | `null`       |
 | `containerWidth`      | `container-width`    |                                                                                           | `number`                                    | `0`          |
 | `dataVersion`         | `data-version`       | Bumped by the facade when the dataset changes; triggers re-render.                        | `number`                                    | `0`          |
-| `errors`              | --                   | The facade's error dispatcher — data warnings are synced through it (stable ids).         | `ErrorDispatcher`                           | `undefined`  |
+| `errors`              | --                   | The facade's error dispatcher - data warnings are synced through it (stable ids).         | `ErrorDispatcher`                           | `undefined`  |
 | `facet`               | --                   |                                                                                           | `FacetConfig`                               | `null`       |
 | `filter`              | `filter`             |                                                                                           | `string`                                    | `""`         |
 | `i18n`                | --                   |                                                                                           | `Map<string, string>`                       | `new Map()`  |

@@ -135,7 +135,7 @@ describe("bn-table height overflow", () => {
   });
 
   describe("severity", () => {
-    it("is a warning in auto mode — the author did not pin the size", async () => {
+    it("is a warning in auto mode - the author did not pin the size", async () => {
       const page = await renderTable("");
       expect(overflowItem(page)?.type).toBe("warning");
     });

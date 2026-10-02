@@ -81,7 +81,7 @@ export function toBulletLabelConfig(
 
 /**
  * Parses the raw `ranges` attribute value. A blank value yields no ranges
- * without error. Anything else must be a JSON array of positive numbers —
+ * without error. Anything else must be a JSON array of positive numbers -
  * ascending fractions of the target, e.g. `[0.6, 0.9]`. `parseSpec` cannot
  * be used here because it rejects top-level JSON arrays. Unsorted input is
  * sorted and more than two entries are truncated; both repairs are reported

@@ -1,4 +1,4 @@
-// bn-chart-scatter.getLayoutState (representative for bubble/bullet — all
+// bn-chart-scatter.getLayoutState (representative for bubble/bullet - all
 // three share collectXYFacadeState). XY marks carry no ids, so elements are
 // tag-classified; geometry numbers are not asserted (mock-doc zero rects).
 //

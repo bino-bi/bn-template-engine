@@ -55,7 +55,7 @@ export interface TableLayoutDetail {
  * Internal rendering engine for `bn-table`.
  *
  * Receives pre-validated, typed props from the outer `bn-table` wrapper and
- * builds the IBCS-compliant HTML table — including header rows, scenario
+ * builds the IBCS-compliant HTML table - including header rows, scenario
  * columns, variance columns (with optional inline bar/pin charts), thereof/
  * partof drill-down rows, and grouped row sections. This component should
  * not be used directly; use `bn-table` instead.
@@ -72,7 +72,7 @@ export class IbcsTable {
 
   /**
    * Name of the dataset (a table or view in the shared alasql database). The
-   * inner `Table` helper queries it directly — no array copy.
+   * inner `Table` helper queries it directly - no array copy.
    */
   @Prop()
   tableName: string = "";
@@ -172,7 +172,7 @@ export class IbcsTable {
   interval: string = "none";
 
   /**
-   * Total width of a bar chart column, in em of the table font — the same unit
+   * Total width of a bar chart column, in em of the table font - the same unit
    * `categoryWidth` uses, so the two render at the same width for the same value.
    */
   @Prop()
@@ -207,7 +207,7 @@ export class IbcsTable {
 
   /**
    * Collects the table's layout-state contribution: header/body regions,
-   * counts, and — with `detail: "full"` — per-cell geometry paired with the
+   * counts, and - with `detail: "full"` - per-cell geometry paired with the
    * table model (values, column keys, in-cell bar charts). Called by the
    * outer `bn-table`; not for end users.
    */
@@ -533,7 +533,7 @@ export class IbcsTable {
     });
   }
 
-  /** The table's true em in px — the unit `.category-wN` and the bar columns share. */
+  /** The table's true em in px - the unit `.category-wN` and the bar columns share. */
   private emPx(): number {
     return this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * this.scaleFactor;
   }

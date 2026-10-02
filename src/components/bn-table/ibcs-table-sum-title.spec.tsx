@@ -113,7 +113,7 @@ describe("IBCS Table sumTitle", () => {
   });
 
   // Regression: the empty sumTitle is substituted with the `SUM_TOTAL` i18n KEY
-  // upstream, so prefixing it produced the literal string "❖ SUM_TOTAL" — the key
+  // upstream, so prefixing it produced the literal string "❖ SUM_TOTAL" - the key
   // no longer matched the translation guard and was rendered raw.
   it("does not prefix the total symbol onto the untranslated SUM_TOTAL key when sumTitle is empty", async () => {
     const page = await renderTable({ partof, grouped: false });

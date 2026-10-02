@@ -4,11 +4,11 @@
  *
  * Two modes:
  * - **Local** (default): radii are normalized to the chart's own maximum
- *   value — `r = rMax · √(v / vMax)` with a minimum visible radius.
+ *   value - `r = rMax · √(v / vMax)` with a minimum visible radius.
  *   `vMax` must be the max across all panels and both scenario sets of the
  *   chart instance (shared size scale, mandatory for comparability).
  * - **Grouped** (`bn-scaling-group`): the group value is interpreted as
- *   **area px² per data unit** — `r = √(area · v / π)` with no
+ *   **area px² per data unit** - `r = √(area · v / π)` with no
  *   normalization and no radius caps, so identical values render at
  *   identical sizes across every chart referencing the group.
  */

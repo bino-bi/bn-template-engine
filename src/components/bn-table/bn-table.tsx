@@ -118,7 +118,7 @@ export class Table {
    * | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor |
    * | `"none"`            | No scaling (render at base font size regardless of available space)               |
    * | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             |
-   * | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                     |
+   * | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                     |
    *
    * **Auto-scale algorithm** (modes `""` and `"auto"`):
    * 1. After each render, the current `scrollWidth` of the host element is
@@ -139,8 +139,8 @@ export class Table {
    * and emit an `ERR_scale` warning.
    *
    * **Only the width is fitted.** A table that renders taller than its
-   * constrained parent is clipped by the layout cell — bottom rows and the
-   * grand total simply disappear — so every render reports the measured
+   * constrained parent is clipped by the layout cell - bottom rows and the
+   * grand total simply disappear - so every render reports the measured
    * overflow as a `WARN_overflow` item in `has-error`: an `error` when the
    * size is pinned by `scale` (`"none"` or a factor), a `warning` in auto
    * mode. The same item reports a width overflow, which only a fixed `scale`
@@ -158,7 +158,7 @@ export class Table {
    * // Double size
    * <bn-table scale="2" ...></bn-table>
    *
-   * // No scaling — always render at base font size
+   * // No scaling - always render at base font size
    * <bn-table scale="none" ...></bn-table>
    */
   @Prop() scale?: string;
@@ -325,7 +325,7 @@ export class Table {
    * Relative variances (dr_*) render as pin/dot charts.
    * Scenario columns (ac1..pl4) render as horizontal bar charts; when the table
    * contains grouping structure (sum rows, thereof, or partof) they automatically
-   * render as an IBCS waterfall — data rows cascade from the running total and
+   * render as an IBCS waterfall - data rows cascade from the running total and
    * sum rows anchor at zero. Waterfall columns auto-scale to fit the bar column
    * width (unit-scaling does not apply) and are not supported in combination
    * with `interval` or `columnthereof`.
@@ -355,7 +355,7 @@ export class Table {
   }
 
   /**
-   *  Set the total width of bar chart columns, in em of the table font — the same
+   *  Set the total width of bar chart columns, in em of the table font - the same
    *  unit and vocabulary as ```categoryWidth```, so ```bar-column-width="w15"```
    *  renders exactly as wide as ```category-width="w15"```. The bar/pin drawing
    *  area is that width minus the value-label gutters.
@@ -382,7 +382,7 @@ export class Table {
 
   /**
    * Data units displayed per 1 em of bar length for absolute variance bar
-   * charts (ΔPY) — map-scale semantics: a larger value means smaller bars.
+   * charts (ΔPY) - map-scale semantics: a larger value means smaller bars.
    * Bars exceeding barColumnWidth are shown with an arrow indicator.
    *
    * | Value            | Behavior                                                       |
@@ -416,7 +416,7 @@ export class Table {
 
   /**
    * Percentage points displayed per 1 em of pin length for relative variance
-   * pin charts (ΔPY%) — a larger value means shorter pins.
+   * pin charts (ΔPY%) - a larger value means shorter pins.
    *
    * | Value            | Behavior                                                       |
    * |------------------|----------------------------------------------------------------|
@@ -899,7 +899,7 @@ export class Table {
    * <br /><br />
    * ```none``` (default) deactivates the feature. ```setname``` groups by the
    * dataset's `setname` column (non-date comparison); rows with a blank setname
-   * raise a warning and are grouped under `—`. Date values bucket rows by the
+   * raise a warning and are grouped under `-`. Date values bucket rows by the
    * `date` column; ```auto``` detects the granularity from the date span.
    * Cannot be combined with `columnthereof`.
    */
@@ -983,7 +983,7 @@ export class Table {
     this.layoutObserver = observeParentResize(this.element, () => {
       if (this._autoScaleGuard) return;
       const { width } = getParentDimensions(this.element);
-      // Only react to WIDTH changes — table scales by width.
+      // Only react to WIDTH changes - table scales by width.
       // Height changes (e.g. from page-fit-to-content auto grid rows)
       // are irrelevant and would cause an infinite render loop.
       if (width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2) {
@@ -1033,7 +1033,7 @@ export class Table {
     const currentWidth = host.scrollWidth;
     const currentFactor = this.appliedScaleFactor;
 
-    // Content fits at current factor — done. Don't estimate unscaled width
+    // Content fits at current factor - done. Don't estimate unscaled width
     // and reset to factor 1; that estimate is approximate due to pixel
     // rounding and causes oscillation (reset → overflow → scale → reset).
     if (currentWidth <= parentWidth + 1) {
@@ -1084,7 +1084,7 @@ export class Table {
    * Reports a WARN_overflow item when the rendered table exceeds its
    * container. The table only auto-fits its WIDTH, so nothing prevents it
    * from growing taller than the layout cell, which clips the bottom rows
-   * (grand total included) without a trace — this item is the only signal.
+   * (grand total included) without a trace - this item is the only signal.
    * Overflow under a fixed `scale` is an error: the author pinned the size.
    * In auto mode it is a warning.
    */
@@ -1344,7 +1344,7 @@ export class Table {
         this.errors.addOrReplace({
           id: setnameErrId,
           type: "warning",
-          message: "interval: rows with blank setname found, they are grouped under '—'.",
+          message: "interval: rows with blank setname found, they are grouped under '-'.",
         });
       } else {
         this.errors.remove(setnameErrId);
@@ -1455,7 +1455,7 @@ export class Table {
     this.errors.addOrReplace({
       id: "AUTO_unitScaling",
       type: "warning",
-      message: `unit-scaling: invalid value "${resolved.raw}" — auto-fitting to the bar column width.`,
+      message: `unit-scaling: invalid value "${resolved.raw}" - auto-fitting to the bar column width.`,
     });
     return 0;
   }
@@ -1479,7 +1479,7 @@ export class Table {
     this.errors.addOrReplace({
       id: "AUTO_percentageScaling",
       type: "warning",
-      message: `percentage-scaling: invalid value "${resolved.raw}" — auto-fitting to the pin area.`,
+      message: `percentage-scaling: invalid value "${resolved.raw}" - auto-fitting to the pin area.`,
     });
     return 0;
   }
@@ -1491,7 +1491,7 @@ export class Table {
    * can copy them into a bn-scaling-group.
    */
   private handleAutoScalingReport = (report: AutoScalingReport): void => {
-    // A report only carries the auto-resolved quantities — keep the other one.
+    // A report only carries the auto-resolved quantities - keep the other one.
     this.lastAutoScalingReport = {
       unit: report.unit ?? this.lastAutoScalingReport?.unit,
       percentage: report.percentage ?? this.lastAutoScalingReport?.percentage,
@@ -1506,7 +1506,7 @@ export class Table {
         this.errors.addOrReplace({
           id: "AUTO_unitScaling",
           type: "warning",
-          message: `unit-scaling: invalid value "${this.unitScaling}" — auto-fitted to 1 em ≈ ${formatScalingValue(unitsPerEm)} units.`,
+          message: `unit-scaling: invalid value "${this.unitScaling}" - auto-fitted to 1 em ≈ ${formatScalingValue(unitsPerEm)} units.`,
         });
       }
     }
@@ -1517,7 +1517,7 @@ export class Table {
         this.errors.addOrReplace({
           id: "AUTO_percentageScaling",
           type: "warning",
-          message: `percentage-scaling: invalid value "${this.percentageScaling}" — auto-fitted to 1 em ≈ ${formatScalingValue(ppPerEm)} percentage points.`,
+          message: `percentage-scaling: invalid value "${this.percentageScaling}" - auto-fitted to 1 em ≈ ${formatScalingValue(ppPerEm)} percentage points.`,
         });
       }
     }
@@ -1575,7 +1575,7 @@ export class Table {
     const detail = options?.detail ?? "summary";
     const origins = originsFor(this.element);
     const rawFactor = this.getEffectiveScaleFactor();
-    // Auto-scale can be mid-measurement (or unmeasurable in tests) — report a sane factor.
+    // Auto-scale can be mid-measurement (or unmeasurable in tests) - report a sane factor.
     const effectiveFactor = Number.isFinite(rawFactor) && rawFactor > 0 ? rawFactor : 1;
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * effectiveFactor;
 

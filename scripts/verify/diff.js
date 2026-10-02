@@ -103,8 +103,8 @@ function main() {
     }
     console.log(
       allClean
-        ? `\nFLAKE FLOOR CLEAN — ${runs.length} runs byte-identical. The harness can prove things.`
-        : `\nFLAKE FLOOR DIRTY — output is nondeterministic. Fix this before trusting any comparison.`,
+        ? `\nFLAKE FLOOR CLEAN - ${runs.length} runs byte-identical. The harness can prove things.`
+        : `\nFLAKE FLOOR DIRTY - output is nondeterministic. Fix this before trusting any comparison.`,
     );
     process.exit(allClean ? 0 : 1);
   }

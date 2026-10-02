@@ -125,7 +125,7 @@ export class LabelCollisionManager {
     }
 
     // All 4 positions collide. Check if any collide ONLY with lower-priority
-    // labels (meaning we could still place here — the other label would lose).
+    // labels (meaning we could still place here - the other label would lose).
     // But to keep it simple: hide only if all positions collide with higher-priority labels.
     for (const direction of priorityOrder) {
       const placement = this.calculatePlacementForDirection(
@@ -139,12 +139,12 @@ export class LabelCollisionManager {
         direction,
       );
       if (!this.collidesWithHigherPriority(placement.bounds, priority)) {
-        // This position only collides with equal or lower priority — claim it
+        // This position only collides with equal or lower priority - claim it
         return placement;
       }
     }
 
-    // All positions collide with higher-priority labels — hide
+    // All positions collide with higher-priority labels - hide
     return null;
   }
 

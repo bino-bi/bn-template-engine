@@ -2,7 +2,7 @@
  * Linear numeric scale with nice-tick generation for the XY charts.
  *
  * Domains default to the data extent padded 4% on each side; zero-inclusion
- * is NOT forced — points encode by position, not length, so IBCS's
+ * is NOT forced - points encode by position, not length, so IBCS's
  * zero-baseline rule for bars does not apply. Explicit `min`/`max`
  * overrides disable the padding on that side.
  */
@@ -76,7 +76,7 @@ export class NumericScale {
 
   /**
    * Nice tick values inside the domain, aiming for `targetCount` ticks
-   * (the renderer picks 4–8 depending on panel size).
+   * (the renderer picks 4-8 depending on panel size).
    */
   public ticks(targetCount: number): number[] {
     const span = this.domainMax - this.domainMin;
@@ -95,7 +95,7 @@ export class NumericScale {
   }
 
   /**
-   * Decimal places (0–2) needed to render the given ticks without
+   * Decimal places (0-2) needed to render the given ticks without
    * ambiguity between adjacent values.
    */
   public static tickDecimals(ticks: number[]): number {

@@ -1,4 +1,4 @@
-// bn-grid.getLayoutState: structure assertions (mock-doc zero rects — no
+// bn-grid.getLayoutState: structure assertions (mock-doc zero rects - no
 // geometry numbers).
 //
 // jest.mock must physically precede the imports (Stencil's transform does

@@ -132,7 +132,7 @@ export interface ChartFacadeLayout {
 
 /**
  * Walks a chart facade's inner segment components (one per base/variance
- * segment, paired by DOM order — CSS only reverses the visual order):
+ * segment, paired by DOM order - CSS only reverses the visual order):
  * one `canvas:<segment>` region per inner `svg#drawCanvas`, plus the
  * per-element breakdown and the measure-scale footer at full detail.
  */
@@ -192,7 +192,7 @@ export function collectXYElements(svgRoot: Element, origins: Origins): LayoutEle
 
 /**
  * Complete layout state of a single-inner XY/bullet chart facade: host box,
- * one `canvas` region, point count, diagnostics — and the tag-classified
+ * one `canvas` region, point count, diagnostics - and the tag-classified
  * element list at full detail.
  */
 export function collectXYFacadeState(

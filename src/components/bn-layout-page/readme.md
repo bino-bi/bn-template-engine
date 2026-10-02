@@ -62,13 +62,13 @@ High-level page component that combines a title, body, and footer with a configu
 
 Title configuration is passed through to the inner [`<bn-title>`](../bn-title/readme.md):
 
-- `title-business-unit` — Organization name
-- `title-scenarios` — Scenario list
-- `title-variances` — Variance list
-- `title-measures` — JSON measure array
-- `title-order` / `title-order-direction` — Sort indicator
-- `title-date-start` / `title-date-end` — Date range
-- `title-date-format` / `title-date-link` — Date formatting
+- `title-business-unit` - Organization name
+- `title-scenarios` - Scenario list
+- `title-variances` - Variance list
+- `title-measures` - JSON measure array
+- `title-order` / `title-order-direction` - Sort indicator
+- `title-date-start` / `title-date-end` - Date range
+- `title-date-format` / `title-date-link` - Date formatting
 
 <!-- Auto Generated Below -->
 

@@ -109,7 +109,7 @@ export class Chart {
    * Comma-separated list of scenario columns to display as bars.
    * Up to 4 scenarios are supported; additional values are ignored.
    *
-   * Valid scenario names: `ac1`–`ac4`, `fc1`–`fc4`, `pp1`–`pp4`, `pl1`–`pl4`.
+   * Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.
    *
    * | Value         | Behavior                                                    |
    * |---------------|-------------------------------------------------------------|
@@ -176,7 +176,7 @@ export class Chart {
   }
 
   /**
-   * Data units displayed per 1 em of bar length (horizontal bars) — map-scale
+   * Data units displayed per 1 em of bar length (horizontal bars) - map-scale
    * semantics: a larger value means smaller bars.
    *
    * | Value              | Behavior                                                    |
@@ -217,7 +217,7 @@ export class Chart {
 
   /**
    * Percentage points displayed per 1 em of bar length for relative
-   * variances — a larger value means shorter bars.
+   * variances - a larger value means shorter bars.
    *
    * | Value             | Behavior                                                      |
    * |-------------------|---------------------------------------------------------------|
@@ -297,7 +297,7 @@ export class Chart {
    * When ordering by a scenario column, that scenario must also be listed in `scenarios`.
    *
    * Valid values: `category`, `categoryIndex`, `rowGroup`, `rowGroupIndex`,
-   * `subCategory`, `subCategoryIndex`, `ac1`–`ac4`, `fc1`–`fc4`, `pp1`–`pp4`, `pl1`–`pl4`.
+   * `subCategory`, `subCategoryIndex`, `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.
    *
    * | Value          | Behavior                                            |
    * |----------------|-----------------------------------------------------|
@@ -487,12 +487,12 @@ export class Chart {
    * | `mode`  | `"absolute"` \| `"relative"` \| `"absolute-relative"` | Stacking mode. Default: `"absolute"`.        |
    * | `order` | `"asc"` \| `"desc"` \| `"dataset"`           | Segment sort order. Default: `"dataset"`.          |
    *
-   * - `by: "scenarios"` — stacks the scenarios listed in the `scenarios` prop end-to-end.
-   * - `by: "dimensions"` — stacks by the next-lower hierarchy level derived from `level`
+   * - `by: "scenarios"` - stacks the scenarios listed in the `scenarios` prop end-to-end.
+   * - `by: "dimensions"` - stacks by the next-lower hierarchy level derived from `level`
    *   (e.g. level `"rowGroup"` stacks by category). Only the first scenario is used;
    *   extra scenarios trigger a `WARN_stack_dimensions_scenarios` warning.
-   * - `mode: "relative"` — normalizes each bar to 100%, showing proportions.
-   * - `mode: "absolute-relative"` — absolute bars with percentage labels.
+   * - `mode: "relative"` - normalizes each bar to 100%, showing proportions.
+   * - `mode: "absolute-relative"` - absolute bars with percentage labels.
    *
    * Segment colors are configurable via the `stackColors` array in component styles.
    *
@@ -526,7 +526,7 @@ export class Chart {
    * | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor |
    * | `"none"`            | No scaling (render at base font size regardless of available space)                |
    * | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             |
-   * | `"0.5"`, `"1.2"`, … | Fixed factor — apply `baseFontSize × factor`                                      |
+   * | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                      |
    */
   @Prop() scale?: string;
 
@@ -625,7 +625,7 @@ export class Chart {
 
     const baseFontSize = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333);
 
-    // The chart host is display:inline-block — it sizes to its content.
+    // The chart host is display:inline-block - it sizes to its content.
     // scrollHeight gives the actual rendered height at the current factor.
     const currentHeight = host.scrollHeight;
     const currentFactor = this.appliedScaleFactor;
@@ -634,7 +634,7 @@ export class Chart {
     // This avoids oscillation from non-linear SVG scaling where the
     // divide-by-factor estimate overshoots.
     if (currentHeight <= parentHeight + 1) {
-      // Content fits. Don't reset to factor 1 — the content only fits
+      // Content fits. Don't reset to factor 1 - the content only fits
       // BECAUSE of the current factor. Resetting would cause oscillation.
       this.errors.remove("AUTO_scale");
       this.checkOverflow();
@@ -680,13 +680,13 @@ export class Chart {
     // Observe the parent container for size changes so auto-scaling
     // reacts to genuine container resizes (window resize, card relayout).
     // Only trigger a re-render when the parent height actually changed
-    // compared to what auto-scaling last measured — this prevents the
+    // compared to what auto-scaling last measured - this prevents the
     // ResizeObserver's initial fire (and content-reflow noise) from
     // creating an infinite auto-scale loop.
     this.layoutObserver = observeParentResize(this.element, () => {
       if (this._autoScaleGuard) return;
       const { height } = getParentDimensions(this.element);
-      // Only react to HEIGHT changes — structure chart scales by height.
+      // Only react to HEIGHT changes - structure chart scales by height.
       // Width changes are handled separately via checkWidthOverflow.
       if (height > 0 && Math.abs(height - this._lastScaledParentHeight) > 2) {
         this._lastScaledParentHeight = height;
@@ -713,7 +713,7 @@ export class Chart {
 
   /**
    * Content width from the rendered SVG width attributes (segments render
-   * side by side) — immune to the inner hosts' overflow:hidden clipping:
+   * side by side) - immune to the inner hosts' overflow:hidden clipping:
    * flex items with hidden overflow shrink below their content size, so the
    * host's scrollWidth cannot see the overflow. Falls back to scrollWidth
    * before the inner charts have rendered.
@@ -730,7 +730,7 @@ export class Chart {
       }
     });
     // scrollWidth additionally sees non-SVG chrome, but is blind to clipped
-    // segments (see above) — take the larger of the two measurements.
+    // segments (see above) - take the larger of the two measurements.
     // Floor the fractional SVG widths so borderline sub-pixel overhangs are
     // judged with the same integer tolerance as the scroll metrics.
     return found ? Math.max(Math.floor(total), this.element.scrollWidth) : this.element.scrollWidth;
@@ -740,7 +740,7 @@ export class Chart {
    * Reports a WARN_overflow item when the rendered chart exceeds its
    * container. Overflow attributable to a fixed scaling attribute is an
    * error (width: unit-scaling / percentage-scaling, height: scale);
-   * overflow in fully-auto mode is a warning — auto-fit prevents it by
+   * overflow in fully-auto mode is a warning - auto-fit prevents it by
    * construction, so it only fires when the content cannot fit at any scale.
    */
   private checkOverflow(): void {
@@ -849,7 +849,7 @@ export class Chart {
   /** Last auto-fit report from the inner chart (px/unit, px/1.0), kept for getLayoutState(). */
   private lastAutoScalingReport?: AutoScalingReport;
 
-  /** "not set" for blank input, `invalid value "x"` otherwise — for AUTO_* messages. */
+  /** "not set" for blank input, `invalid value "x"` otherwise - for AUTO_* messages. */
   private static describeScalingInput(raw: string): string {
     return raw === "" ? "not set" : `invalid value "${raw}"`;
   }
@@ -916,7 +916,7 @@ export class Chart {
    * them into a bn-scaling-group.
    */
   private handleAutoScalingReport = (report: AutoScalingReport): void => {
-    // A report only carries the auto-resolved quantities — keep the other one.
+    // A report only carries the auto-resolved quantities - keep the other one.
     this.lastAutoScalingReport = {
       unit: report.unit ?? this.lastAutoScalingReport?.unit,
       percentage: report.percentage ?? this.lastAutoScalingReport?.percentage,
@@ -1220,7 +1220,7 @@ export class Chart {
     const detail = options?.detail ?? "summary";
     const origins = originsFor(this.element);
     const rawFactor = this.getEffectiveScaleFactor();
-    // Auto-scale can be mid-measurement (or unmeasurable in tests) — report a sane factor.
+    // Auto-scale can be mid-measurement (or unmeasurable in tests) - report a sane factor.
     const factor = Number.isFinite(rawFactor) && rawFactor > 0 ? rawFactor : 1;
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
 
