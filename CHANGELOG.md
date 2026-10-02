@@ -79,6 +79,16 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 - `style` is kept only when it is exactly `text-align: left`, `center` or `right`.
 - `href` and `src` accept `http:`, `https:`, `mailto:` and relative URLs. `src` also accepts `data:` URLs. Any other URL is removed.
 
+#### Dates are read and shown in UTC
+
+`date` values, `date-start` / `date-end` of `bn-title` and all date labels used the time zone of the browser. Report data carries dates as `2024-01-01T00:00:00Z`, so west of UTC every value fell into the previous month, quarter or year (January 2024 was shown as `Dec 2023` in New York), and east of UTC a late evening value fell into the next one. `bn-table` (`interval`), `bn-chart-time` and `bn-title` now parse and format dates in UTC, so a report renders the same in every time zone.
+
+- A date without a time (`2024-05-20`) is midnight UTC and shows the same day as before.
+- A value with an offset (`2024-01-31T23:30:00+01:00`) is converted to UTC and grouped by its UTC date. Before, it was grouped by the local date of the browser.
+- A number is read as epoch milliseconds in UTC.
+- `bucket` in the `getLayoutState()` table detail is now `2024-01-01T00:00:00.000Z` instead of a local offset such as `2024-01-01T00:00:00.000+01:00`.
+- Not changed: the SQL date functions (`YEAR`, `MONTH`, `DAY`) in a `filter` or a dataset query still use the time zone of the browser. In New York `YEAR([date]) = 2024` leaves out `2024-01-01T00:00:00Z`. Compare the text instead: `[date] >= '2024-01-01'`.
+
 ### Fixed
 
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.

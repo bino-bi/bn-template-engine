@@ -869,11 +869,11 @@ export class TimeChart {
   private static coerceDateTime(v: unknown): DateTime | undefined {
     if (v == null) return undefined;
     if (typeof v === "string") {
-      const dt = DateTime.fromISO(v);
+      const dt = DateTime.fromISO(v, { zone: "utc" });
       return dt.isValid ? dt : undefined;
     }
     if (typeof v === "number") {
-      const dt = DateTime.fromMillis(v);
+      const dt = DateTime.fromMillis(v, { zone: "utc" });
       return dt.isValid ? dt : undefined;
     }
     if (typeof (v as { isValid?: boolean }).isValid === "boolean") {

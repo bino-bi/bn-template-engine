@@ -116,6 +116,8 @@ For multi-dimensional tables:
 
 Used by `<bn-chart-time>` for time series visualization. The `dateInterval` prop controls the aggregation level (year, quarter, month, etc.).
 
+`date` values are read and shown in UTC, in every browser time zone: a date without a time is midnight UTC, a value with an offset is converted to UTC, a number is epoch milliseconds. The SQL date functions (`YEAR`, `MONTH`, `DAY`) in a `filter` or a dataset query still use the time zone of the browser, so compare the text instead: `[date] >= '2024-01-01'`.
+
 ### Other Fields
 
 | Field | Type | Description |

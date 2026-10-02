@@ -364,8 +364,8 @@ export class Title {
     }
 
     return {
-      start: DateTime.fromISO(this.dateStart),
-      end: DateTime.fromISO(this.dateEnd),
+      start: DateTime.fromISO(this.dateStart, { zone: "utc" }),
+      end: DateTime.fromISO(this.dateEnd, { zone: "utc" }),
       format: DateDistance[this.dateFormat?.toUpperCase() as keyof typeof DateDistance],
       link: DateLink[this.dateLink?.toUpperCase() as keyof typeof OrderDirection],
     };

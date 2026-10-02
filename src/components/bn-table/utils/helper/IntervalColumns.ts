@@ -148,11 +148,11 @@ function toDateTime(value: unknown): DateTime | undefined {
     return undefined;
   }
   if (typeof value === "string") {
-    const dt = DateTime.fromISO(value);
+    const dt = DateTime.fromISO(value, { zone: "utc" });
     return dt.isValid ? dt : undefined;
   }
   if (typeof value === "number") {
-    const dt = DateTime.fromMillis(value);
+    const dt = DateTime.fromMillis(value, { zone: "utc" });
     return dt.isValid ? dt : undefined;
   }
   if (typeof (value as { isValid?: boolean }).isValid === "boolean") {
