@@ -31,11 +31,12 @@ export class Dataset {
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+  private readonly holdStatus: (work: Promise<unknown>) => void;
 
   private stores!: ScopedStores;
 
   constructor() {
-    withComponentStatus(this);
+    this.holdStatus = withComponentStatus(this);
     this.errors = withHasError(this);
     // Datasources already live in the shared db; just re-execute when any upstream notifies.
     withDatasource(this, () => {
@@ -99,6 +100,8 @@ export class Dataset {
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   /** AbortController for cancelling in-flight fetch requests. */
   private abortController: AbortController | null = null;
+  /** True until the first request for the current `src` has delivered. A poll tick is skipped meanwhile: it would cancel that request and release readiness with no data. */
+  private firstLoadPending = false;
 
   /** Loads from `src` when it is set, otherwise from the inline body. */
   private sync(data: string): void {
@@ -113,7 +116,8 @@ export class Dataset {
       // an upstream notify must not rebuild the view from the body while src is set
       this.query = "";
       this.errors.remove("ERR_sql");
-      this.fetchAndStore(this.src);
+      this.firstLoadPending = true;
+      this.holdStatus(this.fetchAndStore(this.src));
       this.startPolling();
       return;
     }
@@ -332,6 +336,7 @@ export class Dataset {
       this.dropViewStatements();
       this.publish([]);
     }
+    this.firstLoadPending = false;
   }
 
   /** After a view was replaced by a plain table: statements alasql compiled for the view cannot read the table. */
@@ -363,7 +368,7 @@ export class Dataset {
     this.clearPollTimer();
     if (this.currentUrl && this.interval > 0) {
       this.pollTimerId = setInterval(() => {
-        if (this.currentUrl) {
+        if (this.currentUrl && !this.firstLoadPending) {
           this.fetchAndStore(this.currentUrl);
         }
       }, this.interval * 1000);

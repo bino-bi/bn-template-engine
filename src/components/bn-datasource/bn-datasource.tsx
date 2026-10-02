@@ -52,6 +52,7 @@ export class Datasource {
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+  private readonly holdStatus: (work: Promise<unknown>) => void;
 
   private stores: ScopedStores;
   private lastHash: string | null = null;
@@ -64,9 +65,11 @@ export class Datasource {
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   /** AbortController for cancelling in-flight fetch requests. */
   private abortController: AbortController | null = null;
+  /** True until the first request for the current `src` has delivered. A poll tick is skipped meanwhile: it would cancel that request and release readiness with no data. */
+  private firstLoadPending = false;
 
   constructor() {
-    withComponentStatus(this);
+    this.holdStatus = withComponentStatus(this);
     this.errors = withHasError(this);
     withBodyObserver(this, (data) => this.sync(data));
   }
@@ -81,7 +84,8 @@ export class Datasource {
       if (this.src === this.currentUrl) return;
       this.currentUrl = this.src;
       this.lastHash = null;
-      this.fetchAndStore(this.src);
+      this.firstLoadPending = true;
+      this.holdStatus(this.fetchAndStore(this.src));
       this.startPolling();
       return;
     }
@@ -193,6 +197,7 @@ export class Datasource {
       console.error("bn-datasource: error fetching URL", e, url);
       this.publish([]);
     }
+    this.firstLoadPending = false;
   }
 
   /** Stops the polling timer (does NOT touch any in-flight fetch). */
@@ -218,7 +223,7 @@ export class Datasource {
     this.clearPollTimer();
     if (this.currentUrl && this.interval > 0) {
       this.pollTimerId = setInterval(() => {
-        if (this.currentUrl) {
+        if (this.currentUrl && !this.firstLoadPending) {
           this.fetchAndStore(this.currentUrl);
         }
       }, this.interval * 1000);

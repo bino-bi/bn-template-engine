@@ -26,6 +26,7 @@ import { newSpecPage } from "@stencil/core/testing";
 import { createStore } from "@stencil/store";
 import { getStores } from "../../context/context-protocol";
 import { createScopedDb } from "../../context/scopedDb";
+import { ComponentRegister } from "../../utils/componentRegister";
 import { ErrorItem } from "../../utils/withHasError";
 import { Dataset } from "./bn-dataset";
 import { Datasource } from "../bn-datasource/bn-datasource";
@@ -497,5 +498,67 @@ describe("bn-dataset rename and re-attach", () => {
     page.rootInstance.sync(JSON.stringify(STATIC));
 
     expect(db().exec("SELECT * FROM `mo_b`")).toEqual(STATIC);
+  });
+});
+
+describe("bn-dataset readiness", () => {
+  const REMOTE = [{ category: "remote", ac1: 2 }];
+  const realFetch = global.fetch;
+  const running = () => ComponentRegister.componentRegisterStatus().running;
+
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  it("stays RUNNING until the first src request has settled", async () => {
+    const before = running();
+    let respond: (response: unknown) => void;
+    (global as any).fetch = jest.fn(() => new Promise((resolve) => (respond = resolve)));
+
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="rd_first" src="/sales.json"></bn-dataset>`,
+    });
+    await page.waitForChanges();
+    expect(running()).toBe(before + 1);
+
+    respond({ json: async () => REMOTE });
+    await page.waitForChanges();
+    expect(running()).toBe(before);
+    expect(db().exec("SELECT * FROM `rd_first`")).toEqual(REMOTE);
+  });
+
+  it("a poll tick does not cancel the first src request", async () => {
+    const before = running();
+    const respond: Array<(response: unknown) => void> = [];
+    const fetchMock = jest.fn(
+      (_url: string, init: { signal: AbortSignal }) =>
+        new Promise((resolve, reject) => {
+          respond.push(resolve);
+          init.signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+        }),
+    );
+    (global as any).fetch = fetchMock;
+
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="rd_slow" src="/sales.json" interval="0.05"></bn-dataset>`,
+    });
+    // two poll ticks pass while the first request is pending
+    await new Promise((resolve) => setTimeout(resolve, 130));
+    const pending = { requests: fetchMock.mock.calls.length, running: running() };
+
+    respond[0]({ json: async () => REMOTE });
+    await page.waitForChanges();
+    const loaded = { running: running(), table: db().tables["rd_slow"] };
+
+    await new Promise((resolve) => setTimeout(resolve, 130));
+    const polled = fetchMock.mock.calls.length;
+    // stops the timer
+    page.root.remove();
+
+    expect(pending).toEqual({ requests: 1, running: before + 1 });
+    expect(loaded).toEqual({ running: before, table: { data: REMOTE } });
+    expect(polled).toBeGreaterThan(1);
   });
 });

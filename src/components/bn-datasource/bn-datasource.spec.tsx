@@ -24,6 +24,7 @@ jest.mock("../../context/context-protocol", () => {
 import { newSpecPage } from "@stencil/core/testing";
 import { getStores, clearStoresCache } from "../../context/context-protocol";
 import { createScopedDb } from "../../context/scopedDb";
+import { ComponentRegister } from "../../utils/componentRegister";
 import { Datasource } from "./bn-datasource";
 
 const REMOTE = [{ category: "remote" }];
@@ -210,5 +211,141 @@ describe("bn-datasource rename and re-attach", () => {
 
     expect(Object.keys(tables())).not.toContain("null");
     expect(tables()["ds_no_name"]).toBeUndefined();
+  });
+});
+
+describe("bn-datasource readiness", () => {
+  const realFetch = global.fetch;
+  // the register is shared by all tests of this file, so every test compares against its own baseline
+  const running = () => ComponentRegister.componentRegisterStatus().running;
+
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  it("stays RUNNING until the first request has settled", async () => {
+    const before = running();
+    let respond: (response: unknown) => void;
+    (global as any).fetch = jest.fn(() => new Promise((resolve) => (respond = resolve)));
+
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="rd_first" src="/rows.json"></bn-datasource>`,
+    });
+    await page.waitForChanges();
+    expect(running()).toBe(before + 1);
+
+    respond({ json: async () => REMOTE });
+    await page.waitForChanges();
+    expect(running()).toBe(before);
+    expect(rows("rd_first")).toEqual(REMOTE);
+  });
+
+  it("releases after a failed request", async () => {
+    const before = running();
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    (global as any).fetch = jest.fn(async () => {
+      throw new Error("offline");
+    });
+
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="rd_failed" src="/rows.json"></bn-datasource>`,
+    });
+    await page.waitForChanges();
+    consoleError.mockRestore();
+
+    expect(running()).toBe(before);
+    expect(rows("rd_failed")).toEqual([]);
+  });
+
+  it("releases on disconnect while the request is pending", async () => {
+    const before = running();
+    (global as any).fetch = jest.fn(
+      (_url: string, init: { signal: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          init.signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+        }),
+    );
+
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="rd_removed" src="/rows.json"></bn-datasource>`,
+    });
+    await page.waitForChanges();
+
+    page.root.remove();
+    await page.waitForChanges();
+
+    expect(running()).toBe(before);
+  });
+
+  it("does not count as rendering after it is removed and attached again", async () => {
+    const before = running();
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="rd_again">[{"category":"local"}]</bn-datasource>`,
+    });
+    const el = page.root;
+
+    el.remove();
+    await page.waitForChanges();
+    page.body.appendChild(el);
+    await page.waitForChanges();
+
+    expect(running()).toBe(before);
+    expect(rows("rd_again")).toEqual([{ category: "local" }]);
+  });
+
+  it("a poll tick does not cancel the first request", async () => {
+    const before = running();
+    const respond: Array<(response: unknown) => void> = [];
+    const fetchMock = jest.fn(
+      (_url: string, init: { signal: AbortSignal }) =>
+        new Promise((resolve, reject) => {
+          respond.push(resolve);
+          init.signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+        }),
+    );
+    (global as any).fetch = fetchMock;
+
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="rd_slow" src="/rows.json" interval="0.05"></bn-datasource>`,
+    });
+    // two poll ticks pass while the first request is pending
+    await new Promise((resolve) => setTimeout(resolve, 130));
+    const pending = { requests: fetchMock.mock.calls.length, running: running() };
+
+    respond[0]({ json: async () => REMOTE });
+    await page.waitForChanges();
+    const loaded = { running: running(), table: getStores(null).db.db.tables["rd_slow"] };
+
+    await new Promise((resolve) => setTimeout(resolve, 130));
+    const polled = fetchMock.mock.calls.length;
+    // stops the timer
+    page.root.remove();
+
+    expect(pending).toEqual({ requests: 1, running: before + 1 });
+    expect(loaded).toEqual({ running: before, table: { data: REMOTE } });
+    expect(polled).toBeGreaterThan(1);
+  });
+
+  it("a polling request does not hold readiness", async () => {
+    const before = running();
+    (global as any).fetch = jest.fn(async () => ({ json: async () => REMOTE }));
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="rd_polled" src="/rows.json"></bn-datasource>`,
+    });
+    await page.waitForChanges();
+    expect(rows("rd_polled")).toEqual(REMOTE);
+
+    // what the interval timer calls
+    (global as any).fetch = jest.fn(() => new Promise(() => {}));
+    page.rootInstance.fetchAndStore("/rows.json");
+    await page.waitForChanges();
+
+    expect(running()).toBe(before);
   });
 });
