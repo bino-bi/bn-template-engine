@@ -145,6 +145,7 @@ export class Dataset {
 
   executeQuery() {
     if (!this.stores) this.stores = getStores(this.element);
+    if (!this.query) this.errors.remove("ERR_sql");
     if (!this.query || !this.name) return;
 
     const db = this.stores.db.db;
@@ -188,6 +189,8 @@ export class Dataset {
           // checked before exec: in "SELECT ...; <inline js>" alasql would run the second statement right away
           if (hasInlineJs(this.query)) throw new Error("double backticks are not allowed.");
           db.exec(`CREATE VIEW \`${this.name}\` AS ${this.query}`);
+          // alasql caches compiled statements per SQL text: one compiled while the name was a plain table reads no rows from a view
+          db.resetSqlCache();
           this.lastViewQuery = this.query;
           this.errors.remove("ERR_sql");
         } catch (e) {
@@ -285,16 +288,22 @@ export class Dataset {
       const json = await response.json();
       const db = this.stores.db.db;
       db.tables[this.name] = { data: Array.isArray(json) ? json : [] };
-      this.lastViewQuery = null;
+      this.dropViewStatements();
       this.publish(json);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
       console.error("bn-dataset: error fetching URL", e, url);
       const db = this.stores.db.db;
       db.tables[this.name] = { data: [] };
-      this.lastViewQuery = null;
+      this.dropViewStatements();
       this.publish([]);
     }
+  }
+
+  /** After a view was replaced by a plain table: statements alasql compiled for the view cannot read the table. */
+  private dropViewStatements(): void {
+    if (this.lastViewQuery !== null) this.stores.db.db.resetSqlCache();
+    this.lastViewQuery = null;
   }
 
   /** Stops the polling timer (does NOT touch any in-flight fetch). */

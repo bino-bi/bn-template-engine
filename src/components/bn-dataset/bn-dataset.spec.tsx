@@ -72,6 +72,10 @@ describe("bn-dataset SQL body", () => {
     consoleError.mockRestore();
 
     expect(errors(page.root).find((e) => e.id === "ERR_sql")?.type).toBe("error");
+
+    // the MutationObserver is mocked, so hand the emptied body to the component directly
+    page.rootInstance.sync("");
+    expect(errors(page.root)).toEqual([]);
   });
 });
 
@@ -111,7 +115,7 @@ describe("bn-dataset body and src", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("fetches src and ignores the body, also when an upstream datasource changes", async () => {
+  it("fetches src and ignores the body", async () => {
     const page = await newSpecPage({
       components: [Dataset],
       html: `<bn-dataset name="remote" datasources="sales_src" src="/sales.json">SELECT * FROM sales_src</bn-dataset>`,
@@ -120,9 +124,22 @@ describe("bn-dataset body and src", () => {
 
     expect(fetchMock).toHaveBeenCalledWith("/sales.json", expect.anything());
     expect(db().exec("SELECT * FROM remote")).toEqual(REMOTE);
+  });
+
+  it("keeps the fetched rows on an upstream change when src is set after the body ran", async () => {
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="late" datasources="sales_src">SELECT * FROM sales_src</bn-dataset>`,
+    });
+    // a statement compiled while the dataset is a view, as the consumers run it
+    expect(db().exec("SELECT * FROM `late`")).toEqual(LOCAL);
+
+    page.root.setAttribute("src", "/sales.json");
+    await page.waitForChanges();
+    expect(db().exec("SELECT * FROM `late`")).toEqual(REMOTE);
 
     getStores(null).db.notify("sales_src");
-    expect(db().exec("SELECT * FROM remote")).toEqual(REMOTE);
+    expect(db().exec("SELECT * FROM `late`")).toEqual(REMOTE);
   });
 
   it("returns to the body when src is removed", async () => {
@@ -131,10 +148,11 @@ describe("bn-dataset body and src", () => {
       html: `<bn-dataset name="switched" datasources="sales_src" src="/sales.json">SELECT * FROM sales_src</bn-dataset>`,
     });
     await page.waitForChanges();
+    expect(db().exec("SELECT * FROM `switched`")).toEqual(REMOTE);
 
     page.root.removeAttribute("src");
     await page.waitForChanges();
 
-    expect(db().exec("SELECT * FROM switched")).toEqual(LOCAL);
+    expect(db().exec("SELECT * FROM `switched`")).toEqual(LOCAL);
   });
 });
