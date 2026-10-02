@@ -112,10 +112,20 @@ function getStyle(attr: AttributeInfo, className: string, value: string): string
   return `.${className} {${attr.cssName}: ${value};}`;
 }
 
-function getCSS(attr: AttributeInfo, value: string): ClassStyle {
+function getCSS(attr: AttributeInfo, value: string): ClassStyle | undefined {
+  // The rule is written as stylesheet text. Only what the browser parsed and serialized as one value
+  // of this property goes in: the attribute text itself could close the rule and add its own.
+  const probe = document.createElement("div").style;
+  probe.setProperty(attr.cssName, value);
+  const parsed = probe.getPropertyValue(attr.cssName);
+  // A var() value is kept as written and may end inside an open string or bracket, which would swallow
+  // the rules after it. A declaration placed behind the value only arrives if the value is closed.
+  probe.cssText = `${attr.cssName}:${parsed};--bn-end:1`;
+  if (!parsed || parsed.includes("<") || probe.getPropertyValue("--bn-end") !== "1") {
+    return undefined;
+  }
   const className = getClassName(attr, value);
-  const style = getStyle(attr, className, value);
-  return { className, style };
+  return { className, style: getStyle(attr, className, parsed) };
 }
 
 export const apply = (el: Element): Map<string, ClassStyle> => {
@@ -132,7 +142,10 @@ export const apply = (el: Element): Map<string, ClassStyle> => {
         function (v: string): string {
           return v;
         };
-      map.set(name, getCSS(attributes[name], transform(value)));
+      const css = getCSS(attributes[name], transform(value));
+      if (css) {
+        map.set(name, css);
+      }
     }
   });
 

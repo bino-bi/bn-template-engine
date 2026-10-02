@@ -36,6 +36,49 @@ The scaling attributes on `bn-table`, `bn-chart-time`, and `bn-chart-structure` 
 
 **Migration** (old → new, base font 13.3333 px): charts `new = 13.3333 / old` (both attributes); table `new = 1 / old`; bubble groups `new = 177.77 / old`. See [doc/scaling.md](doc/scaling.md).
 
+#### `bn-text`: `value` is a template with placeholders, not JavaScript
+
+`value` is no longer evaluated. Only these placeholders are replaced:
+
+- `${data.<dataset>[<row>].<field>}` and `${data['<name>'][<row>].<field>}` (`this.data` is accepted too)
+- `${t('<key>')}` and `${t('<key>', { name: 'text', count: 3, value: data.kpi[0].ac1 })}`
+
+Any other `${...}` (arithmetic, method calls, conditions) is printed as written. Dataset values and translations are HTML-escaped, so markup inside a value or a translation is shown as text. A backslash or a backtick in the text is printed as it is. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning to `has-error`. This also happens while a dataset is still loading and for a dataset without rows. `ERR_value_eval` is gone.
+
+#### `bn-table`: a failed query gives `ERR_sql` instead of a partial table
+
+When one of the table's queries fails, the table is not rendered and `has-error` gets an `ERR_sql` item of type `error`. Before, the failed part was dropped silently: a row group could disappear while the total still counted its rows. Two inputs that used to render a broken table now end in `ERR_sql`: a scenario or a `columnthereof` scenario key that is not a plain identifier (letters, digits, `_`), and a negative `limit`.
+
+#### `filter` and `bn-dataset` SQL: double backticks are rejected
+
+AlaSQL runs text between double backticks as JavaScript. A `filter` (on `bn-table` and the five charts) that contains a double backtick is not sent to AlaSQL: the component shows its no-data state and `has-error` gets an `ERR_filter` item of type `error`. A `bn-dataset` SQL body with a double backtick is not registered and the dataset gets an `ERR_sql` item. A SQL body that AlaSQL cannot parse now also sets `ERR_sql` (before: console only). Two backticks with only a comment between them count as a double backtick.
+
+#### Layout attributes take exactly one CSS value
+
+`width`, `height`, `position`, `top`, `right`, `bottom`, `left`, `font-size`, `grid-column` and `grid-row` are parsed by the browser before they are written to the engine's stylesheet. A value that is not valid for its property is ignored, as before. New: a value with a trailing semicolon (`width="100px;"`), with more than one declaration (`width="10px; color: red"`) or with `!important` is ignored as a whole.
+
+#### `bn-dataset` / `bn-datasource`: the URL moves from the body to `src`
+
+A body that started with `/`, `http://` or `https://` used to be fetched as a URL, so SQL that began with a `/* comment */` was requested from the server instead of being run. The body is now always inline content. To load JSON from an endpoint, set the new `src` attribute:
+
+```html
+<!-- before -->
+<bn-dataset name="sales" interval="30">https://example.com/api/sales.json</bn-dataset>
+<!-- after -->
+<bn-dataset name="sales" interval="30" src="https://example.com/api/sales.json"></bn-dataset>
+```
+
+While `src` is set the body is ignored. `interval` keeps its meaning.
+
+#### Sanitized HTML: disallowed elements are removed with their content
+
+Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title `business-unit`.
+
+- An element that is not on the allowlist is removed together with everything inside it. Before, it was replaced by its text.
+- `code`, `pre`, `blockquote` and `del` are new on the allowlist.
+- `style` is kept only when it is exactly `text-align: left`, `center` or `right`.
+- `href` and `src` accept `http:`, `https:`, `mailto:` and relative URLs. `src` also accepts `data:` URLs. Any other URL is removed.
+
 ### Fixed
 
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.
@@ -45,6 +88,16 @@ The scaling attributes on `bn-table`, `bn-chart-time`, and `bn-chart-structure` 
 - Chart wrappers: stale `AUTO_percentageScaling` warning was not cleared when a scaling group resolved.
 - `bn-chart-structure` / `bn-chart-time`: an optional attribute that was simply not set produced a warning of its own - `level: invalid value(s) 'undefined' are not supported.` and the same for `order-direction`, `unit-scaling`, `percentage-scaling`, `date-interval` and `axis-labels-mode` - next to the correct `AUTO_<field>` notice for the very same blank value. On a report with many charts these drowned out the real warnings. An omitted field now yields only its documented `AUTO_<field>` notice; `ERR_<field>` is reserved for a value that was written and is wrong.
 - SI prefix tables: removed a stray `"P"` (peta) from the negative-prefix table (femto range was shifted); `measure-scale` now accepts both `"my"` and `"μ"` for micro; magnitude→prefix picking is now `Math.log10`-based and handles exponential notation (`1e-7`, `1e24`) and boundary values correctly.
+
+### Security
+
+- Sanitized HTML (`bn-text`, `bn-message`, title `business-unit`) was parsed in the live document, so an `<img onerror>` or `<audio onerror>` inside a disallowed element ran its handler before it was removed, and `<a href="java&#x09;script:...">` passed the URL check. The HTML is now parsed in a separate inert document and URLs are checked with the URL parser.
+- `bn-text` evaluated `value` with `new Function`. The pattern check in front of it did not stop expressions such as `${t['constr'+'uctor']('...')()}`, so a template could run any JavaScript, and dataset values were joined into the markup unescaped. The evaluator is replaced by a placeholder parser and every resolved value is HTML-escaped.
+- `bn-table` pasted row values (row group names) and free-text settings (`sum-title`, `thereof`, `partof`, `columnthereof` names, `lit(...)` attributes) into quoted SQL literals. A value with an apostrophe such as `Men's Wear` broke its query, and a crafted value could run as AlaSQL inline JavaScript. These values are now passed to AlaSQL as query parameters.
+- Layout attributes were pasted into a stylesheet in the document head, so a value could close its rule and add rules for the host page (`width="10px;} body{display:none"`). Only the browser's own serialization of a value it accepted for that property is written now.
+- `bn-dataset`, `bn-datasource`: the body is no longer read as a URL (see breaking changes).
+- `SECURITY.md` describes the trust model (report content is code, row values are data), what a host must do, and the Content Security Policy the engine needs.
+- New `npm run test:dist`: security checks against the built package in headless Chrome. CI runs it after the build.
 
 ## [v0.39.0] - 2026-01-21
 

@@ -36,28 +36,25 @@ Bypass the SQL engine and provide raw JSON data directly:
 </bn-dataset>
 ```
 
-### URL Mode
+### Loading from a URL
 
-Place an `http://` or `https://` URL inside the body to fetch the dataset
-JSON from a remote endpoint. The fetched payload is written directly to the
-`datasets` store (the `static` and `raw` props are ignored in this mode).
+Set the `src` attribute to fetch the dataset JSON from an HTTP endpoint. The
+fetched payload is written directly to the `datasets` store. While `src` is
+set, the body and the `static` and `raw` props are ignored.
 
 ```html
-<bn-dataset name="remote-data">
-  https://example.com/api/sales.json
-</bn-dataset>
+<bn-dataset name="remote-data" src="https://example.com/api/sales.json"></bn-dataset>
 ```
 
 Set the `interval` prop (in seconds) to enable periodic re-fetching:
 
 ```html
-<bn-dataset name="live-data" interval="30">
-  https://example.com/api/sales.json
-</bn-dataset>
+<bn-dataset name="live-data" src="/api/sales.json" interval="30"></bn-dataset>
 ```
 
-Polling stops automatically when the component is removed from the DOM or
-when the body content is changed back to inline SQL/JSON.
+Polling stops when the component is removed from the DOM or when `src` is
+removed. The body is never read as a URL: a body that starts with `/` or
+`http` is SQL (or JSON with `static="true"`).
 
 ### Connecting to Visualizations
 
@@ -83,24 +80,25 @@ The SQL dialect supports standard SELECT, WHERE, GROUP BY, ORDER BY, UNION, JOIN
 Queries data from one or more `bn-datasource` entries via AlaSQL and
 writes the result to the `datasets` store (+ computed `DatasetMeta`).
 
-The body content is observed via `withBodyObserver` and may be:
+The body content is observed via `withBodyObserver` and is always inline:
 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    parsed body directly to the `datasets` store.
-3. **URL** - place an `http://`/`https://` URL or a same-origin path
-   starting with `/` in the body to fetch JSON from an HTTP endpoint and
-   write it to the `datasets` store. Set the `interval` prop (in seconds)
-   to enable periodic re-fetching.
+
+Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+write it to the `datasets` store. Set the `interval` prop (in seconds)
+to enable periodic re-fetching.
 
 ## Properties
 
-| Property            | Attribute     | Description                                                                                                                                                                                                                                   | Type      | Default     |
-| ------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                                                                                                                                      | `string`  | `""`        |
-| `interval`          | `interval`    | Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
-| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                                                                                                                                                                                | `string`  | `undefined` |
-| `raw`               | `raw`         | When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`).                                                                                                     | `boolean` | `true`      |
-| `static`            | `static`      | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.                                                                                                               | `boolean` | `false`     |
+| Property            | Attribute     | Description                                                                                                                                                                                                                      | Type      | Default     |
+| ------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                                                                                                                         | `string`  | `""`        |
+| `interval`          | `interval`    | Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
+| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                                                                                                                                                                   | `string`  | `undefined` |
+| `raw`               | `raw`         | When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`).                                                                                        | `boolean` | `true`      |
+| `src`               | `src`         | URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).                                                         | `string`  | `undefined` |
+| `static`            | `static`      | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.                                                                                                  | `boolean` | `false`     |
 
 
 ----------------------------------------------

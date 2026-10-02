@@ -136,7 +136,7 @@ The `<bn-text>` component can reference translations with the `t()` function. `b
   { "labels": { "revenue": "Net Revenue" } }
 </bn-internationalization>
 
-<bn-text value="${t('labels.revenue')}: ${data.revenue.ac1}"></bn-text>
+<bn-text datasets="revenue" value="${t('labels.revenue')}: ${data.revenue[0].ac1}"></bn-text>
 ```
 
 ## Full Example

@@ -608,14 +608,13 @@ export namespace Components {
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
    * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-   * The body content is observed via `withBodyObserver` and may be:
+   * The body content is observed via `withBodyObserver` and is always inline:
    * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
-   * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-   *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-   *    to enable periodic re-fetching.
+   * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * to enable periodic re-fetching.
    */
   interface BnDataset {
     /**
@@ -624,7 +623,7 @@ export namespace Components {
      */
     "datasources": string;
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval": number;
@@ -638,6 +637,10 @@ export namespace Components {
      */
     "raw": boolean;
     /**
+      * URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).
+     */
+    "src"?: string;
+    /**
       * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
       * @default false
      */
@@ -648,16 +651,16 @@ export namespace Components {
    * Data can be provided in three ways:
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-   * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-   * In URL mode the component fetches JSON from the URL. Set the `interval`
-   * prop (in seconds) to enable periodic re-fetching (polling).
+   * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    (polling).
+   * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
   interface BnDatasource {
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval": number;
@@ -666,10 +669,14 @@ export namespace Components {
      */
     "name": string;
     /**
-      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored in URL mode.
+      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored when `src` is set.
       * @default true
      */
     "raw": boolean;
+    /**
+      * URL to fetch the JSON from. When set, the body is ignored.
+     */
+    "src"?: string;
   }
   interface BnFooter {
     /**
@@ -1021,7 +1028,7 @@ export namespace Components {
      */
     "image": string;
     /**
-      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; event handlers and `javascript:` URLs are stripped). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
+      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; any other element is removed with its content, and links keep only `http:`, `https:`, `mailto:` and relative URLs). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
      */
     "text": string;
   }
@@ -1234,11 +1241,12 @@ export namespace Components {
     "templateId": string;
   }
   /**
-   * Renders a template-driven text block with dataset interpolation.
-   * The `value` prop is evaluated as a JavaScript template literal in a
-   * sandboxed scope (`data` and `t` are available) and sanitized against
-   * XSS before being injected as HTML. Supports auto-scaling to fit the
-   * parent container.
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
    */
   interface BnText {
     /**
@@ -1246,7 +1254,7 @@ export namespace Components {
      */
     "scale"?: string;
     /**
-      * Template string rendered as HTML. Supports JavaScript template literal syntax - use `${data.<dataset>}` to interpolate dataset values and `${t('<key>')}` for translated strings.  The template is evaluated in a sandboxed scope (only `data` and `t` are accessible; globals like `window`/`document` are blocked) and the output is sanitized against XSS (only safe HTML tags and attributes are kept).
+      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
       * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
      */
     "value"?: string;
@@ -1839,6 +1847,10 @@ export namespace Components {
      */
     "dataVersion": number;
     /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
       * @default ""
      */
     "filter": string;
@@ -2096,14 +2108,13 @@ declare global {
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
    * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-   * The body content is observed via `withBodyObserver` and may be:
+   * The body content is observed via `withBodyObserver` and is always inline:
    * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
-   * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-   *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-   *    to enable periodic re-fetching.
+   * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * to enable periodic re-fetching.
    */
   interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
   }
@@ -2116,10 +2127,10 @@ declare global {
    * Data can be provided in three ways:
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-   * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-   * In URL mode the component fetches JSON from the URL. Set the `interval`
-   * prop (in seconds) to enable periodic re-fetching (polling).
+   * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    (polling).
+   * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
@@ -2227,11 +2238,12 @@ declare global {
     new(): HTMLBnTemplateElement;
   };
   /**
-   * Renders a template-driven text block with dataset interpolation.
-   * The `value` prop is evaluated as a JavaScript template literal in a
-   * sandboxed scope (`data` and `t` are available) and sanitized against
-   * XSS before being injected as HTML. Supports auto-scaling to fit the
-   * parent container.
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
    */
   interface HTMLBnTextElement extends Components.BnText, HTMLStencilElement {
   }
@@ -2895,14 +2907,13 @@ declare namespace LocalJSX {
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
    * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-   * The body content is observed via `withBodyObserver` and may be:
+   * The body content is observed via `withBodyObserver` and is always inline:
    * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
-   * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-   *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-   *    to enable periodic re-fetching.
+   * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * to enable periodic re-fetching.
    */
   interface BnDataset {
     /**
@@ -2911,7 +2922,7 @@ declare namespace LocalJSX {
      */
     "datasources"?: string;
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval"?: number;
@@ -2925,6 +2936,10 @@ declare namespace LocalJSX {
      */
     "raw"?: boolean;
     /**
+      * URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).
+     */
+    "src"?: string;
+    /**
       * When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.
       * @default false
      */
@@ -2935,16 +2950,16 @@ declare namespace LocalJSX {
    * Data can be provided in three ways:
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-   * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-   *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-   * In URL mode the component fetches JSON from the URL. Set the `interval`
-   * prop (in seconds) to enable periodic re-fetching (polling).
+   * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    (polling).
+   * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
   interface BnDatasource {
     /**
-      * Polling interval in **seconds** for URL mode. When set and the body content is a URL, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
       * @default 0
      */
     "interval"?: number;
@@ -2953,10 +2968,14 @@ declare namespace LocalJSX {
      */
     "name": string;
     /**
-      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored in URL mode.
+      * When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored when `src` is set.
       * @default true
      */
     "raw"?: boolean;
+    /**
+      * URL to fetch the JSON from. When set, the body is ignored.
+     */
+    "src"?: string;
   }
   interface BnFooter {
     /**
@@ -3301,7 +3320,7 @@ declare namespace LocalJSX {
      */
     "image"?: string;
     /**
-      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; event handlers and `javascript:` URLs are stripped). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
+      * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; any other element is removed with its content, and links keep only `http:`, `https:`, `mailto:` and relative URLs). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
      */
     "text"?: string;
   }
@@ -3509,11 +3528,12 @@ declare namespace LocalJSX {
     "templateId"?: string;
   }
   /**
-   * Renders a template-driven text block with dataset interpolation.
-   * The `value` prop is evaluated as a JavaScript template literal in a
-   * sandboxed scope (`data` and `t` are available) and sanitized against
-   * XSS before being injected as HTML. Supports auto-scaling to fit the
-   * parent container.
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
    */
   interface BnText {
     /**
@@ -3521,7 +3541,7 @@ declare namespace LocalJSX {
      */
     "scale"?: string;
     /**
-      * Template string rendered as HTML. Supports JavaScript template literal syntax - use `${data.<dataset>}` to interpolate dataset values and `${t('<key>')}` for translated strings.  The template is evaluated in a sandboxed scope (only `data` and `t` are accessible; globals like `window`/`document` are blocked) and the output is sanitized against XSS (only safe HTML tags and attributes are kept).
+      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
       * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
      */
     "value"?: string;
@@ -4106,6 +4126,10 @@ declare namespace LocalJSX {
      */
     "dataVersion"?: number;
     /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
       * @default ""
      */
     "filter"?: string;
@@ -4356,11 +4380,13 @@ declare namespace LocalJSX {
     "static": boolean;
     "raw": boolean;
     "interval": number;
+    "src": string;
   }
   interface BnDatasourceAttributes {
     "name": string;
     "raw": boolean;
     "interval": number;
+    "src": string;
   }
   interface BnFooterAttributes {
     "pageNumber": number | null;
@@ -4742,14 +4768,13 @@ declare module "@stencil/core" {
       /**
        * Queries data from one or more `bn-datasource` entries via AlaSQL and
        * writes the result to the `datasets` store (+ computed `DatasetMeta`).
-       * The body content is observed via `withBodyObserver` and may be:
+       * The body content is observed via `withBodyObserver` and is always inline:
        * 1. **SQL** (default) - AlaSQL query against referenced `datasources`.
        * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
        *    parsed body directly to the `datasets` store.
-       * 3. **URL** - place an `http://`/`https://` URL or a same-origin path
-       *    starting with `/` in the body to fetch JSON from an HTTP endpoint and
-       *    write it to the `datasets` store. Set the `interval` prop (in seconds)
-       *    to enable periodic re-fetching.
+       * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
+       * write it to the `datasets` store. Set the `interval` prop (in seconds)
+       * to enable periodic re-fetching.
        */
       "bn-dataset": LocalJSX.IntrinsicElements["bn-dataset"] & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
       /**
@@ -4757,10 +4782,10 @@ declare module "@stencil/core" {
        * Data can be provided in three ways:
        * 1. **Inline JSON** - Place JSON text inside the element body (default).
        * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
-       * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
-       *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
-       * In URL mode the component fetches JSON from the URL. Set the `interval`
-       * prop (in seconds) to enable periodic re-fetching (polling).
+       * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+       *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+       *    (polling).
+       * The body is always inline data and is ignored while `src` is set.
        * Other components (e.g. `bn-dataset`) reference the stored data by the
        * `name` prop to run queries against it.
        */
@@ -4803,11 +4828,12 @@ declare module "@stencil/core" {
       "bn-table": LocalJSX.IntrinsicElements["bn-table"] & JSXBase.HTMLAttributes<HTMLBnTableElement>;
       "bn-template": LocalJSX.IntrinsicElements["bn-template"] & JSXBase.HTMLAttributes<HTMLBnTemplateElement>;
       /**
-       * Renders a template-driven text block with dataset interpolation.
-       * The `value` prop is evaluated as a JavaScript template literal in a
-       * sandboxed scope (`data` and `t` are available) and sanitized against
-       * XSS before being injected as HTML. Supports auto-scaling to fit the
-       * parent container.
+       * Renders a text block from a template with dataset and translation
+       * placeholders.
+       * The `value` prop is markup with `${...}` placeholders. Placeholders are
+       * looked up, never evaluated. Resolved values are HTML-escaped and the
+       * result is sanitized before it is inserted. Supports auto-scaling to fit
+       * the parent container.
        */
       "bn-text": LocalJSX.IntrinsicElements["bn-text"] & JSXBase.HTMLAttributes<HTMLBnTextElement>;
       /**

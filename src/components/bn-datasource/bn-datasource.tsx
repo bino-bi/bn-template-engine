@@ -10,11 +10,11 @@ import { computeContentHash, decodeCompressedContent } from "../../utils/content
  * Data can be provided in three ways:
  * 1. **Inline JSON** - Place JSON text inside the element body (default).
  * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
- * 3. **URL** - Place an `http://`/`https://` URL or a same-origin path
- *    starting with `/` in the body to fetch JSON from an HTTP endpoint.
+ * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
+ *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+ *    (polling).
  *
- * In URL mode the component fetches JSON from the URL. Set the `interval`
- * prop (in seconds) to enable periodic re-fetching (polling).
+ * The body is always inline data and is ignored while `src` is set.
  *
  * Other components (e.g. `bn-dataset`) reference the stored data by the
  * `name` prop to run queries against it.
@@ -33,17 +33,22 @@ export class Datasource {
   /**
    * When true (default), body content is plain JSON text.
    * When false, body content is a compressed payload (`<hash>:<base64_gzip>`).
-   * Ignored in URL mode.
+   * Ignored when `src` is set.
    */
   @Prop() raw: boolean = true;
 
   /**
-   * Polling interval in **seconds** for URL mode.
-   * When set and the body content is a URL, the component re-fetches
-   * data at this interval. Has no effect for inline JSON or compressed content.
+   * Polling interval in **seconds** for `src`.
+   * When set together with `src`, the component re-fetches data at this
+   * interval. Has no effect for inline JSON or compressed content.
    * Set to `0` or leave unset to disable polling.
    */
   @Prop() interval: number = 0;
+
+  /**
+   * URL to fetch the JSON from. When set, the body is ignored.
+   */
+  @Prop() src?: string;
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
@@ -61,51 +66,52 @@ export class Datasource {
   constructor() {
     withComponentStatus(this);
     this.errors = withHasError(this);
-    withBodyObserver(this, (data) => {
-      if (!this.stores) this.stores = getStores(this.element);
+    withBodyObserver(this, (data) => this.sync(data));
+  }
 
-      const trimmed = data.trim();
+  /** Loads from `src` when it is set, otherwise from the inline body. */
+  private sync(data: string): void {
+    if (!this.stores) this.stores = getStores(this.element);
 
-      // --- URL mode ---
-      if (this.isUrl(trimmed)) {
-        if (trimmed === this.currentUrl) return;
-        this.currentUrl = trimmed;
-        this.lastHash = null;
-        this.fetchAndStore(trimmed);
-        this.startPolling();
-        return;
+    // --- URL mode ---
+    if (this.src) {
+      if (this.src === this.currentUrl) return;
+      this.currentUrl = this.src;
+      this.lastHash = null;
+      this.fetchAndStore(this.src);
+      this.startPolling();
+      return;
+    }
+
+    // --- Leaving URL mode → clean up ---
+    if (this.currentUrl !== null) {
+      this.cancelInFlight();
+      this.currentUrl = null;
+    }
+
+    // --- Inline JSON / compressed mode ---
+    try {
+      let contentHash: string;
+      let jsonString: string;
+
+      if (this.raw) {
+        contentHash = computeContentHash(data);
+        jsonString = data;
+      } else {
+        const decoded = decodeCompressedContent(data);
+        contentHash = decoded.hash;
+        jsonString = decoded.json;
       }
 
-      // --- Leaving URL mode → clean up ---
-      if (this.currentUrl !== null) {
-        this.cancelInFlight();
-        this.currentUrl = null;
-      }
+      if (contentHash === this.lastHash) return;
+      this.lastHash = contentHash;
 
-      // --- Inline JSON / compressed mode ---
-      try {
-        let contentHash: string;
-        let jsonString: string;
-
-        if (this.raw) {
-          contentHash = computeContentHash(data);
-          jsonString = data;
-        } else {
-          const decoded = decodeCompressedContent(data);
-          contentHash = decoded.hash;
-          jsonString = decoded.json;
-        }
-
-        if (contentHash === this.lastHash) return;
-        this.lastHash = contentHash;
-
-        const json = JSON.parse(jsonString);
-        this.publish(json);
-      } catch (e) {
-        console.error("Error parsing datasource", e, String(data).slice(0, 200));
-        this.publish([]);
-      }
-    });
+      const json = JSON.parse(jsonString);
+      this.publish(json);
+    } catch (e) {
+      console.error("Error parsing datasource", e, String(data).slice(0, 200));
+      this.publish([]);
+    }
   }
 
   /**
@@ -125,6 +131,12 @@ export class Datasource {
     }
   }
 
+  @Watch("src")
+  onSrcChange(): void {
+    // a detached element must not fetch or poll; the body callback reads src again on connect
+    if (this.element.isConnected) this.sync(this.element.textContent ?? "");
+  }
+
   disconnectedCallback(): void {
     this.cancelInFlight();
     const db = this.stores?.db?.db;
@@ -139,16 +151,6 @@ export class Datasource {
       }
       this.stores.db.notify(this.name);
     }
-  }
-
-  /**
-   * Returns `true` if the text is a fetchable URL: an absolute `http(s)://`
-   * URL, or a same-origin path starting with `/` (but not `//`, which is a
-   * protocol-relative URL we treat as inline-mode escape).
-   */
-  private isUrl(text: string): boolean {
-    if (text.startsWith("http://") || text.startsWith("https://")) return true;
-    return text.startsWith("/") && !text.startsWith("//");
   }
 
   /**
@@ -181,7 +183,7 @@ export class Datasource {
   }
 
   /** Stops the polling timer AND cancels any in-flight fetch. Use only when
-   *  leaving URL mode entirely (disconnect or body changed to inline). */
+   *  leaving URL mode entirely (disconnect or `src` removed). */
   private cancelInFlight(): void {
     this.clearPollTimer();
     this.abortController?.abort();

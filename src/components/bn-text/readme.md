@@ -1,37 +1,44 @@
 # bn-text
 
-Template-driven text block with dataset value interpolation and translation support. Output is sanitized against XSS.
+Text block with dataset and translation placeholders. The template is never evaluated: placeholders are looked up, resolved values are HTML-escaped and the output is sanitized.
 
 ## Usage
 
 ```html
-<bn-text value="Revenue: ${data.sales[0].ac1}"></bn-text>
+<bn-text datasets="sales" value="Revenue: ${data.sales[0].ac1}"></bn-text>
 ```
 
-### Dataset Interpolation
+### Placeholders
 
-Access dataset values using `${data.<datasetName>}`:
+| Placeholder | Result |
+| ----------- | ------ |
+| `${data.<dataset>[<row>].<field>}` | Value of a field in a row of a dataset listed in `datasets` |
+| `${data['<name>'][<row>].<field>}` | Same, for names that are not plain identifiers, for example the datasource reference `$revenue` |
+| `${t('<key>')}` | Translation of the key |
+| `${t('<key>', { name: 'text', count: 3, value: data.sales[0].ac1 })}` | Translation with values for its `{{name}}` placeholders (text, number or a data path) |
 
 ```html
-<bn-text value="Total: ${data.revenue[0].ac1} EUR"></bn-text>
+<bn-text datasets="revenue" value="Total: ${data.revenue[0].ac1} EUR"></bn-text>
 ```
 
-The `data` object contains all datasets keyed by name, each as an array of rows.
+The `data` object contains all datasets keyed by name, each as an array of rows. `this.data` is accepted as another spelling of `data`.
+
+Anything else, including any other `${...}` expression, is printed as written. A placeholder that points to a missing dataset, row or field renders empty and adds a `WARN_value_path` warning to `has-error`.
 
 ### Translations
 
 Use the `t()` function to resolve translation keys:
 
 ```html
-<bn-text value="${t('custom.labels.revenue')}: ${data.revenue[0].ac1}"></bn-text>
+<bn-text datasets="revenue" value="${t('custom.labels.revenue')}: ${data.revenue[0].ac1}"></bn-text>
 ```
 
 ### HTML Content
 
-The template output is rendered as HTML. Safe tags (`<b>`, `<i>`, `<br>`, `<span>`, etc.) are allowed; unsafe content is stripped:
+Markup written in the template is rendered as HTML. Basic formatting, lists, tables, links and images are allowed. Any other element is removed together with its content. Values that come from a dataset or a translation are always shown as text:
 
 ```html
-<bn-text value="<b>Revenue</b>: ${data.revenue[0].ac1}"></bn-text>
+<bn-text datasets="revenue" value="<b>Revenue</b>: ${data.revenue[0].ac1}"></bn-text>
 ```
 
 ### Scaling
@@ -52,19 +59,20 @@ The template output is rendered as HTML. Safe tags (`<b>`, `<i>`, `<br>`, `<span
 
 ## Overview
 
-Renders a template-driven text block with dataset interpolation.
+Renders a text block from a template with dataset and translation
+placeholders.
 
-The `value` prop is evaluated as a JavaScript template literal in a
-sandboxed scope (`data` and `t` are available) and sanitized against
-XSS before being injected as HTML. Supports auto-scaling to fit the
-parent container.
+The `value` prop is markup with `${...}` placeholders. Placeholders are
+looked up, never evaluated. Resolved values are HTML-escaped and the
+result is sanitized before it is inserted. Supports auto-scaling to fit
+the parent container.
 
 ## Properties
 
 | Property | Attribute | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Type     | Default     |
 | -------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
 | `scale`  | `scale`   | Controls font-size scaling relative to the available parent space. Scaling considers both width and height - the tighter constraint wins.  \| Value          \| Behavior                                                       \| \|----------------\|----------------------------------------------------------------\| \| not set / `""` \| Auto-scale to fit, emit `AUTO_scale` warning with applied factor \| \| `"none"`       \| No scaling; emit `WARN_overflow` warning if content overflows  \| \| `"auto"`       \| Auto-scale to fit, silent (no warning)                         \| \| `"0.5"`, `"1.2"`, … \| Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows \|  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning. | `string` | `undefined` |
-| `value`  | `value`   | Template string rendered as HTML. Supports JavaScript template literal syntax - use `${data.<dataset>}` to interpolate dataset values and `${t('<key>')}` for translated strings.  The template is evaluated in a sandboxed scope (only `data` and `t` are accessible; globals like `window`/`document` are blocked) and the output is sanitized against XSS (only safe HTML tags and attributes are kept).                                                                                                                                                                                                                                                                                                                                                                                                                         | `string` | `undefined` |
+| `value`  | `value`   | Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.                                                                                                                                                       | `string` | `undefined` |
 
 
 ----------------------------------------------

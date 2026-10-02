@@ -56,7 +56,7 @@ describe("bn-message text rendering", () => {
   it("sanitizes dangerous markup", async () => {
     const note = await renderMessage(`<img src="x" onerror="alert(1)" /><script>alert(1)</script>`);
 
-    expect(note.innerHTML).toBe(`<img src="x">alert(1)`);
+    expect(note.innerHTML).toBe(`<img src="x">`);
   });
 
   it("renders plain text unchanged", async () => {

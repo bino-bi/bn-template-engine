@@ -39,7 +39,7 @@ it("should sanitize dangerous markup in the Business Unit", async () => {
   });
 
   const unit = page.root.shadowRoot.querySelector("div > div");
-  expect(unit.innerHTML).toBe("alert(1)Acme &amp; Co");
+  expect(unit.innerHTML).toBe("Acme &amp; Co");
 });
 
 it("should render my component empty null values ", async () => {
