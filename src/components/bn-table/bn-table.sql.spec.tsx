@@ -167,4 +167,23 @@ describe("bn-table: data values in queries", () => {
     expect(errors(page).find((e) => e.id === "ERR_sql")?.type).toBe("error");
     expect(inner(page).shadowRoot.querySelector("table")).toBeNull();
   });
+
+  it.each([
+    ["double backticks", "1 = ``(globalThis.__pwned = 1)``"],
+    ["backticks joined by a comment", "1 = `/**/`(globalThis.__pwned = 1)`/**/`"],
+  ])("rejects a filter with %s: ERR_filter, no data, nothing runs", async (_name, filter) => {
+    const page = await renderTable({ filter });
+
+    expect(errors(page).find((e) => e.id === "ERR_filter")?.type).toBe("error");
+    expect(inner(page).shadowRoot.querySelector(".empty-state")).not.toBeNull();
+    expect(inner(page).shadowRoot.querySelector("table")).toBeNull();
+    expect(pwned()).toBeUndefined();
+  });
+
+  it("applies a plain filter and reports nothing", async () => {
+    const page = await renderTable({ filter: "category = 'Abidjan'" });
+
+    expect(bodyRows(page).filter((r) => hasClass(r, "groupheader"))).toHaveLength(1);
+    expect(errors(page).some((e) => e.id === "ERR_filter")).toBe(false);
+  });
 });

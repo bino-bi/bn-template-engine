@@ -2,6 +2,7 @@ import { Component, Prop, h, Host, Watch } from "@stencil/core";
 import withDatasource from "../../utils/withDatasource";
 import withBodyObserver from "../../utils/withBodyObserver";
 import { getStores, ScopedStores } from "../../context/context-protocol";
+import { hasInlineJs } from "../../context/scopedDb";
 import { calculateDatasetMeta } from "../../utils/datasetMetaCalculator";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -49,6 +50,7 @@ export class Dataset {
         if (trimmed === this.currentUrl) return;
         this.currentUrl = trimmed;
         this.lastBodyHash = null;
+        this.errors.remove("ERR_sql");
         this.fetchAndStore(trimmed);
         this.startPolling();
         return;
@@ -148,6 +150,7 @@ export class Dataset {
       }
       db.tables[this.name] = { data: Array.isArray(result) ? result : [] };
       this.lastViewQuery = null;
+      this.errors.remove("ERR_sql");
     } else {
       // SQL: register the dataset as a view in the shared db. Recreate only when the
       // query text changes; otherwise we just re-materialize so upstream data updates
@@ -172,10 +175,18 @@ export class Dataset {
           delete db.views[this.name];
         }
         try {
+          // checked before exec: in "SELECT ...; <inline js>" alasql would run the second statement right away
+          if (hasInlineJs(this.query)) throw new Error("double backticks are not allowed.");
           db.exec(`CREATE VIEW \`${this.name}\` AS ${this.query}`);
           this.lastViewQuery = this.query;
+          this.errors.remove("ERR_sql");
         } catch (e) {
           console.error("bn-dataset: failed to register SQL view", e, this.query);
+          this.errors.addOrReplace({
+            id: "ERR_sql",
+            type: "error",
+            message: `SQL: ${e instanceof Error ? e.message : e}`,
+          });
           this.lastViewQuery = null;
           result = [];
           this.publish(result);

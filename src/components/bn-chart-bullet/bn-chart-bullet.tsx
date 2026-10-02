@@ -1,4 +1,5 @@
 import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, writeTask } from "@stencil/core";
+import { hasInlineJs } from "../../context/scopedDb";
 import { ComponentLayoutState, LayoutStateOptions, collectXYFacadeState, originsFor } from "../../utils/layoutState";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { RuleSetConfig } from "../../stores/ruleSets";
@@ -92,6 +93,20 @@ export class ChartBullet {
    */
   @Prop()
   filter: string = "";
+
+  @Watch("filter")
+  validateFilter(newValue: string) {
+    const errId: string = "ERR_filter";
+    if (hasInlineJs(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "error",
+        message: "filter: double backticks are not allowed.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
 
   /**
    * Actual-value measure. JSON object or a bare scenario slot as shorthand:
@@ -308,6 +323,7 @@ export class ChartBullet {
   }
 
   componentWillLoad() {
+    this.validateFilter(this.filter);
     this.validateActual(this.actual);
     this.validateTarget(this.target);
     this.validateRanges(this.ranges);

@@ -24,9 +24,22 @@ export type AlaSQLDatabase = InstanceType<typeof alasql.Database>;
  */
 export function buildFromExpr(tableName: string, filter?: string | null): string {
   if (filter != null && filter.length > 0) {
-    return `(SELECT * FROM \`${tableName}\` WHERE ${filter}) AS __src`;
+    // a rejected filter (the wrappers report ERR_filter) selects nothing instead of reaching alasql
+    return `(SELECT * FROM \`${tableName}\` WHERE ${hasInlineJs(filter) ? "1 = 0" : filter}) AS __src`;
   }
   return `\`${tableName}\``;
+}
+
+/**
+ * True when alasql would find a double backtick in `sql`: it runs the text
+ * between double backticks as JavaScript. alasql strips comments before it
+ * reads the text, so two backticks with only a comment between them count too.
+ */
+export function hasInlineJs(sql?: string | null): boolean {
+  if (!sql) return false;
+  // @ts-ignore - utils is not in the public typings
+  const uncommented: string = alasql.utils?.uncomment?.(sql) ?? "";
+  return sql.includes("``") || uncommented.includes("``");
 }
 
 /** Pub/sub-enabled wrapper around an isolated alasql database. */

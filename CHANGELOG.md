@@ -49,6 +49,10 @@ Any other `${...}` (arithmetic, method calls, conditions) is printed as written.
 
 When one of the table's queries fails, the table is not rendered and `has-error` gets an `ERR_sql` item of type `error`. Before, the failed part was dropped silently: a row group could disappear while the total still counted its rows. Two inputs that used to render a broken table now end in `ERR_sql`: a scenario or a `columnthereof` scenario key that is not a plain identifier (letters, digits, `_`), and a negative `limit`.
 
+#### `filter` and `bn-dataset` SQL: double backticks are rejected
+
+AlaSQL runs text between double backticks as JavaScript. A `filter` (on `bn-table` and the five charts) that contains a double backtick is not sent to AlaSQL: the component shows its no-data state and `has-error` gets an `ERR_filter` item of type `error`. A `bn-dataset` SQL body with a double backtick is not registered and the dataset gets an `ERR_sql` item. A SQL body that AlaSQL cannot parse now also sets `ERR_sql` (before: console only). Two backticks with only a comment between them count as a double backtick.
+
 #### Sanitized HTML: disallowed elements are removed with their content
 
 Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title `business-unit`.

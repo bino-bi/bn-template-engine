@@ -1,4 +1,5 @@
 import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, writeTask } from "@stencil/core";
+import { hasInlineJs } from "../../context/scopedDb";
 import {
   isBlankInput,
   isTableBarColumnWidth,
@@ -241,6 +242,20 @@ export class Table {
    */
   @Prop()
   filter: string = "";
+
+  @Watch("filter")
+  validateFilter(newValue: string) {
+    const errId: string = "ERR_filter";
+    if (hasInlineJs(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "error",
+        message: "filter: double backticks are not allowed.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
 
   /**
    * measureUnit displayed in table.
@@ -950,6 +965,7 @@ export class Table {
   }
 
   componentWillLoad() {
+    this.validateFilter(this.filter);
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateDataFormat(this.dataFormat);
