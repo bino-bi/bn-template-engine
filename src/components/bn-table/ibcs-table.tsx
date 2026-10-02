@@ -374,6 +374,7 @@ export class IbcsTable {
                           isRelative={false}
                           isPositiveGood={cell.key.endsWith("_pos")}
                           measureScale={cell.measureScale}
+                          locale={locale}
                           columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                           waterfall={cell.waterfall}
@@ -386,7 +387,10 @@ export class IbcsTable {
                           height={18 * this.scaleFactor}
                           isRelative={cell.key.startsWith("dr")}
                           isPositiveGood={cell.key.endsWith("_pos")}
-                          measureScale={cell.measureScale}
+                          // percentage points: the fraction times 100, no measure scale
+                          measureScale={cell.type === "percentpoint" ? 0.01 : cell.measureScale}
+                          locale={locale}
+                          percentDigits={this.componentDataFormatDigits.percent}
                           columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                         />

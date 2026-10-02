@@ -1,5 +1,6 @@
 import { h, FunctionalComponent } from "@stencil/core";
 import { ColumnStats } from "./Cell";
+import { Formatter } from "../../../../utils";
 import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "../helper/barColumnGeometry";
 
 /** Matches SYSTEM_STYLE_DEFAULTS.global.fontSizePx; only used when `styles` is omitted. */
@@ -49,6 +50,8 @@ export interface CellBarChartProps {
   isPositiveGood: boolean;
   formattedValue?: string;
   measureScale?: number;
+  locale?: string;
+  percentDigits?: number;
   /** Total column width in table em - see barColumnGeometry.ts. */
   columnWidthEm?: number;
   styles?: CellBarChartStyles;
@@ -112,41 +115,55 @@ export const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = 
   );
 };
 
+/** Characters that fit the pin label gutter (PIN_LABEL_EM), the cell cuts off the rest. */
+const PIN_LABEL_CHARS = 7;
+
 /**
  * Formats a number for display with appropriate SI prefix.
  */
-export function formatValue(value: number, isRelative: boolean, measureScale: number = 1): string {
-  let scaledValue: number;
-  let absValue: number;
+export function formatValue(
+  value: number,
+  isRelative: boolean,
+  measureScale: number = 1,
+  locale?: string,
+  percentDigits: number = 0,
+): string {
   const prefix = value >= 0 ? "+" : "";
 
   if (isRelative) {
     // Relative variance is stored as decimal (e.g., -2.0 = -200%)
-    // Multiply by 100 to get percentage value for display
-    scaledValue = value * 100;
-    // Show as integer percentage with % suffix
-    return prefix + Math.round(scaledValue).toString() + "%";
-  } else {
-    // Absolute variance - apply measure scale and use SI prefixes
-    scaledValue = value / measureScale;
-    absValue = Math.abs(scaledValue);
+    const format = (digits: number) => prefix + Formatter.number(value, "percent", digits, digits, 1, locale);
+    // Intl throws on a digit count outside 0 to 20
+    let digits = Math.min(20, Math.max(0, Math.trunc(percentDigits) || 0));
 
-    let formatted: string;
-    if (absValue >= 1000000000) {
-      formatted = (scaledValue / 1000000000).toFixed(absValue >= 10000000000 ? 0 : 1) + "B";
-    } else if (absValue >= 1000000) {
-      formatted = (scaledValue / 1000000).toFixed(absValue >= 10000000 ? 0 : 1) + "M";
-    } else if (absValue >= 1000) {
-      formatted = (scaledValue / 1000).toFixed(absValue >= 10000 ? 0 : 1) + "K";
-    } else {
-      formatted = scaledValue.toFixed(absValue >= 10 ? 0 : 1);
+    while (digits > 0 && format(digits).length > PIN_LABEL_CHARS) {
+      digits--;
     }
 
-    // Remove trailing .0 if present
-    formatted = formatted.replace(/\.0([KMB]?)$/, "$1");
-
-    return prefix + formatted;
+    return format(digits);
   }
+
+  // Absolute variance - apply measure scale and use SI prefixes
+  const scaledValue = value / measureScale;
+  const absValue = Math.abs(scaledValue);
+
+  let unit = 1;
+  let suffix = "";
+  // 999.5 of a unit rounds to 1000, so it takes the next unit (+1M, not +1.000K)
+  if (absValue >= 999500000) {
+    unit = 1000000000;
+    suffix = "B";
+  } else if (absValue >= 999500) {
+    unit = 1000000;
+    suffix = "M";
+  } else if (absValue >= 999.5) {
+    unit = 1000;
+    suffix = "K";
+  }
+
+  const digits = absValue >= unit * 10 ? 0 : 1;
+
+  return prefix + Formatter.number(scaledValue / unit, "decimal", digits, 0, 1, locale) + suffix;
 }
 
 /**
@@ -290,6 +307,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     isPositiveGood,
     formattedValue,
     measureScale,
+    locale,
     columnWidthEm = 10,
     styles = DEFAULT_STYLES,
   } = props;
@@ -336,7 +354,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const fillValue = getBarFill(barStyle, patternPrefix);
   const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
 
-  const displayValue = formattedValue || formatValue(value, false, measureScale);
+  const displayValue = formattedValue || formatValue(value, false, measureScale, locale);
 
   // Normal bar width (clamped to cutWidth when extreme)
   const baseBarWidth = isExtreme ? cutWidth : scaledWidth;
@@ -416,6 +434,8 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     isPositiveGood,
     formattedValue,
     measureScale,
+    locale,
+    percentDigits,
     columnWidthEm = 10,
     styles = DEFAULT_STYLES,
   } = props;
@@ -442,7 +462,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
   const dotRadius = 3 * s;
 
-  const displayValue = formattedValue || formatValue(value, true, measureScale);
+  const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits);
 
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart relative-variance" style={{ overflow: "visible" }}>

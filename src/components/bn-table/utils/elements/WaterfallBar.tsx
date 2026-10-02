@@ -32,7 +32,16 @@ export interface WaterfallBarProps extends CellBarChartProps {
  * guides marking their parent bar's extent.
  */
 export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
-  const { value, scenario, height, measureScale, columnWidthEm = 10, styles = DEFAULT_STYLES, waterfall } = props;
+  const {
+    value,
+    scenario,
+    height,
+    measureScale,
+    locale,
+    columnWidthEm = 10,
+    styles = DEFAULT_STYLES,
+    waterfall,
+  } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
 
@@ -65,7 +74,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
 
   // Scenario values carry no variance sentiment - labels are unsigned per IBCS
-  const displayValue = formatValue(value, waterfall.kind === "partof", measureScale).replace(/^\+/, "");
+  const displayValue = formatValue(value, waterfall.kind === "partof", measureScale, locale).replace(/^\+/, "");
 
   const pointsLeft = endX < startX;
   const labelX = pointsLeft ? barX - labelGap : barX + barWidth + labelGap;
