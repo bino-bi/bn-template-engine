@@ -1840,6 +1840,10 @@ export namespace Components {
      */
     "dataVersion": number;
     /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
       * @default ""
      */
     "filter": string;
@@ -4108,6 +4112,10 @@ declare namespace LocalJSX {
       * @default 0
      */
     "dataVersion"?: number;
+    /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
     /**
       * @default ""
      */

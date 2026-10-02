@@ -45,6 +45,10 @@ The scaling attributes on `bn-table`, `bn-chart-time`, and `bn-chart-structure` 
 
 Any other `${...}` (arithmetic, method calls, conditions) is printed as written. Dataset values and translations are HTML-escaped, so markup inside a value or a translation is shown as text. A backslash or a backtick in the text is printed as it is. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning to `has-error`. This also happens while a dataset is still loading and for a dataset without rows. `ERR_value_eval` is gone.
 
+#### `bn-table`: a failed query gives `ERR_sql` instead of a partial table
+
+When one of the table's queries fails, the table is not rendered and `has-error` gets an `ERR_sql` item of type `error`. Before, the failed part was dropped silently: a row group could disappear while the total still counted its rows. Two inputs that used to render a broken table now end in `ERR_sql`: a scenario or a `columnthereof` scenario key that is not a plain identifier (letters, digits, `_`), and a negative `limit`.
+
 #### Sanitized HTML: disallowed elements are removed with their content
 
 Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title `business-unit`.
@@ -68,6 +72,7 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 
 - Sanitized HTML (`bn-text`, `bn-message`, title `business-unit`) was parsed in the live document, so an `<img onerror>` or `<audio onerror>` inside a disallowed element ran its handler before it was removed, and `<a href="java&#x09;script:...">` passed the URL check. The HTML is now parsed in a separate inert document and URLs are checked with the URL parser.
 - `bn-text` evaluated `value` with `new Function`. The pattern check in front of it did not stop expressions such as `${t['constr'+'uctor']('...')()}`, so a template could run any JavaScript, and dataset values were joined into the markup unescaped. The evaluator is replaced by a placeholder parser and every resolved value is HTML-escaped.
+- `bn-table` pasted row values (row group names) and free-text settings (`sum-title`, `thereof`, `partof`, `columnthereof` names, `lit(...)` attributes) into quoted SQL literals. A value with an apostrophe such as `Men's Wear` broke its query, and a crafted value could run as AlaSQL inline JavaScript. These values are now passed to AlaSQL as query parameters.
 
 ## [v0.39.0] - 2026-01-21
 

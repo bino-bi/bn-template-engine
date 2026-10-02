@@ -1703,6 +1703,7 @@ export class Table {
             unitScaling={this.prepareUnitScaling()}
             percentageScaling={this.preparePercentageScaling()}
             reportAutoScaling={this.handleAutoScalingReport}
+            errors={this.errors}
             scaleFactor={effectiveFactor}
             ruleSetConfig={this.ruleSetConfig()}
             selectedStyle={this.selectedStyle}

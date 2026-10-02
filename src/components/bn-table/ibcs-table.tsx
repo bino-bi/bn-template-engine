@@ -33,6 +33,8 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 import { AutoScalingReport } from "../../utils/scaling";
 import { getStores, ScopedStores } from "../../context/context-protocol";
+import { buildFromExpr } from "../../context/scopedDb";
+import { ErrorDispatcher } from "../../utils/withHasError";
 import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "./utils/helper/barColumnGeometry";
 
 /** Aggregated column statistics driving the auto-fit of one scaling family. */
@@ -192,6 +194,10 @@ export class IbcsTable {
    */
   @Prop()
   reportAutoScaling?: (report: AutoScalingReport) => void;
+
+  /** The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users. */
+  @Prop()
+  errors?: ErrorDispatcher;
 
   @Prop()
   scaleFactor: number = 1;
@@ -404,17 +410,26 @@ export class IbcsTable {
     this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(
       this.dataFormatDigits as unknown as Record<string, unknown>,
     );
-    this.table = new Table(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config);
-    this.table.setI18n(this.i18n);
+    try {
+      this.table = new Table(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config);
+      this.table.setI18n(this.i18n);
+      // run the queries now: a failure must end as ERR_sql and no table, not as an exception in render()
+      if (!this.table.hasNoData()) this.table.getBody();
+      this.errors?.remove("ERR_sql");
+    } catch (e) {
+      console.error("ibcs-table: query failed", e);
+      this.table = undefined;
+      this.errors?.addOrReplace({
+        id: "ERR_sql",
+        type: "error",
+        message: `Query failed: ${e instanceof Error ? e.message : e}`,
+      });
+    }
     this.barChartStyles = this.prepareBarChartStyles();
   }
 
   private prepareConfig(db: import("../../context/scopedDb").AlaSQLDatabase): TableComponentConfig {
-    const fromExpr = this.tableName
-      ? this.filter && this.filter.length > 0
-        ? `(SELECT * FROM \`${this.tableName}\` WHERE ${this.filter}) AS __src`
-        : `\`${this.tableName}\``
-      : "";
+    const fromExpr = this.tableName ? buildFromExpr(this.tableName, this.filter) : "";
     const config = new TableComponentConfigAdapter(
       new TableDrillGroupAdapter(),
       new StringAdapter(),
