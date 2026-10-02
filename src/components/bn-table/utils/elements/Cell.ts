@@ -5,6 +5,9 @@ import { DataFormatDigits } from "../../../../components";
 import { Formatter } from "../../../../utils";
 import { WaterfallBarData } from "../helper/WaterfallCalculator";
 
+/** The percent sign of a formatted percent (Latin or Arabic), with the spaces and direction marks around it. */
+const PERCENT_SIGN = /[\s\u200e\u200f\u061c]*[%\u066a][\s\u200e\u200f\u061c]*/;
+
 /** Min/max statistics for a single data column, used to scale inline bar charts. */
 export interface ColumnStats {
   min: number;
@@ -20,7 +23,7 @@ export interface ColumnStats {
  * 1. Checks for undefined/null/NaN values -- returns empty string for missing data
  * 2. Non-numeric values (category labels) are returned as-is
  * 3. Numeric values are routed through Formatter.number() with the cell's type
- *    (decimal or percent) and configured digit precision
+ *    (decimal, percent or percentpoint) and configured digit precision
  * 4. For decimal type, the raw value is divided by measureScale before formatting,
  *    enabling SI prefix display (e.g. "in Mio EUR")
  */
@@ -93,6 +96,11 @@ export class Cell {
 
     let digitsMin = dataFormatDigits.percent;
     let scale = dataFormatDigits.percent;
+
+    if (this.type === "percentpoint") {
+      // difference of two percent values: percentage points, rounded like a percent cell, without the sign
+      return Formatter.number(Number(cellValue), "percent", digitsMin, scale, 1, locale).replace(PERCENT_SIGN, "");
+    }
 
     if (this.type === "decimal") {
       cellValue = +cellValue / this.measureScale;

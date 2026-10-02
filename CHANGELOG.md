@@ -115,6 +115,7 @@ A relative variance was computed as `(a - b) / b`. Against a negative reference 
 - `bn-datasource`, `bn-dataset`: `window.componentRegisterIsRenderedResult` became `true` while the first request for `src` was still running, so a PDF could be rendered with empty tables. The component now counts as rendering until that request has succeeded, failed or been cancelled. Polling requests (`interval`) do not hold the flag, and a poll tick that comes while the first request is still running is skipped instead of cancelling it. An element that is removed and attached again no longer counts as rendering forever.
 - `bn-table` and all charts: a small negative value that rounds to zero was printed as `-0,0` or `-0,0%`. It is printed as `0,0` or `0,0%` now.
 - `bn-table`: in a grouped table, rows with an empty `rowGroup` (`null`, `""` or missing) made the table repeat every row of every group under a header `null`, and the group sum printed `-`. These rows are now shown once, in one group labelled `-` whose sum is part of the total. A warning `WARN_blankRowGroup` is set in `has-error`. A numeric `rowGroup` had the same problem and is fixed too.
+- `bn-table`: in a percent table (`data-format="percent"`) an absolute variance was printed as a plain decimal, so 3,10% against 5,20% showed `-0,0`. It is printed in percentage points with the percent digits now: `-2,10`. The measure scale is not applied to it. These cells have the class and the layout state type `percentpoint` now (before `decimal`).
 
 ### Security
 

@@ -645,7 +645,7 @@ export class TableDataSetFactory {
       unitType = "percent";
 
       if (scenarios.isValid && scenarios.type === "d") {
-        unitType = "decimal";
+        unitType = "percentpoint";
       }
     } else {
       unitType = "decimal";

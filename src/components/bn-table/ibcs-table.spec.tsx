@@ -519,7 +519,7 @@ describe("IBCS Table Test", () => {
           <td class=\"base headerlabel percent\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
-          <td class=\"base decimal headerlabel\" colspan=\"1\">
+          <td class=\"base headerlabel percentpoint\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
           <td class=\"base headerlabel percent\" colspan=\"1\">
@@ -567,9 +567,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             400,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -6,0
+            -600,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
@@ -617,9 +617,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-second\"></span>
             700,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-second\"></span>
-            -13,0
+            -1.300,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-second relative_variance\"></span>
@@ -668,9 +668,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             300,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -7,0
+            -700,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
@@ -719,9 +719,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-second\"></span>
             400,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-second\"></span>
-            -6,0
+            -600,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-second relative_variance\"></span>
@@ -768,9 +768,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             100,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -9,0
+            -900,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
@@ -818,9 +818,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             1.200,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -28,0
+            -2.800,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
@@ -858,7 +858,7 @@ describe("IBCS Table Test", () => {
           <td class=\"base headerlabel percent\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
-          <td class=\"base decimal headerlabel\" colspan=\"1\">
+          <td class=\"base headerlabel percentpoint\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
           <td class=\"base headerlabel percent\" colspan=\"1\">
@@ -906,9 +906,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             400,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -26,0
+            -2.600,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
@@ -1009,9 +1009,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             200,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -8,0
+            -800,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
@@ -1059,9 +1059,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             400,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -26,0
+            -2.600,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
@@ -1109,9 +1109,9 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             1.600,00%
           </td>
-          <td class=\"base decimal neg_pos\" colspan=\"1\">
+          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
-            -54,0
+            -5.400,00
           </td>
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
