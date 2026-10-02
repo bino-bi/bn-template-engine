@@ -637,7 +637,8 @@ export class DataQuery {
     const scenariosSUMQuery = this.config.scenarios
       .map((s) => this.translateScenarioSQL(s, true, this.config.type))
       .toString();
-    const entryAliases = this.exctractScenarioNames(scenarios);
+    // two relative variances on one reference name its dr_* alias twice, it must be summed once
+    const entryAliases = [...new Set(this.exctractScenarioNames(scenarios))];
     const relativeScenarios = this.getRelativeScenarios();
     const groups = new QueryGroups(this.config);
     const isOpt = TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type;

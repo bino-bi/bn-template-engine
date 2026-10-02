@@ -116,6 +116,7 @@ A relative variance was computed as `(a - b) / b`. Against a negative reference 
 - `bn-table` and all charts: a small negative value that rounds to zero was printed as `-0,0` or `-0,0%`. It is printed as `0,0` or `0,0%` now.
 - `bn-table`: in a grouped table, rows with an empty `rowGroup` (`null`, `""` or missing) made the table repeat every row of every group under a header `null`, and the group sum printed `-`. These rows are now shown once, in one group labelled `-` whose sum is part of the total. A warning `WARN_blankRowGroup` is set in `has-error`. A numeric `rowGroup` had the same problem and is fixed too.
 - `bn-table`: in a percent table (`data-format="percent"`) an absolute variance was printed as a plain decimal, so 3,10% against 5,20% showed `-0,0`. It is printed in percentage points with the percent digits now: `-2,10`. The measure scale is not applied to it. These cells have the class and the layout state type `percentpoint` now (before `decimal`).
+- `bn-table`: with `interval` and `limit`, the REST row showed half the value for two relative variances that share one reference (for example `drac1_pp1_pos` and `drfc1_pp1_pos`), because the reference was summed twice. An actual of 90 and a forecast of 75 against a reference of 100 printed `-5.00%` and `-12.50%`, now `-10.00%` and `-25.00%`.
 
 ### Security
 
