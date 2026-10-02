@@ -451,9 +451,12 @@ export class DataQuery {
               numberOfElement.set(`${drillItem.category}`, 1);
             }
 
-            if (drillItem[QueryColumnNames.ROWNR] === 1) {
-              drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
-            } else if (duplicateSubCategoriesList.includes(drillItem.subCategory)) {
+            // the rowGroup only tells duplicate names under one parent apart, and a blank rowGroup tells nothing
+            if (
+              drillItem.rowGroup != null &&
+              drillItem.rowGroup !== "" &&
+              duplicateSubCategoriesList.includes(`${drillItem.category}##${drillItem.subCategory}`)
+            ) {
               drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
             }
 
@@ -820,7 +823,11 @@ export class DataQuery {
         finalizeBucketRow(drillRow);
         for (const segment of res) {
           for (const row of segment) {
-            if (row.type !== "DRILLELEMENT" || row.category !== drillRow.category) {
+            if (
+              row.type !== "DRILLELEMENT" ||
+              row.category !== drillRow.category ||
+              row.rowGroup !== drillRow.rowGroup
+            ) {
               continue;
             }
             if (
@@ -1063,13 +1070,13 @@ export class DataQuery {
     return scenarioNames;
   }
 
-  /** Identifies subCategory values that appear more than once in the drill set, requiring disambiguation. */
+  /** Returns the `category##subCategory` keys of subCategory values that appear more than once under one parent category. */
   private findDuplicateSubCategories(resDrill: DataQueryResultRow[]): string[] {
     const uniq = resDrill
       .map((element) => {
         return {
           count: 1,
-          subCategory: element.subCategory,
+          subCategory: `${element.category}##${element.subCategory}`,
         };
       })
       .reduce((a: Record<string, number>, b: { subCategory: string; count: number }) => {
@@ -1266,6 +1273,10 @@ export class DataQuery {
               ] = drillElement.val;
             }
           } else if ("DRILLELEMENT" === drillElement.rowlevel) {
+            // ungrouped thereof rows keep their rowGroup, the same name can exist in another one
+            if (!this.config.grouped && row.rowGroup !== drillElement.rowGroup) {
+              continue;
+            }
             if (
               drillElement.columnlevel === "COLUMNGROUP" &&
               row.category === drillElement.category &&

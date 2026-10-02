@@ -2227,7 +2227,7 @@ describe("IBCS Table Test", () => {
                <span class=\"base category-w100 prefix-first\">
                  davon
                </span>
-               Category - SUB 1 (Services)
+               Category - SUB 1
              </td>
              <td class=\"columnGroup decimal pp1\" colspan=\"1\">
                <span class=\"columnGroup pp1 prefix-first\"></span>
@@ -2275,7 +2275,7 @@ describe("IBCS Table Test", () => {
                <span class=\"base category-w100 prefix-second\">
                  davon
                </span>
-               Category - SUB 2 (Services)
+               Category - SUB 2
              </td>
              <td class=\"columnGroup decimal\" colspan=\"1\">
                <span class=\"columnGroup prefix-second\"></span>
