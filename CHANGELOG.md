@@ -93,6 +93,10 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 
 Every number used to be printed in the German format (`1.234,5`, `5,20%`), whatever the locale was. Tables and charts now format numbers with `Intl.NumberFormat` for the locale of their `bn-context`: `locale="en"`, which is also the default when no locale is set, prints `1,234.5` and `5.20%`; `locale="de"` prints as before. A report that relied on German numbers without setting a locale has to set `<bn-context locale="de">`. A locale the browser does not know falls back to the German format. A space in front of the percent sign is removed in every locale. Percent labels inside stacked bars of `bn-chart-time` and `bn-chart-structure` use the same format (`45,0%` for `de`, before always `45.0%`).
 
+#### `bn-table`: `order` applies to every column and to row groups
+
+With several columns in `order`, `order-direction` was applied to the last column only (`order="rowGroup,category"` with `desc` sorted the groups ascending). It now applies to every column. Row groups followed `order` only for a `rowGroup` or `rowGroupIndex` entry; with any other order (the default `category`, a scenario) they came in the order of the data rows. They now follow the entries of `order` that exist per group: `rowGroup` and `rowGroupIndex` directly, a scenario such as `ac1` by the group sum. Without such an entry (for example the default `order="category"`) groups are sorted by `rowGroupIndex` ascending.
+
 ### Fixed
 
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.

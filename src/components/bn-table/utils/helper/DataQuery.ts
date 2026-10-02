@@ -5,6 +5,7 @@ import { FIELD_IDENTIFIER_REGEX, TableAttribute } from "../model/TableAttribute"
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { TableDrillGroup } from "../model/TableDrillGroup";
 import { Order } from "../../../../components";
+import { Scenarios } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
@@ -86,10 +87,26 @@ export class DataQuery {
 
     // meta defines groups and the number detail rows in each group
     // Bsp:  0: Object { totalrowcnt: 7, rowgroup: "Umsatz" }
+    // groups follow the order entries that exist per group (rowGroup, rowGroupIndex, scenario sum), else rowGroupIndex
+    const { hierarchy, direction } = this.config.sortOrder;
+    const groupOrderColumns = hierarchy.filter(
+      (column) =>
+        column === QueryColumnNames.ROWGROUP ||
+        column === QueryColumnNames.ROWGROUPINDEX ||
+        column.toUpperCase() in Scenarios,
+    );
+    const groupSums = groupOrderColumns
+      .filter((column) => column.toUpperCase() in Scenarios)
+      .map((column) => `, SUM(${column} * transformOperator(operation)) as ${column}`)
+      .join("");
+    const groupOrder =
+      groupOrderColumns.length > 0
+        ? groupOrderColumns.map((column) => `${column} ${direction}`).toString()
+        : `${QueryColumnNames.ROWGROUPINDEX} asc`;
+
     const meta = db.exec<DataQueryResultRow[]>(
-      `SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated : ""}
-                       FROM ${fromExpr} ${groupsAggregated.length > 0 ? "GROUP BY " + groupsAggregated : ""}
-                       ORDER BY ${order[0]}`,
+      `SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated + groupSums : ""}
+                       FROM ${fromExpr} ${groupsAggregated.length > 0 ? `GROUP BY ${groupsAggregated} ORDER BY ${groupOrder}` : ""}`,
     );
     if (
       meta.length === 0 ||
@@ -1004,8 +1021,9 @@ export class DataQuery {
    * @param orderComponent
    */
   private createOrderString(orderComponent: Order): [string, string] {
-    const base = `${orderComponent.hierarchy.toString()} ${orderComponent.direction}`;
-    const inverted = `${orderComponent.hierarchy.toString()} ${OrderDirection.ASC === orderComponent.direction ? OrderDirection.DESC : OrderDirection.ASC}`;
+    const inverse = OrderDirection.ASC === orderComponent.direction ? OrderDirection.DESC : OrderDirection.ASC;
+    const base = orderComponent.hierarchy.map((column) => `${column} ${orderComponent.direction}`).toString();
+    const inverted = orderComponent.hierarchy.map((column) => `${column} ${inverse}`).toString();
     return [base, inverted];
   }
 
