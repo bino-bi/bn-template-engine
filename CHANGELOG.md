@@ -97,6 +97,7 @@ Applies to `bn-text` `value`, `bn-message` `text` (`message-text`) and the title
 - Layout attributes were pasted into a stylesheet in the document head, so a value could close its rule and add rules for the host page (`width="10px;} body{display:none"`). Only the browser's own serialization of a value it accepted for that property is written now.
 - `bn-dataset`, `bn-datasource`: the body is no longer read as a URL (see breaking changes).
 - `SECURITY.md` describes the trust model (report content is code, row values are data), what a host must do, and the Content Security Policy the engine needs.
+- New `npm run test:dist`: security checks against the built package in headless Chrome. CI runs it after the build.
 
 ## [v0.39.0] - 2026-01-21
 
