@@ -74,6 +74,10 @@ interface Diagnostic {
 const diagnostics = (page: SpecPage): Diagnostic[] => JSON.parse(page.root.getAttribute("has-error") ?? "[]");
 const diagnosticIds = (page: SpecPage): string[] => diagnostics(page).map((item) => item.id);
 
+/** Ids of the "keyword could not be resolved" warnings on the host. */
+const unresolvedWarnings = (page: SpecPage): string[] =>
+  diagnosticIds(page).filter((id) => id.startsWith("WARN_inherited_"));
+
 /** Gives the chart a dataset to auto-detect scenarios and order from. */
 const withDatasetMeta = async (page: SpecPage): Promise<SpecPage> => {
   page.rootInstance.datasetMeta = {
@@ -101,6 +105,16 @@ describe("bn-chart-time: inherited-closest takes the nearest ancestor that sets 
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["ac1", "pp1"]);
     expect(page.rootInstance.prepareVariances()).toEqual(["dpp1_ac1_pos"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
+  });
+
+  it("takes scenarios from the outer of two nested cards when only that one sets them", async () => {
+    const page = await mount(
+      `<bn-layout-page title-scenarios="ac1,pp1"><bn-layout-card title-scenarios="fc1"><bn-layout-card>${chart(`scenarios="inherited-closest"`)}</bn-layout-card></bn-layout-card></bn-layout-page>`,
+    );
+
+    expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
   });
 
   it("takes scenarios from the card when the card sets them", async () => {
@@ -109,6 +123,7 @@ describe("bn-chart-time: inherited-closest takes the nearest ancestor that sets 
     );
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["ac1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
   });
 
   it("resolves scenarios from the card and the order direction from the page in one component", async () => {
@@ -168,6 +183,27 @@ describe("bn-chart-time: an inherited keyword that cannot be resolved", () => {
       expect(order).toEqual(blank.rootInstance.prepareOrder());
       expect(diagnosticIds(blank)).toEqual(expect.arrayContaining(["AUTO_scenarios", "AUTO_order"]));
     });
+  });
+
+  it("renders like a chart without these attributes when the dataset suggests nothing", async () => {
+    const keywords = await mount(chart(KEYWORDS));
+    const order = keywords.rootInstance.prepareOrder();
+    const scenarios = keywords.rootInstance.prepareScenarios();
+
+    const blank = await mount(chart(""));
+
+    expect(order).toEqual(blank.rootInstance.prepareOrder());
+    expect(scenarios).toEqual(blank.rootInstance.prepareScenarios());
+  });
+
+  it("looks up a prop that becomes a keyword after connect", async () => {
+    const page = await mount(`<bn-layout-page title-scenarios="fc1">${chart(`scenarios="ac1"`)}</bn-layout-page>`);
+
+    page.root.setAttribute("scenarios", "inherited-page");
+    await page.waitForChanges();
+
+    expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
   });
 
   it("never uses the literal keyword of a card as a scenario", async () => {

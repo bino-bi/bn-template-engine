@@ -427,6 +427,11 @@ export class LayoutCard {
     }
   }
 
+  /** The value of a prop for the inner title. An unresolved keyword reaches it as blank. */
+  private titleProp(prop: string): string {
+    return this.resolveInherited(prop, this[prop], "").value;
+  }
+
   prepareTitleImage(value: string) {
     if (value == null || value === "") {
       return "";
@@ -452,12 +457,12 @@ export class LayoutCard {
         <div class="cardtitle">
           <bn-title // @ts-ignore
             i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
-            ruleset={this.resolveInherited("ruleset", this.ruleset).value}
+            ruleset={this.titleProp("ruleset")}
             business-unit={this.titleBusinessUnit}
-            scenarios={this.resolveInherited("titleScenarios", this.titleScenarios).value}
-            variances={this.resolveInherited("titleVariances", this.titleVariances).value}
-            order={this.resolveInherited("titleOrder", this.titleOrder).value}
-            order-direction={this.resolveInherited("titleOrderDirection", this.titleOrderDirection).value}
+            scenarios={this.titleProp("titleScenarios")}
+            variances={this.titleProp("titleVariances")}
+            order={this.titleProp("titleOrder")}
+            order-direction={this.titleProp("titleOrderDirection")}
             measures={this.titleMeasures}
             date-start={this.titleDateStart}
             date-end={this.titleDateEnd}

@@ -1224,6 +1224,9 @@ export class Table {
       let scenarios: string[] = [];
       if (!isBlankInput(scenariosProp.value)) {
         scenarios = scenarios.concat(scenariosProp.value.split(","));
+      } else if (scenariosProp.unresolved) {
+        // Inherited variances do not take the fallback away from an unresolved scenarios keyword.
+        scenarios = scenarios.concat(this.datasetMeta?.availableScenarios ?? []);
       }
       if (variancesProp.value?.trim().length > 0) {
         scenarios = scenarios.concat(variancesProp.value.split(","));

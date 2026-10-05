@@ -1,15 +1,11 @@
 // nanoid ships ESM only, which jest cannot parse without extra transforms
 jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
 
-// Mock MutationObserver for the withInheritedProps ancestor observer
-(global as any).MutationObserver = class {
-  constructor() {}
-  observe() {}
-  disconnect() {}
-  takeRecords() {
-    return [];
-  }
-};
+// mock-doc has no MutationObserver. The fake lets a spec report an attribute
+// change to the withInheritedProps ancestor observer.
+import { installMutationObserverFake, notifyAttributeChange } from "../../utils/testing/mutationObserver";
+
+installMutationObserverFake();
 
 // Mock scoped stores so the component doesn't walk mock-doc DOM
 jest.mock("../../context/context-protocol", () => {
@@ -119,13 +115,43 @@ describe("bn-layout-card inherited title props", () => {
     ]);
   });
 
-  it("takes inherited-closest from the outer card when the page does not set the field", async () => {
+  it("takes inherited-closest from the page when the card in between does not set the field", async () => {
     const page = await newSpecPage({
       components: [LayoutPage, LayoutCard],
-      html: `<bn-layout-page><bn-layout-card title-scenarios="fc1"><bn-layout-card id="inner" title-scenarios="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-page>`,
+      html: `<bn-layout-page title-scenarios="ac1"><bn-layout-card><bn-layout-card id="inner" title-scenarios="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-page>`,
     });
 
     const title = page.body.querySelector("#inner").shadowRoot.querySelector("bn-title");
-    expect(title.getAttribute("scenarios")).toBe("fc1");
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+  });
+
+  it("picks up a value that the page gets after connect, through a card that does not set it", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      // bn-context: the page looks for it when it renders again.
+      html: `<bn-context><bn-layout-page><bn-layout-card><bn-layout-card id="inner" title-scenarios="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-page></bn-context>`,
+    });
+    const title = page.body.querySelector("#inner").shadowRoot.querySelector("bn-title");
+    expect(title.getAttribute("scenarios")).toBe("");
+
+    const layoutPage = page.body.querySelector("bn-layout-page");
+    layoutPage.setAttribute("title-scenarios", "ac1");
+    notifyAttributeChange(layoutPage, "title-scenarios");
+    await page.waitForChanges();
+
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+  });
+
+  it("resolves a ruleset keyword that the card gets after connect", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page ruleset="page-rules"><bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+    const card = page.body.querySelector("bn-layout-card");
+
+    card.setAttribute("ruleset", "inherited-page");
+    await page.waitForChanges();
+
+    expect(card.shadowRoot.querySelector("bn-title").getAttribute("ruleset")).toBe("page-rules");
   });
 });

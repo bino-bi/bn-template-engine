@@ -76,6 +76,10 @@ interface Diagnostic {
 const diagnostics = (page: SpecPage): Diagnostic[] => JSON.parse(page.root.getAttribute("has-error") ?? "[]");
 const diagnosticIds = (page: SpecPage): string[] => diagnostics(page).map((item) => item.id);
 
+/** Ids of the "keyword could not be resolved" warnings on the host. */
+const unresolvedWarnings = (page: SpecPage): string[] =>
+  diagnosticIds(page).filter((id) => id.startsWith("WARN_inherited_"));
+
 /** Gives the table a dataset to auto-detect scenarios from. */
 const withDatasetMeta = async (page: SpecPage): Promise<SpecPage> => {
   page.rootInstance.datasetMeta = { availableScenarios: ["ac1", "pp1"] };
@@ -98,6 +102,7 @@ describe("bn-table: inherited-closest takes the nearest ancestor that sets the v
     );
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["ac1", "pp1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
   });
 
   it("takes scenarios from the card when the card sets them", async () => {
@@ -106,6 +111,7 @@ describe("bn-table: inherited-closest takes the nearest ancestor that sets the v
     );
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["ac1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
   });
 
   it("takes scenarios from the outer of two nested cards when only that one sets them", async () => {
@@ -114,6 +120,7 @@ describe("bn-table: inherited-closest takes the nearest ancestor that sets the v
     );
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
   });
 
   it("resolves scenarios from the card and order from the page in one component", async () => {
@@ -123,6 +130,7 @@ describe("bn-table: inherited-closest takes the nearest ancestor that sets the v
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["ac1"]);
     expect(page.rootInstance.prepareOrder().hierarchy).toEqual([OrderColumn.AC1]);
+    expect(unresolvedWarnings(page)).toEqual([]);
   });
 
   it("still takes scenarios from the page for inherited-page", async () => {
@@ -289,6 +297,18 @@ describe("bn-table: an inherited keyword that cannot be resolved", () => {
     });
   });
 
+  it("auto-detects unresolved scenarios next to variances that do resolve", async () => {
+    const page = await withDatasetMeta(
+      await mount(
+        `<bn-layout-page title-variances="dpp1_ac1_pos">${table(`scenarios="inherited-page" variances="inherited-page"`)}</bn-layout-page>`,
+      ),
+    );
+
+    expect(page.rootInstance.prepareScenarios()).toEqual(["ac1", "pp1", "dpp1_ac1_pos"]);
+    expect(unresolvedWarnings(page)).toEqual(["WARN_inherited_scenarios"]);
+    expect(diagnosticIds(page)).not.toContain("AUTO_scenarios");
+  });
+
   it("does not warn when the keyword resolves", async () => {
     const page = await withDatasetMeta(
       await mount(
@@ -323,5 +343,40 @@ describe("bn-table: an inherited keyword that cannot be resolved", () => {
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["ac1"]);
     expect(diagnosticIds(page)).not.toContain("WARN_inherited_scenarios");
+  });
+
+  it("looks up a prop that becomes a keyword after connect", async () => {
+    const page = await mount(`<bn-layout-page title-scenarios="fc1">${table(`scenarios="ac1"`)}</bn-layout-page>`);
+
+    page.root.setAttribute("scenarios", "inherited-page");
+    await page.waitForChanges();
+
+    expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
+  });
+
+  it("watches the ancestors of a prop that becomes a keyword after connect", async () => {
+    const page = await mount(`<bn-layout-page>${table(`scenarios="ac1"`)}</bn-layout-page>`);
+
+    page.root.setAttribute("scenarios", "inherited-page");
+    await page.waitForChanges();
+    expect(unresolvedWarnings(page)).toEqual(["WARN_inherited_scenarios"]);
+
+    await setLater(page, "bn-layout-page", "title-scenarios", "fc1");
+
+    expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
+    expect(unresolvedWarnings(page)).toEqual([]);
+  });
+
+  it("looks up again when the prop changes to the other keyword", async () => {
+    const page = await mount(
+      `<bn-layout-page title-scenarios="ac1,pp1"><bn-layout-card title-scenarios="fc1">${table(`scenarios="inherited-page"`)}</bn-layout-card></bn-layout-page>`,
+    );
+    expect(page.rootInstance.prepareScenarios()).toEqual(["ac1", "pp1"]);
+
+    page.root.setAttribute("scenarios", "inherited-closest");
+    await page.waitForChanges();
+
+    expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
   });
 });

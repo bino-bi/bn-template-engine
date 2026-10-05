@@ -32,8 +32,8 @@ export interface InheritedProp {
 
 /**
  * Resolver function returned by the mixin.
- * `fallback` is what an unresolved keyword stands for: blank unless given, so
- * the caller's handling of a prop that was not set applies.
+ * `fallback` is what an unresolved keyword stands for. Without it the value is
+ * `undefined`, as if the prop was not set.
  */
 export type InheritedResolver = (propName: string, currentValue: string, fallback?: string) => InheritedProp;
 
@@ -149,6 +149,9 @@ const withInheritedProps = (
   /** Resolved values keyed by propName. */
   const resolved = new Map<string, string>();
 
+  /** The keyword each prop held at the last lookup, keyed by propName. */
+  const lookedUp = new Map<string, string>();
+
   /** Observer watching the layout ancestors' attributes. */
   let observer: MutationObserver | null = null;
 
@@ -160,6 +163,7 @@ const withInheritedProps = (
   const resolveAll = () => {
     const element = getElement(component);
     resolved.clear();
+    lookedUp.clear();
     if (observer) {
       observer.disconnect();
       observer = null;
@@ -170,6 +174,7 @@ const withInheritedProps = (
     for (const mapping of mappings) {
       const value = component[mapping.propName];
       if (typeof value !== "string" || !isInheritedValue(value)) continue;
+      lookedUp.set(mapping.propName, value);
 
       // Looked up per prop: scenarios may come from a card and order from the page.
       const ancestors = findLayoutAncestors(element, value);
@@ -206,6 +211,7 @@ const withInheritedProps = (
       observer = null;
     }
     resolved.clear();
+    lookedUp.clear();
     runIfExisits(disconnectedCallback, component);
   };
 
@@ -219,11 +225,17 @@ const withInheritedProps = (
    * Resolver: the one place that decides which value a mapped prop stands
    * for, and that reports a keyword no ancestor satisfies.
    */
-  const resolve: InheritedResolver = (propName: string, currentValue: string, fallback = ""): InheritedProp => {
+  const resolve: InheritedResolver = (propName: string, currentValue: string, fallback?: string): InheritedProp => {
     const warningId = `WARN_inherited_${propName}`;
-    const inherited = isInheritedValue(currentValue) ? resolved.get(propName) : undefined;
+    const isKeyword = isInheritedValue(currentValue);
 
-    if (isInheritedValue(currentValue) && inherited === undefined) {
+    // The prop became a keyword, or a different one, after the last lookup.
+    if (isKeyword && lookedUp.get(propName) !== currentValue) {
+      resolveAll();
+    }
+    const inherited = isKeyword ? resolved.get(propName) : undefined;
+
+    if (isKeyword && inherited === undefined) {
       const scope = currentValue === INHERITED_PAGE ? "page" : "card or page";
       errors?.addOrReplace({
         id: warningId,
