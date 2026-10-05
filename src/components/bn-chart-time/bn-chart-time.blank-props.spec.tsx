@@ -177,3 +177,28 @@ describe("bn-chart-time: one diagnostic id per boolean prop", () => {
     expect(errorIds(page)).not.toContain("ERR_grouped");
   });
 });
+
+describe("bn-chart-time: scale factors of the theme", () => {
+  const { getStores } = require("../../context/context-protocol");
+  const scaleFactors = (page: SpecPage): Record<string, number> => page.rootInstance.prepareStyle().scaleFactors;
+
+  afterEach(() => {
+    getStores(null).componentStyles.set("_default", undefined);
+  });
+
+  it("uses the default distance between a label and its column", async () => {
+    const page = await renderChart();
+
+    expect(scaleFactors(page).labelToColumn).toBe(0.3);
+  });
+
+  it("takes the distance between a label and its column from the theme", async () => {
+    getStores(null).componentStyles.set("_default", { "bn-chart-time": { scaleFactors: { labelToColumn: 0.9 } } });
+
+    const page = await renderChart();
+
+    // the value was fixed to 0.3 in the component
+    expect(scaleFactors(page).labelToColumn).toBe(0.9);
+    expect(scaleFactors(page)).not.toHaveProperty("labelToColum");
+  });
+});

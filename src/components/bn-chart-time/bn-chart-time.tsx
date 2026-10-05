@@ -1345,8 +1345,7 @@ export class Chart {
         scaleFactors: {
           scenarioOffset: $["bn-chart-time"]["scaleFactors"]["scenarioOffset"],
           scenarioLabelToColumn: $["bn-chart-time"]["scaleFactors"]["scenarioLabelToColumn"],
-          labelToColumn: 0.3,
-          labelToColum: $["bn-chart-time"]["scaleFactors"]["labelToColum"],
+          labelToColumn: $["bn-chart-time"]["scaleFactors"]["labelToColumn"],
           labelToAxis: $["bn-chart-time"]["scaleFactors"]["labelToAxis"],
           needleWidth: $["bn-chart-time"]["scaleFactors"]["needleWidth"],
           needleHeadWidth: $["bn-chart-time"]["scaleFactors"]["needleHeadWidth"],
