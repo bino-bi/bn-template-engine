@@ -72,6 +72,9 @@ export function templateProblem(customTemplate: string | null | undefined): stri
   if (rows.length === 0) {
     return `no row found, the layout is drawn as a single cell. Write one quoted row per grid row, e.g. '"a a" "b c"'.`;
   }
+  if ((customTemplate?.match(ROW_PATTERN) ?? []).length !== rows.length) {
+    return "a pair of quotes holds no cell, so the browser ignores the template. Open and close every row with the same kind of quote.";
+  }
   if (rows.some((row) => row.length !== rows[0].length)) {
     return "the rows have different numbers of cells, so the browser ignores the template.";
   }

@@ -87,6 +87,14 @@ describe("layout templates", () => {
     expect(templateProblem(template)).toContain("no row found");
   });
 
+  it.each([
+    ["unpaired quotes next to a good row", `"a b" "c d' 'e f"`],
+    ["a row of blanks", `"a b" " " "c d"`],
+  ])("reports %s: the browser ignores such a template", (_name, template) => {
+    // the good rows alone look fine, but a pair of quotes without a cell makes the whole value invalid
+    expect(templateProblem(template)).toContain("holds no cell");
+  });
+
   it("reports rows of different length", () => {
     expect(templateProblem('"a b" "c"')).toContain("different numbers of cells");
     expect(templateProblem('"a b" "c d"')).toBeUndefined();
