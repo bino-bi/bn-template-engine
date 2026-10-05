@@ -34,6 +34,7 @@ import {
   StackMode,
 } from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
+import { layoutStack, stackExtent, stackLabelSide, StackLayout } from "../../../utils/stackLayout";
 import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
 import { drawAttached } from "../../../utils/measurementHost";
 import { DataFormatDigits, Order } from "../../../components";
@@ -95,6 +96,15 @@ type TimeChartDataModelEntry = {
   scenario3: DataPoint;
   scenario4: DataPoint;
 };
+
+/** One segment of a stack. */
+type StackGroupSegment = { value: number; scenario: string; dataPoint: DataPoint };
+
+/**
+ * One stack of a period with its layout; `prefix` names the scenario family of an overlay stack.
+ * `hasValue` is false when no segment has a value: such a stack keeps its place and draws nothing.
+ */
+type StackGroup = { prefix: string; segments: StackGroupSegment[]; layout: StackLayout; hasValue: boolean };
 
 /**
  * Orchestrates the full rendering pipeline for an IBCS time series chart.
@@ -315,6 +325,18 @@ export class TimeChart {
     this.lineFullWidth = config.lineFullWidth;
     this.lastScenarios = scenarios;
 
+    if (this.stackConfig != null) {
+      // a stack is as high as its two sides, not as its largest segment: virtual data points for the layout
+      const layouts: StackLayout[] = [];
+      for (const row of this.dataModel) {
+        layouts.push(...this.stackGroups(row).map((group) => group.layout));
+      }
+      const sides = stackExtent(layouts);
+      const { scenario, variance } = this.highestDataPointValue;
+      this.highestDataPointValue = new DataPoint(sides.positive, scenario, this.pixelPerUnit, variance);
+      this.smallestDataPointValue = new DataPoint(0 - sides.negative, scenario, this.pixelPerUnit, variance);
+    }
+
     this.updatePosition(scenarios);
   }
 
@@ -448,8 +470,6 @@ export class TimeChart {
     const smallest = usesVariance ? this.smallestVarianceDataPointValue : this.smallestDataPointValue;
 
     return computeUnitBarExtent({
-      // Relative stacks span exactly RELATIVE_STACK_UNITS * ppu
-      fixedDomain: this.stackConfig?.mode === StackMode.RELATIVE ? RELATIVE_STACK_UNITS : undefined,
       relativeVariance: isRelative,
       maxPositive: highest?.value ?? 0,
       minNegative: this.isOnSameAxisSide() ? 0 : (smallest?.value ?? 0),
@@ -681,13 +701,6 @@ export class TimeChart {
     } else {
       min = this.smallestDataPointValue;
       max = this.highestDataPointValue;
-    }
-
-    // In relative (100%) stacking the vertical domain is 0..RELATIVE_STACK_UNITS percent,
-    // not the raw data values - use a virtual max so axis position, canvas height and
-    // auto-fit all agree on the percent domain.
-    if (this.stackConfig?.mode === StackMode.RELATIVE) {
-      max = new DataPoint(RELATIVE_STACK_UNITS, max.scenario, this.pixelPerUnit, max.variance);
     }
 
     // When overflow config is active, create a virtual max so the coordinate system
@@ -1095,6 +1108,44 @@ export class TimeChart {
     return factory;
   }
 
+  /**
+   * Side of the axis and distance from it for the date label of one period: opposite the
+   * value, and for a stack opposite its total and behind the segments on that side.
+   */
+  private dateLabelPlace(elements: TimeChartDataModelEntry): { hookLocation: HookLocation; offset: number } {
+    let flipped = elements["scenario1"]["value"] < 0;
+    let offset = this.position.spacings.labelToAxis;
+
+    if (this.stackConfig != null && !this.isVarianceChart()) {
+      // a column stack prints its total behind its segments, a 100 % stack and the area print none
+      const printsTotal =
+        this.stackConfig.mode !== StackMode.RELATIVE && this.determineEffectiveChartMode() !== ChartMode.LINE;
+      const totalLabelRoom = printsTotal
+        ? (this.position.spacings.labelToColumn + this.position.dataLabelHeight) / this.pixelPerUnit
+        : 0;
+      const layouts = this.stackGroups(elements)
+        .filter((group) => group.hasValue)
+        .map((group) => group.layout);
+      let side = stackLabelSide(layouts, () => totalLabelRoom);
+
+      // Above the columns the layout has room for one label, below for two. A date label that
+      // would go above the total label of a back stack goes below instead, under everything there.
+      if (side.flipped && totalLabelRoom > 0 && layouts.some((layout) => layout.total >= 0)) {
+        side = {
+          flipped: false,
+          clearance: Math.max(...layouts.map((layout) => layout.negative + (layout.total < 0 ? totalLabelRoom : 0))),
+        };
+      }
+
+      flipped = side.flipped;
+      offset += side.clearance * this.pixelPerUnit;
+    }
+
+    return flipped
+      ? { hookLocation: HookLocation.Bottom, offset: -offset }
+      : { hookLocation: HookLocation.Top, offset };
+  }
+
   private drawAxisAndLabels(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
     const dateStringFactory: DateStringFactory = this.createDateFactory();
 
@@ -1104,12 +1155,7 @@ export class TimeChart {
 
     if (this.hideAxisLabels === false) {
       dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
-        let hookLocation: HookLocation = HookLocation.Top;
-        let offset = this.position.spacings.labelToAxis;
-        if (elements["scenario1"]["value"] < 0) {
-          hookLocation = HookLocation.Bottom;
-          offset *= -1;
-        }
+        const { hookLocation, offset } = this.dateLabelPlace(elements);
         if (elements["type"] === VarianceType.RELATIVE) {
           isRelative = true;
         }
@@ -1289,12 +1335,7 @@ export class TimeChart {
           return;
         }
 
-        let hookLocation: HookLocation = HookLocation.Top;
-        let offset = this.position.spacings.labelToAxis;
-        if (elements["scenario1"]["value"] < 0) {
-          hookLocation = HookLocation.Bottom;
-          offset *= -1;
-        }
+        const { hookLocation, offset } = this.dateLabelPlace(elements);
 
         // Get the date label - use smart/short logic when full-width shows all labels
         let datelabel: string;
@@ -1437,10 +1478,88 @@ export class TimeChart {
   }
 
   /**
+   * The stacks of one period as they are drawn. Columns: one stack per scenario family
+   * when the period mixes several (overlay, back to front per IBCS layer order), else a
+   * single one. Line mode: the area stacks every scenario in one stack.
+   */
+  private stackGroups(row: TimeChartDataModelEntry): StackGroup[] {
+    if (!this.stackConfig) return [];
+
+    const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
+    const isArea = this.determineEffectiveChartMode() === ChartMode.LINE;
+    const segments: StackGroupSegment[] = [];
+
+    for (const key of isScenarioStack || isArea
+      ? ["scenario1", "scenario2", "scenario3", "scenario4"]
+      : ["scenario1"]) {
+      const dp: DataPoint = row[key];
+      if (dp && !dp.isEmpty() && dp.value != null) {
+        segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
+      }
+    }
+
+    if (segments.length === 0) return [];
+
+    const relativeSpan = this.stackConfig.mode === StackMode.RELATIVE ? RELATIVE_STACK_UNITS : 0;
+    const toGroup = (prefix: string, groupSegments: StackGroupSegment[]): StackGroup => ({
+      prefix,
+      segments: groupSegments,
+      layout: layoutStack(
+        groupSegments.map((segment) => segment.value),
+        relativeSpan,
+      ),
+      hasValue: groupSegments.some((segment) => Number.isFinite(segment.value)),
+    });
+
+    if (isScenarioStack) {
+      this.sortSegmentsByPropOrder(segments);
+    }
+
+    if (isArea) {
+      return [toGroup("", segments)];
+    }
+
+    if (isScenarioStack) {
+      const groupMap = new Map<string, StackGroupSegment[]>();
+      for (const seg of segments) {
+        const prefix = getScenarioPrefix(seg.scenario);
+        if (!groupMap.has(prefix)) groupMap.set(prefix, []);
+        groupMap.get(prefix)!.push(seg);
+      }
+
+      if (groupMap.size > 1) {
+        // Sort groups by IBCS layer order (back-to-front: pl, fc, pp, ac)
+        const groups: StackGroup[] = [];
+        for (const prefix of IBCS_LAYER_ORDER) {
+          if (groupMap.has(prefix)) {
+            groups.push(toGroup(prefix, groupMap.get(prefix)!));
+            groupMap.delete(prefix);
+          }
+        }
+        for (const [prefix, segs] of groupMap) {
+          groups.push(toGroup(prefix, segs));
+        }
+        return groups;
+      }
+    }
+
+    // a segment without a value sorts like 0: NaN in the comparison would leave the stack unsorted
+    const sortValue = (segment: StackGroupSegment): number => (Number.isFinite(segment.value) ? segment.value : 0);
+    if (this.stackConfig.order === "asc") {
+      segments.sort((a, b) => sortValue(a) - sortValue(b));
+    } else if (this.stackConfig.order === "desc") {
+      segments.sort((a, b) => sortValue(b) - sortValue(a));
+    }
+
+    return [toGroup("", segments)];
+  }
+
+  /**
    * Draw stacked bar columns. Supports stacking by scenario or by data dimension.
    * When stacking by scenario with multiple scenario types (e.g. ac+pl),
    * uses overlay mode: each type group is drawn from the same baseline,
    * back-to-front per IBCS convention (PL behind, AC on top).
+   * Positive segments stack above the axis, negative segments below it.
    */
   private drawStackedScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig) return;
@@ -1449,116 +1568,34 @@ export class TimeChart {
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
 
     dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
-      const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
-      const segments: { value: number; scenario: string; dataPoint: DataPoint }[] = [];
+      const groups = this.stackGroups(elements);
 
-      if (isScenarioStack) {
-        for (const key of scenarioKeys) {
-          const dp: DataPoint = elements[key];
-          if (dp && !dp.isEmpty() && dp.value != null) {
-            segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
-          }
-        }
-        this.sortSegmentsByPropOrder(segments);
-      } else {
-        const dp: DataPoint = elements["scenario1"];
-        if (dp && !dp.isEmpty() && dp.value != null) {
-          segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
-        }
-      }
-
-      if (segments.length === 0) return;
-
-      // Check if we have multiple scenario type groups for overlay mode
-      const prefixes = isScenarioStack
-        ? new Set(segments.map((s) => getScenarioPrefix(s.scenario)))
-        : new Set<string>();
-
-      if (prefixes.size > 1) {
-        // Overlay mode: group by scenario prefix, draw each group from same baseline
-        const groupMap = new Map<string, typeof segments>();
-        for (const seg of segments) {
-          const prefix = getScenarioPrefix(seg.scenario);
-          if (!groupMap.has(prefix)) groupMap.set(prefix, []);
-          groupMap.get(prefix)!.push(seg);
-        }
-
-        const groups: { prefix: string; segments: typeof segments }[] = [];
-        for (const prefix of IBCS_LAYER_ORDER) {
-          if (groupMap.has(prefix)) {
-            groups.push({ prefix, segments: groupMap.get(prefix)! });
-            groupMap.delete(prefix);
-          }
-        }
-        for (const [prefix, segs] of groupMap) {
-          groups.push({ prefix, segments: segs });
-        }
-
-        // Draw each group from baseline=0 (overlapping)
-        groups.forEach((group, groupIdx) => {
-          const groupTotal = group.segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
-          const colorIndex = groups.length - 1 - groupIdx;
-          let cumulativeValue = 0;
-          let lastColumn: StackedColumn | null = null;
-
-          group.segments.forEach((seg) => {
-            const column = new StackedColumn(
-              this.position,
-              this.styles,
-              seg.dataPoint,
-              index,
-              cumulativeValue,
-              seg.scenario,
-              colorIndex,
-              this.stackConfig!.mode,
-              groupTotal,
-              true,
-              stackGroup,
-            );
-            column.draw(this.dataFormatDigits, this.measureScale);
-            cumulativeValue += Math.abs(seg.value);
-            lastColumn = column;
-          });
-
-          if (lastColumn) {
-            lastColumn.drawTotalLabel(this.dataFormatDigits, this.measureScale);
-          }
-        });
-      } else {
-        // Single group or non-scenario: additive stacking
-        if (this.stackConfig!.order === "asc") {
-          segments.sort((a, b) => a.value - b.value);
-        } else if (this.stackConfig!.order === "desc") {
-          segments.sort((a, b) => b.value - a.value);
-        }
-
-        const total = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
-        let cumulativeValue = 0;
+      groups.forEach((group, groupIdx) => {
         let lastColumn: StackedColumn | null = null;
 
-        segments.forEach((seg, segIdx) => {
+        group.segments.forEach((seg, segIdx) => {
           const column = new StackedColumn(
             this.position,
             this.styles,
             seg.dataPoint,
             index,
-            cumulativeValue,
+            group.layout.segments[segIdx],
             seg.scenario,
-            segIdx,
+            // overlay: one colour per group, back=lighter, front=darker
+            groups.length > 1 ? groups.length - 1 - groupIdx : segIdx,
             this.stackConfig!.mode,
-            total,
+            group.layout,
             isScenarioStack,
             stackGroup,
           );
           column.draw(this.dataFormatDigits, this.measureScale);
-          cumulativeValue += Math.abs(seg.value);
           lastColumn = column;
         });
 
-        if (lastColumn) {
-          lastColumn.drawTotalLabel(this.dataFormatDigits, this.measureScale);
+        if (lastColumn && group.hasValue) {
+          (lastColumn as StackedColumn).drawTotalLabel(this.dataFormatDigits, this.measureScale);
         }
-      }
+      });
     });
 
     const stackBox = stackGroup.bbox();
@@ -1572,6 +1609,7 @@ export class TimeChart {
    * Draw column headers next to stacked columns showing what each group/segment represents.
    * For overlay mode (multiple scenario types): shows one header per group.
    * For single-group: shows individual segment headers.
+   * The headers take their place from the first period.
    */
   private drawStackedHeaders(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig || dataModel.length === 0) return;
@@ -1580,108 +1618,54 @@ export class TimeChart {
     if (!isScenarioStack) return;
 
     const headerGroup: G = svgContainer.group().id("StackedHeaders");
-    const firstRow = dataModel[0];
 
-    const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
-    const segments: { value: number; scenario: string; dataPoint: DataPoint }[] = [];
+    const groups = this.stackGroups(dataModel[0]);
+    if (groups.length === 0) return;
 
-    for (const key of scenarioKeys) {
-      const dp: DataPoint = firstRow[key];
-      if (dp && !dp.isEmpty() && dp.value != null) {
-        segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
-      }
-    }
-
-    if (segments.length === 0) return;
-
-    this.sortSegmentsByPropOrder(segments);
-
-    const prefixes = new Set(segments.map((s) => getScenarioPrefix(s.scenario)));
     const axisY = this.position.getColumnPositionY();
     const xBase = this.position.getColumnCenterPositionX(0) - this.position.getColumnWidth() / 2;
     const labelX = xBase - this.position.spacings.labelToColumn;
 
-    if (prefixes.size > 1) {
-      // Overlay mode: one header per group - front group centered on its bar,
-      // back groups aligned with their bar's top edge
-      const groupMap = new Map<string, typeof segments>();
-      for (const seg of segments) {
-        const prefix = getScenarioPrefix(seg.scenario);
-        if (!groupMap.has(prefix)) groupMap.set(prefix, []);
-        groupMap.get(prefix)!.push(seg);
-      }
+    const drawHeader = (centerY: number, labelText: string): void => {
+      new Label(
+        headerGroup,
+        labelX,
+        centerY,
+        "STACK_HEADER",
+        labelText,
+        this.styles,
+        HookLocation.Center,
+        HookLocation.Right,
+      ).forceStringTypeDraw();
+    };
 
-      const groups: { prefix: string; segments: typeof segments }[] = [];
-      for (const prefix of IBCS_LAYER_ORDER) {
-        if (groupMap.has(prefix)) {
-          groups.push({ prefix, segments: groupMap.get(prefix)! });
-          groupMap.delete(prefix);
-        }
-      }
-      for (const [prefix, segs] of groupMap) {
-        groups.push({ prefix, segments: segs });
-      }
-
+    if (groups.length > 1) {
+      // Overlay mode: one header per group
       groups.forEach((group, groupIdx) => {
-        const groupTotal = group.segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
+        const { positive, negative, total } = group.layout;
         const pixelPerUnit = group.segments[0].dataPoint.pixelPerUnit;
-        const groupPixelHeight =
-          this.stackConfig!.mode === StackMode.RELATIVE
-            ? RELATIVE_STACK_UNITS * pixelPerUnit
-            : groupTotal * pixelPerUnit;
         // The front-most group (drawn last, e.g. AC) is fully visible, so its
         // label is centered on the bar. Back groups are mostly hidden behind it
-        // and only peek out at the top, so their labels align with the bar's top edge.
+        // and only peek out at their outer end, so their labels align with that edge.
         const isFrontGroup = groupIdx === groups.length - 1;
-        const centerY = isFrontGroup ? axisY - groupPixelHeight / 2 : axisY - groupPixelHeight;
-        const labelText = this.i18n.get(group.prefix + "1") || group.prefix.toUpperCase();
+        const outerEnd = total < 0 ? 0 - negative : positive;
+        const centerY = axisY - (isFrontGroup ? (positive - negative) / 2 : outerEnd) * pixelPerUnit;
 
-        new Label(
-          headerGroup,
-          labelX,
-          centerY,
-          "STACK_HEADER",
-          labelText as string,
-          this.styles,
-          HookLocation.Center,
-          HookLocation.Right,
-        ).forceStringTypeDraw();
+        drawHeader(centerY, (this.i18n.get(group.prefix + "1") || group.prefix.toUpperCase()) as string);
       });
-    } else {
-      // Single group: show individual segment headers
-      if (this.stackConfig.order === "asc") segments.sort((a, b) => a.value - b.value);
-      else if (this.stackConfig.order === "desc") segments.sort((a, b) => b.value - a.value);
-
-      const total = segments.reduce((sum, s) => sum + Math.abs(s.value), 0);
-      const pixelPerUnit = segments[0].dataPoint.pixelPerUnit;
-      let cumulativePixels = 0;
-
-      segments.forEach((seg) => {
-        let segmentHeight: number;
-        if (this.stackConfig!.mode === StackMode.RELATIVE) {
-          const proportion = total !== 0 ? Math.abs(seg.value) / total : 0;
-          segmentHeight = proportion * RELATIVE_STACK_UNITS * pixelPerUnit;
-        } else {
-          segmentHeight = Math.abs(seg.value * pixelPerUnit);
-        }
-
-        const centerY = axisY - cumulativePixels - segmentHeight / 2;
-        const labelText = this.i18n.get(seg.scenario) || seg.scenario;
-
-        new Label(
-          headerGroup,
-          labelX,
-          centerY,
-          "STACK_HEADER",
-          labelText as string,
-          this.styles,
-          HookLocation.Center,
-          HookLocation.Right,
-        ).forceStringTypeDraw();
-
-        cumulativePixels += segmentHeight;
-      });
+      return;
     }
+
+    // Single group: one header per segment, centered on the segment
+    const [group] = groups;
+    group.segments.forEach((seg, segIdx) => {
+      const { start, end } = group.layout.segments[segIdx];
+
+      drawHeader(
+        axisY - ((start + end) / 2) * seg.dataPoint.pixelPerUnit,
+        (this.i18n.get(seg.scenario) || seg.scenario) as string,
+      );
+    });
   }
 
   /**
@@ -1704,9 +1688,6 @@ export class TimeChart {
 
     if (layerCount === 0) return;
 
-    // Build cumulative values per layer
-    // cumulativePoints[layerIdx][dataIdx] = cumulative y-value at that point
-    const cumulativeValues: number[][] = [];
     const layerScenarios: string[] = [];
 
     // Identify active layers
@@ -1726,59 +1707,47 @@ export class TimeChart {
       });
     }
 
-    // Compute cumulative values
-    for (let layerIdx = 0; layerIdx < activeLayers.length; layerIdx++) {
-      const key = activeLayers[layerIdx];
-      const values: number[] = [];
-
-      for (let dataIdx = 0; dataIdx < dataModel.length; dataIdx++) {
-        const dp: DataPoint = dataModel[dataIdx][key];
-        const value = dp && !dp.isEmpty() && dp.value != null ? dp.value : 0;
-        const prevCumulative = layerIdx > 0 ? cumulativeValues[layerIdx - 1][dataIdx] : 0;
-
-        if (stackMode === StackMode.RELATIVE) {
-          // For relative: need total at each x position
-          const total = activeLayers.reduce((sum, k) => {
-            const d: DataPoint = dataModel[dataIdx][k];
-            return sum + (d && !d.isEmpty() && d.value != null ? Math.abs(d.value) : 0);
-          }, 0);
-          const proportion = total !== 0 ? Math.abs(value) / total : 0;
-          values.push(prevCumulative + proportion);
-        } else {
-          values.push(prevCumulative + value);
-        }
-      }
-
-      cumulativeValues.push(values);
+    for (const key of activeLayers) {
       const firstDp: DataPoint = dataModel[0][key];
       layerScenarios.push((firstDp?.scenario as string) || "ac1");
     }
 
-    // Convert cumulative values to pixel coordinates
+    const layerValue = (row: TimeChartDataModelEntry, key: string): number => {
+      const dp: DataPoint = row[key];
+      return dp && !dp.isEmpty() && Number.isFinite(dp.value) ? dp.value : 0;
+    };
+
+    // A layer that is negative over all periods stays below the axis where it has no value:
+    // -0 is a segment without length on the negative side
+    const emptyValues = activeLayers.map((key) =>
+      dataModel.reduce((sum: number, row: TimeChartDataModelEntry) => sum + layerValue(row, key), 0) < 0 ? -0 : 0,
+    );
+
+    // One stack per period over all layers, laid out like the columns: positive layers
+    // above the axis, negative layers below it
+    const relativeSpan = stackMode === StackMode.RELATIVE ? RELATIVE_STACK_UNITS : 0;
+    const layouts = dataModel.map((row: TimeChartDataModelEntry) =>
+      layoutStack(
+        activeLayers.map((key, layerIdx) => layerValue(row, key) || emptyValues[layerIdx]),
+        relativeSpan,
+      ),
+    );
+
+    // Convert the edges of a layer to pixel coordinates
     const axisY = this.position.getColumnPositionY();
     const pixelPerUnit = this.pixelPerUnit;
 
-    const toAreaPoints = (values: number[]): AreaPoint[] => {
-      return values.map((val, idx) => ({
+    const toAreaPoints = (layerIdx: number, edge: "start" | "end"): AreaPoint[] => {
+      return layouts.map((layout, idx) => ({
         x: this.position.getColumnCenterPositionX(idx),
-        y:
-          axisY -
-          (stackMode === StackMode.RELATIVE
-            ? val * RELATIVE_STACK_UNITS * pixelPerUnit // val is a 0..1 cumulative proportion
-            : val * pixelPerUnit),
+        y: axisY - layout.segments[layerIdx][edge] * pixelPerUnit,
       }));
     };
 
-    // Baseline (y = axis)
-    const baselinePoints: AreaPoint[] = dataModel.map((_: TimeChartDataModelEntry, idx: number) => ({
-      x: this.position.getColumnCenterPositionX(idx),
-      y: axisY,
-    }));
-
-    // Draw area fills bottom-to-top
-    for (let layerIdx = 0; layerIdx < cumulativeValues.length; layerIdx++) {
-      const upperPoints = toAreaPoints(cumulativeValues[layerIdx]);
-      const lowerPoints = layerIdx === 0 ? baselinePoints : toAreaPoints(cumulativeValues[layerIdx - 1]);
+    // Draw area fills in layer order
+    for (let layerIdx = 0; layerIdx < activeLayers.length; layerIdx++) {
+      const upperPoints = toAreaPoints(layerIdx, "end");
+      const lowerPoints = toAreaPoints(layerIdx, "start");
 
       const scenarioType = isScenarioStack ? layerScenarios[layerIdx] : null;
 

@@ -27,6 +27,7 @@ import { DataPoint } from "../model";
 import { TimeChartStyle, TimeChartStylesAdapter } from "../model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChartAdapter } from "../model/styles/ScaleFactorsTimeChart";
 import { StackMode } from "../../../../utils/constants";
+import { layoutStack, StackLayout } from "../../../../utils/stackLayout";
 import { FontStyleAdapter } from "../../../../utils/model/styles/FontStyle";
 import { SVGStyleGroupAdapter } from "../../../../utils/model/styles/SVGStyleGroup";
 import { SVGStyleAdapter } from "../../../../utils/model/styles/SVGStyle";
@@ -62,11 +63,27 @@ const position = {
   getColumnWidth: () => 20,
 } as unknown as ElementPositions;
 
+// The stack of the segment: the rest up to `total` is a second segment.
+const stackOf = (value: number, total: number): StackLayout => layoutStack([value, total - value]);
+
 const segmentLabel = (locale: string, mode: StackMode, value: number, total: number): unknown => {
   labelValues.length = 0;
   // 1 pixel per unit, so the segment of 45 is higher than the 18 pixel a label needs
   const dataPoint = new DataPoint(value, "ac1", 1, null);
-  new StackedColumn(position, buildStyles(locale), dataPoint, 0, 0, "ac1", 0, mode, total, false, svgGroup()).draw({
+  const stack = stackOf(value, total);
+  new StackedColumn(
+    position,
+    buildStyles(locale),
+    dataPoint,
+    0,
+    stack.segments[0],
+    "ac1",
+    0,
+    mode,
+    stack,
+    false,
+    svgGroup(),
+  ).draw({
     percent: 1,
     decimal: 1,
   });
@@ -84,8 +101,8 @@ describe("StackedColumn share label", () => {
     expect(segmentLabel("de", StackMode.RELATIVE, 45, 100)).toBe("45,0%");
   });
 
-  it("prints a share of zero when the total of the stack is zero", () => {
-    // A 100% stack with a zero total has no height and no label, so this uses the absolute stack with share labels.
-    expect(segmentLabel("en", StackMode.ABSOLUTE_RELATIVE, 45, 0)).toBe("0.0%");
+  it("prints a negative share for a negative segment", () => {
+    // -20 in a stack of 100 and -20: the share base is the sum of absolute values, 120
+    expect(segmentLabel("en", StackMode.ABSOLUTE_RELATIVE, -20, 80)).toBe("-16.7%");
   });
 });

@@ -6,6 +6,7 @@ import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StackMode } from "../../../../utils/constants";
 import { Formatter } from "../../../../utils/formatter";
+import { StackLayout, StackSegment } from "../../../../utils/stackLayout";
 
 /**
  * Renders a single horizontal stacked bar segment for the structure chart.
@@ -18,10 +19,10 @@ export class StackedBar {
 
   private readonly dataPoint: DataPoint;
   private readonly index: number;
-  private readonly baselineValue: number;
+  private readonly segment: StackSegment;
   private readonly segmentIndex: number;
   private readonly stackMode: StackMode;
-  private readonly totalValue: number;
+  private readonly stack: StackLayout;
   private hasData: boolean = false;
 
   constructor(
@@ -29,11 +30,11 @@ export class StackedBar {
     styles: StructureChartStyle,
     dataPoint: DataPoint,
     index: number,
-    baselineValue: number,
+    segment: StackSegment,
     _segmentLabel: string | null,
     segmentIndex: number,
     stackMode: StackMode,
-    totalValue: number,
+    stack: StackLayout,
     _isScenarioStack: boolean,
     parentGroup: G,
   ) {
@@ -41,10 +42,10 @@ export class StackedBar {
     this.styles = styles;
     this.dataPoint = dataPoint;
     this.index = index;
-    this.baselineValue = baselineValue;
+    this.segment = segment;
     this.segmentIndex = segmentIndex;
     this.stackMode = stackMode;
-    this.totalValue = totalValue;
+    this.stack = stack;
     this.group = parentGroup;
     this.barGroup = parentGroup.group().id(`stacked_bar_${index}_seg_${segmentIndex}`);
 
@@ -57,7 +58,8 @@ export class StackedBar {
     dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
     measureScale: SiPrefix = new SiPrefix(),
   ): void {
-    if (!this.hasData || this.dataPoint.value == null) {
+    // a segment without a value (NaN) keeps its place in the stack, so the colours stay, but draws nothing
+    if (!this.hasData || !Number.isFinite(this.dataPoint.value)) {
       return;
     }
 
@@ -66,20 +68,9 @@ export class StackedBar {
     const axisX = this.position.getBarPositionX();
     const barWidth = this.position.getBarWidth();
 
-    let segmentLength: number;
-    let xPos: number;
-
-    if (this.stackMode === StackMode.RELATIVE) {
-      const proportion = this.totalValue !== 0 ? Math.abs(value) / Math.abs(this.totalValue) : 0;
-      const totalPixelLength = pixelPerUnit;
-      segmentLength = proportion * totalPixelLength;
-      const baselinePixels = (this.baselineValue / Math.abs(this.totalValue)) * totalPixelLength;
-      xPos = axisX + baselinePixels;
-    } else {
-      segmentLength = Math.abs(value * pixelPerUnit);
-      const baselinePixels = this.baselineValue * pixelPerUnit;
-      xPos = axisX + baselinePixels;
-    }
+    // a negative segment ends left of its start: the rect begins at the edge that is further left
+    const segmentLength = Math.abs(this.segment.end - this.segment.start) * pixelPerUnit;
+    const xPos = axisX + Math.min(this.segment.start, this.segment.end) * pixelPerUnit;
 
     const yPos = this.position.getBarPositionY(this.index, true);
 
@@ -97,9 +88,8 @@ export class StackedBar {
       const labelX = xPos + segmentLength / 2;
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
-        const share = this.totalValue !== 0 ? value / this.totalValue : 0;
         const labelValue = Formatter.number(
-          share,
+          this.segment.share,
           "percent",
           dataFormatDigits.percent,
           dataFormatDigits.percent,
@@ -137,9 +127,10 @@ export class StackedBar {
       return;
     }
 
-    const axisX = this.position.getBarPositionX();
-    const totalPixels = this.totalValue * this.dataPoint.pixelPerUnit;
-    const labelX = axisX + totalPixels + this.position.spacings.labelToBar;
+    // like a plain bar: the label of a negative total sits left of the negative side
+    const isNegative = this.stack.total < 0;
+    const end = isNegative ? 0 - this.stack.negative : this.stack.positive;
+    const labelX = this.position.getLabelPositionX(end * this.dataPoint.pixelPerUnit);
     const yPos = this.position.getBarPositionY(this.index, true);
 
     const label = new Label(
@@ -147,10 +138,10 @@ export class StackedBar {
       labelX,
       yPos,
       "STACK_TOTAL",
-      this.totalValue,
+      this.stack.total,
       this.styles,
       HookLocation.Center,
-      HookLocation.Left,
+      isNegative ? HookLocation.Right : HookLocation.Left,
     );
     label.draw(dataFormatDigits, measureScale);
   }
