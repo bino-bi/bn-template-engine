@@ -1,4 +1,4 @@
-import { pageGeometry, pageRule, VALID_FORMATS } from "./pageFormats";
+import { pageGeometry, pageRule, sheetGeometry, VALID_FORMATS } from "./pageFormats";
 
 describe("page formats", () => {
   it("lists the documented formats", () => {
@@ -56,9 +56,35 @@ describe("page formats", () => {
     expect(pageGeometry(format, "portrait")).toEqual({ width: "1024px", height: "768px", orientation: "landscape" });
   });
 
-  it("writes the paper size of a page as an @page rule without margin", () => {
-    expect(pageRule("a4", "landscape")).toBe("@page { size: 11.69in 8.27in; margin: 0; }");
-    expect(pageRule("full-hd")).toBe("@page { size: 1920px 1080px; margin: 0; }");
-    expect(pageRule()).toBe("@page { size: 1024px 768px; margin: 0; }");
+  it("turns a page onto a sheet of the other orientation", () => {
+    expect(sheetGeometry("a4", "portrait", "landscape")).toEqual({ width: "11.69in", height: "8.27in", turned: true });
+    expect(sheetGeometry("xga", undefined, "portrait")).toEqual({ width: "768px", height: "1024px", turned: true });
+    // a page without a known format is drawn as XGA landscape, so it is turned too
+    expect(sheetGeometry(undefined, "portrait", "portrait")).toEqual({
+      width: "768px",
+      height: "1024px",
+      turned: true,
+    });
+  });
+
+  it.each([undefined, null, "", "auto"])("turns nothing for the render orientation %p", (renderOrientation) => {
+    expect(sheetGeometry("a4", "landscape", renderOrientation)).toEqual({
+      width: "11.69in",
+      height: "8.27in",
+      turned: false,
+    });
+  });
+
+  it("turns nothing when the page has the orientation of the sheet", () => {
+    expect(sheetGeometry("a4", "landscape", "landscape").turned).toBe(false);
+    expect(sheetGeometry("xga", undefined, "landscape").turned).toBe(false);
+  });
+
+  it("writes the size of the sheet as an @page rule, and no margin", () => {
+    // a margin in the rule would override the margins of a caller that prints a header and a footer
+    expect(pageRule("a4", "portrait", "landscape")).toBe("@page { size: 11.69in 8.27in; }");
+    expect(pageRule("a4", "landscape")).toBe("@page { size: 11.69in 8.27in; }");
+    expect(pageRule("full-hd")).toBe("@page { size: 1920px 1080px; }");
+    expect(pageRule()).toBe("@page { size: 1024px 768px; }");
   });
 });

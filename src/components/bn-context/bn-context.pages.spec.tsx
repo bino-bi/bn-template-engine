@@ -63,6 +63,42 @@ describe("bn-context page numbers", () => {
     expect(numbers(page.root)).toEqual(["1", "2", "A-1"]);
   });
 
+  it("numbers a page again when the number it wrote is removed", async () => {
+    const page = await render(
+      `<bn-context><bn-layout-page></bn-layout-page><bn-layout-page></bn-layout-page></bn-context>`,
+    );
+    const second = page.root.querySelectorAll("bn-layout-page")[1];
+
+    // a tool that updates the DOM in place drops attributes that are not in its source
+    second.removeAttribute("page-number");
+    notifyAttributeChange(second, "page-number");
+
+    expect(numbers(page.root)).toEqual(["1", "2"]);
+  });
+
+  it("keeps a number that the author sets later", async () => {
+    const page = await render(
+      `<bn-context><bn-layout-page></bn-layout-page><bn-layout-page></bn-layout-page></bn-context>`,
+    );
+    const second = page.root.querySelectorAll("bn-layout-page")[1];
+
+    second.setAttribute("page-number", "B");
+    notifyAttributeChange(second, "page-number");
+
+    expect(numbers(page.root)).toEqual(["1", "B"]);
+  });
+
+  it("keeps a page number that is set as a property, without the attribute", async () => {
+    const page = await render(`<bn-context></bn-context>`);
+    const layoutPage = page.doc.createElement("bn-layout-page") as unknown as HTMLElement & Record<string, string>;
+    layoutPage.pageNumber = "A-1";
+
+    page.root.append(layoutPage);
+    notifyChildListChange(page.root);
+
+    expect(layoutPage.hasAttribute("page-number")).toBe(false);
+  });
+
   it("leaves a page without footer alone", async () => {
     const page = await render(`<bn-context><bn-page></bn-page><bn-layout-page></bn-layout-page></bn-context>`);
 
@@ -80,13 +116,13 @@ describe("bn-context paper size", () => {
       </bn-context>`,
     );
 
-    expect(pageSizeRules()).toEqual(["@page { size: 11.69in 8.27in; margin: 0; }"]);
+    expect(pageSizeRules()).toEqual(["@page { size: 11.69in 8.27in; }"]);
   });
 
   it("reads format and orientation of a plain bn-page", async () => {
     await render(`<bn-context><bn-page format="full-hd"></bn-page></bn-context>`);
 
-    expect(pageSizeRules()).toEqual(["@page { size: 1920px 1080px; margin: 0; }"]);
+    expect(pageSizeRules()).toEqual(["@page { size: 1920px 1080px; }"]);
   });
 
   it("uses the orientation the document is printed in", async () => {
@@ -97,7 +133,47 @@ describe("bn-context paper size", () => {
     );
 
     // the portrait page is rotated onto a landscape sheet
-    expect(pageSizeRules()).toEqual(["@page { size: 11.69in 8.27in; margin: 0; }"]);
+    expect(pageSizeRules()).toEqual(["@page { size: 11.69in 8.27in; }"]);
+  });
+
+  it.each([
+    [
+      "a layout page without format in a portrait document",
+      `<bn-context render-orientation="portrait"><bn-layout-page></bn-layout-page></bn-context>`,
+      // the default XGA page is turned, so the sheet is 768 x 1024
+      "@page { size: 768px 1024px; }",
+    ],
+    [
+      "a plain bn-page, which is never turned",
+      `<bn-context render-orientation="landscape"><bn-page format="a4"></bn-page></bn-context>`,
+      "@page { size: 8.27in 11.69in; }",
+    ],
+    [
+      "a render-orientation it does not know",
+      `<bn-context render-orientation="auto"><bn-layout-page page-format="a4" page-orientation="landscape"></bn-layout-page></bn-context>`,
+      "@page { size: 11.69in 8.27in; }",
+    ],
+    [
+      "an empty render-orientation",
+      `<bn-context render-orientation=""><bn-layout-page page-format="a4" page-orientation="landscape"></bn-layout-page></bn-context>`,
+      "@page { size: 11.69in 8.27in; }",
+    ],
+  ])("writes the size the first page is drawn in: %s", async (_name, html, rule) => {
+    await render(html);
+
+    expect(pageSizeRules()).toEqual([rule]);
+  });
+
+  it("reads a format that is set as a property, without the attribute", async () => {
+    const page = await render(`<bn-context></bn-context>`);
+    const layoutPage = page.doc.createElement("bn-layout-page") as unknown as HTMLElement & Record<string, string>;
+    layoutPage.pageFormat = "a4";
+    layoutPage.pageOrientation = "landscape";
+
+    page.root.append(layoutPage);
+    notifyChildListChange(page.root);
+
+    expect(pageSizeRules()).toEqual(["@page { size: 11.69in 8.27in; }"]);
   });
 
   it("follows a change of the first page", async () => {
@@ -107,7 +183,7 @@ describe("bn-context paper size", () => {
     first.setAttribute("page-format", "letter");
     notifyAttributeChange(first, "page-format");
 
-    expect(pageSizeRules()).toEqual(["@page { size: 8.5in 11in; margin: 0; }"]);
+    expect(pageSizeRules()).toEqual(["@page { size: 8.5in 11in; }"]);
   });
 
   it("writes no rule without a page, and removes it with the context", async () => {
@@ -128,6 +204,6 @@ describe("bn-context paper size", () => {
       `<bn-context><bn-page format="a4"></bn-page></bn-context><bn-context><bn-page format="a3"></bn-page></bn-context>`,
     );
 
-    expect(pageSizeRules()).toEqual(["@page { size: 8.27in 11.69in; margin: 0; }"]);
+    expect(pageSizeRules()).toEqual(["@page { size: 8.27in 11.69in; }"]);
   });
 });

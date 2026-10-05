@@ -152,6 +152,17 @@ describe("bn-layout-page in a document that is printed in the other orientation"
     expect(inner.style.transform).toBe("");
   });
 
+  it("turns the default XGA page in a portrait document, with or without page-orientation", async () => {
+    for (const attrs of [``, `page-orientation="portrait"`]) {
+      const { host, inner } = await mount(`render-orientation="portrait"`, attrs);
+
+      // without a format the page is XGA landscape, the orientation has no effect
+      expect(host.style.width).toBe("768px");
+      expect(host.style.height).toBe("1024px");
+      expect(inner.style.transform).toBe(TURNED);
+    }
+  });
+
   it("turns back when the page gets the orientation of the sheet", async () => {
     const { page, host, inner } = await mount(`render-orientation="landscape"`, `page-format="a4"`);
     expect(inner.style.transform).toBe(TURNED);

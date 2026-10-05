@@ -57,11 +57,45 @@ export function pageGeometry(format?: string | null, orientation?: string | null
   return { width: `${w}${unit}`, height: `${h}${unit}`, orientation: used };
 }
 
+export interface SheetGeometry {
+  width: string;
+  height: string;
+  /** True when the page is rotated to fit the sheet. */
+  turned: boolean;
+}
+
 /**
- * The `@page` rule for a document of such pages. A page fills the sheet
- * exactly, so the rule also sets the margin to 0.
+ * The box a page takes on the sheet.
+ *
+ * A document is printed in one orientation, `renderOrientation`. A layout
+ * page with the other orientation keeps its own layout and is turned onto
+ * the sheet, so its box has the swapped size. Without a valid
+ * `renderOrientation` nothing is turned. A plain `bn-page` is never turned:
+ * pass no `renderOrientation` for it.
  */
-export function pageRule(format?: string | null, orientation?: string | null): string {
-  const { width, height } = pageGeometry(format, orientation);
-  return `@page { size: ${width} ${height}; margin: 0; }`;
+export function sheetGeometry(
+  format?: string | null,
+  orientation?: string | null,
+  renderOrientation?: string | null,
+): SheetGeometry {
+  const page = pageGeometry(format, orientation);
+  const turned = VALID_ORIENTATIONS.includes(renderOrientation ?? "") && renderOrientation !== page.orientation;
+
+  return turned
+    ? { width: page.height, height: page.width, turned }
+    : { width: page.width, height: page.height, turned };
+}
+
+/**
+ * The `@page` rule for a document whose first page is drawn like this. It
+ * sets only the size: a margin here would override the margins of a caller
+ * that prints with a header and a footer.
+ */
+export function pageRule(
+  format?: string | null,
+  orientation?: string | null,
+  renderOrientation?: string | null,
+): string {
+  const { width, height } = sheetGeometry(format, orientation, renderOrientation);
+  return `@page { size: ${width} ${height}; }`;
 }

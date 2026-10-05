@@ -1,5 +1,5 @@
 import { Component, h, Host, Element, Prop, Method, Fragment } from "@stencil/core";
-import { pageGeometry, VALID_ORIENTATIONS } from "../bn-page/pageFormats";
+import { sheetGeometry } from "../bn-page/pageFormats";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import {
@@ -395,13 +395,13 @@ export class LayoutPage {
    */
   private rotation(): { host: Record<string, string>; page: Record<string, string> } | undefined {
     const renderOrientation = this.element.closest("bn-context")?.getAttribute("render-orientation");
-    const page = pageGeometry(this.pageFormat, this.pageOrientation);
-    if (!VALID_ORIENTATIONS.includes(renderOrientation) || renderOrientation === page.orientation) {
+    const sheet = sheetGeometry(this.pageFormat, this.pageOrientation, renderOrientation);
+    if (!sheet.turned) {
       return undefined;
     }
 
     return {
-      host: { width: page.height, height: page.width },
+      host: { width: sheet.width, height: sheet.height },
       page: { transform: "rotate(-90deg) translate(-100%)", transformOrigin: "top left" },
     };
   }

@@ -123,7 +123,7 @@ for (const [format, orientation, width, height] of [
     await removeBodyMargin(page);
 
     const rule = await page.$eval("style[data-bn-page-size]", (style) => style.textContent);
-    assert.match(rule, /^@page \{ size: \S+ \S+; margin: 0; \}$/);
+    assert.match(rule, /^@page \{ size: \S+ \S+; \}$/);
 
     // a caller that passes the paper size, and one that lets the page decide
     const margin = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -257,6 +257,25 @@ test("layout: a custom template that is no template is one cell and a warning, n
     items: JSON.parse(el.getAttribute("has-error") ?? "[]").map((item) => [item.id, item.type]),
   }));
   assert.deepEqual(result, { slots: 1, items: [["ERR_pageCustomTemplate", "warning"]] });
+});
+
+test("orientation: the sheet of a portrait document with default pages is portrait", async () => {
+  // no page-format: the page is XGA landscape and is turned, so the sheet must be 768 x 1024
+  const { page } = await open(
+    `<bn-layout-page></bn-layout-page><bn-layout-page></bn-layout-page>`,
+    {},
+    `render-orientation="portrait"`,
+  );
+  await removeBodyMargin(page);
+
+  assert.equal(
+    await page.$eval("style[data-bn-page-size]", (style) => style.textContent),
+    "@page { size: 768px 1024px; }",
+  );
+  const pdf = pdfInfo(await page.pdf({ preferCSSPageSize: true }));
+  assert.equal(pdf.pages, 2, JSON.stringify(pdf));
+  const [, , boxWidth, boxHeight] = pdf.boxes[0].match(/[\d.]+/g).map(Number);
+  assert.ok(Math.abs(boxWidth - 576) < 1 && Math.abs(boxHeight - 768) < 1, pdf.boxes[0]);
 });
 
 const DATA_HOSTS = [

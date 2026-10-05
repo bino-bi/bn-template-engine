@@ -21,8 +21,22 @@ interface LayoutHostElement extends HTMLElement {
   getLayoutState?: (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
 }
 
-/** Attributes that change the paper size or the orientation of a page. */
-const PAGE_ATTRIBUTES = ["format", "orientation", "page-format", "page-orientation", "render-orientation"];
+/** Attributes that change the paper size, the orientation or the number of a page. */
+const PAGE_ATTRIBUTES = [
+  "format",
+  "orientation",
+  "page-format",
+  "page-orientation",
+  "render-orientation",
+  // also watched: a tool that updates the DOM in place may remove the number this context wrote
+  "page-number",
+];
+
+/** A value of a page: its property when it is set (a page can be configured without attributes), else its attribute. */
+const read = (element: Element, property: string, attribute: string): string | null => {
+  const value = (element as unknown as Record<string, unknown>)[property];
+  return typeof value === "string" ? value : element.getAttribute(attribute);
+};
 
 /** Every visual bn-* component; non-visual producers (bn-dataset, ...) are excluded. */
 const VISUAL_SELECTOR =
@@ -106,7 +120,7 @@ export class Context {
       // a layout page shows the number itself, a plain page in its footer
       const target = page.localName === "bn-layout-page" ? page : page.querySelector("bn-footer");
       if (!target) return;
-      const current = target.getAttribute("page-number");
+      const current = read(target, "pageNumber", "page-number");
       if (current !== null && current !== this.assignedPageNumbers.get(target)) return;
       const number = (index + 1).toString();
       this.assignedPageNumbers.set(target, number);
@@ -124,9 +138,9 @@ export class Context {
   }
 
   /**
-   * Writes the `@page` rule: the paper size of the first page, in the
-   * orientation the document is printed in. It has to be a rule of the
-   * document, a stylesheet in a shadow root cannot set it.
+   * Writes the `@page` rule: the size the first page is drawn in, turned or
+   * not. It has to be a rule of the document, a stylesheet in a shadow root
+   * cannot set it.
    */
   private writePageSize(firstPage: Element | undefined, renderOrientation: string | null): void {
     // a document has one paper size: the first context sets it
@@ -136,11 +150,15 @@ export class Context {
       return;
     }
 
-    const prefix = firstPage.localName === "bn-layout-page" ? "page-" : "";
-    const rule = pageRule(
-      firstPage.getAttribute(`${prefix}format`),
-      renderOrientation ?? firstPage.getAttribute(`${prefix}orientation`),
-    );
+    const layoutPage = firstPage.localName === "bn-layout-page";
+    const rule = layoutPage
+      ? pageRule(
+          read(firstPage, "pageFormat", "page-format"),
+          read(firstPage, "pageOrientation", "page-orientation"),
+          renderOrientation,
+        )
+      : // a plain bn-page is never turned
+        pageRule(read(firstPage, "format", "format"), read(firstPage, "orientation", "orientation"));
     if (!this.pageSizeStyle) {
       this.pageSizeStyle = document.createElement("style");
       this.pageSizeStyle.setAttribute("data-bn-page-size", "");
