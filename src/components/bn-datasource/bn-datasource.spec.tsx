@@ -445,6 +445,26 @@ describe("bn-datasource failures", () => {
     expect(rows("fail_dup")).toEqual([{ category: "a" }]);
   });
 
+  it("has its rows back when the body that could not be decoded is valid again", async () => {
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="fail_back">[{"category":"a"}]</bn-datasource>`,
+    });
+    const sync = (body: string) => (page.rootInstance as { sync(body: string): void }).sync(body);
+
+    page.root.setAttribute("raw", "false");
+    await page.waitForChanges();
+    sync("abc:not-gzip");
+    expect(errors(page.root).map((e) => e.id)).toEqual(["ERR_body"]);
+    expect(rows("fail_back")).toEqual([]);
+
+    page.root.setAttribute("raw", "true");
+    await page.waitForChanges();
+    sync(`[{"category":"a"}]`);
+    expect(errors(page.root)).toEqual([]);
+    expect(rows("fail_back")).toEqual([{ category: "a" }]);
+  });
+
   it("reads the JSON value null as no rows, in the body and from src", async () => {
     (global as any).fetch = jest.fn(async () => ({ ok: true, json: async () => null }));
 

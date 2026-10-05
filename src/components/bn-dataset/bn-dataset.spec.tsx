@@ -566,6 +566,8 @@ describe("bn-dataset readiness", () => {
 describe("bn-dataset failures", () => {
   const realFetch = global.fetch;
   const ids = (host: Element): string[] => errors(host).map((e) => e.id);
+  // @ts-ignore - the mock store is typed per dataset name
+  const meta = (name: string): unknown => getStores(null).datasetsMeta.get(name);
 
   afterEach(() => {
     global.fetch = realFetch;
@@ -694,6 +696,71 @@ describe("bn-dataset failures", () => {
     // no item any more, so the name must hold the rows of a again, not a deleted table
     expect(ids(a)).toEqual([]);
     expect(db().exec("SELECT * FROM fail_back2")).toEqual(A);
+  });
+
+  it("gives readers the rows of the remaining producer when a SQL dataset with the same name leaves", async () => {
+    const A = [{ category: "a", ac1: 1 }];
+    db().tables["fail_cache_src"] = { data: [{ category: "view", ac1: 9 }] };
+    const page = await newSpecPage({
+      components: [Dataset],
+      html:
+        `<bn-dataset id="a" name="fail_cache" static>${JSON.stringify(A)}</bn-dataset>` +
+        `<bn-dataset id="b" name="fail_cache" datasources="fail_cache_src">SELECT * FROM fail_cache_src</bn-dataset>`,
+    });
+    // a reader that queries when the name changes, like every visual does. Its statement was compiled for the view.
+    const read = () => db().exec("SELECT * FROM `fail_cache`");
+    expect(read()).toEqual([{ category: "view", ac1: 9 }]);
+    const seen: unknown[] = [];
+    const unsubscribe = getStores(null).db.subscribe("fail_cache", () => {
+      try {
+        seen.push(read());
+      } catch (e) {
+        seen.push(String(e));
+      }
+    });
+
+    page.body.querySelector("#b").remove();
+    await page.waitForChanges();
+    unsubscribe();
+
+    expect(seen[seen.length - 1]).toEqual(A);
+  });
+
+  it("keeps a dataset on top of the name working when the name changes from a view to a table", async () => {
+    const SOURCE = [{ category: "table", ac1: 1 }];
+    const page = await newSpecPage({
+      components: [Datasource, Dataset],
+      html:
+        `<bn-datasource name="fail_kind">${JSON.stringify(SOURCE)}</bn-datasource>` +
+        `<bn-dataset id="clash" name="fail_kind" datasources="fail_kind_other">SELECT 'view' AS category, 2 AS ac1</bn-dataset>` +
+        `<bn-dataset id="top" name="fail_kind_top" datasources="fail_kind">SELECT * FROM fail_kind</bn-dataset>`,
+    });
+    // the dataset on top first read the name while it was the view of the clashing dataset
+    expect(db().exec("SELECT * FROM fail_kind_top")).toEqual([{ category: "view", ac1: 2 }]);
+
+    page.body.querySelector("#clash").remove();
+    await page.waitForChanges();
+
+    // alasql binds a source as view or table when it compiles a view. The name is a table now.
+    expect(db().exec("SELECT * FROM fail_kind_top")).toEqual(SOURCE);
+    expect(ids(page.body.querySelector("#top"))).toEqual([]);
+  });
+
+  it("removes its meta when it leaves and a datasource keeps the name", async () => {
+    const page = await newSpecPage({
+      components: [Datasource, Dataset],
+      html:
+        `<bn-datasource name="fail_meta">[{"category":"a","ac1":1}]</bn-datasource>` +
+        `<bn-dataset id="d" name="fail_meta" static>[{"category":"a","ac1":1,"pl1":2}]</bn-dataset>`,
+    });
+    expect(meta("fail_meta")).toMatchObject({ availableScenarios: ["ac1", "pl1"] });
+
+    page.body.querySelector("#d").remove();
+    await page.waitForChanges();
+
+    // a datasource writes no meta: the one of the dataset that left must not stay
+    expect(meta("fail_meta")).toBeNull();
+    expect(db().exec("SELECT * FROM fail_meta")).toEqual([{ category: "a", ac1: 1 }]);
   });
 
   it("clears ERR_name when two datasets that swap names are done", async () => {

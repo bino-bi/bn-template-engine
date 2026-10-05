@@ -129,6 +129,8 @@ export class Datasource {
       }
       this.publish(json);
     } catch (e) {
+      // the body that was loaded before must be read again when it comes back
+      this.lastHash = null;
       this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
       this.publish([]);
     }

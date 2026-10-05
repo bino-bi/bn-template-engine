@@ -97,6 +97,8 @@ export class Dataset {
   /** Gives the name back that `claim` of the scoped db announced. */
   private releaseName: (() => void) | undefined;
   private nameShared = false;
+  /** The meta this dataset wrote last, to tell it from the meta of another producer of the name. */
+  private publishedMeta: unknown;
 
   /** The currently active URL (`null` when not in URL mode). */
   private currentUrl: string | null = null;
@@ -234,6 +236,11 @@ export class Dataset {
           this.publish(result);
           return;
         }
+      } else {
+        // alasql compiles the select of a view once and binds every source as view or as table.
+        // A source that changed its kind since needs a new compile, which the next read does.
+        // @ts-ignore - select is not in the public typings
+        delete db.tables[this.name]?.select;
       }
       try {
         result = db.exec(`SELECT * FROM \`${this.name}\``);
@@ -268,8 +275,9 @@ export class Dataset {
     }
     this.latestResult = result;
     this.stores.db.notify(this.name);
+    this.publishedMeta = calculateDatasetMeta(result as Record<string, unknown>[]);
     // @ts-ignore - DatasetMeta is small derived metadata; kept as a @stencil/store per the plan.
-    this.stores.datasetsMeta.set(this.name, calculateDatasetMeta(result));
+    this.stores.datasetsMeta.set(this.name, this.publishedMeta);
   }
 
   @Watch("name")
@@ -298,13 +306,21 @@ export class Dataset {
 
   /** Drops what is registered under `name` and forgets the loaded state, so the next sync loads again. */
   private unregister(name: string): void {
+    const db = this.stores?.db?.db;
+    // The name may come back as a plain table, which statements compiled for the view cannot read.
+    // Before the release: a producer that shares the name loads and notifies its readers inside of it.
+    if (db && this.lastViewQuery !== null) db.resetSqlCache();
     this.releaseName?.();
     this.releaseName = undefined;
-    const db = this.stores?.db?.db;
-    // the name may come back as a plain table, which statements compiled for the view cannot read
-    if (db && this.lastViewQuery !== null) db.resetSqlCache();
     // another element may have taken the name since: its table, meta and consumers stay untouched
     const taken = db?.tables[name] != null && db.tables[name] !== this.registered;
+    // a datasource that took the name writes no meta: the meta of this dataset must not stay for its rows
+    // @ts-ignore - the store is typed per dataset name
+    if (taken && this.publishedMeta !== undefined && this.stores.datasetsMeta.get(name) === this.publishedMeta) {
+      // @ts-ignore
+      this.stores.datasetsMeta.set(name, null);
+    }
+    this.publishedMeta = undefined;
     this.registered = undefined;
     this.lastBodyHash = null;
     this.lastViewQuery = null;
