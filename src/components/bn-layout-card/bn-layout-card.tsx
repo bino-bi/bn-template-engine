@@ -421,8 +421,8 @@ export class LayoutCard {
     ];
     for (const { prop, attr } of mappings) {
       const resolved = this.resolveInherited(prop, this[prop]);
-      if (resolved !== undefined) {
-        this.element.setAttribute(attr, resolved);
+      if (resolved.inherited) {
+        this.element.setAttribute(attr, resolved.value);
       }
     }
   }
@@ -452,14 +452,12 @@ export class LayoutCard {
         <div class="cardtitle">
           <bn-title // @ts-ignore
             i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
-            ruleset={this.resolveInherited("ruleset", this.ruleset) ?? this.ruleset}
+            ruleset={this.resolveInherited("ruleset", this.ruleset).value}
             business-unit={this.titleBusinessUnit}
-            scenarios={this.resolveInherited("titleScenarios", this.titleScenarios) ?? this.titleScenarios}
-            variances={this.resolveInherited("titleVariances", this.titleVariances) ?? this.titleVariances}
-            order={this.resolveInherited("titleOrder", this.titleOrder) ?? this.titleOrder}
-            order-direction={
-              this.resolveInherited("titleOrderDirection", this.titleOrderDirection) ?? this.titleOrderDirection
-            }
+            scenarios={this.resolveInherited("titleScenarios", this.titleScenarios).value}
+            variances={this.resolveInherited("titleVariances", this.titleVariances).value}
+            order={this.resolveInherited("titleOrder", this.titleOrder).value}
+            order-direction={this.resolveInherited("titleOrderDirection", this.titleOrderDirection).value}
             measures={this.titleMeasures}
             date-start={this.titleDateStart}
             date-end={this.titleDateEnd}

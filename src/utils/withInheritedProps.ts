@@ -1,6 +1,7 @@
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 import { isBlankInput } from "./validate";
+import { ErrorDispatcher } from "./withHasError";
 
 /**
  * Reserved prop values that activate inheritance from ancestor layout
@@ -19,12 +20,22 @@ export interface PropMapping {
   ancestorAttr: string;
 }
 
+/** What a prop resolves to. */
+export interface InheritedProp {
+  /** The ancestor's value, the prop's own value, or the fallback of an unresolved keyword. */
+  value: string;
+  /** `value` was taken from an ancestor. */
+  inherited: boolean;
+  /** The prop is an inheritance keyword and no ancestor sets the field. */
+  unresolved: boolean;
+}
+
 /**
  * Resolver function returned by the mixin.
- * Returns the resolved ancestor value, or `undefined` when the prop is not
- * an inheritance keyword (meaning the caller should use its normal logic).
+ * `fallback` is what an unresolved keyword stands for: blank unless given, so
+ * the caller's handling of a prop that was not set applies.
  */
-export type InheritedResolver = (propName: string, currentValue: string) => string | undefined;
+export type InheritedResolver = (propName: string, currentValue: string, fallback?: string) => InheritedProp;
 
 /**
  * Returns `true` when `value` is one of the recognised inheritance keywords.
@@ -119,12 +130,22 @@ export function findAncestorWithAttr(element: HTMLElement, attr: string): HTMLEl
  *
  * Follows the same decorator-style pattern as `withComponentStyle`.
  *
+ * A keyword that no ancestor satisfies is never used as a value: the resolver
+ * returns the fallback instead and, when `errors` is given, keeps a
+ * `WARN_inherited_<prop>` warning in it for as long as the keyword is
+ * unresolved.
+ *
  * @param component  The Stencil component instance
  * @param mappings   Array of prop-to-attribute mappings
+ * @param errors     The component's error list, to report unresolved keywords
  * @returns A resolver function used inside `prepare*()` methods
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const withInheritedProps = (component: any, mappings: PropMapping[]): InheritedResolver => {
+const withInheritedProps = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: any,
+  mappings: PropMapping[],
+  errors?: ErrorDispatcher,
+): InheritedResolver => {
   /** Resolved values keyed by propName. */
   const resolved = new Map<string, string>();
 
@@ -188,14 +209,32 @@ const withInheritedProps = (component: any, mappings: PropMapping[]): InheritedR
     runIfExisits(disconnectedCallback, component);
   };
 
+  /** The layout field behind a mapped attribute, e.g. `title-scenarios` -> `titleScenarios`. */
+  const fieldName = (propName: string): string =>
+    mappings
+      .find((mapping) => mapping.propName === propName)
+      ?.ancestorAttr.replace(/-(\w)/g, (_match, char: string) => char.toUpperCase());
+
   /**
-   * Resolver: returns the inherited value for the given prop, or `undefined`
-   * when the prop is not using inheritance (so the caller falls through to
-   * its normal logic).
+   * Resolver: the one place that decides which value a mapped prop stands
+   * for, and that reports a keyword no ancestor satisfies.
    */
-  const resolve: InheritedResolver = (propName: string, currentValue: string): string | undefined => {
-    if (!isInheritedValue(currentValue)) return undefined;
-    return resolved.get(propName);
+  const resolve: InheritedResolver = (propName: string, currentValue: string, fallback = ""): InheritedProp => {
+    const warningId = `WARN_inherited_${propName}`;
+    const inherited = isInheritedValue(currentValue) ? resolved.get(propName) : undefined;
+
+    if (isInheritedValue(currentValue) && inherited === undefined) {
+      const scope = currentValue === INHERITED_PAGE ? "page" : "card or page";
+      errors?.addOrReplace({
+        id: warningId,
+        type: "warning",
+        message: `${propName}: '${currentValue}' could not be resolved, no surrounding ${scope} sets ${fieldName(propName)}`,
+      });
+      return { value: fallback, inherited: false, unresolved: true };
+    }
+
+    errors?.remove(warningId);
+    return { value: inherited ?? currentValue, inherited: inherited !== undefined, unresolved: false };
   };
 
   return resolve;

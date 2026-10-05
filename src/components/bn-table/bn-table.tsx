@@ -207,12 +207,16 @@ export class Table {
     );
 
     this.t = withTranslation(this).t;
-    this.resolveInherited = withInheritedProps(this, [
-      { propName: "scenarios", ancestorAttr: "title-scenarios" },
-      { propName: "variances", ancestorAttr: "title-variances" },
-      { propName: "order", ancestorAttr: "title-order" },
-      { propName: "orderDirection", ancestorAttr: "title-order-direction" },
-    ]);
+    this.resolveInherited = withInheritedProps(
+      this,
+      [
+        { propName: "scenarios", ancestorAttr: "title-scenarios" },
+        { propName: "variances", ancestorAttr: "title-variances" },
+        { propName: "order", ancestorAttr: "title-order" },
+        { propName: "orderDirection", ancestorAttr: "title-order-direction" },
+      ],
+      this.errors,
+    );
   }
 
   /**
@@ -1169,11 +1173,9 @@ export class Table {
   }
 
   private prepareOrder(): Order {
-    const inheritedOrder = this.resolveInherited("order", this.order);
-    const inheritedDirection = this.resolveInherited("orderDirection", this.orderDirection);
-
-    const effectiveOrder = inheritedOrder ?? this.order;
-    const effectiveDirection = inheritedDirection ?? this.orderDirection;
+    // An unresolved keyword falls back to the prop defaults.
+    const effectiveOrder = this.resolveInherited("order", this.order, "category").value;
+    const effectiveDirection = this.resolveInherited("orderDirection", this.orderDirection, "asc").value;
 
     const isAuto = effectiveOrder?.trim().toLowerCase() === "auto";
     let orderStr = effectiveOrder;
@@ -1214,29 +1216,27 @@ export class Table {
   }
 
   private prepareScenarios(): string[] {
-    const inheritedScenarios = this.resolveInherited("scenarios", this.scenarios);
-    const inheritedVariances = this.resolveInherited("variances", this.variances);
+    const scenariosProp = this.resolveInherited("scenarios", this.scenarios);
+    const variancesProp = this.resolveInherited("variances", this.variances);
 
-    if (inheritedScenarios !== undefined || inheritedVariances !== undefined) {
+    if (scenariosProp.inherited || variancesProp.inherited) {
       this.errors.remove("AUTO_scenarios");
       let scenarios: string[] = [];
-      if (inheritedScenarios !== undefined) {
-        scenarios = scenarios.concat(inheritedScenarios.split(","));
-      } else if (!isBlankInput(this.scenarios)) {
-        scenarios = scenarios.concat(this.scenarios.split(","));
+      if (!isBlankInput(scenariosProp.value)) {
+        scenarios = scenarios.concat(scenariosProp.value.split(","));
       }
-      if (inheritedVariances !== undefined) {
-        scenarios = scenarios.concat(inheritedVariances.split(","));
-      } else if (this.variances?.trim().length > 0) {
-        scenarios = scenarios.concat(this.variances.split(","));
+      if (variancesProp.value?.trim().length > 0) {
+        scenarios = scenarios.concat(variancesProp.value.split(","));
       }
       return scenarios.map((entry) => entry.trim());
     }
 
-    const isAuto = this.scenarios?.trim().toLowerCase() === "auto";
-    if ((isBlankInput(this.scenarios) || isAuto) && isBlankInput(this.variances)) {
+    // An unresolved keyword has its own warning, so it gets no AUTO_scenarios on top.
+    const isAuto = scenariosProp.value?.trim().toLowerCase() === "auto";
+    const isSilent = isAuto || scenariosProp.unresolved;
+    if ((isBlankInput(scenariosProp.value) || isAuto) && isBlankInput(variancesProp.value)) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
-        if (!isAuto) {
+        if (!isSilent) {
           this.errors.addOrReplace({
             id: "AUTO_scenarios",
             type: "warning",
@@ -1252,9 +1252,9 @@ export class Table {
 
     let scenarios = [];
 
-    if (isAuto || isBlankInput(this.scenarios)) {
+    if (isAuto || isBlankInput(scenariosProp.value)) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
-        if (!isAuto) {
+        if (!isSilent) {
           this.errors.addOrReplace({
             id: "AUTO_scenarios",
             type: "warning",
@@ -1267,11 +1267,11 @@ export class Table {
       }
     } else {
       this.errors.remove("AUTO_scenarios");
-      scenarios = scenarios.concat(this.scenarios?.split(","));
+      scenarios = scenarios.concat(scenariosProp.value?.split(","));
     }
 
-    if (this.variances?.trim().length > 0) {
-      scenarios = scenarios.concat(this.variances?.split(","));
+    if (variancesProp.value?.trim().length > 0) {
+      scenarios = scenarios.concat(variancesProp.value?.split(","));
     }
     return scenarios.map((entry) => entry.trim());
   }

@@ -80,3 +80,52 @@ describe("bn-layout-card ruleset forwarding", () => {
     expect(card.getAttribute("ruleset")).toBe("page-rules");
   });
 });
+
+describe("bn-layout-card inherited title props", () => {
+  const KEYWORDS = `ruleset="inherited-page" title-scenarios="inherited-page" title-variances="inherited-page" title-order="inherited-page" title-order-direction="inherited-page"`;
+  const TITLE_ATTRS = ["ruleset", "scenarios", "variances", "order", "order-direction"];
+
+  it.each([
+    ["without a page", `<bn-layout-card ${KEYWORDS}></bn-layout-card>`],
+    [
+      "in a page that sets none of them",
+      `<bn-layout-page><bn-layout-card ${KEYWORDS}></bn-layout-card></bn-layout-page>`,
+    ],
+  ])("passes unresolved keywords to the title as blank, %s", async (_name, html) => {
+    const page = await newSpecPage({ components: [LayoutPage, LayoutCard], html });
+
+    const card = page.body.querySelector("bn-layout-card");
+    const title = card.shadowRoot.querySelector("bn-title");
+    for (const attr of TITLE_ATTRS) {
+      expect(title.getAttribute(attr)).toBe("");
+    }
+    // The host keeps the keyword. Descendants skip it and look further up.
+    expect(card.getAttribute("title-scenarios")).toBe("inherited-page");
+  });
+
+  it("passes resolved keywords to the title", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page ruleset="page-rules" title-scenarios="ac1,pp1" title-variances="dpp1_ac1_pos" title-order="ac1" title-order-direction="desc"><bn-layout-card ${KEYWORDS}></bn-layout-card></bn-layout-page>`,
+    });
+
+    const title = page.body.querySelector("bn-layout-card").shadowRoot.querySelector("bn-title");
+    expect(TITLE_ATTRS.map((attr) => title.getAttribute(attr))).toEqual([
+      "page-rules",
+      "ac1,pp1",
+      "dpp1_ac1_pos",
+      "ac1",
+      "desc",
+    ]);
+  });
+
+  it("takes inherited-closest from the outer card when the page does not set the field", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page><bn-layout-card title-scenarios="fc1"><bn-layout-card id="inner" title-scenarios="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+
+    const title = page.body.querySelector("#inner").shadowRoot.querySelector("bn-title");
+    expect(title.getAttribute("scenarios")).toBe("fc1");
+  });
+});
