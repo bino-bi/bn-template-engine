@@ -1,5 +1,6 @@
 import { Scenarios } from "../constants";
 import { relativeVariance } from "../relativeVariance";
+import { AxisConfig } from "./model/AxisConfig";
 
 /**
  * Variance-token parser for XY chart axis measures.
@@ -86,4 +87,30 @@ export function scenarioFamily(slot: string): string {
 /** Slot number (`1`-`4`) of a plain scenario slot. */
 export function scenarioSlotNumber(slot: string): string {
   return slot.replace(/^[a-z]+/, "");
+}
+
+/** True for a relative variance token (`dr…`): its values are fractions and are shown in percent. */
+export function isRelativeMeasure(token: string): boolean {
+  return VarianceMeasure.parse(token.trim())?.type === "dr";
+}
+
+/**
+ * The axis config in the unit of the axis values. A relative variance axis is written
+ * in percent (`min: -40`, `refLine: 20`), while its values are fractions (0.2 for 20 %).
+ */
+export function axisInValueUnits(axis: AxisConfig): AxisConfig {
+  if (!isRelativeMeasure(axis.measure)) {
+    return axis;
+  }
+
+  const fraction = (percent: number | undefined): number | undefined =>
+    percent === undefined ? undefined : percent / 100;
+
+  return {
+    ...axis,
+    min: fraction(axis.min),
+    max: fraction(axis.max),
+    refLine: fraction(axis.refLine),
+    highlight: axis.highlight && { from: fraction(axis.highlight.from), to: fraction(axis.highlight.to) },
+  };
 }

@@ -23,6 +23,11 @@ family behind the primary set, styled by that family's rule-set treatment;
 `share='{"measure":"ac4"}'` draws a pie sector (fraction 0..1) from
 12 o'clock inside each bubble.
 
+An axis with a relative variance (`dr…`, template 10F) is in percent. Its
+ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written
+in percent: `x='{"measure":"drac1_pp1","min":-40,"max":40,"refLine":0}'`.
+A relative variance as `size` prints its value label in percent as well.
+
 ## Cross-chart size scaling
 
 Every chart referencing the same `bn-scaling-group` renders an identical

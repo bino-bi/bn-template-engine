@@ -111,7 +111,9 @@ export class ChartScatter {
    * shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0,
    * "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a
    * scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`,
-   * sentiment suffix optional).
+   * sentiment suffix optional). A relative variance (`dr…`) gives an axis
+   * in percent: the ticks print `20%`, and `min`, `max`, `refLine` and
+   * `highlight` are written in percent too (`20` for 20 %).
    */
   @Prop() x!: string;
   @Watch("x")

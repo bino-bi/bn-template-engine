@@ -168,6 +168,30 @@ describe("BubbleChart", () => {
     });
   });
 
+  describe("relative variance measures", () => {
+    // drac1_pp1: -20 %, 0 % and +20 %. drac3_pp3 of the first row: (32 - 29) / 29 = 10,3 %
+    const rows = [
+      row({ subCategory: "down", subCategoryIndex: 1, ac1: 80, pp1: 100 }),
+      row({ subCategory: "flat", subCategoryIndex: 2, ac1: 100, pp1: 100 }),
+      row({ subCategory: "up", subCategoryIndex: 3, ac1: 120, pp1: 100 }),
+    ];
+
+    it("prints the ticks of a relative variance axis in percent", () => {
+      const svg = makeChart(rows, baseConfig({ x: { measure: "drac1_pp1", min: -40, max: 40 } })).toString();
+
+      expect(svg).toContain(">-40%</tspan>");
+      expect(svg).toContain(">20%</tspan>");
+      expect(svg).not.toContain(">0,20</tspan>");
+    });
+
+    it("prints a relative variance as bubble value in percent", () => {
+      const svg = makeChart([row()], baseConfig({ size: { measure: "drac3_pp3" } })).toString();
+
+      // was 0,1
+      expect(svg).toContain(">10,3%</tspan>");
+    });
+  });
+
   describe("value labels", () => {
     it("prints three significant digits of the largest value", () => {
       // was 0,0

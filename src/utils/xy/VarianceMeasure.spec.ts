@@ -1,4 +1,11 @@
-import { resolveMeasure, scenarioFamily, scenarioSlotNumber, VarianceMeasure } from "./VarianceMeasure";
+import {
+  resolveMeasure,
+  scenarioFamily,
+  scenarioSlotNumber,
+  VarianceMeasure,
+  axisInValueUnits,
+  isRelativeMeasure,
+} from "./VarianceMeasure";
 
 describe("VarianceMeasure", () => {
   describe("parse", () => {
@@ -97,5 +104,46 @@ describe("VarianceMeasure", () => {
       expect(scenarioFamily("pl4")).toBe("pl");
       expect(scenarioSlotNumber("pp3")).toBe("3");
     });
+  });
+});
+
+describe("relative variance axis", () => {
+  it("knows a relative variance measure by its token", () => {
+    expect(isRelativeMeasure("drac1_pp1")).toBe(true);
+    expect(isRelativeMeasure(" drac1_pl1_pos ")).toBe(true);
+    expect(isRelativeMeasure("dac1_pp1")).toBe(false);
+    expect(isRelativeMeasure("ac1")).toBe(false);
+  });
+
+  it("reads min, max, refLine and highlight of a relative variance axis in percent", () => {
+    const axis = axisInValueUnits({
+      measure: "drac1_pp1",
+      unit: "%",
+      min: -40,
+      max: 40,
+      refLine: 20,
+      highlight: { from: 10, to: 30 },
+    });
+
+    expect(axis.min).toBeCloseTo(-0.4);
+    expect(axis.max).toBeCloseTo(0.4);
+    expect(axis.refLine).toBeCloseTo(0.2);
+    expect(axis.highlight!.from).toBeCloseTo(0.1);
+    expect(axis.highlight!.to).toBeCloseTo(0.3);
+    expect(axis.unit).toBe("%");
+  });
+
+  it("keeps what is not set", () => {
+    const axis = axisInValueUnits({ measure: "drac1_pp1", highlight: { from: 10 } });
+
+    expect(axis.min).toBeUndefined();
+    expect(axis.refLine).toBeUndefined();
+    expect(axis.highlight).toEqual({ from: 0.1, to: undefined });
+  });
+
+  it("leaves the axis of any other measure alone", () => {
+    const axis = { measure: "dac1_pp1", min: -40, max: 40, refLine: 20 };
+
+    expect(axisInValueUnits(axis)).toBe(axis);
   });
 });

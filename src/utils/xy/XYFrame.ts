@@ -11,6 +11,9 @@ export interface TickRenderConfig {
   ticksY: number[];
   xDecimals: number;
   yDecimals: number;
+  /** The axis holds a relative variance: its ticks are fractions and print in percent. */
+  xPercent?: boolean;
+  yPercent?: boolean;
   /** Outer-edge panels only (facet grids label outer edges, 10F/10G style). */
   showXLabels: boolean;
   showYLabels: boolean;
@@ -115,7 +118,7 @@ export class XYFrame {
       for (const tick of config.ticksX) {
         const x = this.xScale.scale(tick);
         group
-          .text(formatXYValue(tick, config.xDecimals, this.styles.locale))
+          .text(formatXYValue(tick, config.xDecimals, this.styles.locale, config.xPercent))
           .font({ ...font, anchor: "middle" })
           .fill(color)
           .attr({ x, y: this.rect.y + this.rect.height + gap + this.em * 0.8, "font-family": family });
@@ -126,7 +129,7 @@ export class XYFrame {
       for (const tick of config.ticksY) {
         const y = this.yScale.scale(tick);
         group
-          .text(formatXYValue(tick, config.yDecimals, this.styles.locale))
+          .text(formatXYValue(tick, config.yDecimals, this.styles.locale, config.yPercent))
           .font({ ...font, anchor: "end" })
           .fill(color)
           .attr({ x: this.rect.x - gap, y: y + this.em * 0.35, "font-family": family });

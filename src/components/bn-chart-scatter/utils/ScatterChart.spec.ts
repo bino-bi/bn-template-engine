@@ -83,6 +83,62 @@ describe("ScatterChart number labels", () => {
   });
 });
 
+describe("ScatterChart relative variance axis", () => {
+  // drac1_pp1 of the three points: -20 %, 0 % and +20 %
+  const rows = [
+    row({ subCategory: "down", subCategoryIndex: 1, ac1: 80, pp1: 100, ac2: 10 }),
+    row({ subCategory: "flat", subCategoryIndex: 2, ac1: 100, pp1: 100, ac2: 20 }),
+    row({ subCategory: "up", subCategoryIndex: 3, ac1: 120, pp1: 100, ac2: 30 }),
+  ];
+
+  const drChart = (x: Record<string, unknown> = {}): ScatterChart =>
+    makeChart(
+      rows,
+      baseConfig({ x: { measure: "drac1_pp1", unit: "%", ...x }, labels: { points: "none", values: false, max: 0 } }),
+    );
+
+  /** The x attribute of the text element with the given content. */
+  const textX = (svg: string, content: string): number =>
+    Number(new RegExp(`<text[^>]* x="([-\\d.]+)"[^>]*><tspan[^>]*>${content}</tspan>`).exec(svg)![1]);
+
+  it("prints the ticks in percent", () => {
+    const svg = drChart().toString();
+
+    // was 0,20 under the title "in %"
+    expect(svg).toContain(">20%</tspan>");
+    expect(svg).toContain(">-20%</tspan>");
+    expect(svg).not.toContain(">0,20</tspan>");
+    expect(svg).not.toContain(">0,2</tspan>");
+  });
+
+  it("reads min and max in percent", () => {
+    const chart = drChart({ min: -40, max: 40 });
+    const svg = chart.toString();
+
+    expect(svg).toContain(">-40%</tspan>");
+    expect(svg).toContain(">40%</tspan>");
+    expect(chart.getWarnings().map((warning) => warning.code)).not.toContain("xy-point-clipped");
+    // a domain of -40 to 40 as fractions would print 4.000 %
+    expect(svg).not.toContain("000%");
+  });
+
+  it("clips at a max given in percent", () => {
+    const chart = drChart({ min: -40, max: 10 });
+
+    // the point at +20 % is outside
+    expect(chart.getWarnings().map((warning) => warning.code)).toContain("xy-point-clipped");
+  });
+
+  it("draws the reference line at the percent value", () => {
+    const svg = drChart({ refLine: 20 }).toString();
+    const lineXs = [...svg.matchAll(/<line x1="([-\d.]+)" y1="[-\d.]+" x2="([-\d.]+)"/g)]
+      .filter((match) => match[1] === match[2])
+      .map((match) => Number(match[1]));
+
+    expect(lineXs).toContainEqual(expect.closeTo(textX(svg, "20%"), 6));
+  });
+});
+
 describe("ScatterChart", () => {
   it("renders an SVG string with one circle per point and the annotation hook", () => {
     const chart = makeChart([

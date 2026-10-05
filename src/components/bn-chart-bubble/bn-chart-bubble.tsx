@@ -118,7 +118,9 @@ export class ChartBubble {
   /**
    * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as
    * shorthand: `{"measure":"ac1","label":"Market attractiveness",
-   * "refLine":0.5}`.
+   * "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent:
+   * the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are
+   * written in percent too (`20` for 20 %).
    */
   @Prop() x!: string;
   @Watch("x")
