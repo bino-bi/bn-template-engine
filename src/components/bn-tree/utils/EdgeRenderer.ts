@@ -45,6 +45,9 @@ export function getNodeRect(element: HTMLElement, containerRect: DOMRect): NodeR
   };
 }
 
+/** An orthogonal edge turns towards its child at this share of the way. */
+const BEND_RATIO = 0.7;
+
 /**
  * Get the connection point on a node based on layout direction
  */
@@ -108,9 +111,17 @@ export function getMultiParentConnectionPoint(
 }
 
 /**
- * Generate an SVG path connecting two points with the specified style
+ * Generate an SVG path connecting two points with the specified style.
+ * `bend` is the place where an orthogonal edge turns towards its child, see `calculateBend`.
+ * Without it the edge turns 70% of the way to its own child.
  */
-export function generateEdgePath(start: Point, end: Point, style: EdgeStyleType, direction: LayoutDirection): EdgePath {
+export function generateEdgePath(
+  start: Point,
+  end: Point,
+  style: EdgeStyleType,
+  direction: LayoutDirection,
+  bend?: number,
+): EdgePath {
   switch (style) {
     case "straight":
       return generateStraightPath(start, end);
@@ -120,7 +131,7 @@ export function generateEdgePath(start: Point, end: Point, style: EdgeStyleType,
 
     case "orthogonal":
     default:
-      return generateOrthogonalPath(start, end, direction);
+      return generateOrthogonalPath(start, end, direction, bend);
   }
 }
 
@@ -170,20 +181,19 @@ function generateCurvedPath(start: Point, end: Point, direction: LayoutDirection
  * Generate an orthogonal (right-angle) path
  * The bend point is positioned closer to the children (70% of the way) for better visual balance
  */
-function generateOrthogonalPath(start: Point, end: Point, direction: LayoutDirection): EdgePath {
+function generateOrthogonalPath(start: Point, end: Point, direction: LayoutDirection, bend?: number): EdgePath {
   const isHorizontal = direction === "ltr" || direction === "rtl";
   let path: string;
   let midpoint: Point;
-  const bendRatio = 0.7; // Position bend point 70% towards the end
 
   if (isHorizontal) {
     // For horizontal layouts, go horizontally first, then vertically
-    const midX = start.x + (end.x - start.x) * bendRatio;
+    const midX = bend ?? start.x + (end.x - start.x) * BEND_RATIO;
     path = `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`;
     midpoint = { x: midX, y: (start.y + end.y) / 2 };
   } else {
     // For vertical layouts, go vertically first, then horizontally
-    const midY = start.y + (end.y - start.y) * bendRatio;
+    const midY = bend ?? start.y + (end.y - start.y) * BEND_RATIO;
     path = `M ${start.x} ${start.y} L ${start.x} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
     midpoint = { x: (start.x + end.x) / 2, y: midY };
   }
@@ -192,62 +202,72 @@ function generateOrthogonalPath(start: Point, end: Point, direction: LayoutDirec
 }
 
 /**
- * Calculate the position for an operator label between sibling nodes.
- * The operator is placed at the T-junction where the parent's line meets the vertical/horizontal split.
+ * The place where the edges of one parent turn towards the children: 70% of the way from
+ * the parent to its nearest child. It is an x for ltr and rtl and a y for ttb and btt.
+ * All edges of the parent share it, so they meet in one bus also when the children have
+ * different sizes.
+ *
+ * Only children ahead of the parent count. A child with a second parent can sit beside
+ * this parent, in its own level. Without a child ahead there is no bend.
+ */
+export function calculateBend(
+  parentRect: NodeRect,
+  childRects: NodeRect[],
+  direction: LayoutDirection,
+): number | undefined {
+  // the edge of the parent the edges leave from, and the edges of the children they arrive at
+  let parentEdge: number;
+  let childEdges: number[];
+  // +1 when the children are at larger coordinates than the parent
+  let ahead: number;
+
+  switch (direction) {
+    case "ltr":
+      parentEdge = parentRect.left + parentRect.width;
+      childEdges = childRects.map((rect) => rect.left);
+      ahead = 1;
+      break;
+    case "rtl":
+      parentEdge = parentRect.left;
+      childEdges = childRects.map((rect) => rect.left + rect.width);
+      ahead = -1;
+      break;
+    case "ttb":
+      parentEdge = parentRect.top + parentRect.height;
+      childEdges = childRects.map((rect) => rect.top);
+      ahead = 1;
+      break;
+    case "btt":
+      parentEdge = parentRect.top;
+      childEdges = childRects.map((rect) => rect.top + rect.height);
+      ahead = -1;
+      break;
+  }
+
+  const distances = childEdges.map((edge) => (edge - parentEdge) * ahead).filter((distance) => distance >= 0);
+  if (distances.length === 0) {
+    return undefined;
+  }
+
+  return parentEdge + Math.min(...distances) * ahead * BEND_RATIO;
+}
+
+/**
+ * Calculate the position for an operator label between two sibling nodes.
+ * The operator sits on the bus that joins the children (at `bend`, see `calculateBend`),
+ * halfway between the two siblings. For two children that is where the parent meets the bus.
  */
 export function calculateOperatorPosition(
-  parentRect: NodeRect,
+  bend: number,
   sibling1Rect: NodeRect,
   sibling2Rect: NodeRect,
   direction: LayoutDirection,
 ): Point {
-  const bendRatio = 0.7; // Must match the bendRatio in generateOrthogonalPath
-
-  switch (direction) {
-    case "ltr": {
-      // T-junction: where parent's horizontal line meets the vertical split
-      const parentRight = parentRect.left + parentRect.width;
-      const childrenLeft = Math.min(sibling1Rect.left, sibling2Rect.left);
-      const midX = parentRight + (childrenLeft - parentRight) * bendRatio;
-      return {
-        x: midX,
-        y: parentRect.centerY, // At parent's Y level (the T-junction)
-      };
-    }
-
-    case "rtl": {
-      // T-junction for RTL
-      const parentLeft = parentRect.left;
-      const childrenRight = Math.max(sibling1Rect.left + sibling1Rect.width, sibling2Rect.left + sibling2Rect.width);
-      const midX = childrenRight + (parentLeft - childrenRight) * bendRatio;
-      return {
-        x: midX,
-        y: parentRect.centerY,
-      };
-    }
-
-    case "ttb": {
-      // T-junction for top-to-bottom
-      const parentBottom = parentRect.top + parentRect.height;
-      const childrenTop = Math.min(sibling1Rect.top, sibling2Rect.top);
-      const midY = parentBottom + (childrenTop - parentBottom) * bendRatio;
-      return {
-        x: parentRect.centerX, // At parent's X level (the T-junction)
-        y: midY,
-      };
-    }
-
-    case "btt": {
-      // T-junction for bottom-to-top
-      const parentTop = parentRect.top;
-      const childrenBottom = Math.max(sibling1Rect.top + sibling1Rect.height, sibling2Rect.top + sibling2Rect.height);
-      const midY = childrenBottom + (parentTop - childrenBottom) * bendRatio;
-      return {
-        x: parentRect.centerX,
-        y: midY,
-      };
-    }
+  if (direction === "ltr" || direction === "rtl") {
+    return { x: bend, y: (sibling1Rect.centerY + sibling2Rect.centerY) / 2 };
   }
+
+  return { x: (sibling1Rect.centerX + sibling2Rect.centerX) / 2, y: bend };
 }
 
 /**

@@ -18,6 +18,8 @@ import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style } from "../../stores/componentStyles";
+import { getClippedHeight, getParentDimensions } from "../../utils/parentDimensions";
+import { LayoutObserverHandle, observeParentResize } from "../../utils/layoutObserver";
 
 import { TreeConfig, parseTreeConfig, validateEdges, getOperatorSymbol, getEdgeForChild } from "./utils/TreeParser";
 
@@ -26,6 +28,7 @@ import {
   LayoutResult,
   calculateLayout,
   getActualGridColumn,
+  getActualGridColumnSpan,
   getActualGridRow,
   getActualGridRowSpan,
 } from "./utils/TreeLayout";
@@ -37,9 +40,30 @@ import {
   getConnectionPoint,
   getMultiParentConnectionPoint,
   generateEdgePath,
+  calculateBend,
   calculateOperatorPosition,
   getEdgeSvgStyle,
 } from "./utils/EdgeRenderer";
+
+/** True when both maps hold the same nodes at the same place with the same size. */
+function sameNodeRects(a: Map<string, NodeRect>, b: Map<string, NodeRect>): boolean {
+  if (a.size !== b.size) {
+    return false;
+  }
+  for (const [nodeId, rect] of a) {
+    const other = b.get(nodeId);
+    if (
+      !other ||
+      other.left !== rect.left ||
+      other.top !== rect.top ||
+      other.width !== rect.width ||
+      other.height !== rect.height
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
 
 /**
  * Renders a hierarchical tree diagram with SVG edge connections.
@@ -67,6 +91,8 @@ export class ChartTree {
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private resizeObserver: ResizeObserver | null = null;
   private gridContainer: HTMLElement | null = null;
+  private observed = new Set<Element>();
+  private parentObserver: LayoutObserverHandle | null = null;
 
   /**
    * JSON string defining connections between nodes.
@@ -333,8 +359,19 @@ export class ChartTree {
     this.validateShowOperators(this.showOperators);
   }
 
+  connectedCallback() {
+    // After a move in the document the observers are gone. Before the first render there is no grid yet.
+    this.observeLayout();
+    this.updateNodeRects();
+  }
+
   componentDidLoad() {
-    this.setupResizeObserver();
+    // a node that is slotted in later changes no size the tree observes
+    this.element.shadowRoot?.addEventListener("slotchange", () => {
+      this.observeLayout();
+      this.updateNodeRects();
+    });
+
     // Defer DOM measurement to after the browser has completed layout.
     // getBoundingClientRect() can return zeros if called before first paint.
     requestAnimationFrame(() => {
@@ -342,32 +379,55 @@ export class ChartTree {
     });
   }
 
+  componentDidRender() {
+    // A render can move the nodes without changing their size (direction, spacing, edges),
+    // and it can create the grid for the first time. No resize observer fires for that.
+    this.observeLayout();
+    this.updateNodeRects();
+  }
+
   disconnectedCallback() {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
     }
+    this.observed.clear();
+    this.parentObserver?.disconnect();
+    this.parentObserver = null;
   }
 
-  private setupResizeObserver() {
-    this.gridContainer = this.element.shadowRoot?.querySelector(".tree-grid");
+  /** Looks up the grid of this render and observes it and every node that is not observed yet. */
+  private observeLayout() {
+    const grid: HTMLElement | null = this.element.shadowRoot?.querySelector(".tree-grid") ?? null;
 
-    if (!this.gridContainer) {
+    if (grid !== this.gridContainer) {
+      // the grid is created anew when the tree was invalid in between
+      this.resizeObserver?.disconnect();
+      this.observed.clear();
+      this.gridContainer = grid;
+    }
+
+    if (!grid) {
       return;
     }
 
-    this.resizeObserver = new ResizeObserver(() => {
-      this.updateNodeRects();
-    });
+    if (!this.resizeObserver) {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.updateNodeRects();
+      });
+    }
 
-    // Observe the grid container
-    this.resizeObserver.observe(this.gridContainer);
+    // the space of the tree can change while the tree keeps its size
+    if (!this.parentObserver) {
+      this.parentObserver = observeParentResize(this.element, () => this.checkOverflow());
+    }
 
-    // Observe all slotted elements
-    const slots = this.element.querySelectorAll("[slot]");
-    slots.forEach((slot) => {
-      this.resizeObserver!.observe(slot);
-    });
+    for (const target of [grid, ...Array.from(this.element.querySelectorAll("[slot]"))]) {
+      if (!this.observed.has(target)) {
+        this.resizeObserver.observe(target);
+        this.observed.add(target);
+      }
+    }
   }
 
   private recalculateLayout() {
@@ -381,6 +441,8 @@ export class ChartTree {
 
   private updateNodeRects() {
     if (!this.treeConfig || !this.gridContainer) {
+      // no tree is drawn, so nothing is cut off
+      this.errors?.remove("WARN_overflow");
       return;
     }
 
@@ -394,9 +456,43 @@ export class ChartTree {
       }
     }
 
-    this.nodeRects = newRects;
+    // only a real change is written: every write renders, and every render measures
+    if (!sameNodeRects(this.nodeRects, newRects)) {
+      this.nodeRects = newRects;
+    }
     this.svgWidth = containerRect.width;
     this.svgHeight = containerRect.height;
+
+    this.checkOverflow();
+  }
+
+  /** Sets WARN_overflow when the tree is larger than its parent: the layout cell would cut it off silently. */
+  private checkOverflow() {
+    const errId = "WARN_overflow";
+    const parent = getParentDimensions(this.element);
+    const width = this.gridContainer?.scrollWidth || 0;
+    const height = this.gridContainer?.scrollHeight || 0;
+
+    const dims: string[] = [];
+    if (parent.width > 0 && width > parent.width + 1) {
+      dims.push(`width (${Math.round(width)}px > ${Math.round(parent.width)}px)`);
+    }
+    // the tree does not adapt to the height it has: only what an ancestor really cuts off counts
+    const clipped = getClippedHeight(this.element, height);
+    if (clipped > 1) {
+      dims.push(`height (${Math.round(height)}px > ${Math.round(height - clipped)}px)`);
+    }
+
+    if (dims.length === 0) {
+      this.errors.remove(errId);
+      return;
+    }
+
+    this.errors.addOrReplace({
+      id: errId,
+      type: "warning",
+      message: `Tree exceeds available ${dims.join(" and ")} and will be cut off. Reduce level-spacing, node-spacing or the node content, or enlarge the container.`,
+    });
   }
 
   private getSlotStyle(nodeId: string): { [key: string]: string } {
@@ -420,7 +516,7 @@ export class ChartTree {
     } else {
       return {
         "grid-row": String(getActualGridRow(position.gridRow)),
-        "grid-column": String(getActualGridColumn(position.gridColumn)),
+        "grid-column": `${getActualGridColumn(position.gridColumn)} / span ${getActualGridColumnSpan(position.gridColumnSpan)}`,
         "justify-self": "center",
       };
     }
@@ -441,6 +537,17 @@ export class ChartTree {
       const parents = childToParents.get(edge.to) || [];
       parents.push(edge.from);
       childToParents.set(edge.to, parents);
+    }
+
+    // One bend per parent: all its edges meet in one bus, and the operators sit on it
+    const bends = new Map<string, number>();
+    for (const [parent, children] of this.treeConfig.adjacencyList.entries()) {
+      const parentRect = this.nodeRects.get(parent);
+      const childRects = children.map((child) => this.nodeRects.get(child)).filter((rect) => rect !== undefined);
+      const bend = parentRect ? calculateBend(parentRect, childRects, this.direction) : undefined;
+      if (bend !== undefined) {
+        bends.set(parent, bend);
+      }
     }
 
     // Render edges connecting parents to children
@@ -464,7 +571,7 @@ export class ChartTree {
         end = getConnectionPoint(toRect, false, this.direction);
       }
 
-      const { path } = generateEdgePath(start, end, this.edgeStyle, this.direction);
+      const { path } = generateEdgePath(start, end, this.edgeStyle, this.direction, bends.get(edge.from));
       const svgStyle = getEdgeSvgStyle(treeStyle.edgeColor, treeStyle.edgeWidth, edge.style);
 
       paths.push(
@@ -482,8 +589,8 @@ export class ChartTree {
     // Render operators between siblings
     if (this.showOperators === "true") {
       for (const [parent, children] of this.treeConfig.adjacencyList.entries()) {
-        const parentRect = this.nodeRects.get(parent);
-        if (!parentRect) {
+        const bend = bends.get(parent);
+        if (bend === undefined) {
           continue;
         }
 
@@ -504,7 +611,7 @@ export class ChartTree {
           }
 
           const operatorSymbol = edge.label ?? getOperatorSymbol(edge.operator);
-          const position = calculateOperatorPosition(parentRect, childRect, nextChildRect, this.direction);
+          const position = calculateOperatorPosition(bend, childRect, nextChildRect, this.direction);
 
           operators.push(
             <g key={`operator-${parent}-${child}`} class="operator-group">

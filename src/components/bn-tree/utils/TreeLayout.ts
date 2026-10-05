@@ -14,6 +14,7 @@ export interface NodePosition {
   gridColumn: number;
   gridRow: number;
   gridRowSpan: number;
+  gridColumnSpan: number;
 }
 
 export interface LayoutResult {
@@ -135,6 +136,10 @@ function calculateNodeIndices(config: TreeConfig): Map<string, NodeIndexInfo> {
 
     const children = config.adjacencyList.get(node) || [];
 
+    // Marked before the children are visited, so an edge back to this node ends here.
+    // validateEdges rejects cycles, this only keeps the layout from running forever.
+    indices.set(node, { startIndex: currentIndex, endIndex: currentIndex });
+
     if (children.length === 0) {
       // Leaf node
       const info: NodeIndexInfo = { startIndex: currentIndex, endIndex: currentIndex };
@@ -181,35 +186,51 @@ function calculateGridPositions(
 
     let gridColumn: number;
     let gridRow: number;
-    let gridRowSpan: number;
+    let gridRowSpan: number = 1;
+    let gridColumnSpan: number = 1;
+    // a parent spans its children, so it sits centred next to them or over them
+    const span = indexInfo.endIndex - indexInfo.startIndex + 1;
+    // Two parents that share a child have ranges that overlap. As columns their spans
+    // would put the two boxes on top of each other: such a parent keeps the column of its first child.
+    const sharesColumns = Array.from(config.allNodes).some((other) => {
+      const otherInfo = indices.get(other);
+      return (
+        other !== nodeId &&
+        otherInfo !== undefined &&
+        (levels.get(other) ?? 0) === level &&
+        otherInfo.startIndex <= indexInfo.endIndex &&
+        indexInfo.startIndex <= otherInfo.endIndex
+      );
+    });
+    const columnSpan = sharesColumns ? 1 : span;
 
     switch (direction) {
       case "ltr":
         // Left to right: levels are columns, indices are rows
         gridColumn = level + 1; // CSS grid is 1-indexed
         gridRow = indexInfo.startIndex + 1;
-        gridRowSpan = indexInfo.endIndex - indexInfo.startIndex + 1;
+        gridRowSpan = span;
         break;
 
       case "rtl":
         // Right to left: levels are reversed columns
         gridColumn = maxLevel - level + 1;
         gridRow = indexInfo.startIndex + 1;
-        gridRowSpan = indexInfo.endIndex - indexInfo.startIndex + 1;
+        gridRowSpan = span;
         break;
 
       case "ttb":
         // Top to bottom: levels are rows, indices are columns
         gridRow = level + 1;
         gridColumn = indexInfo.startIndex + 1;
-        gridRowSpan = 1;
+        gridColumnSpan = columnSpan;
         break;
 
       case "btt":
         // Bottom to top: levels are reversed rows
         gridRow = maxLevel - level + 1;
         gridColumn = indexInfo.startIndex + 1;
-        gridRowSpan = 1;
+        gridColumnSpan = columnSpan;
         break;
     }
 
@@ -220,6 +241,7 @@ function calculateGridPositions(
       gridColumn,
       gridRow,
       gridRowSpan,
+      gridColumnSpan,
     });
   }
 
@@ -312,4 +334,11 @@ export function getActualGridRowSpan(baseRowSpan: number): number {
   }
   // Span includes the spacer rows between nodes
   return (baseRowSpan - 1) * 2 + 1;
+}
+
+/**
+ * Get the actual grid column span accounting for spacer columns
+ */
+export function getActualGridColumnSpan(baseColumnSpan: number): number {
+  return getActualGridRowSpan(baseColumnSpan);
 }
