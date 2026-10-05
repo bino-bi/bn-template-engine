@@ -1,5 +1,6 @@
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
+import { isBlankInput } from "./validate";
 
 /**
  * Reserved prop values that activate inheritance from ancestor layout
@@ -33,25 +34,27 @@ export function isInheritedValue(value: string): boolean {
 }
 
 /**
- * Walks up the DOM tree (crossing shadow boundaries) to find the nearest
- * ancestor layout component.
+ * Walks up the DOM tree (crossing shadow boundaries) and collects the layout
+ * ancestors an inheritance keyword can take its value from, nearest first.
  *
- * - `"inherited-closest"` matches the first `bn-layout-card` or `bn-layout-page`.
- * - `"inherited-page"` skips cards and matches only `bn-layout-page`.
+ * - `"inherited-closest"`: every `bn-layout-card` up to and including the
+ *   first `bn-layout-page`.
+ * - `"inherited-page"`: that `bn-layout-page` only.
  *
  * Uses the same traversal pattern as `findContextElement` in
  * `context-protocol.ts`.
  */
-export function findAncestor(element: HTMLElement, mode: string): HTMLElement | undefined {
+export function findLayoutAncestors(element: HTMLElement, mode: string): HTMLElement[] {
+  const ancestors: HTMLElement[] = [];
   let current: Node | null = element.parentNode;
   while (current) {
-    if (current instanceof HTMLElement) {
-      const tag = current.nodeName.toLowerCase();
-      if (mode === INHERITED_PAGE) {
-        if (tag === ANCESTOR_PAGE) return current;
-      } else {
-        if (tag === ANCESTOR_CARD || tag === ANCESTOR_PAGE) return current;
-      }
+    const tag = current.nodeName.toLowerCase();
+    if (tag === ANCESTOR_PAGE) {
+      ancestors.push(current as HTMLElement);
+      break;
+    }
+    if (tag === ANCESTOR_CARD && mode !== INHERITED_PAGE) {
+      ancestors.push(current as HTMLElement);
     }
     if (current.parentNode) {
       current = current.parentNode;
@@ -60,6 +63,22 @@ export function findAncestor(element: HTMLElement, mode: string): HTMLElement | 
     } else {
       break;
     }
+  }
+  return ancestors;
+}
+
+/**
+ * Reads `attr` from the nearest of `ancestors` that sets it.
+ *
+ * An ancestor whose attribute is missing, blank or itself an inheritance
+ * keyword (a card that could not resolve its own value) does not set it and
+ * is skipped, so a keyword is never handed down as a value.
+ */
+export function readInherited(ancestors: HTMLElement[], attr: string): string | undefined {
+  for (const ancestor of ancestors) {
+    const value = ancestor.getAttribute(attr);
+    const trimmed = value?.trim();
+    if (!isBlankInput(trimmed) && !isInheritedValue(trimmed)) return value;
   }
   return undefined;
 }
@@ -92,10 +111,11 @@ export function findAncestorWithAttr(element: HTMLElement, attr: string): HTMLEl
  * Mixin that enables property inheritance from ancestor layout components.
  *
  * When a component sets a prop to `"inherited-closest"` or `"inherited-page"`,
- * this mixin resolves the actual value by walking up the DOM to find the
- * nearest `bn-layout-card` / `bn-layout-page` and reading the corresponding
- * HTML attribute. A `MutationObserver` watches the ancestor for attribute
- * changes, triggering a re-render when inherited values update.
+ * this mixin resolves the actual value by walking up the DOM and reading the
+ * corresponding HTML attribute from the nearest `bn-layout-card` /
+ * `bn-layout-page` that sets it. A `MutationObserver` watches every ancestor
+ * on that path for attribute changes, triggering a re-render when inherited
+ * values update.
  *
  * Follows the same decorator-style pattern as `withComponentStyle`.
  *
@@ -108,59 +128,47 @@ const withInheritedProps = (component: any, mappings: PropMapping[]): InheritedR
   /** Resolved values keyed by propName. */
   const resolved = new Map<string, string>();
 
-  /** Observer watching the ancestor element's attributes. */
+  /** Observer watching the layout ancestors' attributes. */
   let observer: MutationObserver | null = null;
 
-  /** The ancestor element currently being observed. */
-  let ancestorEl: HTMLElement | undefined;
-
   /**
-   * For each mapping whose prop is an inheritance keyword, walk the DOM once
-   * and read the corresponding attribute from the ancestor.
+   * Resolves each mapping whose prop is an inheritance keyword and watches
+   * every ancestor that can change the outcome, so a value that appears later
+   * on a card or the page is picked up.
    */
   const resolveAll = () => {
     const element = getElement(component);
     resolved.clear();
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
 
-    // Determine which attrs to watch on which ancestor
-    const attrsToWatch: string[] = [];
+    const attrsToWatch = new Map<HTMLElement, string[]>();
 
     for (const mapping of mappings) {
       const value = component[mapping.propName];
       if (typeof value !== "string" || !isInheritedValue(value)) continue;
 
-      // Find ancestor (re-use the first one found for the same mode)
-      if (!ancestorEl) {
-        ancestorEl = findAncestor(element, value);
+      // Looked up per prop: scenarios may come from a card and order from the page.
+      const ancestors = findLayoutAncestors(element, value);
+      const inherited = readInherited(ancestors, mapping.ancestorAttr);
+      if (inherited !== undefined) {
+        resolved.set(mapping.propName, inherited);
       }
-      if (!ancestorEl) continue;
-
-      const attrValue = ancestorEl.getAttribute(mapping.ancestorAttr);
-      if (attrValue != null) {
-        resolved.set(mapping.propName, attrValue);
+      for (const ancestor of ancestors) {
+        attrsToWatch.set(ancestor, [...(attrsToWatch.get(ancestor) ?? []), mapping.ancestorAttr]);
       }
-      attrsToWatch.push(mapping.ancestorAttr);
     }
 
-    // Set up MutationObserver on the ancestor
-    if (ancestorEl && attrsToWatch.length > 0) {
+    if (attrsToWatch.size > 0) {
       observer = new MutationObserver(() => {
-        // Re-read all inherited attributes from the ancestor
-        for (const mapping of mappings) {
-          if (!isInheritedValue(component[mapping.propName])) continue;
-          const attrValue = ancestorEl.getAttribute(mapping.ancestorAttr);
-          if (attrValue != null) {
-            resolved.set(mapping.propName, attrValue);
-          } else {
-            resolved.delete(mapping.propName);
-          }
-        }
+        resolveAll();
         forceUpdate(component);
       });
-      observer.observe(ancestorEl, {
-        attributes: true,
-        attributeFilter: attrsToWatch,
-      });
+      for (const [ancestor, attributeFilter] of attrsToWatch) {
+        observer.observe(ancestor, { attributes: true, attributeFilter });
+      }
     }
   };
 
@@ -176,7 +184,6 @@ const withInheritedProps = (component: any, mappings: PropMapping[]): InheritedR
       observer.disconnect();
       observer = null;
     }
-    ancestorEl = undefined;
     resolved.clear();
     runIfExisits(disconnectedCallback, component);
   };

@@ -2,7 +2,7 @@ import { forceUpdate, getElement } from "@stencil/core";
 import { RuleSetConfig } from "../stores/ruleSets";
 import { getStores, clearStoresCache, ScopedStores } from "../context/context-protocol";
 import { runIfExisits } from "./utils";
-import { isInheritedValue, findAncestor } from "./withInheritedProps";
+import { isInheritedValue, findLayoutAncestors, readInherited } from "./withInheritedProps";
 import { merge } from "@corex/deepmerge";
 
 /**
@@ -21,7 +21,8 @@ import { merge } from "@corex/deepmerge";
  * The `ruleset` attribute supports the `"inherited-closest"` /
  * `"inherited-page"` keywords from `withInheritedProps`: the actual name is
  * then read from the `ruleset` attribute of the nearest ancestor
- * `bn-layout-card` / `bn-layout-page`, which is observed for changes.
+ * `bn-layout-card` / `bn-layout-page` that sets one. Every ancestor on that
+ * path is observed for changes.
  *
  * @param component - The Stencil component instance
  * @returns A function returning the merged {@link RuleSetConfig}
@@ -55,15 +56,17 @@ const withRuleSet = (component: any) => {
     }
 
     if (raw && isInheritedValue(raw)) {
-      const ancestor = findAncestor(element, raw);
-      selectedRuleset = ancestor?.getAttribute("ruleset");
-      if (ancestor) {
+      const ancestors = findLayoutAncestors(element, raw);
+      selectedRuleset = readInherited(ancestors, "ruleset");
+      if (ancestors.length > 0) {
         ancestorObserver = new MutationObserver(() => {
-          selectedRuleset = ancestor.getAttribute("ruleset");
+          selectedRuleset = readInherited(ancestors, "ruleset");
           updateConfig();
           forceUpdate(component);
         });
-        ancestorObserver.observe(ancestor, { attributes: true, attributeFilter: ["ruleset"] });
+        for (const ancestor of ancestors) {
+          ancestorObserver.observe(ancestor, { attributes: true, attributeFilter: ["ruleset"] });
+        }
       }
     } else {
       selectedRuleset = raw;
