@@ -168,12 +168,11 @@ Customize `<bn-tree>` edge and operator styling:
 
 ### Grid
 
-Customize `<bn-grid>` borders and headers:
+Customize `<bn-grid>` borders and cell spacing:
 
 ```json
 {
   "bn-grid": {
-    "headerBackground": "transparent",
     "borderColor": "#A6A6A6",
     "borderWidth": 1,
     "cellPadding": 4
@@ -183,7 +182,7 @@ Customize `<bn-grid>` borders and headers:
 
 ### Unknown keys
 
-A key that no component reads is ignored. `<bn-component-style>` reports such keys in its `has-error` attribute as `ERR_keys`, for example `timeChart` (the section is `bn-chart-time`) or a misspelled scale factor. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`.
+A key that is not part of the style is ignored. `<bn-component-style>` reports such keys in its `has-error` attribute as `ERR_keys`, for example `timeChart` (the section is `bn-chart-time`) or a misspelled scale factor. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`.
 
 ## IBCS Default Colors
 

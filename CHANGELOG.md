@@ -148,9 +148,9 @@ A `has-error` item, also one of type `error`, is not a failed component. A page 
 #### `has-error`: failures that were only logged are items now
 
 - `bn-chart-time`, `bn-chart-structure`, `bn-chart-bullet`, `bn-chart-scatter`, `bn-chart-bubble`: a failing query on a registered dataset (for example a `filter` that AlaSQL cannot read) is an `ERR_sql` item of type `error`, and the chart renders nothing instead of "No Data". `bn-table` did this already, it now also covers a failing row count, measure-scale and interval query. A dataset that is not registered yet still means "no data".
-- `bn-dataset`, `bn-datasource`: `ERR_body` when the body cannot be decoded or parsed or is not a JSON array, `ERR_src` when the request fails, **when the server answers with an HTTP error status**, or when the response is not a JSON array, `ERR_name` on every element when two of them produce the same name (also a dataset with the name of its datasource). When the name is no longer shared, the remaining element loads its data again. An empty body and the JSON value `null` mean "no rows" and are no error. A static `bn-dataset` with an empty body is now registered as a table without rows.
+- `bn-dataset`, `bn-datasource`: `ERR_body` when the body cannot be decoded or parsed or is not a JSON array, `ERR_src` when the request fails, **when the server answers with an HTTP error status**, or when the response is not a JSON array, `ERR_name` on every element when two of them produce the same name (also a dataset with the name of its datasource). When the name is no longer shared, the remaining element loads its data again, and a dataset on top of that name reads it again too. An empty body and the JSON value `null` mean "no rows" and are no error. A static `bn-dataset` with an empty body is now registered as a table without rows.
 - `bn-internationalization`: `ERR_body` for a body that is not a JSON object.
-- `bn-component-style`: `ERR_keys` (type `error`) lists the keys that no component reads. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`. The theming guide named sections that were never read (`text`, `timeChart`, `structureChart`, `tree`, `grid`). The sections are the tag names: `bn-text`, `bn-chart-time`, `bn-chart-structure`, `bn-tree`, `bn-grid`. See [doc/theming.md](doc/theming.md).
+- `bn-component-style`: `ERR_keys` (type `error`) lists the keys that are not part of the style. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`. The theming guide named sections that were never read (`text`, `timeChart`, `structureChart`, `tree`, `grid`). The sections are the tag names: `bn-text`, `bn-chart-time`, `bn-chart-structure`, `bn-tree`, `bn-grid`. See [doc/theming.md](doc/theming.md).
 - `show-measure-scale`, `show-overlay-avg` and `show-overlay-median` shared the id `ERR_grouped`. A valid value of one removed the item of another. The ids are now `ERR_showMeasureScale`, `ERR_showOverlayAvg` and `ERR_showOverlayMedian`.
 
 #### `bn-page`: true page sizes, `full-hd` works, `@page` rule
@@ -161,6 +161,7 @@ The page sizes come from one table now, which also feeds the validation of `form
 - **Paper formats have their true size.** `a4` was 8.17 x 11.6 in and is 8.27 x 11.69 in, `a3` 11.69 x 16.54, `a2` 16.54 x 23.39, `a1` 23.39 x 33.11, `a0` 33.11 x 46.81. Reports in these formats reflow.
 - `a6`, `a5`, `tabloid` and `ledger`, which only the stylesheet knew, are valid formats.
 - An unknown `format` or `orientation` is also reported when it is there from the start, not only when it changes later.
+- `bn-layout-page` reflects `pageFormat` and `pageOrientation` to its `page-format` and `page-orientation` attributes, so a format that is set as a property reaches the `@page` rule.
 - The first `bn-context` of a document writes one `@page` rule with the size its first page is drawn in (turned or not, see below). The rule sets no margin. **A caller that prints with `preferCSSPageSize` now gets this size as the sheet**, for A4 8.27 x 11.69 in. A caller that passes a fixed paper size must pass the size of the format, otherwise Chrome fits the page into the sheet.
 
 See [bn-page](src/components/bn-page/readme.md) for the sizes.
@@ -183,7 +184,7 @@ A `custom-template` without a quoted row threw in `render()` on the page. It is 
 
 #### `bn-layout-card`: an inherited keyword stays on the host
 
-A card with `title-scenarios="inherited-page"` (or another inherited title field, or `ruleset`) replaced the keyword in its own attribute with the value it had read at connect. It stopped following the page, and a component inside the card read the stale value. The card keeps the attribute as the author wrote it now. A component inside it that uses `inherited-closest` still gets the page value: such a card stands for the page, the cards further out are not asked.
+A card with `title-scenarios="inherited-page"` (or another inherited title field, or `ruleset`) replaced the keyword in its own attribute with the value it had read at connect. It stopped following the page, and a component inside the card read the stale value. The card keeps the attribute as the author wrote it now. A component inside it that uses `inherited-closest` still gets the page value: such a card stands for the page, the cards between the two are not asked. When the page has no value, the card counts as not setting one, as before.
 
 ### Fixed
 
