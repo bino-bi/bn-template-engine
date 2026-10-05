@@ -16,35 +16,51 @@ Page container that defines the output dimensions and orientation. Place [`<bn-t
 
 ### Page Formats
 
-| Format | Resolution |
-|--------|------------|
-| `xga` | 1024 x 768 |
-| `hd` | 1280 x 720 |
-| `full-hd` | 1920 x 1080 |
-| `4k` | 3840 x 2160 |
-| `4k2k` | 4096 x 2160 |
-| `a4` | A4 paper |
-| `a3` | A3 paper |
-| `a2` | A2 paper |
-| `a1` | A1 paper |
-| `a0` | A0 paper |
-| `letter` | US Letter |
-| `legal` | US Legal |
+| Format | Size | Native orientation |
+|--------|------|--------------------|
+| `xga` | 1024 x 768 px | landscape |
+| `hd` | 1280 x 720 px | landscape |
+| `full-hd` | 1920 x 1080 px | landscape |
+| `4k` | 3840 x 2160 px | landscape |
+| `4k2k` | 4096 x 2160 px | landscape |
+| `a6` | 4.13 x 5.83 in | portrait |
+| `a5` | 5.83 x 8.27 in | portrait |
+| `a4` | 8.27 x 11.69 in | portrait |
+| `a3` | 11.69 x 16.54 in | portrait |
+| `a2` | 16.54 x 23.39 in | portrait |
+| `a1` | 23.39 x 33.11 in | portrait |
+| `a0` | 33.11 x 46.81 in | portrait |
+| `letter` | 8.5 x 11 in | portrait |
+| `legal` | 8.5 x 14 in | portrait |
+| `tabloid` | 11 x 17 in | portrait |
+| `ledger` | 17 x 11 in | landscape |
+
+Without `format` the page is `xga`. An unknown format is reported as `ERR_format` and also draws the `xga` size.
 
 ### Orientation
 
-- `landscape` - wider than tall (default for screen formats)
+- `landscape` - wider than tall
 - `portrait` - taller than wide
+
+Without `orientation` a format has its native orientation. `orientation` has no effect without `format`.
+
+### Printing
+
+A page has exactly the size of a sheet. The first `<bn-context>` of a document writes one `@page` rule with the size of its first page and no margin, so a browser prints one page per sheet.
+
+- A caller that passes a paper size to the browser (for example to `printToPDF`) must pass the size from the table and no margin. With another size Chrome fits the page into the sheet.
+- The document must not add a margin of its own around the pages (`body { margin: 0 }`).
+- A document is printed in one orientation. Set it as `render-orientation` on `<bn-context>`: a `<bn-layout-page>` with the other orientation is then turned onto the sheet.
 
 <!-- Auto Generated Below -->
 
 
 ## Properties
 
-| Property      | Attribute     | Description                                                                                                                                                                                 | Type     | Default     |
-| ------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `format`      | `format`      | Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga``` | `string` | `undefined` |
-| `orientation` | `orientation` | Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format                                                   | `string` | `undefined` |
+| Property      | Attribute     | Description                                                                                                                                                                                                                  | Type     | Default     |
+| ------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `format`      | `format`      | Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger ``` <br /><br /> default: <br /> ```xga``` | `string` | `undefined` |
+| `orientation` | `orientation` | Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format                                                                                    | `string` | `undefined` |
 
 
 ## Dependencies

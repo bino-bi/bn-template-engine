@@ -1,4 +1,5 @@
-import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
+import { Component, h, Host, Element, Prop, Method, Fragment } from "@stencil/core";
+import { pageGeometry, VALID_ORIENTATIONS } from "../bn-page/pageFormats";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
@@ -186,7 +187,7 @@ export class LayoutPage {
    * Page size format. Determines the pixel dimensions of the rendered page.
    * <br /><br />
    * values:<br />
-   * ```xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal```
+   * ```xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger```
    */
   @Prop() pageFormat?: string;
 
@@ -418,66 +419,74 @@ export class LayoutPage {
     return this.extractSlotNames(template).length;
   }
 
-  componentDidUpdate() {
-    // workaround for the render rotation issue
-    const renderOrientation = this.element.closest("bn-context").getAttribute("render-orientation");
-    if (renderOrientation && renderOrientation !== this.pageOrientation) {
-      const page = this.element.shadowRoot.querySelector("bn-page");
-      const layout = this.element.closest("bn-layout-page");
-      if (layout && page) {
-        page.style.transform = "rotate(-90deg) translate(-100%)";
-        page.style.transformOrigin = "top left";
-        layout.style.width = `${page.clientHeight}px`;
-        layout.style.height = `${page.clientWidth}px`;
-      }
+  /**
+   * A document is printed in one orientation, the `render-orientation` of
+   * `bn-context`. A page with the other orientation keeps its own layout and
+   * is turned onto the sheet: the host takes the swapped size, the inner page
+   * is rotated into it.
+   */
+  private rotation(): { host: Record<string, string>; page: Record<string, string> } | undefined {
+    const renderOrientation = this.element.closest("bn-context")?.getAttribute("render-orientation");
+    const page = pageGeometry(this.pageFormat, this.pageOrientation);
+    if (!VALID_ORIENTATIONS.includes(renderOrientation) || renderOrientation === page.orientation) {
+      return undefined;
     }
+
+    return {
+      host: { width: page.height, height: page.width },
+      page: { transform: "rotate(-90deg) translate(-100%)", transformOrigin: "top left" },
+    };
   }
 
   render() {
     const style = this.getLayoutStyle();
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
+    const rotation = this.rotation();
 
     return (
-      <bn-page // @ts-ignore
-        styles={this.styles}
-        selected-style={this.selectedStyle}
-        format={this.pageFormat}
-        orientation={this.pageOrientation}
-      >
-        <bn-message text={this.messageText} image={this.messageImage}></bn-message>
-        <bn-title // @ts-ignore
-          i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
-          ruleset={this.ruleset}
-          business-unit={this.titleBusinessUnit}
-          scenarios={this.titleScenarios}
-          variances={this.titleVariances}
-          order={this.titleOrder}
-          order-direction={this.titleOrderDirection}
-          measures={this.titleMeasures}
-          date-start={this.titleDateStart}
-          date-end={this.titleDateEnd}
-          date-format={this.titleDateFormat}
-          date-link={this.titleDateLink}
-        ></bn-title>
-        <bn-body>
-          {/* data-bn-fit-content: tells auto-scaling components that heights
+      <Host style={rotation?.host}>
+        <bn-page // @ts-ignore
+          styles={this.styles}
+          selected-style={this.selectedStyle}
+          format={this.pageFormat}
+          orientation={this.pageOrientation}
+          style={rotation?.page}
+        >
+          <bn-message text={this.messageText} image={this.messageImage}></bn-message>
+          <bn-title // @ts-ignore
+            i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
+            ruleset={this.ruleset}
+            business-unit={this.titleBusinessUnit}
+            scenarios={this.titleScenarios}
+            variances={this.titleVariances}
+            order={this.titleOrder}
+            order-direction={this.titleOrderDirection}
+            measures={this.titleMeasures}
+            date-start={this.titleDateStart}
+            date-end={this.titleDateEnd}
+            date-format={this.titleDateFormat}
+            date-link={this.titleDateLink}
+          ></bn-title>
+          <bn-body>
+            {/* data-bn-fit-content: tells auto-scaling components that heights
               inside this grid are content-driven and unusable as a scaling
               reference; the value is the grid's row count so they can fall
               back to an equal-share cell height
               (see findConstrainedHeight in utils/parentDimensions) */}
-          <div
-            style={style}
-            data-bn-fit-content={this.pageFitToContent ? String(this.getRowCount(this.pageLayout)) : null}
-          >
-            {this.getSlots(arrOfSlots)}
-          </div>
-        </bn-body>
-        <bn-footer
-          text={this.footerText}
-          page-number={this.pageNumber}
-          display-page-number={this.footerDisplayPageNumber}
-        ></bn-footer>
-      </bn-page>
+            <div
+              style={style}
+              data-bn-fit-content={this.pageFitToContent ? String(this.getRowCount(this.pageLayout)) : null}
+            >
+              {this.getSlots(arrOfSlots)}
+            </div>
+          </bn-body>
+          <bn-footer
+            text={this.footerText}
+            page-number={this.pageNumber}
+            display-page-number={this.footerDisplayPageNumber}
+          ></bn-footer>
+        </bn-page>
+      </Host>
     );
   }
 }

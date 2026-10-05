@@ -3,9 +3,7 @@ import { isBlankInput } from "../../utils/validate";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
-
-const VALID_FORMATS = ["xga", "hd", "full-hd", "4k", "4k2k", "a4", "a3", "a2", "a1", "a0", "letter", "legal"];
-const VALID_ORIENTATIONS = ["landscape", "portrait"];
+import { pageGeometry, VALID_FORMATS, VALID_ORIENTATIONS } from "./pageFormats";
 
 @Component({
   tag: "bn-page",
@@ -29,7 +27,7 @@ export class Page {
    * Defines the size of the page
    * <br /><br />
    * values:
-   * <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ```
+   * <br /> ``` xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger ```
    * <br /><br />
    * default: <br /> ```xga```
    */
@@ -74,6 +72,12 @@ export class Page {
     }
   }
 
+  componentWillLoad() {
+    // the watchers only see a later change
+    this.validateFormat(this.format);
+    this.validateOrientation(this.orientation);
+  }
+
   render() {
     return (
       <Host format={this.format} orientation={this.orientation} style={this.prepareStyle()}>
@@ -83,7 +87,7 @@ export class Page {
   }
 
   private prepareStyle() {
-    const pageStyle = {
+    const pageStyle: Record<string, string> = {
       "font-family": this.componentStyle(($) => $.global["fontFamily"]),
       "font-size": `${this.componentStyle(($) => $.global["fontSizePx"])}px`,
       "--bn-font-family": this.componentStyle(($) => $.global["fontFamily"]) || "'Noto Sans', sans-serif",
@@ -91,6 +95,13 @@ export class Page {
       "--bn-font-color": this.componentStyle(($) => $.global["fontColor"]) || "#000000",
       "--bn-font-background": this.componentStyle(($) => $.global["fontBackgroundColor"]) || "#ffffff",
     };
+
+    // an unknown format keeps the default size of the stylesheet
+    if (VALID_FORMATS.includes(this.format)) {
+      const { width, height } = pageGeometry(this.format, this.orientation);
+      pageStyle.width = width;
+      pageStyle.height = height;
+    }
 
     return pageStyle;
   }

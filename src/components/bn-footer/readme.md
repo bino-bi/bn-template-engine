@@ -37,12 +37,12 @@ Page numbers are automatically assigned by `<bn-context>`. Toggle visibility:
 
 ## Properties
 
-| Property            | Attribute             | Description                                                                   | Type      | Default     |
-| ------------------- | --------------------- | ----------------------------------------------------------------------------- | --------- | ----------- |
-| `code`              | `code`                | code . <br />If empty string (`''` or `null`) the footer row is omitted       | `string`  | `undefined` |
-| `displayPageNumber` | `display-page-number` | Toggle if pagenumer label is displayed                                        | `boolean` | `true`      |
-| `pageNumber`        | `page-number`         | Pagenumber value. Is displayed if displayPageNumber == true                   | `number`  | `null`      |
-| `text`              | `text`                | Footer text. <br />If empty string (`''` or `null`) the footer row is omitted | `string`  | `undefined` |
+| Property            | Attribute             | Description                                                                                    | Type      | Default     |
+| ------------------- | --------------------- | ---------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `code`              | `code`                | code . <br />If empty string (`''` or `null`) the footer row is omitted                        | `string`  | `undefined` |
+| `displayPageNumber` | `display-page-number` | Toggle if pagenumer label is displayed                                                         | `boolean` | `true`      |
+| `pageNumber`        | `page-number`         | Page label: a number or any text, e.g. `3` or `A-1`. Is displayed if displayPageNumber == true | `string`  | `null`      |
+| `text`              | `text`                | Footer text. <br />If empty string (`''` or `null`) the footer row is omitted                  | `string`  | `undefined` |
 
 
 ## Dependencies
