@@ -143,12 +143,21 @@ describe("withInheritedProps", () => {
       expect(resolve(leaf, INHERITED_CLOSEST)).toBe("ac1,pp1");
     });
 
-    it("finds nothing behind a card that follows a page without the value", () => {
+    it("skips a card that follows a page without the value: it sets nothing", () => {
       const [, outerCard, innerCard, leaf] = nest("bn-layout-page", "bn-layout-card", "bn-layout-card");
       outerCard.setAttribute("title-scenarios", "ac1");
       innerCard.setAttribute("title-scenarios", INHERITED_PAGE);
 
-      expect(resolve(leaf, INHERITED_CLOSEST)).toBeUndefined();
+      // an unresolved keyword never counted as a value, the next card that sets one answers
+      expect(resolve(leaf, INHERITED_CLOSEST)).toBe("ac1");
+    });
+
+    it("takes the page value behind a card that follows the page, without another card", () => {
+      const [page, card, leaf] = nest("bn-layout-page", "bn-layout-card");
+      page.setAttribute("title-scenarios", "ac1,pp1");
+      card.setAttribute("title-scenarios", INHERITED_PAGE);
+
+      expect(resolve(leaf, INHERITED_CLOSEST)).toBe("ac1,pp1");
     });
 
     it("goes on to the next card behind a card with 'inherited-closest'", () => {
