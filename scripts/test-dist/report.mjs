@@ -220,6 +220,45 @@ test("orientation: a portrait page in a landscape document is turned onto the sh
   assert.equal(pdf.pages, 2, JSON.stringify(pdf));
 });
 
+test("layout: 1-over-3 has three columns and uses the full width", async () => {
+  const cells = (prefix) =>
+    [0, 1, 2, 3].map((index) => `<bn-text slot="${prefix}${index}" value="${index}"></bn-text>`).join("");
+  const { page } = await open(
+    `<bn-layout-page page-layout="1-over-3">${cells("slot-")}</bn-layout-page>` +
+      `<bn-layout-card card-layout="1-over-3">${cells("card-slot-")}</bn-layout-card>`,
+  );
+
+  const grids = await page.$$eval("bn-layout-page, bn-layout-card", (els) =>
+    els.map((el) => {
+      const grid = [...el.shadowRoot.querySelectorAll("div")].find((div) => getComputedStyle(div).display === "grid");
+      return {
+        tag: el.localName,
+        columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+        width: grid.getBoundingClientRect().width,
+        firstCell: grid.firstElementChild.getBoundingClientRect().width,
+      };
+    }),
+  );
+  assert.equal(grids.length, 2);
+  for (const grid of grids) {
+    // a blank in the template used to add a fourth, empty column: the content took three quarters of the width
+    assert.equal(grid.columns, 3, JSON.stringify(grid));
+    assert.ok(close(grid.firstCell, grid.width), JSON.stringify(grid));
+  }
+});
+
+test("layout: a custom template that is no template is one cell and a warning, not a failed page", async () => {
+  const { page } = await open(
+    `<bn-layout-page page-layout="custom-template" page-custom-template="a b"><bn-text slot="slot-0" value="x"></bn-text></bn-layout-page>`,
+  );
+
+  const result = await page.$eval("bn-layout-page", (el) => ({
+    slots: el.shadowRoot.querySelectorAll("slot").length,
+    items: JSON.parse(el.getAttribute("has-error") ?? "[]").map((item) => [item.id, item.type]),
+  }));
+  assert.deepEqual(result, { slots: 1, items: [["ERR_pageCustomTemplate", "warning"]] });
+});
+
 const DATA_HOSTS = [
   ["bn-table", `scenarios="ac1"`],
   ["bn-chart-time", `scenarios="ac1"`],

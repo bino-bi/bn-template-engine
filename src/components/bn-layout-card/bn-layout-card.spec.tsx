@@ -213,3 +213,30 @@ describe("bn-layout-card readiness", () => {
     expect(ComponentRegister.componentRegisterStatus().successful).toBe(before + 1);
   });
 });
+
+describe("bn-layout-card grid template", () => {
+  const grid = (host: Element): HTMLElement => host.shadowRoot.querySelector("bn-body > div") as HTMLElement;
+  const ids = (host: Element): string[] =>
+    (JSON.parse(host.getAttribute("has-error") ?? "[]") as { id: string }[]).map((e) => e.id);
+  const mount = (attrs: string) =>
+    newSpecPage({ components: [LayoutCard], html: `<bn-layout-card ${attrs}></bn-layout-card>` });
+
+  it("gives 1-over-3 three columns", async () => {
+    const page = await mount(`card-layout="1-over-3"`);
+
+    expect(grid(page.root).style.gridTemplateColumns).toBe("minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)");
+  });
+
+  it("renders a custom template without rows as one cell and warns", async () => {
+    const page = await mount(`card-layout="custom-template" card-custom-template="a b"`);
+
+    expect(grid(page.root).style.gridTemplateAreas).toBe('"a"');
+    expect(ids(page.root)).toEqual(["ERR_cardCustomTemplate"]);
+  });
+
+  it("warns about rows of different length", async () => {
+    const page = await mount(`card-layout="custom-template" card-custom-template='"a b" "c"'`);
+
+    expect(ids(page.root)).toEqual(["ERR_cardCustomTemplate"]);
+  });
+});

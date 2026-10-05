@@ -2,6 +2,15 @@ import { Component, h, Host, Element, Prop, Method, Fragment } from "@stencil/co
 import { pageGeometry, VALID_ORIENTATIONS } from "../bn-page/pageFormats";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import {
+  CUSTOM_TEMPLATE,
+  isTemplateLayout,
+  templateAreas,
+  templateColumns,
+  templateProblem,
+  templateRows,
+  templateSlotNames,
+} from "../../utils/layoutTemplate";
 
 @Component({
   tag: "bn-layout-page",
@@ -272,21 +281,6 @@ export class LayoutPage {
    */
   @Prop() pageFitToContent: boolean = false;
 
-  private templateMap = new Map([
-    ["split-vertical", '"a  b"'],
-    ["split-horizontal", '"a" "b"'],
-    ["2x2", '"a b" "c d"'],
-    ["3x3", '"a b c" "d e f" "g h i"'],
-    ["4x4", '"a b c d" "e f g h" "i j k l" "m n o p"'],
-    ["1-over-2", '"a a" "b c"'],
-    ["2-over-1", '"a b" "c c"'],
-    ["1-over-3", '"a a a " "b c d"'],
-    ["3-over-1", '"a b c" "d d d"'],
-    ["custom-template", '"a b" "c c c"'],
-    ["gold3", '"a c" "b c"'],
-    ["gold4", '"a b c c" "d d c c"'],
-  ]);
-
   private getCommonStyles() {
     let height = "100%";
 
@@ -307,10 +301,7 @@ export class LayoutPage {
   }
 
   private getRowCount(name: string): number {
-    const template = this.getTemplateAreas(name);
-    const pattern = /"[\w\d\s.]+"/g;
-    const matches = template.match(pattern);
-    return matches ? matches.length : 1;
+    return templateRows(this.getTemplateAreas(name)).length || 1;
   }
 
   private getGridTemplateRows(name: string): string {
@@ -364,59 +355,35 @@ export class LayoutPage {
   }
 
   private extractSlotNames(styleElement: string | null) {
-    if (styleElement == null) {
-      return [];
-    }
-
-    const words = styleElement.match(/\b\w+\b/g);
-    if (!words) {
-      return [];
-    }
-
-    return Array.from(new Set(words));
+    return templateSlotNames(styleElement);
   }
 
   private getTemplateAreas(name: string): string {
-    if (this.templateMap.has(name) === false && name !== "custom-template") {
-      return '"a"';
-    }
-
-    if (name === "custom-template") {
-      return this.pageCustomTemplate;
-    }
-
-    return this.templateMap.get(name);
+    return templateAreas(name, this.pageCustomTemplate);
   }
 
-  private calculateFractions(input: string): string {
-    const items = input.trim().split(/\s+/);
-    const count = items.length;
-
-    if (count === 0) return "minmax(0, 1fr)";
-
-    return Array(count).fill("minmax(0, 1fr)").join(" ");
-  }
   private getGridTemplateColumns(name: string): string {
-    if (this.templateMap.has(name) === false && name !== "custom-template") {
-      return "1fr";
-    }
-    let template;
-    const pattern = /"[\w\d\s.]+"/g;
-
-    if (name === "custom-template") {
-      template = this.pageCustomTemplate;
-    } else {
-      template = this.templateMap.get(name);
-    }
-
-    const matches = template.match(pattern);
-    return this.calculateFractions(matches[0]);
+    // a layout without a template, such as "full", is one column that may grow with its content
+    return isTemplateLayout(name) ? templateColumns(this.getTemplateAreas(name)) : "1fr";
   }
 
   @Method()
   async getNumberOfSlot(name: string) {
     const template = this.getTemplateAreas(name);
     return this.extractSlotNames(template).length;
+  }
+
+  componentWillRender() {
+    const problem = this.pageLayout === CUSTOM_TEMPLATE ? templateProblem(this.pageCustomTemplate) : undefined;
+    if (problem) {
+      this.errors.addOrReplace({
+        id: "ERR_pageCustomTemplate",
+        type: "warning",
+        message: `pageCustomTemplate: ${problem}`,
+      });
+    } else {
+      this.errors.remove("ERR_pageCustomTemplate");
+    }
   }
 
   /**

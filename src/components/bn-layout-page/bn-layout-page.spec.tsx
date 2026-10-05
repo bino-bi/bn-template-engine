@@ -200,3 +200,52 @@ describe("bn-layout-page in a document that is printed in the other orientation"
     expect(footers).toEqual(["1", "B"]);
   });
 });
+
+describe("bn-layout-page grid template", () => {
+  const grid = (host: Element): HTMLElement => host.shadowRoot.querySelector("bn-body > div") as HTMLElement;
+  const ids = (host: Element): string[] =>
+    (JSON.parse(host.getAttribute("has-error") ?? "[]") as { id: string }[]).map((e) => e.id);
+  const mount = (attrs: string) =>
+    newSpecPage({ components: [LayoutPage], html: `<bn-layout-page ${attrs}></bn-layout-page>` });
+
+  it("gives 1-over-3 three columns", async () => {
+    const page = await mount(`page-layout="1-over-3"`);
+
+    // a blank inside the first row used to add a fourth, empty column
+    expect(grid(page.root).style.gridTemplateColumns).toBe("minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)");
+    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(4);
+  });
+
+  it("keeps the default layout as one column that may grow", async () => {
+    const page = await mount(``);
+
+    expect(grid(page.root).style.gridTemplateColumns).toBe("1fr");
+    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(1);
+  });
+
+  it("lays out a custom template", async () => {
+    const page = await mount(`page-layout="custom-template" page-custom-template='"a a" "b c"'`);
+
+    expect(grid(page.root).style.gridTemplateAreas).toBe('"a a" "b c"');
+    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(3);
+    expect(ids(page.root)).toEqual([]);
+  });
+
+  it.each(["", "a b", "none"])("renders the custom template %p as one cell and warns", async (template) => {
+    // a throw in render() would reject here: the page read the first row of a match that was null
+    const page = await mount(`page-layout="custom-template" page-custom-template="${template}"`);
+
+    expect(grid(page.root).style.gridTemplateAreas).toBe('"a"');
+    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(1);
+    expect(ids(page.root)).toEqual(["ERR_pageCustomTemplate"]);
+  });
+
+  it("drops the warning when the template is corrected", async () => {
+    const page = await mount(`page-layout="custom-template" page-custom-template="a b"`);
+
+    page.root.setAttribute("page-custom-template", '"a b"');
+    await page.waitForChanges();
+
+    expect(ids(page.root)).toEqual([]);
+  });
+});
