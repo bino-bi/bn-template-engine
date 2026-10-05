@@ -180,7 +180,7 @@ A page whose orientation differs from the `render-orientation` of `bn-context` i
 
 The layout `1-over-3` got four column tracks instead of three, so its content took three quarters of the width. It has three columns now.
 
-A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `ERR_pageCustomTemplate` or `ERR_cardCustomTemplate`. The same item reports rows of different length. Rows can be written in double or in single quotes, the latter fit into a double-quoted attribute: `page-custom-template="'a a' 'b c'"`.
+A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `ERR_pageCustomTemplate` or `ERR_cardCustomTemplate`. The same item reports rows of different length and a pair of quotes without a cell. Rows can be written in double or in single quotes, the latter fit into a double-quoted attribute: `page-custom-template="'a a' 'b c'"`.
 
 #### `bn-layout-card`: an inherited keyword stays on the host
 
