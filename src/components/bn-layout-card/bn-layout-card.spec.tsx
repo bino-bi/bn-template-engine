@@ -64,7 +64,7 @@ describe("bn-layout-card ruleset forwarding", () => {
     expect(title.getAttribute("ruleset")).toBe("my-rules");
   });
 
-  it("resolves inherited-page against the ancestor bn-layout-page and reflects it", async () => {
+  it("resolves inherited-page against the ancestor bn-layout-page and keeps the keyword of the author", async () => {
     const page = await newSpecPage({
       components: [LayoutPage, LayoutCard],
       html: `<bn-layout-page ruleset="page-rules"><bn-layout-card ruleset="inherited-page"></bn-layout-card></bn-layout-page>`,
@@ -73,8 +73,8 @@ describe("bn-layout-card ruleset forwarding", () => {
     const card = page.body.querySelector("bn-layout-card");
     const title = card.shadowRoot.querySelector("bn-title");
     expect(title.getAttribute("ruleset")).toBe("page-rules");
-    // reflected onto the host so descendant vis components resolve the real value
-    expect(card.getAttribute("ruleset")).toBe("page-rules");
+    // overwritten with the value, the card would stop following the page
+    expect(card.getAttribute("ruleset")).toBe("inherited-page");
   });
 });
 
@@ -141,6 +141,53 @@ describe("bn-layout-card inherited title props", () => {
     await page.waitForChanges();
 
     expect(title.getAttribute("scenarios")).toBe("ac1");
+  });
+
+  it("follows the page when a value that the card inherits changes later", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1"><bn-layout-card title-scenarios="inherited-page"></bn-layout-card></bn-layout-page>`,
+    });
+    const card = page.body.querySelector("bn-layout-card");
+    const title = card.shadowRoot.querySelector("bn-title");
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+
+    const layoutPage = page.body.querySelector("bn-layout-page");
+    layoutPage.setAttribute("title-scenarios", "pp1");
+    notifyAttributeChange(layoutPage, "title-scenarios");
+    await page.waitForChanges();
+
+    expect(title.getAttribute("scenarios")).toBe("pp1");
+    expect(card.getAttribute("title-scenarios")).toBe("inherited-page");
+  });
+
+  it("lets a component inside the card follow the page through the card's keyword", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1"><bn-layout-card title-scenarios="inherited-page"><bn-layout-card id="inner" title-scenarios="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+    const title = page.body.querySelector("#inner").shadowRoot.querySelector("bn-title");
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+
+    // the outer card used to hold the value it had read at connect, and the inner one read that
+    const layoutPage = page.body.querySelector("bn-layout-page");
+    layoutPage.setAttribute("title-scenarios", "pp1");
+    notifyAttributeChange(layoutPage, "title-scenarios");
+    await page.waitForChanges();
+
+    expect(title.getAttribute("scenarios")).toBe("pp1");
+  });
+
+  it("resolves each field in its own mode", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1,pp1" title-order="ac1"><bn-layout-card title-scenarios="ac1" title-order="pp1"><bn-layout-card id="inner" title-scenarios="inherited-closest" title-order="inherited-page"></bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+
+    const title = page.body.querySelector("#inner").shadowRoot.querySelector("bn-title");
+    // scenarios from the nearest card, order from the page although the card sets one too
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+    expect(title.getAttribute("order")).toBe("ac1");
   });
 
   it("resolves a ruleset keyword that the card gets after connect", async () => {

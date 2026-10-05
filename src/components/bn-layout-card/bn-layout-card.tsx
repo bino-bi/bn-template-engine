@@ -33,9 +33,6 @@ export class LayoutCard {
 
   connectedCallback() {
     this.stores = getStores(this.element);
-    // Reflect resolved inherited values to host attributes so child vis
-    // components can read them during their own DOM traversal.
-    this.reflectInheritedAttrs();
   }
 
   /**
@@ -405,28 +402,6 @@ export class LayoutCard {
       return "card_box border";
     }
     return "card_box";
-  }
-
-  /**
-   * When the card itself inherits a title prop from a page, write the
-   * resolved value back to the host element's attribute so that child
-   * vis components (bn-table, bn-chart-*) performing their own DOM walk
-   * read the actual value instead of the literal "inherited-page" keyword.
-   */
-  private reflectInheritedAttrs() {
-    const mappings: { prop: string; attr: string }[] = [
-      { prop: "titleScenarios", attr: "title-scenarios" },
-      { prop: "titleVariances", attr: "title-variances" },
-      { prop: "titleOrder", attr: "title-order" },
-      { prop: "titleOrderDirection", attr: "title-order-direction" },
-      { prop: "ruleset", attr: "ruleset" },
-    ];
-    for (const { prop, attr } of mappings) {
-      const resolved = this.resolveInherited(prop, this[prop]);
-      if (resolved.inherited) {
-        this.element.setAttribute(attr, resolved.value);
-      }
-    }
   }
 
   /** The value of a prop for the inner title. An unresolved keyword reaches it as blank. */
