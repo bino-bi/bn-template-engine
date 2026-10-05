@@ -62,8 +62,6 @@ type TimeChartResponseRow = {
   id: number;
   calcdate: DateTime;
   category: string | null;
-  mindate?: any;
-  maxdate?: any;
   ac1: number | null;
   ac2: number | null;
   ac3: number | null;
@@ -830,41 +828,35 @@ export class TimeChart {
       return dateInterval;
     }
 
-    const resultMinMax = this.queryMinMaxDates();
-    let localDateInterval = DateDistance.DAY;
-
-    if (resultMinMax[0]?.mindate != null) {
-      localDateInterval = new DateStringFactory().calculateDistanceType(
-        resultMinMax[0]?.mindate,
-        resultMinMax[0]?.maxdate,
-        this.intervalSpanLimit,
-      );
+    const dates = this.queryDates();
+    if (dates.length === 0) {
+      return DateDistance.DAY;
     }
 
-    return localDateInterval;
+    // a loop, not DateTime.min(...dates): a spread of some 100000 dates exceeds the argument limit
+    let first = dates[0];
+    let last = dates[0];
+    for (const date of dates) {
+      if (date < first) first = date;
+      if (date > last) last = date;
+    }
+
+    return new DateStringFactory().calculateDistanceType(first, last, this.intervalSpanLimit);
   }
 
-  private queryMinMaxDates(): { mindate?: any; maxdate?: any }[] {
-    let result: TimeChartResponseRow[];
+  /** Distinct dates of the filtered rows. Min and max are taken in JS: alasql MIN/MAX skip ISO strings. */
+  private queryDates(): DateTime[] {
+    let result: { date?: unknown }[];
     try {
-      result = this.db.exec<TimeChartResponseRow[]>(
-        `SELECT MAX(${"date"}) as maxdate, MIN(${"date"}) as mindate FROM ${this.fromExpr}`,
-      );
+      result = this.db.exec<{ date?: unknown }[]>(`SELECT DISTINCT [date] FROM ${this.fromExpr}`);
     } catch (e) {
-      console.error("TimeChart: min/max date query failed", e);
-      return [{}];
+      console.error("TimeChart: date range query failed", e);
+      return [];
     }
 
     // `date` rows in the shared db are typically ISO strings (raw JSON) or millis;
     // accept both so existing fixtures and live JSON data both work.
-    if (result[0]?.mindate != null) {
-      result[0].mindate = TimeChart.coerceDateTime(result[0].mindate);
-    }
-    if (result[0]?.maxdate != null) {
-      result[0].maxdate = TimeChart.coerceDateTime(result[0].maxdate);
-    }
-
-    return result;
+    return result.map((row) => TimeChart.coerceDateTime(row.date)).filter((date): date is DateTime => date != null);
   }
 
   private static coerceDateTime(v: unknown): DateTime | undefined {
