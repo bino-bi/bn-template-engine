@@ -96,3 +96,27 @@ describe("bn-chart-structure: omitted optional props", () => {
     expect(errorIds(page)).toContain("ERR_level");
   });
 });
+
+describe("bn-chart-structure: stack colours of the theme", () => {
+  const innerStackColors = (page: SpecPage): string[] | undefined =>
+    (
+      page.root!.shadowRoot!.querySelector("ibcs-chart-structure") as unknown as {
+        styles: { stackColors?: string[] };
+      }
+    ).styles.stackColors;
+
+  it("passes the stack colours of the selected style to the chart", async () => {
+    // the mocked module hands out the stores of this spec
+    const { getStores } = require("../../context/context-protocol");
+    getStores().componentStyles.set("brand", { "bn-chart-structure": { stackColors: ["#112233", "#ddeeff"] } });
+
+    const page = await renderChart(`selected-style="brand"`);
+
+    // the chart fell back to its built-in black, light grey and grey
+    expect(innerStackColors(page)).toEqual(["#112233", "#ddeeff"]);
+  });
+
+  it("passes the system stack colours without a style", async () => {
+    expect(innerStackColors(await renderChart())).toEqual(["#000000", "#c0c0c0", "#808080"]);
+  });
+});

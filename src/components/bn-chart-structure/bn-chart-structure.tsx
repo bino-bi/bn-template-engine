@@ -1059,6 +1059,7 @@ export class Chart {
         axisStyles: $["bn-chart-structure"]["axisStyles"],
         barStyles: $["bn-chart-structure"]["barStyles"],
         varianceStyles: $["bn-chart-structure"]["varianceStyles"],
+        stackColors: $["bn-chart-structure"]["stackColors"],
         padding: $["bn-chart-structure"]["padding"],
         pattern: null,
       };

@@ -664,7 +664,7 @@ export class BubbleChart {
     }
     this.drawText(group, text, cx, cy + 0.35 * this.em, {
       anchor: "middle",
-      color: getContrastTextColor(fill.startsWith("#") ? fill : "#ffffff"),
+      color: getContrastTextColor(fill),
     });
   }
 
