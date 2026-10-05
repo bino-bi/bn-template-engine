@@ -26,11 +26,16 @@ const ROW_PATTERN = /"[\w\d\s.]+"|'[\w\d\s.]+'/g;
 
 /** The rows of a template, each as the list of its cell names. Empty for text that holds no quoted row. */
 export function templateRows(areas: string | null | undefined): string[][] {
-  return (areas?.match(ROW_PATTERN) ?? []).map((row) =>
-    row
-      .slice(1, -1)
-      .split(/\s+/)
-      .filter((cell) => cell !== ""),
+  return (
+    (areas?.match(ROW_PATTERN) ?? [])
+      .map((row) =>
+        row
+          .slice(1, -1)
+          .split(/\s+/)
+          .filter((cell) => cell !== ""),
+      )
+      // quotes around blanks only are the gap between two rows whose quotes do not pair up
+      .filter((cells) => cells.length > 0)
   );
 }
 

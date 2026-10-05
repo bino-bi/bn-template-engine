@@ -78,6 +78,15 @@ describe("layout templates", () => {
     expect(templateProblem(custom)).toContain("no row found");
   });
 
+  it("does not take the gap between two rows with unpaired quotes for a row", () => {
+    // opens with a double quote and closes with a single one: only the blank between the rows sits in quotes
+    const template = `"a b' 'c d"`;
+
+    expect(templateRows(template)).toEqual([]);
+    expect(templateAreas("custom-template", template)).toBe('"a"');
+    expect(templateProblem(template)).toContain("no row found");
+  });
+
   it("reports rows of different length", () => {
     expect(templateProblem('"a b" "c"')).toContain("different numbers of cells");
     expect(templateProblem('"a b" "c d"')).toBeUndefined();
