@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Prop, State, Watch } from "@stencil/core";
 import withDataset from "../../utils/withDataset";
 import withTranslation from "../../utils/withTranslation";
 import withComponentStatus from "../../utils/withComponentStatus";
@@ -37,6 +37,19 @@ export class Text {
       this.data = { ...this.data, [name]: data };
     });
     this.componentStyle = withComponentStyle(this);
+  }
+
+  // Text that was measured with the fallback font does not fit once the web font is there: render and measure again.
+  private readonly refit = () => {
+    forceUpdate(this);
+  };
+
+  connectedCallback() {
+    document.fonts?.addEventListener("loadingdone", this.refit);
+  }
+
+  disconnectedCallback() {
+    document.fonts?.removeEventListener("loadingdone", this.refit);
   }
 
   /**

@@ -109,3 +109,41 @@ describe("bn-text template", () => {
     ]);
   });
 });
+
+describe("bn-text and web fonts", () => {
+  // mock-doc has no document.fonts
+  const listeners = new Set<() => void>();
+  const fonts = {
+    addEventListener: (type: string, listener: () => void) => type === "loadingdone" && listeners.add(listener),
+    removeEventListener: (type: string, listener: () => void) => type === "loadingdone" && listeners.delete(listener),
+  };
+
+  beforeEach(() => {
+    listeners.clear();
+    Object.defineProperty(document, "fonts", { value: fonts, configurable: true });
+  });
+
+  afterEach(() => {
+    // @ts-ignore - only set for these tests
+    delete document.fonts;
+  });
+
+  it("measures again when fonts have loaded", async () => {
+    const page = await newSpecPage({ components: [Text], html: `<bn-text value="Revenue"></bn-text>` });
+    const applyScaling = jest.spyOn(page.rootInstance, "applyScaling");
+    expect(listeners.size).toBe(1);
+
+    listeners.forEach((listener) => listener());
+    await page.waitForChanges();
+
+    expect(applyScaling).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops listening when it leaves the document", async () => {
+    const page = await newSpecPage({ components: [Text], html: `<bn-text value="Revenue"></bn-text>` });
+
+    page.root.remove();
+
+    expect(listeners.size).toBe(0);
+  });
+});
