@@ -1,4 +1,5 @@
 import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
+import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 @Component({
@@ -14,6 +15,7 @@ export class LayoutPage {
   private readonly errors: ErrorDispatcher;
 
   constructor() {
+    withComponentStatus(this);
     this.errors = withHasError(this);
   }
 

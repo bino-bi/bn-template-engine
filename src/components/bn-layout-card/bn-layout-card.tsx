@@ -1,5 +1,6 @@
 import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
 import { getStores, ScopedStores } from "../../context/context-protocol";
+import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver } from "../../utils/withInheritedProps";
 
@@ -19,6 +20,7 @@ export class LayoutCard {
   private stores: ScopedStores;
 
   constructor() {
+    withComponentStatus(this);
     this.errors = withHasError(this);
     this.resolveInherited = withInheritedProps(this, [
       { propName: "titleScenarios", ancestorAttr: "title-scenarios" },

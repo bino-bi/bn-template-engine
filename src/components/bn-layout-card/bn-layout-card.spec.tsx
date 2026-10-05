@@ -26,6 +26,7 @@ import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
 import { LayoutCard } from "./bn-layout-card";
 import { LayoutPage } from "../bn-layout-page/bn-layout-page";
+import { ComponentRegister } from "../../utils/componentRegister";
 
 describe("bn-layout-card selected-style forwarding", () => {
   it("forwards selected-style to the inner bn-card", async () => {
@@ -153,5 +154,15 @@ describe("bn-layout-card inherited title props", () => {
     await page.waitForChanges();
 
     expect(card.shadowRoot.querySelector("bn-title").getAttribute("ruleset")).toBe("page-rules");
+  });
+});
+
+describe("bn-layout-card readiness", () => {
+  it("is tracked by the component register", async () => {
+    const before = ComponentRegister.componentRegisterStatus().successful;
+
+    await newSpecPage({ components: [LayoutCard], html: `<bn-layout-card></bn-layout-card>` });
+
+    expect(ComponentRegister.componentRegisterStatus().successful).toBe(before + 1);
   });
 });

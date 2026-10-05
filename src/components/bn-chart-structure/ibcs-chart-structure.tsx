@@ -23,6 +23,7 @@ import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
 import { SVGStyleGroupAdapter } from "../../utils/model/styles/SVGStyleGroup";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import withComponentStatus from "../../utils/withComponentStatus";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { PaddingAdapter } from "../../utils/model/styles/Padding";
 import { SVGStyleAdapter } from "../../utils/model/styles/SVGStyle";
@@ -110,7 +111,9 @@ export class IbcsChartStructure {
   private pattern: CustomPattern | undefined;
   private stores: ScopedStores | undefined;
 
-  constructor() {}
+  constructor() {
+    withComponentStatus(this);
+  }
 
   private getDb() {
     if (!this.stores) this.stores = getStores(this.element);

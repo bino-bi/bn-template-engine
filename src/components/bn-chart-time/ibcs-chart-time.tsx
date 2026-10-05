@@ -19,6 +19,7 @@ import { AutoScalingReport } from "../../utils/scaling";
 import { MIN_PIXEL_SCALE, solveAutoFitStep } from "../../utils/autoFit";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import withComponentStatus from "../../utils/withComponentStatus";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { OrderDirection, OrderAdapter, Order } from "../../utils/model/Order";
@@ -136,7 +137,9 @@ export class IbcsChartTime {
   private pattern: CustomPattern | undefined;
   private stores: ScopedStores | undefined;
 
-  constructor() {}
+  constructor() {
+    withComponentStatus(this);
+  }
 
   private getDb() {
     if (!this.stores) this.stores = getStores(this.element);

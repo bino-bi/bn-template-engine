@@ -29,6 +29,7 @@ import { Order, OrderAdapter } from "../../utils/model/Order";
 import { CellBarChart, CellBarChartStyles } from "./utils/elements/CellBarChart";
 import { WaterfallBar } from "./utils/elements/WaterfallBar";
 import { Cell } from "./utils/elements/Cell";
+import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 import { AutoScalingReport } from "../../utils/scaling";
@@ -210,6 +211,7 @@ export class IbcsTable {
   private stores: ScopedStores | undefined;
 
   constructor() {
+    withComponentStatus(this);
     this.componentStyle = withComponentStyle(this);
   }
 

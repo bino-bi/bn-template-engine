@@ -129,12 +129,15 @@ async function open(body, headers = {}) {
   });
   const response = await page.goto(origin + url, { waitUntil: "load" });
   // componentRegisterIsRenderedResult is never reset, so also require every component to have rendered once.
-  await until(
-    page,
-    () =>
+  await until(page, () => {
+    const failures = window.componentRegisterFailures ?? [];
+    // a failed component stays failed: stop here instead of waiting for the timeout
+    if (failures.length > 0) throw new Error(`components failed: ${JSON.stringify(failures)}`);
+    return (
       window.componentRegisterIsRenderedResult === true &&
-      [...document.querySelectorAll("bn-context > *")].every((el) => el.classList.contains("hydrated")),
-  );
+      [...document.querySelectorAll("bn-context > *")].every((el) => el.classList.contains("hydrated"))
+    );
+  });
   await settle(page);
   return { page, response };
 }

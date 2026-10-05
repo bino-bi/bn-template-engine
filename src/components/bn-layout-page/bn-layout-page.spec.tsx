@@ -4,6 +4,7 @@ jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
 import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
 import { LayoutPage } from "./bn-layout-page";
+import { ComponentRegister } from "../../utils/componentRegister";
 
 describe("bn-layout-page selected-style forwarding", () => {
   it("forwards selected-style to the inner bn-page", async () => {
@@ -89,5 +90,15 @@ describe("bn-layout-page i18n namespace attribute", () => {
 
     expect(page.root.shadowRoot.querySelector("bn-title").getAttribute("i18n-namespace")).toBe("legacy");
     expect(page.root.hasAttribute("i18n-namespace")).toBe(false);
+  });
+});
+
+describe("bn-layout-page readiness", () => {
+  it("is tracked by the component register", async () => {
+    const before = ComponentRegister.componentRegisterStatus().successful;
+
+    await newSpecPage({ components: [LayoutPage], html: `<bn-layout-page></bn-layout-page>` });
+
+    expect(ComponentRegister.componentRegisterStatus().successful).toBe(before + 1);
   });
 });

@@ -3,6 +3,7 @@ import { getStores, ScopedStores } from "../../context/context-protocol";
 import { buildFromExpr } from "../../context/scopedDb";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import withComponentStatus from "../../utils/withComponentStatus";
 import { ErrorDispatcher } from "../../utils/withHasError";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
 import { PaddingAdapter } from "../../utils/model/styles/Padding";
@@ -76,6 +77,10 @@ export class IbcsChartScatter {
   private chart: ScatterChart | undefined;
   private svgMarkup: string = "";
   private stores: ScopedStores | undefined;
+
+  constructor() {
+    withComponentStatus(this);
+  }
 
   private getDb() {
     if (!this.stores) this.stores = getStores(this.element);
