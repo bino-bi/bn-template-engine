@@ -1919,16 +1919,18 @@ export class TimeChart {
     return Array.from(dateRangeEntries.values());
   }
 }
-function tranformToAvgDataModel(dataModel: TimeChartDataModelEntry[]) {
-  const total = dataModel.reduce((sum: number, elements: TimeChartDataModelEntry) => {
-    return sum + (elements["scenario1"]?.value || 0); // Sum up the values of scenario1
-  }, 0);
+/** Values of scenario1 without the periods that have no value: a gap period holds null, a period without this scenario NaN. */
+function finiteScenario1Values(dataModel: TimeChartDataModelEntry[]): number[] {
+  return dataModel
+    .map((elements: TimeChartDataModelEntry) => elements["scenario1"]?.value)
+    .filter((value): value is number => Number.isFinite(value));
+}
 
-  const count = dataModel.filter(
-    (elements: TimeChartDataModelEntry) => elements["scenario1"]?.value !== undefined,
-  ).length; // Count valid scenario1 values
+export function tranformToAvgDataModel(dataModel: TimeChartDataModelEntry[]) {
+  const values = finiteScenario1Values(dataModel);
 
-  const average = count > 0 ? total / count : 0; // Calculate the average, avoid division by zero
+  // NaN draws no line
+  const average = values.length > 0 ? values.reduce((sum, value) => sum + value, 0) / values.length : NaN;
 
   // Create a new first element
   const firstElement = {
@@ -1970,12 +1972,10 @@ function tranformToAvgDataModel(dataModel: TimeChartDataModelEntry[]) {
   ];
 }
 
-function tranformToMedianDataModel(dataModel: TimeChartDataModelEntry[]) {
-  const values = dataModel
-    .map((elements: TimeChartDataModelEntry) => elements["scenario1"]?.value)
-    .filter((value: number | undefined) => value !== undefined)
-    .sort((a: number, b: number) => a - b);
+export function tranformToMedianDataModel(dataModel: TimeChartDataModelEntry[]) {
+  const values = finiteScenario1Values(dataModel).sort((a: number, b: number) => a - b);
 
+  // an empty list gives NaN, which draws no line
   const median =
     values.length % 2 === 0
       ? (values[values.length / 2 - 1] + values[values.length / 2]) / 2
