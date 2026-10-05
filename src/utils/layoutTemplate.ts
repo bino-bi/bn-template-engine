@@ -21,7 +21,8 @@ const TEMPLATES = new Map([
 export const CUSTOM_TEMPLATE = "custom-template";
 
 const SINGLE_CELL = '"a"';
-const ROW_PATTERN = /"[\w\d\s.]+"/g;
+// CSS takes both kinds of quotes. Single ones are what fits into a double-quoted HTML attribute.
+const ROW_PATTERN = /"[\w\d\s.]+"|'[\w\d\s.]+'/g;
 
 /** The rows of a template, each as the list of its cell names. Empty for text that holds no quoted row. */
 export function templateRows(areas: string | null | undefined): string[][] {

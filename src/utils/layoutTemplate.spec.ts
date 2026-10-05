@@ -56,7 +56,20 @@ describe("layout templates", () => {
     ]);
   });
 
-  it.each([undefined, null, "", "a b", "'a b'", '""'])("draws the custom template %p as a single cell", (custom) => {
+  it("reads rows in single quotes, which fit into a double-quoted attribute", () => {
+    const template = "'a a' 'b c'";
+
+    expect(templateAreas("custom-template", template)).toBe(template);
+    expect(templateRows(template)).toEqual([
+      ["a", "a"],
+      ["b", "c"],
+    ]);
+    expect(templateColumns(template)).toBe(`${TRACK} ${TRACK}`);
+    expect(templateSlotNames(template)).toEqual(["a", "b", "c"]);
+    expect(templateProblem(template)).toBeUndefined();
+  });
+
+  it.each([undefined, null, "", "a b", "'a b\"", '""'])("draws the custom template %p as a single cell", (custom) => {
     // the page read the first row of the match without a check and threw in render()
     expect(templateAreas("custom-template", custom)).toBe('"a"');
     expect(templateRows(custom)).toEqual([]);
