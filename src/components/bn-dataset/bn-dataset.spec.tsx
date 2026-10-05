@@ -594,13 +594,41 @@ describe("bn-dataset failures", () => {
     expect(ids(page.root)).toEqual(["ERR_body"]);
   });
 
-  it("reports nothing for an empty static body", async () => {
+  it.each([
+    ["an empty body", "fail_empty1", ``, ``],
+    ["an empty compressed body", "fail_empty2", ` raw="false"`, ``],
+    ["a body of blanks", "fail_empty3", ``, `\n  `],
+    ["the JSON value null", "fail_empty4", ``, `null`],
+  ])(
+    "registers a static dataset with %s as a table without rows, and reports nothing",
+    async (_n, name, attr, body) => {
+      const page = await newSpecPage({
+        components: [Dataset],
+        html: `<bn-dataset name="${name}" static${attr}>${body}</bn-dataset>`,
+      });
+
+      expect(errors(page.root)).toEqual([]);
+      // registered: a view on top of it must not fail with "Table does not exist"
+      expect(db().exec(`SELECT * FROM ${name}`)).toEqual([]);
+    },
+  );
+
+  it("drops ERR_body when the body that could not be decoded is valid again", async () => {
     const page = await newSpecPage({
       components: [Dataset],
-      html: `<bn-dataset name="fail_empty" static raw="false"></bn-dataset>`,
+      html: `<bn-dataset name="fail_back" static>[{"category":"a"}]</bn-dataset>`,
     });
+    const sync = (body: string) => (page.rootInstance as { sync(body: string): void }).sync(body);
 
-    expect(errors(page.root)).toEqual([]);
+    page.root.setAttribute("raw", "false");
+    await page.waitForChanges();
+    sync("abc:not-gzip");
+    expect(ids(page.root)).toEqual(["ERR_body"]);
+
+    page.root.setAttribute("raw", "true");
+    await page.waitForChanges();
+    sync(`[{"category":"a"}]`);
+    expect(ids(page.root)).toEqual([]);
   });
 
   it.each<[string, () => Promise<unknown>, string]>([
@@ -644,6 +672,28 @@ describe("bn-dataset failures", () => {
     const dataset = page.body.querySelector("bn-dataset");
     expect(ids(source)).toContain("ERR_name");
     expect(errors(dataset).find((e) => e.id === "ERR_name")?.type).toBe("error");
+  });
+
+  it("has its rows back when the dataset that shared its name leaves", async () => {
+    const A = [{ category: "a", ac1: 1 }];
+    const B = [{ category: "b", ac1: 2 }];
+    const page = await newSpecPage({
+      components: [Dataset],
+      html:
+        `<bn-dataset id="a" name="fail_back2" static>${JSON.stringify(A)}</bn-dataset>` +
+        `<bn-dataset id="b" name="fail_back2" static>${JSON.stringify(B)}</bn-dataset>`,
+    });
+    const a = page.body.querySelector("#a");
+    // the second one registered last
+    expect(db().exec("SELECT * FROM fail_back2")).toEqual(B);
+    expect(ids(a)).toEqual(["ERR_name"]);
+
+    page.body.querySelector("#b").remove();
+    await page.waitForChanges();
+
+    // no item any more, so the name must hold the rows of a again, not a deleted table
+    expect(ids(a)).toEqual([]);
+    expect(db().exec("SELECT * FROM fail_back2")).toEqual(A);
   });
 
   it("clears ERR_name when two datasets that swap names are done", async () => {

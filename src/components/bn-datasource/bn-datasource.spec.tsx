@@ -427,17 +427,36 @@ describe("bn-datasource failures", () => {
   it("reports a name that two datasources use, on both, until one of them leaves", async () => {
     const page = await newSpecPage({
       components: [Datasource],
-      html: `<bn-datasource id="a" name="fail_dup">[]</bn-datasource><bn-datasource id="b" name="fail_dup">[]</bn-datasource>`,
+      html: `<bn-datasource id="a" name="fail_dup">[{"category":"a"}]</bn-datasource><bn-datasource id="b" name="fail_dup">[{"category":"b"}]</bn-datasource>`,
     });
     const a = page.body.querySelector("#a");
     const b = page.body.querySelector("#b");
 
     expect(errors(a).map((e) => [e.id, e.type])).toEqual([["ERR_name", "error"]]);
     expect(errors(b).map((e) => e.id)).toEqual(["ERR_name"]);
+    // the second one registered last
+    expect(rows("fail_dup")).toEqual([{ category: "b" }]);
 
     b.remove();
     await page.waitForChanges();
 
+    // no item any more, so the name must hold the rows of a again, not a deleted table
     expect(errors(a)).toEqual([]);
+    expect(rows("fail_dup")).toEqual([{ category: "a" }]);
+  });
+
+  it("reads the JSON value null as no rows, in the body and from src", async () => {
+    (global as any).fetch = jest.fn(async () => ({ ok: true, json: async () => null }));
+
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource id="body" name="fail_null1">null</bn-datasource><bn-datasource id="src" name="fail_null2" src="/rows.json"></bn-datasource>`,
+    });
+    await page.waitForChanges();
+
+    expect(errors(page.body.querySelector("#body"))).toEqual([]);
+    expect(errors(page.body.querySelector("#src"))).toEqual([]);
+    expect(rows("fail_null1")).toEqual([]);
+    expect(rows("fail_null2")).toEqual([]);
   });
 });

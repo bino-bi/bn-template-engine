@@ -96,6 +96,7 @@ export class Dataset {
   private registered: unknown;
   /** Gives the name back that `claim` of the scoped db announced. */
   private releaseName: (() => void) | undefined;
+  private nameShared = false;
 
   /** The currently active URL (`null` when not in URL mode). */
   private currentUrl: string | null = null;
@@ -145,6 +146,8 @@ export class Dataset {
         body = decoded.json;
       } catch (e) {
         this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
+        // the body that was loaded before must be read again when it comes back
+        this.lastBodyHash = null;
         return;
       }
     } else {
@@ -163,7 +166,9 @@ export class Dataset {
   executeQuery() {
     if (!this.stores) this.stores = getStores(this.element);
     if (!this.query) this.errors.remove("ERR_sql");
-    if (!this.query || !this.name) return;
+    if (!this.name) return;
+    // nothing to run: a SQL dataset without a body, or a dataset that loads from src
+    if (!this.query && (!this.static || this.currentUrl !== null)) return;
 
     const db = this.stores.db.db;
     let result: unknown;
@@ -171,7 +176,8 @@ export class Dataset {
     if (this.static) {
       // Static JSON: parse and register as a table in the shared db.
       try {
-        result = JSON.parse(this.query);
+        // an empty body and the JSON value null are a dataset without rows
+        result = this.query.trim() === "" ? [] : (JSON.parse(this.query) ?? []);
         if (Array.isArray(result)) {
           this.errors.remove("ERR_body");
         } else {
@@ -337,7 +343,8 @@ export class Dataset {
     try {
       const response = await fetch(url, { signal: this.abortController.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = await response.json();
+      // the JSON value null is a response without rows
+      const json = (await response.json()) ?? [];
       if (!Array.isArray(json)) throw new Error("not a JSON array.");
       const db = this.stores.db.db;
       db.tables[this.name] = { data: json };
@@ -359,6 +366,8 @@ export class Dataset {
 
   /** Two producers of one name overwrite each other's data. Both report it. */
   private readonly onNameShared = (shared: boolean): void => {
+    const wasShared = this.nameShared;
+    this.nameShared = shared;
     if (shared) {
       this.errors.addOrReplace({
         id: "ERR_name",
@@ -367,8 +376,20 @@ export class Dataset {
       });
     } else {
       this.errors.remove("ERR_name");
+      // the other producer may have written the name last: load the own data again
+      if (wasShared) this.reload();
     }
   };
+
+  /** Forgets what was loaded and loads again from `src` or the body. */
+  private reload(): void {
+    if (this.lastViewQuery !== null) this.stores.db.db.resetSqlCache();
+    this.lastBodyHash = null;
+    this.lastViewQuery = null;
+    this.currentUrl = null;
+    this.latestResult = undefined;
+    this.sync(this.element.textContent ?? "");
+  }
 
   /** After a view was replaced by a plain table: statements alasql compiled for the view cannot read the table. */
   private dropViewStatements(): void {

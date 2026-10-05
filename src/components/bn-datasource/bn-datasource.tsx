@@ -61,6 +61,7 @@ export class Datasource {
   private registered: unknown;
   /** Gives the name back that `claim` of the scoped db announced. */
   private releaseName: (() => void) | undefined;
+  private nameShared = false;
 
   /** The currently active URL (`null` when in inline-JSON mode). */
   private currentUrl: string | null = null;
@@ -119,8 +120,8 @@ export class Datasource {
       if (contentHash === this.lastHash) return;
       this.lastHash = contentHash;
 
-      // an empty body is "no data given", not a failure
-      const json = jsonString.trim() === "" ? [] : JSON.parse(jsonString);
+      // an empty body is "no data given", not a failure. The JSON value null is a list without rows.
+      const json = jsonString.trim() === "" ? [] : (JSON.parse(jsonString) ?? []);
       if (Array.isArray(json)) {
         this.errors.remove("ERR_body");
       } else {
@@ -135,6 +136,8 @@ export class Datasource {
 
   /** Two producers of one name overwrite each other's data. Both report it. */
   private readonly onNameShared = (shared: boolean): void => {
+    const wasShared = this.nameShared;
+    this.nameShared = shared;
     if (shared) {
       this.errors.addOrReplace({
         id: "ERR_name",
@@ -143,8 +146,17 @@ export class Datasource {
       });
     } else {
       this.errors.remove("ERR_name");
+      // the other producer may have written the name last: load the own data again
+      if (wasShared) this.reload();
     }
   };
+
+  /** Forgets what was loaded and loads again from `src` or the body. */
+  private reload(): void {
+    this.lastHash = null;
+    this.currentUrl = null;
+    this.sync(this.element.textContent ?? "");
+  }
 
   /**
    * Writes the parsed data into the shared alasql database (as a table named
@@ -218,7 +230,8 @@ export class Datasource {
     try {
       const response = await fetch(url, { signal: this.abortController.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = await response.json();
+      // the JSON value null is a response without rows
+      const json = (await response.json()) ?? [];
       if (!Array.isArray(json)) throw new Error("not a JSON array.");
       this.errors.remove("ERR_src");
       this.publish(json);
