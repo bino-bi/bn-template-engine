@@ -1,10 +1,10 @@
 import { Container, G, Svg } from "@svgdotjs/svg.js";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
-import { Formatter } from "../../../utils/formatter";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { getContrastTextColor } from "../../../utils/stackColors";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
+import { formatXYValue } from "../../../utils/xy/formatXYValue";
 import { NumericScale } from "../../../utils/xy/NumericScale";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
 import { markTreatment, MarkTreatment, resolveSeriesColor, shade } from "../../../utils/xy/SeriesPalette";
@@ -332,7 +332,10 @@ export class BubbleChart {
       ticksY = yScale.ticks(targetY);
 
       const yDecimals = NumericScale.tickDecimals(ticksY);
-      const maxTickW = Math.max(...ticksY.map((tick) => this.textWidth(this.formatTick(tick, yDecimals))), em);
+      const maxTickW = Math.max(
+        ...ticksY.map((tick) => this.textWidth(formatXYValue(tick, yDecimals, this.styles.locale))),
+        em,
+      );
       axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em;
     }
 
@@ -628,7 +631,7 @@ export class BubbleChart {
 
   /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. */
   private drawValueLabel(group: G, cx: number, cy: number, r: number, value: number, fill: string): void {
-    const text = Formatter.number(value, "decimal", 1, 1, 1, this.styles.locale);
+    const text = formatXYValue(value, this.valueDecimals(), this.styles.locale);
     const width = this.textWidth(text);
     if (width + 0.4 * this.em > 2 * r) {
       return;
@@ -668,7 +671,17 @@ export class BubbleChart {
     }
   }
 
-  private formatTick(value: number, decimals: number): string {
-    return Formatter.number(value, "decimal", decimals, decimals, 1, this.styles.locale);
+  /** Decimals of the value labels: three significant digits of the largest value (32,0 and 0,0320). */
+  private valueDecimals(): number {
+    let largest = 0;
+    for (const facet of this.data.facets) {
+      for (const point of facet.points) {
+        largest = Math.max(largest, Math.abs(point.size ?? 0), Math.abs(point.compare?.size ?? 0));
+      }
+    }
+    if (!(largest > 0) || !Number.isFinite(largest)) {
+      return 1;
+    }
+    return NumericScale.stepDecimals(Math.pow(10, Math.floor(Math.log10(largest)) - 2));
   }
 }

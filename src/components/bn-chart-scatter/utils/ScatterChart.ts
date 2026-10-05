@@ -1,9 +1,9 @@
 import { G, Svg } from "@svgdotjs/svg.js";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
-import { Formatter } from "../../../utils/formatter";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
+import { formatXYValue } from "../../../utils/xy/formatXYValue";
 import { IsoCurves } from "../../../utils/xy/IsoCurves";
 import { NumericScale } from "../../../utils/xy/NumericScale";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
@@ -225,6 +225,7 @@ export class ScatterChart {
     const isoLabelReserve = isoActive
       ? Math.max(
           3 * em,
+          ...this.isoValueLabels().map((label) => this.textWidth(label) + em),
           this.textWidth(this.config.iso!.label ?? "", true) + em,
           this.textWidth(
             this.config.iso!.unit !== undefined && this.config.iso!.unit !== ""
@@ -279,7 +280,10 @@ export class ScatterChart {
       ticksY = yScale.ticks(targetY);
 
       const yDecimals = NumericScale.tickDecimals(ticksY);
-      const maxTickW = Math.max(...ticksY.map((tick) => this.textWidth(this.formatTick(tick, yDecimals))), em);
+      const maxTickW = Math.max(
+        ...ticksY.map((tick) => this.textWidth(formatXYValue(tick, yDecimals, this.styles.locale))),
+        em,
+      );
       axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em;
     }
 
@@ -521,8 +525,8 @@ export class ScatterChart {
     const curves = new IsoCurves(panel.xScale, panel.yScale);
     const inWord = this.i18nMap.get("axis.in") || "in";
 
-    const products = this.data.facets.flatMap((facet) => facet.points.map((p) => p.x * p.y));
-    const ks = iso.values === "auto" ? IsoCurves.autoK(products) : iso.values;
+    const ks = this.isoValues();
+    const labels = this.isoValueLabels();
 
     if (iso.highlight !== undefined) {
       const region = curves.regionPath(iso.highlight.from);
@@ -534,7 +538,7 @@ export class ScatterChart {
     const stroke = { color: this.styles.axisStyles.fc.stroke, width: this.styles.scaleFactors.gridLineWidth };
     let topExit: { x: number; y: number } | null = null;
 
-    for (const k of ks) {
+    for (const [index, k] of ks.entries()) {
       const path = curves.path(k);
       if (path === null) {
         continue;
@@ -546,10 +550,10 @@ export class ScatterChart {
         continue;
       }
       if (exit.edge === "right") {
-        this.drawText(group, this.formatTick(k, 0), exit.x + 0.4 * this.em, exit.y + 0.35 * this.em, {});
+        this.drawText(group, labels[index], exit.x + 0.4 * this.em, exit.y + 0.35 * this.em, {});
       } else {
         // Bottom exit: keep the label inside the frame, above-right of the curve end.
-        this.drawText(group, this.formatTick(k, 0), exit.x + 0.4 * this.em, exit.y - 0.5 * this.em, {});
+        this.drawText(group, labels[index], exit.x + 0.4 * this.em, exit.y - 0.5 * this.em, {});
       }
       if (topExit === null || exit.y < topExit.y) {
         topExit = exit;
@@ -566,7 +570,19 @@ export class ScatterChart {
     }
   }
 
-  private formatTick(value: number, decimals: number): string {
-    return Formatter.number(value, "decimal", decimals, decimals, 1, this.styles.locale);
+  /** The products x * y the iso lines are drawn for. */
+  private isoValues(): number[] {
+    const iso = this.config.iso!;
+    if (iso.values !== "auto") {
+      return iso.values;
+    }
+    return IsoCurves.autoK(this.data.facets.flatMap((facet) => facet.points.map((p) => p.x * p.y)));
+  }
+
+  /** Labels of the iso lines, all with the decimals the finest value needs (0,5 and 1,0, not 1 and 1). */
+  private isoValueLabels(): string[] {
+    const ks = this.isoValues();
+    const decimals = Math.max(0, ...ks.map((k) => NumericScale.stepDecimals(Math.abs(k))));
+    return ks.map((k) => formatXYValue(k, decimals, this.styles.locale));
   }
 }

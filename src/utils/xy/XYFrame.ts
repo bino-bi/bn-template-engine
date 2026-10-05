@@ -1,6 +1,6 @@
 import { G } from "@svgdotjs/svg.js";
-import { Formatter } from "../formatter";
 import { Rect } from "./FacetGrid";
+import { formatXYValue } from "./formatXYValue";
 import { NumericScale } from "./NumericScale";
 import { HighlightRange } from "./model/AxisConfig";
 import { XYChartStyle } from "./model/XYChartStyle";
@@ -115,7 +115,7 @@ export class XYFrame {
       for (const tick of config.ticksX) {
         const x = this.xScale.scale(tick);
         group
-          .text(Formatter.number(tick, "decimal", config.xDecimals, config.xDecimals, 1, this.styles.locale))
+          .text(formatXYValue(tick, config.xDecimals, this.styles.locale))
           .font({ ...font, anchor: "middle" })
           .fill(color)
           .attr({ x, y: this.rect.y + this.rect.height + gap + this.em * 0.8, "font-family": family });
@@ -126,7 +126,7 @@ export class XYFrame {
       for (const tick of config.ticksY) {
         const y = this.yScale.scale(tick);
         group
-          .text(Formatter.number(tick, "decimal", config.yDecimals, config.yDecimals, 1, this.styles.locale))
+          .text(formatXYValue(tick, config.yDecimals, this.styles.locale))
           .font({ ...font, anchor: "end" })
           .fill(color)
           .attr({ x: this.rect.x - gap, y: y + this.em * 0.35, "font-family": family });

@@ -169,6 +169,12 @@ describe("BubbleChart", () => {
   });
 
   describe("value labels", () => {
+    it("prints three significant digits of the largest value", () => {
+      // was 0,0
+      expect(makeChart([row({ ac3: 0.032 })]).toString()).toContain(">0,0320</tspan>");
+      expect(makeChart([row({ ac3: 1234567 })]).toString()).toContain(">1.234.567</tspan>");
+    });
+
     it("hides the value when the bubble is too small to contain it", () => {
       const chart = makeChart(
         [row(), row({ subCategory: "tiny", subCategoryIndex: 2, ac3: 0.0001 })],

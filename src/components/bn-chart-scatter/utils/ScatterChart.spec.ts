@@ -50,6 +50,39 @@ const makeChart = (rows: Record<string, unknown>[], config: ScatterChartConfig =
   return new ScatterChart(new IBCSRuleSet(), db, "`scatterData`", config, defaultStyles(), 1000);
 };
 
+describe("ScatterChart number labels", () => {
+  const point = (name: string, index: number, ac1: number, ac2: number): Record<string, unknown> =>
+    row({ subCategory: name, subCategoryIndex: index, ac1, ac2 });
+
+  it("prints iso values with the decimals they need", () => {
+    const chart = makeChart(
+      [point("a", 1, 0.5, 0.5), point("b", 2, 2, 2)],
+      baseConfig({ iso: { values: [0.6, 1.2] } }),
+    );
+    const svg = chart.toString();
+
+    // was 1 and 1; the axis ticks have two decimals here, so these texts are the iso labels
+    expect(svg).toContain(">0,6</tspan>");
+    expect(svg).toContain(">1,2</tspan>");
+  });
+
+  it("prints whole iso values without decimals", () => {
+    const chart = makeChart([point("a", 1, 10, 10), point("b", 2, 40, 40)], baseConfig({ iso: { values: [400] } }));
+
+    expect(chart.toString()).toContain(">400</tspan>");
+  });
+
+  it("prints every tick of a small domain differently", () => {
+    const chart = makeChart([point("a", 1, 0.021, 10), point("b", 2, 0.044, 20)]);
+    const svg = chart.toString();
+
+    // was 0,03 | 0,03 | 0,04 | 0,04
+    for (const tick of ["0,025", "0,030", "0,035", "0,040"]) {
+      expect(svg).toContain(`>${tick}</tspan>`);
+    }
+  });
+});
+
 describe("ScatterChart", () => {
   it("renders an SVG string with one circle per point and the annotation hook", () => {
     const chart = makeChart([

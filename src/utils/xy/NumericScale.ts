@@ -1,3 +1,6 @@
+/** Most decimals a label gets: a double has about 15 significant digits. */
+const MAX_DECIMALS = 15;
+
 /**
  * Linear numeric scale with nice-tick generation for the XY charts.
  *
@@ -86,27 +89,58 @@ export class NumericScale {
 
     const step = NumericScale.niceStep(span, targetCount);
     const first = Math.ceil(this.domainMin / step) * step;
-    const ticks: number[] = [];
+    // One tick when a second one cannot be told from the first: the span is below the float
+    // resolution of its values, or the step is finer than the decimals a label can show.
+    if (first + step === first || step < Math.pow(10, -MAX_DECIMALS)) {
+      return [this.domainMin];
+    }
+
+    const decimals = NumericScale.stepDecimals(step);
     // Guard against floating-point drift at the domain edge.
-    for (let tick = first; tick <= this.domainMax + step * 1e-9; tick += step) {
-      ticks.push(Math.abs(tick) < step * 1e-9 ? 0 : tick);
+    const count = Math.floor((this.domainMax + step * 1e-9 - first) / step) + 1;
+    const ticks: number[] = [];
+    for (let index = 0; index < count; index++) {
+      // rounded to the decimals of the step: 3 * 0.2 is 0.6000000000000001
+      const rounded = Number((first + index * step).toFixed(decimals));
+      const tick = rounded === 0 ? 0 : rounded;
+      // values that differ by float noise only can round two ticks to the same number
+      if (ticks.length === 0 || tick !== ticks[ticks.length - 1]) {
+        ticks.push(tick);
+      }
     }
     return ticks;
   }
 
   /**
-   * Decimal places (0-2) needed to render the given ticks without
-   * ambiguity between adjacent values.
+   * Decimal places needed to print multiples of `step` without rounding two of them
+   * to the same text: 0.025 needs 3, 2.5 needs 1, 10 needs 0.
    */
-  public static tickDecimals(ticks: number[]): number {
-    let decimals = 0;
-    for (const tick of ticks) {
-      const text = String(tick);
-      const dot = text.indexOf(".");
-      if (dot >= 0) {
-        decimals = Math.max(decimals, Math.min(2, text.length - dot - 1));
+  public static stepDecimals(step: number): number {
+    if (!Number.isFinite(step) || step <= 0) {
+      return 0;
+    }
+    for (let decimals = 0; decimals < MAX_DECIMALS; decimals++) {
+      const scaled = step * Math.pow(10, decimals);
+      const whole = Math.round(scaled);
+      // a whole number of at least 1, up to float noise
+      if (whole >= 1 && Math.abs(scaled - whole) < whole * 1e-9) {
+        return decimals;
       }
     }
-    return decimals;
+    return MAX_DECIMALS;
+  }
+
+  /**
+   * Decimal places needed to render the given ticks without ambiguity between
+   * adjacent values: the decimals of their distance, for one tick those of its value.
+   */
+  public static tickDecimals(ticks: number[]): number {
+    if (ticks.length === 0) {
+      return 0;
+    }
+    if (ticks.length === 1) {
+      return NumericScale.stepDecimals(Math.abs(ticks[0]));
+    }
+    return NumericScale.stepDecimals((ticks[ticks.length - 1] - ticks[0]) / (ticks.length - 1));
   }
 }
