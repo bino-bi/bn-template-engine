@@ -1,15 +1,11 @@
 // jest.mock must physically precede the imports (Stencil's transform does
 // not hoist it) - same pattern as ibcs-table.spec.tsx.
 
-// Mock MutationObserver for the withBodyObserver / withDatasource mixins
-(global as any).MutationObserver = class {
-  constructor() {}
-  observe() {}
-  disconnect() {}
-  takeRecords() {
-    return [];
-  }
-};
+// mock-doc has no MutationObserver. The fake stands in for the one of the withBodyObserver /
+// withDatasource mixins and lets a spec report a change of the body.
+import { installMutationObserverFake, notifyChildListChange } from "../../utils/testing/mutationObserver";
+
+installMutationObserverFake();
 
 // nanoid ships ESM-only, which Stencil's jest transform cannot parse.
 jest.mock("nanoid", () => ({ nanoid: () => "test-id" }));
@@ -724,6 +720,33 @@ describe("bn-dataset failures", () => {
     unsubscribe();
 
     expect(seen[seen.length - 1]).toEqual(A);
+  });
+
+  it("gives readers the rows of the remaining producer when the SQL of the leaving dataset was broken last", async () => {
+    const A = [{ category: "a", ac1: 1 }];
+    db().tables["fail_broken_src"] = { data: [{ category: "view", ac1: 9 }] };
+    const page = await newSpecPage({
+      components: [Dataset],
+      html:
+        `<bn-dataset id="a" name="fail_broken" static>${JSON.stringify(A)}</bn-dataset>` +
+        `<bn-dataset id="b" name="fail_broken" datasources="fail_broken_src">SELECT * FROM fail_broken_src</bn-dataset>`,
+    });
+    const read = () => db().exec("SELECT * FROM `fail_broken`");
+    // compiled for the view
+    expect(read()).toEqual([{ category: "view", ac1: 9 }]);
+
+    // the body stops being SQL: the view is dropped and cannot be created again
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const b = page.body.querySelector("#b");
+    b.textContent = "SELECT FROM WHERE";
+    notifyChildListChange(b);
+    consoleError.mockRestore();
+    expect(ids(b)).toEqual(["ERR_name", "ERR_sql"]);
+
+    b.remove();
+    await page.waitForChanges();
+
+    expect(read()).toEqual(A);
   });
 
   it("keeps a dataset on top of the name working when the name changes from a view to a table", async () => {

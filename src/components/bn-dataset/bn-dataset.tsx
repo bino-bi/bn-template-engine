@@ -231,6 +231,8 @@ export class Dataset {
             type: "error",
             message: `SQL: ${e instanceof Error ? e.message : e}`,
           });
+          // the view is gone: a statement that was compiled for it must not meet a plain table under this name later
+          db.resetSqlCache();
           this.lastViewQuery = null;
           result = [];
           this.publish(result);
