@@ -1420,6 +1420,11 @@ export class TimeChart {
       return false;
     }
 
+    // a week belongs to its ISO week year, which is also what its label shows
+    if (this.dateInterval === DateDistance.WEEK) {
+      return currentDate.weekYear !== previousDate.weekYear;
+    }
+
     return currentDate.year !== previousDate.year;
   }
 
