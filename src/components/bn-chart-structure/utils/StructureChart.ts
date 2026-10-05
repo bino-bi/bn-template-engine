@@ -499,7 +499,7 @@ export class StructureChart {
 
     this.detectNaNCells(selectedScenarios, result);
 
-    this.createDataRows(result, dataModel, selectedScenarios);
+    this.createDataRows(this.limit > 0 ? result.slice(0, this.limit) : result, dataModel, selectedScenarios);
     this.crateRESTRow(result, selectedScenarios, dataModel);
 
     return dataModel;
@@ -530,13 +530,16 @@ export class StructureChart {
     selectedScenarios: string[],
     dataModel: StructureChartDataModelEntry[],
   ) {
-    if (this.limit === 0 || this.limit > result.length) {
+    if (this.limit <= 0 || this.limit >= result.length) {
       return;
     }
 
     const restDataModel: StructureChartDataModelEntry[] = [];
-    const restResult = result.slice(this.limit, result.length);
-    this.createDataRows(restResult, restDataModel, selectedScenarios);
+    this.createDataRows(result.slice(this.limit), restDataModel, selectedScenarios);
+
+    // a cell without a value is NaN: it is left out, and a sum over no value stays NaN (no bar)
+    const add = (sum: number, value: number): number =>
+      Number.isFinite(value) ? (Number.isFinite(sum) ? sum : 0) + value : sum;
 
     const reducedRestRow = restDataModel.reduce(
       function (sum: StructureChartDataModelEntry, current: StructureChartDataModelEntry) {
@@ -545,25 +548,25 @@ export class StructureChart {
           category: sum.category,
           type: sum.type,
           scenario1: new DataPoint(
-            sum.scenario1.value + current.scenario1.value,
+            add(sum.scenario1.value, current.scenario1.value),
             selectedScenarios[0],
             sum.scenario1.pixelPerUnit,
             Scenario.NEU,
           ),
           scenario2: new DataPoint(
-            sum.scenario2.value + current.scenario2.value,
+            add(sum.scenario2.value, current.scenario2.value),
             selectedScenarios[1],
             sum.scenario2.pixelPerUnit,
             Scenario.NEU,
           ),
           scenario3: new DataPoint(
-            sum.scenario3.value + current.scenario3.value,
+            add(sum.scenario3.value, current.scenario3.value),
             selectedScenarios[2],
             sum.scenario3.pixelPerUnit,
             Scenario.NEU,
           ),
           scenario4: new DataPoint(
-            sum.scenario4.value + current.scenario4.value,
+            add(sum.scenario4.value, current.scenario4.value),
             selectedScenarios[3],
             sum.scenario4.pixelPerUnit,
             Scenario.NEU,
@@ -575,10 +578,10 @@ export class StructureChart {
         id: 9999,
         category: "REST",
         type: VarianceType.NONE,
-        scenario1: new DataPoint(0, selectedScenarios[0], this.pixelPerUnit, Scenario.NEU),
-        scenario2: new DataPoint(0, selectedScenarios[1], this.pixelPerUnit, Scenario.NEU),
-        scenario3: new DataPoint(0, selectedScenarios[2], this.pixelPerUnit, Scenario.NEU),
-        scenario4: new DataPoint(0, selectedScenarios[3], this.pixelPerUnit, Scenario.NEU),
+        scenario1: new DataPoint(NaN, selectedScenarios[0], this.pixelPerUnit, Scenario.NEU),
+        scenario2: new DataPoint(NaN, selectedScenarios[1], this.pixelPerUnit, Scenario.NEU),
+        scenario3: new DataPoint(NaN, selectedScenarios[2], this.pixelPerUnit, Scenario.NEU),
+        scenario4: new DataPoint(NaN, selectedScenarios[3], this.pixelPerUnit, Scenario.NEU),
       },
     );
 
@@ -590,13 +593,7 @@ export class StructureChart {
     dataModel: StructureChartDataModelEntry[],
     selectedScenarios: string[],
   ) {
-    let primaryResult = result;
-
-    if (this.limit > 0) {
-      primaryResult = result.slice(0, this.limit);
-    }
-
-    primaryResult.forEach((element: Record<string, unknown>, index: number) => {
+    result.forEach((element: Record<string, unknown>, index: number) => {
       dataModel.push({
         id: index,
         category: element.category as string,
