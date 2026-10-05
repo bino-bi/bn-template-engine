@@ -168,6 +168,26 @@ describe("BubbleChart", () => {
     });
   });
 
+  describe("legend swatches", () => {
+    const circleFills = (family: string): string[] => {
+      const chart = makeChart(
+        [row({ [`${family}1`]: 0.3, [`${family}2`]: 0.1, [`${family}3`]: 32 })],
+        baseConfig({ x: { measure: `${family}1` }, y: { measure: `${family}2` }, size: { measure: `${family}3` } }),
+      );
+      // the bubble and the legend swatch of its series
+      return [...chart.toString().matchAll(/<circle[^>]* fill="([^"]+)"/g)].map((match) => match[1]);
+    };
+
+    it("hatches the swatch of a forecast series like its bubbles", () => {
+      // the swatch was plain white, the same as for plan
+      expect(circleFills("fc")).toEqual(["url(#xy-fc-0)", "url(#xy-fc-0)"]);
+    });
+
+    it("keeps the swatch of a plan series white", () => {
+      expect(circleFills("pl")).toEqual(["#ffffff", "#ffffff"]);
+    });
+  });
+
   describe("relative variance measures", () => {
     // drac1_pp1: -20 %, 0 % and +20 %. drac3_pp3 of the first row: (32 - 29) / 29 = 10,3 %
     const rows = [

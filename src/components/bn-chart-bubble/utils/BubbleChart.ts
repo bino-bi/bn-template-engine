@@ -241,26 +241,24 @@ export class BubbleChart {
       }
     }
 
-    const firstHue = this.seriesHue(0);
     const compareEntries: LegendEntry[] = [];
     if (this.config.compareFamily !== null) {
       const primaryRef = resolveMeasure(this.config.size.measure);
       const primaryFamily =
         primaryRef !== null && primaryRef.kind === "scenario" ? primaryRef.slot.replace(/\d+$/, "") : "ac";
-      compareEntries.push({
-        label: this.familyDisplayName(this.config.compareFamily),
-        treatment: markTreatment(this.compareColorIndex(), firstHue, "bubble"),
-      });
-      compareEntries.push({
-        label: this.familyDisplayName(primaryFamily),
-        treatment: markTreatment(this.primaryColorIndex(), firstHue, "bubble"),
-      });
+      compareEntries.push(
+        this.legendEntry(this.familyDisplayName(this.config.compareFamily), this.compareColorIndex(), 0),
+      );
+      compareEntries.push(this.legendEntry(this.familyDisplayName(primaryFamily), this.primaryColorIndex(), 0));
     }
 
-    const entries: LegendEntry[] = this.data.series.map((series) => ({
-      label: series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
-      treatment: markTreatment(this.primaryColorIndex(), this.seriesHue(series.index), "bubble"),
-    }));
+    const entries: LegendEntry[] = this.data.series.map((series) =>
+      this.legendEntry(
+        series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
+        this.primaryColorIndex(),
+        series.index,
+      ),
+    );
 
     return {
       sizeCaption,
@@ -268,6 +266,14 @@ export class BubbleChart {
       compareEntries,
       entries,
     };
+  }
+
+  /** A legend row whose swatch has the fill of the bubbles it stands for: hatched for forecast. */
+  private legendEntry(label: string, colorIndex: number, seriesIndex: number): LegendEntry {
+    const hue = this.seriesHue(seriesIndex);
+    const treatment = markTreatment(colorIndex, hue, "bubble");
+
+    return { label, treatment, fill: this.treatmentFill(treatment, seriesIndex, hue) };
   }
 
   public toString(): string {

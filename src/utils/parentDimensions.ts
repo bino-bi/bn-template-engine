@@ -159,3 +159,39 @@ function findConstrainedHeight(element: HTMLElement, debug = false): number {
   // equal-share division a marked fit-content region demands
   return typeof window !== "undefined" ? window.innerHeight / rowShareDivisor : 0;
 }
+
+/**
+ * How many px of an element are cut off at the bottom, given the height of its content
+ * (both in layout px). Only an element that hides its overflow cuts something off: the
+ * element itself or one of its visual ancestors. 0 when there is none, the page then
+ * grows or scrolls and nothing is lost. Unlike the height of getParentDimensions this is
+ * no estimate, so it suits a warning for content that does not adapt its height to the
+ * space it has.
+ */
+export function getClippedHeight(element: HTMLElement, contentHeight: number): number {
+  const rect = element.getBoundingClientRect();
+
+  // Rects are in screen px, after transforms (a page that is scaled to fit its window).
+  // `scale` converts the content height to them. Without a box (display: none) or under a
+  // rotation, where width and height swap, there is nothing to compare: no cut is reported.
+  const scale = element.offsetHeight > 0 ? rect.height / element.offsetHeight : 0;
+  const scaleX = element.offsetWidth > 0 ? rect.width / element.offsetWidth : 0;
+  if (!(scale > 0) || Math.abs(scale - scaleX) > scale * 0.01) {
+    return 0;
+  }
+
+  const bottom = rect.top + contentHeight * scale;
+  let clipped = 0;
+
+  for (let current: HTMLElement | null = element; current; current = getVisualParent(current)) {
+    const overflow = getComputedStyle(current).overflowY;
+    if (overflow === "hidden" || overflow === "clip") {
+      clipped = Math.max(clipped, bottom - current.getBoundingClientRect().bottom);
+    } else if ((overflow === "auto" || overflow === "scroll") && current.scrollHeight > current.clientHeight + 1) {
+      // what lies below the fold of a container that scrolls can be scrolled into view
+      break;
+    }
+  }
+
+  return clipped / scale;
+}

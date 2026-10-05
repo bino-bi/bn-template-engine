@@ -317,7 +317,8 @@ export function resolveXYData(rows: XYChartDataRow[], opts: XYResolveOptions): R
     const facetKey = (opts.facetLevel !== null ? row[opts.facetLevel] : "") ?? "";
     const seriesKey = (opts.seriesLevel !== null ? row[opts.seriesLevel] : "") ?? "";
 
-    const identity = `${facetKey} ${name}`;
+    // NUL cannot occur in a name, so two keys never run into each other
+    const identity = `${facetKey} ${seriesKey} ${name}`;
     if (seenKeys.has(identity)) {
       duplicateCount++;
       if (duplicateNames.length < 5 && !duplicateNames.includes(name)) {
