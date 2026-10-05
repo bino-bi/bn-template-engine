@@ -129,8 +129,69 @@ The chart drew at most `interval-span-limit` (28) periods and dropped the rest, 
 
 A level value that holds `"+"` and `"-"` rows was summed as if every row were `"+"`: revenue 100 and cost 30 showed `130`. It now shows the net value `70`, for actual and target, and the rows are sorted and limited by this value. The text of `WARN_bullet-mixed-operation` says so. A level value with only `"-"` rows keeps its positive value.
 
+#### Readiness: a component that threw makes the page "not rendered"
+
+Stencil catches an exception of `render()` or of a lifecycle hook and goes on, so a component that threw counted as rendered and `window.componentRegisterIsRenderedResult` became `true` for a broken page. Now such a component has the status `ERROR`, and the flag is `false` as long as one is in the document.
+
+`window.componentRegisterFailures` lists the failed components as `{ tag, id, message }`. It is written together with the flag, and it is filled only when no component is running any more. A reader therefore sees one of three states:
+
+- the flag is `true`: every component rendered
+- the failures list is not empty: the page has settled, but a component failed
+- neither: still working
+
+The flag and the console line `componentRegisterIsRendered: <bool>` keep their name and format. **A reader that only waits for `true` never gets it for a page with a failed component. It must also check `window.componentRegisterFailures`.**
+
+Also new: `bn-layout-page`, `bn-layout-card` and the inner renderers are tracked, a component that leaves the document is removed from the register, and the result waits for web fonts that are still loading.
+
+A `has-error` item, also one of type `error`, is not a failed component. A page with an `ERR_sql` item still counts as rendered.
+
+#### `has-error`: failures that were only logged are items now
+
+- `bn-chart-time`, `bn-chart-structure`, `bn-chart-bullet`, `bn-chart-scatter`, `bn-chart-bubble`: a failing query on a registered dataset (for example a `filter` that AlaSQL cannot read) is an `ERR_sql` item of type `error`, and the chart renders nothing instead of "No Data". `bn-table` did this already, it now also covers a failing row count, measure-scale and interval query. A dataset that is not registered yet still means "no data".
+- `bn-dataset`, `bn-datasource`: `ERR_body` when the body cannot be decoded or parsed or is not a JSON array, `ERR_src` when the request fails, **when the server answers with an HTTP error status**, or when the response is not a JSON array, `ERR_name` on every element when two of them produce the same name (also a dataset with the name of its datasource).
+- `bn-internationalization`: `ERR_body` for a body that is not a JSON object.
+- `bn-component-style`: `ERR_keys` (type `error`) lists the keys that no component reads. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`.
+- `show-measure-scale`, `show-overlay-avg` and `show-overlay-median` shared the id `ERR_grouped`. A valid value of one removed the item of another. The ids are now `ERR_showMeasureScale`, `ERR_showOverlayAvg` and `ERR_showOverlayMedian`.
+
+#### `bn-page`: true page sizes, `full-hd` works, `@page` rule
+
+The page sizes come from one table now, which also feeds the validation of `format`.
+
+- `format="full-hd"` was drawn as XGA: the stylesheet only knew the spelling `full_hd`. `full-hd` is 1920 x 1080 now. **`full_hd` is no format any more.**
+- **Paper formats have their true size.** `a4` was 8.17 x 11.6 in and is 8.27 x 11.69 in, `a3` 11.69 x 16.54, `a2` 16.54 x 23.39, `a1` 23.39 x 33.11, `a0` 33.11 x 46.81. Reports in these formats reflow.
+- `a6`, `a5`, `tabloid` and `ledger`, which only the stylesheet knew, are valid formats.
+- An unknown `format` or `orientation` is also reported when it is there from the start, not only when it changes later.
+- The first `bn-context` of a document writes one `@page` rule with the size of the first page and no margin, in the orientation of `render-orientation` when that is set. A caller that passes a paper size to the browser must pass the size of the format and no margin, otherwise Chrome fits the page into the sheet.
+
+See [bn-page](src/components/bn-page/readme.md) for the sizes.
+
+#### Page numbers: a number of the author is kept
+
+`bn-context` overwrote the `page-number` of every page 250 ms after the load. It now numbers the pages right away, numbers pages that are added later, and leaves a `page-number` alone that it did not write itself. The pages still count by position: the page after `page-number="A-1"` on position 2 is page 3.
+
+`bn-footer.pageNumber` is a string. A text label such as `A-1` was parsed as a number and printed as `NaN`.
+
+#### `bn-layout-page`: a page is only turned when its orientation differs
+
+A page whose orientation differs from the `render-orientation` of `bn-context` is turned onto the sheet. This happened only by accident of the late page-number write, and a page without `page-orientation` was turned whenever `render-orientation` was set, also an XGA page in a landscape document. Now the page is turned on the first render, and only when its orientation (its own, or the native one of its format) differs.
+
+#### `bn-layout-page` / `bn-layout-card`: `1-over-3` uses the full width
+
+The layout `1-over-3` got four column tracks instead of three, so its content took three quarters of the width. It has three columns now.
+
+A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `ERR_pageCustomTemplate` or `ERR_cardCustomTemplate`. The same item reports rows of different length.
+
+#### `bn-layout-card`: an inherited keyword stays on the host
+
+A card with `title-scenarios="inherited-page"` (or another inherited title field, or `ruleset`) replaced the keyword in its own attribute with the value it had read at connect. It stopped following the page, and a component inside the card read the stale value. The card keeps the attribute as the author wrote it now.
+
 ### Fixed
 
+- `bn-chart-time`: a chart without rows threw in its auto-fit, because the average overlay (on by default) reads the first and the last period. The chart showed "No Data" anyway, the exception was only logged.
+- `bn-table`, `bn-title`: invalid JSON in `thereof`, `partof`, `columnthereof` or `measures` threw in `render()`. The validators report the value, and the component now renders without it.
+- `bn-text`: the auto-fit measured once, also when a web font was still loading. It measures again when fonts have loaded.
+- `bn-chart-time`: the distance between a label and its column was fixed to `0.3` in the component. It is read from `scaleFactors.labelToColumn` of the theme.
+- Spec runs: the 500 ms timer of the status register fired after a spec file had ended ("Cannot log after tests are done"), which made small runs exit with 1.
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.
 - Tables and charts with no rows printed the no-data label with literal `==` markers (`==No Data==` / `==Keine Daten==`). The built-in label is now `No Data` (en) / `Keine Daten` (de). A `*.no-data` key set to `""` now hides the label instead of bringing the placeholder back.
 - `bn-table`: a table that rendered taller than its layout cell was clipped without a trace - the bottom rows, grand total included, simply disappeared and no diagnostic mentioned it. The table now measures its rendered size against the constrained parent on every render and publishes a `WARN_overflow` item in `has-error` with the measured magnitude (an `error` when `scale` pins the size, a `warning` in auto mode). Scaling is unchanged: `scale` still fits the width only, so a height overflow is fixed by more space, fewer rows (`limit`) or a smaller `scale`.

@@ -950,11 +950,11 @@ export namespace Components {
     | "3-over-1"
     | "custom-template";
     /**
-      * Page number displayed in the footer. If empty, no page number is shown (unless `footerDisplayPageNumber` is also set).
+      * Page label displayed in the footer: a number or any text, e.g. `A-1`. Without it `bn-context` numbers the page by its position.
      */
     "pageNumber"?: string;
     /**
-      * Page orientation. Default depends on the chosen format. <br /><br /> values:<br /> ```landscape // portrait```
+      * Page orientation. Default depends on the chosen format. When it differs from the `render-orientation` of `bn-context`, the page is turned onto the sheet. <br /><br /> values:<br /> ```landscape // portrait```
      */
     "pageOrientation"?: string;
     /**
@@ -3250,11 +3250,11 @@ declare namespace LocalJSX {
     | "3-over-1"
     | "custom-template";
     /**
-      * Page number displayed in the footer. If empty, no page number is shown (unless `footerDisplayPageNumber` is also set).
+      * Page label displayed in the footer: a number or any text, e.g. `A-1`. Without it `bn-context` numbers the page by its position.
      */
     "pageNumber"?: string;
     /**
-      * Page orientation. Default depends on the chosen format. <br /><br /> values:<br /> ```landscape // portrait```
+      * Page orientation. Default depends on the chosen format. When it differs from the `render-orientation` of `bn-context`, the page is turned onto the sheet. <br /><br /> values:<br /> ```landscape // portrait```
      */
     "pageOrientation"?: string;
     /**

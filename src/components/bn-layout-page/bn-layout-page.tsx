@@ -202,6 +202,7 @@ export class LayoutPage {
 
   /**
    * Page orientation. Default depends on the chosen format.
+   * When it differs from the `render-orientation` of `bn-context`, the page is turned onto the sheet.
    * <br /><br />
    * values:<br />
    * ```landscape // portrait```
@@ -209,8 +210,8 @@ export class LayoutPage {
   @Prop() pageOrientation?: string;
 
   /**
-   * Page number displayed in the footer. If empty, no page number is shown
-   * (unless `footerDisplayPageNumber` is also set).
+   * Page label displayed in the footer: a number or any text, e.g. `A-1`.
+   * Without it `bn-context` numbers the page by its position.
    */
   @Prop() pageNumber?: string;
 

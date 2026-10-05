@@ -22,7 +22,7 @@ Display a QR code or other image in the footer using an asset reference:
 
 ### Page Numbers
 
-Page numbers are automatically assigned by `<bn-context>`. Toggle visibility:
+Page numbers are assigned by `<bn-context>`, by position. A `page-number` you set yourself is kept, and it can be any text, for example `page-number="A-1"`. Toggle visibility:
 
 ```html
 <!-- Show page number (default) -->
