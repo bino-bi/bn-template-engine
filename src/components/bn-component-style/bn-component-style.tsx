@@ -1,6 +1,6 @@
 import { Component, Element, h, Prop, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
-import { Style } from "../../stores/componentStyles";
+import { Style, unknownStyleKeys } from "../../stores/componentStyles";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -29,6 +29,16 @@ export class ComponentStyle {
         // @ts-ignore
         this.stores.componentStyles.set(this.name, parsedData as Style);
         this.errors.remove("JSON_PARSE");
+        const unknown = unknownStyleKeys(parsedData);
+        if (unknown.length > 0) {
+          this.errors.addOrReplace({
+            id: "ERR_keys",
+            type: "error",
+            message: `Unknown style keys, they are ignored: ${unknown.join(", ")}`,
+          });
+        } else {
+          this.errors.remove("ERR_keys");
+        }
       } catch (e) {
         this.errors.addOrReplace({
           id: "JSON_PARSE",

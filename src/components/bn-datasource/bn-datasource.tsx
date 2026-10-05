@@ -4,6 +4,7 @@ import { getStores, clearStoresCache, ScopedStores } from "../../context/context
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { computeContentHash, decodeCompressedContent } from "../../utils/contentDecoder";
+import { errorText } from "../../utils/queryError";
 /**
  * Ingests data and writes it to the scoped `datasources` store.
  *
@@ -58,6 +59,8 @@ export class Datasource {
   private lastHash: string | null = null;
   /** The table object this element put into the db, to tell it from one another element registered under the same name. */
   private registered: unknown;
+  /** Gives the name back that `claim` of the scoped db announced. */
+  private releaseName: (() => void) | undefined;
 
   /** The currently active URL (`null` when in inline-JSON mode). */
   private currentUrl: string | null = null;
@@ -78,12 +81,14 @@ export class Datasource {
   private sync(data: string): void {
     // a re-attached element may sit in another bn-context
     this.stores = getStores(this.element);
+    if (!this.releaseName && this.name) this.releaseName = this.stores.db.claim(this.name, this.onNameShared);
 
     // --- URL mode ---
     if (this.src) {
       if (this.src === this.currentUrl) return;
       this.currentUrl = this.src;
       this.lastHash = null;
+      this.errors.remove("ERR_body");
       this.firstLoadPending = true;
       this.holdStatus(this.fetchAndStore(this.src));
       this.startPolling();
@@ -97,11 +102,12 @@ export class Datasource {
     }
 
     // --- Inline JSON / compressed mode ---
+    this.errors.remove("ERR_src");
     try {
       let contentHash: string;
       let jsonString: string;
 
-      if (this.raw) {
+      if (this.raw || data.trim() === "") {
         contentHash = computeContentHash(data);
         jsonString = data;
       } else {
@@ -113,13 +119,32 @@ export class Datasource {
       if (contentHash === this.lastHash) return;
       this.lastHash = contentHash;
 
-      const json = JSON.parse(jsonString);
+      // an empty body is "no data given", not a failure
+      const json = jsonString.trim() === "" ? [] : JSON.parse(jsonString);
+      if (Array.isArray(json)) {
+        this.errors.remove("ERR_body");
+      } else {
+        this.errors.addOrReplace({ id: "ERR_body", type: "error", message: "Body: not a JSON array." });
+      }
       this.publish(json);
     } catch (e) {
-      console.error("Error parsing datasource", e, String(data).slice(0, 200));
+      this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
       this.publish([]);
     }
   }
+
+  /** Two producers of one name overwrite each other's data. Both report it. */
+  private readonly onNameShared = (shared: boolean): void => {
+    if (shared) {
+      this.errors.addOrReplace({
+        id: "ERR_name",
+        type: "error",
+        message: `name: "${this.name}" is used by more than one dataset or datasource.`,
+      });
+    } else {
+      this.errors.remove("ERR_name");
+    }
+  };
 
   /**
    * Writes the parsed data into the shared alasql database (as a table named
@@ -159,6 +184,8 @@ export class Datasource {
 
   /** Drops the table registered under `name` and forgets the loaded state, so the next sync loads again. */
   private unregister(name: string): void {
+    this.releaseName?.();
+    this.releaseName = undefined;
     this.lastHash = null;
     this.currentUrl = null;
     const db = this.stores?.db?.db;
@@ -190,11 +217,14 @@ export class Datasource {
 
     try {
       const response = await fetch(url, { signal: this.abortController.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = await response.json();
+      if (!Array.isArray(json)) throw new Error("not a JSON array.");
+      this.errors.remove("ERR_src");
       this.publish(json);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
-      console.error("bn-datasource: error fetching URL", e, url);
+      this.errors.addOrReplace({ id: "ERR_src", type: "error", message: `src: ${errorText(e)}` });
       this.publish([]);
     }
     this.firstLoadPending = false;

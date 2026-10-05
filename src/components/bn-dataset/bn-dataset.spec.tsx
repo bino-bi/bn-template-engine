@@ -86,7 +86,7 @@ describe("bn-dataset SQL body", () => {
 describe("bn-dataset body and src", () => {
   const REMOTE = [{ category: "remote", ac1: 2 }];
   const realFetch = global.fetch;
-  const fetchMock = jest.fn(async () => ({ json: async () => REMOTE }));
+  const fetchMock = jest.fn(async () => ({ ok: true, json: async () => REMOTE }));
 
   beforeEach(() => {
     fetchMock.mockClear();
@@ -165,7 +165,7 @@ describe("bn-dataset rename and re-attach", () => {
   const STATIC = [{ category: "a", ac1: 1 }];
   const REMOTE = [{ category: "remote", ac1: 2 }];
   const realFetch = global.fetch;
-  const fetchMock = jest.fn(async () => ({ json: async () => REMOTE }));
+  const fetchMock = jest.fn(async () => ({ ok: true, json: async () => REMOTE }));
 
   /** Rows of a table or view, `undefined` when the name is not registered. */
   const read = (name: string, database = db()): unknown => {
@@ -522,7 +522,7 @@ describe("bn-dataset readiness", () => {
     await page.waitForChanges();
     expect(running()).toBe(before + 1);
 
-    respond({ json: async () => REMOTE });
+    respond({ ok: true, json: async () => REMOTE });
     await page.waitForChanges();
     expect(running()).toBe(before);
     expect(db().exec("SELECT * FROM `rd_first`")).toEqual(REMOTE);
@@ -548,7 +548,7 @@ describe("bn-dataset readiness", () => {
     await new Promise((resolve) => setTimeout(resolve, 130));
     const pending = { requests: fetchMock.mock.calls.length, running: running() };
 
-    respond[0]({ json: async () => REMOTE });
+    respond[0]({ ok: true, json: async () => REMOTE });
     await page.waitForChanges();
     const loaded = { running: running(), table: db().tables["rd_slow"] };
 
@@ -560,5 +560,108 @@ describe("bn-dataset readiness", () => {
     expect(pending).toEqual({ requests: 1, running: before + 1 });
     expect(loaded).toEqual({ running: before, table: { data: REMOTE } });
     expect(polled).toBeGreaterThan(1);
+  });
+});
+
+describe("bn-dataset failures", () => {
+  const realFetch = global.fetch;
+  const ids = (host: Element): string[] => errors(host).map((e) => e.id);
+
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  // one name per case: mock-doc never disconnects an element with a body, so it keeps its name
+  it.each([
+    ["JSON that cannot be parsed", "fail_parse", `[{"category":`],
+    ["JSON that is not an array", "fail_shape", `{"category":"local"}`],
+  ])("reports ERR_body for a static body with %s", async (_name, name, body) => {
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="${name}" static>${body}</bn-dataset>`,
+    });
+
+    expect(errors(page.root).map((e) => [e.id, e.type])).toEqual([["ERR_body", "error"]]);
+    expect(db().exec(`SELECT * FROM ${name}`)).toEqual([]);
+  });
+
+  it("reports ERR_body for a compressed body that cannot be decoded", async () => {
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="fail_gzip" static raw="false">abc:not-gzip</bn-dataset>`,
+    });
+
+    expect(ids(page.root)).toEqual(["ERR_body"]);
+  });
+
+  it("reports nothing for an empty static body", async () => {
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="fail_empty" static raw="false"></bn-dataset>`,
+    });
+
+    expect(errors(page.root)).toEqual([]);
+  });
+
+  it.each<[string, () => Promise<unknown>, string]>([
+    [
+      "a request that fails",
+      async () => {
+        throw new Error("offline");
+      },
+      "offline",
+    ],
+    ["an HTTP error", async () => ({ ok: false, status: 500, json: async () => ({}) }), "HTTP 500"],
+    [
+      "a response that is not an array",
+      async () => ({ ok: true, json: async () => ({ rows: [] }) }),
+      "not a JSON array",
+    ],
+  ])("reports ERR_src for %s and registers no rows", async (_name, fetchImpl, message) => {
+    (global as any).fetch = jest.fn(fetchImpl);
+
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset name="fail_src" src="/rows.json"></bn-dataset>`,
+    });
+    await page.waitForChanges();
+
+    const error = errors(page.root).find((e) => e.id === "ERR_src");
+    expect(error?.type).toBe("error");
+    expect(error?.message).toContain(message);
+    expect(db().exec("SELECT * FROM fail_src")).toEqual([]);
+  });
+
+  it("reports a dataset that has the name of its datasource, on both", async () => {
+    const page = await newSpecPage({
+      components: [Datasource, Dataset],
+      html:
+        `<bn-datasource name="fail_same">${JSON.stringify(LOCAL)}</bn-datasource>` +
+        `<bn-dataset name="fail_same" datasources="fail_same">SELECT * FROM fail_same</bn-dataset>`,
+    });
+
+    const source = page.body.querySelector("bn-datasource");
+    const dataset = page.body.querySelector("bn-dataset");
+    expect(ids(source)).toContain("ERR_name");
+    expect(errors(dataset).find((e) => e.id === "ERR_name")?.type).toBe("error");
+  });
+
+  it("clears ERR_name when two datasets that swap names are done", async () => {
+    const page = await newSpecPage({
+      components: [Dataset],
+      html: `<bn-dataset id="a" name="fail_x" static>[]</bn-dataset><bn-dataset id="b" name="fail_y" static>[]</bn-dataset>`,
+    });
+    const a = page.body.querySelector("#a");
+    const b = page.body.querySelector("#b");
+
+    a.setAttribute("name", "fail_y");
+    await page.waitForChanges();
+    expect(ids(a)).toEqual(["ERR_name"]);
+    expect(ids(b)).toEqual(["ERR_name"]);
+
+    b.setAttribute("name", "fail_x");
+    await page.waitForChanges();
+    expect(ids(a)).toEqual([]);
+    expect(ids(b)).toEqual([]);
   });
 });

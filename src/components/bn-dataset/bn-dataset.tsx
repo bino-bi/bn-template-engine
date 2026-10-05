@@ -7,6 +7,7 @@ import { calculateDatasetMeta } from "../../utils/datasetMetaCalculator";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { computeContentHash, decodeCompressedContent } from "../../utils/contentDecoder";
+import { errorText } from "../../utils/queryError";
 
 /**
  * Queries data from one or more `bn-datasource` entries via AlaSQL and
@@ -93,6 +94,8 @@ export class Dataset {
   private latestResult: unknown;
   /** The table or view object this element put into the db, to tell it from one another element registered under the same name. */
   private registered: unknown;
+  /** Gives the name back that `claim` of the scoped db announced. */
+  private releaseName: (() => void) | undefined;
 
   /** The currently active URL (`null` when not in URL mode). */
   private currentUrl: string | null = null;
@@ -107,6 +110,7 @@ export class Dataset {
   private sync(data: string): void {
     // a re-attached element may sit in another bn-context
     this.stores = getStores(this.element);
+    if (!this.releaseName && this.name) this.releaseName = this.stores.db.claim(this.name, this.onNameShared);
 
     // --- URL mode ---
     if (this.src) {
@@ -116,6 +120,7 @@ export class Dataset {
       // an upstream notify must not rebuild the view from the body while src is set
       this.query = "";
       this.errors.remove("ERR_sql");
+      this.errors.remove("ERR_body");
       this.firstLoadPending = true;
       this.holdStatus(this.fetchAndStore(this.src));
       this.startPolling();
@@ -127,17 +132,19 @@ export class Dataset {
       this.cancelInFlight();
       this.currentUrl = null;
     }
+    this.errors.remove("ERR_src");
 
     let contentHash: string;
     let body: string;
 
-    if (!this.raw && this.static) {
+    // an empty body is "no data given": nothing to decode
+    if (!this.raw && this.static && data.trim() !== "") {
       try {
         const decoded = decodeCompressedContent(data);
         contentHash = decoded.hash;
         body = decoded.json;
       } catch (e) {
-        console.error("Error decoding compressed dataset", e, String(data).slice(0, 200));
+        this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
         return;
       }
     } else {
@@ -147,6 +154,7 @@ export class Dataset {
 
     if (contentHash === this.lastBodyHash) return;
     this.lastBodyHash = contentHash;
+    this.errors.remove("ERR_body");
 
     this.query = body;
     this.executeQuery();
@@ -164,8 +172,13 @@ export class Dataset {
       // Static JSON: parse and register as a table in the shared db.
       try {
         result = JSON.parse(this.query);
+        if (Array.isArray(result)) {
+          this.errors.remove("ERR_body");
+        } else {
+          this.errors.addOrReplace({ id: "ERR_body", type: "error", message: "Body: not a JSON array." });
+        }
       } catch (e) {
-        console.error("Failed to parse static dataset", e);
+        this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
         result = [];
       }
       db.tables[this.name] = { data: Array.isArray(result) ? result : [] };
@@ -279,6 +292,8 @@ export class Dataset {
 
   /** Drops what is registered under `name` and forgets the loaded state, so the next sync loads again. */
   private unregister(name: string): void {
+    this.releaseName?.();
+    this.releaseName = undefined;
     const db = this.stores?.db?.db;
     // the name may come back as a plain table, which statements compiled for the view cannot read
     if (db && this.lastViewQuery !== null) db.resetSqlCache();
@@ -321,15 +336,18 @@ export class Dataset {
 
     try {
       const response = await fetch(url, { signal: this.abortController.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = await response.json();
+      if (!Array.isArray(json)) throw new Error("not a JSON array.");
       const db = this.stores.db.db;
-      db.tables[this.name] = { data: Array.isArray(json) ? json : [] };
+      db.tables[this.name] = { data: json };
       this.registered = db.tables[this.name];
       this.dropViewStatements();
+      this.errors.remove("ERR_src");
       this.publish(json);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
-      console.error("bn-dataset: error fetching URL", e, url);
+      this.errors.addOrReplace({ id: "ERR_src", type: "error", message: `src: ${errorText(e)}` });
       const db = this.stores.db.db;
       db.tables[this.name] = { data: [] };
       this.registered = db.tables[this.name];
@@ -338,6 +356,19 @@ export class Dataset {
     }
     this.firstLoadPending = false;
   }
+
+  /** Two producers of one name overwrite each other's data. Both report it. */
+  private readonly onNameShared = (shared: boolean): void => {
+    if (shared) {
+      this.errors.addOrReplace({
+        id: "ERR_name",
+        type: "error",
+        message: `name: "${this.name}" is used by more than one dataset or datasource.`,
+      });
+    } else {
+      this.errors.remove("ERR_name");
+    }
+  };
 
   /** After a view was replaced by a plain table: statements alasql compiled for the view cannot read the table. */
   private dropViewStatements(): void {

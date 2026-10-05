@@ -1,6 +1,7 @@
 import { G, Svg } from "@svgdotjs/svg.js";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
+import { errorText } from "../../../utils/queryError";
 import { AggregationLevel } from "../../../utils/constants";
 import { Formatter } from "../../../utils/formatter";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
@@ -55,6 +56,8 @@ interface BulletRowModel {
 export class BulletChart {
   private rows: BulletRowModel[] = [];
   private warnings: XYWarningRecord[] = [];
+  /** Text of the query that failed. The component reports it as ERR_sql. */
+  private queryError: string | undefined;
   /** True when the default normalized mode is drawable (some row has a usable target). */
   private normalized: boolean;
 
@@ -107,7 +110,7 @@ export class BulletChart {
          ORDER BY ${this.createOrderStr(level, order)}`,
       );
     } catch (e) {
-      console.error("BulletChart: populateModel query failed", e);
+      this.queryError = errorText(e);
       return;
     }
 
@@ -282,6 +285,10 @@ export class BulletChart {
   /** Warnings collected during data resolution (bullet-* codes). */
   public getWarnings(): XYWarningRecord[] {
     return this.warnings;
+  }
+
+  public getQueryError(): string | undefined {
+    return this.queryError;
   }
 
   public getAllocatedCanvasWidth(): number {

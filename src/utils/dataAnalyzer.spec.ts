@@ -278,3 +278,45 @@ describe("Data Analyzer Test", () => {
     });
   });
 });
+
+describe("Data Analyzer query failures", () => {
+  const db = () => {
+    const sdb = createScopedDb();
+    sdb.db.tables["__test"] = { data: [{ category: "a", ac1: 5000 }] };
+    return sdb.db;
+  };
+
+  it("hands a failed query to onError and keeps the identity prefix", () => {
+    const onError = jest.fn();
+
+    const prefix = DataAnalyzer.calculateMeasureScale(
+      db(),
+      "(SELECT * FROM `__test` WHERE category =) AS __src",
+      ["ac1"],
+      "GREATEST",
+      onError,
+    );
+
+    expect(prefix).toEqual({ prefix: "", value: 1 });
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(String(onError.mock.calls[0][0].message)).toContain("Parse error");
+  });
+
+  it("runs no query when only variances are selected", () => {
+    const onError = jest.fn();
+
+    const prefix = DataAnalyzer.calculateMeasureScale(db(), "`__test`", ["dac1_pp1"], "GREATEST", onError);
+
+    expect(prefix).toEqual({ prefix: "", value: 1 });
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("does not report a working query", () => {
+    const onError = jest.fn();
+
+    const prefix = DataAnalyzer.calculateMeasureScale(db(), "`__test`", ["ac1"], "GREATEST", onError);
+
+    expect(prefix.prefix).toBe("k");
+    expect(onError).not.toHaveBeenCalled();
+  });
+});

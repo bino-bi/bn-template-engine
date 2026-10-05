@@ -1,10 +1,11 @@
 import { Component, Element, h, Host, Prop } from "@stencil/core";
 import { getStores, ScopedStores } from "../../context/context-protocol";
-import { buildFromExpr } from "../../context/scopedDb";
+import { sourceExpr } from "../../context/scopedDb";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
 import withComponentStatus from "../../utils/withComponentStatus";
 import { ErrorDispatcher } from "../../utils/withHasError";
+import { reportQueryError } from "../../utils/queryError";
 import { FontStyleAdapter } from "../../utils/model/styles/FontStyle";
 import { PaddingAdapter } from "../../utils/model/styles/Padding";
 import { SVGStyleAdapter } from "../../utils/model/styles/SVGStyle";
@@ -112,7 +113,7 @@ export class IbcsChartBubble {
 
   private rebuild(): void {
     const styles = this.prepareStyle();
-    const fromExpr = this.tableName ? buildFromExpr(this.tableName, this.filter) : "";
+    const fromExpr = sourceExpr(this.getDb(), this.tableName, this.filter);
 
     this.chart = new BubbleChart(
       new IBCSRuleSet(this.ruleSetConfig),
@@ -140,6 +141,7 @@ export class IbcsChartBubble {
     this.chart.setI18n(this.i18n);
     this.svgMarkup = this.chart.hasNoData() ? "" : this.chart.toString();
     this.syncWarnings(this.chart.getWarnings());
+    reportQueryError(this.errors, this.chart.getQueryError());
   }
 
   /**
@@ -177,7 +179,8 @@ export class IbcsChartBubble {
   }
 
   render() {
-    if (this.chart === undefined) {
+    // a failed query is the facade's ERR_sql item, not "No Data"
+    if (this.chart === undefined || this.chart.getQueryError() !== undefined) {
       return <Host />;
     }
 

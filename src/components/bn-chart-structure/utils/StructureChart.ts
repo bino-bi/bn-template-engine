@@ -28,7 +28,8 @@ import { Order, OrderColumn } from "../../../utils/model/Order";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
-import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
+import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
+import { errorText } from "../../../utils/queryError";
 
 /** Internal data model entry: one category with up to 4 scenario DataPoints and optional stack segments. */
 type StructureChartDataModelEntry = {
@@ -114,6 +115,8 @@ export class StructureChart {
   private tableName: string;
   private fromExpr: string = "";
   private rowCount: number = 0;
+  /** Text of the first query that failed since the source was set. The component reports it as ERR_sql. */
+  private queryError: string | undefined;
 
   constructor(
     ruleSet: VisualisationRuleSet,
@@ -284,18 +287,28 @@ export class StructureChart {
    */
   public setSource(filter: string) {
     this.state = FactoryState.DIRTY;
-    if (!this.tableName) {
-      this.fromExpr = "";
+    this.queryError = undefined;
+    // "" while the source is not registered yet: no data, and no error
+    this.fromExpr = sourceExpr(this.db, this.tableName, filter);
+    if (!this.fromExpr) {
       this.rowCount = 0;
       return;
     }
-    this.fromExpr = buildFromExpr(this.tableName, filter);
     try {
       const r = this.db.exec<{ cnt: number }[]>(`SELECT COUNT(*) AS cnt FROM ${this.fromExpr}`);
       this.rowCount = (r[0]?.cnt ?? 0) as number;
-    } catch (_e) {
+    } catch (e) {
       this.rowCount = 0;
+      this.failQuery(e);
     }
+  }
+
+  public getQueryError(): string | undefined {
+    return this.queryError;
+  }
+
+  private failQuery(e: unknown): void {
+    this.queryError ??= errorText(e);
   }
 
   /**
@@ -506,7 +519,7 @@ export class StructureChart {
                          ORDER BY ${orderStr}`,
       );
     } catch (e) {
-      console.error("StructureChart: populateModel query failed", e);
+      this.failQuery(e);
       return [];
     }
 
@@ -1311,7 +1324,7 @@ export class StructureChart {
           `FROM ${this.fromExpr} GROUP BY [${displayColumn}], [${stackColumn}]`,
       );
     } catch (e) {
-      console.error("StructureChart: dimension-stack query failed", e);
+      this.failQuery(e);
       return;
     }
 

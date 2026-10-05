@@ -375,7 +375,12 @@ export class Title {
     if (isBlankInput(this.measures)) {
       return [];
     }
-    return JSON.parse(this.measures) as MeasureEntry[];
+    try {
+      return JSON.parse(this.measures) as MeasureEntry[];
+    } catch (_e) {
+      // invalid JSON already reported by validateMeasures
+      return [];
+    }
   }
 
   private prepareScenarios(): string[] {

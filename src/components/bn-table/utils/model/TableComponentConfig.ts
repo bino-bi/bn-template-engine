@@ -81,6 +81,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
     private orderAdapter: OrderAdapter,
     private db: AlaSQLDatabase,
     private fromExpr: string,
+    private onQueryError?: (e: unknown) => void,
   ) {}
   adapt(data: Record<string, unknown>): TableComponentConfig {
     const config = new TableComponentConfig();
@@ -151,6 +152,7 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
         this.fromExpr,
         config.scenarios,
         data.measureScale as string,
+        this.onQueryError,
       );
     }
 

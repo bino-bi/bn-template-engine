@@ -529,7 +529,7 @@ export class Table {
 
   @Watch("showMeasureScale")
   validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_grouped";
+    const errId: string = "ERR_showMeasureScale";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
@@ -1162,14 +1162,24 @@ export class Table {
       return [];
     }
 
-    return JSON.parse(this.thereof!) as TableDrillGroup[];
+    try {
+      return JSON.parse(this.thereof!) as TableDrillGroup[];
+    } catch (_e) {
+      // invalid JSON already reported by validateThereOf
+      return [];
+    }
   }
 
   private preparePartOf(): TableDrillGroup[] {
     if (this.partof == null || this.partof.trim() === "") {
       return [];
     }
-    return JSON.parse(this.partof!) as TableDrillGroup[];
+    try {
+      return JSON.parse(this.partof!) as TableDrillGroup[];
+    } catch (_e) {
+      // invalid JSON already reported by validatePartOf
+      return [];
+    }
   }
 
   private prepareOrder(): Order {
@@ -1317,14 +1327,19 @@ export class Table {
     if (this.columnthereof == null || this.columnthereof.trim() === "") {
       return new Map();
     }
-    const parsedString = JSON.parse(this.columnthereof);
     const map = new Map();
+    try {
+      const parsedString = JSON.parse(this.columnthereof);
 
-    for (const [_key, value] of Object.entries(parsedString)) {
-      if (map.has(value["scenario"]) === false) {
-        map.set(value["scenario"], []);
+      for (const [_key, value] of Object.entries(parsedString)) {
+        if (map.has(value["scenario"]) === false) {
+          map.set(value["scenario"], []);
+        }
+        map.get(value["scenario"]).push(value);
       }
-      map.get(value["scenario"]).push(value);
+    } catch (_e) {
+      // invalid JSON already reported by validateColumnThereOf
+      return new Map();
     }
 
     return map;

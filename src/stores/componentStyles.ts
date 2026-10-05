@@ -308,3 +308,48 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
     cellPadding: 4,
   },
 };
+
+/** `bn-text` keys. All are optional, so the defaults do not list them. */
+const TEXT_STYLE_KEYS = ["fontFamily", "fontSizePx", "fontColor", "fontBackgroundColor", "leading"];
+// The keys of these groups are checked too. The style groups (`axisStyles.ac`, ...) are not: their keys differ per scenario.
+const CHECKED_GROUPS = ["scaleFactors", "padding"];
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * The keys of a style body that no component reads, as paths
+ * (e.g. `bn-chart-time.scaleFactors.labelToColum`). Such a key is ignored
+ * when the style is applied, so a typo would otherwise go unnoticed.
+ */
+export function unknownStyleKeys(style: unknown): string[] {
+  const unknown: string[] = [];
+  if (!isPlainObject(style)) {
+    return unknown;
+  }
+
+  const defaults = SYSTEM_STYLE_DEFAULTS as unknown as Record<string, Record<string, unknown>>;
+  for (const [section, value] of Object.entries(style)) {
+    if (!(section in defaults)) {
+      unknown.push(section);
+      continue;
+    }
+    if (!isPlainObject(value)) {
+      continue;
+    }
+    const sectionKeys = section === "bn-text" ? TEXT_STYLE_KEYS : Object.keys(defaults[section]);
+    for (const [key, group] of Object.entries(value)) {
+      if (!sectionKeys.includes(key)) {
+        unknown.push(`${section}.${key}`);
+      } else if (CHECKED_GROUPS.includes(key) && isPlainObject(group)) {
+        const groupKeys = Object.keys(defaults[section][key] as object);
+        unknown.push(
+          ...Object.keys(group)
+            .filter((name) => !groupKeys.includes(name))
+            .map((name) => `${section}.${key}.${name}`),
+        );
+      }
+    }
+  }
+  return unknown;
+}

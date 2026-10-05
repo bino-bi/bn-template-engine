@@ -719,7 +719,7 @@ export class Chart {
 
   @Watch("showMeasureScale")
   validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_grouped";
+    const errId: string = "ERR_showMeasureScale";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
@@ -735,7 +735,7 @@ export class Chart {
   @Prop() showOverlayAvg: string = "true";
   @Watch("showOverlayAvg")
   validateShowOverlayAvg(newValue: string) {
-    const errId: string = "ERR_grouped";
+    const errId: string = "ERR_showOverlayAvg";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
@@ -751,7 +751,7 @@ export class Chart {
   @Prop() showOverlayMedian: string = "false";
   @Watch("showOverlayMedian")
   validateShowOverlayMedian(newValue: string) {
-    const errId: string = "ERR_grouped";
+    const errId: string = "ERR_showOverlayMedian";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
@@ -1593,6 +1593,7 @@ export class Chart {
         pixelPerUnit={ppu}
         pixelPerPercentage={ppp}
         reportAutoScaling={this.handleAutoScalingReport}
+        errors={this.errors}
         limit={this.prepareLimit()}
         leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
         styles={preparedStyle}
