@@ -28,8 +28,8 @@ const describeFailure = (element: HTMLElement | undefined, message: string): Com
  * Assigns a stable UUID to the component instance and reports status transitions:
  * - `RUNNING` from `connectedCallback` (only before the first render: a re-attach does not render again)
  *   or from the first hook of a render cycle, until `componentDidRender`
- * - `ERROR` when `render` or a lifecycle hook threw. Stencil catches such an exception and
- *   goes on, so without this the component would count as rendered.
+ * - `ERROR` when `render`, a lifecycle hook or `connectedCallback` threw. Stencil catches such
+ *   an exception and goes on, so without this the component would count as rendered.
  * - `SUCCESSFUL` otherwise
  *
  * A component that leaves the document is removed from the register.
@@ -51,13 +51,14 @@ const withComponentStatus = (component: any) => {
   let rendering = false;
   let loadFailure: string | undefined;
   let cycleFailure: string | undefined;
+  let connectFailure: string | undefined;
 
   const publish = () => {
     // read here, not tracked in connectedCallback: not every build calls that wrapper
     const element: HTMLElement | undefined = getElement(component);
     if (element && !element.isConnected) return;
 
-    const message = loadFailure ?? cycleFailure;
+    const message = connectFailure ?? loadFailure ?? cycleFailure;
     if (rendering || pending > 0) {
       ComponentRegister.updateStatus(uuid, ComponentStatus.RUNNING);
     } else if (message !== undefined) {
@@ -78,11 +79,32 @@ const withComponentStatus = (component: any) => {
   };
 
   const connectedCallback = component["connectedCallback"];
-  component["connectedCallback"] = () => {
+  let connect = () => {
     if (!rendered) rendering = true;
     publish();
     runIfExisits(connectedCallback, component);
   };
+  // The mixins that are applied after this one wrap connectedCallback again, outside of the wrapper above.
+  // The accessor keeps a guard around whatever they assign, so a throw in any of them is seen here too.
+  const guarded = (fn: () => void) => () => {
+    connectFailure = undefined;
+    try {
+      fn();
+    } catch (e) {
+      connectFailure = e instanceof Error ? e.message : String(e);
+      publish();
+      // Stencil logs it and goes on with the first render
+      throw e;
+    }
+  };
+  Object.defineProperty(component, "connectedCallback", {
+    configurable: true,
+    enumerable: true,
+    get: () => guarded(connect),
+    set: (fn: () => void) => {
+      connect = fn;
+    },
+  });
 
   const disconnectedCallback = component["disconnectedCallback"];
   component["disconnectedCallback"] = () => {

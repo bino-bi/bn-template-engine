@@ -363,6 +363,27 @@ test("readiness: a page that rendered has the flag true and no failures", async 
   );
 });
 
+test("readiness: an element outside of bn-context is a failure", async () => {
+  // The script runs while the document is parsed: the datasource sits next to the context, not in it.
+  const { page } = await load(
+    `<bn-text value="fine"></bn-text>` +
+      `<script>document.body.append(Object.assign(document.createElement("bn-datasource"), { id: "stray", textContent: "[]" }));</script>`,
+  );
+
+  await until(page, () => window.componentRegisterIsRenderedResult !== undefined);
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
+  const result = await page.evaluate(() => ({
+    rendered: window.componentRegisterIsRenderedResult,
+    failures: window.componentRegisterFailures,
+  }));
+  assert.equal(result.rendered, false);
+  assert.equal(result.failures.length, 1, JSON.stringify(result.failures));
+  assert.equal(result.failures[0].tag, "bn-datasource");
+  assert.equal(result.failures[0].id, "stray");
+  assert.match(result.failures[0].message, /bn-context/);
+});
+
 test("readiness: a component that throws in render is a failure, and the flag is false", async () => {
   const lines = [];
   // The script runs while the document is parsed, before the engine module: the first render of the page throws.

@@ -166,6 +166,30 @@ describe("withComponentStatus failures", () => {
     expect(ComponentRegister.componentRegisterFailures()[0].message).toBe("late");
   });
 
+  it("reports a throw in the connectedCallback of a mixin that was applied later", () => {
+    const before = status();
+    const component = track();
+    // a later mixin wraps what it finds, the way withDataset or withBodyObserver do
+    const inner = component.connectedCallback;
+    let outside = true;
+    component.connectedCallback = () => {
+      if (outside) throw new Error("must be inside a bn-context");
+      inner();
+    };
+
+    expect(() => component.connectedCallback()).toThrow("must be inside a bn-context");
+    cycle(component, true);
+    expect(status().error).toBe(before.error + 1);
+    expect(ComponentRegister.componentRegisterFailures()[0].message).toBe("must be inside a bn-context");
+
+    // attached again in a place where it works
+    outside = false;
+    component.disconnectedCallback();
+    component.connectedCallback();
+    expect(status().error).toBe(before.error);
+    expect(status().successful).toBe(before.successful + 1);
+  });
+
   it("is still failed after a re-attach", () => {
     const before = status();
     const component = track({ render: boom });
