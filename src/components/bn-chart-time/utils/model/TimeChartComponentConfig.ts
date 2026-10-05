@@ -92,6 +92,7 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
     private db: AlaSQLDatabase,
     private fromExpr: string,
+    private onQueryError?: (e: unknown) => void,
   ) {}
 
   adapt(data: Record<string, unknown>): TimeChartComponentConfig {
@@ -158,6 +159,7 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
         this.fromExpr,
         config.scenarios,
         data.measureScale as string,
+        this.onQueryError,
       );
     }
 

@@ -8,15 +8,9 @@
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
-import { after, before, test } from "node:test";
-import { fileURLToPath } from "node:url";
-import puppeteer from "puppeteer";
-
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const DIST_ROOT = path.join(REPO_ROOT, "dist");
-const ENTRY = "/bn-template-engine/bn-template-engine.esm.js";
+import { test } from "node:test";
+import { esc, open, REPO_ROOT, requested, settle, until } from "./harness.mjs";
 
 const SET_GLOBAL = "window.__pwned=1";
 const GROUPS = ["Men's Wear", "Côte d'Ivoire", `x' OR \`\`${SET_GLOBAL}\`\` OR 'x`];
@@ -34,110 +28,11 @@ const SALES = GROUPS.flatMap((rowGroup, group) =>
     ac1: 10 * (group + 1) + index,
   })),
 );
-const REMOTE = [{ category: "remote" }];
 
-const esc = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const source = (name, rows) => `<bn-datasource name="${name}">${esc(JSON.stringify(rows))}</bn-datasource>`;
 const sales = (sql = "SELECT * FROM sales_src") =>
   source("sales_src", SALES) + `<bn-dataset name="sales" datasources="sales_src">${esc(sql)}</bn-dataset>`;
 const pwned = (page) => page.evaluate(() => window.__pwned);
-
-/** Test pages by URL path. */
-const pages = new Map();
-/** Every path the server was asked for. */
-const requested = [];
-let server;
-let browser;
-let origin;
-
-before(async () => {
-  assert.ok(fs.existsSync(path.join(DIST_ROOT, ENTRY)), "No build found. Run: npm run build");
-
-  server = http.createServer((req, res) => {
-    const urlPath = decodeURIComponent(req.url.split("?")[0]);
-    requested.push(urlPath);
-    const page = pages.get(urlPath);
-    if (page) {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", ...page.headers });
-      res.end(
-        `<!DOCTYPE html><html><head><meta charset="utf-8"><script type="module" src="${ENTRY}"></script></head>` +
-          `<body><bn-context locale="en">${page.body}</bn-context></body></html>`,
-      );
-      return;
-    }
-    if (urlPath === "/rows.json") {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(REMOTE));
-      return;
-    }
-    const filePath = path.join(DIST_ROOT, urlPath);
-    // Refuse to serve outside the root.
-    if (!filePath.startsWith(DIST_ROOT)) {
-      res.writeHead(403).end();
-      return;
-    }
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404).end();
-        return;
-      }
-      res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8" });
-      res.end(data);
-    });
-  });
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  origin = `http://127.0.0.1:${server.address().port}`;
-
-  // Where Chrome's sandbox is not available, set PUPPETEER_DANGEROUS_NO_SANDBOX=true.
-  browser = await puppeteer.launch();
-});
-
-after(async () => {
-  await browser?.close();
-  server?.close();
-});
-
-/** Polls with page.evaluate, which needs no eval inside the page and so also works under the CSP. */
-async function until(page, predicate) {
-  const deadline = Date.now() + 30000;
-  while (!(await page.evaluate(predicate))) {
-    assert.ok(Date.now() < deadline, `timed out waiting for ${predicate}`);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-}
-
-/** Resolves after one more failed image load, so error events of injected elements had time to fire. */
-const settle = (page) =>
-  page.evaluate(
-    () =>
-      new Promise((resolve) => {
-        const img = new Image();
-        img.onerror = () => resolve();
-        img.src = "/missing";
-      }),
-  );
-
-async function open(body, headers = {}) {
-  const url = `/page-${pages.size}`;
-  pages.set(url, { body, headers });
-  const page = await browser.newPage();
-  await page.evaluateOnNewDocument(() => {
-    window.__csp = [];
-    document.addEventListener("securitypolicyviolation", (e) =>
-      window.__csp.push(`${e.violatedDirective} ${e.blockedURI}`),
-    );
-  });
-  const response = await page.goto(origin + url, { waitUntil: "load" });
-  // componentRegisterIsRenderedResult is never reset, so also require every component to have rendered once.
-  await until(
-    page,
-    () =>
-      window.componentRegisterIsRenderedResult === true &&
-      [...document.querySelectorAll("bn-context > *")].every((el) => el.classList.contains("hydrated")),
-  );
-  await settle(page);
-  return { page, response };
-}
 
 const containerText = (page) =>
   page.evaluate(() =>

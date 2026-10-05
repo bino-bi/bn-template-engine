@@ -2,6 +2,7 @@ import { Component, Prop, h, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import flattenObject from "../../utils/flattenObject";
+import { errorText } from "../../utils/queryError";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
@@ -23,8 +24,17 @@ export class Internationalization {
     this.errors = withHasError(this);
     withBodyObserver(this, (data) => {
       if (!this.stores) this.stores = getStores(this.element);
+      // an empty body is "nothing to add", not a failure
+      if (data.trim() === "") {
+        this.errors.remove("ERR_body");
+        return;
+      }
       try {
-        const i18n = flattenObject(JSON.parse(data));
+        const parsed = JSON.parse(data);
+        if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("not a JSON object.");
+        }
+        const i18n = flattenObject(parsed);
         const ns = this.namespace || "_system";
 
         const namespace = { ...(this.stores.internationalization.get(ns) as Record<string, unknown>) };
@@ -33,8 +43,9 @@ export class Internationalization {
         namespace[this.code] = { ...(namespace[this.code] as Record<string, string>), ...i18n };
 
         this.stores.internationalization.set(ns, namespace);
+        this.errors.remove("ERR_body");
       } catch (e) {
-        console.error(e);
+        this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
       }
     });
   }

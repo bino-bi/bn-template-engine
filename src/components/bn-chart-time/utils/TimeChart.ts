@@ -23,7 +23,8 @@ import { StackConfigParsed, TimeChartComponentConfig } from "./model/TimeChartCo
 import { TimeChartStyle } from "./model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChart } from "./model/styles/ScaleFactorsTimeChart";
 import { DateTime } from "luxon";
-import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
+import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
+import { errorText } from "../../../utils/queryError";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
 import {
   AggregationLevel,
@@ -149,6 +150,8 @@ export class TimeChart {
   private tableName: string;
   private fromExpr: string = "";
   private rowCount: number = 0;
+  /** Text of the first query that failed since the source was set. The component reports it as ERR_sql. */
+  private queryError: string | undefined;
 
   private axisCategoryArea: { width: number; height: number } = { width: 0, height: 0 };
   private scenariosArea: { width: number; height: number } = { width: 0, height: 0 };
@@ -390,18 +393,28 @@ export class TimeChart {
    */
   public setSource(filter: string): void {
     this.state = FactoryState.DIRTY;
-    if (!this.tableName) {
-      this.fromExpr = "";
+    this.queryError = undefined;
+    // "" while the source is not registered yet: no data, and no error
+    this.fromExpr = sourceExpr(this.db, this.tableName, filter);
+    if (!this.fromExpr) {
       this.rowCount = 0;
       return;
     }
-    this.fromExpr = buildFromExpr(this.tableName, filter);
     try {
       const r = this.db.exec<{ cnt: number }[]>(`SELECT COUNT(*) AS cnt FROM ${this.fromExpr}`);
       this.rowCount = (r[0]?.cnt ?? 0) as number;
-    } catch (_e) {
+    } catch (e) {
       this.rowCount = 0;
+      this.failQuery(e);
     }
+  }
+
+  public getQueryError(): string | undefined {
+    return this.queryError;
+  }
+
+  private failQuery(e: unknown): void {
+    this.queryError ??= errorText(e);
   }
 
   public getAllocatedCanvasWidth(): number {
@@ -862,11 +875,16 @@ export class TimeChart {
 
   /** Distinct dates of the filtered rows. Min and max are taken in JS: alasql MIN/MAX skip ISO strings. */
   private queryDates(): DateTime[] {
+    // no source, no rows, or the count query has failed already
+    if (this.rowCount === 0) {
+      return [];
+    }
+
     let result: { date?: unknown }[];
     try {
       result = this.db.exec<{ date?: unknown }[]>(`SELECT DISTINCT [date] FROM ${this.fromExpr}`);
     } catch (e) {
-      console.error("TimeChart: date range query failed", e);
+      this.failQuery(e);
       return [];
     }
 
@@ -943,7 +961,7 @@ export class TimeChart {
                            ORDER BY ${"calcdate asc"}`,
       );
     } catch (e) {
-      console.error("TimeChart: queryDataSet failed", e);
+      this.failQuery(e);
       return [];
     }
 
@@ -1769,6 +1787,11 @@ export class TimeChart {
   }
 
   private drawOverlayLayer(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
+    // no period, no average: the overlays read the first and the last period
+    if (dataModel.length === 0) {
+      return;
+    }
+
     const overlayGroup: G = svgContainer.group().id("Overlay");
 
     const scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);

@@ -65,6 +65,7 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
     private db: AlaSQLDatabase,
     private fromExpr: string,
+    private onQueryError?: (e: unknown) => void,
   ) {}
 
   adapt(data: Record<string, unknown>): StructureChartComponentConfig {
@@ -116,6 +117,7 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
         this.fromExpr,
         config.scenarios,
         data.measureScale as string,
+        this.onQueryError,
       );
     }
 

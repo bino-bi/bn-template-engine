@@ -1,6 +1,11 @@
 // nanoid ships ESM-only, which Stencil's jest transform cannot parse.
 jest.mock("nanoid", () => ({ nanoid: () => "mock-id" }));
 
+// mock-doc has no MutationObserver, and bn-context watches its pages with one
+import { installMutationObserverFake } from "../../utils/testing/mutationObserver";
+
+installMutationObserverFake();
+
 import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
 import { Context } from "./bn-context";

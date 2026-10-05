@@ -468,7 +468,7 @@ export class Chart {
 
   @Watch("showMeasureScale")
   validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_grouped";
+    const errId: string = "ERR_showMeasureScale";
 
     if (!isValidBoolean(newValue)) {
       this.errors.addOrReplace({
@@ -1208,6 +1208,7 @@ export class Chart {
         pixelPerUnit={ppu}
         pixelPerPercentage={ppp}
         reportAutoScaling={this.handleAutoScalingReport}
+        errors={this.errors}
         limit={this.prepareLimit()}
         styles={this.prepareStyle()}
         i18n={this.prepareI18n()}

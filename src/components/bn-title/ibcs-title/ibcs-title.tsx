@@ -10,6 +10,7 @@ import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { RuleSetConfig } from "../../../stores/ruleSets";
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
 import { sanitizeHtml } from "../../../utils/sanitizeHtml";
+import withComponentStatus from "../../../utils/withComponentStatus";
 
 @Component({
   tag: "ibcs-title",
@@ -17,6 +18,10 @@ import { sanitizeHtml } from "../../../utils/sanitizeHtml";
   shadow: true,
 })
 export class IbcsTitle {
+  constructor() {
+    withComponentStatus(this);
+  }
+
   @Prop({ mutable: true, reflect: true }) // Wichtig mutable muss true sein, reflect passt den dom an und updatet die poprs im html
   businessUnit: string = "";
 

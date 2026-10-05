@@ -59,13 +59,7 @@ export function resolveIntervalGranularity(db: AlaSQLDatabase, fromExpr: string,
     return interval;
   }
 
-  let rows: { d?: unknown }[];
-  try {
-    rows = db.exec<{ d?: unknown }[]>(`SELECT [date] as d FROM ${fromExpr}`);
-  } catch (e) {
-    console.error("IntervalColumns: date query failed", e);
-    return DateDistance.DAY;
-  }
+  const rows = db.exec<{ d?: unknown }[]>(`SELECT [date] as d FROM ${fromExpr}`);
 
   let min: number | undefined;
   let max: number | undefined;
@@ -97,13 +91,9 @@ export function queryIntervalBuckets(
   interval: string,
   locale: string,
 ): IntervalBucket[] {
-  let rows: { __interval?: unknown }[];
-  try {
-    rows = db.exec<{ __interval?: unknown }[]>(`SELECT ${intervalBucketSQL(interval)} as __interval FROM ${fromExpr}`);
-  } catch (e) {
-    console.error("IntervalColumns: bucket query failed", e);
-    return [];
-  }
+  const rows = db.exec<{ __interval?: unknown }[]>(
+    `SELECT ${intervalBucketSQL(interval)} as __interval FROM ${fromExpr}`,
+  );
 
   if (interval === INTERVAL_SETNAME) {
     const seen = new Set<string>();

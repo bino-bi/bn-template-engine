@@ -1,4 +1,4 @@
-import { Component, h, Host, Element, Method, Prop, Watch } from "@stencil/core";
+import { Component, h, Host, Element, Method, Prop, Watch, forceUpdate } from "@stencil/core";
 import { ScopedStores, getOrCreateStores } from "../../context/context-protocol";
 import {
   ComponentLayoutState,
@@ -13,12 +13,36 @@ import {
 } from "../../utils/layoutState";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { pageRule } from "../bn-page/pageFormats";
 
 /** Host element of a visual descendant, possibly exposing its own layout-state method. */
 interface LayoutHostElement extends HTMLElement {
   componentOnReady?: () => Promise<unknown>;
   getLayoutState?: (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
 }
+
+/** Attributes that change the paper size, the orientation or the number of a page. */
+const PAGE_ATTRIBUTES = [
+  "format",
+  "orientation",
+  "page-format",
+  "page-orientation",
+  "render-orientation",
+  // also watched: a tool that updates the DOM in place may remove the number this context wrote
+  "page-number",
+];
+
+/**
+ * A value of a page. An upgraded element mirrors its attributes in its
+ * properties, and a page can be configured through properties alone, so the
+ * property is what counts there: a cleared property is no value, whatever
+ * the attribute still says. An element without the property has the attribute.
+ */
+const read = (element: Element, property: string, attribute: string): string | null => {
+  const value = (element as unknown as Record<string, unknown>)[property];
+  if (typeof value === "string") return value;
+  return property in element ? null : element.getAttribute(attribute);
+};
 
 /** Every visual bn-* component; non-visual producers (bn-dataset, ...) are excluded. */
 const VISUAL_SELECTOR =
@@ -61,7 +85,11 @@ export class Context {
     this.stores.context.state.locale = newValue;
   }
 
-  currentPageUpdate = undefined;
+  /** The page numbers this context wrote. A number that is not in here was set by the author and is left alone. */
+  private readonly assignedPageNumbers = new WeakMap<Element, string>();
+  private pageObserver: MutationObserver | undefined;
+  private pageSizeStyle: HTMLStyleElement | undefined;
+  private renderOrientation: string | null | undefined;
 
   connectedCallback() {
     // Retrieve (or create) the stores for this context element.
@@ -73,25 +101,76 @@ export class Context {
       this.stores.context.state.locale = this.locale;
     }
 
-    this.currentPageUpdate = setTimeout(() => {
-      this.element.querySelectorAll("bn-page, bn-layout-page").forEach((page, index) => {
-        if (page.localName === "bn-layout-page") {
-          page.setAttribute("page-number", (index + 1).toString());
-        } else {
-          const footer = page.querySelector("bn-footer");
-          if (footer) {
-            // @ts-ignore
-            footer.setAttribute("page-number", (index + 1).toString());
-          }
-        }
-      });
-    }, 250);
+    this.syncPages();
+    // pages that come, go or change their format later
+    this.pageObserver = new MutationObserver(() => this.syncPages());
+    this.pageObserver.observe(this.element, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: PAGE_ATTRIBUTES,
+    });
   }
 
   disconnectedCallback() {
-    if (this.currentPageUpdate) {
-      clearTimeout(this.currentPageUpdate);
+    this.pageObserver?.disconnect();
+    this.pageSizeStyle?.remove();
+    this.pageSizeStyle = undefined;
+  }
+
+  /** Numbers the pages and writes the paper size of the document. */
+  private syncPages(): void {
+    const pages = Array.from(this.element.querySelectorAll("bn-page, bn-layout-page"));
+
+    pages.forEach((page, index) => {
+      // a layout page shows the number itself, a plain page in its footer
+      const target = page.localName === "bn-layout-page" ? page : page.querySelector("bn-footer");
+      if (!target) return;
+      const current = read(target, "pageNumber", "page-number");
+      if (current !== null && current !== this.assignedPageNumbers.get(target)) return;
+      const number = (index + 1).toString();
+      this.assignedPageNumbers.set(target, number);
+      if (current !== number) target.setAttribute("page-number", number);
+    });
+
+    const renderOrientation = this.element.getAttribute("render-orientation");
+    if (this.renderOrientation !== undefined && this.renderOrientation !== renderOrientation) {
+      // a layout page reads the attribute while it renders
+      pages.filter((page) => page.localName === "bn-layout-page").forEach((page) => forceUpdate(page));
     }
+    this.renderOrientation = renderOrientation;
+
+    this.writePageSize(pages[0], renderOrientation);
+  }
+
+  /**
+   * Writes the `@page` rule: the size the first page is drawn in, turned or
+   * not. It has to be a rule of the document, a stylesheet in a shadow root
+   * cannot set it.
+   */
+  private writePageSize(firstPage: Element | undefined, renderOrientation: string | null): void {
+    // a document has one paper size: the first context sets it
+    if (!firstPage || document.querySelector("bn-context") !== this.element) {
+      this.pageSizeStyle?.remove();
+      this.pageSizeStyle = undefined;
+      return;
+    }
+
+    const layoutPage = firstPage.localName === "bn-layout-page";
+    const rule = layoutPage
+      ? pageRule(
+          read(firstPage, "pageFormat", "page-format"),
+          read(firstPage, "pageOrientation", "page-orientation"),
+          renderOrientation,
+        )
+      : // a plain bn-page is never turned
+        pageRule(read(firstPage, "format", "format"), read(firstPage, "orientation", "orientation"));
+    if (!this.pageSizeStyle) {
+      this.pageSizeStyle = document.createElement("style");
+      this.pageSizeStyle.setAttribute("data-bn-page-size", "");
+      document.head.append(this.pageSizeStyle);
+    }
+    if (this.pageSizeStyle.textContent !== rule) this.pageSizeStyle.textContent = rule;
   }
 
   /**

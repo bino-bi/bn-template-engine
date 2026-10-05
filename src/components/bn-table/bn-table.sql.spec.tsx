@@ -55,6 +55,8 @@ import { h } from "@stencil/core";
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { getStores } from "../../context/context-protocol";
 import { ErrorItem } from "../../utils/withHasError";
+import { DataAnalyzer } from "../../utils/dataAnalyzer";
+import { SiPrefix } from "../../utils/model/SiPrefix";
 import { Table } from "./bn-table";
 import { IbcsTable } from "./ibcs-table";
 
@@ -208,5 +210,73 @@ describe("bn-table: data values in queries", () => {
 
     expect(bodyRows(page).filter((r) => hasClass(r, "groupheader"))).toHaveLength(1);
     expect(errors(page).some((e) => e.id === "ERR_filter")).toBe(false);
+  });
+
+  it.each([
+    ["a filter that AlaSQL cannot read", "category =", "Parse error"],
+    ["a filter with an unknown function", "nofn(category) = 1", "nofn"],
+  ])("reports ERR_sql and renders no table for %s", async (_name, filter, message) => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const page = await renderTable({ filter });
+    consoleError.mockRestore();
+
+    const error = errors(page).find((e) => e.id === "ERR_sql");
+    expect(error?.type).toBe("error");
+    expect(error?.message).toContain(message);
+    // not "No Data": the data is there, the query is wrong
+    expect(inner(page).shadowRoot.querySelector(".empty-state")).toBeNull();
+    expect(inner(page).shadowRoot.querySelector("table")).toBeNull();
+  });
+
+  it("reports ERR_sql when only the measure-scale query fails", async () => {
+    // every other query of this table works: the item can only come from the measure scale
+    const measureScale = jest
+      .spyOn(DataAnalyzer, "calculateMeasureScale")
+      .mockImplementation((_db, _fromExpr, _scenarios, _mode, onError) => {
+        onError?.(new Error("measure scale query failed"));
+        return new SiPrefix();
+      });
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const page = await renderTable({ "measure-scale": "GREATEST" });
+    consoleError.mockRestore();
+    measureScale.mockRestore();
+
+    const error = errors(page).find((e) => e.id === "ERR_sql");
+    expect(error?.type).toBe("error");
+    expect(error?.message).toContain("measure scale query failed");
+    expect(inner(page).shadowRoot.querySelector("table")).toBeNull();
+  });
+
+  it.each([
+    ["thereof", "ERR_thereof"],
+    ["partof", "ERR_partof"],
+    ["columnthereof", "ERR_categorythereof"],
+  ])("renders with %s that is no JSON, and keeps the warning of the validator", async (prop, id) => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    // a throw in render() would reject here
+    const page = await renderTable({ [prop]: '[{"name": ' });
+    consoleError.mockRestore();
+
+    expect(errors(page).find((e) => e.id === id)?.type).toBe("warning");
+    expect(inner(page).shadowRoot.querySelector("table")).not.toBeNull();
+  });
+
+  it("reports grouped and show-measure-scale under their own ids", async () => {
+    const page = await renderTable({ grouped: "maybe", "show-measure-scale": "perhaps" });
+
+    expect(errors(page).map((e) => e.id)).toEqual(expect.arrayContaining(["ERR_grouped", "ERR_showMeasureScale"]));
+  });
+
+  it("keeps the grouped item when show-measure-scale is valid", async () => {
+    const page = await renderTable({ grouped: "maybe", "show-measure-scale": "true" });
+
+    expect(errors(page).map((e) => e.id)).toContain("ERR_grouped");
+  });
+
+  it("shows no data and no error for a dataset that is not registered", async () => {
+    const page = await renderTable({ datasets: "notLoadedYet", filter: "category = 'Abidjan'" });
+
+    expect(errors(page).some((e) => e.id === "ERR_sql")).toBe(false);
+    expect(inner(page).shadowRoot.querySelector(".empty-state")).not.toBeNull();
   });
 });

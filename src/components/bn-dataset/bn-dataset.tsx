@@ -7,6 +7,7 @@ import { calculateDatasetMeta } from "../../utils/datasetMetaCalculator";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { computeContentHash, decodeCompressedContent } from "../../utils/contentDecoder";
+import { errorText } from "../../utils/queryError";
 
 /**
  * Queries data from one or more `bn-datasource` entries via AlaSQL and
@@ -93,6 +94,11 @@ export class Dataset {
   private latestResult: unknown;
   /** The table or view object this element put into the db, to tell it from one another element registered under the same name. */
   private registered: unknown;
+  /** Gives the name back that `claim` of the scoped db announced. */
+  private releaseName: (() => void) | undefined;
+  private nameShared = false;
+  /** The meta this dataset wrote last, to tell it from the meta of another producer of the name. */
+  private publishedMeta: unknown;
 
   /** The currently active URL (`null` when not in URL mode). */
   private currentUrl: string | null = null;
@@ -107,6 +113,7 @@ export class Dataset {
   private sync(data: string): void {
     // a re-attached element may sit in another bn-context
     this.stores = getStores(this.element);
+    if (!this.releaseName && this.name) this.releaseName = this.stores.db.claim(this.name, this.onNameShared);
 
     // --- URL mode ---
     if (this.src) {
@@ -116,6 +123,7 @@ export class Dataset {
       // an upstream notify must not rebuild the view from the body while src is set
       this.query = "";
       this.errors.remove("ERR_sql");
+      this.errors.remove("ERR_body");
       this.firstLoadPending = true;
       this.holdStatus(this.fetchAndStore(this.src));
       this.startPolling();
@@ -127,17 +135,21 @@ export class Dataset {
       this.cancelInFlight();
       this.currentUrl = null;
     }
+    this.errors.remove("ERR_src");
 
     let contentHash: string;
     let body: string;
 
-    if (!this.raw && this.static) {
+    // an empty body is "no data given": nothing to decode
+    if (!this.raw && this.static && data.trim() !== "") {
       try {
         const decoded = decodeCompressedContent(data);
         contentHash = decoded.hash;
         body = decoded.json;
       } catch (e) {
-        console.error("Error decoding compressed dataset", e, String(data).slice(0, 200));
+        this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
+        // the body that was loaded before must be read again when it comes back
+        this.lastBodyHash = null;
         return;
       }
     } else {
@@ -147,6 +159,7 @@ export class Dataset {
 
     if (contentHash === this.lastBodyHash) return;
     this.lastBodyHash = contentHash;
+    this.errors.remove("ERR_body");
 
     this.query = body;
     this.executeQuery();
@@ -155,7 +168,9 @@ export class Dataset {
   executeQuery() {
     if (!this.stores) this.stores = getStores(this.element);
     if (!this.query) this.errors.remove("ERR_sql");
-    if (!this.query || !this.name) return;
+    if (!this.name) return;
+    // nothing to run: a SQL dataset without a body, or a dataset that loads from src
+    if (!this.query && (!this.static || this.currentUrl !== null)) return;
 
     const db = this.stores.db.db;
     let result: unknown;
@@ -163,9 +178,15 @@ export class Dataset {
     if (this.static) {
       // Static JSON: parse and register as a table in the shared db.
       try {
-        result = JSON.parse(this.query);
+        // an empty body and the JSON value null are a dataset without rows
+        result = this.query.trim() === "" ? [] : (JSON.parse(this.query) ?? []);
+        if (Array.isArray(result)) {
+          this.errors.remove("ERR_body");
+        } else {
+          this.errors.addOrReplace({ id: "ERR_body", type: "error", message: "Body: not a JSON array." });
+        }
       } catch (e) {
-        console.error("Failed to parse static dataset", e);
+        this.errors.addOrReplace({ id: "ERR_body", type: "error", message: `Body: ${errorText(e)}` });
         result = [];
       }
       db.tables[this.name] = { data: Array.isArray(result) ? result : [] };
@@ -210,11 +231,18 @@ export class Dataset {
             type: "error",
             message: `SQL: ${e instanceof Error ? e.message : e}`,
           });
+          // the view is gone: a statement that was compiled for it must not meet a plain table under this name later
+          db.resetSqlCache();
           this.lastViewQuery = null;
           result = [];
           this.publish(result);
           return;
         }
+      } else {
+        // alasql compiles the select of a view once and binds every source as view or as table.
+        // A source that changed its kind since needs a new compile, which the next read does.
+        // @ts-ignore - select is not in the public typings
+        delete db.tables[this.name]?.select;
       }
       try {
         result = db.exec(`SELECT * FROM \`${this.name}\``);
@@ -249,8 +277,9 @@ export class Dataset {
     }
     this.latestResult = result;
     this.stores.db.notify(this.name);
+    this.publishedMeta = calculateDatasetMeta(result as Record<string, unknown>[]);
     // @ts-ignore - DatasetMeta is small derived metadata; kept as a @stencil/store per the plan.
-    this.stores.datasetsMeta.set(this.name, calculateDatasetMeta(result));
+    this.stores.datasetsMeta.set(this.name, this.publishedMeta);
   }
 
   @Watch("name")
@@ -280,10 +309,20 @@ export class Dataset {
   /** Drops what is registered under `name` and forgets the loaded state, so the next sync loads again. */
   private unregister(name: string): void {
     const db = this.stores?.db?.db;
-    // the name may come back as a plain table, which statements compiled for the view cannot read
+    // The name may come back as a plain table, which statements compiled for the view cannot read.
+    // Before the release: a producer that shares the name loads and notifies its readers inside of it.
     if (db && this.lastViewQuery !== null) db.resetSqlCache();
+    this.releaseName?.();
+    this.releaseName = undefined;
     // another element may have taken the name since: its table, meta and consumers stay untouched
     const taken = db?.tables[name] != null && db.tables[name] !== this.registered;
+    // a datasource that took the name writes no meta: the meta of this dataset must not stay for its rows
+    // @ts-ignore - the store is typed per dataset name
+    if (taken && this.publishedMeta !== undefined && this.stores.datasetsMeta.get(name) === this.publishedMeta) {
+      // @ts-ignore
+      this.stores.datasetsMeta.set(name, null);
+    }
+    this.publishedMeta = undefined;
     this.registered = undefined;
     this.lastBodyHash = null;
     this.lastViewQuery = null;
@@ -321,15 +360,19 @@ export class Dataset {
 
     try {
       const response = await fetch(url, { signal: this.abortController.signal });
-      const json = await response.json();
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      // the JSON value null is a response without rows
+      const json = (await response.json()) ?? [];
+      if (!Array.isArray(json)) throw new Error("not a JSON array.");
       const db = this.stores.db.db;
-      db.tables[this.name] = { data: Array.isArray(json) ? json : [] };
+      db.tables[this.name] = { data: json };
       this.registered = db.tables[this.name];
       this.dropViewStatements();
+      this.errors.remove("ERR_src");
       this.publish(json);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
-      console.error("bn-dataset: error fetching URL", e, url);
+      this.errors.addOrReplace({ id: "ERR_src", type: "error", message: `src: ${errorText(e)}` });
       const db = this.stores.db.db;
       db.tables[this.name] = { data: [] };
       this.registered = db.tables[this.name];
@@ -337,6 +380,33 @@ export class Dataset {
       this.publish([]);
     }
     this.firstLoadPending = false;
+  }
+
+  /** Two producers of one name overwrite each other's data. Both report it. */
+  private readonly onNameShared = (shared: boolean): void => {
+    const wasShared = this.nameShared;
+    this.nameShared = shared;
+    if (shared) {
+      this.errors.addOrReplace({
+        id: "ERR_name",
+        type: "error",
+        message: `name: "${this.name}" is used by more than one dataset or datasource.`,
+      });
+    } else {
+      this.errors.remove("ERR_name");
+      // the other producer may have written the name last: load the own data again
+      if (wasShared) this.reload();
+    }
+  };
+
+  /** Forgets what was loaded and loads again from `src` or the body. */
+  private reload(): void {
+    if (this.lastViewQuery !== null) this.stores.db.db.resetSqlCache();
+    this.lastBodyHash = null;
+    this.lastViewQuery = null;
+    this.currentUrl = null;
+    this.latestResult = undefined;
+    this.sync(this.element.textContent ?? "");
   }
 
   /** After a view was replaced by a plain table: statements alasql compiled for the view cannot read the table. */

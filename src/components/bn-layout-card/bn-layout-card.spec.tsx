@@ -26,6 +26,7 @@ import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
 import { LayoutCard } from "./bn-layout-card";
 import { LayoutPage } from "../bn-layout-page/bn-layout-page";
+import { ComponentRegister } from "../../utils/componentRegister";
 
 describe("bn-layout-card selected-style forwarding", () => {
   it("forwards selected-style to the inner bn-card", async () => {
@@ -63,7 +64,7 @@ describe("bn-layout-card ruleset forwarding", () => {
     expect(title.getAttribute("ruleset")).toBe("my-rules");
   });
 
-  it("resolves inherited-page against the ancestor bn-layout-page and reflects it", async () => {
+  it("resolves inherited-page against the ancestor bn-layout-page and keeps the keyword of the author", async () => {
     const page = await newSpecPage({
       components: [LayoutPage, LayoutCard],
       html: `<bn-layout-page ruleset="page-rules"><bn-layout-card ruleset="inherited-page"></bn-layout-card></bn-layout-page>`,
@@ -72,8 +73,8 @@ describe("bn-layout-card ruleset forwarding", () => {
     const card = page.body.querySelector("bn-layout-card");
     const title = card.shadowRoot.querySelector("bn-title");
     expect(title.getAttribute("ruleset")).toBe("page-rules");
-    // reflected onto the host so descendant vis components resolve the real value
-    expect(card.getAttribute("ruleset")).toBe("page-rules");
+    // overwritten with the value, the card would stop following the page
+    expect(card.getAttribute("ruleset")).toBe("inherited-page");
   });
 });
 
@@ -142,6 +143,66 @@ describe("bn-layout-card inherited title props", () => {
     expect(title.getAttribute("scenarios")).toBe("ac1");
   });
 
+  it("follows the page when a value that the card inherits changes later", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1"><bn-layout-card title-scenarios="inherited-page"></bn-layout-card></bn-layout-page>`,
+    });
+    const card = page.body.querySelector("bn-layout-card");
+    const title = card.shadowRoot.querySelector("bn-title");
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+
+    const layoutPage = page.body.querySelector("bn-layout-page");
+    layoutPage.setAttribute("title-scenarios", "pp1");
+    notifyAttributeChange(layoutPage, "title-scenarios");
+    await page.waitForChanges();
+
+    expect(title.getAttribute("scenarios")).toBe("pp1");
+    expect(card.getAttribute("title-scenarios")).toBe("inherited-page");
+  });
+
+  it("lets a component inside the card follow the page through the card's keyword", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1"><bn-layout-card title-scenarios="inherited-page"><bn-layout-card id="inner" title-scenarios="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+    const title = page.body.querySelector("#inner").shadowRoot.querySelector("bn-title");
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+
+    // the outer card used to hold the value it had read at connect, and the inner one read that
+    const layoutPage = page.body.querySelector("bn-layout-page");
+    layoutPage.setAttribute("title-scenarios", "pp1");
+    notifyAttributeChange(layoutPage, "title-scenarios");
+    await page.waitForChanges();
+
+    expect(title.getAttribute("scenarios")).toBe("pp1");
+  });
+
+  it("gives a component inside a card that follows the page the page value, also below another card", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1,pp1" ruleset="page-rules"><bn-layout-card title-scenarios="ac1" ruleset="card-rules"><bn-layout-card id="middle" title-scenarios="inherited-page" ruleset="inherited-page"><bn-layout-card id="inner" title-scenarios="inherited-closest" ruleset="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+    const title = (id: string) => page.body.querySelector(id).shadowRoot.querySelector("bn-title");
+
+    expect(title("#middle").getAttribute("scenarios")).toBe("ac1,pp1");
+    // the same as the card it sits in, not the value of the card further out
+    expect(title("#inner").getAttribute("scenarios")).toBe("ac1,pp1");
+    expect(title("#inner").getAttribute("ruleset")).toBe("page-rules");
+  });
+
+  it("resolves each field in its own mode", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1,pp1" title-order="ac1"><bn-layout-card title-scenarios="ac1" title-order="pp1"><bn-layout-card id="inner" title-scenarios="inherited-closest" title-order="inherited-page"></bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+
+    const title = page.body.querySelector("#inner").shadowRoot.querySelector("bn-title");
+    // scenarios from the nearest card, order from the page although the card sets one too
+    expect(title.getAttribute("scenarios")).toBe("ac1");
+    expect(title.getAttribute("order")).toBe("ac1");
+  });
+
   it("resolves a ruleset keyword that the card gets after connect", async () => {
     const page = await newSpecPage({
       components: [LayoutPage, LayoutCard],
@@ -153,5 +214,42 @@ describe("bn-layout-card inherited title props", () => {
     await page.waitForChanges();
 
     expect(card.shadowRoot.querySelector("bn-title").getAttribute("ruleset")).toBe("page-rules");
+  });
+});
+
+describe("bn-layout-card readiness", () => {
+  it("is tracked by the component register", async () => {
+    const before = ComponentRegister.componentRegisterStatus().successful;
+
+    await newSpecPage({ components: [LayoutCard], html: `<bn-layout-card></bn-layout-card>` });
+
+    expect(ComponentRegister.componentRegisterStatus().successful).toBe(before + 1);
+  });
+});
+
+describe("bn-layout-card grid template", () => {
+  const grid = (host: Element): HTMLElement => host.shadowRoot.querySelector("bn-body > div") as HTMLElement;
+  const ids = (host: Element): string[] =>
+    (JSON.parse(host.getAttribute("has-error") ?? "[]") as { id: string }[]).map((e) => e.id);
+  const mount = (attrs: string) =>
+    newSpecPage({ components: [LayoutCard], html: `<bn-layout-card ${attrs}></bn-layout-card>` });
+
+  it("gives 1-over-3 three columns", async () => {
+    const page = await mount(`card-layout="1-over-3"`);
+
+    expect(grid(page.root).style.gridTemplateColumns).toBe("minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)");
+  });
+
+  it("renders a custom template without rows as one cell and warns", async () => {
+    const page = await mount(`card-layout="custom-template" card-custom-template="a b"`);
+
+    expect(grid(page.root).style.gridTemplateAreas).toBe('"a"');
+    expect(ids(page.root)).toEqual(["ERR_cardCustomTemplate"]);
+  });
+
+  it("warns about rows of different length", async () => {
+    const page = await mount(`card-layout="custom-template" card-custom-template='"a b" "c"'`);
+
+    expect(ids(page.root)).toEqual(["ERR_cardCustomTemplate"]);
   });
 });

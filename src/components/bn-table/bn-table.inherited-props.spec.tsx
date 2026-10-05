@@ -14,9 +14,6 @@ jest.mock("../../utils/withTranslation", () => ({
   default: () => ({ t: (key: string) => key }),
 }));
 
-// Its debounced status log would outlive a small spec run.
-jest.mock("../../utils/withComponentStatus", () => ({ __esModule: true, default: () => {} }));
-
 // Installed before the component import: a module behind it creates an
 // observer while it loads.
 import { installMutationObserverFake, notifyAttributeChange } from "../../utils/testing/mutationObserver";

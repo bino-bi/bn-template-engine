@@ -1,19 +1,24 @@
 /**
  * Recording stand-in for `MutationObserver`.
  *
- * Spec-only. mock-doc has no `MutationObserver`, so a spec that needs an
- * attribute change to reach an observer installs this fake and reports the
- * change itself with `notifyAttributeChange`.
+ * Spec-only. mock-doc has no `MutationObserver`, so a spec that needs a
+ * change to reach an observer installs this fake and reports the change
+ * itself with `notifyAttributeChange` or `notifyChildListChange`.
  */
 interface AttributeRecord {
   target: Node;
-  attributeName: string;
+  attributeName?: string;
 }
 
 interface Watch {
   target: Node;
   attributeFilter?: string[];
+  childList?: boolean;
+  subtree?: boolean;
 }
+
+const covers = (watch: Watch, target: Node): boolean =>
+  watch.target === target || (watch.subtree === true && watch.target.contains(target));
 
 const active = new Set<FakeMutationObserver>();
 
@@ -22,8 +27,8 @@ class FakeMutationObserver {
 
   constructor(private readonly callback: (records: AttributeRecord[]) => void) {}
 
-  observe(target: Node, options?: { attributeFilter?: string[] }) {
-    this.watches.push({ target, attributeFilter: options?.attributeFilter });
+  observe(target: Node, options?: { attributeFilter?: string[]; childList?: boolean; subtree?: boolean }) {
+    this.watches.push({ target, ...options });
     active.add(this);
   }
 
@@ -38,8 +43,12 @@ class FakeMutationObserver {
 
   watchesAttribute(target: Node, attributeName: string): boolean {
     return this.watches.some(
-      (watch) => watch.target === target && (!watch.attributeFilter || watch.attributeFilter.includes(attributeName)),
+      (watch) => covers(watch, target) && (!watch.attributeFilter || watch.attributeFilter.includes(attributeName)),
     );
+  }
+
+  watchesChildList(target: Node): boolean {
+    return this.watches.some((watch) => watch.childList === true && covers(watch, target));
   }
 
   deliver(records: AttributeRecord[]) {
@@ -57,4 +66,11 @@ export const notifyAttributeChange = (target: Node, attributeName: string) => {
   [...active]
     .filter((observer) => observer.watchesAttribute(target, attributeName))
     .forEach((observer) => observer.deliver([{ target, attributeName }]));
+};
+
+/** Calls every observer that watches the child list of `target`, or of an ancestor with its subtree. */
+export const notifyChildListChange = (target: Node) => {
+  [...active]
+    .filter((observer) => observer.watchesChildList(target))
+    .forEach((observer) => observer.deliver([{ target }]));
 };

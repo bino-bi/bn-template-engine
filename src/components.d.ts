@@ -689,10 +689,10 @@ export namespace Components {
      */
     "displayPageNumber": boolean;
     /**
-      * Pagenumber value. Is displayed if displayPageNumber == true
+      * Page label: a number or any text, e.g. `3` or `A-1`. Is displayed if displayPageNumber == true
       * @default null
      */
-    "pageNumber": number | null;
+    "pageNumber": string | null;
     /**
       * Footer text. <br />If empty string (`''` or `null`) the footer row is omitted
      */
@@ -925,7 +925,7 @@ export namespace Components {
      */
     "pageFitToContent": boolean;
     /**
-      * Page size format. Determines the pixel dimensions of the rendered page. <br /><br /> values:<br /> ```xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal```
+      * Page size format. Determines the pixel dimensions of the rendered page. <br /><br /> values:<br /> ```xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger```
      */
     "pageFormat"?: string;
     /**
@@ -950,11 +950,11 @@ export namespace Components {
     | "3-over-1"
     | "custom-template";
     /**
-      * Page number displayed in the footer. If empty, no page number is shown (unless `footerDisplayPageNumber` is also set).
+      * Page label displayed in the footer: a number or any text, e.g. `A-1`. Without it `bn-context` numbers the page by its position.
      */
     "pageNumber"?: string;
     /**
-      * Page orientation. Default depends on the chosen format. <br /><br /> values:<br /> ```landscape // portrait```
+      * Page orientation. Default depends on the chosen format. When it differs from the `render-orientation` of `bn-context`, the page is turned onto the sheet. <br /><br /> values:<br /> ```landscape // portrait```
      */
     "pageOrientation"?: string;
     /**
@@ -1034,7 +1034,7 @@ export namespace Components {
   }
   interface BnPage {
     /**
-      * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga```
+      * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger ``` <br /><br /> default: <br /> ```xga```
      */
     "format": string;
     /**
@@ -1613,6 +1613,10 @@ export namespace Components {
      */
     "dataVersion": number;
     /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
       * @default ""
      */
     "filter": string;
@@ -1711,6 +1715,10 @@ export namespace Components {
       * @default DateDistance.AUTO
      */
     "dateInterval": DateDistance;
+    /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
     /**
       * @default ""
      */
@@ -2988,10 +2996,10 @@ declare namespace LocalJSX {
      */
     "displayPageNumber"?: boolean;
     /**
-      * Pagenumber value. Is displayed if displayPageNumber == true
+      * Page label: a number or any text, e.g. `3` or `A-1`. Is displayed if displayPageNumber == true
       * @default null
      */
-    "pageNumber"?: number | null;
+    "pageNumber"?: string | null;
     /**
       * Footer text. <br />If empty string (`''` or `null`) the footer row is omitted
      */
@@ -3217,7 +3225,7 @@ declare namespace LocalJSX {
      */
     "pageFitToContent"?: boolean;
     /**
-      * Page size format. Determines the pixel dimensions of the rendered page. <br /><br /> values:<br /> ```xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal```
+      * Page size format. Determines the pixel dimensions of the rendered page. <br /><br /> values:<br /> ```xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger```
      */
     "pageFormat"?: string;
     /**
@@ -3242,11 +3250,11 @@ declare namespace LocalJSX {
     | "3-over-1"
     | "custom-template";
     /**
-      * Page number displayed in the footer. If empty, no page number is shown (unless `footerDisplayPageNumber` is also set).
+      * Page label displayed in the footer: a number or any text, e.g. `A-1`. Without it `bn-context` numbers the page by its position.
      */
     "pageNumber"?: string;
     /**
-      * Page orientation. Default depends on the chosen format. <br /><br /> values:<br /> ```landscape // portrait```
+      * Page orientation. Default depends on the chosen format. When it differs from the `render-orientation` of `bn-context`, the page is turned onto the sheet. <br /><br /> values:<br /> ```landscape // portrait```
      */
     "pageOrientation"?: string;
     /**
@@ -3326,7 +3334,7 @@ declare namespace LocalJSX {
   }
   interface BnPage {
     /**
-      * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal ``` <br /><br /> default: <br /> ```xga```
+      * Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger ``` <br /><br /> default: <br /> ```xga```
      */
     "format"?: string;
     /**
@@ -3892,6 +3900,10 @@ declare namespace LocalJSX {
      */
     "dataVersion"?: number;
     /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
       * @default ""
      */
     "filter"?: string;
@@ -3990,6 +4002,10 @@ declare namespace LocalJSX {
       * @default DateDistance.AUTO
      */
     "dateInterval"?: DateDistance;
+    /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
     /**
       * @default ""
      */
@@ -4389,7 +4405,7 @@ declare namespace LocalJSX {
     "src": string;
   }
   interface BnFooterAttributes {
-    "pageNumber": number | null;
+    "pageNumber": string | null;
     "text": string;
     "code": string;
     "displayPageNumber": boolean;

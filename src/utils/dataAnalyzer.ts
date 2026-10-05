@@ -57,6 +57,7 @@ export class DataAnalyzer {
     fromExpr: string,
     scenarios: string[],
     mode: string | null,
+    onError?: (e: unknown) => void,
   ): SiPrefix {
     if (mode === "_") {
       return new SiPrefix();
@@ -73,20 +74,17 @@ export class DataAnalyzer {
       }
     }
 
-    if (scenarios.length === 0 || !fromExpr) {
+    // filtering wordlenght == 3, so variances are not considered
+    const baseScenarios = scenarios.filter((word) => word.length === 3);
+
+    // GREATEST() without arguments is no valid query
+    if (baseScenarios.length === 0 || !fromExpr) {
       return new SiPrefix();
     }
 
-    // filtering wordlenght == 3, so variances are not considered
-    const queryMax = `SELECT MAX(GREATEST(${scenarios
-      .filter((word) => word.length === 3)
-      .map((x) => "ABS(" + x + ")")
-      .toString()})) as prefixvalue
+    const queryMax = `SELECT MAX(GREATEST(${baseScenarios.map((x) => "ABS(" + x + ")").toString()})) as prefixvalue
                       FROM ${fromExpr}`;
-    const queryMin = `SELECT MIN(LEAST(${scenarios
-      .filter((word) => word.length === 3)
-      .map((x) => "ABS(" + x + ")")
-      .toString()})) as prefixvalue
+    const queryMin = `SELECT MIN(LEAST(${baseScenarios.map((x) => "ABS(" + x + ")").toString()})) as prefixvalue
                       FROM ${fromExpr}`;
 
     let query = queryMax;
@@ -100,7 +98,8 @@ export class DataAnalyzer {
       const result = db.exec<{ prefixvalue?: number }[]>(query);
       num = result[0]?.prefixvalue ?? 0;
     } catch (e) {
-      console.error("DataAnalyzer: measure-scale query failed", query, e);
+      // the caller reports it as ERR_sql
+      onError?.(e);
       return new SiPrefix();
     }
 

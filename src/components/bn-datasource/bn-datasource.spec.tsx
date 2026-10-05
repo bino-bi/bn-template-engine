@@ -32,7 +32,7 @@ const rows = (name: string): unknown[] => (getStores(null).db.db.tables[name] as
 
 describe("bn-datasource body and src", () => {
   const realFetch = global.fetch;
-  const fetchMock = jest.fn(async () => ({ json: async () => REMOTE }));
+  const fetchMock = jest.fn(async () => ({ ok: true, json: async () => REMOTE }));
 
   beforeEach(() => {
     fetchMock.mockClear();
@@ -81,7 +81,7 @@ describe("bn-datasource rename and re-attach", () => {
   const INLINE = [{ category: "a" }];
   const tables = () => getStores(null).db.db.tables as Record<string, { data: unknown[] } | undefined>;
   const realFetch = global.fetch;
-  const fetchMock = jest.fn(async () => ({ json: async () => REMOTE }));
+  const fetchMock = jest.fn(async () => ({ ok: true, json: async () => REMOTE }));
 
   beforeEach(() => {
     fetchMock.mockClear();
@@ -235,7 +235,7 @@ describe("bn-datasource readiness", () => {
     await page.waitForChanges();
     expect(running()).toBe(before + 1);
 
-    respond({ json: async () => REMOTE });
+    respond({ ok: true, json: async () => REMOTE });
     await page.waitForChanges();
     expect(running()).toBe(before);
     expect(rows("rd_first")).toEqual(REMOTE);
@@ -317,7 +317,7 @@ describe("bn-datasource readiness", () => {
     await new Promise((resolve) => setTimeout(resolve, 130));
     const pending = { requests: fetchMock.mock.calls.length, running: running() };
 
-    respond[0]({ json: async () => REMOTE });
+    respond[0]({ ok: true, json: async () => REMOTE });
     await page.waitForChanges();
     const loaded = { running: running(), table: getStores(null).db.db.tables["rd_slow"] };
 
@@ -333,7 +333,7 @@ describe("bn-datasource readiness", () => {
 
   it("a polling request does not hold readiness", async () => {
     const before = running();
-    (global as any).fetch = jest.fn(async () => ({ json: async () => REMOTE }));
+    (global as any).fetch = jest.fn(async () => ({ ok: true, json: async () => REMOTE }));
     const page = await newSpecPage({
       components: [Datasource],
       html: `<bn-datasource name="rd_polled" src="/rows.json"></bn-datasource>`,
@@ -347,5 +347,136 @@ describe("bn-datasource readiness", () => {
     await page.waitForChanges();
 
     expect(running()).toBe(before);
+  });
+});
+
+describe("bn-datasource failures", () => {
+  const realFetch = global.fetch;
+  const errors = (host: Element): { id: string; type: string; message: string }[] =>
+    JSON.parse(host.getAttribute("has-error") ?? "[]");
+
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  // one name per case: mock-doc never disconnects an element with a body, so it keeps its name
+  it.each([
+    ["JSON that cannot be parsed", "fail_parse", `[{"category":`],
+    ["JSON that is not an array", "fail_shape", `{"category":"local"}`],
+  ])("reports ERR_body for %s and registers no rows", async (_name, name, body) => {
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="${name}">${body}</bn-datasource>`,
+    });
+
+    expect(errors(page.root).map((e) => [e.id, e.type])).toEqual([["ERR_body", "error"]]);
+    expect(rows(name)).toEqual([]);
+  });
+
+  it("reports ERR_body for a compressed body that cannot be decoded", async () => {
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="fail_gzip" raw="false">abc:not-gzip</bn-datasource>`,
+    });
+
+    expect(errors(page.root).map((e) => e.id)).toEqual(["ERR_body"]);
+  });
+
+  it.each([
+    ["raw", ""],
+    ["compressed", ` raw="false"`],
+  ])("reports nothing for an empty %s body", async (_name, attr) => {
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="fail_empty"${attr}></bn-datasource>`,
+    });
+
+    expect(errors(page.root)).toEqual([]);
+    expect(rows("fail_empty")).toEqual([]);
+  });
+
+  it.each<[string, () => Promise<unknown>, string]>([
+    [
+      "a request that fails",
+      async () => {
+        throw new Error("offline");
+      },
+      "offline",
+    ],
+    ["an HTTP error", async () => ({ ok: false, status: 404, json: async () => ({}) }), "HTTP 404"],
+    [
+      "a response that is not an array",
+      async () => ({ ok: true, json: async () => ({ rows: [] }) }),
+      "not a JSON array",
+    ],
+  ])("reports ERR_src for %s", async (_name, fetchImpl, message) => {
+    (global as any).fetch = jest.fn(fetchImpl);
+
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="fail_src" src="/rows.json"></bn-datasource>`,
+    });
+    await page.waitForChanges();
+
+    const error = errors(page.root).find((e) => e.id === "ERR_src");
+    expect(error?.type).toBe("error");
+    expect(error?.message).toContain(message);
+    expect(rows("fail_src")).toEqual([]);
+  });
+
+  it("reports a name that two datasources use, on both, until one of them leaves", async () => {
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource id="a" name="fail_dup">[{"category":"a"}]</bn-datasource><bn-datasource id="b" name="fail_dup">[{"category":"b"}]</bn-datasource>`,
+    });
+    const a = page.body.querySelector("#a");
+    const b = page.body.querySelector("#b");
+
+    expect(errors(a).map((e) => [e.id, e.type])).toEqual([["ERR_name", "error"]]);
+    expect(errors(b).map((e) => e.id)).toEqual(["ERR_name"]);
+    // the second one registered last
+    expect(rows("fail_dup")).toEqual([{ category: "b" }]);
+
+    b.remove();
+    await page.waitForChanges();
+
+    // no item any more, so the name must hold the rows of a again, not a deleted table
+    expect(errors(a)).toEqual([]);
+    expect(rows("fail_dup")).toEqual([{ category: "a" }]);
+  });
+
+  it("has its rows back when the body that could not be decoded is valid again", async () => {
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource name="fail_back">[{"category":"a"}]</bn-datasource>`,
+    });
+    const sync = (body: string) => (page.rootInstance as { sync(body: string): void }).sync(body);
+
+    page.root.setAttribute("raw", "false");
+    await page.waitForChanges();
+    sync("abc:not-gzip");
+    expect(errors(page.root).map((e) => e.id)).toEqual(["ERR_body"]);
+    expect(rows("fail_back")).toEqual([]);
+
+    page.root.setAttribute("raw", "true");
+    await page.waitForChanges();
+    sync(`[{"category":"a"}]`);
+    expect(errors(page.root)).toEqual([]);
+    expect(rows("fail_back")).toEqual([{ category: "a" }]);
+  });
+
+  it("reads the JSON value null as no rows, in the body and from src", async () => {
+    (global as any).fetch = jest.fn(async () => ({ ok: true, json: async () => null }));
+
+    const page = await newSpecPage({
+      components: [Datasource],
+      html: `<bn-datasource id="body" name="fail_null1">null</bn-datasource><bn-datasource id="src" name="fail_null2" src="/rows.json"></bn-datasource>`,
+    });
+    await page.waitForChanges();
+
+    expect(errors(page.body.querySelector("#body"))).toEqual([]);
+    expect(errors(page.body.querySelector("#src"))).toEqual([]);
+    expect(rows("fail_null1")).toEqual([]);
+    expect(rows("fail_null2")).toEqual([]);
   });
 });

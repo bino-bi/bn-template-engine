@@ -243,6 +243,7 @@ async function waitForSettle(page) {
   for (;;) {
     const state = await page.evaluate(() => ({
       rendered: window.componentRegisterIsRenderedResult === true,
+      failures: window.componentRegisterFailures || [],
       sinceMutation: Date.now() - (window.__lastMutation || 0),
     }));
 
@@ -250,7 +251,8 @@ async function waitForSettle(page) {
     if (state.rendered && elapsed >= MIN_SETTLE_MS && state.sinceMutation >= QUIET_MS) {
       return { elapsed, ok: true };
     }
-    if (elapsed > SETTLE_TIMEOUT_MS) {
+    // a failed component stays failed: no need to wait for the timeout
+    if (elapsed > SETTLE_TIMEOUT_MS || state.failures.length > 0) {
       return { elapsed, ok: false, state };
     }
     await new Promise((r) => setTimeout(r, 150));

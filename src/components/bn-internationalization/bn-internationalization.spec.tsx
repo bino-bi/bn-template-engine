@@ -208,3 +208,32 @@ describe("i18n-namespace resolution", () => {
     expect(textContent(page)).toBe("AC");
   });
 });
+
+describe("bn-internationalization bad payloads", () => {
+  const items = (host: Element): { id: string; type: string; message: string }[] =>
+    JSON.parse(host.getAttribute("has-error") ?? "[]");
+
+  it.each([
+    ["JSON that cannot be parsed", `{"global": {"ac1": `],
+    ["an array", `["ac1"]`],
+    ["a plain value", `"Actual"`],
+    ["null", `null`],
+  ])("reports ERR_body for %s and leaves the store alone", async (_name, body) => {
+    const before = JSON.stringify(getStores(null).internationalization.get("_system"));
+
+    const page = await renderI18n(`<bn-internationalization code="en">${body}</bn-internationalization>`);
+
+    expect(items(page.root).map((e) => [e.id, e.type])).toEqual([["ERR_body", "error"]]);
+    expect(JSON.stringify(getStores(null).internationalization.get("_system"))).toBe(before);
+  });
+
+  it("reports nothing for a valid and for an empty body", async () => {
+    const valid = await renderI18n(
+      `<bn-internationalization code="en">{"global": {"ac1": "A"}}</bn-internationalization>`,
+    );
+    expect(items(valid.root)).toEqual([]);
+
+    const empty = await renderI18n(`<bn-internationalization code="en"></bn-internationalization>`);
+    expect(items(empty.root)).toEqual([]);
+  });
+});

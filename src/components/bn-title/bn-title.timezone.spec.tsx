@@ -11,12 +11,6 @@ jest.mock("../../utils/withTranslation", () => ({
   default: () => ({ t: (key: string) => key }),
 }));
 
-// The status register logs from a 500 ms timer, after the spec is done. Jest then exits with 1 when it runs in band.
-jest.mock("../../utils/withComponentStatus", () => ({
-  __esModule: true,
-  default: () => {},
-}));
-
 (global as any).MutationObserver = class {
   constructor() {}
   observe() {}

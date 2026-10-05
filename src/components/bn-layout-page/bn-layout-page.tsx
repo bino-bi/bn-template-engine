@@ -1,5 +1,16 @@
-import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
+import { Component, h, Host, Element, Prop, Method, Fragment } from "@stencil/core";
+import { sheetGeometry } from "../bn-page/pageFormats";
+import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import {
+  CUSTOM_TEMPLATE,
+  isTemplateLayout,
+  templateAreas,
+  templateColumns,
+  templateProblem,
+  templateRows,
+  templateSlotNames,
+} from "../../utils/layoutTemplate";
 
 @Component({
   tag: "bn-layout-page",
@@ -14,6 +25,7 @@ export class LayoutPage {
   private readonly errors: ErrorDispatcher;
 
   constructor() {
+    withComponentStatus(this);
     this.errors = withHasError(this);
   }
 
@@ -184,12 +196,13 @@ export class LayoutPage {
    * Page size format. Determines the pixel dimensions of the rendered page.
    * <br /><br />
    * values:<br />
-   * ```xga // hd // full-hd // 4k // 4k2k // a4 // a3 // a2 // a1 // a0 // letter // legal```
+   * ```xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger```
    */
   @Prop() pageFormat?: string;
 
   /**
    * Page orientation. Default depends on the chosen format.
+   * When it differs from the `render-orientation` of `bn-context`, the page is turned onto the sheet.
    * <br /><br />
    * values:<br />
    * ```landscape // portrait```
@@ -197,8 +210,8 @@ export class LayoutPage {
   @Prop() pageOrientation?: string;
 
   /**
-   * Page number displayed in the footer. If empty, no page number is shown
-   * (unless `footerDisplayPageNumber` is also set).
+   * Page label displayed in the footer: a number or any text, e.g. `A-1`.
+   * Without it `bn-context` numbers the page by its position.
    */
   @Prop() pageNumber?: string;
 
@@ -269,21 +282,6 @@ export class LayoutPage {
    */
   @Prop() pageFitToContent: boolean = false;
 
-  private templateMap = new Map([
-    ["split-vertical", '"a  b"'],
-    ["split-horizontal", '"a" "b"'],
-    ["2x2", '"a b" "c d"'],
-    ["3x3", '"a b c" "d e f" "g h i"'],
-    ["4x4", '"a b c d" "e f g h" "i j k l" "m n o p"'],
-    ["1-over-2", '"a a" "b c"'],
-    ["2-over-1", '"a b" "c c"'],
-    ["1-over-3", '"a a a " "b c d"'],
-    ["3-over-1", '"a b c" "d d d"'],
-    ["custom-template", '"a b" "c c c"'],
-    ["gold3", '"a c" "b c"'],
-    ["gold4", '"a b c c" "d d c c"'],
-  ]);
-
   private getCommonStyles() {
     let height = "100%";
 
@@ -304,10 +302,7 @@ export class LayoutPage {
   }
 
   private getRowCount(name: string): number {
-    const template = this.getTemplateAreas(name);
-    const pattern = /"[\w\d\s.]+"/g;
-    const matches = template.match(pattern);
-    return matches ? matches.length : 1;
+    return templateRows(this.getTemplateAreas(name)).length || 1;
   }
 
   private getGridTemplateRows(name: string): string {
@@ -361,53 +356,16 @@ export class LayoutPage {
   }
 
   private extractSlotNames(styleElement: string | null) {
-    if (styleElement == null) {
-      return [];
-    }
-
-    const words = styleElement.match(/\b\w+\b/g);
-    if (!words) {
-      return [];
-    }
-
-    return Array.from(new Set(words));
+    return templateSlotNames(styleElement);
   }
 
   private getTemplateAreas(name: string): string {
-    if (this.templateMap.has(name) === false && name !== "custom-template") {
-      return '"a"';
-    }
-
-    if (name === "custom-template") {
-      return this.pageCustomTemplate;
-    }
-
-    return this.templateMap.get(name);
+    return templateAreas(name, this.pageCustomTemplate);
   }
 
-  private calculateFractions(input: string): string {
-    const items = input.trim().split(/\s+/);
-    const count = items.length;
-
-    if (count === 0) return "minmax(0, 1fr)";
-
-    return Array(count).fill("minmax(0, 1fr)").join(" ");
-  }
   private getGridTemplateColumns(name: string): string {
-    if (this.templateMap.has(name) === false && name !== "custom-template") {
-      return "1fr";
-    }
-    let template;
-    const pattern = /"[\w\d\s.]+"/g;
-
-    if (name === "custom-template") {
-      template = this.pageCustomTemplate;
-    } else {
-      template = this.templateMap.get(name);
-    }
-
-    const matches = template.match(pattern);
-    return this.calculateFractions(matches[0]);
+    // a layout without a template, such as "full", is one column that may grow with its content
+    return isTemplateLayout(name) ? templateColumns(this.getTemplateAreas(name)) : "1fr";
   }
 
   @Method()
@@ -416,66 +374,101 @@ export class LayoutPage {
     return this.extractSlotNames(template).length;
   }
 
-  componentDidUpdate() {
-    // workaround for the render rotation issue
-    const renderOrientation = this.element.closest("bn-context").getAttribute("render-orientation");
-    if (renderOrientation && renderOrientation !== this.pageOrientation) {
-      const page = this.element.shadowRoot.querySelector("bn-page");
-      const layout = this.element.closest("bn-layout-page");
-      if (layout && page) {
-        page.style.transform = "rotate(-90deg) translate(-100%)";
-        page.style.transformOrigin = "top left";
-        layout.style.width = `${page.clientHeight}px`;
-        layout.style.height = `${page.clientWidth}px`;
-      }
+  private mirror(attribute: string, value: string | null | undefined): void {
+    if (value == null) {
+      if (this.element.hasAttribute(attribute)) this.element.removeAttribute(attribute);
+    } else if (this.element.getAttribute(attribute) !== value) {
+      this.element.setAttribute(attribute, value);
     }
+  }
+
+  componentWillRender() {
+    // bn-context reads the paper size of the document from these attributes and watches them.
+    // Written by hand: the reflection of Stencil skips an attribute that was in the markup at the first render.
+    // Before the render, not after it: the first componentDidRender waits for every component inside the page.
+    this.mirror("page-format", this.pageFormat);
+    this.mirror("page-orientation", this.pageOrientation);
+
+    const problem = this.pageLayout === CUSTOM_TEMPLATE ? templateProblem(this.pageCustomTemplate) : undefined;
+    if (problem) {
+      this.errors.addOrReplace({
+        id: "ERR_pageCustomTemplate",
+        type: "warning",
+        message: `pageCustomTemplate: ${problem}`,
+      });
+    } else {
+      this.errors.remove("ERR_pageCustomTemplate");
+    }
+  }
+
+  /**
+   * A document is printed in one orientation, the `render-orientation` of
+   * `bn-context`. A page with the other orientation keeps its own layout and
+   * is turned onto the sheet: the host takes the swapped size, the inner page
+   * is rotated into it.
+   */
+  private rotation(): { host: Record<string, string>; page: Record<string, string> } | undefined {
+    const renderOrientation = this.element.closest("bn-context")?.getAttribute("render-orientation");
+    const sheet = sheetGeometry(this.pageFormat, this.pageOrientation, renderOrientation);
+    if (!sheet.turned) {
+      return undefined;
+    }
+
+    return {
+      host: { width: sheet.width, height: sheet.height },
+      page: { transform: "rotate(-90deg) translate(-100%)", transformOrigin: "top left" },
+    };
   }
 
   render() {
     const style = this.getLayoutStyle();
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
+    const rotation = this.rotation();
 
     return (
-      <bn-page // @ts-ignore
-        styles={this.styles}
-        selected-style={this.selectedStyle}
-        format={this.pageFormat}
-        orientation={this.pageOrientation}
-      >
-        <bn-message text={this.messageText} image={this.messageImage}></bn-message>
-        <bn-title // @ts-ignore
-          i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
-          ruleset={this.ruleset}
-          business-unit={this.titleBusinessUnit}
-          scenarios={this.titleScenarios}
-          variances={this.titleVariances}
-          order={this.titleOrder}
-          order-direction={this.titleOrderDirection}
-          measures={this.titleMeasures}
-          date-start={this.titleDateStart}
-          date-end={this.titleDateEnd}
-          date-format={this.titleDateFormat}
-          date-link={this.titleDateLink}
-        ></bn-title>
-        <bn-body>
-          {/* data-bn-fit-content: tells auto-scaling components that heights
+      <Host style={rotation?.host}>
+        <bn-page // @ts-ignore
+          styles={this.styles}
+          selected-style={this.selectedStyle}
+          format={this.pageFormat}
+          orientation={this.pageOrientation}
+          style={rotation?.page}
+        >
+          <bn-message text={this.messageText} image={this.messageImage}></bn-message>
+          <bn-title // @ts-ignore
+            i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
+            ruleset={this.ruleset}
+            business-unit={this.titleBusinessUnit}
+            scenarios={this.titleScenarios}
+            variances={this.titleVariances}
+            order={this.titleOrder}
+            order-direction={this.titleOrderDirection}
+            measures={this.titleMeasures}
+            date-start={this.titleDateStart}
+            date-end={this.titleDateEnd}
+            date-format={this.titleDateFormat}
+            date-link={this.titleDateLink}
+          ></bn-title>
+          <bn-body>
+            {/* data-bn-fit-content: tells auto-scaling components that heights
               inside this grid are content-driven and unusable as a scaling
               reference; the value is the grid's row count so they can fall
               back to an equal-share cell height
               (see findConstrainedHeight in utils/parentDimensions) */}
-          <div
-            style={style}
-            data-bn-fit-content={this.pageFitToContent ? String(this.getRowCount(this.pageLayout)) : null}
-          >
-            {this.getSlots(arrOfSlots)}
-          </div>
-        </bn-body>
-        <bn-footer
-          text={this.footerText}
-          page-number={this.pageNumber}
-          display-page-number={this.footerDisplayPageNumber}
-        ></bn-footer>
-      </bn-page>
+            <div
+              style={style}
+              data-bn-fit-content={this.pageFitToContent ? String(this.getRowCount(this.pageLayout)) : null}
+            >
+              {this.getSlots(arrOfSlots)}
+            </div>
+          </bn-body>
+          <bn-footer
+            text={this.footerText}
+            page-number={this.pageNumber}
+            display-page-number={this.footerDisplayPageNumber}
+          ></bn-footer>
+        </bn-page>
+      </Host>
     );
   }
 }

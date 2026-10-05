@@ -9,7 +9,7 @@ import {
 } from "./utils/model/TimeChartComponentConfig";
 import { TimeChartDataRowAdapter } from "./utils/model/TimeChartDataRow";
 import { getStores, ScopedStores } from "../../context/context-protocol";
-import { buildFromExpr } from "../../context/scopedDb";
+import { sourceExpr } from "../../context/scopedDb";
 import { TimeChartStyle, TimeChartStylesAdapter } from "./utils/model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChartAdapter } from "./utils/model/styles/ScaleFactorsTimeChart";
 import { DateDistance } from "../../utils/DateStringFactory";
@@ -19,6 +19,9 @@ import { AutoScalingReport } from "../../utils/scaling";
 import { MIN_PIXEL_SCALE, solveAutoFitStep } from "../../utils/autoFit";
 import { StringAdapter } from "../../utils/helper/StringAdapter";
 import { IBCSRuleSet } from "../../utils/ibcsRuleSet";
+import withComponentStatus from "../../utils/withComponentStatus";
+import { ErrorDispatcher } from "../../utils/withHasError";
+import { errorText, reportQueryError } from "../../utils/queryError";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../utils/model/DataFormatDigits";
 import { OrderDirection, OrderAdapter, Order } from "../../utils/model/Order";
@@ -61,6 +64,9 @@ export class IbcsChartTime {
    * Not for end users.
    */
   @Prop() reportAutoScaling?: (report: AutoScalingReport) => void;
+
+  /** The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users. */
+  @Prop() errors?: ErrorDispatcher;
 
   @Prop() limit: number = 0;
 
@@ -135,8 +141,12 @@ export class IbcsChartTime {
   private chart: TimeChart | undefined;
   private pattern: CustomPattern | undefined;
   private stores: ScopedStores | undefined;
+  private measureScaleError: string | undefined;
+  private queryError: string | undefined;
 
-  constructor() {}
+  constructor() {
+    withComponentStatus(this);
+  }
 
   private getDb() {
     if (!this.stores) this.stores = getStores(this.element);
@@ -144,7 +154,7 @@ export class IbcsChartTime {
   }
 
   render() {
-    if (this.chart === undefined) {
+    if (this.chart === undefined || this.queryError !== undefined) {
       return <Host />;
     }
 
@@ -167,6 +177,12 @@ export class IbcsChartTime {
         <div innerHTML={this.chart?.toString()}></div>
       </Host>
     );
+  }
+
+  /** Reports a failed query as the wrapper's `ERR_sql` item. Without it the chart would only show "No Data". */
+  private syncQueryError(): void {
+    this.queryError = this.measureScaleError ?? this.chart?.getQueryError();
+    reportQueryError(this.errors, this.queryError);
   }
 
   public async componentWillLoad() {
@@ -193,6 +209,7 @@ export class IbcsChartTime {
     this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
+    this.syncQueryError();
   }
 
   public async componentWillUpdate() {
@@ -214,6 +231,7 @@ export class IbcsChartTime {
     this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
+    this.syncQueryError();
   }
 
   /**
@@ -382,7 +400,8 @@ export class IbcsChartTime {
 
   private prepareConfig(): TimeChartComponentConfig {
     const db = this.getDb();
-    const fromExpr = this.tableName ? buildFromExpr(this.tableName, this.filter) : "";
+    const fromExpr = sourceExpr(db, this.tableName, this.filter);
+    this.measureScaleError = undefined;
     return new TimeChartComponentConfigAdapter(
       new TimeChartDataRowAdapter(),
       new OrderAdapter(new StringAdapter()),
@@ -390,6 +409,9 @@ export class IbcsChartTime {
       new DataFormatDigitsAdapter(),
       db,
       fromExpr,
+      (e) => {
+        this.measureScaleError = errorText(e);
+      },
     ).adapt({
       scenarios: this.scenarios,
       variances: this.variances,

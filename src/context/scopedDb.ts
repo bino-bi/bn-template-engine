@@ -31,6 +31,21 @@ export function buildFromExpr(tableName: string, filter?: string | null): string
 }
 
 /**
+ * True when `name` is registered as a table or a view. A query on a name that
+ * is not registered yet means "no data so far". A failing query on a
+ * registered name is an error.
+ */
+export function isRegistered(db: AlaSQLDatabase, name: string): boolean {
+  // alasql keeps a view in db.tables as well
+  return db.tables?.[name] != null;
+}
+
+/** {@link buildFromExpr} for a registered source, `""` otherwise. The query helpers read `""` as "no data". */
+export function sourceExpr(db: AlaSQLDatabase, tableName: string, filter?: string | null): string {
+  return tableName && isRegistered(db, tableName) ? buildFromExpr(tableName, filter) : "";
+}
+
+/**
  * True when alasql would find a double backtick in `sql`: it runs the text
  * between double backticks as JavaScript. alasql strips comments before it
  * reads the text, so two backticks with only a comment between them count too.
@@ -58,6 +73,13 @@ export interface ScopedDb {
 
   /** True if a view with this name exists in the database. */
   hasView(name: string): boolean;
+
+  /**
+   * Announces a producer of `name` (a dataset or a datasource element). `onShared`
+   * tells every producer of the name whether another one holds it too: they would
+   * overwrite each other's data. Returns the release function.
+   */
+  claim(name: string, onShared: (shared: boolean) => void): () => void;
 }
 
 /** Coerces an unknown value into a Luxon `DateTime`, or `undefined` if it can't be parsed. */
@@ -120,6 +142,7 @@ export function createScopedDb(): ScopedDb {
 
   const db = new alasql.Database();
   const subscribers = new Map<string, Set<() => void>>();
+  const claims = new Map<string, Set<(shared: boolean) => void>>();
 
   return {
     db,
@@ -159,6 +182,19 @@ export function createScopedDb(): ScopedDb {
       // alasql stores views in db.views (separate from db.tables)
       // @ts-ignore - views is not in the public typings
       return db.views?.[name] != null;
+    },
+
+    claim(name: string, onShared: (shared: boolean) => void): () => void {
+      const producers = claims.get(name) ?? new Set();
+      claims.set(name, producers);
+      producers.add(onShared);
+      const tell = () => producers.forEach((cb) => cb(producers.size > 1));
+      tell();
+      return () => {
+        producers.delete(onShared);
+        if (producers.size === 0) claims.delete(name);
+        tell();
+      };
     },
   };
 }

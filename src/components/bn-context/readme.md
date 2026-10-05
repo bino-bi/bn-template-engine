@@ -37,6 +37,25 @@ The locale also sets the number format of tables and charts: `en` prints `1,234.
 
 You can use multiple `<bn-context>` elements on the same page. Each one has its own isolated stores, so datasources and datasets defined in one context are not visible in another.
 
+### Pages
+
+`<bn-context>` numbers its pages by position and writes the number as `page-number` on each `<bn-layout-page>`, or on the `<bn-footer>` of a `<bn-page>`. A `page-number` that the author set is kept. Pages that are added later are numbered too, and a number that gets removed is written again.
+
+The first `<bn-context>` of a document also writes the `@page` rule for printing, see [bn-page](../bn-page/readme.md). Set `render-orientation` (`landscape` or `portrait`) to the orientation the document is printed in: a `<bn-layout-page>` with the other orientation is turned onto the sheet.
+
+### When a page has finished rendering
+
+A tool that prints or captures a page has to know when all components are done. The engine publishes this on `window`, 500 ms after the last component changed its status and after web fonts have loaded:
+
+| Value | Meaning |
+|-------|---------|
+| `window.componentRegisterIsRenderedResult` | `true` when every component has rendered. `false` while one is still working or has failed. |
+| `window.componentRegisterFailures` | The components that threw in `render()`, in a lifecycle hook or in `connectedCallback` (for example an element outside of `<bn-context>`), as `{ tag, id, message }`. Empty while a component is still working. |
+
+Read them like this: the flag is `true`, the page is ready. The failures list is not empty, the page has settled but is broken. Otherwise wait. Each time the values are written, the console also gets the line `componentRegisterIsRendered: <true|false>`.
+
+A `has-error` item on a component is something else: it reports a problem with the input (a wrong attribute, a failing query), and the page still counts as rendered.
+
 <!-- Auto Generated Below -->
 
 

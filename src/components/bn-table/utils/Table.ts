@@ -6,7 +6,7 @@ import { TableComponentConfig } from "./model/TableComponentConfig";
 // import { Order } from "../../../utils/model/Order";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { Order } from "../../../components";
-import { AlaSQLDatabase, buildFromExpr } from "../../../context/scopedDb";
+import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
 import { INTERVAL_NONE, IntervalBucket, queryIntervalBuckets, resolveIntervalGranularity } from "./helper";
 
 /**
@@ -145,21 +145,16 @@ export class Table {
   public setSource(tableName: string, filter: string) {
     this.state = FactoryState.DIRTY;
 
-    if (!tableName) {
-      this.fromExpr = "";
+    // "" while the source is not registered (e.g. the datasource has not loaded yet): treated as empty
+    this.fromExpr = sourceExpr(this.db, tableName, filter);
+    if (!this.fromExpr) {
       this.rowCount = 0;
       return;
     }
 
-    this.fromExpr = buildFromExpr(tableName, filter);
-
-    try {
-      const r = this.db.exec<{ cnt: number }[]>(`SELECT COUNT(*) AS cnt FROM ${this.fromExpr}`);
-      this.rowCount = (r[0]?.cnt ?? 0) as number;
-    } catch (_e) {
-      // Table may not exist yet (e.g. datasource hasn't loaded). Treat as empty.
-      this.rowCount = 0;
-    }
+    // a failure here (e.g. a filter alasql cannot read) is the caller's ERR_sql
+    const r = this.db.exec<{ cnt: number }[]>(`SELECT COUNT(*) AS cnt FROM ${this.fromExpr}`);
+    this.rowCount = (r[0]?.cnt ?? 0) as number;
   }
 
   public update() {

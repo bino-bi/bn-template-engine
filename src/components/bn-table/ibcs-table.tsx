@@ -29,11 +29,12 @@ import { Order, OrderAdapter } from "../../utils/model/Order";
 import { CellBarChart, CellBarChartStyles } from "./utils/elements/CellBarChart";
 import { WaterfallBar } from "./utils/elements/WaterfallBar";
 import { Cell } from "./utils/elements/Cell";
+import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
 import { AutoScalingReport } from "../../utils/scaling";
 import { getStores, ScopedStores } from "../../context/context-protocol";
-import { buildFromExpr } from "../../context/scopedDb";
+import { sourceExpr } from "../../context/scopedDb";
 import { ErrorDispatcher } from "../../utils/withHasError";
 import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "./utils/helper/barColumnGeometry";
 import { NOT_AVAILABLE } from "../../utils/relativeVariance";
@@ -210,6 +211,7 @@ export class IbcsTable {
   private stores: ScopedStores | undefined;
 
   constructor() {
+    withComponentStatus(this);
     this.componentStyle = withComponentStyle(this);
   }
 
@@ -414,12 +416,11 @@ export class IbcsTable {
     if (!this.stores) this.stores = getStores(this.element);
     const db = this.stores.db.db;
 
-    const config: TableComponentConfig = this.prepareConfig(db);
-
     this.componentDataFormatDigits = new DataFormatDigitsAdapter().adapt(
       this.dataFormatDigits as unknown as Record<string, unknown>,
     );
     try {
+      const config: TableComponentConfig = this.prepareConfig(db);
       this.table = new Table(new IBCSRuleSet(this.ruleSetConfig), db, this.tableName, config);
       this.table.setI18n(this.i18n);
       // run the queries now: a failure must end as ERR_sql and no table, not as an exception in render()
@@ -447,13 +448,17 @@ export class IbcsTable {
   }
 
   private prepareConfig(db: import("../../context/scopedDb").AlaSQLDatabase): TableComponentConfig {
-    const fromExpr = this.tableName ? buildFromExpr(this.tableName, this.filter) : "";
+    const fromExpr = sourceExpr(db, this.tableName, this.filter);
     const config = new TableComponentConfigAdapter(
       new TableDrillGroupAdapter(),
       new StringAdapter(),
       new OrderAdapter(new StringAdapter()),
       db,
       fromExpr,
+      // a failed measure-scale query ends in the ERR_sql of componentWillRender
+      (e) => {
+        throw e;
+      },
     ).adapt({
       title: this.sumTitle,
       scenarios: this.scenarios,

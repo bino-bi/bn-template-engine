@@ -157,3 +157,48 @@ describe("bn-chart-time: variance over a scenario that is not drawn", () => {
     expect(errorIds(page)).not.toContain(WARNING);
   });
 });
+
+describe("bn-chart-time: one diagnostic id per boolean prop", () => {
+  it("keeps the item of an invalid prop when another boolean prop is valid", async () => {
+    const page = await renderChart(`show-overlay-avg="maybe" show-overlay-median="true" show-measure-scale="true"`);
+
+    // the three validators shared one id: the last valid one removed the item of the invalid one
+    expect(errorIds(page)).toContain("ERR_showOverlayAvg");
+    expect(errorIds(page)).not.toContain("ERR_showOverlayMedian");
+    expect(errorIds(page)).not.toContain("ERR_showMeasureScale");
+  });
+
+  it("reports every invalid boolean prop under its own id", async () => {
+    const page = await renderChart(`show-overlay-avg="a" show-overlay-median="b" show-measure-scale="c"`);
+
+    expect(errorIds(page)).toEqual(
+      expect.arrayContaining(["ERR_showOverlayAvg", "ERR_showOverlayMedian", "ERR_showMeasureScale"]),
+    );
+    expect(errorIds(page)).not.toContain("ERR_grouped");
+  });
+});
+
+describe("bn-chart-time: scale factors of the theme", () => {
+  const { getStores } = require("../../context/context-protocol");
+  const scaleFactors = (page: SpecPage): Record<string, number> => page.rootInstance.prepareStyle().scaleFactors;
+
+  afterEach(() => {
+    getStores(null).componentStyles.set("_default", undefined);
+  });
+
+  it("uses the default distance between a label and its column", async () => {
+    const page = await renderChart();
+
+    expect(scaleFactors(page).labelToColumn).toBe(0.3);
+  });
+
+  it("takes the distance between a label and its column from the theme", async () => {
+    getStores(null).componentStyles.set("_default", { "bn-chart-time": { scaleFactors: { labelToColumn: 0.9 } } });
+
+    const page = await renderChart();
+
+    // the value was fixed to 0.3 in the component
+    expect(scaleFactors(page).labelToColumn).toBe(0.9);
+    expect(scaleFactors(page)).not.toHaveProperty("labelToColum");
+  });
+});

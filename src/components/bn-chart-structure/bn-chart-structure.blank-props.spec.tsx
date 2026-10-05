@@ -120,3 +120,12 @@ describe("bn-chart-structure: stack colours of the theme", () => {
     expect(innerStackColors(await renderChart())).toEqual(["#000000", "#c0c0c0", "#808080"]);
   });
 });
+
+describe("bn-chart-structure: show-measure-scale diagnostic", () => {
+  it("reports an invalid value under the id of the prop", async () => {
+    const page = await renderChart(`show-measure-scale="maybe"`);
+
+    expect(errorIds(page)).toContain("ERR_showMeasureScale");
+    expect(errorIds(page)).not.toContain("ERR_grouped");
+  });
+});

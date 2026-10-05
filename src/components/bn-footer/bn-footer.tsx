@@ -33,11 +33,11 @@ export class Footer {
   }
 
   /**
-   *  Pagenumber value.
+   *  Page label: a number or any text, e.g. `3` or `A-1`.
    *  Is displayed if displayPageNumber == true
    */
   @Prop({ mutable: true })
-  pageNumber: number | null = null;
+  pageNumber: string | null = null;
 
   /**
    *  Footer text.

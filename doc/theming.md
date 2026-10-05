@@ -57,11 +57,11 @@ Typography settings inherited by all components:
 
 ### Text
 
-Override typography for `<bn-text>` components:
+Override typography for `<bn-text>` components. Every key is optional:
 
 ```json
 {
-  "text": {
+  "bn-text": {
     "fontFamily": "Georgia, serif",
     "fontSizePx": 16,
     "fontColor": "#222222",
@@ -73,29 +73,33 @@ Override typography for `<bn-text>` components:
 
 ### Time Chart
 
-Customize `<bn-chart-time>` appearance:
+Customize `<bn-chart-time>` appearance. The scale factors are multiples of the font size. The example shows the defaults:
 
 ```json
 {
-  "timeChart": {
+  "bn-chart-time": {
     "scaleFactors": {
       "scenarioOffset": 0.3,
+      "scenarioLabelToColumn": 0.3,
+      "labelToColumn": 0.3,
+      "labelToAxis": 0.3,
+      "needleWidth": 0.3,
+      "needleHeadWidth": 0.6,
       "columnWidth": 2.0,
-      "barWidth": 0.8,
-      "chartTitleFontSizeScale": 1.2,
-      "axisLabelFontSizeScale": 0.85,
-      "measureFontSizeScale": 0.85,
-      "varianceFontSizeScale": 0.75,
-      "measureScaleWidth": 3.5,
-      "varianceChartHeightFactor": 0.3,
-      "pinnedScaleMinMaxFactor": 0.05,
-      "overlayAvgWidth": 1.5
+      "varianceAxisLineWidth": 0.3,
+      "axisLineWidth": 0.1,
+      "auxiliaryLineWidth": 0.1,
+      "scenarioLineWidth": 0.2,
+      "markerWidth": 0.7,
+      "markerOffset": 0.0,
+      "categoryWidth": 3.0,
+      "axisTickLength": 0.3
     },
     "axisStyles": {
-      "ac": { "stroke": "#404040" },
-      "fc": { "stroke": "#ffffff" },
-      "pp": { "stroke": "#A6A6A6" },
-      "pl": { "stroke": "#404040" }
+      "ac": { "stroke": "#121212", "fill": "#121212", "width": 0.1 },
+      "fc": { "stroke": "#121212", "fill": "#ffffff", "width": 0.1, "dasharray": "10 5 5 5" },
+      "pp": { "stroke": "#606060", "fill": "#606060", "width": 0.1 },
+      "pl": { "stroke": "#121212", "fill": "#ffffff", "width": 0.1 }
     },
     "barStyles": {
       "ac": { "fill": "#404040", "stroke": "#404040" },
@@ -108,33 +112,43 @@ Customize `<bn-chart-time>` appearance:
       "neg": { "fill": "#ff0000", "stroke": "#ff0000" },
       "neu": { "fill": "#808080", "stroke": "#808080" }
     },
-    "padding": { "top": 10, "left": 0, "right": 10, "bottom": 0 }
+    "stackColors": ["#000000", "#c0c0c0", "#808080"],
+    "padding": { "top": 10, "left": 10, "right": 10, "bottom": 10 }
   }
 }
 ```
 
 ### Structure Chart
 
-Customize `<bn-chart-structure>` appearance. Same structure as time chart but with structure-specific scale factors:
+Customize `<bn-chart-structure>` appearance. It has the same sections as the time chart, with its own scale factors (defaults shown):
 
 ```json
 {
-  "structureChart": {
+  "bn-chart-structure": {
     "scaleFactors": {
       "scenarioOffset": 0.3,
-      "rowHeight": 2.0,
-      "barHeight": 0.8,
-      "chartTitleFontSizeScale": 1.2,
-      "axisLabelFontSizeScale": 0.85,
-      "measureFontSizeScale": 0.85,
-      "varianceFontSizeScale": 0.75,
-      "measureScaleHeight": 3.5,
-      "varianceChartWidthFactor": 0.3,
-      "pinnedScaleMinMaxFactor": 0.05
+      "scenarioLabelToBar": 0.1,
+      "labelToBar": 0.3,
+      "labelToAxis": 0.3,
+      "needleWidth": 0.3,
+      "needleHeadWidth": 0.6,
+      "barWidth": 1.2,
+      "varianceAxisLineWidth": 0.3,
+      "axisLineWidth": 0.1,
+      "auxiliaryLineWidth": 0.1,
+      "scenarioLineWidth": 0.2,
+      "markerWidth": 0.7,
+      "markerOffset": 0.0,
+      "categoryWidth": 1.9,
+      "axisTickLength": 0.3
     }
   }
 }
 ```
+
+### Other charts
+
+`bn-chart-bullet`, `bn-chart-scatter` and `bn-chart-bubble` have a section of their own under their tag name, with `scaleFactors`, `axisStyles` and `padding`. The bullet chart also has `barStyles`, `varianceStyles` and `rangeColors`, the scatter and the bubble chart have `seriesColors`.
 
 ### Tree
 
@@ -142,11 +156,11 @@ Customize `<bn-tree>` edge and operator styling:
 
 ```json
 {
-  "tree": {
+  "bn-tree": {
     "edgeColor": "#404040",
-    "edgeWidth": 1.5,
-    "operatorCircleRadius": 12,
-    "operatorFontSizeScale": 0.85,
+    "edgeWidth": 1,
+    "operatorCircleRadius": 10,
+    "operatorFontSizeScale": 0.9,
     "operatorColor": "#404040"
   }
 }
@@ -154,18 +168,21 @@ Customize `<bn-tree>` edge and operator styling:
 
 ### Grid
 
-Customize `<bn-grid>` borders and headers:
+Customize `<bn-grid>` borders and cell spacing:
 
 ```json
 {
-  "grid": {
-    "headerBackground": "transparent",
+  "bn-grid": {
     "borderColor": "#A6A6A6",
     "borderWidth": 1,
     "cellPadding": 4
   }
 }
 ```
+
+### Unknown keys
+
+A key that is not part of the style is ignored. `<bn-component-style>` reports such keys in its `has-error` attribute as `ERR_keys`, for example `timeChart` (the section is `bn-chart-time`) or a misspelled scale factor. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`.
 
 ## IBCS Default Colors
 
@@ -193,7 +210,7 @@ The built-in system defaults follow IBCS standards:
         "fontFamily": "Inter, sans-serif",
         "fontSizePx": 14
       },
-      "timeChart": {
+      "bn-chart-time": {
         "varianceStyles": {
           "pos": { "fill": "#2e7d32", "stroke": "#2e7d32" },
           "neg": { "fill": "#c62828", "stroke": "#c62828" }

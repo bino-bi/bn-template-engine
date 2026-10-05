@@ -1,3 +1,4 @@
+import { Svg } from "@svgdotjs/svg.js";
 import { TimeChart, tranformToAvgDataModel, tranformToMedianDataModel } from "./TimeChart";
 import { buildTimeChart, timeRow } from "../../../utils/testing/timeChart";
 
@@ -57,5 +58,22 @@ describe("TimeChart: average and median overlay", () => {
 
     expect(overlayValue(tranformToAvgDataModel(model(chart)))).toBeNaN();
     expect(overlayValue(tranformToMedianDataModel(model(chart)))).toBeNaN();
+  });
+});
+
+describe("TimeChart: overlay of a chart without periods", () => {
+  // layout() needs getBBox, which mock-doc lacks: the overlay layer is drawn directly
+  const drawOverlay = (chart: TimeChart) =>
+    (chart as unknown as { drawOverlayLayer(dataModel: Model, svg: Svg): void }).drawOverlayLayer(
+      model(chart),
+      new Svg(),
+    );
+
+  it.each(["showOverlayAvg", "showOverlayMedian"])("draws nothing for a chart with no rows (%s)", (overlay) => {
+    const empty = buildTimeChart([], { scenarios: ["ac1"], dateInterval: "month", [overlay]: true });
+
+    expect(model(empty)).toHaveLength(0);
+    // the overlays read the first and the last period, and the average is on by default
+    expect(() => drawOverlay(empty)).not.toThrow();
   });
 });

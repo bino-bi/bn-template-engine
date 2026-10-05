@@ -81,15 +81,27 @@ export function findLayoutAncestors(element: HTMLElement, mode: string): HTMLEle
 /**
  * Reads `attr` from the nearest of `ancestors` that sets it.
  *
- * An ancestor whose attribute is missing, blank or itself an inheritance
- * keyword (a card that could not resolve its own value) does not set it and
- * is skipped, so a keyword is never handed down as a value.
+ * An ancestor whose attribute is missing, blank or an inheritance keyword it
+ * cannot resolve does not set it and is skipped, so a keyword is never handed
+ * down as a value. A card with `inherited-page` stands for the value of the
+ * page when the page has one: the cards between the two are not asked.
  */
 export function readInherited(ancestors: HTMLElement[], attr: string): string | undefined {
-  for (const ancestor of ancestors) {
+  const own = (ancestor: HTMLElement): string | undefined => {
     const value = ancestor.getAttribute(attr);
     const trimmed = value?.trim();
-    if (!isBlankInput(trimmed) && !isInheritedValue(trimmed)) return value;
+    return !isBlankInput(trimmed) && !isInheritedValue(trimmed) ? value : undefined;
+  };
+
+  for (const ancestor of ancestors) {
+    if (ancestor.getAttribute(attr)?.trim() === INHERITED_PAGE) {
+      const page = ancestors.find((candidate) => candidate.nodeName.toLowerCase() === ANCESTOR_PAGE);
+      const pageValue = page && own(page);
+      if (pageValue !== undefined) return pageValue;
+      continue;
+    }
+    const value = own(ancestor);
+    if (value !== undefined) return value;
   }
   return undefined;
 }

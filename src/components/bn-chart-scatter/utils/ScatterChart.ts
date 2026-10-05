@@ -1,6 +1,7 @@
 import { G, Svg } from "@svgdotjs/svg.js";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
+import { errorText } from "../../../utils/queryError";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
 import { formatXYValue, xyTickDecimals } from "../../../utils/xy/formatXYValue";
@@ -57,6 +58,8 @@ interface PanelContext {
 export class ScatterChart {
   private data: ResolvedXYData;
   private warnings: XYWarningRecord[] = [];
+  /** Text of the query that failed. The component reports it as ERR_sql. */
+  private queryError: string | undefined;
   private canvasHeight: number = 0;
 
   constructor(
@@ -71,7 +74,12 @@ export class ScatterChart {
     this.config = { ...config, x: axisInValueUnits(config.x), y: axisInValueUnits(config.y) };
 
     const adapter = new XYChartDataRowAdapter();
-    const rawRows = fromExpr !== "" ? db.exec<Record<string, unknown>[]>(`SELECT * FROM ${fromExpr}`) : [];
+    let rawRows: Record<string, unknown>[] = [];
+    try {
+      if (fromExpr !== "") rawRows = db.exec<Record<string, unknown>[]>(`SELECT * FROM ${fromExpr}`);
+    } catch (e) {
+      this.queryError = errorText(e);
+    }
     const rows = (rawRows ?? []).map((row) => adapter.adapt(row));
 
     this.data = resolveXYData(rows, {
@@ -145,6 +153,10 @@ export class ScatterChart {
   /** Warnings collected during data resolution and drawing (§8 codes). */
   public getWarnings(): XYWarningRecord[] {
     return this.warnings;
+  }
+
+  public getQueryError(): string | undefined {
+    return this.queryError;
   }
 
   public getAllocatedCanvasWidth(): number {
