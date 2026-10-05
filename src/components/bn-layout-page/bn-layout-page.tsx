@@ -374,13 +374,6 @@ export class LayoutPage {
     return this.extractSlotNames(template).length;
   }
 
-  componentDidRender() {
-    // bn-context reads the paper size of the document from these attributes and watches them.
-    // Written by hand: the reflection of Stencil skips an attribute that was in the markup at the first render.
-    this.mirror("page-format", this.pageFormat);
-    this.mirror("page-orientation", this.pageOrientation);
-  }
-
   private mirror(attribute: string, value: string | null | undefined): void {
     if (value == null) {
       if (this.element.hasAttribute(attribute)) this.element.removeAttribute(attribute);
@@ -390,6 +383,12 @@ export class LayoutPage {
   }
 
   componentWillRender() {
+    // bn-context reads the paper size of the document from these attributes and watches them.
+    // Written by hand: the reflection of Stencil skips an attribute that was in the markup at the first render.
+    // Before the render, not after it: the first componentDidRender waits for every component inside the page.
+    this.mirror("page-format", this.pageFormat);
+    this.mirror("page-orientation", this.pageOrientation);
+
     const problem = this.pageLayout === CUSTOM_TEMPLATE ? templateProblem(this.pageCustomTemplate) : undefined;
     if (problem) {
       this.errors.addOrReplace({
