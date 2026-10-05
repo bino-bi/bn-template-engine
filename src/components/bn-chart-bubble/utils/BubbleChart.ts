@@ -1,15 +1,15 @@
 import { Container, G, Svg } from "@svgdotjs/svg.js";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
-import { Formatter } from "../../../utils/formatter";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { getContrastTextColor } from "../../../utils/stackColors";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
+import { formatXYValue, xyTickDecimals } from "../../../utils/xy/formatXYValue";
 import { NumericScale } from "../../../utils/xy/NumericScale";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
 import { markTreatment, MarkTreatment, resolveSeriesColor, shade } from "../../../utils/xy/SeriesPalette";
 import { RadiusScale } from "../../../utils/xy/RadiusScale";
-import { resolveMeasure } from "../../../utils/xy/VarianceMeasure";
+import { axisInValueUnits, isRelativeMeasure, resolveMeasure } from "../../../utils/xy/VarianceMeasure";
 import { XYFrame } from "../../../utils/xy/XYFrame";
 import { LegendEntry, LegendModel, XYLegend } from "../../../utils/xy/XYLegend";
 import {
@@ -99,6 +99,9 @@ export class BubbleChart {
     public readonly styles: XYChartStyle,
     private readonly availableWidth: number,
   ) {
+    // a relative variance axis is written in percent, its values are fractions
+    this.config = { ...config, x: axisInValueUnits(config.x), y: axisInValueUnits(config.y) };
+
     const adapter = new XYChartDataRowAdapter();
     const rawRows = fromExpr !== "" ? db.exec<Record<string, unknown>[]>(`SELECT * FROM ${fromExpr}`) : [];
     const rows = (rawRows ?? []).map((row) => adapter.adapt(row));
@@ -115,8 +118,8 @@ export class BubbleChart {
       },
       compareFamily: config.compareFamily,
       domains: {
-        x: { min: config.x.min, max: config.x.max },
-        y: { min: config.y.min, max: config.y.max },
+        x: { min: this.config.x.min, max: this.config.x.max },
+        y: { min: this.config.y.min, max: this.config.y.max },
       },
       limit: config.limit,
       limitBy: "size",
@@ -126,6 +129,21 @@ export class BubbleChart {
 
   private get em(): number {
     return this.styles.fontStyles.size;
+  }
+
+  /** The x axis holds a relative variance and is labelled in percent. */
+  private get xPercent(): boolean {
+    return isRelativeMeasure(this.config.x.measure);
+  }
+
+  /** The y axis holds a relative variance and is labelled in percent. */
+  private get yPercent(): boolean {
+    return isRelativeMeasure(this.config.y.measure);
+  }
+
+  /** The bubble size is a relative variance and its value label is in percent. */
+  private get sizePercent(): boolean {
+    return isRelativeMeasure(this.config.size.measure);
   }
 
   private fontFamily(): string {
@@ -223,26 +241,24 @@ export class BubbleChart {
       }
     }
 
-    const firstHue = this.seriesHue(0);
     const compareEntries: LegendEntry[] = [];
     if (this.config.compareFamily !== null) {
       const primaryRef = resolveMeasure(this.config.size.measure);
       const primaryFamily =
         primaryRef !== null && primaryRef.kind === "scenario" ? primaryRef.slot.replace(/\d+$/, "") : "ac";
-      compareEntries.push({
-        label: this.familyDisplayName(this.config.compareFamily),
-        treatment: markTreatment(this.compareColorIndex(), firstHue, "bubble"),
-      });
-      compareEntries.push({
-        label: this.familyDisplayName(primaryFamily),
-        treatment: markTreatment(this.primaryColorIndex(), firstHue, "bubble"),
-      });
+      compareEntries.push(
+        this.legendEntry(this.familyDisplayName(this.config.compareFamily), this.compareColorIndex(), 0),
+      );
+      compareEntries.push(this.legendEntry(this.familyDisplayName(primaryFamily), this.primaryColorIndex(), 0));
     }
 
-    const entries: LegendEntry[] = this.data.series.map((series) => ({
-      label: series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
-      treatment: markTreatment(this.primaryColorIndex(), this.seriesHue(series.index), "bubble"),
-    }));
+    const entries: LegendEntry[] = this.data.series.map((series) =>
+      this.legendEntry(
+        series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
+        this.primaryColorIndex(),
+        series.index,
+      ),
+    );
 
     return {
       sizeCaption,
@@ -250,6 +266,14 @@ export class BubbleChart {
       compareEntries,
       entries,
     };
+  }
+
+  /** A legend row whose swatch has the fill of the bubbles it stands for: hatched for forecast. */
+  private legendEntry(label: string, colorIndex: number, seriesIndex: number): LegendEntry {
+    const hue = this.seriesHue(seriesIndex);
+    const treatment = markTreatment(colorIndex, hue, "bubble");
+
+    return { label, treatment, fill: this.treatmentFill(treatment, seriesIndex, hue) };
   }
 
   public toString(): string {
@@ -331,8 +355,11 @@ export class BubbleChart {
       const yScale = new NumericScale(yDomain[0], yDomain[1], panelH, 0);
       ticksY = yScale.ticks(targetY);
 
-      const yDecimals = NumericScale.tickDecimals(ticksY);
-      const maxTickW = Math.max(...ticksY.map((tick) => this.textWidth(this.formatTick(tick, yDecimals))), em);
+      const yDecimals = xyTickDecimals(ticksY, this.yPercent);
+      const maxTickW = Math.max(
+        ...ticksY.map((tick) => this.textWidth(formatXYValue(tick, yDecimals, this.styles.locale, this.yPercent))),
+        em,
+      );
       axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em;
     }
 
@@ -353,8 +380,8 @@ export class BubbleChart {
 
     const panels = this.buildPanels(grid!, xDomain, yDomain);
     const ticksX = panels[0].xScale.ticks(Math.max(3, Math.min(8, Math.round(panels[0].rect.width / (7 * em)))));
-    const xDecimals = NumericScale.tickDecimals(ticksX);
-    const yDecimals = NumericScale.tickDecimals(ticksY);
+    const xDecimals = xyTickDecimals(ticksX, this.xPercent);
+    const yDecimals = xyTickDecimals(ticksY, this.yPercent);
 
     const radiusScale =
       this.config.sizeAreaPerUnit > 0
@@ -570,6 +597,8 @@ export class BubbleChart {
       ticksY,
       xDecimals,
       yDecimals,
+      xPercent: this.xPercent,
+      yPercent: this.yPercent,
       showXLabels: isOuterBottom,
       showYLabels: isOuterLeft,
     });
@@ -628,14 +657,14 @@ export class BubbleChart {
 
   /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. */
   private drawValueLabel(group: G, cx: number, cy: number, r: number, value: number, fill: string): void {
-    const text = Formatter.number(value, "decimal", 1, 1, 1, this.styles.locale);
+    const text = formatXYValue(value, this.valueDecimals(), this.styles.locale, this.sizePercent);
     const width = this.textWidth(text);
     if (width + 0.4 * this.em > 2 * r) {
       return;
     }
     this.drawText(group, text, cx, cy + 0.35 * this.em, {
       anchor: "middle",
-      color: getContrastTextColor(fill.startsWith("#") ? fill : "#ffffff"),
+      color: getContrastTextColor(fill),
     });
   }
 
@@ -668,7 +697,20 @@ export class BubbleChart {
     }
   }
 
-  private formatTick(value: number, decimals: number): string {
-    return Formatter.number(value, "decimal", decimals, decimals, 1, this.styles.locale);
+  /** Decimals of the value labels: three significant digits of the largest value (32,0 and 0,0320). */
+  private valueDecimals(): number {
+    let largest = 0;
+    for (const facet of this.data.facets) {
+      for (const point of facet.points) {
+        largest = Math.max(largest, Math.abs(point.size ?? 0), Math.abs(point.compare?.size ?? 0));
+      }
+    }
+    if (!(largest > 0) || !Number.isFinite(largest)) {
+      return 1;
+    }
+    if (this.sizePercent) {
+      largest *= 100;
+    }
+    return NumericScale.stepDecimals(Math.pow(10, Math.floor(Math.log10(largest)) - 2));
   }
 }

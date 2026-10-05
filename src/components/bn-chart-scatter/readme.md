@@ -21,6 +21,10 @@ variance tokens (`dac1_pp1`, `drac1_pl1` - the sentiment suffix is optional
 on axes). All plain scenario measures must share one scenario family; the
 family selects the IBCS mark treatment through the rule set.
 
+An axis with a relative variance (`dr…`) is in percent. Its ticks print
+`20%`, and `min`, `max`, `refLine` and `highlight` are written in percent:
+`x='{"measure":"drac1_pp1","min":-40,"max":40,"refLine":0}'`.
+
 ## Iso-lines and highlight bands (09A-09D)
 
 ```html

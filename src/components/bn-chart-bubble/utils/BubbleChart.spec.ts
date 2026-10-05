@@ -168,7 +168,57 @@ describe("BubbleChart", () => {
     });
   });
 
+  describe("legend swatches", () => {
+    const circleFills = (family: string): string[] => {
+      const chart = makeChart(
+        [row({ [`${family}1`]: 0.3, [`${family}2`]: 0.1, [`${family}3`]: 32 })],
+        baseConfig({ x: { measure: `${family}1` }, y: { measure: `${family}2` }, size: { measure: `${family}3` } }),
+      );
+      // the bubble and the legend swatch of its series
+      return [...chart.toString().matchAll(/<circle[^>]* fill="([^"]+)"/g)].map((match) => match[1]);
+    };
+
+    it("hatches the swatch of a forecast series like its bubbles", () => {
+      // the swatch was plain white, the same as for plan
+      expect(circleFills("fc")).toEqual(["url(#xy-fc-0)", "url(#xy-fc-0)"]);
+    });
+
+    it("keeps the swatch of a plan series white", () => {
+      expect(circleFills("pl")).toEqual(["#ffffff", "#ffffff"]);
+    });
+  });
+
+  describe("relative variance measures", () => {
+    // drac1_pp1: -20 %, 0 % and +20 %. drac3_pp3 of the first row: (32 - 29) / 29 = 10,3 %
+    const rows = [
+      row({ subCategory: "down", subCategoryIndex: 1, ac1: 80, pp1: 100 }),
+      row({ subCategory: "flat", subCategoryIndex: 2, ac1: 100, pp1: 100 }),
+      row({ subCategory: "up", subCategoryIndex: 3, ac1: 120, pp1: 100 }),
+    ];
+
+    it("prints the ticks of a relative variance axis in percent", () => {
+      const svg = makeChart(rows, baseConfig({ x: { measure: "drac1_pp1", min: -40, max: 40 } })).toString();
+
+      expect(svg).toContain(">-40%</tspan>");
+      expect(svg).toContain(">20%</tspan>");
+      expect(svg).not.toContain(">0,20</tspan>");
+    });
+
+    it("prints a relative variance as bubble value in percent", () => {
+      const svg = makeChart([row()], baseConfig({ size: { measure: "drac3_pp3" } })).toString();
+
+      // was 0,1
+      expect(svg).toContain(">10,3%</tspan>");
+    });
+  });
+
   describe("value labels", () => {
+    it("prints three significant digits of the largest value", () => {
+      // was 0,0
+      expect(makeChart([row({ ac3: 0.032 })]).toString()).toContain(">0,0320</tspan>");
+      expect(makeChart([row({ ac3: 1234567 })]).toString()).toContain(">1.234.567</tspan>");
+    });
+
     it("hides the value when the bubble is too small to contain it", () => {
       const chart = makeChart(
         [row(), row({ subCategory: "tiny", subCategoryIndex: 2, ac3: 0.0001 })],

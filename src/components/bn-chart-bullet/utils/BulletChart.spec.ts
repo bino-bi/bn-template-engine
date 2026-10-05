@@ -147,6 +147,90 @@ describe("BulletChart", () => {
     expect(barWidths(chart.toString())).toHaveLength(1);
   });
 
+  describe("operation sign and negative actuals", () => {
+    const values = (chart: BulletChart): [number | null, number | null][] =>
+      (chart as unknown as { rows: { actual: number | null; target: number | null }[] }).rows.map((entry) => [
+        entry.actual,
+        entry.target,
+      ]);
+    const codes = (chart: BulletChart): string[] => chart.getWarnings().map((warning) => warning.code);
+    const count = (chart: BulletChart, code: string): string | undefined =>
+      chart.getWarnings().find((warning) => warning.code === code)?.data.count;
+
+    it("subtracts the '-' rows of a KPI group that mixes '+' and '-' rows", () => {
+      // revenue 100 and cost 30 in one group: 70, not 130
+      const chart = makeChart([row({ ac1: 100, pl1: 90 }), row({ operation: "-", ac1: 30, pl1: 25 })]);
+
+      expect(values(chart)).toEqual([[70, 65]]);
+      expect(count(chart, "bullet-mixed-operation")).toBe("1");
+    });
+
+    it("keeps the positive value of a group with only '-' rows", () => {
+      const chart = makeChart([row({ operation: "-", ac1: 30, pl1: 25 }), row({ operation: "-", ac1: 50, pl1: 40 })]);
+
+      expect(values(chart)).toEqual([[80, 65]]);
+      expect(codes(chart)).not.toContain("bullet-mixed-operation");
+    });
+
+    it.each(["target", "none"] as const)("names a negative actual in its own warning (normalize %s)", (normalize) => {
+      const chart = makeChart(
+        [row(), row({ category: "Profit", categoryIndex: 2, ac1: -20, pl1: 100 })],
+        baseConfig({ normalize }),
+      );
+
+      expect(count(chart, "bullet-actual-negative")).toBe("1");
+      // the target of 100 is fine: this is not a target problem
+      expect(codes(chart)).not.toContain("bullet-target-invalid");
+      // only the first row has a bar
+      expect(barWidths(chart.toString())).toHaveLength(1);
+    });
+
+    it("sorts and limits by the net value that a mixed group shows", () => {
+      const rows = [
+        row({ category: "Result", categoryIndex: 1, ac1: 100, pl1: 100 }),
+        row({ category: "Result", categoryIndex: 1, operation: "-", ac1: 30, pl1: 30 }),
+        row({ category: "Orders", categoryIndex: 2, ac1: 100, pl1: 100 }),
+        row({ category: "Sales", categoryIndex: 3, ac1: 120, pl1: 120 }),
+      ];
+      const sorted = (limit: number): [string, number | null][] =>
+        (
+          makeChart(rows, baseConfig({ order: new Order(["ac1"], OrderDirection.DESC), limit })) as unknown as {
+            rows: { category: string; actual: number | null }[];
+          }
+        ).rows.map((entry) => [entry.category, entry.actual]);
+
+      // Result was sorted with the plain sum 130 and shown as 70
+      expect(sorted(0)).toEqual([
+        ["Sales", 120],
+        ["Orders", 100],
+        ["Result", 70],
+      ]);
+      expect(sorted(2)).toEqual([
+        ["Sales", 120],
+        ["Orders", 100],
+      ]);
+    });
+
+    it("takes a net value that is 0 up to float rounding as 0", () => {
+      // 0.3 - 0.1 - 0.2 is -2.8e-17
+      const chart = makeChart([
+        row({ ac1: 0.3, pl1: 1 }),
+        row({ operation: "-", ac1: 0.1, pl1: 0 }),
+        row({ operation: "-", ac1: 0.2, pl1: 0 }),
+      ]);
+
+      expect(values(chart)).toEqual([[0, 1]]);
+      expect(codes(chart)).not.toContain("bullet-actual-negative");
+    });
+
+    it("counts a mixed group with a negative net value as negative actual", () => {
+      const chart = makeChart([row({ ac1: 10, pl1: 100 }), row({ operation: "-", ac1: 30, pl1: 20 })]);
+
+      expect(values(chart)).toEqual([[-20, 80]]);
+      expect(count(chart, "bullet-actual-negative")).toBe("1");
+    });
+  });
+
   it("warns on mixed '+'/'-' operations within one KPI group", () => {
     const chart = makeChart([row(), row({ operation: "-" })]);
     const warning = chart.getWarnings().find((w) => w.code === "bullet-mixed-operation");

@@ -4,6 +4,7 @@ import { ComponentLayoutState, LayoutStateOptions, collectXYFacadeState, origins
 import { globalLabelKeys } from "../../stores/internationalization";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { getParentDimensions } from "../../utils/parentDimensions";
+import { checkXYOverflow } from "../../utils/xy/checkXYOverflow";
 import { LayoutObserverHandle, observeParentResize } from "../../utils/layoutObserver";
 import { parseScaling } from "../../utils/scaling";
 import { isBlankInput, isValidInteger, isValidMeasureToken } from "../../utils/validate";
@@ -118,7 +119,9 @@ export class ChartBubble {
   /**
    * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as
    * shorthand: `{"measure":"ac1","label":"Market attractiveness",
-   * "refLine":0.5}`.
+   * "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent:
+   * the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are
+   * written in percent too (`20` for 20 %).
    */
   @Prop() x!: string;
   @Watch("x")
@@ -360,28 +363,22 @@ export class ChartBubble {
 
     if (mode !== "auto" && mode !== "empty") {
       this._autoScaleGuard = false;
-      const parent = getParentDimensions(this.element);
-      const errId = "WARN_overflow";
-      if (parent.width > 0 && this.element.scrollWidth > parent.width + 1) {
-        this.errors.addOrReplace({
-          id: errId,
-          type: "warning",
-          message: "Chart exceeds available space and will be cut off. Check the scale value.",
-        });
-      } else {
-        this.errors.remove(errId);
-      }
+      this.checkOverflow();
       return;
     }
 
     if (this._autoScaleGuard) {
       this._autoScaleGuard = false;
+      this.checkOverflow();
       return;
     }
 
     const host = this.element;
     const { width: parentWidth } = getParentDimensions(host);
-    if (parentWidth <= 0) return;
+    if (parentWidth <= 0) {
+      this.checkOverflow();
+      return;
+    }
 
     this._lastObservedWidth = parentWidth;
 
@@ -392,12 +389,15 @@ export class ChartBubble {
 
     if (!Number.isFinite(currentWidth) || currentWidth <= parentWidth + 1) {
       this.errors.remove("AUTO_scale");
+      this.checkOverflow();
       return;
     }
 
     const computedFactor = Math.max(0.3, (currentFactor * (parentWidth - 1)) / currentWidth);
 
     if (Math.abs(computedFactor - currentFactor) < 0.01) {
+      // Converged (possibly at the 0.3 floor) but still too wide - report it.
+      this.checkOverflow();
       return;
     }
 
@@ -417,6 +417,13 @@ export class ChartBubble {
     writeTask(() => {
       this.appliedScaleFactor = computedFactor;
     });
+
+    // The follow-up render checks again in the guard branch.
+    this.checkOverflow();
+  }
+
+  private checkOverflow(): void {
+    checkXYOverflow(this.element, "ibcs-chart-bubble", this.errors);
   }
 
   componentDidLoad() {
@@ -427,6 +434,9 @@ export class ChartBubble {
       if (width > 0 && Math.abs(width - this._lastObservedWidth) > 2) {
         this._lastObservedWidth = width;
         forceUpdate(this);
+      } else {
+        // only the height of the parent changed: the chart keeps its size, what is cut off may differ
+        this.checkOverflow();
       }
     });
 

@@ -50,12 +50,17 @@ default normalized mode.
   `operation` column: `"-"` marks cost-type KPIs, inverting the sentiment
   (actual below a cost target is favorable).
 - Rows are aggregated with a plain `SUM` per level value (no
-  operation-driven sign flip), so cost KPIs show positive magnitudes;
-  `limit` truncates to the first N rows - there is no REST aggregate,
+  operation-driven sign flip), so cost KPIs show positive magnitudes.
+  A level value that mixes `"+"` and `"-"` rows is a net value: its `"-"`
+  rows are subtracted (revenue 100 and cost 30 give 70), the sentiment is
+  `"+"` and the warning `WARN_bullet-mixed-operation` is set.
+- `limit` truncates to the first N rows - there is no REST aggregate,
   summing heterogeneous KPIs would be meaningless.
 - Rows whose target is missing or not positive cannot be normalized and
   render as label + value only (with a warning); without any target
   scenario the chart falls back to plain actual bars.
+- A negative actual value has no bar: the row shows its value as text and
+  the warning `WARN_bullet-actual-negative` is set.
 
 <!-- Auto Generated Below -->
 

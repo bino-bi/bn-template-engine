@@ -100,3 +100,60 @@ describe("bn-chart-time: omitted optional props", () => {
     expect(errorIds(page)).toContain("ERR_dateInterval");
   });
 });
+
+describe("bn-chart-time: interval-span-limit", () => {
+  // the unregistered inner element gets number props as attributes
+  const innerLimit = (page: SpecPage): number =>
+    Number(page.root!.shadowRoot!.querySelector("ibcs-chart-time")!.getAttribute("intervalSpanLimit"));
+
+  it("passes a positive limit on", async () => {
+    const page = await renderChart(`interval-span-limit="12"`);
+
+    expect(innerLimit(page)).toBe(12);
+  });
+
+  it.each(["0", "-3", "many"])("falls back to 28 for '%s'", async (value) => {
+    const page = await renderChart(`interval-span-limit="${value}"`);
+
+    expect(innerLimit(page)).toBe(28);
+  });
+});
+
+describe("bn-chart-time: variance over a scenario that is not drawn", () => {
+  const WARNING = "WARN_variances_scenario";
+
+  const renderVariances = (scenarios: string, variances: string): Promise<SpecPage> =>
+    newSpecPage({
+      components: [Chart],
+      html: `<bn-chart-time scenarios="${scenarios}" variances="${variances}" scale="none"></bn-chart-time>`,
+    });
+
+  const warning = (page: SpecPage): { type: string; message: string } | undefined =>
+    (JSON.parse(page.root!.getAttribute("has-error") ?? "[]") as { id?: string; type: string; message: string }[]).find(
+      (item) => item.id === WARNING,
+    );
+
+  it("warns and names the variance and the missing scenario", async () => {
+    const page = await renderVariances("ac1,pp1", "dac1_pl1_pos");
+
+    expect(warning(page)?.type).toBe("warning");
+    expect(warning(page)?.message).toContain("dac1_pl1_pos");
+    expect(warning(page)?.message).toContain("'pl1'");
+    expect(warning(page)?.message).not.toContain("'ac1'");
+  });
+
+  it("does not warn when both scenarios are drawn", async () => {
+    const page = await renderVariances("ac1,pp1", "dac1_pp1_pos,drac1_pp1_pos");
+
+    expect(errorIds(page)).not.toContain(WARNING);
+  });
+
+  it("removes the warning when the scenario is added", async () => {
+    const page = await renderVariances("ac1,pp1", "dac1_pl1_pos");
+
+    page.root!.setAttribute("scenarios", "ac1,pp1,pl1");
+    await page.waitForChanges();
+
+    expect(errorIds(page)).not.toContain(WARNING);
+  });
+});

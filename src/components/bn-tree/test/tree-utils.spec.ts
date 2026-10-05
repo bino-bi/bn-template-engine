@@ -1,6 +1,13 @@
 import { parseTreeConfig, validateEdges, getOperatorSymbol, getEdgeForChild } from "../utils/TreeParser";
-import { calculateLayout, getActualGridColumn, getActualGridRow, getActualGridRowSpan } from "../utils/TreeLayout";
 import {
+  calculateLayout,
+  getActualGridColumn,
+  getActualGridColumnSpan,
+  getActualGridRow,
+  getActualGridRowSpan,
+} from "../utils/TreeLayout";
+import {
+  calculateBend,
   generateEdgePath,
   getConnectionPoint,
   getMultiParentConnectionPoint,
@@ -88,6 +95,35 @@ describe("TreeParser", () => {
     it("should return error for multiple roots", () => {
       const errors = validateEdges('[{"from":"a","to":"c"},{"from":"b","to":"d"}]');
       expect(errors.some((e) => e.includes("multiple root nodes"))).toBe(true);
+    });
+
+    it.each([
+      ["a cycle below the root", '[{"from":"root","to":"a"},{"from":"a","to":"b"},{"from":"b","to":"a"}]'],
+      ["an edge from a node to itself", '[{"from":"root","to":"a"},{"from":"a","to":"a"}]'],
+    ])("should return an error for %s and lay it out without a crash", (_name, json) => {
+      const errors = validateEdges(json);
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain("circular reference");
+      expect(errors[0]).toContain("'a'");
+      // the layout must end even if it gets such a tree
+      expect(() => calculateLayout(parseTreeConfig(json)!, "ltr", 40, 20)).not.toThrow();
+    });
+
+    it("should return an error for nodes that are not connected to the root", () => {
+      const errors = validateEdges('[{"from":"root","to":"a"},{"from":"b","to":"c"},{"from":"c","to":"b"}]');
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain("not connected to the root");
+      expect(errors[0]).toContain("b, c");
+    });
+
+    it("should accept a node with two parents", () => {
+      expect(
+        validateEdges(
+          '[{"from":"root","to":"a"},{"from":"root","to":"b"},{"from":"a","to":"c"},{"from":"b","to":"c"}]',
+        ),
+      ).toEqual([]);
     });
 
     it("should return empty array for valid edges", () => {
@@ -190,7 +226,58 @@ describe("TreeLayout", () => {
     });
   });
 
+  describe("vertical directions", () => {
+    const json =
+      '[{"from":"root","to":"a"},{"from":"root","to":"b"},{"from":"root","to":"c"},{"from":"a","to":"a1"},{"from":"a","to":"a2"}]';
+
+    it.each(["ttb", "btt"] as const)("should span a parent over the columns of its children for %s", (direction) => {
+      const layout = calculateLayout(parseTreeConfig(json)!, direction, 40, 20);
+      const span = (node: string): [number, number] => [
+        layout.positions.get(node)!.gridColumn,
+        layout.positions.get(node)!.gridColumnSpan,
+      ];
+
+      // leaves a1, a2, b, c take the columns 1 to 4
+      expect(span("root")).toEqual([1, 4]);
+      expect(span("a")).toEqual([1, 2]);
+      expect(span("b")).toEqual([3, 1]);
+      expect(span("c")).toEqual([4, 1]);
+    });
+
+    it.each(["ttb", "btt"] as const)(
+      "should not span parents that share a child for %s, their spans would overlap",
+      (direction) => {
+        // ros and ct both lead to revenue
+        const shared =
+          '[{"from":"roi","to":"ros"},{"from":"roi","to":"ct"},{"from":"ros","to":"profit"},{"from":"ros","to":"revenue"},{"from":"ct","to":"revenue"},{"from":"ct","to":"capital"}]';
+        const layout = calculateLayout(parseTreeConfig(shared)!, direction, 40, 20);
+        const span = (node: string): [number, number] => [
+          layout.positions.get(node)!.gridColumn,
+          layout.positions.get(node)!.gridColumnSpan,
+        ];
+
+        // each in the column of its first child, as before
+        expect(span("ros")).toEqual([1, 1]);
+        expect(span("ct")).toEqual([2, 1]);
+        // the root is alone in its level
+        expect(span("roi")).toEqual([1, 3]);
+      },
+    );
+
+    it("should keep one column per node for ltr", () => {
+      const layout = calculateLayout(parseTreeConfig(json)!, "ltr", 40, 20);
+
+      expect(layout.positions.get("root")!.gridColumnSpan).toBe(1);
+      expect(layout.positions.get("root")!.gridRowSpan).toBe(4);
+    });
+  });
+
   describe("grid helpers", () => {
+    it("should calculate actual grid column span with spacers", () => {
+      expect(getActualGridColumnSpan(1)).toBe(1);
+      expect(getActualGridColumnSpan(3)).toBe(5);
+    });
+
     it("should calculate actual grid column with spacers", () => {
       expect(getActualGridColumn(1)).toBe(1);
       expect(getActualGridColumn(2)).toBe(3);
@@ -302,31 +389,100 @@ describe("EdgeRenderer", () => {
     });
   });
 
-  describe("calculateOperatorPosition", () => {
-    // Parent is at x=0, children are at x=200 (with 100px gap between)
-    const parentRect = { left: 0, top: 50, width: 100, height: 50, centerX: 50, centerY: 75 };
-    const sibling1Rect = { left: 200, top: 0, width: 100, height: 50, centerX: 250, centerY: 25 };
-    const sibling2Rect = { left: 200, top: 100, width: 100, height: 50, centerX: 250, centerY: 125 };
+  describe("calculateBend and calculateOperatorPosition", () => {
+    // Parent is at x=0, three children are at x=200 (with 100px gap between)
+    const parentRect = { left: 0, top: 100, width: 100, height: 50, centerX: 50, centerY: 125 };
+    const child1 = { left: 200, top: 0, width: 100, height: 50, centerX: 250, centerY: 25 };
+    const child2 = { left: 200, top: 100, width: 100, height: 50, centerX: 250, centerY: 125 };
+    const child3 = { left: 200, top: 200, width: 100, height: 50, centerX: 250, centerY: 225 };
+    const children = [child1, child2, child3];
 
-    it("should position operator at T-junction with 70% bend ratio for ltr", () => {
-      const pos = calculateOperatorPosition(parentRect, sibling1Rect, sibling2Rect, "ltr");
-      // midX = parentRight + (childrenLeft - parentRight) * 0.7 = 100 + (200 - 100) * 0.7 = 170
-      expect(pos.x).toBe(170);
-      // Y at parent's centerY (T-junction) = 75
-      expect(pos.y).toBe(75);
+    /** The same tree turned so that the level axis runs along `direction`. */
+    const turned = (rect: typeof parentRect, direction: "ltr" | "rtl" | "ttb" | "btt") => {
+      const left = direction === "rtl" ? 300 - rect.left - rect.width : rect.left;
+      const flipped = { ...rect, left, centerX: left + rect.width / 2 };
+      if (direction === "ltr" || direction === "rtl") {
+        return flipped;
+      }
+      // swap the axes; btt is the mirrored one
+      const source = direction === "btt" ? turned(rect, "rtl") : rect;
+      return {
+        left: source.top,
+        top: source.left,
+        width: source.height,
+        height: source.width,
+        centerX: source.centerY,
+        centerY: source.centerX,
+      };
+    };
+
+    it("should bend 70% of the way from the parent to the nearest child for ltr", () => {
+      // 100 + (200 - 100) * 0.7
+      expect(calculateBend(parentRect, children, "ltr")).toBe(170);
     });
 
-    it("should position operator at T-junction with 70% bend ratio for rtl", () => {
-      // For RTL, parent would be on the right
-      const rtlParent = { left: 300, top: 50, width: 100, height: 50, centerX: 350, centerY: 75 };
-      const rtlSibling1 = { left: 100, top: 0, width: 100, height: 50, centerX: 150, centerY: 25 };
-      const rtlSibling2 = { left: 100, top: 100, width: 100, height: 50, centerX: 150, centerY: 125 };
+    it("should take the nearest child when the children start at different places", () => {
+      const wide = { ...child2, left: 150, width: 150 };
 
-      const pos = calculateOperatorPosition(rtlParent, rtlSibling1, rtlSibling2, "rtl");
-      // midX = childrenRight + (parentLeft - childrenRight) * 0.7 = 200 + (300 - 200) * 0.7 = 270
-      expect(pos.x).toBe(270);
-      // Y at parent's centerY = 75
-      expect(pos.y).toBe(75);
+      // 100 + (150 - 100) * 0.7
+      expect(calculateBend(parentRect, [child1, wide, child3], "ltr")).toBe(135);
+    });
+
+    it.each([
+      ["ltr", 170],
+      ["rtl", 130],
+      ["ttb", 170],
+      ["btt", 130],
+    ] as const)("should put the bend of %s on the side of the parent", (direction, expected) => {
+      const rects = children.map((child) => turned(child, direction));
+
+      // rtl and btt were mirrored: they bent 30% of the way
+      expect(calculateBend(turned(parentRect, direction), rects, direction)).toBe(expected);
+    });
+
+    it("should leave a child out of the bend that is not ahead of the parent", () => {
+      // a child with a second parent can sit in the level of this parent
+      const beside = { left: 0, top: 300, width: 100, height: 50, centerX: 50, centerY: 325 };
+
+      // the bend was inside the parent box
+      expect(calculateBend(parentRect, [beside, child1], "ltr")).toBe(170);
+    });
+
+    it("should have no bend when no child is ahead of the parent", () => {
+      const beside = { left: 0, top: 300, width: 100, height: 50, centerX: 50, centerY: 325 };
+
+      expect(calculateBend(parentRect, [beside], "ltr")).toBeUndefined();
+    });
+
+    it("should bend every edge of a parent at the bend of the parent", () => {
+      const start = getConnectionPoint(parentRect, true, "ltr");
+      const wide = { ...child2, left: 150, width: 150 };
+      const bend = calculateBend(parentRect, [child1, wide, child3], "ltr");
+
+      for (const child of [child1, wide, child3]) {
+        const { path } = generateEdgePath(start, getConnectionPoint(child, false, "ltr"), "orthogonal", "ltr", bend);
+        expect(path).toContain(`L ${bend} ${start.y} L ${bend} ${child.centerY}`);
+      }
+    });
+
+    it("should put the operators of three siblings between each pair, on the bus", () => {
+      const first = calculateOperatorPosition(170, child1, child2, "ltr");
+      const second = calculateOperatorPosition(170, child2, child3, "ltr");
+
+      // both were drawn on the same spot, at the centre of the parent
+      expect(first).toEqual({ x: 170, y: 75 });
+      expect(second).toEqual({ x: 170, y: 175 });
+    });
+
+    it("should put the operator of two siblings where the parent meets the bus", () => {
+      expect(calculateOperatorPosition(170, child1, child3, "ltr")).toEqual({ x: 170, y: parentRect.centerY });
+    });
+
+    it("should put the operators along the bus for ttb", () => {
+      const [first, second, third] = children.map((child) => turned(child, "ttb"));
+
+      expect(calculateOperatorPosition(170, first, second, "ttb")).toEqual({ x: 75, y: 170 });
+      expect(calculateOperatorPosition(170, second, third, "ttb")).toEqual({ x: 175, y: 170 });
     });
   });
 });

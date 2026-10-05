@@ -5,22 +5,23 @@ import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { HookLocation, Label } from "./Label";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
-import { RELATIVE_STACK_UNITS, StackMode } from "../../../../utils/constants";
+import { StackMode } from "../../../../utils/constants";
 import { Formatter } from "../../../../utils/formatter";
+import { StackLayout, StackSegment } from "../../../../utils/stackLayout";
 
 /**
  * Renders a single segment within a stacked bar column in a time chart.
  *
- * Each StackedColumn represents one layer of the stack. It is positioned vertically
- * based on its cumulative baseline value and draws a colored rectangle.
+ * Each StackedColumn represents one layer of the stack. It draws a colored rectangle
+ * at the place its laid-out segment has: positive values above the axis, negative below.
  *
  * Supports three stacking modes:
  * - ABSOLUTE: segment height = value * pixelPerUnit
- * - RELATIVE (100%): segment height proportional to its share of totalValue
+ * - RELATIVE (100%): segment height proportional to its share of the stack
  * - ABSOLUTE_RELATIVE: same as absolute but labels show percentages
  *
  * Segment labels are shown only when the segment is tall enough (>= 18px) to avoid clutter.
- * The topmost segment can draw a total label above the full stack via drawTotalLabel().
+ * The last segment can draw the total label of the full stack via drawTotalLabel().
  */
 export class StackedColumn {
   private readonly position: ElementPositions;
@@ -30,10 +31,10 @@ export class StackedColumn {
 
   private readonly dataPoint: DataPoint;
   private readonly index: number;
-  private readonly baselineValue: number;
+  private readonly segment: StackSegment;
   private readonly segmentIndex: number;
   private readonly stackMode: StackMode;
-  private readonly totalValue: number;
+  private readonly stack: StackLayout;
 
   private hasData: boolean = false;
 
@@ -42,11 +43,11 @@ export class StackedColumn {
     styles: TimeChartStyle,
     dataPoint: DataPoint,
     index: number,
-    baselineValue: number,
+    segment: StackSegment,
     _segmentLabel: string | null,
     segmentIndex: number,
     stackMode: StackMode,
-    totalValue: number,
+    stack: StackLayout,
     _isScenarioStack: boolean,
     parentGroup: G,
   ) {
@@ -54,10 +55,10 @@ export class StackedColumn {
     this.styles = styles;
     this.dataPoint = dataPoint;
     this.index = index;
-    this.baselineValue = baselineValue;
+    this.segment = segment;
     this.segmentIndex = segmentIndex;
     this.stackMode = stackMode;
-    this.totalValue = totalValue;
+    this.stack = stack;
     this.group = parentGroup;
     this.columnGroup = parentGroup.group().id(`stacked_col_${index}_seg_${segmentIndex}`);
 
@@ -70,31 +71,19 @@ export class StackedColumn {
     dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
     measureScale: SiPrefix = new SiPrefix(),
   ): void {
-    if (!this.hasData || this.dataPoint.value == null) {
+    // a segment without a value (NaN) keeps its place in the stack, so the colours stay, but draws nothing
+    if (!this.hasData || !Number.isFinite(this.dataPoint.value)) {
       return;
     }
 
     const value = this.dataPoint.value;
     const pixelPerUnit = this.dataPoint.pixelPerUnit;
 
-    let segmentHeight: number;
-    let yPos: number;
     const axisY = this.position.getColumnPositionY();
 
-    if (this.stackMode === StackMode.RELATIVE) {
-      // 100% stacked: segment height is proportion of total
-      const proportion = this.totalValue !== 0 ? Math.abs(value) / Math.abs(this.totalValue) : 0;
-      // Full stack spans RELATIVE_STACK_UNITS percent; pixelPerUnit = pixels per percentage point
-      const totalPixelHeight = RELATIVE_STACK_UNITS * pixelPerUnit;
-      segmentHeight = proportion * totalPixelHeight;
-      const baselinePixels = (this.baselineValue / Math.abs(this.totalValue)) * totalPixelHeight;
-      yPos = axisY - baselinePixels - segmentHeight;
-    } else {
-      // Absolute or absolute-relative: use real pixel scaling
-      segmentHeight = Math.abs(value * pixelPerUnit);
-      const baselinePixels = this.baselineValue * pixelPerUnit;
-      yPos = axisY - baselinePixels - segmentHeight;
-    }
+    // y grows downward: the rect begins at the edge that is higher up, for a negative segment that is its start
+    const segmentHeight = Math.abs(this.segment.end - this.segment.start) * pixelPerUnit;
+    const yPos = axisY - Math.max(this.segment.start, this.segment.end) * pixelPerUnit;
 
     const xPos = this.position.getColumnCenterPositionX(this.index);
     const columnWidth = this.position.getColumnWidth();
@@ -118,9 +107,8 @@ export class StackedColumn {
       const labelY = yPos + segmentHeight / 2;
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
-        const share = this.totalValue !== 0 ? value / this.totalValue : 0;
         const labelValue = Formatter.number(
-          share,
+          this.segment.share,
           "percent",
           dataFormatDigits.percent,
           dataFormatDigits.percent,
@@ -149,7 +137,7 @@ export class StackedColumn {
   }
 
   /**
-   * Draw the total label above the topmost segment.
+   * Draw the signed total of the stack: above the positive side, or below the negative side for a negative total.
    */
   public drawTotalLabel(
     dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
@@ -160,19 +148,20 @@ export class StackedColumn {
       return;
     }
 
+    // like a plain column: the label of a negative total hangs below the negative side
+    const isNegative = this.stack.total < 0;
+    const end = isNegative ? 0 - this.stack.negative : this.stack.positive;
     const xPos = this.position.getColumnCenterPositionX(this.index);
-    const axisY = this.position.getColumnPositionY();
-    const totalPixels = this.totalValue * this.dataPoint.pixelPerUnit;
-    const labelY = axisY - totalPixels - this.position.spacings.labelToColumn;
+    const labelY = this.position.getColumnDataLabelPositionY(end * this.dataPoint.pixelPerUnit);
 
     const label = new Label(
       this.group,
       xPos,
       labelY,
       "STACK_TOTAL",
-      this.totalValue,
+      this.stack.total,
       this.styles,
-      HookLocation.Bottom,
+      isNegative ? HookLocation.Top : HookLocation.Bottom,
       HookLocation.Center,
     );
     label.draw(true, dataFormatDigits, measureScale);

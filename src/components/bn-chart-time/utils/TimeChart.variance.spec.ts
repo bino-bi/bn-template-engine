@@ -17,6 +17,7 @@ import { SVGStyleGroupAdapter } from "../../../utils/model/styles/SVGStyleGroup"
 import { SVGStyleAdapter } from "../../../utils/model/styles/SVGStyle";
 import { SVGVariancesStyleGroupAdapter } from "../../../utils/model/styles/SVGVariancesStyleGroup";
 import { PaddingAdapter } from "../../../utils/model/styles/Padding";
+import { callNames, fakeGroup } from "../../../utils/testing/fakeGroup";
 
 const TABLE = "trend";
 
@@ -72,33 +73,6 @@ const internals = (chart: TimeChart): ChartInternals => chart as unknown as Char
 
 const variance = (chart: TimeChart, index: number): number | null | undefined =>
   internals(chart).variancesDataModel[index].scenario1.value;
-
-/** Stand-in for a svg.js group: records the calls on itself, every group() gives a new stand-in. */
-interface FakeGroup {
-  calls: [string, unknown[]][];
-  groups: FakeGroup[];
-  node: unknown;
-}
-
-const fakeGroup = (): FakeGroup => {
-  const fake: FakeGroup = { calls: [], groups: [], node: undefined };
-  fake.node = new Proxy(() => undefined, {
-    get: (_target, name) => {
-      if (typeof name === "symbol") return undefined;
-      if (name === "toString" || name === "valueOf") return () => "g";
-      return (...args: unknown[]) => {
-        fake.calls.push([name, args]);
-        if (name !== "group") return fake.node;
-        const child = fakeGroup();
-        fake.groups.push(child);
-        return child.node;
-      };
-    },
-  });
-  return fake;
-};
-
-const callNames = (group: FakeGroup): string[] => group.calls.map(([name]) => name);
 
 describe("time chart relative variance", () => {
   it("divides by the absolute reference: -50 against -100 is +50%", () => {

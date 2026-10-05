@@ -129,6 +129,21 @@ describe("resolveXYData", () => {
     expect(result.warnings.find((w) => w.code === "xy-duplicate-point")).toBeUndefined();
   });
 
+  it("treats the same point name in two series as two points", () => {
+    const rows = adaptAll([
+      rawRow({ category: "Core Business", categoryIndex: 1, ac1: 0.1 }),
+      rawRow({ category: "Zeta", categoryIndex: 2, ac1: 0.9 }),
+    ]);
+
+    const result = resolveXYData(rows, baseOptions());
+    expect(result.totalPoints).toBe(2);
+    expect(result.facets[0].points.map((point) => [point.seriesKey, point.x])).toEqual([
+      ["Core Business", 0.1],
+      ["Zeta", 0.9],
+    ]);
+    expect(result.warnings.find((w) => w.code === "xy-duplicate-point")).toBeUndefined();
+  });
+
   it("computes variance measures and excludes _cnt-empty rows with a warning", () => {
     const rows = adaptAll([
       rawRow({ ac1: 120, pp1: 100 }),

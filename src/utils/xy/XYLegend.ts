@@ -7,6 +7,8 @@ import { XYChartStyle } from "./model/XYChartStyle";
 export interface LegendEntry {
   label: string;
   treatment: MarkTreatment;
+  /** Fill of the swatch when the chart draws this treatment with a pattern (hatched forecast bubbles). */
+  fill?: string;
 }
 
 /** The legend content of one chart (rendered once, chart-level). */
@@ -57,8 +59,8 @@ export class XYLegend {
     return Number.isFinite(width) && width > 0 ? width : text.length * 0.6 * this.em;
   }
 
-  private rows(model: LegendModel): { text: string; bold: boolean; treatment: MarkTreatment | null }[] {
-    const rows: { text: string; bold: boolean; treatment: MarkTreatment | null }[] = [];
+  private rows(model: LegendModel): { text: string; bold: boolean; treatment: MarkTreatment | null; fill?: string }[] {
+    const rows: { text: string; bold: boolean; treatment: MarkTreatment | null; fill?: string }[] = [];
 
     model.sizeCaption.forEach((line, index) => {
       rows.push({ text: line, bold: index === 0, treatment: null });
@@ -66,11 +68,8 @@ export class XYLegend {
     if (model.title !== null && model.title !== "") {
       rows.push({ text: model.title, bold: true, treatment: null });
     }
-    for (const entry of model.compareEntries) {
-      rows.push({ text: entry.label, bold: false, treatment: entry.treatment });
-    }
-    for (const entry of model.entries) {
-      rows.push({ text: entry.label, bold: false, treatment: entry.treatment });
+    for (const entry of [...model.compareEntries, ...model.entries]) {
+      rows.push({ text: entry.label, bold: false, treatment: entry.treatment, fill: entry.fill });
     }
 
     return rows;
@@ -115,7 +114,7 @@ export class XYLegend {
         const swatch = group
           .circle(this.swatchSize)
           .move(cursorX, cursorY + (this.rowHeight - this.swatchSize) / 2)
-          .fill(row.treatment.hatch ? "#ffffff" : row.treatment.fill)
+          .fill(row.fill ?? (row.treatment.hatch ? "#ffffff" : row.treatment.fill))
           .stroke({
             color: row.treatment.stroke === "#ffffff" ? row.treatment.fill : row.treatment.stroke,
             width: row.treatment.strokeWidth,

@@ -43,7 +43,8 @@ export class DateStringFactory {
     year: "yyyy",
     quarter: "q'Q' yyyy",
     month: "LLL yyyy",
-    week: "'KW'WW yyyy",
+    // kkkk is the ISO week year: week 1 of 2025 starts on Monday 2024-12-30
+    week: "'KW'WW kkkk",
     day: "dd.MM.yyyy",
     hour: "TT",
     minute: "TT",
@@ -87,7 +88,7 @@ export class DateStringFactory {
    * locale-aware through `setLocale`, so they need no override.
    */
   private static readonly LOCALE_DATE_FORMAT: Record<string, Partial<DateFormat>> = {
-    en: { week: "'W'WW yyyy", day: "MM/dd/yyyy", fallback: "MM/dd/yyyy" },
+    en: { week: "'W'WW kkkk", day: "MM/dd/yyyy", fallback: "MM/dd/yyyy" },
   };
 
   private static readonly LOCALE_DATE_FORMAT_SHORT: Record<string, Partial<DateFormat>> = {
@@ -241,30 +242,30 @@ export class DateStringFactory {
    * @param {string|Date} from start date
    * @param {string|Date} to end date
    * @param dateInterval
-   * @param spanLimit
    */
-  public datesBetween(from: DateTime, to: DateTime, dateInterval: DateDistance, spanLimit: number): DateTime[] {
+  public datesBetween(from: DateTime, to: DateTime, dateInterval: DateDistance): DateTime[] {
     const unit: DateTimeUnit = this.convertDateDistanceToMomentunitOfTime(dateInterval);
 
     const fromDate = from.startOf(unit);
     const toDate = to.endOf(unit);
 
-    let span = toDate.diff(fromDate).as(unit);
-
     const days = [];
-
-    if (span >= spanLimit) {
-      span = spanLimit;
-    }
 
     let currentDate = fromDate;
 
     do {
       days.push(currentDate);
       currentDate = currentDate.plus(this.createDiratonLike(unit, 1));
-    } while (currentDate <= toDate && days.length < span);
+    } while (currentDate <= toDate);
 
     return days;
+  }
+
+  /** Number of `dateInterval` periods from `from` to `to`, both included. */
+  public countBetween(from: DateTime, to: DateTime, dateInterval: DateDistance): number {
+    const unit: DateTimeUnit = this.convertDateDistanceToMomentunitOfTime(dateInterval);
+
+    return Math.floor(to.startOf(unit).diff(from.startOf(unit), unit).as(unit)) + 1;
   }
 
   /**
@@ -340,7 +341,7 @@ export class DateStringFactory {
       }
 
       // clean up dateString1 if same year
-      if (mode === DateLink.INTERVAL || mode === DateLink.CUM || DateLink.AVG) {
+      if (mode === DateLink.INTERVAL || mode === DateLink.CUM || mode === DateLink.AVG) {
         if (type === DateDistance.QUARTER) {
           if (date1.quarter === date2.quarter && date1.year === date2.year) {
             dateString2 = dateString2.replace(" " + date2.year, "");
@@ -354,10 +355,10 @@ export class DateStringFactory {
             dateString1 = dateString1.replace(" " + date1.year, "");
           }
         } else if (type === DateDistance.WEEK) {
-          if (date1.weekNumber === date2.weekNumber && date1.year === date2.year) {
-            dateString2 = dateString2.replace(" " + date2.year, "");
-          } else if (date1.year === date2.year) {
-            dateString1 = dateString1.replace(" " + date1.year, "");
+          if (date1.weekNumber === date2.weekNumber && date1.weekYear === date2.weekYear) {
+            dateString2 = dateString2.replace(" " + date2.weekYear, "");
+          } else if (date1.weekYear === date2.weekYear) {
+            dateString1 = dateString1.replace(" " + date1.weekYear, "");
           }
         }
       }
@@ -414,7 +415,8 @@ export class DateStringFactory {
     let format = this.dateFormatShort["week"];
 
     if (this.isFirstWeek(date)) {
-      format += " " + this.dateFormatShort["year"];
+      // the short ISO week year, see the week format
+      format += " kk";
     }
 
     return date.setLocale(this.locale).toFormat(format);

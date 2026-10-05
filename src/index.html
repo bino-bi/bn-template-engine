@@ -352,6 +352,83 @@
       {"rowGroup": "Umsatz", "rowGroupIndex": 1, "category": "Beta", "categoryIndex": 2, "operation": "+",
       "setname": "de", "ac1": 20}
       ]</bn-datasource>
+    <!-- Fix demo: three years of monthly ISO dates, 100 in Jan 2022 up to 135 in Dez 2024 -->
+    <bn-datasource name='fix_months36'>[
+      {"date": "2022-01-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100}, {"date": "2022-02-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 101}, {"date": "2022-03-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 102},
+      {"date": "2022-04-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 103}, {"date": "2022-05-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 104}, {"date": "2022-06-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 105},
+      {"date": "2022-07-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 106}, {"date": "2022-08-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 107}, {"date": "2022-09-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 108},
+      {"date": "2022-10-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 109}, {"date": "2022-11-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 110}, {"date": "2022-12-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 111},
+      {"date": "2023-01-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 112}, {"date": "2023-02-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 113}, {"date": "2023-03-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 114},
+      {"date": "2023-04-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 115}, {"date": "2023-05-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 116}, {"date": "2023-06-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 117},
+      {"date": "2023-07-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 118}, {"date": "2023-08-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 119}, {"date": "2023-09-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 120},
+      {"date": "2023-10-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 121}, {"date": "2023-11-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 122}, {"date": "2023-12-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 123},
+      {"date": "2024-01-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 124}, {"date": "2024-02-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 125}, {"date": "2024-03-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 126},
+      {"date": "2024-04-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 127}, {"date": "2024-05-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 128}, {"date": "2024-06-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 129},
+      {"date": "2024-07-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 130}, {"date": "2024-08-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 131}, {"date": "2024-09-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 132},
+      {"date": "2024-10-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 133}, {"date": "2024-11-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 134}, {"date": "2024-12-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 135}
+      ]</bn-datasource>
+    <!-- Fix demo: actuals of 100 from Jan to Aug, forecast of 130 from Sep to Dez -->
+    <bn-datasource name='fix_acfc'>[
+      {"date": "2024-01-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100}, {"date": "2024-02-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100}, {"date": "2024-03-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100},
+      {"date": "2024-04-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100}, {"date": "2024-05-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100}, {"date": "2024-06-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100},
+      {"date": "2024-07-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100}, {"date": "2024-08-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 100}, {"date": "2024-09-01", "category": "Total", "categoryIndex": 1, "operation": "+", "fc1": 130},
+      {"date": "2024-10-01", "category": "Total", "categoryIndex": 1, "operation": "+", "fc1": 130}, {"date": "2024-11-01", "category": "Total", "categoryIndex": 1, "operation": "+", "fc1": 130}, {"date": "2024-12-01", "category": "Total", "categoryIndex": 1, "operation": "+", "fc1": 130}
+      ]</bn-datasource>
+    <!-- Fix demo: stacks with negative segments: Alpha 10, -4, 6 (total 12), Beta 3, -9, 1 (total -5), Gamma only positive (15), Delta only negative (-10) -->
+    <bn-datasource name='fix_stack_rows'>[
+      {"category": "Alpha", "categoryIndex": 1, "operation": "+", "ac1": 10, "ac2": -4, "ac3": 6},
+      {"category": "Beta", "categoryIndex": 2, "operation": "+", "ac1": 3, "ac2": -9, "ac3": 1},
+      {"category": "Gamma", "categoryIndex": 3, "operation": "+", "ac1": 8, "ac2": 5, "ac3": 2},
+      {"category": "Delta", "categoryIndex": 4, "operation": "+", "ac1": -3, "ac2": -5, "ac3": -2}
+      ]</bn-datasource>
+    <!-- Fix demo: the same four stacks as the months Jan to Apr -->
+    <bn-datasource name='fix_stack_months'>[
+      {"date": "2024-01-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 10, "ac2": -4, "ac3": 6},
+      {"date": "2024-02-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 3, "ac2": -9, "ac3": 1},
+      {"date": "2024-03-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 8, "ac2": 5, "ac3": 2},
+      {"date": "2024-04-01", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": -3, "ac2": -5, "ac3": -2}
+      ]</bn-datasource>
+    <!-- Fix demo: points on a small x range; Basic and Plus exist in both series, Cars and Trucks -->
+    <bn-datasource name='fix_xy_small'>[
+      {"category": "Cars", "categoryIndex": 1, "subCategory": "Basic", "subCategoryIndex": 1, "operation": "+", "ac1": 0.021, "ac2": 10},
+      {"category": "Cars", "categoryIndex": 1, "subCategory": "Plus", "subCategoryIndex": 2, "operation": "+", "ac1": 0.026, "ac2": 14},
+      {"category": "Trucks", "categoryIndex": 2, "subCategory": "Basic", "subCategoryIndex": 1, "operation": "+", "ac1": 0.034, "ac2": 20},
+      {"category": "Trucks", "categoryIndex": 2, "subCategory": "Plus", "subCategoryIndex": 2, "operation": "+", "ac1": 0.031, "ac2": 17}
+      ]</bn-datasource>
+    <!-- Fix demo: points between 0,5 and 2 for iso lines at 0,6, 1,2 and 2,5 -->
+    <bn-datasource name='fix_xy_iso'>[
+      {"category": "Products", "categoryIndex": 1, "subCategory": "P1", "subCategoryIndex": 1, "operation": "+", "ac1": 0.6, "ac2": 1.0},
+      {"category": "Products", "categoryIndex": 1, "subCategory": "P2", "subCategoryIndex": 2, "operation": "+", "ac1": 1.0, "ac2": 1.2},
+      {"category": "Products", "categoryIndex": 1, "subCategory": "P3", "subCategoryIndex": 3, "operation": "+", "ac1": 1.5, "ac2": 0.8},
+      {"category": "Products", "categoryIndex": 1, "subCategory": "P4", "subCategoryIndex": 4, "operation": "+", "ac1": 1.8, "ac2": 1.6},
+      {"category": "Products", "categoryIndex": 1, "subCategory": "P5", "subCategoryIndex": 5, "operation": "+", "ac1": 0.8, "ac2": 1.9}
+      ]</bn-datasource>
+    <!-- Fix demo: actual, previous year and plan for relative variance axes; fc1 to fc3 for the forecast bubbles -->
+    <bn-datasource name='fix_xy_variance'>[
+      {"category": "Cars", "categoryIndex": 1, "subCategory": "C1", "subCategoryIndex": 1, "operation": "+", "ac1": 120, "pp1": 100, "pl1": 110, "fc1": 0.3, "fc2": 0.6, "fc3": 0.032},
+      {"category": "Cars", "categoryIndex": 1, "subCategory": "C2", "subCategoryIndex": 2, "operation": "+", "ac1": 80, "pp1": 100, "pl1": 90, "fc1": 0.5, "fc2": 0.3, "fc3": 0.021},
+      {"category": "Trucks", "categoryIndex": 2, "subCategory": "T1", "subCategoryIndex": 3, "operation": "+", "ac1": 105, "pp1": 100, "pl1": 120, "fc1": 0.7, "fc2": 0.8, "fc3": 0.027},
+      {"category": "Trucks", "categoryIndex": 2, "subCategory": "T2", "subCategoryIndex": 4, "operation": "+", "ac1": 130, "pp1": 100, "pl1": 100, "fc1": 0.9, "fc2": 0.5, "fc3": 0.015}
+      ]</bn-datasource>
+    <!-- Fix demo: Net result mixes a + row and a - row (100 - 30 = 70), Loss has a negative actual -->
+    <bn-datasource name='fix_bullet'>[
+      {"category": "Net result", "categoryIndex": 1, "operation": "+", "ac1": 100, "pl1": 90},
+      {"category": "Net result", "categoryIndex": 1, "operation": "-", "ac1": 30, "pl1": 25},
+      {"category": "Loss", "categoryIndex": 2, "operation": "+", "ac1": -20, "pl1": 100},
+      {"category": "Revenue", "categoryIndex": 3, "operation": "+", "ac1": 120, "pl1": 100}
+      ]</bn-datasource>
+    <!-- Fix demo: five Mondays over the turn of the year, 2024-12-30 starts ISO week 1 of 2025 -->
+    <bn-datasource name='fix_weeks'>[
+      {"date": "2024-12-16", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 10},
+      {"date": "2024-12-23", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 11},
+      {"date": "2024-12-30", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 12},
+      {"date": "2025-01-06", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 13},
+      {"date": "2025-01-13", "category": "Total", "categoryIndex": 1, "operation": "+", "ac1": 14}
+      ]</bn-datasource>
+    <!-- Fix demo: stack colours of a theme, written as short hex, rgb() and hex with alpha -->
+    <bn-component-style name='fix_stack_colors'>
+      { "bn-chart-structure": { "stackColors": ["#fd9", "rgb(180, 205, 235)", "#1f4e79cc"] } }
+    </bn-component-style>
     <bn-dataset name='all_umsatz' static='true'
       raw='false'>42a865b3c0538d02:H4sIAAAAAAAC/+SVz2rbQBDG32WuVYadnf1/S1IIhZ6alkJLD4qzTUMdSVgy/Ufepm/SFysray0lVk6NjaG3+Wa1MPP7xLcff0G5IAhEzhRQLmQqMdWLsos39eoHBHhd39y2MLZeVdfxOwQqYFEv13fVxapeNxCgWi+X8KA5fPnw5HJ9NXsj9x9dui67CAGkIH9C8oTFW8lBiCDEByjgc5res0FjjE1SQvDIZiPrJq7K7rauIMALKKBZEgSnOFUSgsO+bAiCFiJVEoIuYFV/yxO+u2vL7ieMvXH5NnZVeZdmu45QQLu+Oh+ZvXzYGW6p+2IAzoadH4izYUxigvyyibdtrHahy6OBzlarzdw9dLYaVb/TLHRm6zzqATyzRef1wJ6JfKbPROgP44ByxNkB5TCJiQMXsVv9+V19jbse8PF44IwjJMoeOIOOkpz3YLPxxoFh440Bw0EzOTiAA0pZLwcHlLKYxMSB93G5rGI7kzzqaAzQlv3EAG0Z/dMGaDJaDgZoMtiLPn2cJpnzx2lM4gAGkGZNOfY1YxLTEPpSN7vw9dHAJ6uUHsiTVZjELHfSVoht+JC2KEQOHzJC5/Ah0391CPIsxgeXxeMX901su3K9Kqtul795zP90Hj7tk7wiuSWvCOWT5KUlOZKXFvuLG/KS2WfykpGfJ/dPZ9HTiF6w3qIXjPof0J/No5f7RM9KKFQq02eFQiX5BH9h1Ja+wF708NnanDjEFu3zJM7ZLHy5l//+fB4+/6f//fkser7/9DcAAP//TacVVeQLAAA=</bn-dataset>
     <bn-dataset name='bilanz_bb_dataset' static='true'
@@ -1438,6 +1515,520 @@
       </div>
     </bn-layout-page>
 
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 7: TIME AXIS: SPAN LIMIT AND CHART MODE
+         Three years of monthly data with ISO date strings. With
+         date-interval=month the chart shows all 36 months up to Dez 2024.
+         Before: it was cut after interval-span-limit (28) periods and
+         ended in Apr 2024, the newest eight months were dropped.
+         With chart-mode=auto the 36 periods become a line, because 36 is
+         more than max-bars 28. Before: bars, the chart only saw 28.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_time_axis' title-business-unit='Fix: no cut at interval-span-limit'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' page-layout='split-horizontal' page-format='xga' page-orientation='landscape'
+      footer-text='Look for Dez 2024 with 135 as the last of 36 months in both charts, and for a line in the second one.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- explicit month: no cut at interval-span-limit -->
+      <div slot='slot-0' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='date-interval=month: 36 months, the last bar is Dez 2024 with 135'
+          footer-text='Before: 28 bars, the chart ended in Apr 2024 with 127 and dropped the newest eight months.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_months36' chart-mode='bar' date-interval='month' scale='0.62' measure-scale='_' measure-unit='EUR' unit-scaling='9' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='false' scenarios='ac1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- chart-mode auto sees all 36 periods -->
+      <div slot='slot-1' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='chart-mode=auto: 36 periods are more than max-bars 28, so a line'
+          footer-text='Before: bars. The chart only saw the 28 periods that were left after the cut.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_months36' chart-mode='auto' date-interval='month' scale='0.62' measure-scale='_' measure-unit='EUR' unit-scaling='auto' percentage-scaling='auto' show-measure-scale='true'
+              line-full-width='false' show-overlay-avg='false' scenarios='ac1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 8: TIME AXIS: AUTO INTERVAL AND AVERAGE LINE
+         The same three years with date-interval=auto: 12 quarters.
+         Before: auto fell back to day for ISO date strings and showed
+         the first 28 days of January 2022.
+         The average line only counts periods that have a value: 100 for
+         eight months of actuals next to four forecast months. Before: 66,7.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_time_auto' title-business-unit='Fix: auto date interval and average line'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' page-layout='split-vertical' page-format='xga' page-orientation='landscape'
+      footer-text='Look for 12 quarters from 1Q 22 to 4Q 24, and for the average line on top of the actual bars.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- auto interval on ISO strings: quarters -->
+      <div slot='slot-0' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='date-interval=auto: 12 quarters, from 1Q 22 to 4Q 24'
+          footer-text='Before: the first 28 days of January 2022, one bar and 27 empty days.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_months36' chart-mode='bar' date-interval='auto' measure-scale='_' measure-unit='EUR' unit-scaling='30' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='false' scenarios='ac1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- average over the periods that have a value -->
+      <div slot='slot-1' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='Average line: Ø AC at 100, the actual of the eight months that have one'
+          footer-text='Before: 66,7. The four forecast months counted as 0.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_acfc' chart-mode='bar' date-interval='month' measure-scale='_' measure-unit='EUR' unit-scaling='10' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='true' scenarios='ac1,fc1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 9: STACKS WITH NEGATIVE SEGMENTS
+         Positive segments stack outward from the axis on the positive
+         side, negative segments on the other side, and the total is the
+         signed sum: 10, -4 and 6 give 12. A negative total is printed at
+         the end of the negative side, and the category or date label
+         sits behind the segments opposite the total.
+         Before: every segment was drawn with its absolute value on the
+         positive side, and the total was 20.
+         In a 100 % stack the share is the value divided by the sum of
+         the absolute values, and the stack is split around the axis.
+         A scenario without a value in a period draws nothing.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_stacks' title-business-unit='Fix: stacks with negative segments'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1,ac2,ac3' page-layout='2x2' page-format='xga' page-orientation='landscape'
+      footer-text='Look for segments on both sides of the axis and for the totals 12, -5, 15 and -10.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- time chart, absolute stack -->
+      <div slot='slot-0' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='bn-chart-time: negative segments below the axis, totals 12, -5, 15 and -10'
+          footer-text='Before: every segment above the axis, totals 20, 13, 15 and 10.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_stack_months' chart-mode='bar' date-interval='month' measure-scale='_' measure-unit='EUR' unit-scaling='2' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='false' scenarios='ac1,ac2,ac3' stack='{"by":"scenarios","mode":"absolute"}'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- structure chart, absolute stack -->
+      <div slot='slot-1' data-bino-kind='ChartStructure'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='bn-chart-structure: negative segments left of the axis, totals 12, -5, -10 and 15'
+          footer-text='Before: every segment right of the axis, totals 20, 13, 10 and 15.'>
+          <div slot='card-slot-0' data-bino-kind='ChartStructure'>
+            <bn-chart-structure datasets='$fix_stack_rows' level='category' measure-scale='_' measure-unit='EUR'
+              unit-scaling='auto' show-measure-scale='true' scenarios='ac1,ac2,ac3'
+              stack='{"by":"scenarios","mode":"absolute"}'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- time chart, 100 % stack -->
+      <div slot='slot-2' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='100 % stack: split around the axis, Jan is 50 %, -20 % and 30 %'
+          footer-text='The shares are of the sum of absolute values. Before: all three segments above the axis.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_stack_months' chart-mode='bar' date-interval='month' measure-scale='_' measure-unit='EUR' unit-scaling='20' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='false' scenarios='ac1,ac2,ac3' stack='{"by":"scenarios","mode":"relative"}'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- a scenario family without a value in a period -->
+      <div slot='slot-3' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='AC from Jan to Aug, FC from Sep to Dez: each period draws the family it has'
+          footer-text='Before: a NaN label for the family that a period does not have.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_acfc' chart-mode='bar' date-interval='month' measure-scale='_' measure-unit='EUR' unit-scaling='13' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='false' scenarios='ac1,fc1' stack='{"by":"scenarios","mode":"absolute"}'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 10: REST ROW, THEME STACK COLOURS, VARIANCE WARNING
+         The REST row of the structure chart sums every row after the
+         limit: Berlin 200 and REST 90. With a limit that cuts nothing
+         there is no REST row. Before: REST 50 and a REST row with 0.
+         The chart uses the stackColors of its style, and the label in a
+         segment is black on a light fill, also for #rgb and rgb().
+         A variance over a scenario that is not in scenarios sets the
+         warning WARN_variances_scenario, shown below the chart.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_structure' title-business-unit='Fix: REST row, stack colours and the variance warning'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' page-layout='2x2' page-format='xga' page-orientation='landscape'
+      footer-text='Look for REST 90, for no REST row in the second card, for the theme colours with black labels and for the warning text under the last chart.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- limit 1: REST is the sum of all rows after the limit -->
+      <div slot='slot-0' data-bino-kind='ChartStructure'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='limit=1: Berlin 200, REST 90 (Hamburg 50 and Köln 40)'
+          footer-text='Before: REST 50, only the first row after the limit was summed.'>
+          <div slot='card-slot-0' data-bino-kind='ChartStructure'>
+            <bn-chart-structure datasets='$fix_rest' level='category' measure-scale='_' measure-unit='EUR'
+              unit-scaling='auto' show-measure-scale='true' scenarios='ac1' limit='1'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- limit equal to the number of rows: nothing is cut -->
+      <div slot='slot-1' data-bino-kind='ChartStructure'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='limit=3 with three rows: Berlin, Hamburg, Köln and no REST row'
+          footer-text='Before: a fourth row REST with 0.'>
+          <div slot='card-slot-0' data-bino-kind='ChartStructure'>
+            <bn-chart-structure datasets='$fix_rest' level='category' measure-scale='_' measure-unit='EUR'
+              unit-scaling='auto' show-measure-scale='true' scenarios='ac1' limit='3'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- stackColors of the selected style, labels by the brightness of the fill -->
+      <div slot='slot-2' data-bino-kind='ChartStructure'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='selected-style with stackColors #fd9, rgb(180, 205, 235) and #1f4e79cc'
+          footer-text='Black labels on the two light fills, white on the dark one. Before: the built-in black and greys.'>
+          <div slot='card-slot-0' data-bino-kind='ChartStructure'>
+            <bn-chart-structure datasets='$fix_stack_rows' selected-style='fix_stack_colors' level='category'
+              filter="category = 'Gamma'" measure-scale='_' measure-unit='EUR' unit-scaling='auto'
+              show-measure-scale='true' scenarios='ac1,ac2,ac3' stack='{"by":"scenarios","mode":"absolute"}'></bn-chart-structure>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- a variance over a scenario that is not drawn -->
+      <div slot='slot-3' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='variances=dac1_pl1_pos, but pl1 is not in scenarios: see the warning below'
+          footer-text='Before: the empty variance segment without any warning.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time id='fix-variance-chart' datasets='$fix_acfc' chart-mode='bar' date-interval='month' measure-scale='_' measure-unit='EUR' unit-scaling='auto' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='false' scenarios='ac1,fc1' variances='dac1_pl1_pos'></bn-chart-time>
+            <p data-fix-errors-of='fix-variance-chart' style='margin: 4px 0 0 0; font-family: monospace; font-size: 11px;'></p>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 11: SCATTER: TICK DECIMALS, ISO LABELS, POINTS OF TWO SERIES
+         Tick labels take their decimals from the tick step: 0,025 and
+         0,030. Before: 0,03 and 0,03, at most two decimals.
+         Two points with the same name in two series are two points.
+         Before: the second one was dropped as a duplicate.
+         Iso lines are labelled 0,6, 1,2 and 2,5. Before: 1, 1 and 3.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_xy_labels' title-business-unit='Fix: scatter chart labels and points'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' page-layout='split-vertical' page-format='xga' page-orientation='landscape'
+      footer-text='Look for two different x ticks and four points on the left, and for the iso labels 0,6, 1,2 and 2,5 on the right.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- small x range, and the names Basic and Plus in two series -->
+      <div slot='slot-0' data-bino-kind='ChartScatter'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='x ticks 0,025 and 0,030, and four points: Basic and Plus in Cars and in Trucks'
+          footer-text='Before: the ticks 0,03 and 0,03, and only two points (WARN_xy-duplicate-point).'>
+          <div slot='card-slot-0' data-bino-kind='ChartScatter'>
+            <bn-chart-scatter datasets='$fix_xy_small' level='subcategory' series-level='category'
+              x='{"measure":"ac1","label":"Margin"}' y='{"measure":"ac2","label":"Net sales"}'
+              labels='{"points":"all"}'></bn-chart-scatter>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- iso lines with values below 1 -->
+      <div slot='slot-1' data-bino-kind='ChartScatter'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='Iso lines x * y = 0,6, 1,2 and 2,5 with these labels at the frame'
+          footer-text='Before: the labels 1, 1 and 3.'>
+          <div slot='card-slot-0' data-bino-kind='ChartScatter'>
+            <bn-chart-scatter datasets='$fix_xy_iso' level='subcategory' series-level='category'
+              x='{"measure":"ac1","label":"Price","min":0.5,"max":2}' y='{"measure":"ac2","label":"Volume","min":0.5,"max":2}'
+              iso='{"values":[0.6,1.2,2.5],"label":"Net sales"}' labels='{"points":"none"}'></bn-chart-scatter>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 12: BUBBLE: PERCENT AXES, FORECAST LEGEND, VALUE LABELS
+         An axis with a relative variance is in percent, and min, max and
+         refLine are written in percent. Before: fractions such as 0,20.
+         The legend swatch of a forecast series is hatched like its
+         bubbles. Before: a white circle, the same as plan.
+         Bubble values show three significant digits of the largest
+         value: 0,0320. Before: one decimal, 0,0.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_xy_percent' title-business-unit='Fix: bubble chart axes, legend and values'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' page-layout='split-vertical' page-format='xga' page-orientation='landscape'
+      footer-text='Look for percent ticks from -40% to 40% on the left, and for hatched legend swatches and the values 0,0320 to 0,0150 on the right.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- relative variance axes in percent -->
+      <div slot='slot-0' data-bino-kind='ChartBubble'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='Axes drac1_pp1 and drac1_pl1: ticks from -40% to 40%, min, max and refLine in percent'
+          footer-text='Before: ticks -0,4 to 0,4, and min -40 would have meant -4.000 %.'>
+          <div slot='card-slot-0' data-bino-kind='ChartBubble'>
+            <bn-chart-bubble datasets='$fix_xy_variance' level='subcategory' series-level='category'
+              x='{"measure":"drac1_pp1","label":"&Delta;PY","min":-40,"max":40,"refLine":0}'
+              y='{"measure":"drac1_pl1","label":"&Delta;PL","min":-40,"max":40,"refLine":0}'
+              size='{"measure":"ac1","label":"Net sales"}'></bn-chart-bubble>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- forecast bubbles: hatched swatch, small values -->
+      <div slot='slot-1' data-bino-kind='ChartBubble'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='Forecast series: hatched swatches in the legend, values 0,0320 to 0,0150'
+          footer-text='Before: white swatches like plan, and every value printed as 0,0.'>
+          <div slot='card-slot-0' data-bino-kind='ChartBubble'>
+            <bn-chart-bubble datasets='$fix_xy_variance' level='subcategory' series-level='category'
+              x='{"measure":"fc1","label":"Market attractiveness","min":0,"max":1.2}'
+              y='{"measure":"fc2","label":"Market share","min":0,"max":1.2}'
+              size='{"measure":"fc3","label":"Net sales"}'></bn-chart-bubble>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 13: BULLET CHART AND TREE
+         Bullet: a KPI group with + and - rows shows its net value, 100
+         minus 30 is 70. Before: 130. A negative actual has no bar and
+         sets WARN_bullet-actual-negative. Before: a warning about the
+         target, or none at all with normalize=none.
+         Tree: with three children the two operators sit between their
+         siblings on the line that joins the children. Before: both on
+         one spot. All edges of a parent bend at the same place, and in
+         ttb a parent sits centred over its children.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_bullet_tree' title-business-unit='Fix: bullet chart and tree'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' page-layout='2x2' page-format='xga' page-orientation='landscape'
+      footer-text='Look for Net result 70, for the warnings under the bullet charts and for two operators between the three children of each tree.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- net value of a mixed group, negative actual, normalized -->
+      <div slot='slot-0' data-bino-kind='ChartBullet'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='normalize=target: Net result 70 against 65, Loss -20 as text without a bar'
+          footer-text='Before: Net result 130 against 115, and the warning said the target is not positive.'>
+          <div slot='card-slot-0' data-bino-kind='ChartBullet'>
+            <bn-chart-bullet id='fix-bullet-target' datasets='$fix_bullet' level='category'
+              actual='{"measure":"ac1","label":"AC"}' target='{"measure":"pl1","label":"PL"}'></bn-chart-bullet>
+            <p data-fix-errors-of='fix-bullet-target' style='margin: 4px 0 0 0; font-family: monospace; font-size: 11px;'></p>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- the same rows without normalizing -->
+      <div slot='slot-1' data-bino-kind='ChartBullet'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='normalize=none: the same values on a scale per row'
+          footer-text='Before: no warning for the negative actual, the bar was just missing.'>
+          <div slot='card-slot-0' data-bino-kind='ChartBullet'>
+            <bn-chart-bullet id='fix-bullet-none' datasets='$fix_bullet' level='category' normalize='none'
+              actual='{"measure":"ac1","label":"AC"}' target='{"measure":"pl1","label":"PL"}'></bn-chart-bullet>
+            <p data-fix-errors-of='fix-bullet-none' style='margin: 4px 0 0 0; font-family: monospace; font-size: 11px;'></p>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- three children of different size, left to right -->
+      <div slot='slot-2' data-bino-kind='Tree'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='ltr: one operator between Revenue and Cost, one between Cost and Tax'
+          footer-text='Before: both operators on one spot, and the joining line was ragged for nodes of different width.'>
+          <div slot='card-slot-0' data-bino-kind='Tree'>
+            <bn-tree direction='ltr' show-operators='true' edges='[{"from":"result","to":"revenue","operator":"-"},{"from":"result","to":"cost","operator":"-"},{"from":"result","to":"tax"}]'>
+              <div slot='result' style='padding: 4px 8px;'>Result</div>
+              <div slot='revenue' style='padding: 4px 8px;'>Revenue of all regions</div>
+              <div slot='cost' style='padding: 4px 8px;'>Cost</div>
+              <div slot='tax' style='padding: 4px 8px;'>Tax</div>
+            </bn-tree>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- top to bottom: parents centred over their children -->
+      <div slot='slot-3' data-bino-kind='Tree'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='ttb: Result sits centred over its children, Revenue over Price and Volume'
+          footer-text='Before: each parent sat over its first child.'>
+          <div slot='card-slot-0' data-bino-kind='Tree'>
+            <bn-tree direction='ttb' show-operators='true' edges='[{"from":"result","to":"revenue","operator":"-"},{"from":"result","to":"cost","operator":"-"},{"from":"result","to":"tax"},{"from":"revenue","to":"price","operator":"x"},{"from":"revenue","to":"volume"}]'>
+              <div slot='result' style='padding: 4px 8px;'>Result</div>
+              <div slot='revenue' style='padding: 4px 8px;'>Revenue</div>
+              <div slot='cost' style='padding: 4px 8px;'>Cost</div>
+              <div slot='tax' style='padding: 4px 8px;'>Tax</div>
+              <div slot='price' style='padding: 4px 8px;'>Price</div>
+              <div slot='volume' style='padding: 4px 8px;'>Volume</div>
+            </bn-tree>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 14: TREE DIRECTIONS, CYCLES AND CUT OFF CHARTS
+         This page has a fixed size (no page-fit-to-content), so a cell
+         cuts off what is higher than it.
+         rtl: the operators sit on the bend of the edges. Before: 30 % of
+         the way from the children instead of 70 % from the parent.
+         A cycle in the edges is reported as ERR_edges. Before: the
+         component crashed with a full call stack.
+         A scatter chart that is higher than its cell sets WARN_overflow.
+         Before: it was cut off without a word.
+         Two parents that share a child stay side by side in ttb.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_tree_warnings' title-business-unit='Fix: tree directions, cycles and cut off charts'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' page-layout='2x2' page-format='xga' page-orientation='landscape'
+      footer-text='Look for the operators on the edges of the rtl tree, for ERR_edges under the empty tree and for WARN_overflow under the chart that is cut off.'
+      footer-display-page-number='true'>
+
+      <!-- right to left -->
+      <div slot='slot-0' data-bino-kind='Tree'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='rtl: the operators sit on the line that joins the children'
+          footer-text='Before: they sat between that line and the children, off the edges.'>
+          <div slot='card-slot-0' data-bino-kind='Tree'>
+            <bn-tree direction='rtl' show-operators='true' edges='[{"from":"result","to":"revenue","operator":"-"},{"from":"result","to":"cost","operator":"-"},{"from":"result","to":"tax"}]'>
+              <div slot='result' style='padding: 4px 8px;'>Result</div>
+              <div slot='revenue' style='padding: 4px 8px;'>Revenue</div>
+              <div slot='cost' style='padding: 4px 8px;'>Cost</div>
+              <div slot='tax' style='padding: 4px 8px;'>Tax</div>
+            </bn-tree>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- an edge that leads back -->
+      <div slot='slot-1' data-bino-kind='Tree'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='Edges root to a, a to b, b to a: no tree, ERR_edges names the edge'
+          footer-text='Before: the page stopped with "Maximum call stack size exceeded".'>
+          <div slot='card-slot-0' data-bino-kind='Tree'>
+            <bn-tree id='fix-tree-cycle' edges='[{"from":"root","to":"a"},{"from":"a","to":"b"},{"from":"b","to":"a"}]'>
+              <div slot='root' style='padding: 4px 8px;'>Root</div>
+              <div slot='a' style='padding: 4px 8px;'>A</div>
+              <div slot='b' style='padding: 4px 8px;'>B</div>
+            </bn-tree>
+            <p data-fix-errors-of='fix-tree-cycle' style='margin: 4px 0 0 0; font-family: monospace; font-size: 11px;'></p>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- a chart higher than its cell -->
+      <div slot='slot-2' data-bino-kind='ChartScatter'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='aspect=1:1 in a low cell: the chart is cut off and says so'
+          footer-text='Before: no warning, only the width was checked.'>
+          <div slot='card-slot-0' data-bino-kind='ChartScatter'>
+            <p data-fix-errors-of='fix-scatter-cut' style='margin: 4px 0 0 0; font-family: monospace; font-size: 11px;'></p>
+            <bn-chart-scatter id='fix-scatter-cut' datasets='$fix_xy_iso' level='subcategory' series-level='category'
+              aspect='1:1' x='{"measure":"ac1","label":"Price"}' y='{"measure":"ac2","label":"Volume"}'></bn-chart-scatter>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- two parents share a child, top to bottom -->
+      <div slot='slot-3' data-bino-kind='Tree'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='ttb: ROS and CT both lead to Revenue and stay side by side'
+          footer-text='A parent only spans its children when no other parent shares one of them.'>
+          <div slot='card-slot-0' data-bino-kind='Tree'>
+            <bn-tree direction='ttb' show-operators='true' edges='[{"from":"roi","to":"ros","operator":"x"},{"from":"roi","to":"ct"},{"from":"ros","to":"profit"},{"from":"ros","to":"revenue"},{"from":"ct","to":"revenue"},{"from":"ct","to":"capital"}]'>
+              <div slot='roi' style='padding: 4px 8px;'>ROI</div>
+              <div slot='ros' style='padding: 4px 8px;'>Return on sales</div>
+              <div slot='ct' style='padding: 4px 8px;'>Capital turnover</div>
+              <div slot='profit' style='padding: 4px 8px;'>Profit</div>
+              <div slot='revenue' style='padding: 4px 8px;'>Revenue</div>
+              <div slot='capital' style='padding: 4px 8px;'>Capital</div>
+            </bn-tree>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FIX DEMO 15: DATE TITLES AND WEEK LABELS
+         The page title uses title-date-link=end with months: Dez 2024.
+         with its year. Before: Dez. without the year, because the year
+         was cut off as if the title were a range.
+         The title of the left card is the week of 2024-12-31. That is
+         ISO week 1 of 2025: KW01 2025. Before: the week number with the
+         calendar year, KW01 2024 (and then cut to KW01. as above).
+         The year line of the weekly line chart is at week 1, where the
+         new week year starts. Before: one week later.
+         ═══════════════════════════════════════════════════════════════ -->
+    <bn-layout-page data-bino-page='fix_date_labels' title-business-unit='Fix: date titles and week labels'
+      title-namespace='_system' title-measures='[{&#34;name&#34;:&#34;Umsatz&#34;,&#34;unit&#34;:&#34;EUR&#34;}]'
+      title-scenarios='ac1' title-date-start='2024-01-01T00:00:00Z' title-date-end='2024-12-31T00:00:00Z'
+      title-date-format='month' title-date-link='end' page-layout='split-vertical' page-format='xga' page-orientation='landscape'
+      footer-text='Look for Dez 2024. in the page title, for KW01 2025. in the title of the left card and for the dashed year line at KW01 on the right.'
+      footer-display-page-number='true' page-fit-to-content="true">
+
+      <!-- card title: the week of 2024-12-31 with its week year -->
+      <div slot='slot-0' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='Card title with a week: KW01 2025. for 2024-12-31'
+          title-date-start='2024-12-30T00:00:00Z' title-date-end='2024-12-31T00:00:00Z'
+          title-date-format='week' title-date-link='end'
+          footer-text='Before: KW01. without a year, and KW01 2024 where a year was printed.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_weeks' chart-mode='bar' date-interval='week' axis-labels-mode='short' measure-scale='_' measure-unit='EUR' unit-scaling='1' percentage-scaling='auto' show-measure-scale='true'
+              show-overlay-avg='false' scenarios='ac1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+      <!-- the same weeks as a line: year line at week 1 -->
+      <div slot='slot-1' data-bino-kind='ChartTime'>
+        <bn-layout-card card-layout='full' card-show-border='true'
+          title-business-unit='chart-mode=line: the dashed year line is at KW01'
+          footer-text='Before: one week later, between KW01 and KW02.'>
+          <div slot='card-slot-0' data-bino-kind='ChartTime'>
+            <bn-chart-time datasets='$fix_weeks' chart-mode='line' date-interval='week' measure-scale='_' measure-unit='EUR' unit-scaling='auto' percentage-scaling='auto' show-measure-scale='true'
+              line-full-width='false' show-overlay-avg='false' scenarios='ac1'></bn-chart-time>
+          </div>
+        </bn-layout-card>
+      </div>
+
+    </bn-layout-page>
+
   </bn-context>
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -1519,6 +2110,23 @@
           `dataset has-error: ${errors.join(",") || "none"}`;
         // a write of the same text is still a DOM mutation, and the page would never count as settled
         if (status.textContent !== text) status.textContent = text;
+      }, 500);
+    })();
+
+    // fix demos 10, 13 and 14: print the has-error items of the element that data-fix-errors-of names
+    (() => {
+      const outputs = Array.from(document.querySelectorAll("[data-fix-errors-of]"));
+      setInterval(() => {
+        for (const output of outputs) {
+          const target = document.getElementById(output.getAttribute("data-fix-errors-of"));
+          // without the AUTO_ notices and the hint that these demos read a datasource directly
+          const items = JSON.parse((target && target.getAttribute("has-error")) || "[]").filter(
+            (item) => !String(item.id).startsWith("AUTO_") && item.id !== "WARN_use_dataset",
+          );
+          const text = "has-error: " + (items.map((item) => `${item.id}: ${item.message}`).join(" | ") || "none");
+          // a write of the same text is still a DOM mutation, and the page would never count as settled
+          if (output.textContent !== text) output.textContent = text;
+        }
       }, 500);
     })();
   </script>

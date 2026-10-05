@@ -93,6 +93,7 @@ export function validateEdges(json: string): string[] {
 
   const allNodes = new Set<string>();
   const targetNodes = new Set<string>();
+  const children = new Map<string, string[]>();
 
   parsed.forEach((edge, index) => {
     if (typeof edge !== "object" || edge === null) {
@@ -113,6 +114,9 @@ export function validateEdges(json: string): string[] {
     } else {
       allNodes.add(typedEdge.to);
       targetNodes.add(typedEdge.to);
+      if (typeof typedEdge.from === "string") {
+        children.set(typedEdge.from, [...(children.get(typedEdge.from) || []), typedEdge.to]);
+      }
     }
 
     if (typedEdge.operator !== undefined) {
@@ -149,6 +153,39 @@ export function validateEdges(json: string): string[] {
     errors.push("edges: tree has no root node (circular reference detected)");
   } else if (rootNodes.length > 1) {
     errors.push(`edges: tree has multiple root nodes: ${rootNodes.join(", ")}`);
+  } else {
+    errors.push(...findCycleErrors(rootNodes[0], children, allNodes));
+  }
+
+  return errors;
+}
+
+/**
+ * Walks the tree from its root. An edge that leads back to a node on the way from the
+ * root is a cycle. A node the walk never reaches hangs in a cycle of its own.
+ */
+function findCycleErrors(root: string, children: Map<string, string[]>, allNodes: Set<string>): string[] {
+  const errors: string[] = [];
+  const onPath = new Set<string>();
+  const visited = new Set<string>();
+
+  const visit = (node: string): void => {
+    visited.add(node);
+    onPath.add(node);
+    for (const child of children.get(node) || []) {
+      if (onPath.has(child)) {
+        errors.push(`edges: circular reference, the edge from '${node}' to '${child}' leads back`);
+      } else if (!visited.has(child)) {
+        visit(child);
+      }
+    }
+    onPath.delete(node);
+  };
+  visit(root);
+
+  const unreachable = Array.from(allNodes).filter((node) => !visited.has(node));
+  if (unreachable.length > 0) {
+    errors.push(`edges: nodes not connected to the root '${root}': ${unreachable.join(", ")}`);
   }
 
   return errors;

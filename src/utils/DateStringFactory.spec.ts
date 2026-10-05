@@ -102,7 +102,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test END Week", () => {
-    const expected = "W31.";
+    const expected = "W31 2023.";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -115,7 +115,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test START Week", () => {
-    const expected = ".W22";
+    const expected = ".W22 2023";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -128,7 +128,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test AutoCalculation Week End", () => {
-    const expected = "W31.";
+    const expected = "W31 2023.";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -141,7 +141,7 @@ describe("Basis Test Data Structure", () => {
   });
 
   it("Test AutoCalculation Week Start", () => {
-    const expected = ".W22";
+    const expected = ".W22 2023";
     expect(
       dateStringFactory.getDateLinkString(
         DateTime.fromISO("2023-06-01T02:00:00+02:00"),
@@ -610,9 +610,19 @@ describe("datesBetween Range length", () => {
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
         DateTime.fromISO("2021-12-01T02:00:00+02:00"),
         DateDistance.MONTH,
-        28,
       ).length,
     ).toEqual(expected);
+  });
+
+  it("returns every month of three years, up to the newest one", () => {
+    const dates = dateStringFactory.datesBetween(
+      DateTime.fromISO("2022-01-01", { zone: "utc" }),
+      DateTime.fromISO("2024-12-01", { zone: "utc" }),
+      DateDistance.MONTH,
+    );
+
+    expect(dates).toHaveLength(36);
+    expect(dates[35].toISODate()).toBe("2024-12-01");
   });
   /*
   it("Range in Quarter", () => {
@@ -700,5 +710,71 @@ describe("Locale-dependent patterns", () => {
     expect(before.getDateString(may1, DateDistance.DAY)).toEqual("2020-05-01");
     expect(after.getDateString(may1, DateDistance.DAY)).toEqual("2020-05-01");
     expect(before.getDateString(week, DateDistance.WEEK)).toEqual("CW18");
+  });
+});
+
+describe("date link: a single date keeps its year", () => {
+  const dateStringFactory: DateStringFactory = new DateStringFactory();
+  dateStringFactory.setLocale("en");
+  const january = DateTime.fromISO("2023-01-15", { zone: "utc" });
+  const july = DateTime.fromISO("2023-07-31", { zone: "utc" });
+
+  // the year was cut off for every mode, also for those that print one date only
+  it.each([
+    [DateLink.END, "Jul 2023."],
+    [DateLink.START, ".Jan 2023"],
+    [DateLink.YTD, "_Jul 2023"],
+    [DateLink.YTG, "Jan 2023_"],
+    [DateLink.MAT, "~Jan 2023"],
+  ])("prints the year for %s", (mode, expected) => {
+    expect(dateStringFactory.getDateLinkString(january, july, mode, DateDistance.MONTH, 32)).toBe(expected);
+  });
+
+  it("prints the year for a quarter in END mode", () => {
+    expect(dateStringFactory.getDateLinkString(january, july, DateLink.END, DateDistance.QUARTER, 32)).toBe("3Q 2023.");
+  });
+
+  it.each([
+    [DateLink.INTERVAL, "Jan..Jul 2023"],
+    [DateLink.CUM, "Jan_Jul 2023"],
+    [DateLink.AVG, "ØJan..Jul 2023"],
+  ])("still prints the year of a range once for %s", (mode, expected) => {
+    expect(dateStringFactory.getDateLinkString(january, july, mode, DateDistance.MONTH, 32)).toBe(expected);
+  });
+});
+
+describe("week labels use the ISO week year", () => {
+  const utc = (iso: string): DateTime => DateTime.fromISO(iso, { zone: "utc" });
+  const german: DateStringFactory = new DateStringFactory();
+  const english: DateStringFactory = new DateStringFactory();
+  english.setLocale("en");
+
+  it("prints week 1 with the year it belongs to, not the year of its Monday", () => {
+    // Monday 2024-12-30 starts ISO week 1 of 2025: was KW01 2024
+    expect(german.getDateString(utc("2024-12-30"), DateDistance.WEEK)).toBe("KW01 2025");
+    expect(english.getDateString(utc("2024-12-30"), DateDistance.WEEK)).toBe("W01 2025");
+  });
+
+  it("prints week 53 with the year it belongs to", () => {
+    // Sunday 2021-01-03 is in ISO week 53 of 2020: was KW53 2021
+    expect(german.getDateString(utc("2021-01-03"), DateDistance.WEEK)).toBe("KW53 2020");
+  });
+
+  it("prints the short week year at the first week in smart mode", () => {
+    // was KW01 24
+    expect(german.getSmartDateString(utc("2024-12-30"), DateDistance.WEEK)).toBe("KW01 25");
+  });
+
+  it("keeps both years of a range over the turn of the week year", () => {
+    // both Mondays are in the calendar year 2024: was W52..W01 2024
+    expect(
+      english.getDateLinkString(utc("2024-12-23"), utc("2024-12-30"), DateLink.INTERVAL, DateDistance.WEEK, 32),
+    ).toBe("W52 2024..W01 2025");
+  });
+
+  it("prints the week year of a range within one week year once", () => {
+    expect(
+      english.getDateLinkString(utc("2024-12-30"), utc("2025-02-03"), DateLink.INTERVAL, DateDistance.WEEK, 32),
+    ).toBe("W01..W06 2025");
   });
 });

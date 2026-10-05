@@ -24,13 +24,38 @@ export function getStackStroke(index: number): string {
   return STACK_STROKES[index % STACK_STROKES.length];
 }
 
+/** Red, green and blue (0 to 255) of a hex colour with 3, 4, 6 or 8 digits or of an rgb() / rgba() colour. */
+function parseRgb(color: string): number[] | null {
+  const hex = /^#([0-9a-f]+)$/i.exec(color.trim());
+  if (hex) {
+    const digits = hex[1];
+    if (digits.length === 3 || digits.length === 4) {
+      return [0, 1, 2].map((index) => parseInt(digits[index] + digits[index], 16));
+    }
+    if (digits.length === 6 || digits.length === 8) {
+      return [0, 2, 4].map((index) => parseInt(digits.slice(index, index + 2), 16));
+    }
+    return null;
+  }
+
+  const rgb = /^rgba?\(\s*([\d.]+%?)[\s,]+([\d.]+%?)[\s,]+([\d.]+%?)/i.exec(color.trim());
+  if (rgb) {
+    return rgb.slice(1, 4).map((part) => (part.endsWith("%") ? parseFloat(part) * 2.55 : parseFloat(part)));
+  }
+
+  return null;
+}
+
 /**
  * Returns black or white text color for readable contrast against the given
- * hex background, using the W3C relative luminance formula.
+ * background, using the W3C relative luminance formula. A color that cannot
+ * be read (a name, a pattern) gets black text.
  */
-export function getContrastTextColor(hexFill: string): string {
-  const r = parseInt(hexFill.slice(1, 3), 16);
-  const g = parseInt(hexFill.slice(3, 5), 16);
-  const b = parseInt(hexFill.slice(5, 7), 16);
+export function getContrastTextColor(fill: string): string {
+  const rgb = parseRgb(fill);
+  if (rgb === null) {
+    return "#000000";
+  }
+  const [r, g, b] = rgb;
   return 0.299 * r + 0.587 * g + 0.114 * b > 128 ? "#000000" : "#ffffff";
 }
