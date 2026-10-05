@@ -84,8 +84,16 @@ export class BulletChart {
     const actualSlot = this.config.actual.measure;
     const targetSlot = this.config.target?.measure ?? null;
 
+    // A group of one kind keeps its plain sum (a cost KPI shows a positive value).
+    // A group that mixes '+' and '-' rows is a net value: the '-' rows are subtracted.
+    // The alias holds the value that is shown, so ORDER BY sorts by it.
+    const sign = "transformOperator(operation)";
     const measureSelect = [actualSlot, ...(targetSlot !== null ? [targetSlot] : [])]
-      .map((slot) => `SUM(${slot}) as ${slot}, COUNT(ISNULL(${slot})) as ${slot}_cnt`)
+      .map(
+        (slot) =>
+          `CASE WHEN MIN(${sign}) = MAX(${sign}) THEN SUM(${slot}) ELSE SUM(${slot} * ${sign}) END as ${slot}, ` +
+          `SUM(ABS(${slot})) as ${slot}_gross, COUNT(ISNULL(${slot})) as ${slot}_cnt`,
+      )
       .join(", ");
 
     let result: Record<string, unknown>[];
@@ -111,17 +119,22 @@ export class BulletChart {
     let mixedOperations = 0;
     let targetMissing = 0;
     let targetInvalid = 0;
+    let actualNegative = 0;
 
     for (const record of records) {
-      const actual = this.readValue(record, actualSlot);
-      const target = targetSlot !== null ? this.readValue(record, targetSlot) : null;
-
       const opMin = typeof record.opMin === "number" ? record.opMin : 1;
       const opMax = typeof record.opMax === "number" ? record.opMax : 1;
       let operation: "+" | "-" = opMin === -1 && opMax === -1 ? "-" : "+";
       if (opMin !== opMax) {
         operation = "+";
         mixedOperations++;
+      }
+
+      const actual = this.readValue(record, actualSlot);
+      const target = targetSlot !== null ? this.readValue(record, targetSlot) : null;
+
+      if (actual !== null && actual < 0) {
+        actualNegative++;
       }
 
       let fraction: number | null = null;
@@ -132,12 +145,8 @@ export class BulletChart {
           }
         } else if (target <= 0) {
           targetInvalid++;
-        } else if (actual !== null) {
-          if (actual < 0) {
-            targetInvalid++;
-          } else {
-            fraction = actual / target;
-          }
+        } else if (actual !== null && actual >= 0) {
+          fraction = actual / target;
         }
       }
 
@@ -160,6 +169,9 @@ export class BulletChart {
     if (targetInvalid > 0) {
       this.warnings.push({ code: "bullet-target-invalid", data: { count: String(targetInvalid) } });
     }
+    if (actualNegative > 0) {
+      this.warnings.push({ code: "bullet-actual-negative", data: { count: String(actualNegative) } });
+    }
   }
 
   private readValue(record: Record<string, unknown>, slot: string): number | null {
@@ -167,6 +179,11 @@ export class BulletChart {
       return null;
     }
     const value = record[slot];
+    // a net value that is 0 only up to the float rounding of its sum (0.3 - 0.1 - 0.2) is 0, not a tiny negative
+    const gross = record[`${slot}_gross`];
+    if (typeof value === "number" && typeof gross === "number" && Math.abs(value) <= gross * 1e-9) {
+      return 0;
+    }
     return typeof value === "number" && isFinite(value) ? value : null;
   }
 

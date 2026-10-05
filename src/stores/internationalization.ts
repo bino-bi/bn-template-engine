@@ -141,7 +141,10 @@ const de = flattenObject({
     "bullet-target-none": "Kein Ziel-Szenario gefunden (pl1/pp1/fc1); nur Ist-Balken werden gezeichnet.",
     "bullet-target-missing": "{{count}} Zeile(n) ohne Zielwert; Varianz und Marker entfallen.",
     "bullet-target-invalid": "{{count}} Zeile(n) mit Ziel ≤ 0 können nicht normalisiert werden; Balken entfällt.",
-    "bullet-mixed-operation": "{{count}} KPI-Gruppe(n) mischen '+'- und '-'-Zeilen; Sentiment fällt auf '+' zurück.",
+    "bullet-actual-negative":
+      "{{count}} Zeile(n) mit negativem Ist-Wert; der Balken kann nicht gezeichnet werden, der Wert steht als Text.",
+    "bullet-mixed-operation":
+      "{{count}} KPI-Gruppe(n) mischen '+'- und '-'-Zeilen; '-'-Zeilen werden abgezogen, das Sentiment ist '+'.",
     "bullet-ranges-ignored": 'ranges: im normalisierten (IBCS-)Modus ignoriert; normalize="none" setzen.',
     "bullet-ranges-invalid": "ranges: erwartet bis zu 2 aufsteigende positive Zielanteile ({{detail}}).",
   },
@@ -212,7 +215,10 @@ const en = flattenObject({
     "bullet-target-none": "No target scenario found (pl1/pp1/fc1); rendering actual bars only.",
     "bullet-target-missing": "{{count}} row(s) without a target value; variance and marker omitted.",
     "bullet-target-invalid": "{{count}} row(s) with target ≤ 0 cannot be normalized; bar omitted.",
-    "bullet-mixed-operation": "{{count}} KPI group(s) mix '+' and '-' rows; sentiment defaults to '+'.",
+    "bullet-actual-negative":
+      "{{count}} row(s) with a negative actual value; the bar cannot be drawn, the value is shown as text.",
+    "bullet-mixed-operation":
+      "{{count}} KPI group(s) mix '+' and '-' rows; '-' rows are subtracted and the sentiment is '+'.",
     "bullet-ranges-ignored": 'ranges: ignored in normalized (IBCS) mode; set normalize="none".',
     "bullet-ranges-invalid": "ranges: expected up to 2 ascending positive fractions of the target ({{detail}}).",
   },

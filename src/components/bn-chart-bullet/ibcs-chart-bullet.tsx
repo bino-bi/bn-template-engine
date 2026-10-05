@@ -24,6 +24,7 @@ import { BulletLabelConfig, BulletMeasureConfig } from "./utils/model/BulletConf
 const BULLET_DATA_WARNING_CODES = [
   "bullet-target-missing",
   "bullet-target-invalid",
+  "bullet-actual-negative",
   "bullet-mixed-operation",
   "bullet-target-none",
 ];
