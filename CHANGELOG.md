@@ -131,7 +131,7 @@ A level value that holds `"+"` and `"-"` rows was summed as if every row were `"
 
 #### Readiness: a component that threw makes the page "not rendered"
 
-Stencil catches an exception of `render()` or of a lifecycle hook and goes on, so a component that threw counted as rendered and `window.componentRegisterIsRenderedResult` became `true` for a broken page. Now such a component has the status `ERROR`, and the flag is `false` as long as one is in the document.
+Stencil catches an exception of `render()`, of a lifecycle hook or of `connectedCallback` and goes on, so a component that threw counted as rendered and `window.componentRegisterIsRenderedResult` became `true` for a broken page. Now such a component has the status `ERROR`, and the flag is `false` as long as one is in the document. This also covers an element that sits outside of `bn-context`.
 
 `window.componentRegisterFailures` lists the failed components as `{ tag, id, message }`. It is written together with the flag, and it is filled only when no component is running any more. A reader therefore sees one of three states:
 
@@ -148,9 +148,9 @@ A `has-error` item, also one of type `error`, is not a failed component. A page 
 #### `has-error`: failures that were only logged are items now
 
 - `bn-chart-time`, `bn-chart-structure`, `bn-chart-bullet`, `bn-chart-scatter`, `bn-chart-bubble`: a failing query on a registered dataset (for example a `filter` that AlaSQL cannot read) is an `ERR_sql` item of type `error`, and the chart renders nothing instead of "No Data". `bn-table` did this already, it now also covers a failing row count, measure-scale and interval query. A dataset that is not registered yet still means "no data".
-- `bn-dataset`, `bn-datasource`: `ERR_body` when the body cannot be decoded or parsed or is not a JSON array, `ERR_src` when the request fails, **when the server answers with an HTTP error status**, or when the response is not a JSON array, `ERR_name` on every element when two of them produce the same name (also a dataset with the name of its datasource).
+- `bn-dataset`, `bn-datasource`: `ERR_body` when the body cannot be decoded or parsed or is not a JSON array, `ERR_src` when the request fails, **when the server answers with an HTTP error status**, or when the response is not a JSON array, `ERR_name` on every element when two of them produce the same name (also a dataset with the name of its datasource). When the name is no longer shared, the remaining element loads its data again. An empty body and the JSON value `null` mean "no rows" and are no error. A static `bn-dataset` with an empty body is now registered as a table without rows.
 - `bn-internationalization`: `ERR_body` for a body that is not a JSON object.
-- `bn-component-style`: `ERR_keys` (type `error`) lists the keys that no component reads. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`.
+- `bn-component-style`: `ERR_keys` (type `error`) lists the keys that no component reads. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`. The theming guide named sections that were never read (`text`, `timeChart`, `structureChart`, `tree`, `grid`). The sections are the tag names: `bn-text`, `bn-chart-time`, `bn-chart-structure`, `bn-tree`, `bn-grid`. See [doc/theming.md](doc/theming.md).
 - `show-measure-scale`, `show-overlay-avg` and `show-overlay-median` shared the id `ERR_grouped`. A valid value of one removed the item of another. The ids are now `ERR_showMeasureScale`, `ERR_showOverlayAvg` and `ERR_showOverlayMedian`.
 
 #### `bn-page`: true page sizes, `full-hd` works, `@page` rule
@@ -161,13 +161,13 @@ The page sizes come from one table now, which also feeds the validation of `form
 - **Paper formats have their true size.** `a4` was 8.17 x 11.6 in and is 8.27 x 11.69 in, `a3` 11.69 x 16.54, `a2` 16.54 x 23.39, `a1` 23.39 x 33.11, `a0` 33.11 x 46.81. Reports in these formats reflow.
 - `a6`, `a5`, `tabloid` and `ledger`, which only the stylesheet knew, are valid formats.
 - An unknown `format` or `orientation` is also reported when it is there from the start, not only when it changes later.
-- The first `bn-context` of a document writes one `@page` rule with the size of the first page and no margin, in the orientation of `render-orientation` when that is set. A caller that passes a paper size to the browser must pass the size of the format and no margin, otherwise Chrome fits the page into the sheet.
+- The first `bn-context` of a document writes one `@page` rule with the size its first page is drawn in (turned or not, see below). The rule sets no margin. **A caller that prints with `preferCSSPageSize` now gets this size as the sheet**, for A4 8.27 x 11.69 in. A caller that passes a fixed paper size must pass the size of the format, otherwise Chrome fits the page into the sheet.
 
 See [bn-page](src/components/bn-page/readme.md) for the sizes.
 
 #### Page numbers: a number of the author is kept
 
-`bn-context` overwrote the `page-number` of every page 250 ms after the load. It now numbers the pages right away, numbers pages that are added later, and leaves a `page-number` alone that it did not write itself. The pages still count by position: the page after `page-number="A-1"` on position 2 is page 3.
+`bn-context` overwrote the `page-number` of every page 250 ms after the load. It now numbers the pages right away, numbers pages that are added later, writes a number again that was removed, and leaves a `page-number` alone that it did not write itself. The pages still count by position: the page after `page-number="A-1"` on position 2 is page 3.
 
 `bn-footer.pageNumber` is a string. A text label such as `A-1` was parsed as a number and printed as `NaN`.
 
@@ -179,11 +179,11 @@ A page whose orientation differs from the `render-orientation` of `bn-context` i
 
 The layout `1-over-3` got four column tracks instead of three, so its content took three quarters of the width. It has three columns now.
 
-A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `ERR_pageCustomTemplate` or `ERR_cardCustomTemplate`. The same item reports rows of different length.
+A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `ERR_pageCustomTemplate` or `ERR_cardCustomTemplate`. The same item reports rows of different length. Rows can be written in double or in single quotes, the latter fit into a double-quoted attribute: `page-custom-template="'a a' 'b c'"`.
 
 #### `bn-layout-card`: an inherited keyword stays on the host
 
-A card with `title-scenarios="inherited-page"` (or another inherited title field, or `ruleset`) replaced the keyword in its own attribute with the value it had read at connect. It stopped following the page, and a component inside the card read the stale value. The card keeps the attribute as the author wrote it now.
+A card with `title-scenarios="inherited-page"` (or another inherited title field, or `ruleset`) replaced the keyword in its own attribute with the value it had read at connect. It stopped following the page, and a component inside the card read the stale value. The card keeps the attribute as the author wrote it now. A component inside it that uses `inherited-closest` still gets the page value: such a card stands for the page, the cards further out are not asked.
 
 ### Fixed
 

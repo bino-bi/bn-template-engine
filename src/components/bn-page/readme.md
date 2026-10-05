@@ -46,11 +46,13 @@ Without `orientation` a format has its native orientation. `orientation` has no 
 
 ### Printing
 
-A page has exactly the size of a sheet. The first `<bn-context>` of a document writes one `@page` rule with the size of its first page and no margin, so a browser prints one page per sheet.
+A page has exactly the size of a sheet. The first `<bn-context>` of a document writes one `@page` rule with the size its first page is drawn in, so the sheet of a browser that honours CSS page sizes (`preferCSSPageSize` of `printToPDF`) has the size of the page.
 
-- A caller that passes a paper size to the browser (for example to `printToPDF`) must pass the size from the table and no margin. With another size Chrome fits the page into the sheet.
+- The rule sets only the size, not the margin. Print without margins, otherwise a page does not fit on its sheet.
+- A caller that prints with a fixed paper size instead must pass the size from the table. With another size Chrome fits the page into the sheet.
 - The document must not add a margin of its own around the pages (`body { margin: 0 }`).
-- A document is printed in one orientation. Set it as `render-orientation` on `<bn-context>`: a `<bn-layout-page>` with the other orientation is then turned onto the sheet.
+- A document is printed in one orientation. Set it as `render-orientation` on `<bn-context>`: a `<bn-layout-page>` with the other orientation is then turned onto the sheet. A plain `<bn-page>` is never turned.
+- All pages of a document should have the format of the first page: there is one sheet size per document.
 
 <!-- Auto Generated Below -->
 

@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+import { join } from "path";
 import { SYSTEM_STYLE_DEFAULTS, unknownStyleKeys } from "./componentStyles";
 
 describe("unknownStyleKeys", () => {
@@ -50,4 +52,28 @@ describe("unknownStyleKeys", () => {
     expect(unknownStyleKeys([1, 2])).toEqual([]);
     expect(unknownStyleKeys("x")).toEqual([]);
   });
+});
+
+describe("the theming guide", () => {
+  const guide = readFileSync(join(__dirname, "../../doc/theming.md"), "utf8");
+  const blocks = (language: string): string[] =>
+    Array.from(guide.matchAll(new RegExp("```" + language + "\\n([\\s\\S]*?)```", "g")), (match) => match[1]);
+  // the JSON examples, and the style bodies inside the HTML examples
+  const examples = [
+    ...blocks("json"),
+    ...blocks("html").flatMap((html) =>
+      Array.from(html.matchAll(/<bn-component-style[^>]*>([\s\S]*?)<\/bn-component-style>/g), (match) => match[1]),
+    ),
+  ];
+
+  it("has examples", () => {
+    expect(examples.length).toBeGreaterThan(6);
+  });
+
+  it.each(examples.map((example, index) => [index + 1, example]))(
+    "example %i uses only keys that are read",
+    (_i, body) => {
+      expect(unknownStyleKeys(JSON.parse(body as string))).toEqual([]);
+    },
+  );
 });
