@@ -88,12 +88,29 @@ describe("layout templates", () => {
   });
 
   it.each([
-    ["unpaired quotes next to a good row", `"a b" "c d' 'e f"`],
     ["a row of blanks", `"a b" " " "c d"`],
+    ["an empty pair of quotes", `"a b" ""`],
+    ["an empty pair of single quotes", `"a b" '' "c d"`],
   ])("reports %s: the browser ignores such a template", (_name, template) => {
     // the good rows alone look fine, but a pair of quotes without a cell makes the whole value invalid
     expect(templateProblem(template)).toContain("holds no cell");
   });
+
+  it.each([
+    ["unpaired quotes next to a good row", `"a b" "c d' 'e f"`],
+    ["a cell name with a hyphen", `"a b" "c-x d" "e f"`],
+    ["a cell name with an umlaut", `"a b" "ü d" "e f"`],
+  ])("reports %s as a row that cannot be read", (_name, template) => {
+    // the browser may take such a value, but row count and slots would not match it
+    expect(templateProblem(template)).toContain("cannot be read");
+  });
+
+  it.each([`"a b" "c d"`, `'a a' 'b c'`, `"a  b"`, `"a a a " "b c d"`, `"a ." ". b"`])(
+    "has nothing to report for %s",
+    (template) => {
+      expect(templateProblem(template)).toBeUndefined();
+    },
+  );
 
   it("reports rows of different length", () => {
     expect(templateProblem('"a b" "c"')).toContain("different numbers of cells");

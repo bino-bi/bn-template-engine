@@ -23,6 +23,8 @@ export const CUSTOM_TEMPLATE = "custom-template";
 const SINGLE_CELL = '"a"';
 // CSS takes both kinds of quotes. Single ones are what fits into a double-quoted HTML attribute.
 const ROW_PATTERN = /"[\w\d\s.]+"|'[\w\d\s.]+'/g;
+// The strings of a template the way CSS pairs the quotes, whatever stands between them.
+const STRING_PATTERN = /"[^"]*"|'[^']*'/g;
 
 /** The rows of a template, each as the list of its cell names. Empty for text that holds no quoted row. */
 export function templateRows(areas: string | null | undefined): string[][] {
@@ -72,8 +74,12 @@ export function templateProblem(customTemplate: string | null | undefined): stri
   if (rows.length === 0) {
     return `no row found, the layout is drawn as a single cell. Write one quoted row per grid row, e.g. '"a a" "b c"'.`;
   }
-  if ((customTemplate?.match(ROW_PATTERN) ?? []).length !== rows.length) {
-    return "a pair of quotes holds no cell, so the browser ignores the template. Open and close every row with the same kind of quote.";
+  const strings: string[] = customTemplate?.match(STRING_PATTERN) ?? [];
+  if (strings.some((text) => text.slice(1, -1).trim() === "")) {
+    return "a pair of quotes holds no cell, so the browser ignores the template.";
+  }
+  if (strings.length !== rows.length) {
+    return "a row cannot be read. Use only letters, digits, '_' and '.' in a cell name, and open and close every row with the same kind of quote.";
   }
   if (rows.some((row) => row.length !== rows[0].length)) {
     return "the rows have different numbers of cells, so the browser ignores the template.";
