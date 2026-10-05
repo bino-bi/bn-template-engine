@@ -219,6 +219,33 @@ describe("bn-layout-page in a document that is printed in the other orientation"
     expect(rule()).toBe("@page { size: 11.69in 8.27in; }");
   });
 
+  it("removes the attribute of a format that is cleared as a property", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      html: `<bn-layout-page page-format="a4" page-orientation="landscape"></bn-layout-page>`,
+    });
+    const host = page.root as HTMLBnLayoutPageElement;
+
+    // Stencil's own reflection does not touch an attribute that was in the markup at the first render
+    host.pageFormat = undefined;
+    await page.waitForChanges();
+
+    expect(host.hasAttribute("page-format")).toBe(false);
+    expect(host.getAttribute("page-orientation")).toBe("landscape");
+  });
+
+  it("writes the attribute of a format that changed before the first render", async () => {
+    const page = await newSpecPage({ components: [LayoutPage], html: `<div></div>` });
+    const host = page.doc.createElement("bn-layout-page") as HTMLBnLayoutPageElement;
+    host.setAttribute("page-format", "a4");
+    host.pageFormat = "a3";
+
+    page.body.append(host);
+    await page.waitForChanges();
+
+    expect(host.getAttribute("page-format")).toBe("a3");
+  });
+
   it("gets its page number from the context before the first render", async () => {
     const page = await newSpecPage({
       components: [Context, LayoutPage],

@@ -198,7 +198,7 @@ export class LayoutPage {
    * values:<br />
    * ```xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger```
    */
-  @Prop({ reflect: true }) pageFormat?: string;
+  @Prop() pageFormat?: string;
 
   /**
    * Page orientation. Default depends on the chosen format.
@@ -207,7 +207,7 @@ export class LayoutPage {
    * values:<br />
    * ```landscape // portrait```
    */
-  @Prop({ reflect: true }) pageOrientation?: string;
+  @Prop() pageOrientation?: string;
 
   /**
    * Page label displayed in the footer: a number or any text, e.g. `A-1`.
@@ -372,6 +372,21 @@ export class LayoutPage {
   async getNumberOfSlot(name: string) {
     const template = this.getTemplateAreas(name);
     return this.extractSlotNames(template).length;
+  }
+
+  componentDidRender() {
+    // bn-context reads the paper size of the document from these attributes and watches them.
+    // Written by hand: the reflection of Stencil skips an attribute that was in the markup at the first render.
+    this.mirror("page-format", this.pageFormat);
+    this.mirror("page-orientation", this.pageOrientation);
+  }
+
+  private mirror(attribute: string, value: string | null | undefined): void {
+    if (value == null) {
+      if (this.element.hasAttribute(attribute)) this.element.removeAttribute(attribute);
+    } else if (this.element.getAttribute(attribute) !== value) {
+      this.element.setAttribute(attribute, value);
+    }
   }
 
   componentWillRender() {
