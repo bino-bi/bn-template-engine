@@ -31,6 +31,7 @@ import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensi
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
+import { VarianceScenario } from "../../utils/model/VarianceScenario";
 import { TimeChartStyle } from "./utils/model";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
@@ -1125,6 +1126,36 @@ export class Chart {
     return variances?.split(",").map((entry) => entry.trim());
   }
 
+  /** A variance over a scenario that is not drawn has no values, so its segment would be empty without a hint. */
+  private checkVarianceScenarios(variances: string[]): void {
+    const errId = "WARN_variances_scenario";
+    const scenarios = this.prepareScenarios();
+    const missing: string[] = [];
+
+    for (const variance of variances) {
+      const parsed = new VarianceScenario(variance);
+      // a variance with a syntax error has ERR_variances
+      if (!parsed.isValid) {
+        continue;
+      }
+      for (const scenario of [parsed.base, parsed.delta]) {
+        if (!scenarios.includes(scenario)) {
+          missing.push(`'${variance}' needs '${scenario}'`);
+        }
+      }
+    }
+
+    if (scenarios.length > 0 && missing.length > 0) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: `variances: ${missing.join(", ")}, which is not in scenarios (${scenarios.join(", ")}). The variance has no values.`,
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
   private prepareHideAxisLabels(idx: number): boolean {
     return idx >= 1 || this.showCategories !== "true";
   }
@@ -1699,6 +1730,7 @@ export class Chart {
   render() {
     let scenariosArray = [""];
     const variancesArray = this.prepareVariances();
+    this.checkVarianceScenarios(variancesArray);
     if (variancesArray.length > 0) {
       scenariosArray = [...scenariosArray, ...variancesArray];
     }
