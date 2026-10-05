@@ -56,7 +56,7 @@ export class TimeChartComponentConfig {
   public dateInterval: DateDistance = DateDistance.AUTO;
   /** Controls how axis labels are rendered; SMART suppresses overlapping labels. */
   public axisLabelsMode: AxisLabelsMode = AxisLabelsMode.SMART;
-  /** Maximum number of date intervals before the chart truncates or scrolls. */
+  /** Maximum number of periods the AUTO date interval may produce. Never cuts the series. */
   public intervalSpanLimit: number = 28;
   public filter: string = "";
   public measureScale: SiPrefix = new SiPrefix();

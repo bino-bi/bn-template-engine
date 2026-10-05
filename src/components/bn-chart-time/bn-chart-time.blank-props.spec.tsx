@@ -100,3 +100,21 @@ describe("bn-chart-time: omitted optional props", () => {
     expect(errorIds(page)).toContain("ERR_dateInterval");
   });
 });
+
+describe("bn-chart-time: interval-span-limit", () => {
+  // the unregistered inner element gets number props as attributes
+  const innerLimit = (page: SpecPage): number =>
+    Number(page.root!.shadowRoot!.querySelector("ibcs-chart-time")!.getAttribute("intervalSpanLimit"));
+
+  it("passes a positive limit on", async () => {
+    const page = await renderChart(`interval-span-limit="12"`);
+
+    expect(innerLimit(page)).toBe(12);
+  });
+
+  it.each(["0", "-3", "many"])("falls back to 28 for '%s'", async (value) => {
+    const page = await renderChart(`interval-span-limit="${value}"`);
+
+    expect(innerLimit(page)).toBe(28);
+  });
+});

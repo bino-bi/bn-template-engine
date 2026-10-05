@@ -579,8 +579,9 @@ export class Chart {
     }
   }
 
-  /** Max number of collumns
-   *  is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+  /** Max number of columns.
+   *  Only used to choose the date interval when dateInterval is AUTO:
+   *  the finest interval that gives fewer periods than this. The series is never cut.
    */
   @Prop()
   intervalSpanLimit: number = 28;
@@ -1400,7 +1401,8 @@ export class Chart {
   }
 
   private prepareIntervalSpanLimit(): number {
-    return this.intervalSpanLimit;
+    const limit = Number(this.intervalSpanLimit);
+    return limit > 0 ? limit : 28;
   }
 
   private prepareAxisLabelsMode(): AxisLabelsMode {

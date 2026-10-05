@@ -44,6 +44,9 @@ import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 
+/** Above this many periods between the first and the last date, gaps are not filled with empty periods. */
+const MAX_GAP_FILLED_PERIODS = 10000;
+
 /** Tracks whether the internal data model needs to be regenerated. */
 enum FactoryState {
   UP_TO_DATE,
@@ -1847,7 +1850,13 @@ export class TimeChart {
     const to: DateTime = DateTime.max(...validDates);
     const from: DateTime = DateTime.min(...validDates);
 
-    const dateRange: DateTime[] = new DateStringFactory().datesBetween(from, to, dateInterval, this.intervalSpanLimit);
+    const dateStringFactory = new DateStringFactory();
+    // an interval far finer than the data (second over a month) would add millions of empty periods
+    if (dateStringFactory.countBetween(from, to, dateInterval) > MAX_GAP_FILLED_PERIODS) {
+      return result;
+    }
+
+    const dateRange: DateTime[] = dateStringFactory.datesBetween(from, to, dateInterval);
 
     const dateRangeEntries: Map<string, TimeChartResponseRow> = new Map();
 

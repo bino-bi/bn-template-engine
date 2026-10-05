@@ -241,30 +241,30 @@ export class DateStringFactory {
    * @param {string|Date} from start date
    * @param {string|Date} to end date
    * @param dateInterval
-   * @param spanLimit
    */
-  public datesBetween(from: DateTime, to: DateTime, dateInterval: DateDistance, spanLimit: number): DateTime[] {
+  public datesBetween(from: DateTime, to: DateTime, dateInterval: DateDistance): DateTime[] {
     const unit: DateTimeUnit = this.convertDateDistanceToMomentunitOfTime(dateInterval);
 
     const fromDate = from.startOf(unit);
     const toDate = to.endOf(unit);
 
-    let span = toDate.diff(fromDate).as(unit);
-
     const days = [];
-
-    if (span >= spanLimit) {
-      span = spanLimit;
-    }
 
     let currentDate = fromDate;
 
     do {
       days.push(currentDate);
       currentDate = currentDate.plus(this.createDiratonLike(unit, 1));
-    } while (currentDate <= toDate && days.length < span);
+    } while (currentDate <= toDate);
 
     return days;
+  }
+
+  /** Number of `dateInterval` periods from `from` to `to`, both included. */
+  public countBetween(from: DateTime, to: DateTime, dateInterval: DateDistance): number {
+    const unit: DateTimeUnit = this.convertDateDistanceToMomentunitOfTime(dateInterval);
+
+    return Math.floor(to.startOf(unit).diff(from.startOf(unit), unit).as(unit)) + 1;
   }
 
   /**

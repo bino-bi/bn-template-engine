@@ -610,9 +610,19 @@ describe("datesBetween Range length", () => {
         DateTime.fromISO("2021-10-01T02:00:00+02:00"),
         DateTime.fromISO("2021-12-01T02:00:00+02:00"),
         DateDistance.MONTH,
-        28,
       ).length,
     ).toEqual(expected);
+  });
+
+  it("returns every month of three years, up to the newest one", () => {
+    const dates = dateStringFactory.datesBetween(
+      DateTime.fromISO("2022-01-01", { zone: "utc" }),
+      DateTime.fromISO("2024-12-01", { zone: "utc" }),
+      DateDistance.MONTH,
+    );
+
+    expect(dates).toHaveLength(36);
+    expect(dates[35].toISODate()).toBe("2024-12-01");
   });
   /*
   it("Range in Quarter", () => {
