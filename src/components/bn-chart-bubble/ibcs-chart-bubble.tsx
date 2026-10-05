@@ -160,12 +160,15 @@ export class IbcsChartBubble {
   }
 
   private prepareStyle(): XYChartStyle {
-    return new XYChartStylesAdapter(
+    const styles = new XYChartStylesAdapter(
       new ScaleFactorsXYChartAdapter(),
       new FontStyleAdapter(),
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
       new PaddingAdapter(),
     ).adapt(this.styles as unknown as Record<string, unknown>);
+    styles.locale = getStores(this.element).context?.state?.locale || "de";
+
+    return styles;
   }
 
   render() {

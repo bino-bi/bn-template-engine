@@ -155,14 +155,14 @@ describe("IBCS Table attribute columns", () => {
     const page = await renderTable();
 
     // sum(ac1) respects the operation sign: 10 - 4 + 2 = 8, formatted like a scenario cell
-    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "Meier, Schulz", "8,0", "Fix", "8,0"]);
-    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "Huber", "5,0", "Fix", "5,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "Meier, Schulz", "8.0", "Fix", "8.0"]);
+    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "Huber", "5.0", "Fix", "5.0"]);
   });
 
   it("leaves attribute cells blank on the total sum row", async () => {
     const page = await renderTable();
 
-    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "", "", "", "13,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "", "", "", "13.0"]);
   });
 
   it("leaves attribute cells blank on group head and group sum rows", async () => {
@@ -187,8 +187,8 @@ describe("IBCS Table attribute columns", () => {
     const nord = findRowByFirstCell(page, "Nord");
     const sued = findRowByFirstCell(page, "Süd");
 
-    expect(cellTexts(nord).slice(1, 4)).toEqual(["Meier, Schulz", "6,0", "Fix"]);
-    expect(cellTexts(sued).slice(1, 4)).toEqual(["Meier", "2,0", "Fix"]);
+    expect(cellTexts(nord).slice(1, 4)).toEqual(["Meier, Schulz", "6.0", "Fix"]);
+    expect(cellTexts(sued).slice(1, 4)).toEqual(["Meier", "2.0", "Fix"]);
   });
 
   it("leaves attribute cells blank on partof percentage rows", async () => {
@@ -229,7 +229,7 @@ describe("IBCS Table attribute columns", () => {
     const plus = hamburgRows.find((row) => cellTexts(row)[0] === "+");
     const minus = hamburgRows.find((row) => cellTexts(row)[0] === "-");
 
-    expect(cellTexts(plus).slice(2, 5)).toEqual(["Meier", "12,0", "Fix"]);
-    expect(cellTexts(minus).slice(2, 5)).toEqual(["Schulz", "4,0", "Fix"]);
+    expect(cellTexts(plus).slice(2, 5)).toEqual(["Meier", "12.0", "Fix"]);
+    expect(cellTexts(minus).slice(2, 5)).toEqual(["Schulz", "4.0", "Fix"]);
   });
 });

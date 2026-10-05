@@ -192,7 +192,7 @@ export class IbcsChartTime {
     this.autoFitScaling(config, styles);
     this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
-    this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
+    this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
   }
 
   public async componentWillUpdate() {
@@ -213,7 +213,7 @@ export class IbcsChartTime {
     this.autoFitScaling(config, styles);
     this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
     this.pattern = new CustomPattern(this.chart.styles);
-    this.chart.setPattern("fc", this.pattern.getFCPolygonPattern());
+    this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
   }
 
   /**
@@ -420,12 +420,15 @@ export class IbcsChartTime {
   }
 
   private prepareStyle(): TimeChartStyle {
-    return new TimeChartStylesAdapter(
+    const styles = new TimeChartStylesAdapter(
       new ScaleFactorsTimeChartAdapter(),
       new FontStyleAdapter(),
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
       new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
       new PaddingAdapter(),
     ).adapt(this.styles as unknown as Record<string, unknown>);
+    styles.locale = getStores(this.element).context?.state?.locale || "de";
+
+    return styles;
   }
 }

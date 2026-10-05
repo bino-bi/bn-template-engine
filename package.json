@@ -25,6 +25,7 @@
     "test": "stencil test --spec --e2e",
     "test.watch": "stencil test --spec --e2e --watchAll",
     "test:dist": "node --test scripts/test-dist/security.mjs",
+    "test:tz": "TZ=America/New_York stencil test --spec -- .timezone.spec",
     "dependencies.update": "npx npm-upgrade check",
     "exportdoc": "node scripts/docExporter.js ../www/docs/product/components/",
     "lint": "eslint src/",

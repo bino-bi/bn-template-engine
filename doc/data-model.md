@@ -59,7 +59,7 @@ Variance columns are computed from scenario pairs. They follow a naming pattern:
 | Variance | Meaning |
 |----------|---------|
 | `dac1_pl1_pos` | Absolute: AC1 minus PL1, favorable when positive |
-| `drac1_pp1_neg` | Relative %: (AC1 - PP1) / PP1, unfavorable when positive |
+| `drac1_pp1_neg` | Relative %: (AC1 - PP1) / \|PP1\|, unfavorable when positive |
 | `dac1_fc1_neu` | Absolute: AC1 minus FC1, neutral (no color coding) |
 
 The `direction` determines the IBCS color coding in charts and tables:
@@ -115,6 +115,8 @@ For multi-dimensional tables:
 | `date` | `string` | ISO 8601 date string (e.g., `"2024-01-15"`) |
 
 Used by `<bn-chart-time>` for time series visualization. The `dateInterval` prop controls the aggregation level (year, quarter, month, etc.).
+
+`date` values are read and shown in UTC, in every browser time zone: a date without a time is midnight UTC, a value with an offset is converted to UTC, a number is epoch milliseconds. The SQL date functions (`YEAR`, `MONTH`, `DAY`) in a `filter` or a dataset query still use the time zone of the browser, so compare the text instead: `[date] >= '2024-01-01'`.
 
 ### Other Fields
 

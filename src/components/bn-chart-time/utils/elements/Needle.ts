@@ -6,6 +6,7 @@ import { ElementPositions } from "../helper";
 
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGVariancesStyleGroup } from "../../../../utils/model";
+import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 // import {SVGVariancesStyleGroup} from "../../../../utils/model/styles/SVGVariancesStyleGroup";
 
 /**
@@ -68,7 +69,9 @@ export class Needle {
 
     this.barGroup = scenarioGroup.group().id(scenarioGroup.toString() + "_" + this.ID_RECT);
 
-    if (dataPoint?.isEmpty() !== true) {
+    const notAvailable = dataPoint?.value === undefined && dataPoint?.scenario != null;
+
+    if (dataPoint?.isEmpty() !== true || notAvailable) {
       this.hasData = true;
       this.dimensions = this.createDimensions(position, dataPoint, index);
       this.dataLabel = new Label(
@@ -76,7 +79,7 @@ export class Needle {
         this.position.getColumnCenterPositionX(this.index),
         this.position.getNeedleDataLabelPositionY(this.dataPoint.getScaledPercentUnit()),
         this.ID_DATA_PREFIX,
-        dataPoint.value,
+        notAvailable ? NOT_AVAILABLE : dataPoint.value,
         this.styles,
         HookLocation.Center,
         HookLocation.Center,
@@ -95,6 +98,12 @@ export class Needle {
   }
 
   public draw() {
+    if (this.dataPoint?.value === undefined) {
+      // reference 0: the label says "n/a", there is no pin
+      this.dataLabel?.draw();
+      return this;
+    }
+
     if (this.isEmpty()) {
       return this;
     }

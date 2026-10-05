@@ -21,6 +21,7 @@ import { AggregationLevel, StackBy, StackMode } from "../../../utils/constants";
 import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { relativeVariance } from "../../../utils/relativeVariance";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { Order, OrderColumn } from "../../../utils/model/Order";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
@@ -631,7 +632,7 @@ export class StructureChart {
   private createOrderStr(level: AggregationLevel, sortOrder: Order) {
     let orderStr = `${level.toLowerCase()}`;
     if (sortOrder.hierarchy.length >= 1) {
-      orderStr = `${sortOrder.hierarchy.toString()} ${sortOrder?.direction}`;
+      orderStr = sortOrder.hierarchy.map((column) => `${column} ${sortOrder.direction}`).toString();
     }
     return orderStr;
   }
@@ -813,7 +814,7 @@ export class StructureChart {
     scenarios: VarianceScenario,
     element: StructureChartDataModelEntry,
     scenarioMap: Map<string, string>,
-  ): number | null {
+  ): number | null | undefined {
     const scenarioBase = scenarioMap.get(scenarios.base);
     const scenarioDelta = scenarioMap.get(scenarios.delta);
 
@@ -824,7 +825,8 @@ export class StructureChart {
     const isRelativeVarianze = scenarios.type === VarianceType.RELATIVE;
 
     if (isRelativeVarianze) {
-      return (element[scenarioBase].value - element[scenarioDelta].value) / element[scenarioDelta].value;
+      // NaN marks a category without data and stays empty; undefined is a reference of 0 and is shown as "n/a"
+      return relativeVariance(element[scenarioBase].value - element[scenarioDelta].value, element[scenarioDelta].value);
     } else {
       return element[scenarioBase].value - element[scenarioDelta].value;
     }
@@ -852,7 +854,7 @@ export class StructureChart {
   }
 
   private calculateTextBoxWidth(value: number): number {
-    return CalculateSize(Formatter.number(value, "decimal", 1, 0), {
+    return CalculateSize(Formatter.number(value, "decimal", 1, 0, 1, this.styles.locale), {
       font: this.styles.fontStyles.font,
       fontSize: this.styles.fontStyles.size + "px",
     }).width;
@@ -874,7 +876,7 @@ export class StructureChart {
     }).width;
 
     const labelWidth =
-      CalculateSize(Formatter.number(value, "decimal", 1, 1), {
+      CalculateSize(Formatter.number(value, "decimal", 1, 1, 1, this.styles.locale), {
         font: this.styles.fontStyles.font,
         fontSize: this.styles.fontStyles.size + "px",
       }).width + signWidth;

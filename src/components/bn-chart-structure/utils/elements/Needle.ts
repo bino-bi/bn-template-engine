@@ -4,6 +4,7 @@ import { HookLocation, Label } from "./Label";
 import { G } from "@svgdotjs/svg.js";
 import { ElementPositions } from "../helper";
 import { SVGStyle } from "../../../../utils/model";
+import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 // import {SVGStyle} from "../../../../utils/model/styles/SVGStyle";
 
 /**
@@ -59,7 +60,9 @@ export class Needle {
     this.styles = styles;
     this.barGroup = scenarioGroup.group().id(scenarioGroup.toString() + "_" + this.ID_RECT);
 
-    if (dataPoint?.isEmpty() !== true && dataPoint.value != null) {
+    const notAvailable = dataPoint?.value === undefined && dataPoint?.scenario != null;
+
+    if ((dataPoint?.isEmpty() !== true && dataPoint.value != null) || notAvailable) {
       this.hasData = true;
       this.dimensions = this.createDimensions(position, dataPoint, index);
 
@@ -73,7 +76,7 @@ export class Needle {
         this.dimensions.labelXPos,
         this.dimensions.yPos,
         this.ID_DATA_PREFIX,
-        dataPoint.value,
+        notAvailable ? NOT_AVAILABLE : dataPoint.value,
         this.styles,
         HookLocation.Center,
         textLabelHook,
@@ -92,6 +95,12 @@ export class Needle {
   }
 
   public draw() {
+    if (this.dataPoint?.value === undefined) {
+      // reference 0: the label says "n/a", there is no pin
+      this.label?.draw();
+      return this;
+    }
+
     if (this.isEmpty()) {
       return this;
     }

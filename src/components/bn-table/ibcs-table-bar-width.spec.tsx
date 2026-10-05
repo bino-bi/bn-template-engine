@@ -38,6 +38,7 @@ import { IbcsTable } from "./ibcs-table";
 import { OrderDirection, TableType } from "./utils/model";
 import { I18nMode } from "../../utils/constants";
 import { Order, OrderColumn } from "../../utils/model/Order";
+import { absoluteBarGeometry } from "./utils/helper/barColumnGeometry";
 
 /**
  * `bar-column-width="wN"` must render exactly as wide as `category-width="wN"`.
@@ -57,8 +58,25 @@ describe("IBCS Table bar column width", () => {
     { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, ac1: 80, pp1: 100, pl1: 60 },
   ];
 
+  // dac1_pp1 is +10 / +20, the total row +30
+  const statsRows: any[] = [
+    // prettier-ignore
+    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Alpha", categoryIndex: 1, ac1: 110, pp1: 100 },
+    // prettier-ignore
+    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, ac1: 120, pp1: 100 },
+  ];
+
+  // dac1_pp1 is +10 / +20 / -5 (two-sided)
+  const cutRows: any[] = [
+    ...statsRows,
+    // prettier-ignore
+    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Gamma", categoryIndex: 3, ac1: 95, pp1: 100 },
+  ];
+
   beforeAll(() => {
     getStores(null).db.db.tables["widthData"] = { data: rows };
+    getStores(null).db.db.tables["statsData"] = { data: statsRows };
+    getStores(null).db.db.tables["cutData"] = { data: cutRows };
   });
 
   const renderTable = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
@@ -151,5 +169,61 @@ describe("IBCS Table bar column width", () => {
 
     expect(bar).toBeDefined();
     expect(widthOf(bar)).toBeCloseTo(20 * unitScaling * LABEL_FONT, 3);
+  });
+
+  it("auto-fits the bars to the rows that draw one: a total row does not shrink them", async () => {
+    const page = await renderTable({
+      tableName: "statsData",
+      type: TableType.SUM,
+      scenarios: ["ac1", "dac1_pp1_pos"],
+      barColumns: ["dac1_pp1_pos"],
+      barColumnMaxWidth: 15,
+      unitScaling: 0,
+    });
+
+    // the total row (30) draws no bar
+    const svgs = svgsOf(page, "absolute-variance");
+    expect(svgs.length).toBe(2);
+
+    const [alpha, beta] = svgs.map((svg) =>
+      Array.from(svg.querySelectorAll("rect")).find(
+        (rect) => (rect.parentNode as Element).tagName?.toLowerCase() === "svg",
+      ),
+    );
+
+    // the largest drawn bar (Beta, 20) gets 80% of the bar area: about 124.27 px
+    const { maxBarWidth, cutWidth } = absoluteBarGeometry(15, EM, false, true);
+    const target = Math.min(maxBarWidth * 0.8, cutWidth);
+    expect(widthOf(beta)).toBeCloseTo(target, 3);
+    expect(widthOf(alpha)).toBeCloseTo(target / 2, 3); // 10 is half of 20
+  });
+
+  it("draws the largest auto-fitted bar in one piece when it ends exactly on the overdrive cut", async () => {
+    const page = await renderTable({
+      tableName: "cutData",
+      type: TableType.SUM,
+      scenarios: ["ac1", "dac1_pp1_pos"],
+      barColumns: ["dac1_pp1_pos"],
+      barColumnMaxWidth: 10,
+      unitScaling: 0,
+    });
+
+    const svgs = svgsOf(page, "absolute-variance");
+    expect(svgs.length).toBe(3);
+
+    // no zigzag break, and one bar per row (pattern rects live inside <defs>)
+    const bars = svgs.map((svg) => {
+      expect(svg.querySelectorAll("path").length).toBe(0);
+      const rects = Array.from(svg.querySelectorAll("rect")).filter(
+        (rect) => (rect.parentNode as Element).tagName?.toLowerCase() === "svg",
+      );
+      expect(rects.length).toBe(1);
+      return rects[0];
+    });
+
+    // two-sided w10: 80% of the side is more than the cut, so the largest bar (Beta, 20) ends on the cut, about 22.92 px
+    const { cutWidth } = absoluteBarGeometry(10, EM, true, true);
+    expect(widthOf(bars[1])).toBeCloseTo(cutWidth, 3);
+    expect(widthOf(bars[0])).toBeCloseTo(cutWidth / 2, 3); // 10 is half of 20
   });
 });

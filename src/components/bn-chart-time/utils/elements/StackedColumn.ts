@@ -6,6 +6,7 @@ import { HookLocation, Label } from "./Label";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { RELATIVE_STACK_UNITS, StackMode } from "../../../../utils/constants";
+import { Formatter } from "../../../../utils/formatter";
 
 /**
  * Renders a single segment within a stacked bar column in a time chart.
@@ -117,8 +118,15 @@ export class StackedColumn {
       const labelY = yPos + segmentHeight / 2;
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
-        const pct = this.totalValue !== 0 ? (value / this.totalValue) * 100 : 0;
-        const labelValue = pct.toFixed(dataFormatDigits.percent) + "%";
+        const share = this.totalValue !== 0 ? value / this.totalValue : 0;
+        const labelValue = Formatter.number(
+          share,
+          "percent",
+          dataFormatDigits.percent,
+          dataFormatDigits.percent,
+          1,
+          this.styles.locale,
+        );
         new Label(
           this.group,
           xPos,

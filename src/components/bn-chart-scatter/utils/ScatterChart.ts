@@ -567,6 +567,6 @@ export class ScatterChart {
   }
 
   private formatTick(value: number, decimals: number): string {
-    return Formatter.number(value, "decimal", decimals, decimals);
+    return Formatter.number(value, "decimal", decimals, decimals, 1, this.styles.locale);
   }
 }

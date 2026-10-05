@@ -140,13 +140,16 @@ export class IbcsChartBullet {
   }
 
   private prepareStyle(): BulletChartStyle {
-    return new BulletChartStylesAdapter(
+    const styles = new BulletChartStylesAdapter(
       new ScaleFactorsBulletChartAdapter(),
       new FontStyleAdapter(),
       new SVGStyleGroupAdapter(new SVGStyleAdapter()),
       new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
       new PaddingAdapter(),
     ).adapt(this.styles as unknown as Record<string, unknown>);
+    styles.locale = getStores(this.element).context?.state?.locale || "de";
+
+    return styles;
   }
 
   render() {

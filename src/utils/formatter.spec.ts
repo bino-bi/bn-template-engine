@@ -22,6 +22,36 @@ describe("Formatter Test", () => {
     });
   });
 
+  describe("Format number per locale", () => {
+    it("prints English separators for en", () => {
+      expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "en")).toEqual("1,234.5");
+    });
+
+    it("prints an English percent for en", () => {
+      expect(Formatter.number(0.052, "percent", 2, 2, 1, "en")).toEqual("5.20%");
+    });
+
+    it("keeps the German format for de", () => {
+      expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "de")).toEqual("1.234,5");
+      expect(Formatter.number(0.052, "percent", 2, 2, 1, "de")).toEqual("5,20%");
+      expect(Formatter.number(1234.5, "decimal", 1, 1)).toEqual("1.234,5");
+      expect(Formatter.number(0.052, "percent", 2, 2)).toEqual("5,20%");
+    });
+
+    it("prints no negative zero", () => {
+      expect(Formatter.number(-0.04, "decimal", 1, 1)).toEqual("0,0");
+      expect(Formatter.number(-0.00004, "percent", 2, 2)).toEqual("0,00%");
+      expect(Formatter.number(-0.4, "decimal", 0, 0)).toEqual("0");
+      // -0.06 rounds to -0.1, the sign stays
+      expect(Formatter.number(-0.06, "decimal", 1, 1)).toEqual("-0,1");
+    });
+
+    it("falls back to German for an unknown or malformed locale", () => {
+      expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "xx")).toEqual("1.234,5");
+      expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "de_DE")).toEqual("1.234,5");
+    });
+  });
+
   describe("Format translateScenarioLabel", () => {
     const i18n: Map<string, string> = new Map();
 

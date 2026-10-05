@@ -36,6 +36,8 @@ import { getStores, ScopedStores } from "../../context/context-protocol";
 import { buildFromExpr } from "../../context/scopedDb";
 import { ErrorDispatcher } from "../../utils/withHasError";
 import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "./utils/helper/barColumnGeometry";
+import { NOT_AVAILABLE } from "../../utils/relativeVariance";
+import { normalizeFillPattern } from "../../utils/model/styles/SVGStyle";
 
 /** Aggregated column statistics driving the auto-fit of one scaling family. */
 interface BarColumnStats {
@@ -319,6 +321,8 @@ export class IbcsTable {
         return <div class="empty-state">{errorMsg}</div>;
       }
 
+      const locale = this.stores?.context?.state?.locale;
+
       return (
         <table>
           <thead>
@@ -359,6 +363,7 @@ export class IbcsTable {
                     )}
                     {cell.isBarChart &&
                     cell.columnStats &&
+                    cell.value !== NOT_AVAILABLE &&
                     (cell.waterfall !== undefined || row.type !== TableRowType.SUM) ? (
                       cell.waterfall !== undefined ? (
                         <WaterfallBar
@@ -369,6 +374,7 @@ export class IbcsTable {
                           isRelative={false}
                           isPositiveGood={cell.key.endsWith("_pos")}
                           measureScale={cell.measureScale}
+                          locale={locale}
                           columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                           waterfall={cell.waterfall}
@@ -381,13 +387,16 @@ export class IbcsTable {
                           height={18 * this.scaleFactor}
                           isRelative={cell.key.startsWith("dr")}
                           isPositiveGood={cell.key.endsWith("_pos")}
-                          measureScale={cell.measureScale}
+                          // percentage points: the fraction times 100, no measure scale
+                          measureScale={cell.type === "percentpoint" ? 0.01 : cell.measureScale}
+                          locale={locale}
+                          percentDigits={this.componentDataFormatDigits.percent}
                           columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                         />
                       )
                     ) : (
-                      cell.draw(this.componentDataFormatDigits)
+                      cell.draw(this.componentDataFormatDigits, locale)
                     )}
                   </td>
                 ))}
@@ -424,6 +433,15 @@ export class IbcsTable {
         type: "error",
         message: `Query failed: ${e instanceof Error ? e.message : e}`,
       });
+    }
+    if (this.table?.hasBlankRowGroup()) {
+      this.errors?.addOrReplace({
+        id: "WARN_blankRowGroup",
+        type: "warning",
+        message: "grouped: rows with blank rowGroup found, they are grouped under '-'.",
+      });
+    } else {
+      this.errors?.remove("WARN_blankRowGroup");
     }
     this.barChartStyles = this.prepareBarChartStyles();
   }
@@ -497,46 +515,44 @@ export class IbcsTable {
       const defaultFc = { stroke: "#404040", fill: "#ffffff", fillpattern: "hatched" };
       const defaultPl = { stroke: "#404040", fill: "#ffffff", fillpattern: "outlined" };
 
-      /* eslint-disable @typescript-eslint/no-explicit-any */
       return {
         positive: {
           stroke: varianceStyles?.pos?.stroke || defaultPos.stroke,
           fill: varianceStyles?.pos?.fill || defaultPos.fill,
-          fillpattern: (varianceStyles?.pos as any)?.fillpattern || defaultPos.fillpattern,
+          fillpattern: normalizeFillPattern(varianceStyles?.pos?.fillpattern) || defaultPos.fillpattern,
         },
         negative: {
           stroke: varianceStyles?.neg?.stroke || defaultNeg.stroke,
           fill: varianceStyles?.neg?.fill || defaultNeg.fill,
-          fillpattern: (varianceStyles?.neg as any)?.fillpattern || defaultNeg.fillpattern,
+          fillpattern: normalizeFillPattern(varianceStyles?.neg?.fillpattern) || defaultNeg.fillpattern,
         },
         neutral: {
           stroke: varianceStyles?.neu?.stroke || defaultNeu.stroke,
           fill: varianceStyles?.neu?.fill || defaultNeu.fill,
-          fillpattern: (varianceStyles?.neu as any)?.fillpattern || defaultNeu.fillpattern,
+          fillpattern: normalizeFillPattern(varianceStyles?.neu?.fillpattern) || defaultNeu.fillpattern,
         },
         scenarios: {
           ac: {
             stroke: barStyles?.ac?.stroke || defaultAc.stroke,
             fill: barStyles?.ac?.fill || defaultAc.fill,
-            fillpattern: (barStyles?.ac as any)?.fillpattern || defaultAc.fillpattern,
+            fillpattern: normalizeFillPattern(barStyles?.ac?.fillpattern) || defaultAc.fillpattern,
           },
           pp: {
             stroke: barStyles?.pp?.stroke || defaultPp.stroke,
             fill: barStyles?.pp?.fill || defaultPp.fill,
-            fillpattern: (barStyles?.pp as any)?.fillpattern || defaultPp.fillpattern,
+            fillpattern: normalizeFillPattern(barStyles?.pp?.fillpattern) || defaultPp.fillpattern,
           },
           fc: {
             stroke: barStyles?.fc?.stroke || defaultFc.stroke,
             fill: barStyles?.fc?.fill || defaultFc.fill,
-            fillpattern: (barStyles?.fc as any)?.fillpattern || defaultFc.fillpattern,
+            fillpattern: normalizeFillPattern(barStyles?.fc?.fillpattern) || defaultFc.fillpattern,
           },
           pl: {
             stroke: barStyles?.pl?.stroke || defaultPl.stroke,
             fill: barStyles?.pl?.fill || defaultPl.fill,
-            fillpattern: (barStyles?.pl as any)?.fillpattern || defaultPl.fillpattern,
+            fillpattern: normalizeFillPattern(barStyles?.pl?.fillpattern) || defaultPl.fillpattern,
           },
         },
-        /* eslint-enable @typescript-eslint/no-explicit-any */
         fontColor: $["global"]?.["fontColor"] || "#000000",
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * BAR_LABEL_FONT_RATIO * this.scaleFactor,
         emPx: ($["global"]?.["fontSizePx"] || 13.3333) * this.scaleFactor,

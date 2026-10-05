@@ -64,11 +64,11 @@ export interface ScopedDb {
 function toDateTime(value: unknown): DateTime | undefined {
   if (value == null) return undefined;
   if (typeof value === "string") {
-    const dt = DateTime.fromISO(value);
+    const dt = DateTime.fromISO(value, { zone: "utc" });
     return dt.isValid ? dt : undefined;
   }
   if (typeof value === "number") {
-    const dt = DateTime.fromMillis(value);
+    const dt = DateTime.fromMillis(value, { zone: "utc" });
     return dt.isValid ? dt : undefined;
   }
   // Already a DateTime-shaped object.

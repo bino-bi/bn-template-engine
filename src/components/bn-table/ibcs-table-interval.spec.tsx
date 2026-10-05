@@ -84,6 +84,13 @@ describe("IBCS Table interval columns", () => {
     { operation: "+", category: "Leipzig", categoryIndex: 2, date: "2023-06-01", ac1: 3 },
   ];
 
+  // one year; limit 1 shows Berlin, REST is Hamburg and Köln
+  const restVarianceRows: any[] = [
+    { operation: "+", category: "Berlin", categoryIndex: 1, date: "2024-03-10", ac1: 200, fc1: 180, pp1: 150 },
+    { operation: "+", category: "Hamburg", categoryIndex: 2, date: "2024-05-20", ac1: 50, fc1: 40, pp1: 60 },
+    { operation: "+", category: "Köln", categoryIndex: 3, date: "2024-07-01", ac1: 40, fc1: 35, pp1: 40 },
+  ];
+
   const i18n = new Map([
     ["SUM_TOTAL", "Summe"],
     ["there_of", "davon"],
@@ -97,6 +104,7 @@ describe("IBCS Table interval columns", () => {
     tables["setData"] = { data: setRows };
     tables["groupedData"] = { data: groupedRows };
     tables["sparseData"] = { data: sparseRows };
+    tables["restVarianceData"] = { data: restVarianceRows };
   });
 
   const renderTable = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
@@ -158,23 +166,23 @@ describe("IBCS Table interval columns", () => {
   it("renders per-year entry values and a per-year total row", async () => {
     const page = await renderTable();
 
-    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "20,0"]);
-    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "5,0", "7,0"]);
-    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "15,0", "27,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10.0", "20.0"]);
+    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "5.0", "7.0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "15.0", "27.0"]);
   });
 
   it("aggregates dates of the same month into one bucket", async () => {
     const page = await renderTable({ tableName: "monthData", interval: "month" });
 
     expect(bandCells(page).map((cell) => cell.textContent.trim())).toEqual(["", "Mar 2023", "Apr 2023"]);
-    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "3,0", "4,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "3.0", "4.0"]);
   });
 
   it("groups by setname in order of first appearance, blanks under -", async () => {
     const page = await renderTable({ tableName: "setData", interval: "setname" });
 
     expect(bandCells(page).map((cell) => cell.textContent.trim())).toEqual(["", "de", "at", "-"]);
-    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "1,0", "2,0", "4,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "1.0", "2.0", "4.0"]);
   });
 
   it("renders per-bucket group sums when grouped", async () => {
@@ -185,9 +193,9 @@ describe("IBCS Table interval columns", () => {
     );
 
     expect(sumRows.map((row) => cellTexts(row))).toEqual([
-      ["Umsatz", "15,0", "27,0"],
-      ["Kosten", "3,0", "4,0"],
-      ["Summe", "18,0", "31,0"],
+      ["Umsatz", "15.0", "27.0"],
+      ["Kosten", "3.0", "4.0"],
+      ["Summe", "18.0", "31.0"],
     ]);
   });
 
@@ -197,23 +205,39 @@ describe("IBCS Table interval columns", () => {
       order: { hierarchy: ["ac1"], direction: OrderDirection.DESC } as Order,
     });
 
-    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "20,0"]);
-    expect(cellTexts(findRowByFirstCell(page, "REST"))).toEqual(["REST", "5,0", "7,0"]);
-    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "15,0", "27,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10.0", "20.0"]);
+    expect(cellTexts(findRowByFirstCell(page, "REST"))).toEqual(["REST", "5.0", "7.0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Summe"))).toEqual(["Summe", "15.0", "27.0"]);
+  });
+
+  it("counts a reference shared by two relative variances once in the REST row", async () => {
+    const props = {
+      tableName: "restVarianceData",
+      type: TableType.LIST,
+      scenarios: ["ac1", "fc1", "pp1", "drac1_pp1_pos", "drfc1_pp1_pos"],
+      limit: 1,
+    };
+    // REST: ac1 50 + 40 = 90, fc1 40 + 35 = 75, pp1 60 + 40 = 100
+    // (90 - 100) / |100| = -10%, (75 - 100) / |100| = -25%
+    const rest = ["REST", "100.0", "75.0", "90.0", "-10.00%", "-25.00%"];
+
+    expect(cellTexts(findRowByFirstCell(await renderTable(props), "REST"))).toEqual(rest);
+    // the table without interval prints the same
+    expect(cellTexts(findRowByFirstCell(await renderTable({ ...props, interval: "none" }), "REST"))).toEqual(rest);
   });
 
   it("renders - for categories without rows in a bucket", async () => {
     const page = await renderTable({ tableName: "sparseData" });
 
-    expect(cellTexts(findRowByFirstCell(page, "Leipzig"))).toEqual(["Leipzig", "3,0", "-"]);
+    expect(cellTexts(findRowByFirstCell(page, "Leipzig"))).toEqual(["Leipzig", "3.0", "-"]);
   });
 
   it("computes absolute variances per bucket", async () => {
     const page = await renderTable({ scenarios: ["ac1", "dac1_pl1_pos"] });
 
     // per year: AC then ΔPL (10-8=2, 20-25=-5 | 5-5=0, 7-4=3)
-    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "2,0", "20,0", "-5,0"]);
-    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "5,0", "0,0", "7,0", "3,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10.0", "2.0", "20.0", "-5.0"]);
+    expect(cellTexts(findRowByFirstCell(page, "München"))).toEqual(["München", "5.0", "0.0", "7.0", "3.0"]);
   });
 
   it("divides relative variances per bucket", async () => {
@@ -247,7 +271,7 @@ describe("IBCS Table interval columns", () => {
       "Feb 2024",
       "May 2024",
     ]);
-    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10,0", "-", "-", "20,0"]);
+    expect(cellTexts(findRowByFirstCell(page, "Hamburg"))).toEqual(["Hamburg", "10.0", "-", "-", "20.0"]);
   });
 
   it("fills thereof drill rows per bucket", async () => {
@@ -260,6 +284,6 @@ describe("IBCS Table interval columns", () => {
       row.querySelector("td")?.textContent.includes("Nord"),
     );
     expect(cellTexts(nord)[0]).toContain("Nord");
-    expect(cellTexts(nord).slice(1)).toEqual(["10,0", "20,0"]);
+    expect(cellTexts(nord).slice(1)).toEqual(["10.0", "20.0"]);
   });
 });

@@ -104,6 +104,8 @@ export class ScaleFactorsBulletChartAdapter implements IAdapter<ScaleFactorsBull
  */
 export class BulletChartStyle {
   public rangeColors: string[] = ["#D9D9D9", "#EFEFEF"];
+  /** Locale for number labels. */
+  public locale: string = "de";
 
   constructor(
     public scaleFactors: ScaleFactorsBulletChart,

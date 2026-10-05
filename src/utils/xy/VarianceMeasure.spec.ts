@@ -51,8 +51,13 @@ describe("VarianceMeasure", () => {
       expect(VarianceMeasure.parse("dac1_pl1")!.compute(80, 100)).toBe(-20);
     });
 
-    it("computes relative variances as (base - delta) / delta", () => {
+    it("computes relative variances as (base - delta) / |delta|", () => {
       expect(VarianceMeasure.parse("drac1_pl1")!.compute(120, 100)).toBeCloseTo(0.2);
+    });
+
+    it("divides a relative variance by the absolute reference", () => {
+      // (-50 + 100) / |-100| = 0.5
+      expect(VarianceMeasure.parse("drac1_pl1")!.compute(-50, -100)).toBeCloseTo(0.5);
     });
 
     it("is null-safe on missing operands", () => {
@@ -64,6 +69,9 @@ describe("VarianceMeasure", () => {
 
     it("returns null instead of dividing by zero", () => {
       expect(VarianceMeasure.parse("drac1_pl1")!.compute(100, 0)).toBeNull();
+      expect(VarianceMeasure.parse("drac1_pl1")!.compute(Number.NaN, 0)).toBeNull();
+      // a reference that is 0 up to float rounding
+      expect(VarianceMeasure.parse("drac1_pl1")!.compute(30, 1234.56 - 1000.1 - 234.46)).toBeNull();
     });
   });
 

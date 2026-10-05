@@ -42,9 +42,9 @@ import { Order, OrderColumn } from "../../utils/model/Order";
 describe("IBCS Table waterfall bar columns", () => {
   const cascadeRows: any[] = [
     // prettier-ignore
-    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Alpha", categoryIndex: 1, date: "2023-02-01", ac1: 10, pl1: 8 },
+    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Alpha", categoryIndex: 1, date: "2023-02-01", ac1: 10, pl1: 8, fc1: 7 },
     // prettier-ignore
-    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, date: "2024-02-01", ac1: 5, pl1: 4 },
+    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, date: "2024-02-01", ac1: 5, pl1: 4, fc1: 3 },
   ];
 
   const thereofRows: any[] = [
@@ -215,5 +215,32 @@ describe("IBCS Table waterfall bar columns", () => {
     const [alpha, beta] = rects;
     expect(xOf(beta) + widthOf(beta)).toBeCloseTo(xOf(alpha) + widthOf(alpha), 3);
     expect(widthOf(beta)).toBeCloseTo(widthOf(alpha) / 2, 3);
+  });
+
+  // a bar with a white or transparent fill and no stroke cannot be seen on the white table
+  const isVisible = (rect: Element): boolean =>
+    !["#ffffff", "transparent"].includes(rect.getAttribute("fill")) || rect.getAttribute("stroke") !== "none";
+
+  it("draws the FC waterfall bar hatched", async () => {
+    const page = await renderTable({ scenarios: ["fc1"], barColumns: ["fc1"] });
+
+    const svg = waterfallSvg(findRowByFirstCell(page, "Alpha"));
+    const bar = barRect(svg);
+
+    // the default FC style has the stroke #404040 and the fill pattern "fc"
+    expect(bar.getAttribute("fill")).toBe("url(#pattern-fc-404040)");
+    expect(svg.querySelector("pattern#pattern-fc-404040")).not.toBeNull();
+    expect(isVisible(bar)).toBe(true);
+  });
+
+  it("draws the FC bar of a list table hatched", async () => {
+    const page = await renderTable({ scenarios: ["fc1"], barColumns: ["fc1"], type: TableType.LIST });
+
+    const svg = findRowByFirstCell(page, "Alpha").querySelector("svg.absolute-variance");
+    const bar = barRect(svg);
+
+    expect(bar.getAttribute("fill")).toBe("url(#pattern-fc-404040)");
+    expect(svg.querySelector("pattern#pattern-fc-404040")).not.toBeNull();
+    expect(isVisible(bar)).toBe(true);
   });
 });

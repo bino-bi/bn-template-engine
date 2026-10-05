@@ -31,6 +31,8 @@ Set the `locale` prop to control which built-in translation bundle is used:
 
 Supported built-in locales: `"en"` (English), `"de"` (German). Custom translations can be added via [`<bn-internationalization>`](../bn-internationalization/readme.md).
 
+The locale also sets the number format of tables and charts: `en` prints `1,234.5`, `de` prints `1.234,5`, and an unknown locale falls back to the German format.
+
 ### Multiple Contexts
 
 You can use multiple `<bn-context>` elements on the same page. Each one has its own isolated stores, so datasources and datasets defined in one context are not visible in another.

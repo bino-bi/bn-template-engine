@@ -2,6 +2,7 @@ import { TableCategoryWidth } from "../../../../utils/constants";
 import { TableRowType } from "../model";
 import { Cell, ColumnStats } from "./Cell";
 import { WaterfallBarData } from "../helper/WaterfallCalculator";
+import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 
 /**
  * Represents a single row in an IBCS table, containing an ordered list of Cells.
@@ -101,7 +102,7 @@ export class TableRow {
       }
     }
 
-    if (value === "-") {
+    if (value === "-" || (value === NOT_AVAILABLE && cellType === "percent")) {
       cssStyle = "";
     }
 

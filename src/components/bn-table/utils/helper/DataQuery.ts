@@ -1,13 +1,15 @@
 import { OrderDirection, TableType } from "../model";
-import { QueryGroups } from "./QueryGroup";
-import { coerceBucketKey, INTERVAL_NONE, intervalBucketSQL } from "./IntervalColumns";
+import { BLANK_SAFE_ROWGROUP, QueryGroups } from "./QueryGroup";
+import { BLANK_BUCKET_LABEL, coerceBucketKey, INTERVAL_NONE, intervalBucketSQL } from "./IntervalColumns";
 import { FIELD_IDENTIFIER_REGEX, TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { TableDrillGroup } from "../model/TableDrillGroup";
 import { Order } from "../../../../components";
+import { Scenarios } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
+import { NOT_AVAILABLE, relativeVariance } from "../../../../utils/relativeVariance";
 
 /**
  * AlaSQL-based query builder that produces the complete table result set for bn-table.
@@ -25,6 +27,8 @@ export class DataQuery {
   private fromExpr!: string;
   /** Values bound as AlaSQL parameters ($0, $1, ...): row values and free-text config never become SQL text. */
   private readonly params: unknown[] = [];
+  /** Set by execute: the grouped table has rows with a blank rowGroup (null, '' or missing). */
+  public hasBlankRowGroup: boolean = false;
 
   constructor(config: TableComponentConfig, i18n: Map<string | number, string>) {
     this.config = config;
@@ -75,7 +79,6 @@ export class DataQuery {
     const attributesSQL = this.config.attributes.map((attribute) => this.translateAttributeSQL(attribute)).toString();
 
     const groups: QueryGroups = new QueryGroups(this.config);
-    const groupsAggregated = this.config.grouped ? [QueryColumnNames.ROWGROUP, QueryColumnNames.ROWGROUPINDEX] : [];
 
     let order: [string, string] = ["", ""];
     if (this.config.sortOrder.hierarchy.length > 0) {
@@ -86,26 +89,44 @@ export class DataQuery {
 
     // meta defines groups and the number detail rows in each group
     // Bsp:  0: Object { totalrowcnt: 7, rowgroup: "Umsatz" }
+    // groups follow the order entries that exist per group (rowGroup, rowGroupIndex, scenario sum), else rowGroupIndex
+    const { hierarchy, direction } = this.config.sortOrder;
+    const groupOrderColumns = hierarchy.filter(
+      (column) =>
+        column === QueryColumnNames.ROWGROUP ||
+        column === QueryColumnNames.ROWGROUPINDEX ||
+        column.toUpperCase() in Scenarios,
+    );
+    const groupSums = groupOrderColumns
+      .filter((column) => column.toUpperCase() in Scenarios)
+      .map((column) => `, SUM(${column} * transformOperator(operation)) as ${column}`)
+      .join("");
+    const groupOrder =
+      groupOrderColumns.length > 0
+        ? groupOrderColumns.map((column) => `${column} ${direction}`).toString()
+        : `${QueryColumnNames.ROWGROUPINDEX} asc`;
+
     const meta = db.exec<DataQueryResultRow[]>(
-      `SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${groupsAggregated.length > 0 ? "," + groupsAggregated : ""}
-                       FROM ${fromExpr} ${groupsAggregated.length > 0 ? "GROUP BY " + groupsAggregated : ""}
-                       ORDER BY ${order[0]}`,
+      `SELECT COUNT(DISTINCT ${QueryColumnNames.CATEGORY}) as ${QueryColumnNames.TOTALROWCOUNT} ${this.config.grouped ? `, ${BLANK_SAFE_ROWGROUP} as ${QueryColumnNames.ROWGROUP}, FIRST(${QueryColumnNames.ROWGROUPINDEX}) as ${QueryColumnNames.ROWGROUPINDEX}${groupSums}` : ""}
+                       FROM ${fromExpr} ${this.config.grouped ? `GROUP BY ${BLANK_SAFE_ROWGROUP} ORDER BY ${groupOrder}` : ""}`,
     );
     if (
       meta.length === 0 ||
-      (meta.length === 1 && (meta[0][QueryColumnNames.TOTALROWCOUNT] ?? 0) === 0 && groupsAggregated.length === 0)
+      (meta.length === 1 && (meta[0][QueryColumnNames.TOTALROWCOUNT] ?? 0) === 0 && !this.config.grouped)
     ) {
       return [];
     }
+    this.hasBlankRowGroup = this.config.grouped && meta.some((row) => row.rowGroup === "");
 
     // Creates DataSelection for LIST
     (meta as unknown as DataQueryMetaRow[]).forEach((rowGroupEntry: DataQueryMetaRow) => {
       // the following variables are 'helper sections' which are used to constuct dynamicly the sql statement depending of the given config
       // is grouping active?
-      const queryWhereSection: string =
-        rowGroupEntry.rowGroup && rowGroupEntry.rowGroup.length > 0
-          ? `WHERE ${QueryColumnNames.ROWGROUP} = ${this.bind(rowGroupEntry.rowGroup)}`
-          : ``;
+      const queryWhereSection: string = !this.config.grouped
+        ? ``
+        : rowGroupEntry.rowGroup === ""
+          ? `WHERE (${QueryColumnNames.ROWGROUP} IS NULL OR ${QueryColumnNames.ROWGROUP} = '')`
+          : `WHERE ${QueryColumnNames.ROWGROUP} = ${this.bind(rowGroupEntry.rowGroup)}`;
       // is limit active?
       let queryLimitSection: string = "";
       if (this.config.limit) {
@@ -124,13 +145,13 @@ export class DataQuery {
         queryLimitSection,
       );
       this.createRestRow(rowGroupEntry, queries, groups, scenarios, queryWhereSection, order);
-      this.createGroupSumRow(queries, sumGroupQueries, rowGroupEntry, scenariosSUMQuery, order);
+      this.createGroupSumRow(queries, sumGroupQueries, rowGroupEntry, scenariosSUMQuery, queryWhereSection, order);
     });
 
     this.createTotalSumRow(queries, sumGroupQueries, scenariosSUMQuery);
 
     // executes main queries
-    queries.forEach((query) => res.push(db.exec<DataQueryResultRow[]>(query, this.params)));
+    queries.forEach((query) => res.push(this.exec(query)));
 
     this.detectNaNCells(this.config.scenarios, res);
     this.createThereOfDrillRows(scenarios, attributesSQL, order, res);
@@ -196,8 +217,8 @@ export class DataQuery {
 
     const db = this.db;
     const params = this.params;
-    drillQueries.forEach(function (query) {
-      resDrill.push(...db.exec<DataQueryResultRow[]>(query, params));
+    drillQueries.forEach((query) => {
+      resDrill.push(...this.exec(query));
     });
 
     const scenarioNames = this.exctractScenarioNames(scenarios);
@@ -251,7 +272,7 @@ export class DataQuery {
         .join(", ");
       querys.push(
         `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, 'REST' as ${QueryColumnNames.CATEGORY} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
-          ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP}, ${groups} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
+          ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP}, ${groups.select()} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
           ` t WHERE t.rowNr > ${this.config.limit}`,
       );
     }
@@ -274,7 +295,7 @@ export class DataQuery {
                         'ENTRY'                                   as ${QueryColumnNames.TYPE},
                         ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP},
                         '${QueryColumnNames.CATEGORYINDEX}',
-                        ${groups}                                    ${scenarios.length > 0 ? ",".concat(scenarios) : ""} ${attributes.length > 0 ? ",".concat(attributes) : ""}
+                        ${groups.select()}                           ${scenarios.length > 0 ? ",".concat(scenarios) : ""} ${attributes.length > 0 ? ",".concat(attributes) : ""}
                  FROM ${this.fromExpr} ${queryWhereSection}
                  GROUP BY ${groups}
                  ORDER BY ${order[0]} ${queryLimitSection}`);
@@ -285,7 +306,8 @@ export class DataQuery {
     // Generates GroupHeader Row
     if (true === this.config.grouped) {
       const rowGroup = this.bind(String(rowGroupEntry.rowGroup));
-      const groupTitle: string = this.config.showGroupTitle ? `,${rowGroup} as ${QueryColumnNames.CATEGORY}` : "";
+      const title = rowGroupEntry.rowGroup === "" ? this.bind(BLANK_BUCKET_LABEL) : rowGroup;
+      const groupTitle: string = this.config.showGroupTitle ? `,${title} as ${QueryColumnNames.CATEGORY}` : "";
       querys.push(`SELECT ROWNUM()                    AS ${QueryColumnNames.ROWNR},
                           ${querys.length}            as ${QueryColumnNames.ROWGROUPINDEX},
                           'GROUPHEAD'                 as ${QueryColumnNames.TYPE},
@@ -301,6 +323,7 @@ export class DataQuery {
     groupSumQuery: string[],
     rowGroupEntry: DataQueryMetaRow,
     scenariosSUMQuery: string,
+    queryWhereSection: string,
     order: [string, string],
   ) {
     // Generates SUM Row; sumsup all rows of group
@@ -317,16 +340,14 @@ export class DataQuery {
                           ${rowGroup} as ${QueryColumnNames.ROWGROUP},
                           ROWNUM()                    AS ${QueryColumnNames.ROWNR},
                           'GROUP_SUM'                 as ${QueryColumnNames.TYPE} ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
-                   FROM ${this.fromExpr}
-                   WHERE ${QueryColumnNames.ROWGROUP} = ${rowGroup}
+                   FROM ${this.fromExpr} ${queryWhereSection}
                    ORDER BY ${order[0]} `);
       groupSumQuery.push(`SELECT ${querys.length}            as ${QueryColumnNames.ROWGROUPINDEX},
                                  '='                         as ${QueryColumnNames.OPERATION},
                                  ${rowGroup} as ${QueryColumnNames.ROWGROUP},
                                  ROWNUM()                    AS ${QueryColumnNames.ROWNR},
                                  'GROUP_SUM'                 as ${QueryColumnNames.TYPE} ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
-                          FROM ${this.fromExpr}
-                          WHERE ${QueryColumnNames.ROWGROUP} = ${rowGroup}
+                          FROM ${this.fromExpr} ${queryWhereSection}
                           ORDER BY ${order[0]} `);
     }
   }
@@ -430,9 +451,12 @@ export class DataQuery {
               numberOfElement.set(`${drillItem.category}`, 1);
             }
 
-            if (drillItem[QueryColumnNames.ROWNR] === 1) {
-              drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
-            } else if (duplicateSubCategoriesList.includes(drillItem.subCategory)) {
+            // the rowGroup only tells duplicate names under one parent apart, and a blank rowGroup tells nothing
+            if (
+              drillItem.rowGroup != null &&
+              drillItem.rowGroup !== "" &&
+              duplicateSubCategoriesList.includes(`${drillItem.category}##${drillItem.subCategory}`)
+            ) {
               drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
             }
 
@@ -495,18 +519,16 @@ export class DataQuery {
                                 'DRILLELEMENT'               as ${QueryColumnNames.TYPE},
                                 ${QueryColumnNames.CATEGORY},
                                 ${QueryColumnNames.SUBCATEGORY},
-                                ${QueryColumnNames.ROWGROUP} as ${QueryColumnNames.ROWGROUP},
+                                ${this.drillRowGroup} as ${QueryColumnNames.ROWGROUP},
                                 ${scenarios} ${attributes.length > 0 ? ",".concat(attributes) : ""}
                          FROM ${this.fromExpr}
                          WHERE ${fromString}
-                         GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}
+                         GROUP BY ${this.drillRowGroup}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}
                          ORDER BY ${order[1]}`);
     });
 
-    const db = this.db;
-    const params = this.params;
-    drillQueries.forEach(function (query) {
-      resDrill.push(...db.exec<DataQueryResultRow[]>(query, params));
+    drillQueries.forEach((query) => {
+      resDrill.push(...this.exec(query));
     });
 
     this.injectDrillRowsToResultRows(resDrill, res);
@@ -514,14 +536,15 @@ export class DataQuery {
 
   /**
    * Converts absolute variance columns into relative (percentage) variances by dividing
-   * each `dr_*` cell by its denominator column (the delta scenario's aggregated value).
+   * each `dr_*` cell by the absolute value of its denominator column (the delta scenario's
+   * aggregated value). A denominator of 0 gives NOT_AVAILABLE.
    */
   private calculateRelativeVariances(res: DataQueryResultRow[][], relativeScenarios: Map<string, string>) {
     res.forEach((group) => {
       group.forEach((row: DataQueryResultRow) => {
         if (row[QueryColumnNames.TYPE] !== "GROUPHEAD") {
           relativeScenarios.forEach((value: string, key: string) => {
-            row[key] = (row[key] as number) / (row[value] as number);
+            row[key] = relativeVariance(row[key] as number, row[value] as number) ?? NOT_AVAILABLE;
           });
         }
       });
@@ -617,7 +640,8 @@ export class DataQuery {
     const scenariosSUMQuery = this.config.scenarios
       .map((s) => this.translateScenarioSQL(s, true, this.config.type))
       .toString();
-    const entryAliases = this.exctractScenarioNames(scenarios);
+    // two relative variances on one reference name its dr_* alias twice, it must be summed once
+    const entryAliases = [...new Set(this.exctractScenarioNames(scenarios))];
     const relativeScenarios = this.getRelativeScenarios();
     const groups = new QueryGroups(this.config);
     const isOpt = TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type;
@@ -629,7 +653,7 @@ export class DataQuery {
         TableType.OPTNOTOTAL === this.config.type);
     const hasPartOfActive = this.checkConfigForPartOf() && this.config.type !== TableType.LIST;
 
-    const exec = (query: string): DataQueryResultRow[] => this.db.exec<DataQueryResultRow[]>(query, this.params);
+    const exec = (query: string): DataQueryResultRow[] => this.exec(query);
 
     // mirrors detectNaNCells + calculateRelativeVariances for a single bucket row
     const finalizeBucketRow = (row: DataQueryResultRow): DataQueryResultRow => {
@@ -644,7 +668,7 @@ export class DataQuery {
         }
       });
       relativeScenarios.forEach((value: string, key: string) => {
-        row[key] = (row[key] as number) / (row[value] as number);
+        row[key] = relativeVariance(row[key] as number, row[value] as number) ?? NOT_AVAILABLE;
       });
       return row;
     };
@@ -656,7 +680,7 @@ export class DataQuery {
     };
 
     const entryRowsRaw = exec(
-      `SELECT ${groups}, __interval ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
+      `SELECT ${groups.select()}, __interval ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
        FROM ${bucketSource}
        GROUP BY ${groups}, __interval`,
     );
@@ -731,9 +755,9 @@ export class DataQuery {
     const groupTotalRowsRaw =
       isSumTypeGrouped || (hasPartOfActive && this.config.grouped)
         ? exec(
-            `SELECT ${QueryColumnNames.ROWGROUP}, __interval ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
+            `SELECT ${BLANK_SAFE_ROWGROUP} as ${QueryColumnNames.ROWGROUP}, __interval ${scenariosSUMQuery.length > 0 ? ",".concat(scenariosSUMQuery) : ""}
              FROM ${bucketSource}
-             GROUP BY ${QueryColumnNames.ROWGROUP}, __interval`,
+             GROUP BY ${BLANK_SAFE_ROWGROUP}, __interval`,
           )
         : [];
     const groupTotalsByKey = new Map<string, DataQueryResultRow>();
@@ -786,10 +810,10 @@ export class DataQuery {
       this.config.thereOf.forEach((element) => {
         drillRows.push(
           ...exec(
-            `SELECT ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, __interval ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
+            `SELECT ${this.drillRowGroup} as ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, __interval ${scenarios.length > 0 ? ",".concat(scenarios) : ""}
              FROM ${bucketSource}
              WHERE ${this.createThereOfWhereClause(element)}
-             GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, __interval`,
+             GROUP BY ${this.drillRowGroup}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}, __interval`,
           ),
         );
       });
@@ -799,7 +823,11 @@ export class DataQuery {
         finalizeBucketRow(drillRow);
         for (const segment of res) {
           for (const row of segment) {
-            if (row.type !== "DRILLELEMENT" || row.category !== drillRow.category) {
+            if (
+              row.type !== "DRILLELEMENT" ||
+              row.category !== drillRow.category ||
+              row.rowGroup !== drillRow.rowGroup
+            ) {
               continue;
             }
             if (
@@ -991,6 +1019,20 @@ export class DataQuery {
     }
   }
 
+  /** rowGroup of the drill queries: a grouped table merges the blank variants, an ungrouped one keeps them apart. */
+  private get drillRowGroup(): string {
+    return this.config.grouped ? BLANK_SAFE_ROWGROUP : QueryColumnNames.ROWGROUP;
+  }
+
+  /** Grouped result rows carry the rowGroup as text, like the GROUPHEAD and GROUP_SUM rows: '' for null and a missing one. */
+  private exec(query: string): DataQueryResultRow[] {
+    const rows = this.db.exec<DataQueryResultRow[]>(query, this.params);
+    if (this.config.grouped) {
+      rows.forEach((row) => (row.rowGroup = row.rowGroup == null ? "" : String(row.rowGroup)));
+    }
+    return rows;
+  }
+
   /** Binds a value as an AlaSQL parameter and returns its placeholder. */
   private bind(value: unknown): string {
     // trailing space: "$4and" does not parse
@@ -1004,8 +1046,9 @@ export class DataQuery {
    * @param orderComponent
    */
   private createOrderString(orderComponent: Order): [string, string] {
-    const base = `${orderComponent.hierarchy.toString()} ${orderComponent.direction}`;
-    const inverted = `${orderComponent.hierarchy.toString()} ${OrderDirection.ASC === orderComponent.direction ? OrderDirection.DESC : OrderDirection.ASC}`;
+    const inverse = OrderDirection.ASC === orderComponent.direction ? OrderDirection.DESC : OrderDirection.ASC;
+    const base = orderComponent.hierarchy.map((column) => `${column} ${orderComponent.direction}`).toString();
+    const inverted = orderComponent.hierarchy.map((column) => `${column} ${inverse}`).toString();
     return [base, inverted];
   }
 
@@ -1027,13 +1070,13 @@ export class DataQuery {
     return scenarioNames;
   }
 
-  /** Identifies subCategory values that appear more than once in the drill set, requiring disambiguation. */
+  /** Returns the `category##subCategory` keys of subCategory values that appear more than once under one parent category. */
   private findDuplicateSubCategories(resDrill: DataQueryResultRow[]): string[] {
     const uniq = resDrill
       .map((element) => {
         return {
           count: 1,
-          subCategory: element.subCategory,
+          subCategory: `${element.category}##${element.subCategory}`,
         };
       })
       .reduce((a: Record<string, number>, b: { subCategory: string; count: number }) => {
@@ -1048,7 +1091,7 @@ export class DataQuery {
   private createPartOfQuery(scenarios: string, order: [string, string]): string[] {
     const drillQueries = [];
     let fromString = "1 <> 1 "; // helper for strin concat  1<>1 OR ... OR ...
-    let groupName = ` ${QueryColumnNames.ROWGROUP}`;
+    let groupName = ` ${this.drillRowGroup} as ${QueryColumnNames.ROWGROUP}`;
     let rowNum = "ROWNUM()";
 
     this.config.partOf?.forEach((element) => {
@@ -1075,7 +1118,7 @@ export class DataQuery {
                               ${scenarios}
                        FROM ${this.fromExpr}
                        WHERE ${fromString}
-                       GROUP BY ${QueryColumnNames.ROWGROUP}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.TYPE}
+                       GROUP BY ${this.drillRowGroup}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.TYPE}
                        ORDER BY ${order[1]}`);
 
     return drillQueries;
@@ -1230,6 +1273,10 @@ export class DataQuery {
               ] = drillElement.val;
             }
           } else if ("DRILLELEMENT" === drillElement.rowlevel) {
+            // ungrouped thereof rows keep their rowGroup, the same name can exist in another one
+            if (!this.config.grouped && row.rowGroup !== drillElement.rowGroup) {
+              continue;
+            }
             if (
               drillElement.columnlevel === "COLUMNGROUP" &&
               row.category === drillElement.category &&

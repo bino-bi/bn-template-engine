@@ -138,7 +138,7 @@ export class Label {
         type = "decimal";
       }
 
-      valueStr = Formatter.number(Number(value), type, digits, digitsMin, scale);
+      valueStr = Formatter.number(Number(value), type, digits, digitsMin, scale, this.styles.locale);
 
       if (Number(this.value) < 0) {
         labelAnchor = "end";

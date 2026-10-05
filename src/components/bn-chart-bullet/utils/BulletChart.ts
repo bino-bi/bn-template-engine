@@ -211,7 +211,7 @@ export class BulletChart {
   private createOrderStr(level: AggregationLevel, sortOrder: Order): string {
     let orderStr = `${level.toLowerCase()}`;
     if (sortOrder.hierarchy.length >= 1) {
-      orderStr = `${sortOrder.hierarchy.toString()} ${sortOrder?.direction}`;
+      orderStr = sortOrder.hierarchy.map((column) => `${column} ${sortOrder.direction}`).toString();
     }
     return orderStr;
   }
@@ -299,7 +299,7 @@ export class BulletChart {
     if (value === null || this.config.labels.show === "none") {
       return "";
     }
-    return Formatter.number(value, "decimal", this.config.labels.decimals, 0);
+    return Formatter.number(value, "decimal", this.config.labels.decimals, 0, 1, this.styles.locale);
   }
 
   /**
@@ -547,7 +547,7 @@ export class BulletChart {
           .stroke({ color: this.styles.axisStyles.ac.stroke, width: factors.axisLineWidth });
         this.drawText(
           root,
-          Formatter.number(tick, "decimal", decimals, decimals),
+          Formatter.number(tick, "decimal", decimals, decimals, 1, this.styles.locale),
           tickX,
           tickTop + factors.tickStripHeight * em - 0.2 * em,
           { anchor: "middle" },

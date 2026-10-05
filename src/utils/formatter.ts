@@ -6,33 +6,52 @@ import CalculateSize from "calculate-size";
  * Number and label formatting utilities following ISO 80000-1 conventions.
  */
 export class Formatter {
-  /** Replacement character for the thousands group separator (default de-DE uses period). */
-  private static tsdDelimiter: string = ".";
-  /** Replacement character for the decimal separator (default de-DE uses comma). */
-  private static postfixSeperator: string = ",";
+  /** One formatter per locale, style and digits: building one per cell is slow. */
+  private static formats = new Map<string, Intl.NumberFormat>();
 
   /**
-   * Formats a number for display following ISO 80000-1 conventions.
+   * Formats a number for display in the given locale.
    *
-   * Pipeline: divide by scale factor -> format via de-DE locale -> strip whitespace
-   * before `%` -> replace group separator with `postfixSeperator` -> replace decimal
-   * separator with `tsdDelimiter`.
+   * Pipeline: divide by scale factor -> format via `Intl.NumberFormat` for the locale ->
+   * strip whitespace before `%`. A value that rounds to zero is never printed with a minus sign.
    *
    * @param scale Divisor applied before formatting (e.g. 1000 for "k" SI prefix).
+   * @param locale BCP 47 tag (e.g. `de`, `en`, `de-CH`). An unknown or malformed tag falls back to `de-DE`.
    */
-  static number(value: number, type: string = "decimal", digits: number = 1, digitsMin: number = 0, scale = 1) {
-    const scaledValue = value / scale;
+  static number(
+    value: number,
+    type: string = "decimal",
+    digits: number = 1,
+    digitsMin: number = 0,
+    scale = 1,
+    locale: string = "de",
+  ) {
+    const key = `${locale}|${type}|${digits}|${digitsMin}`;
+    let format = this.formats.get(key);
 
-    return scaledValue
-      .toLocaleString("de-DE", {
+    if (!format) {
+      const options = {
         style: type as Intl.NumberFormatOptions["style"],
         useGrouping: true,
         maximumFractionDigits: digits,
         minimumFractionDigits: digitsMin,
-      })
-      .replace(/\s+(%)/g, "$1")
-      .replace(/\s/g, this.postfixSeperator)
-      .replace(/\./g, this.tsdDelimiter);
+      };
+
+      try {
+        // a tag the runtime does not know resolves to de-DE, not to the locale of the machine
+        format = new Intl.NumberFormat([locale, "de-DE"], options);
+      } catch (_e) {
+        // malformed tag
+        format = new Intl.NumberFormat("de-DE", options);
+      }
+
+      this.formats.set(key, format);
+    }
+
+    const text = format.format(value / scale);
+
+    // a small negative that rounds to zero would print "-0"
+    return (text === format.format(-0) ? format.format(0) : text).replace(/\s+(%)/g, "$1");
   }
 
   /**

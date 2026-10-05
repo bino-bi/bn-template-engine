@@ -1,6 +1,13 @@
 import { TableRow } from "../elements";
 import { ScenarioHeaderColumn, TableRowType, TableType } from "../model";
-import { computeWaterfall, DataQuery, hasGroupingStructure, INTERVAL_NONE, WaterfallResult } from "../helper";
+import {
+  BLANK_BUCKET_LABEL,
+  computeWaterfall,
+  DataQuery,
+  hasGroupingStructure,
+  INTERVAL_NONE,
+  WaterfallResult,
+} from "../helper";
 
 import { TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
@@ -11,6 +18,7 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
 import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
+import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 
 /**
  * Transforms raw query results into structured TableRow collections for header and body.
@@ -26,6 +34,8 @@ import { AlaSQLDatabase } from "../../../../context/scopedDb";
 export class TableDataSetFactory {
   private normalizedHeader: ScenarioHeaderColumn[] = [];
   private attributesByAlias: Map<string, TableAttribute> = new Map();
+  /** Set by createBodyRows(): the grouped table has rows with a blank rowGroup. */
+  public hasBlankRowGroup = false;
 
   constructor() {}
 
@@ -230,7 +240,9 @@ export class TableDataSetFactory {
     const bodyRows: TableRow[] = [];
 
     let iGroupIndex: number = -1; // index used in detailRow JSON to count the current group
-    const queryData = new DataQuery(config, i18n).execute(db, fromExpr); // collection of all query results
+    const dataQuery = new DataQuery(config, i18n);
+    const queryData = dataQuery.execute(db, fromExpr); // collection of all query results
+    this.hasBlankRowGroup = dataQuery.hasBlankRowGroup;
 
     // Calculate column statistics for bar columns
     const columnStatsMap = this.calculateColumnStatistics(
@@ -298,6 +310,9 @@ export class TableDataSetFactory {
     // Iterate through all groups and rows
     for (const groupData of queryData) {
       for (const row of groupData) {
+        // sum rows draw no bar (a waterfall takes its extent from WaterfallBarData), so they must not stretch the scale
+        const type = row[QueryColumnNames.TYPE];
+        if (type === TableRowType.SUM || type === TableRowType.GROUPSUM) continue;
         for (const column of barColumns) {
           // with an active interval the rendered values live under the
           // `column##bucket` keys; the plain column would hold the (larger)
@@ -411,7 +426,8 @@ export class TableDataSetFactory {
     for (const rawDataRow of groupData) {
       iRowIndex += 1;
       // create next table row
-      const groupName = rawDataRow[QueryColumnNames.ROWGROUP];
+      const rowGroup = rawDataRow[QueryColumnNames.ROWGROUP];
+      const groupName = rowGroup === "" ? BLANK_BUCKET_LABEL : rowGroup;
       const subCategory = rawDataRow[QueryColumnNames.SUBCATEGORY];
       const type = rawDataRow[QueryColumnNames.TYPE];
       const isSecondElement = rawDataRow[QueryColumnNames.ROWNR] >= 2;
@@ -575,6 +591,10 @@ export class TableDataSetFactory {
       return value;
     }
 
+    if (value === NOT_AVAILABLE) {
+      return value;
+    }
+
     if (Number.isNaN(Number(value))) {
       return "-";
     } else {
@@ -628,7 +648,7 @@ export class TableDataSetFactory {
       unitType = "percent";
 
       if (scenarios.isValid && scenarios.type === "d") {
-        unitType = "decimal";
+        unitType = "percentpoint";
       }
     } else {
       unitType = "decimal";

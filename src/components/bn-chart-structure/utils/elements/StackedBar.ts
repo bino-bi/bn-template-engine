@@ -5,6 +5,7 @@ import { HookLocation, Label } from "./Label";
 import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StackMode } from "../../../../utils/constants";
+import { Formatter } from "../../../../utils/formatter";
 
 /**
  * Renders a single horizontal stacked bar segment for the structure chart.
@@ -96,8 +97,15 @@ export class StackedBar {
       const labelX = xPos + segmentLength / 2;
 
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
-        const pct = this.totalValue !== 0 ? (value / this.totalValue) * 100 : 0;
-        const labelValue = pct.toFixed(dataFormatDigits.percent) + "%";
+        const share = this.totalValue !== 0 ? value / this.totalValue : 0;
+        const labelValue = Formatter.number(
+          share,
+          "percent",
+          dataFormatDigits.percent,
+          dataFormatDigits.percent,
+          1,
+          this.styles.locale,
+        );
         new Label(
           this.group,
           labelX,

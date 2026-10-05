@@ -1,6 +1,6 @@
 import { Component, Element, Prop, Watch, h, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
-import { getStores, ScopedStores } from "../../context/context-protocol";
+import { getStores, clearStoresCache, ScopedStores } from "../../context/context-protocol";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { computeContentHash, decodeCompressedContent } from "../../utils/contentDecoder";
@@ -52,9 +52,12 @@ export class Datasource {
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+  private readonly holdStatus: (work: Promise<unknown>) => void;
 
   private stores: ScopedStores;
   private lastHash: string | null = null;
+  /** The table object this element put into the db, to tell it from one another element registered under the same name. */
+  private registered: unknown;
 
   /** The currently active URL (`null` when in inline-JSON mode). */
   private currentUrl: string | null = null;
@@ -62,23 +65,27 @@ export class Datasource {
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   /** AbortController for cancelling in-flight fetch requests. */
   private abortController: AbortController | null = null;
+  /** True until the first request for the current `src` has delivered. A poll tick is skipped meanwhile: it would cancel that request and release readiness with no data. */
+  private firstLoadPending = false;
 
   constructor() {
-    withComponentStatus(this);
+    this.holdStatus = withComponentStatus(this);
     this.errors = withHasError(this);
     withBodyObserver(this, (data) => this.sync(data));
   }
 
   /** Loads from `src` when it is set, otherwise from the inline body. */
   private sync(data: string): void {
-    if (!this.stores) this.stores = getStores(this.element);
+    // a re-attached element may sit in another bn-context
+    this.stores = getStores(this.element);
 
     // --- URL mode ---
     if (this.src) {
       if (this.src === this.currentUrl) return;
       this.currentUrl = this.src;
       this.lastHash = null;
-      this.fetchAndStore(this.src);
+      this.firstLoadPending = true;
+      this.holdStatus(this.fetchAndStore(this.src));
       this.startPolling();
       return;
     }
@@ -121,6 +128,7 @@ export class Datasource {
   private publish(json: unknown): void {
     const db = this.stores.db.db;
     db.tables[this.name] = { data: Array.isArray(json) ? json : [] };
+    this.registered = db.tables[this.name];
     this.stores.db.notify(this.name);
   }
 
@@ -137,19 +145,36 @@ export class Datasource {
     if (this.element.isConnected) this.sync(this.element.textContent ?? "");
   }
 
+  @Watch("name")
+  nameUpdated(_name: string, oldName: string) {
+    this.unregister(oldName);
+    if (this.name && this.element.isConnected) this.sync(this.element.textContent ?? "");
+  }
+
   disconnectedCallback(): void {
     this.cancelInFlight();
+    this.unregister(this.name);
+    clearStoresCache(this.element);
+  }
+
+  /** Drops the table registered under `name` and forgets the loaded state, so the next sync loads again. */
+  private unregister(name: string): void {
+    this.lastHash = null;
+    this.currentUrl = null;
     const db = this.stores?.db?.db;
-    if (db && this.name) {
-      if (db.tables[this.name] != null) {
-        delete db.tables[this.name];
+    // another element may have taken the name since: its table and consumers stay untouched
+    const taken = db?.tables[name] != null && db.tables[name] !== this.registered;
+    this.registered = undefined;
+    if (db && name && !taken) {
+      if (db.tables[name] != null) {
+        delete db.tables[name];
       }
       // @ts-ignore - views typing is loose
-      if (db.views && db.views[this.name] != null) {
+      if (db.views && db.views[name] != null) {
         // @ts-ignore
-        delete db.views[this.name];
+        delete db.views[name];
       }
-      this.stores.db.notify(this.name);
+      this.stores.db.notify(name);
     }
   }
 
@@ -172,6 +197,7 @@ export class Datasource {
       console.error("bn-datasource: error fetching URL", e, url);
       this.publish([]);
     }
+    this.firstLoadPending = false;
   }
 
   /** Stops the polling timer (does NOT touch any in-flight fetch). */
@@ -197,7 +223,7 @@ export class Datasource {
     this.clearPollTimer();
     if (this.currentUrl && this.interval > 0) {
       this.pollTimerId = setInterval(() => {
-        if (this.currentUrl) {
+        if (this.currentUrl && !this.firstLoadPending) {
           this.fetchAndStore(this.currentUrl);
         }
       }, this.interval * 1000);

@@ -97,7 +97,7 @@ describe("IBCS Table ruleset column ordering", () => {
     const berlinRow = findRowByFirstCell(page, "Berlin");
 
     expect(berlinRow).toBeDefined();
-    expect(cellTexts(berlinRow).slice(0, 4)).toEqual(["Berlin", "40,0", "45,0", "50,0"]);
+    expect(cellTexts(berlinRow).slice(0, 4)).toEqual(["Berlin", "40.0", "45.0", "50.0"]);
   });
 
   it("reorders scenario columns when the ruleSetConfig overrides a sortIndex", async () => {
@@ -107,6 +107,6 @@ describe("IBCS Table ruleset column ordering", () => {
 
     expect(berlinRow).toBeDefined();
     // ac now sorts before pp and pl
-    expect(cellTexts(berlinRow).slice(0, 4)).toEqual(["Berlin", "50,0", "40,0", "45,0"]);
+    expect(cellTexts(berlinRow).slice(0, 4)).toEqual(["Berlin", "50.0", "40.0", "45.0"]);
   });
 });

@@ -110,7 +110,7 @@ describe("IBCS Table limit REST row", () => {
 
     expect(restRow).toBeDefined();
     // columns: category, pp1, pl1, fc1, ac1 (München + Köln summed)
-    expect(cellTexts(restRow).slice(0, 5)).toEqual(["REST", "28,0", "30,0", "30,0", "30,0"]);
+    expect(cellTexts(restRow).slice(0, 5)).toEqual(["REST", "28.0", "30.0", "30.0", "30.0"]);
   });
 
   it("translates the REST label even in META mode", async () => {
@@ -136,7 +136,7 @@ describe("IBCS Table limit REST row", () => {
     const restRow = findRowByFirstCell(page, "REST");
 
     // dpp1_ac1_pos = (16+12) - (20+10) = -2; drac1_pp1_pos = ((20+10) - (16+12)) / (16+12) = 7.14%
-    expect(cellTexts(restRow).slice(5, 7)).toEqual(["-2,0", "7,14%"]);
+    expect(cellTexts(restRow).slice(5, 7)).toEqual(["-2.0", "7.14%"]);
   });
 
   it("renders no-data for a scenario that is null in every row beyond the limit", async () => {
@@ -147,7 +147,7 @@ describe("IBCS Table limit REST row", () => {
     // fc1 is null for München and Köln -> REST fc1 has no contributing rows
     expect(cellTexts(restRow)[3]).toEqual("-");
     // the other scenarios still aggregate
-    expect(cellTexts(restRow).slice(0, 3)).toEqual(["REST", "28,0", "30,0"]);
+    expect(cellTexts(restRow).slice(0, 3)).toEqual(["REST", "28.0", "30.0"]);
   });
 
   it("keeps the total sum row aggregating all rows, not just the visible ones", async () => {
@@ -159,6 +159,6 @@ describe("IBCS Table limit REST row", () => {
 
     expect(sumRow).toBeDefined();
     // pp1=93, pl1=103, fc1=107, ac1=110 over all four categories
-    expect(cellTexts(sumRow).slice(1, 5)).toEqual(["93,0", "103,0", "107,0", "110,0"]);
+    expect(cellTexts(sumRow).slice(1, 5)).toEqual(["93.0", "103.0", "107.0", "110.0"]);
   });
 });

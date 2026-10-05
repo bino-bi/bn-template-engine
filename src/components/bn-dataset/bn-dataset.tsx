@@ -31,11 +31,12 @@ export class Dataset {
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+  private readonly holdStatus: (work: Promise<unknown>) => void;
 
   private stores!: ScopedStores;
 
   constructor() {
-    withComponentStatus(this);
+    this.holdStatus = withComponentStatus(this);
     this.errors = withHasError(this);
     // Datasources already live in the shared db; just re-execute when any upstream notifies.
     withDatasource(this, () => {
@@ -90,6 +91,8 @@ export class Dataset {
   /** The query text last used to (re)create the SQL view, so we only `CREATE VIEW` when it actually changes. */
   private lastViewQuery: string | null = null;
   private latestResult: unknown;
+  /** The table or view object this element put into the db, to tell it from one another element registered under the same name. */
+  private registered: unknown;
 
   /** The currently active URL (`null` when not in URL mode). */
   private currentUrl: string | null = null;
@@ -97,9 +100,14 @@ export class Dataset {
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
   /** AbortController for cancelling in-flight fetch requests. */
   private abortController: AbortController | null = null;
+  /** True until the first request for the current `src` has delivered. A poll tick is skipped meanwhile: it would cancel that request and release readiness with no data. */
+  private firstLoadPending = false;
 
   /** Loads from `src` when it is set, otherwise from the inline body. */
   private sync(data: string): void {
+    // a re-attached element may sit in another bn-context
+    this.stores = getStores(this.element);
+
     // --- URL mode ---
     if (this.src) {
       if (this.src === this.currentUrl) return;
@@ -108,7 +116,8 @@ export class Dataset {
       // an upstream notify must not rebuild the view from the body while src is set
       this.query = "";
       this.errors.remove("ERR_sql");
-      this.fetchAndStore(this.src);
+      this.firstLoadPending = true;
+      this.holdStatus(this.fetchAndStore(this.src));
       this.startPolling();
       return;
     }
@@ -160,7 +169,8 @@ export class Dataset {
         result = [];
       }
       db.tables[this.name] = { data: Array.isArray(result) ? result : [] };
-      this.lastViewQuery = null;
+      this.registered = db.tables[this.name];
+      this.dropViewStatements();
       this.errors.remove("ERR_sql");
     } else {
       // SQL: register the dataset as a view in the shared db. Recreate only when the
@@ -189,10 +199,10 @@ export class Dataset {
           // checked before exec: in "SELECT ...; <inline js>" alasql would run the second statement right away
           if (hasInlineJs(this.query)) throw new Error("double backticks are not allowed.");
           db.exec(`CREATE VIEW \`${this.name}\` AS ${this.query}`);
+          this.registered = db.tables[this.name];
           // alasql caches compiled statements per SQL text: one compiled while the name was a plain table reads no rows from a view
           db.resetSqlCache();
           this.lastViewQuery = this.query;
-          this.errors.remove("ERR_sql");
         } catch (e) {
           console.error("bn-dataset: failed to register SQL view", e, this.query);
           this.errors.addOrReplace({
@@ -208,11 +218,20 @@ export class Dataset {
       }
       try {
         result = db.exec(`SELECT * FROM \`${this.name}\``);
-      } catch (_e) {
+        this.errors.remove("ERR_sql");
+      } catch (e) {
         // Most common cause: an upstream datasource referenced by the view hasn't
         // been registered yet (HTML parse/connectedCallback race). `withDatasource`
         // re-fires executeQuery on every upstream notify, so we'll retry then.
         // Skip publish so we don't clobber datasetsMeta with empty data.
+        if (this.latestResult === undefined) return;
+        // after a load the source was renamed or removed: consumers must not keep the old rows
+        this.errors.addOrReplace({
+          id: "ERR_sql",
+          type: "error",
+          message: `SQL: ${e instanceof Error ? e.message : e}`,
+        });
+        this.publish([]);
         return;
       }
     }
@@ -235,8 +254,9 @@ export class Dataset {
   }
 
   @Watch("name")
-  nameUpdated() {
-    this.executeQuery();
+  nameUpdated(_name: string, oldName: string) {
+    this.unregister(oldName);
+    if (this.name && this.element.isConnected) this.sync(this.element.textContent ?? "");
   }
 
   @Watch("interval")
@@ -254,22 +274,38 @@ export class Dataset {
 
   disconnectedCallback(): void {
     this.cancelInFlight();
-    if (this.stores?.db?.db && this.name) {
-      const db = this.stores.db.db;
+    this.unregister(this.name);
+  }
+
+  /** Drops what is registered under `name` and forgets the loaded state, so the next sync loads again. */
+  private unregister(name: string): void {
+    const db = this.stores?.db?.db;
+    // the name may come back as a plain table, which statements compiled for the view cannot read
+    if (db && this.lastViewQuery !== null) db.resetSqlCache();
+    // another element may have taken the name since: its table, meta and consumers stay untouched
+    const taken = db?.tables[name] != null && db.tables[name] !== this.registered;
+    this.registered = undefined;
+    this.lastBodyHash = null;
+    this.lastViewQuery = null;
+    this.currentUrl = null;
+    this.latestResult = undefined;
+    if (db && name && !taken) {
       try {
-        db.exec(`DROP VIEW \`${this.name}\``);
+        db.exec(`DROP VIEW \`${name}\``);
       } catch (_e) {
         // not registered as a view - fine
       }
-      if (db.tables[this.name] != null) {
-        delete db.tables[this.name];
+      if (db.tables[name] != null) {
+        delete db.tables[name];
       }
       // @ts-ignore - views typing is loose
-      if (db.views && db.views[this.name] != null) {
+      if (db.views && db.views[name] != null) {
         // @ts-ignore
-        delete db.views[this.name];
+        delete db.views[name];
       }
-      this.stores.db.notify(this.name);
+      // the store has no delete; null is what consumers start with
+      this.stores.datasetsMeta.set(name, null);
+      this.stores.db.notify(name);
     }
   }
 
@@ -288,6 +324,7 @@ export class Dataset {
       const json = await response.json();
       const db = this.stores.db.db;
       db.tables[this.name] = { data: Array.isArray(json) ? json : [] };
+      this.registered = db.tables[this.name];
       this.dropViewStatements();
       this.publish(json);
     } catch (e) {
@@ -295,9 +332,11 @@ export class Dataset {
       console.error("bn-dataset: error fetching URL", e, url);
       const db = this.stores.db.db;
       db.tables[this.name] = { data: [] };
+      this.registered = db.tables[this.name];
       this.dropViewStatements();
       this.publish([]);
     }
+    this.firstLoadPending = false;
   }
 
   /** After a view was replaced by a plain table: statements alasql compiled for the view cannot read the table. */
@@ -329,7 +368,7 @@ export class Dataset {
     this.clearPollTimer();
     if (this.currentUrl && this.interval > 0) {
       this.pollTimerId = setInterval(() => {
-        if (this.currentUrl) {
+        if (this.currentUrl && !this.firstLoadPending) {
           this.fetchAndStore(this.currentUrl);
         }
       }, this.interval * 1000);

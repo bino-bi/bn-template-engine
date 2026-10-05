@@ -16,6 +16,8 @@ import { ScaleFactorsXYChart, ScaleFactorsXYChartAdapter } from "./ScaleFactorsX
  */
 export class XYChartStyle {
   public seriesColors: string[] = [...XY_SERIES_PALETTE];
+  /** Locale for number labels. */
+  public locale: string = "de";
 
   constructor(
     public scaleFactors: ScaleFactorsXYChart,
