@@ -43,6 +43,13 @@ Each edge object supports:
 | `label` | `string` | Display label for the operator |
 | `style` | `string` | Edge line style (e.g., `"dashed"`) |
 
+The edges must form one tree below a single root. A node may have several
+parents, but an edge must not lead back to a node above it. A cycle, or a node
+that is not connected to the root, is reported as `ERR_edges` in `has-error`
+and the tree is not drawn. A tree that is wider than its container, or cut
+off at the bottom by a container that hides its overflow, sets
+`WARN_overflow`.
+
 ### Layout Direction
 
 | Value | Description |

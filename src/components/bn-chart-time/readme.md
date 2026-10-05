@@ -32,6 +32,11 @@ Controls the temporal aggregation level:
 
 Values: `year`, `quarter`, `month`, `week`, `day`, `hour`, `minute`, `second`, `millisecond`, `auto`.
 
+With `auto` the chart takes the finest interval that gives fewer periods than
+`interval-span-limit` (default 28) between the first and the last date. The
+limit only chooses this interval. It never cuts the series: every period
+between the first and the last date is drawn.
+
 ## Chart Mode
 
 ```html
@@ -81,6 +86,12 @@ Stack config properties:
 - `mode`: `"absolute"`, `"relative"`, or `"absolute-relative"`
 - `order`: `"asc"`, `"desc"`, or `"dataset"`
 
+Negative values: positive segments stack outward from the axis on the positive
+side, negative segments on the other side, and the total label shows the signed
+sum (10, -4 and 6 give 12). In the relative modes the share of a segment is its
+value divided by the sum of the absolute values of the stack, so a stack with
+negative segments keeps its 100 % length but its shares do not add up to 100 %.
+
 ## Aggregation Level
 
 ```html
@@ -105,6 +116,10 @@ Stack config properties:
 <!-- Show median line -->
 <bn-chart-time show-overlay-median="true" scenarios="ac1"></bn-chart-time>
 ```
+
+Average and median are taken over the periods that have a value for the
+scenario. Periods without one, such as the forecast months of an AC/FC chart,
+are left out.
 
 ## Scaling
 

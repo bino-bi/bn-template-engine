@@ -158,7 +158,7 @@ export namespace Components {
      */
     "size": string;
     /**
-      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`.
+      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
      */
     "x": string;
     /**
@@ -328,7 +328,7 @@ export namespace Components {
      */
     "seriesLevel": string;
     /**
-      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional).
+      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
      */
     "x": string;
     /**
@@ -488,7 +488,7 @@ export namespace Components {
      */
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
     /**
-      * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+      * Max number of columns. Only used to choose the date interval when dateInterval is AUTO: the finest interval that gives fewer periods than this. The series is never cut.
       * @default 28
      */
     "intervalSpanLimit": number;
@@ -2482,7 +2482,7 @@ declare namespace LocalJSX {
      */
     "size": string;
     /**
-      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`.
+      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
      */
     "x": string;
     /**
@@ -2642,7 +2642,7 @@ declare namespace LocalJSX {
      */
     "seriesLevel"?: string;
     /**
-      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional).
+      * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
      */
     "x": string;
     /**
@@ -2792,7 +2792,7 @@ declare namespace LocalJSX {
      */
     "filter"?: string;
     /**
-      * Max number of collumns is used to calculate Axis Date Interval (if dateInterval is set to AUTO)
+      * Max number of columns. Only used to choose the date interval when dateInterval is AUTO: the finest interval that gives fewer periods than this. The series is never cut.
       * @default 28
      */
     "intervalSpanLimit"?: number;

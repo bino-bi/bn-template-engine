@@ -62,6 +62,12 @@ Stack config properties:
 - `mode`: `"absolute"`, `"relative"`, or `"absolute-relative"`
 - `order`: `"asc"`, `"desc"`, or `"dataset"`
 
+Negative values: positive segments stack outward from the axis on the positive
+side, negative segments on the other side, and the total label shows the signed
+sum (10, -4 and 6 give 12). In the relative modes the share of a segment is its
+value divided by the sum of the absolute values of the stack, so a stack with
+negative segments keeps its 100 % length but its shares do not add up to 100 %.
+
 ## Scaling
 
 ```html
