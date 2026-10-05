@@ -55,6 +55,8 @@ import { h } from "@stencil/core";
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { getStores } from "../../context/context-protocol";
 import { ErrorItem } from "../../utils/withHasError";
+import { DataAnalyzer } from "../../utils/dataAnalyzer";
+import { SiPrefix } from "../../utils/model/SiPrefix";
 import { Table } from "./bn-table";
 import { IbcsTable } from "./ibcs-table";
 
@@ -226,12 +228,23 @@ describe("bn-table: data values in queries", () => {
     expect(inner(page).shadowRoot.querySelector("table")).toBeNull();
   });
 
-  it("reports ERR_sql when the measure scale cannot be read from the data", async () => {
+  it("reports ERR_sql when only the measure-scale query fails", async () => {
+    // every other query of this table works: the item can only come from the measure scale
+    const measureScale = jest
+      .spyOn(DataAnalyzer, "calculateMeasureScale")
+      .mockImplementation((_db, _fromExpr, _scenarios, _mode, onError) => {
+        onError?.(new Error("measure scale query failed"));
+        return new SiPrefix();
+      });
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
-    const page = await renderTable({ filter: "category =", "measure-scale": "GREATEST" });
+    const page = await renderTable({ "measure-scale": "GREATEST" });
     consoleError.mockRestore();
+    measureScale.mockRestore();
 
-    expect(errors(page).find((e) => e.id === "ERR_sql")?.type).toBe("error");
+    const error = errors(page).find((e) => e.id === "ERR_sql");
+    expect(error?.type).toBe("error");
+    expect(error?.message).toContain("measure scale query failed");
+    expect(inner(page).shadowRoot.querySelector("table")).toBeNull();
   });
 
   it.each([

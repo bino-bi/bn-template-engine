@@ -59,6 +59,8 @@ import { Chart as ChartStructure } from "../components/bn-chart-structure/bn-cha
 import { IbcsChartStructure } from "../components/bn-chart-structure/ibcs-chart-structure";
 import { Chart as ChartTime } from "../components/bn-chart-time/bn-chart-time";
 import { IbcsChartTime } from "../components/bn-chart-time/ibcs-chart-time";
+import { DataAnalyzer } from "./dataAnalyzer";
+import { SiPrefix } from "./model/SiPrefix";
 import { ErrorDispatcher, ErrorItem } from "./withHasError";
 import { errorText, reportQueryError } from "./queryError";
 
@@ -145,6 +147,25 @@ describe.each(CHARTS)("%s with a failing query", (tag, inner, components, attrs)
     await page.waitForChanges();
 
     expect(sqlError(page.root!)).toBeUndefined();
+  });
+});
+
+describe.each(CHARTS.slice(0, 2))("%s with a failing measure-scale query", (tag, inner, components, attrs) => {
+  it("reports ERR_sql when only the measure-scale query fails", async () => {
+    // the other queries of the chart work: the item can only come from the measure scale
+    const measureScale = jest
+      .spyOn(DataAnalyzer, "calculateMeasureScale")
+      .mockImplementation((_db, _fromExpr, _scenarios, _mode, onError) => {
+        onError?.(new Error("measure scale query failed"));
+        return new SiPrefix();
+      });
+    const page = await render(tag, components, `${attrs} datasets="sales" measure-scale="GREATEST"`);
+    measureScale.mockRestore();
+
+    expect(sqlError(page.root!)?.message).toContain("measure scale query failed");
+    for (const element of inners(page.root!, inner)) {
+      expect(element.shadowRoot!.querySelector(".empty-state")).toBeNull();
+    }
   });
 });
 
