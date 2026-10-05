@@ -133,6 +133,33 @@ describe("withInheritedProps", () => {
       expect(resolve(leaf, INHERITED_CLOSEST)).toBe("ac1,pp1");
     });
 
+    it("takes the page value behind a card that follows the page, not the value of an outer card", () => {
+      const [page, outerCard, innerCard, leaf] = nest("bn-layout-page", "bn-layout-card", "bn-layout-card");
+      page.setAttribute("title-scenarios", "ac1,pp1");
+      outerCard.setAttribute("title-scenarios", "ac1");
+      innerCard.setAttribute("title-scenarios", INHERITED_PAGE);
+
+      // the inner card shows the page value, so what is inside it must get the same
+      expect(resolve(leaf, INHERITED_CLOSEST)).toBe("ac1,pp1");
+    });
+
+    it("finds nothing behind a card that follows a page without the value", () => {
+      const [, outerCard, innerCard, leaf] = nest("bn-layout-page", "bn-layout-card", "bn-layout-card");
+      outerCard.setAttribute("title-scenarios", "ac1");
+      innerCard.setAttribute("title-scenarios", INHERITED_PAGE);
+
+      expect(resolve(leaf, INHERITED_CLOSEST)).toBeUndefined();
+    });
+
+    it("goes on to the next card behind a card with 'inherited-closest'", () => {
+      const [page, outerCard, innerCard, leaf] = nest("bn-layout-page", "bn-layout-card", "bn-layout-card");
+      page.setAttribute("title-scenarios", "ac1,pp1");
+      outerCard.setAttribute("title-scenarios", "ac1");
+      innerCard.setAttribute("title-scenarios", INHERITED_CLOSEST);
+
+      expect(resolve(leaf, INHERITED_CLOSEST)).toBe("ac1");
+    });
+
     it("reads each attribute on its own", () => {
       const [page, card, leaf] = nest("bn-layout-page", "bn-layout-card");
       page.setAttribute("ruleset", "page-rules");

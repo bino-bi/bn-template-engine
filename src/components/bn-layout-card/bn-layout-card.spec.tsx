@@ -178,6 +178,19 @@ describe("bn-layout-card inherited title props", () => {
     expect(title.getAttribute("scenarios")).toBe("pp1");
   });
 
+  it("gives a component inside a card that follows the page the page value, also below another card", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage, LayoutCard],
+      html: `<bn-layout-page title-scenarios="ac1,pp1" ruleset="page-rules"><bn-layout-card title-scenarios="ac1" ruleset="card-rules"><bn-layout-card id="middle" title-scenarios="inherited-page" ruleset="inherited-page"><bn-layout-card id="inner" title-scenarios="inherited-closest" ruleset="inherited-closest"></bn-layout-card></bn-layout-card></bn-layout-card></bn-layout-page>`,
+    });
+    const title = (id: string) => page.body.querySelector(id).shadowRoot.querySelector("bn-title");
+
+    expect(title("#middle").getAttribute("scenarios")).toBe("ac1,pp1");
+    // the same as the card it sits in, not the value of the card further out
+    expect(title("#inner").getAttribute("scenarios")).toBe("ac1,pp1");
+    expect(title("#inner").getAttribute("ruleset")).toBe("page-rules");
+  });
+
   it("resolves each field in its own mode", async () => {
     const page = await newSpecPage({
       components: [LayoutPage, LayoutCard],
