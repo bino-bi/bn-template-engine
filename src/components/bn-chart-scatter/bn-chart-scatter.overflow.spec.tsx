@@ -96,7 +96,7 @@ const chartHeight = (page: SpecPage): number =>
 describe.each(["none", "auto"])("bn-chart-scatter height overflow with scale=%s", (scale) => {
   it("warns when the chart is higher than its parent", async () => {
     // with an aspect of 1 the plot is as high as it is wide, more than the 300 px of the cell
-    const page = await renderScatter(300, `scale="${scale}" aspect="1"`);
+    const page = await renderScatter(300, `scale="${scale}" aspect="1:1"`);
 
     expect(chartHeight(page)).toBeGreaterThan(300);
     expect(overflowItem(page)?.type).toBe("warning");
@@ -105,7 +105,7 @@ describe.each(["none", "auto"])("bn-chart-scatter height overflow with scale=%s"
   });
 
   it("does not warn when the chart fits", async () => {
-    const page = await renderScatter(2000, `scale="${scale}" aspect="1"`);
+    const page = await renderScatter(2000, `scale="${scale}" aspect="1:1"`);
 
     expect(chartHeight(page)).toBeLessThan(2000);
     expect(overflowItem(page)).toBeUndefined();
@@ -115,7 +115,7 @@ describe.each(["none", "auto"])("bn-chart-scatter height overflow with scale=%s"
 describe("bn-chart-scatter height overflow after the render", () => {
   it("checks again when only the height of the parent changes", async () => {
     mockResizeCallbacks.length = 0;
-    const page = await renderScatter(2000, `scale="none" aspect="1"`);
+    const page = await renderScatter(2000, `scale="none" aspect="1:1"`);
     expect(overflowItem(page)).toBeUndefined();
 
     // the chart saw this width already, so the change below is one of the height alone
