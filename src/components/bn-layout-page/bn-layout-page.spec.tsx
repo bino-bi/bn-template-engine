@@ -199,6 +199,26 @@ describe("bn-layout-page in a document that is printed in the other orientation"
     expect((host.shadowRoot.querySelector("bn-page") as HTMLElement).style.transform).toBe(TURNED);
   });
 
+  it("tells the context about a format that is set as a property after the first render", async () => {
+    const page = await newSpecPage({
+      components: [Context, LayoutPage],
+      html: `<bn-context><bn-layout-page></bn-layout-page></bn-context>`,
+    });
+    const rule = () => document.head.querySelector("style[data-bn-page-size]").textContent;
+    const host = page.body.querySelector("bn-layout-page") as HTMLBnLayoutPageElement;
+    expect(rule()).toBe("@page { size: 1024px 768px; }");
+
+    host.pageFormat = "a4";
+    host.pageOrientation = "landscape";
+    await page.waitForChanges();
+
+    // reflected, so the context sees the change. mock-doc has no observer, the spec reports it.
+    expect(host.getAttribute("page-format")).toBe("a4");
+    expect(host.getAttribute("page-orientation")).toBe("landscape");
+    notifyAttributeChange(host, "page-format");
+    expect(rule()).toBe("@page { size: 11.69in 8.27in; }");
+  });
+
   it("gets its page number from the context before the first render", async () => {
     const page = await newSpecPage({
       components: [Context, LayoutPage],

@@ -99,6 +99,22 @@ describe("bn-context page numbers", () => {
     expect(layoutPage.hasAttribute("page-number")).toBe(false);
   });
 
+  it("numbers a page again whose number was set as a property and then cleared", async () => {
+    const page = await render(`<bn-context><bn-layout-page></bn-layout-page></bn-context>`);
+    // an upgraded page has the property, and the property is what its footer shows: stand in for it here
+    const layoutPage = page.root.querySelector("bn-layout-page") as unknown as HTMLElement & {
+      pageNumber: string | null;
+    };
+    expect(layoutPage.getAttribute("page-number")).toBe("1");
+    layoutPage.pageNumber = null;
+    const setAttribute = jest.spyOn(layoutPage, "setAttribute");
+
+    notifyChildListChange(page.root);
+
+    // the attribute still holds the old number, but the page has none: it is written again
+    expect(setAttribute).toHaveBeenCalledWith("page-number", "1");
+  });
+
   it("leaves a page without footer alone", async () => {
     const page = await render(`<bn-context><bn-page></bn-page><bn-layout-page></bn-layout-page></bn-context>`);
 

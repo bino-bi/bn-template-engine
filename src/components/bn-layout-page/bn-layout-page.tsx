@@ -198,7 +198,7 @@ export class LayoutPage {
    * values:<br />
    * ```xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger```
    */
-  @Prop() pageFormat?: string;
+  @Prop({ reflect: true }) pageFormat?: string;
 
   /**
    * Page orientation. Default depends on the chosen format.
@@ -207,7 +207,7 @@ export class LayoutPage {
    * values:<br />
    * ```landscape // portrait```
    */
-  @Prop() pageOrientation?: string;
+  @Prop({ reflect: true }) pageOrientation?: string;
 
   /**
    * Page label displayed in the footer: a number or any text, e.g. `A-1`.

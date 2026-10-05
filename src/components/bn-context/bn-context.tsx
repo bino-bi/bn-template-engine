@@ -32,10 +32,16 @@ const PAGE_ATTRIBUTES = [
   "page-number",
 ];
 
-/** A value of a page: its property when it is set (a page can be configured without attributes), else its attribute. */
+/**
+ * A value of a page. An upgraded element mirrors its attributes in its
+ * properties, and a page can be configured through properties alone, so the
+ * property is what counts there: a cleared property is no value, whatever
+ * the attribute still says. An element without the property has the attribute.
+ */
 const read = (element: Element, property: string, attribute: string): string | null => {
   const value = (element as unknown as Record<string, unknown>)[property];
-  return typeof value === "string" ? value : element.getAttribute(attribute);
+  if (typeof value === "string") return value;
+  return property in element ? null : element.getAttribute(attribute);
 };
 
 /** Every visual bn-* component; non-visual producers (bn-dataset, ...) are excluded. */

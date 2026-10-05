@@ -139,6 +139,23 @@ for (const [format, orientation, width, height] of [
   });
 }
 
+test("print: a format that is set as a property after the load reaches the @page rule", async () => {
+  const { page } = await open(`<bn-layout-page></bn-layout-page>`);
+  const rule = () => page.$eval("style[data-bn-page-size]", (style) => style.textContent);
+  assert.equal(await rule(), "@page { size: 1024px 768px; }");
+
+  // no attribute is written by the caller: the page reflects the property, and the context watches the attribute
+  await page.evaluate(() => {
+    const layoutPage = document.querySelector("bn-layout-page");
+    layoutPage.pageFormat = "a4";
+    layoutPage.pageOrientation = "landscape";
+  });
+  await until(
+    page,
+    () => document.head.querySelector("style[data-bn-page-size]").textContent === "@page { size: 11.69in 8.27in; }",
+  );
+});
+
 /** The page label a layout page prints in its footer. */
 const footerLabels = (page) =>
   page.$$eval("bn-layout-page", (els) =>
