@@ -788,12 +788,16 @@ export class Chart {
     this.componentStyle = withComponentStyle(this);
     this.ruleSetConfig = withRuleSet(this);
     this.t = withTranslation(this).t;
-    this.resolveInherited = withInheritedProps(this, [
-      { propName: "scenarios", ancestorAttr: "title-scenarios" },
-      { propName: "variances", ancestorAttr: "title-variances" },
-      { propName: "order", ancestorAttr: "title-order" },
-      { propName: "orderDirection", ancestorAttr: "title-order-direction" },
-    ]);
+    this.resolveInherited = withInheritedProps(
+      this,
+      [
+        { propName: "scenarios", ancestorAttr: "title-scenarios" },
+        { propName: "variances", ancestorAttr: "title-variances" },
+        { propName: "order", ancestorAttr: "title-order" },
+        { propName: "orderDirection", ancestorAttr: "title-order-direction" },
+      ],
+      this.errors,
+    );
   }
 
   componentWillLoad() {
@@ -1078,15 +1082,16 @@ export class Chart {
   }
 
   private prepareScenarios(): string[] {
-    const inherited = this.resolveInherited("scenarios", this.scenarios);
-    if (inherited !== undefined) {
+    const scenarios = this.resolveInherited("scenarios", this.scenarios);
+    if (scenarios.inherited) {
       this.errors.remove("AUTO_scenarios");
-      return inherited.split(",").map((entry) => entry.trim());
+      return scenarios.value.split(",").map((entry) => entry.trim());
     }
-    const isAuto = this.scenarios?.trim().toLowerCase() === "auto";
-    if (isBlankInput(this.scenarios) || isAuto) {
+    const isAuto = scenarios.value?.trim().toLowerCase() === "auto";
+    if (isBlankInput(scenarios.value) || isAuto) {
       if (this.datasetMeta?.availableScenarios?.length > 0) {
-        if (!isAuto) {
+        // An unresolved keyword has its own warning, so it gets no AUTO_scenarios on top.
+        if (!isAuto && !scenarios.unresolved) {
           this.errors.addOrReplace({
             id: "AUTO_scenarios",
             type: "warning",
@@ -1100,7 +1105,7 @@ export class Chart {
       return [];
     }
     this.errors.remove("AUTO_scenarios");
-    return this.scenarios?.split(",").map((entry) => entry.trim());
+    return scenarios.value?.split(",").map((entry) => entry.trim());
   }
 
   private prepareAvg(): boolean {
@@ -1112,14 +1117,11 @@ export class Chart {
   }
 
   private prepareVariances(): string[] {
-    const inherited = this.resolveInherited("variances", this.variances);
-    if (inherited !== undefined) {
-      return inherited.split(",").map((entry) => entry.trim());
-    }
-    if (isBlankInput(this.variances)) {
+    const variances = this.resolveInherited("variances", this.variances).value;
+    if (isBlankInput(variances)) {
       return [];
     }
-    return this.variances?.split(",").map((entry) => entry.trim());
+    return variances?.split(",").map((entry) => entry.trim());
   }
 
   private prepareHideAxisLabels(idx: number): boolean {
@@ -1265,11 +1267,9 @@ export class Chart {
   }
 
   private prepareOrder(): Order {
-    const inheritedOrder = this.resolveInherited("order", this.order);
-    const inheritedDirection = this.resolveInherited("orderDirection", this.orderDirection);
-
-    const effectiveOrder = inheritedOrder ?? this.order;
-    const effectiveDirection = inheritedDirection ?? this.orderDirection;
+    const order = this.resolveInherited("order", this.order);
+    const effectiveOrder = order.value;
+    const effectiveDirection = this.resolveInherited("orderDirection", this.orderDirection).value;
 
     const isLevelAuto = isBlankInput(this.level) || this.level?.trim().toLowerCase() === "auto";
     let entryValue = isLevelAuto && this.datasetMeta?.suggestedLevel ? this.datasetMeta.suggestedLevel : this.level;
@@ -1277,7 +1277,8 @@ export class Chart {
     const isOrderAuto = effectiveOrder?.trim().toLowerCase() === "auto";
     if (isBlankInput(effectiveOrder) || isOrderAuto) {
       if (this.datasetMeta?.suggestedLevel) {
-        if (!isOrderAuto) {
+        // An unresolved keyword has its own warning, so it gets no AUTO_order on top.
+        if (!isOrderAuto && !order.unresolved) {
           this.errors.addOrReplace({
             id: "AUTO_order",
             type: "warning",
