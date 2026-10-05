@@ -1787,6 +1787,11 @@ export class TimeChart {
   }
 
   private drawOverlayLayer(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
+    // no period, no average: the overlays read the first and the last period
+    if (dataModel.length === 0) {
+      return;
+    }
+
     const overlayGroup: G = svgContainer.group().id("Overlay");
 
     const scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);
