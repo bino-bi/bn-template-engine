@@ -72,8 +72,16 @@ const withDataset = (
   let datasources: string[] = [];
   let stores: ScopedStores;
 
+  /** The `datasets` value the subscriptions were made for. */
+  let bound = "";
+
   // the prop, not the attribute: a property set before the first render is not reflected yet
-  const names = (): string[] => (component.datasets || "").split(",");
+  const bind = () => {
+    bound = component.datasets || "";
+    [datasources, datasets] = partition((s) => s.startsWith("$"), bound.split(","));
+    warnIfDatasource(component, datasources);
+    rebind();
+  };
 
   /** Materialize the current rows for a subscribed name via the shared db, then deliver. */
   const deliver = (name: string, isDatasource: boolean) => {
@@ -116,10 +124,13 @@ const withDataset = (
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (mutation.attributeName === "datasets") {
-        [datasources, datasets] = partition((s) => s.startsWith("$"), names());
-        warnIfDatasource(component, datasources);
-        rebind();
+      // Stencil writes a reflected attribute again with the same value in the first render
+      if (mutation.attributeName === "datasets" && (component.datasets || "") !== bound) {
+        bind();
+        if (bound === "") {
+          // nothing is bound any more: without this the component would keep its last data
+          onUpdate("", []);
+        }
       }
     });
   });
@@ -129,9 +140,7 @@ const withDataset = (
     const element = getElement(component);
     stores = getStores(element);
 
-    [datasources, datasets] = partition((s) => s.startsWith("$"), names());
-    warnIfDatasource(component, datasources);
-    rebind();
+    bind();
 
     observer.observe(element, { attributes: true, attributeFilter: ["datasets"] });
 

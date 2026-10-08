@@ -234,6 +234,12 @@ const en = flattenObject({
   },
 });
 
+/** Old key names (deprecated) and what they are called now. A text is still found and still read under the old name. */
+export const RENAMED_I18N_KEYS: Record<string, string> = {
+  "bn-title.SEPERATOR_WS": "bn-title.SEPARATOR_WS",
+  "bn-table.there_of": "bn-table.thereof",
+};
+
 export const SYSTEM_I18N_DEFAULTS: Record<string, unknown> = { _system: { de, en } };
 
 export { globalLabelKeys };

@@ -34,7 +34,8 @@ export class Text {
     this.errors = withHasError(this);
     this.t = withTranslation(this).t;
     withDataset(this, (name, data) => {
-      this.data = { ...this.data, [name]: data };
+      // a blank name means that `datasets` was cleared
+      this.data = name === "" ? {} : { ...this.data, [name]: data };
     });
     this.componentStyle = withComponentStyle(this);
   }

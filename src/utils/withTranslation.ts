@@ -2,6 +2,7 @@ import { getStores, clearStoresCache, ScopedStores } from "../context/context-pr
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 import { findAncestorWithAttr } from "./withInheritedProps";
+import { RENAMED_I18N_KEYS } from "../stores/internationalization";
 
 /**
  * Mixin that provides i18n translation support to a Stencil component.
@@ -36,6 +37,8 @@ import { findAncestorWithAttr } from "./withInheritedProps";
 const withTranslation = (component: any) => {
   let subscription: () => void;
   let namespace: string | undefined = undefined;
+  /** The `i18nNamespace` prop value that `namespace` was resolved for. */
+  let ownNamespace: string | null | undefined = undefined;
   let stores: ScopedStores;
 
   let ancestorObserver: MutationObserver | null = null;
@@ -48,7 +51,8 @@ const withTranslation = (component: any) => {
       ancestorObserver = null;
     }
 
-    namespace = component.i18nNamespace;
+    ownNamespace = component.i18nNamespace;
+    namespace = ownNamespace;
     if (namespace != null) {
       return;
     }
@@ -64,21 +68,10 @@ const withTranslation = (component: any) => {
     }
   };
 
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === "i18n-namespace") {
-        resolveNamespace();
-        forceUpdate(component);
-      }
-    });
-  });
-
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
     const element = getElement(component);
     stores = getStores(element);
-
-    observer.observe(element, { attributes: true, attributeFilter: ["i18n-namespace"] });
 
     resolveNamespace();
 
@@ -93,7 +86,6 @@ const withTranslation = (component: any) => {
 
   const disconnectedCallback = component["disconnectedCallback"];
   component["disconnectedCallback"] = () => {
-    observer.disconnect();
     if (ancestorObserver) {
       ancestorObserver.disconnect();
       ancestorObserver = null;
@@ -104,9 +96,16 @@ const withTranslation = (component: any) => {
   };
 
   const t = (key: string, data?: object) => {
+    // A change of the prop renders the component, and texts are looked up while it renders:
+    // compared here, a property write counts like an attribute.
+    if (stores !== undefined && component.i18nNamespace !== ownNamespace) {
+      resolveNamespace();
+    }
+
     if (key.startsWith(".")) {
       key = getElement(component).localName + key;
     }
+    key = RENAMED_I18N_KEYS[key] ?? key;
 
     const locales = stores.internationalization.state;
     const locale = stores.context.state.locale;
