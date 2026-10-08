@@ -79,10 +79,28 @@ describe("bn-internationalization store updates", () => {
     const en = i18nBundle("_system", "en");
     expect(en["global.ac1"]).toBe("Actual");
     // Built-in keys survive a partial override.
-    expect(en["bn-table.there_of"]).toBe("there of");
+    expect(en["bn-table.thereof"]).toBe("there of");
     expect(en["global.pl1"]).toBe("PL");
     // Nothing lands in an unreachable "undefined" slot.
     expect(getStores(null).internationalization.get("undefined")).toBeUndefined();
+  });
+
+  it("reads a translation under an old key name as the renamed key", async () => {
+    await renderI18n(
+      `<bn-internationalization code="en">{"bn-table": {"there_of": "of which"}, "bn-title": {"SEPERATOR_WS": " | "}}</bn-internationalization>`,
+    );
+
+    const en = i18nBundle("_system", "en");
+    expect(en["bn-table.thereof"]).toBe("of which");
+    expect(en["bn-title.SEPARATOR_WS"]).toBe(" | ");
+  });
+
+  it("prefers the new key name when a body has both", async () => {
+    await renderI18n(
+      `<bn-internationalization code="en">{"bn-table": {"there_of": "old", "thereof": "new"}}</bn-internationalization>`,
+    );
+
+    expect(i18nBundle("_system", "en")["bn-table.thereof"]).toBe("new");
   });
 
   it("keeps other language bundles untouched", async () => {

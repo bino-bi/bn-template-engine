@@ -5,6 +5,10 @@
  * - `"auto"`: auto-detect SI prefix from data magnitude
  * - `"factor"`: explicit numeric divisor (e.g. `"1000"` to show values in thousands)
  */
+/** A stroke width given as a multiple of the font size, in px. Rounded: 0.075 at 13.3333 px is 1, not 0.9999975. */
+export const strokeWidthPx = (factor: number, fontSizePx: number): number =>
+  Math.round(factor * fontSizePx * 100) / 100;
+
 export type ScalingMode = "empty" | "none" | "auto" | "factor";
 
 /**

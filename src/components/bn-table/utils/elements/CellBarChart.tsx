@@ -1,6 +1,7 @@
 import { h, FunctionalComponent } from "@stencil/core";
 import { ColumnStats } from "./Cell";
 import { Formatter } from "../../../../utils";
+import { FillPattern } from "../../../../utils/model/styles/SVGStyle";
 import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "../helper/barColumnGeometry";
 
 /** Matches SYSTEM_STYLE_DEFAULTS.global.fontSizePx; only used when `styles` is omitted. */
@@ -9,7 +10,7 @@ const DEFAULT_EM_PX = 13.3333;
 export interface VarianceStyle {
   stroke: string;
   fill: string;
-  fillpattern?: string; // Pattern type: 'solid', 'hatched', 'outlined'
+  fillpattern?: FillPattern;
 }
 
 export interface ScenarioStyles {

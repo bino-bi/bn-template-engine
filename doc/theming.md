@@ -40,6 +40,22 @@ The `name` prop determines the style layer:
 
 ## Style Properties
 
+### Units
+
+All lengths are plain numbers. Which unit a number has depends on where it stands:
+
+| Key | Unit |
+|-----|------|
+| `fontSizePx` | px |
+| every key in a `scaleFactors` group | multiple of the font size. `0.075` is 1 px at the default font size of 13.3333 px, and it follows `scale` |
+| `width` in `barStyles` and `varianceStyles`, `dasharray` | px, does not follow `scale` |
+| `padding` | px, does not follow `scale` |
+| `bn-tree`: `edgeWidth`, `operatorCircleRadius` | px |
+| `bn-tree`: `operatorFontSizeScale` | multiple of the font size |
+| `bn-grid`: `borderWidth`, `cellPadding` | px |
+
+`fillpattern` in `barStyles` and `varianceStyles` is `solid`, `hatched` or `outlined`. The old value `fc` still works and means `hatched`.
+
 ### Global
 
 Typography settings inherited by all components:

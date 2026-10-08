@@ -585,20 +585,14 @@ export class Table {
   }
 
   /**
-   * Stringified Array of drilldown Objects {
-            "rowGroup": string,<br />
-            "category": string,<br />
-            "subCategory": string,<br />
-          },<br /><br />
-   * rowgroup, categroy defines the location of the drill
-   * subcategory is the displayed label of the data row
-   *<br /><br />
+   * JSON array of drilldown objects with the keys `rowGroup`, `category` and
+   * `subCategory` (all strings, all required).
+   * <br /><br />
+   * `rowGroup` and `category` name the row the drilldown belongs to,
+   * `subCategory` is the label of the data row that is shown below it.
+   * <br /><br />
    * example:<br />
-   * ```[{
-   "rowGroup":"Umsatz",
-   "category": "Applications",
-   "subCategory": "Applications-A",
-   },]```
+   * ```[{"rowGroup": "Umsatz", "category": "Applications", "subCategory": "Applications-A"}]```
    */
   @Prop() thereof: string = "[]";
 
@@ -619,18 +613,14 @@ export class Table {
   }
 
   /**
-   * Stringified Array of Partof Objects <br />{<br />
-            "rowGroup": string,<br />
-            "category": string<br />
-          },<br /><br />
-   * rowgroup, categroy defines the location of the drill
-   * percentage of category in rowgorup
-   *<br /><br />
+   * JSON array of part-of objects with the keys `rowGroup` and `category`
+   * (both strings, both required).
+   * <br /><br />
+   * Each object names a category. The table shows its share of the row group
+   * in percent.
+   * <br /><br />
    * example:<br />
-   * ```[{
-   "rowGroups":"Umsatz",
-   "category": "Applications",
-   },]```
+   * ```[{"rowGroup": "Umsatz", "category": "Applications"}]```
    */
   @Prop() partof: string = "[]";
 
@@ -851,15 +841,14 @@ export class Table {
   }
 
   /**
-   * Defines which drill-column is displayed. <br />
+   * JSON array that defines which drill columns are shown. Each object has
+   * the keys `scenario`, `name` and `subGroups` (all required).
    * <br /><br />
-   * ```scenario``` the scenaro to drill <br/>
-   * ```group``` is a list of child columns of the parent <br/><br/>
-   * ```subGroups``` is a list of child columns of the parent <br/><br/>
+   * ```scenario``` the scenario to drill <br/>
+   * ```name``` the label of the parent column <br/>
+   * ```subGroups``` the list of child columns of the parent <br/><br/>
    * example:<br />
-   * ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},
-   *     {"scenario": "ac2", "name": "UK", "subGroups": []}],
-   *    ```
+   * ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]}, {"scenario": "ac2", "name": "UK", "subGroups": []}]```
    */
   @Prop() columnthereof: string | null = null;
 
@@ -1170,7 +1159,7 @@ export class Table {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL", "no-data", "REST"];
+    const i18nMetaLabelsLocal = ["in", "category", "operation", "thereof", "part_of", "SUM_TOTAL", "no-data", "REST"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system

@@ -26,7 +26,7 @@ import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { RuleSetConfig } from "../../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
 import { Order, OrderAdapter } from "../../../utils/model/Order";
-import { CellBarChart, CellBarChartStyles } from "../utils/elements/CellBarChart";
+import { CellBarChart, CellBarChartStyles, VarianceStyle } from "../utils/elements/CellBarChart";
 import { WaterfallBar } from "../utils/elements/WaterfallBar";
 import { Cell } from "../utils/elements/Cell";
 import withComponentStatus from "../../../utils/withComponentStatus";
@@ -547,15 +547,15 @@ export class BnTableRenderer {
       const barStyles = $["bn-chart-time"]?.["barStyles"];
 
       // Default variance styles with fillpattern
-      const defaultPos = { stroke: "#008f96", fill: "#008f96", fillpattern: "solid" };
-      const defaultNeg = { stroke: "#ff0000", fill: "#ff0000", fillpattern: "solid" };
-      const defaultNeu = { stroke: "#808080", fill: "#808080", fillpattern: "outlined" };
+      const defaultPos: VarianceStyle = { stroke: "#008f96", fill: "#008f96", fillpattern: "solid" };
+      const defaultNeg: VarianceStyle = { stroke: "#ff0000", fill: "#ff0000", fillpattern: "solid" };
+      const defaultNeu: VarianceStyle = { stroke: "#808080", fill: "#808080", fillpattern: "outlined" };
 
       // Default scenario styles (IBCS grayscale)
-      const defaultAc = { stroke: "#404040", fill: "#404040", fillpattern: "solid" };
-      const defaultPp = { stroke: "#A6A6A6", fill: "#A6A6A6", fillpattern: "solid" };
-      const defaultFc = { stroke: "#404040", fill: "#ffffff", fillpattern: "hatched" };
-      const defaultPl = { stroke: "#404040", fill: "#ffffff", fillpattern: "outlined" };
+      const defaultAc: VarianceStyle = { stroke: "#404040", fill: "#404040", fillpattern: "solid" };
+      const defaultPp: VarianceStyle = { stroke: "#A6A6A6", fill: "#A6A6A6", fillpattern: "solid" };
+      const defaultFc: VarianceStyle = { stroke: "#404040", fill: "#ffffff", fillpattern: "hatched" };
+      const defaultPl: VarianceStyle = { stroke: "#404040", fill: "#ffffff", fillpattern: "outlined" };
 
       return {
         positive: {

@@ -261,15 +261,35 @@ The ids that stay as they were: all `AUTO_*` ids, all ids of type `error` (`ERR_
 
 [doc/integration-contract.md](doc/integration-contract.md) lists every id and states what stays stable in 1.x: the readiness values on `window`, the console line, `getLayoutState()` and the `has-error` items.
 
+#### Translation keys: `bn-title.SEPARATOR_WS` and `bn-table.thereof`
+
+Two built-in keys were misspelled: `bn-title.SEPERATOR_WS` is now `bn-title.SEPARATOR_WS`, and `bn-table.there_of` is now `bn-table.thereof`. A `<bn-internationalization>` body that still uses an old name keeps working: the value is read under the new name. Rename the keys in your translations, the old names end with 2.0.
+
+#### Theme: every `scaleFactors` value is a multiple of the font size
+
+Four line widths in `scaleFactors` were pixels, next to values that are multiples of the font size. They are multiples now, like the rest. The defaults give the same pixels at the default font size:
+
+| Section | Key | Before (px) | Now (× font size) |
+|---------|-----|-------------|-------------------|
+| `bn-chart-bullet` | `targetLineWidth` | `2` | `0.15` |
+| `bn-chart-bullet` | `axisLineWidth` | `1` | `0.075` |
+| `bn-chart-scatter`, `bn-chart-bubble` | `refLineWidth` | `1` | `0.075` |
+| `bn-chart-scatter`, `bn-chart-bubble` | `gridLineWidth` | `1` | `0.075` |
+
+These lines now get thinner and thicker with `scale` and with the font size, like the lines of the time and structure chart. A theme that sets one of the four keys must divide its value by the font size (13.3333 by default). [doc/theming.md](doc/theming.md) has a table with the unit of every key.
+
 ### Deprecated
 
 These still work in all 1.x versions and are removed in 2.0:
 
 - `title-namespace` on `bn-layout-page` and `bn-layout-card`. Use `i18n-namespace`, which also applies to the content of the page or card.
 - The `asset:` prefix in `source` of `bn-image`, `image` of `bn-message`, `message-image` of `bn-layout-page` and `title-image` of `bn-layout-card`. Write the plain asset name: `source="logo"` instead of `source="asset:logo"`.
+- The `fillpattern` value `fc` in a theme. Write `hatched`. The built-in theme uses `hatched` now.
+- The translation keys `bn-title.SEPERATOR_WS` and `bn-table.there_of`, see above.
 
 ### Fixed
 
+- Docs: the examples of `thereof`, `partof` and `columnthereof` on `bn-table` were not valid JSON, and the one of `partof` used the key `rowGroups` instead of `rowGroup`. The `stack` docs of `bn-chart-time` and `bn-chart-structure` listed `by` values that are not accepted. They name `scenarios` and `dimensions` now.
 - `bn-chart-time`: a chart without rows threw in its auto-fit, because the average overlay (on by default) reads the first and the last period. The chart showed "No Data" anyway, the exception was only logged.
 - `bn-table`, `bn-title`: invalid JSON in `thereof`, `partof`, `columnthereof` or `measures` threw in `render()`. The validators report the value, and the component now renders without it.
 - `bn-text`: the auto-fit measured once, also when a web font was still loading. It measures again when fonts have loaded.

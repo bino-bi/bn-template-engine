@@ -63,7 +63,7 @@ describe("IBCS Table waterfall bar columns", () => {
 
   const i18n = new Map([
     ["SUM_TOTAL", "Summe"],
-    ["there_of", "davon"],
+    ["thereof", "davon"],
     ["part_of", "anteil an"],
   ]);
 

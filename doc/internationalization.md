@@ -65,7 +65,7 @@ The `{%}` token is replaced at render time with the comparison scenario abbrevia
 | Key | English | German |
 |-----|---------|--------|
 | `bn-table.in` | in | in |
-| `bn-table.there_of` | there of | davon |
+| `bn-table.thereof` | there of | davon |
 | `bn-table.part_of` | in % of | in % von |
 | `bn-table.SUM_TOTAL` | ❖ | ❖ |
 | `bn-table.REST` | REST | REST |
@@ -74,11 +74,11 @@ The `{%}` token is replaced at render time with the comparison scenario abbrevia
 
 | Key | English | German |
 |-----|---------|--------|
-| `bn-title.SEPERATOR_WS` | `, ` | `, ` |
+| `bn-title.SEPARATOR_WS` | `, ` | `, ` |
 | `bn-title.CONNECTOR_WS` | ` and ` | ` und ` |
 | `bn-title.in` | in | in |
 
-Note the key really is spelled `SEPERATOR_WS`.
+The keys `bn-title.SEPERATOR_WS` and `bn-table.there_of` are the old names of `bn-title.SEPARATOR_WS` and `bn-table.thereof`. A translation that still uses an old name is read under the new one. This is deprecated and ends with 2.0.
 
 The XY and bullet charts have additional message keys under `bn-chart-scatter.`, `bn-chart-bubble.`, and `bn-chart-bullet.` - see `src/stores/internationalization.ts` for the complete list.
 
@@ -92,7 +92,7 @@ Override or add translations with `<bn-internationalization>`. Without a `namesp
   <bn-internationalization code="en">
     {
       "global": { "ac1": "Actual", "pl1": "Budget", "pp1": "Prior Year" },
-      "bn-table": { "there_of": "of which", "SUM_TOTAL": "Total" }
+      "bn-table": { "thereof": "of which", "SUM_TOTAL": "Total" }
     }
   </bn-internationalization>
 
@@ -100,7 +100,7 @@ Override or add translations with `<bn-internationalization>`. Without a `namesp
 </bn-context>
 ```
 
-Nested objects are flattened with dot-separated keys, so the payload above stores `global.ac1`, `bn-table.there_of`, … - exactly the built-in key shape. A flat payload (`{"global.ac1": "Actual"}`) is equivalent.
+Nested objects are flattened with dot-separated keys, so the payload above stores `global.ac1`, `bn-table.thereof`, … - exactly the built-in key shape. A flat payload (`{"global.ac1": "Actual"}`) is equivalent.
 
 Multiple `<bn-internationalization>` elements for the same namespace and code merge in document order (later elements win per key).
 
@@ -150,7 +150,7 @@ The `<bn-text>` component can reference translations with the `t()` function. `b
   <bn-internationalization code="en">
     {
       "global": { "ac1": "Actual", "pl1": "Budget", "pp1": "Prior Year", "fc1": "Forecast" },
-      "bn-table": { "there_of": "of which", "SUM_TOTAL": "Grand Total" }
+      "bn-table": { "thereof": "of which", "SUM_TOTAL": "Grand Total" }
     }
   </bn-internationalization>
 

@@ -1,4 +1,15 @@
-import { formatScalingValue, parseScalingValue, resolveScalingValue } from "./scaling";
+import { formatScalingValue, parseScalingValue, resolveScalingValue, strokeWidthPx } from "./scaling";
+
+describe("strokeWidthPx", () => {
+  it.each([
+    [0.075, 13.3333, 1],
+    [0.15, 13.3333, 2],
+    [0.075, 26.6666, 2],
+    [0.075, 8, 0.6],
+  ])("%p of a %p px font is %p px", (factor, fontSizePx, expected) => {
+    expect(strokeWidthPx(factor, fontSizePx)).toBe(expected);
+  });
+});
 
 describe("parseScalingValue", () => {
   describe("auto", () => {

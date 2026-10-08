@@ -4,6 +4,7 @@ import { formatXYValue } from "./formatXYValue";
 import { NumericScale } from "./NumericScale";
 import { HighlightRange } from "./model/AxisConfig";
 import { XYChartStyle } from "./model/XYChartStyle";
+import { strokeWidthPx } from "../scaling";
 
 /** Tick rendering configuration for one panel. */
 export interface TickRenderConfig {
@@ -68,7 +69,10 @@ export class XYFrame {
 
   /** Horizontal gridlines at the y ticks; vertical ones only when `ticksX` is given. */
   public drawGrid(group: G, ticksY: number[], ticksX?: number[]): void {
-    const stroke = { color: this.styles.axisStyles.pp.stroke, width: this.styles.scaleFactors.gridLineWidth };
+    const stroke = {
+      color: this.styles.axisStyles.pp.stroke,
+      width: strokeWidthPx(this.styles.scaleFactors.gridLineWidth, this.em),
+    };
 
     for (const tick of ticksY) {
       const y = this.yScale.scale(tick);
@@ -85,7 +89,10 @@ export class XYFrame {
 
   /** Thin reference lines at the given axis values (10A quadrant crosshair). */
   public drawRefLines(group: G, xRef?: number, yRef?: number): void {
-    const stroke = { color: this.styles.axisStyles.fc.stroke, width: this.styles.scaleFactors.refLineWidth };
+    const stroke = {
+      color: this.styles.axisStyles.fc.stroke,
+      width: strokeWidthPx(this.styles.scaleFactors.refLineWidth, this.em),
+    };
 
     if (xRef !== undefined) {
       const x = this.xScale.scale(xRef);
@@ -104,7 +111,10 @@ export class XYFrame {
       .rect(this.rect.width, this.rect.height)
       .move(this.rect.x, this.rect.y)
       .fill("none")
-      .stroke({ color: this.styles.axisStyles.ac.stroke, width: this.styles.scaleFactors.gridLineWidth });
+      .stroke({
+        color: this.styles.axisStyles.ac.stroke,
+        width: strokeWidthPx(this.styles.scaleFactors.gridLineWidth, this.em),
+      });
   }
 
   /** Tick labels along the outer edges (no tick marks - template style). */

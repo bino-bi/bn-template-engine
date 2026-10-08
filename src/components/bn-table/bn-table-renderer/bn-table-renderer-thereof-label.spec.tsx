@@ -107,7 +107,7 @@ describe("IBCS Table thereof labels", () => {
           i18n={
             new Map([
               ["SUM_TOTAL", "Summe"],
-              ["there_of", "davon"],
+              ["thereof", "davon"],
             ])
           }
           i18n-mode={I18nMode.META}

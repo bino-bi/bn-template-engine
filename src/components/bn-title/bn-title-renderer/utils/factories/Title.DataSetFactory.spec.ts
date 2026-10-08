@@ -14,7 +14,7 @@ import { IBCSRuleSet } from "../../../../../utils/ibcsRuleSet";
 const i18n: Map<string, string> = new Map();
 
 [
-  { key: "SEPERATOR_WS", value: ", " },
+  { key: "SEPARATOR_WS", value: ", " },
   { key: "in", value: "in" },
   { key: "ORDER_asc", value: "↑" },
   { key: "ORDER_desc", value: "↓" },

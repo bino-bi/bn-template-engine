@@ -339,7 +339,7 @@ export class Title {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
+    const i18nMetaLabelsLocal = ["SEPARATOR_WS", "in", "CONNECTOR_WS"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system

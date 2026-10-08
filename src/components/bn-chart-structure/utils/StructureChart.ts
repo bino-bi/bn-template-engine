@@ -246,7 +246,7 @@ export class StructureChart {
     this.state = FactoryState.DIRTY;
 
     const defaultI18n: Map<string, string> = new Map<string, string>([
-      ["SEPERATOR_WS", ", "],
+      ["SEPARATOR_WS", ", "],
       ["in", "in"],
       ["ORDER_asc", "↑"],
       ["ORDER_desc", "↓"],
@@ -268,7 +268,7 @@ export class StructureChart {
       ["pl4", "PL4"],
       ["category", " "],
       ["operation", " "],
-      ["there_of", "davon"],
+      ["thereof", "davon"],
       ["part_of", "in % von"],
       ["ibcssymbol_delta_ac", "Δ{%}"],
       ["ibcssymbol_delta_generic", "Δ({%})"],

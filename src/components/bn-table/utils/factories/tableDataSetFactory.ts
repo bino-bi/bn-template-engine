@@ -695,7 +695,7 @@ export class TableDataSetFactory {
     }
 
     if (this.isDrillElementCategory(type, scenario)) {
-      return `${i18n.get("there_of")} `;
+      return `${i18n.get("thereof")} `;
     }
 
     if (this.isPartElementCategory(type, scenario)) {

@@ -931,10 +931,10 @@ export namespace Components {
      */
     "showOverlayMedian": boolean;
     /**
-      * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenario" | "category" | "subcategory" | "rowgroup",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): The dimension to stack.   - `"scenario"` - stack the scenarios from the `scenarios` prop as layers.   - `"category"` / `"subcategory"` / `"rowgroup"` - decompose a single     scenario by this data dimension. Must be finer than `level`. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
+      * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenarios" | "dimensions",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): What a stack is made of.   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers.   - `"dimensions"` - only the first scenario is drawn. A time chart has one     value per period, so each stack has one segment. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
       * @default '' (empty - no stacking)
-      * @example // Stack scenarios stack='{"by":"scenario"}'
-      * @example // Stack by category, relative mode stack='{"by":"category","mode":"relative"}'
+      * @example // Stack scenarios stack='{"by":"scenarios"}'
+      * @example // Stack scenarios, relative mode stack='{"by":"scenarios","mode":"relative"}'
      */
     "stack": string;
     /**
@@ -1593,7 +1593,7 @@ export namespace Components {
      */
     "categoryWidth": string;
     /**
-      * Defines which drill-column is displayed. <br /> <br /><br /> ```scenario``` the scenaro to drill <br/> ```group``` is a list of child columns of the parent <br/><br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},     {"scenario": "ac2", "name": "UK", "subGroups": []}],    ```
+      * JSON array that defines which drill columns are shown. Each object has the keys `scenario`, `name` and `subGroups` (all required). <br /><br /> ```scenario``` the scenario to drill <br/> ```name``` the label of the parent column <br/> ```subGroups``` the list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]}, {"scenario": "ac2", "name": "UK", "subGroups": []}]```
       * @default null
      */
     "columnthereof": string | null;
@@ -1671,7 +1671,7 @@ export namespace Components {
      */
     "orderDirection": string;
     /**
-      * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
+      * JSON array of part-of objects with the keys `rowGroup` and `category` (both strings, both required). <br /><br /> Each object names a category. The table shows its share of the row group in percent. <br /><br /> example:<br /> ```[{"rowGroup": "Umsatz", "category": "Applications"}]```
       * @default "[]"
      */
     "partof": string;
@@ -1720,7 +1720,7 @@ export namespace Components {
      */
     "tableAttributes": string;
     /**
-      * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
+      * JSON array of drilldown objects with the keys `rowGroup`, `category` and `subCategory` (all strings, all required). <br /><br /> `rowGroup` and `category` name the row the drilldown belongs to, `subCategory` is the label of the data row that is shown below it. <br /><br /> example:<br /> ```[{"rowGroup": "Umsatz", "category": "Applications", "subCategory": "Applications-A"}]```
       * @default "[]"
      */
     "thereof": string;
@@ -3293,10 +3293,10 @@ declare namespace LocalJSX {
      */
     "showOverlayMedian"?: boolean;
     /**
-      * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenario" | "category" | "subcategory" | "rowgroup",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): The dimension to stack.   - `"scenario"` - stack the scenarios from the `scenarios` prop as layers.   - `"category"` / `"subcategory"` / `"rowgroup"` - decompose a single     scenario by this data dimension. Must be finer than `level`. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
+      * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenarios" | "dimensions",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): What a stack is made of.   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers.   - `"dimensions"` - only the first scenario is drawn. A time chart has one     value per period, so each stack has one segment. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
       * @default '' (empty - no stacking)
-      * @example // Stack scenarios stack='{"by":"scenario"}'
-      * @example // Stack by category, relative mode stack='{"by":"category","mode":"relative"}'
+      * @example // Stack scenarios stack='{"by":"scenarios"}'
+      * @example // Stack scenarios, relative mode stack='{"by":"scenarios","mode":"relative"}'
      */
     "stack"?: string;
     /**
@@ -3945,7 +3945,7 @@ declare namespace LocalJSX {
      */
     "categoryWidth"?: string;
     /**
-      * Defines which drill-column is displayed. <br /> <br /><br /> ```scenario``` the scenaro to drill <br/> ```group``` is a list of child columns of the parent <br/><br/> ```subGroups``` is a list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},     {"scenario": "ac2", "name": "UK", "subGroups": []}],    ```
+      * JSON array that defines which drill columns are shown. Each object has the keys `scenario`, `name` and `subGroups` (all required). <br /><br /> ```scenario``` the scenario to drill <br/> ```name``` the label of the parent column <br/> ```subGroups``` the list of child columns of the parent <br/><br/> example:<br /> ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]}, {"scenario": "ac2", "name": "UK", "subGroups": []}]```
       * @default null
      */
     "columnthereof"?: string | null;
@@ -4018,7 +4018,7 @@ declare namespace LocalJSX {
      */
     "orderDirection"?: string;
     /**
-      * Stringified Array of Partof Objects <br />{<br />        "rowGroup": string,<br />        "category": string<br />      },<br /><br /> rowgroup, categroy defines the location of the drill percentage of category in rowgorup <br /><br /> example:<br /> ```[{ "rowGroups":"Umsatz", "category": "Applications", },]```
+      * JSON array of part-of objects with the keys `rowGroup` and `category` (both strings, both required). <br /><br /> Each object names a category. The table shows its share of the row group in percent. <br /><br /> example:<br /> ```[{"rowGroup": "Umsatz", "category": "Applications"}]```
       * @default "[]"
      */
     "partof"?: string;
@@ -4067,7 +4067,7 @@ declare namespace LocalJSX {
      */
     "tableAttributes"?: string;
     /**
-      * Stringified Array of drilldown Objects {        "rowGroup": string,<br />        "category": string,<br />        "subCategory": string,<br />      },<br /><br /> rowgroup, categroy defines the location of the drill subcategory is the displayed label of the data row <br /><br /> example:<br /> ```[{ "rowGroup":"Umsatz", "category": "Applications", "subCategory": "Applications-A", },]```
+      * JSON array of drilldown objects with the keys `rowGroup`, `category` and `subCategory` (all strings, all required). <br /><br /> `rowGroup` and `category` name the row the drilldown belongs to, `subCategory` is the label of the data row that is shown below it. <br /><br /> example:<br /> ```[{"rowGroup": "Umsatz", "category": "Applications", "subCategory": "Applications-A"}]```
       * @default "[]"
      */
     "thereof"?: string;

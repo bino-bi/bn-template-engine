@@ -395,16 +395,16 @@ export class Chart {
    * **JSON schema:**
    * ```json
    * {
-   *   "by": "scenario" | "category" | "subcategory" | "rowgroup",
+   *   "by": "scenarios" | "dimensions",
    *   "mode": "absolute" | "relative" | "absolute-relative",
    *   "order": "asc" | "desc" | "dataset"
    * }
    * ```
    *
-   * - `by` (required): The dimension to stack.
-   *   - `"scenario"` - stack the scenarios from the `scenarios` prop as layers.
-   *   - `"category"` / `"subcategory"` / `"rowgroup"` - decompose a single
-   *     scenario by this data dimension. Must be finer than `level`.
+   * - `by` (required): What a stack is made of.
+   *   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers.
+   *   - `"dimensions"` - only the first scenario is drawn. A time chart has one
+   *     value per period, so each stack has one segment.
    * - `mode` (optional, default `"absolute"`):
    *   - `"absolute"` - additive stacking, axis shows absolute units.
    *   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is
@@ -420,11 +420,11 @@ export class Chart {
    *
    * @example
    * // Stack scenarios
-   * stack='{"by":"scenario"}'
+   * stack='{"by":"scenarios"}'
    *
    * @example
-   * // Stack by category, relative mode
-   * stack='{"by":"category","mode":"relative"}'
+   * // Stack scenarios, relative mode
+   * stack='{"by":"scenarios","mode":"relative"}'
    */
   @Prop() stack: string = "";
 

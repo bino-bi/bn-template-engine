@@ -10,6 +10,7 @@ import { NumericScale } from "../../../utils/xy/NumericScale";
 import { scenarioFamily } from "../../../utils/xy/VarianceMeasure";
 import { XYWarningRecord } from "../../../utils/xy/model/XYChartDataRow";
 import { BulletChartStyle } from "./model/BulletChartStyle";
+import { strokeWidthPx } from "../../../utils/scaling";
 import { BulletLabelConfig, BulletMeasureConfig } from "./model/BulletConfig";
 
 /** Prepared configuration handed to the bullet orchestrator by the inner element. */
@@ -422,7 +423,7 @@ export class BulletChart {
 
     root
       .line(plotX, rowsTop - 0.2 * em, plotX, rowsBottom + 0.2 * em)
-      .stroke({ color: this.styles.axisStyles.ac.stroke, width: factors.axisLineWidth });
+      .stroke({ color: this.styles.axisStyles.ac.stroke, width: strokeWidthPx(factors.axisLineWidth, this.em) });
 
     // Stable, empty hook for a future annotation layer.
     container.group().addClass("annotations");
@@ -451,7 +452,7 @@ export class BulletChart {
     const targetStyle = this.styles.barStyles.getSVGStyle(this.targetFamily());
     const targetLine = root
       .line(targetX, rowsTop - 0.3 * em, targetX, rowsBottom + 0.3 * em)
-      .stroke({ color: targetStyle.stroke, width: factors.targetLineWidth });
+      .stroke({ color: targetStyle.stroke, width: strokeWidthPx(factors.targetLineWidth, this.em) });
     if (targetStyle.dasharray !== undefined) {
       targetLine.attr("stroke-dasharray", targetStyle.dasharray);
     }
@@ -547,7 +548,7 @@ export class BulletChart {
         const targetStyle = this.styles.barStyles.getSVGStyle(this.targetFamily());
         const tick = root
           .line(tickX, cy - tickH / 2, tickX, cy + tickH / 2)
-          .stroke({ color: targetStyle.stroke, width: factors.targetLineWidth });
+          .stroke({ color: targetStyle.stroke, width: strokeWidthPx(factors.targetLineWidth, this.em) });
         if (targetStyle.dasharray !== undefined) {
           tick.attr("stroke-dasharray", targetStyle.dasharray);
         }
@@ -568,7 +569,7 @@ export class BulletChart {
         const tickX = scale.scale(tick);
         root
           .line(tickX, tickTop, tickX, tickTop + factors.axisTickLength * em)
-          .stroke({ color: this.styles.axisStyles.ac.stroke, width: factors.axisLineWidth });
+          .stroke({ color: this.styles.axisStyles.ac.stroke, width: strokeWidthPx(factors.axisLineWidth, this.em) });
         this.drawText(
           root,
           Formatter.number(tick, "decimal", decimals, decimals, 1, this.styles.locale),

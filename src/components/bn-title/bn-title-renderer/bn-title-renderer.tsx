@@ -78,7 +78,7 @@ export class BnTitleRenderer {
         <div>
           {this.title.measures.map((measure, index) => (
             <span>
-              {this.isFirstElement(index) ? this.title.i18n.get("SEPERATOR_WS") : ""}
+              {this.isFirstElement(index) ? this.title.i18n.get("SEPARATOR_WS") : ""}
               <span class="measure">{measure.name}</span> {measure.unit ? this.title.i18n.get("in") : ""} {measure.unit}
             </span>
           ))}

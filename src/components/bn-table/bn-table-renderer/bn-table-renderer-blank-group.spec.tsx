@@ -120,7 +120,7 @@ describe("IBCS Table blank row group", () => {
           i18n={
             new Map([
               ["SUM_TOTAL", "Summe"],
-              ["there_of", "davon"],
+              ["thereof", "davon"],
               ["part_of", "in % von"],
             ])
           }

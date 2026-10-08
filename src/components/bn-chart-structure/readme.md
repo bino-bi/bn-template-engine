@@ -48,17 +48,17 @@ Add variance sub-charts beside the main chart:
 
 ## Stacking
 
-Stack bars by scenario, category, subcategory, or row group:
+Stack bars by scenario, or by the next lower level of the hierarchy:
 
 ```html
 <bn-chart-structure
   scenarios="ac1"
-  stack='{"by":"category","mode":"absolute","order":"asc"}'>
+  stack='{"by":"dimensions","mode":"absolute","order":"asc"}'>
 </bn-chart-structure>
 ```
 
 Stack config properties:
-- `by`: `"scenario"`, `"category"`, `"subcategory"`, or `"rowgroup"`
+- `by`: `"scenarios"` (the scenarios of the `scenarios` attribute) or `"dimensions"` (the level below `level`, for example categories inside a row group)
 - `mode`: `"absolute"`, `"relative"`, or `"absolute-relative"`
 - `order`: `"asc"`, `"desc"`, or `"dataset"`
 

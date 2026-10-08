@@ -6,6 +6,12 @@ import { errorText } from "../../utils/queryError";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
+/** Old key names (deprecated): a translation that still uses one is read under the new name. */
+const RENAMED_KEYS: Record<string, string> = {
+  "bn-title.SEPERATOR_WS": "bn-title.SEPARATOR_WS",
+  "bn-table.there_of": "bn-table.thereof",
+};
+
 @Component({
   tag: "bn-internationalization",
   styleUrl: "bn-internationalization.scss",
@@ -35,6 +41,9 @@ export class Internationalization {
           throw new Error("not a JSON object.");
         }
         const i18n = flattenObject(parsed);
+        for (const [oldKey, key] of Object.entries(RENAMED_KEYS)) {
+          if (oldKey in i18n && !(key in i18n)) i18n[key] = i18n[oldKey];
+        }
         const ns = this.namespace || "_system";
 
         const namespace = { ...(this.stores.internationalization.get(ns) as Record<string, unknown>) };

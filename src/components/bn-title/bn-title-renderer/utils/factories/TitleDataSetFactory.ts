@@ -23,7 +23,7 @@ export class TitleDataSetFactory implements Formatter {
       for (let i = 0; i < amountOfMeasures; i++) {
         let separator: string | undefined = "";
         if (i > 0) {
-          separator = i18n.get("SEPERATOR_WS");
+          separator = i18n.get("SEPARATOR_WS");
         }
         if (amountOfMeasures > 1 && i === amountOfMeasures - 1) {
           separator = i18n.get("CONNECTOR_WS");
