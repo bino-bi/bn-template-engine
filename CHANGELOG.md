@@ -38,6 +38,21 @@ Without a `<bn-ruleset>` nothing changes. A report that already sets `name` or `
 <bn-ruleset>{ "scenarios": { "pl": { "name": "Budget", "colorIndex": 30 } } }</bn-ruleset>
 ```
 
+#### JSON Schemas for the JSON attributes and element contents
+
+The npm package now has a JSON Schema (draft-07) for each of these documents, in `dist/schemas/`:
+
+| File | Describes |
+|------|-----------|
+| `theme.schema.json` | content of `<bn-component-style>` |
+| `ruleset.schema.json` | content of `<bn-ruleset>` |
+| `i18n.schema.json` | content of `<bn-internationalization>` |
+| `thereof.schema.json`, `partof.schema.json` | `thereof` and `partof` of `bn-table` |
+| `stack.schema.json` | `stack` of `bn-chart-time` and `bn-chart-structure` |
+| `axis.schema.json` | `x` and `y` of `bn-chart-scatter` and `bn-chart-bubble` |
+
+Import one with `@bino-bi/bn-template-engine/schemas/theme.schema.json`. The schemas are generated from the types the components use, and a test checks that the built-in style, rule set and texts are valid against them.
+
 ### ⚠ BREAKING CHANGES
 
 #### `unit-scaling` / `percentage-scaling`: new em-based semantics
