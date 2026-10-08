@@ -87,8 +87,6 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
   │   │   ├── <bn-chart-scatter>   XY scattergram (IBCS C09)
   │   │   └── <bn-chart-bubble>    Bubble portfolio chart (IBCS C10)
   │   └── <bn-footer>        Footer
-  │
-  └── <bn-template>          Multi-page wrapper (optional)
 ```
 
 ## Components
@@ -121,7 +119,6 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 | [`<bn-grid>`](src/components/bn-grid/readme.md) | CSS Grid layout with headers and borders |
 | [`<bn-layout-page>`](src/components/bn-layout-page/readme.md) | High-level page layout with card arrangements |
 | [`<bn-layout-card>`](src/components/bn-layout-card/readme.md) | Card layout with grid patterns |
-| [`<bn-template>`](src/components/bn-template/readme.md) | Multi-page template container |
 
 ### Content
 

@@ -757,7 +757,7 @@ export class ChartScatter {
   private readonly translateForInner = (key: string, data?: object): string => this.t(key, data);
 
   /**
-   * Dataset field map for the editor-companion: hierarchy fields plus the
+   * Dataset field map: hierarchy fields plus the
    * 16 scenario slots; descriptions of currently-mapped slots reflect the
    * live mapping (e.g. `ac1 → "x: Margin"`).
    */

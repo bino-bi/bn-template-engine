@@ -9,7 +9,6 @@ import { sanitizeHtml } from "../../utils/sanitizeHtml";
 @Component({
   tag: "bn-message",
   styleUrl: "bn-message.scss",
-  assetsDirs: ["assets"],
   shadow: true,
 })
 export class Footer {

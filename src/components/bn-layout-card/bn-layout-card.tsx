@@ -1,4 +1,4 @@
-import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
+import { Component, h, Element, Prop, Fragment } from "@stencil/core";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -345,12 +345,6 @@ export class LayoutCard {
 
   private getTemplatePattern(name: string): string {
     return templateAreas(name, this.cardCustomTemplate);
-  }
-
-  @Method()
-  async getNumberOfSlot(name: string) {
-    const template = this.getTemplatePattern(name);
-    return this.extractSlotNames(template).length;
   }
 
   componentWillRender() {

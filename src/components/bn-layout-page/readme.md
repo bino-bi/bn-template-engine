@@ -105,25 +105,6 @@ Title configuration is passed through to the inner [`<bn-title>`](../bn-title/re
 | `titleVariances`          | `title-variances`            | List of variances calculated from the given scenarios. The scenarios used in the variances must also be defined in the `titleScenarios` property. The variance is defined as (ScenarioA − ScenarioB). The pos/neg/neu postfix defines which direction is considered "good". <br /><br /> If empty, variance indicators are hidden. <br /><br /> pattern:<br /> ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```                                                                                                                                | `string`                                                                                                                                                   | `undefined`     |
 
 
-## Methods
-
-### `getNumberOfSlot(name: string) => Promise<number>`
-
-
-
-#### Parameters
-
-| Name   | Type     | Description |
-| ------ | -------- | ----------- |
-| `name` | `string` |             |
-
-#### Returns
-
-Type: `Promise<number>`
-
-
-
-
 ## Dependencies
 
 ### Depends on

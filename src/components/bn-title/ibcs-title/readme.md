@@ -21,41 +21,6 @@
 | `timeperiod`        | --                    |                                                               | `TimePeriod`                    | `undefined`                                                   |
 
 
-## Methods
-
-### `setBusinessUnit(businessUnit: string) => Promise<void>`
-
-
-
-#### Parameters
-
-| Name           | Type     | Description |
-| -------------- | -------- | ----------- |
-| `businessUnit` | `string` |             |
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-### `setProps(data: Partial<IbcsTitle>) => Promise<void>`
-
-
-
-#### Parameters
-
-| Name   | Type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Description |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `data` | `{ businessUnit?: string; setBusinessUnit?: (businessUnit: string) => Promise<void>; setProps?: (data: Partial<IbcsTitle>) => Promise<void>; scenarios?: string[]; measures?: MeasureEntry[]; timeperiod?: TimePeriod; intervalSpanLimit?: number; order?: Order; i18n?: Map<string, string>; i18nMode?: I18nMode; locale?: string; ruleSetConfig?: RuleSetConfig; render?: () => any; componentWillLoad?: () => void; componentWillUpdate?: () => void; componentWillRender?: () => void; }` |             |
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-
 ## Dependencies
 
 ### Used by

@@ -234,8 +234,6 @@ const en = flattenObject({
   },
 });
 
-const BN_INTERNATIONALIZATION_KEYS = Object.keys(de || {});
-
 export const SYSTEM_I18N_DEFAULTS: Record<string, unknown> = { _system: { de, en } };
 
-export { globalLabelKeys, BN_INTERNATIONALIZATION_KEYS };
+export { globalLabelKeys };

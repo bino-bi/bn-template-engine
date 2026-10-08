@@ -190,6 +190,14 @@ A card with `title-scenarios="inherited-page"` (or another inherited title field
 
 The JS property `normalize` replaced `Node.normalize()` on the element, so a TypeScript project that checks library types could not compile against the package. The property is now `normalizeMode`. The HTML attribute stays `normalize`, markup does not change.
 
+#### Removed: elements, props and layouts that nothing used
+
+- `<bn-template>`: it only rendered its slot. Remove the tag, its children stay where they are.
+- `<editor-companion>`: no page used it.
+- `bn-footer`: the `code` attribute and the sample barcode images it could show.
+- `bn-layout-page` / `bn-layout-card`: the layouts `gold3` and `gold4`. They were never documented. A page that names one now gets a single cell, like any unknown layout name.
+- `bn-layout-page` / `bn-layout-card`: the method `getNumberOfSlot()`.
+
 ### Fixed
 
 - `bn-chart-time`: a chart without rows threw in its auto-fit, because the average overlay (on by default) reads the first and the last period. The chart showed "No Data" anyway, the exception was only logged.

@@ -1,4 +1,4 @@
-import { Component, h, Host, Element, Prop, Method, Fragment } from "@stencil/core";
+import { Component, h, Host, Element, Prop, Fragment } from "@stencil/core";
 import { sheetGeometry } from "../bn-page/pageFormats";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -366,12 +366,6 @@ export class LayoutPage {
   private getGridTemplateColumns(name: string): string {
     // a layout without a template, such as "full", is one column that may grow with its content
     return isTemplateLayout(name) ? templateColumns(this.getTemplateAreas(name)) : "1fr";
-  }
-
-  @Method()
-  async getNumberOfSlot(name: string) {
-    const template = this.getTemplateAreas(name);
-    return this.extractSlotNames(template).length;
   }
 
   private mirror(attribute: string, value: string | null | undefined): void {

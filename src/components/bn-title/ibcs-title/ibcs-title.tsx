@@ -1,4 +1,4 @@
-import { Component, h, Method, Prop } from "@stencil/core";
+import { Component, h, Prop } from "@stencil/core";
 
 import { Title } from "./utils/Title";
 import { TitleConifgAdapter, TitleConfig } from "./utils/model/TitleConfig";
@@ -24,21 +24,6 @@ export class IbcsTitle {
 
   @Prop({ mutable: true, reflect: true }) // Wichtig mutable muss true sein, reflect passt den dom an und updatet die poprs im html
   businessUnit: string = "";
-
-  // so
-  @Method()
-  async setBusinessUnit(businessUnit: string) {
-    this.businessUnit = businessUnit;
-  }
-
-  // oder so
-  @Method()
-  async setProps(data: Partial<IbcsTitle>) {
-    Object.keys(data).forEach((key) => {
-      //@ts-ignore
-      this[key] = data[key];
-    });
-  }
 
   @Prop()
   scenarios: string[] = [];
