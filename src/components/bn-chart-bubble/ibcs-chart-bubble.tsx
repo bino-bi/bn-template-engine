@@ -88,7 +88,7 @@ export class IbcsChartBubble {
   @Prop() errors?: ErrorDispatcher;
 
   /** Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). */
-  @Prop() translate?: (key: string, data?: object) => string;
+  @Prop() translator?: (key: string, data?: object) => string;
 
   private chart: BubbleChart | undefined;
   private svgMarkup: string = "";
@@ -158,7 +158,7 @@ export class IbcsChartBubble {
     for (const code of BUBBLE_DATA_WARNING_CODES) {
       const id = `WARN_${code}`;
       if (present.has(code)) {
-        const message = this.translate !== undefined ? this.translate(`.${code}`, present.get(code)) : code;
+        const message = this.translator !== undefined ? this.translator(`.${code}`, present.get(code)) : code;
         this.errors.addOrReplace({ id, type: "warning", message });
       } else {
         this.errors.remove(id);

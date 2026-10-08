@@ -220,7 +220,7 @@ export namespace Components {
       * Target normalization: `target` (default - rows share an aligned target position, the IBCS-comparable form) or `none` (classic per-row scales with tick strips).
       * @default "target"
      */
-    "normalize": string;
+    "normalizeMode": string;
     /**
       * Sort key(s) of the KPI rows: hierarchy columns or scenario slots (e.g. `"ac1"`), comma-separated for multi-level sorting. Empty or `"auto"` uses the dataset's suggested order.
       * @default ""
@@ -1452,7 +1452,7 @@ export namespace Components {
     /**
       * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
      */
-    "translate"?: (key: string, data?: object) => string;
+    "translator"?: (key: string, data?: object) => string;
     "x": AxisConfig;
     "y": AxisConfig;
   }
@@ -1500,7 +1500,7 @@ export namespace Components {
     /**
       * @default "target"
      */
-    "normalize": "target" | "none";
+    "normalizeMode": "target" | "none";
     "order": Order;
     /**
       * @default []
@@ -1524,7 +1524,7 @@ export namespace Components {
     /**
       * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
      */
-    "translate"?: (key: string, data?: object) => string;
+    "translator"?: (key: string, data?: object) => string;
   }
   /**
    * Inner presentational element of `bn-chart-scatter`: owns the
@@ -1594,7 +1594,7 @@ export namespace Components {
     /**
       * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
      */
-    "translate"?: (key: string, data?: object) => string;
+    "translator"?: (key: string, data?: object) => string;
     "x": AxisConfig;
     "y": AxisConfig;
   }
@@ -2547,7 +2547,7 @@ declare namespace LocalJSX {
       * Target normalization: `target` (default - rows share an aligned target position, the IBCS-comparable form) or `none` (classic per-row scales with tick strips).
       * @default "target"
      */
-    "normalize"?: string;
+    "normalizeMode"?: string;
     /**
       * Sort key(s) of the KPI rows: hierarchy columns or scenario slots (e.g. `"ac1"`), comma-separated for multi-level sorting. Empty or `"auto"` uses the dataset's suggested order.
       * @default ""
@@ -3739,7 +3739,7 @@ declare namespace LocalJSX {
     /**
       * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
      */
-    "translate"?: (key: string, data?: object) => string;
+    "translator"?: (key: string, data?: object) => string;
     "x": AxisConfig;
     "y": AxisConfig;
   }
@@ -3787,7 +3787,7 @@ declare namespace LocalJSX {
     /**
       * @default "target"
      */
-    "normalize"?: "target" | "none";
+    "normalizeMode"?: "target" | "none";
     "order": Order;
     /**
       * @default []
@@ -3811,7 +3811,7 @@ declare namespace LocalJSX {
     /**
       * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
      */
-    "translate"?: (key: string, data?: object) => string;
+    "translator"?: (key: string, data?: object) => string;
   }
   /**
    * Inner presentational element of `bn-chart-scatter`: owns the
@@ -3881,7 +3881,7 @@ declare namespace LocalJSX {
     /**
       * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
      */
-    "translate"?: (key: string, data?: object) => string;
+    "translator"?: (key: string, data?: object) => string;
     "x": AxisConfig;
     "y": AxisConfig;
   }
@@ -4311,7 +4311,7 @@ declare namespace LocalJSX {
     "actual": string;
     "target": string;
     "ranges": string;
-    "normalize": string;
+    "normalizeMode": string;
     "variances": string;
     "level": string;
     "order": string;
@@ -4593,7 +4593,7 @@ declare namespace LocalJSX {
     "tableName": string;
     "dataVersion": number;
     "chartTitle": string;
-    "normalize": "target" | "none";
+    "normalizeMode": "target" | "none";
     "showVariances": boolean;
     "level": AggregationLevel;
     "limit": number;

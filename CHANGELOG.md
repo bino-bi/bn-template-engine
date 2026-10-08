@@ -186,6 +186,10 @@ A `custom-template` without a quoted row threw in `render()` on the page. It is 
 
 A card with `title-scenarios="inherited-page"` (or another inherited title field, or `ruleset`) replaced the keyword in its own attribute with the value it had read at connect. It stopped following the page, and a component inside the card read the stale value. The card keeps the attribute as the author wrote it now. A component inside it that uses `inherited-closest` still gets the page value: such a card stands for the page, the cards between the two are not asked. When the page has no value, the card counts as not setting one, as before.
 
+#### `bn-chart-bullet`: the `normalize` property is `normalizeMode`
+
+The JS property `normalize` replaced `Node.normalize()` on the element, so a TypeScript project that checks library types could not compile against the package. The property is now `normalizeMode`. The HTML attribute stays `normalize`, markup does not change.
+
 ### Fixed
 
 - `bn-chart-time`: a chart without rows threw in its auto-fit, because the average overlay (on by default) reads the first and the last period. The chart showed "No Data" anyway, the exception was only logged.

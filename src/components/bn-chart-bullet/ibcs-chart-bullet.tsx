@@ -55,7 +55,7 @@ export class IbcsChartBullet {
   @Prop() actual!: BulletMeasureConfig;
   @Prop() target: BulletMeasureConfig | null = null;
   @Prop() ranges: number[] = [];
-  @Prop() normalize: "target" | "none" = "target";
+  @Prop() normalizeMode: "target" | "none" = "target";
   @Prop() showVariances: boolean = true;
 
   @Prop() level: AggregationLevel = AggregationLevel.CATEGORY;
@@ -73,7 +73,7 @@ export class IbcsChartBullet {
   @Prop() errors?: ErrorDispatcher;
 
   /** Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). */
-  @Prop() translate?: (key: string, data?: object) => string;
+  @Prop() translator?: (key: string, data?: object) => string;
 
   private chart: BulletChart | undefined;
   private svgMarkup: string = "";
@@ -109,7 +109,7 @@ export class IbcsChartBullet {
         actual: this.actual,
         target: this.target,
         ranges: this.ranges,
-        normalize: this.normalize,
+        normalize: this.normalizeMode,
         showVariances: this.showVariances,
         level: this.level,
         order: this.order,
@@ -139,7 +139,7 @@ export class IbcsChartBullet {
     for (const code of BULLET_DATA_WARNING_CODES) {
       const id = `WARN_${code}`;
       if (present.has(code)) {
-        const message = this.translate !== undefined ? this.translate(`.${code}`, present.get(code)) : code;
+        const message = this.translator !== undefined ? this.translator(`.${code}`, present.get(code)) : code;
         this.errors.addOrReplace({ id, type: "warning", message });
       } else {
         this.errors.remove(id);

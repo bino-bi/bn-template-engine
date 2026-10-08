@@ -81,7 +81,7 @@ arrive validated and parsed from the facade.
 | `seriesLevel`         | `series-level`    |                                                                                           | `"category" \| "rowGroup"`                  | `null`       |
 | `styles`              | --                |                                                                                           | `XYChartStyle`                              | `undefined`  |
 | `tableName`           | `table-name`      | Name of the dataset (table or view in the scoped alasql database).                        | `string`                                    | `""`         |
-| `translate`           | --                | Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). | `(key: string, data?: object) => string`    | `undefined`  |
+| `translator`          | --                | Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). | `(key: string, data?: object) => string`    | `undefined`  |
 | `x` _(required)_      | --                |                                                                                           | `AxisConfig`                                | `undefined`  |
 | `y` _(required)_      | --                |                                                                                           | `AxisConfig`                                | `undefined`  |
 

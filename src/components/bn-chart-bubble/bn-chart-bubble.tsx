@@ -988,7 +988,7 @@ export class ChartBubble {
         containerWidth={fullParentWidth}
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
-        translate={this.translateForInner}
+        translator={this.translateForInner}
       ></ibcs-chart-bubble>
     );
   }

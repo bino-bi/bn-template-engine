@@ -168,8 +168,8 @@ export class ChartBullet {
    * position, the IBCS-comparable form) or `none` (classic per-row scales
    * with tick strips).
    */
-  @Prop() normalize: string = "target";
-  @Watch("normalize")
+  @Prop({ attribute: "normalize" }) normalizeMode: string = "target";
+  @Watch("normalizeMode")
   validateNormalize(newValue: string) {
     this.validateEnum("normalize", "ERR_normalize", newValue, ["target", "none"], "target");
   }
@@ -327,7 +327,7 @@ export class ChartBullet {
     this.validateActual(this.actual);
     this.validateTarget(this.target);
     this.validateRanges(this.ranges);
-    this.validateNormalize(this.normalize);
+    this.validateNormalize(this.normalizeMode);
     this.validateVariances(this.variances);
     this.validateLevel(this.level);
     this.validateOrder(this.order);
@@ -603,7 +603,7 @@ export class ChartBullet {
   }
 
   private prepareNormalize(): "target" | "none" {
-    return this.normalize?.trim().toLowerCase() === "none" ? "none" : "target";
+    return this.normalizeMode?.trim().toLowerCase() === "none" ? "none" : "target";
   }
 
   private prepareShowVariances(): boolean {
@@ -844,7 +844,7 @@ export class ChartBullet {
         actual={actual}
         target={target}
         ranges={ranges}
-        normalize={normalize}
+        normalizeMode={normalize}
         showVariances={this.prepareShowVariances()}
         level={this.prepareLevel()}
         order={this.prepareOrder()}
@@ -856,7 +856,7 @@ export class ChartBullet {
         containerWidth={getParentDimensions(this.element).width}
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
-        translate={this.translateForInner}
+        translator={this.translateForInner}
       ></ibcs-chart-bullet>
     );
   }

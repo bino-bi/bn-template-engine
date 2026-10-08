@@ -849,7 +849,7 @@ export class ChartScatter {
         containerWidth={fullParentWidth}
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
-        translate={this.translateForInner}
+        translator={this.translateForInner}
       ></ibcs-chart-scatter>
     );
   }
