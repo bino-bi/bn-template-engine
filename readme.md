@@ -27,7 +27,7 @@ See the [Installation Guide](doc/installation.md) for framework integration, ES 
 
 <bn-context locale="en">
 
-  <bn-datasource name="revenue">
+  <bn-datasource name="revenue_raw">
     [
       { "category": "Software", "ac1": 150, "pl1": 140 },
       { "category": "Services", "ac1": 90, "pl1": 100 },
@@ -35,8 +35,8 @@ See the [Installation Guide](doc/installation.md) for framework integration, ES 
     ]
   </bn-datasource>
 
-  <bn-dataset name="revenue" datasources="revenue">
-    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM revenue GROUP BY category
+  <bn-dataset name="revenue" datasources="revenue_raw">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM revenue_raw GROUP BY category
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
@@ -46,7 +46,7 @@ See the [Installation Guide](doc/installation.md) for framework integration, ES 
       measures='[{"name":"Revenue","unit":"mEUR"}]'>
     </bn-title>
     <bn-body>
-      <bn-table scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
+      <bn-table datasets="revenue" scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
     </bn-body>
   </bn-page>
 

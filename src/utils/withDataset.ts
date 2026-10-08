@@ -77,7 +77,12 @@ const withDataset = (
 
   // the prop, not the attribute: a property set before the first render is not reflected yet
   const bind = () => {
+    const previous = bound;
     bound = component.datasets || "";
+    if (previous !== "" && previous !== bound) {
+      // the names changed: start empty, or the component keeps the data of a name that is gone
+      onUpdate("", []);
+    }
     [datasources, datasets] = partition((s) => s.startsWith("$"), bound.split(","));
     warnIfDatasource(component, datasources);
     rebind();
@@ -127,10 +132,6 @@ const withDataset = (
       // Stencil writes a reflected attribute again with the same value in the first render
       if (mutation.attributeName === "datasets" && (component.datasets || "") !== bound) {
         bind();
-        if (bound === "") {
-          // nothing is bound any more: without this the component would keep its last data
-          onUpdate("", []);
-        }
       }
     });
   });

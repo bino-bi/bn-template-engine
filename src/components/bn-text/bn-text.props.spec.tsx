@@ -63,6 +63,7 @@ const render = async (value: string) => {
 describe("bn-text: a property write works like the attribute", () => {
   beforeAll(() => {
     getStores(null).db.db.tables["kpi"] = { data: [{ ac1: 12.5 }] };
+    getStores(null).db.db.tables["plan"] = { data: [{ ac1: 99 }] };
   });
 
   it("datasets", async () => {
@@ -85,6 +86,16 @@ describe("bn-text: a property write works like the attribute", () => {
     await page.waitForChanges();
 
     expect(text()).toBe("[]");
+  });
+
+  it("drops the data of a name that is taken out of datasets", async () => {
+    const { text, set } = await render("[${data.kpi[0].ac1}] [${data.plan[0].ac1}]");
+    await set("datasets", "datasets", "kpi");
+    expect(text()).toBe("[12.5] []");
+
+    await set("datasets", "datasets", "plan");
+
+    expect(text()).toBe("[] [99]");
   });
 
   it("does not bind again when the attribute is written with the same value", async () => {

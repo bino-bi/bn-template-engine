@@ -8,12 +8,12 @@ Root wrapper element for all bn-template-engine components. Every `<bn-*>` compo
 
 ```html
 <bn-context locale="en">
-  <bn-datasource name="sales">...</bn-datasource>
-  <bn-dataset name="sales" datasources="sales">...</bn-dataset>
+  <bn-datasource name="raw">...</bn-datasource>
+  <bn-dataset name="sales" datasources="raw">...</bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
     <bn-body>
-      <bn-table scenarios="ac1,pl1"></bn-table>
+      <bn-table datasets="sales" scenarios="ac1,pl1"></bn-table>
     </bn-body>
   </bn-page>
 </bn-context>

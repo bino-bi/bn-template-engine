@@ -88,7 +88,7 @@ See the [Scaling guide](../../../doc/scaling.md) for the full model.
 
 ```html
 <bn-context locale="en">
-  <bn-datasource name="regions">
+  <bn-datasource name="regions_raw">
     [
       {"category":"North","ac1":250,"pl1":230},
       {"category":"South","ac1":180,"pl1":200},
@@ -97,13 +97,14 @@ See the [Scaling guide](../../../doc/scaling.md) for the full model.
     ]
   </bn-datasource>
 
-  <bn-dataset name="regions" datasources="regions">
-    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM regions GROUP BY category
+  <bn-dataset name="regions" datasources="regions_raw">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM regions_raw GROUP BY category
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
     <bn-body>
       <bn-chart-structure
+        datasets="regions"
         scenarios="ac1,pl1"
         variances="dac1_pl1_pos"
         order="ac1"

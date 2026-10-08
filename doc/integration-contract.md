@@ -101,7 +101,7 @@ The name is the attribute name in camelCase when the item is about one attribute
 
 | Id | On | Meaning |
 |----|----|---------|
-| `WARN_overflow` | table, charts, `bn-text`, `bn-tree` | The content is larger than its cell. On `bn-table`, `bn-chart-time` and `bn-chart-structure` this id means that the engine chose the size, a fixed size gives `ERR_overflow` there. The other components use this id in both cases. |
+| `WARN_overflow` | `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-text`, `bn-tree` | The content is larger than its cell. On the table, the time chart and the structure chart this id means that the engine chose the size, a fixed size gives `ERR_overflow` there. The other four use this id in both cases. |
 | `WARN_datasets` | table, charts, `bn-text` | `datasets` names a datasource (`$name`) and not a dataset. |
 | `WARN_inherited_<prop>` | `bn-table`, `bn-chart-time`, `bn-chart-structure` | The keyword `inherited-closest` or `inherited-page` found no value. `<prop>` is `scenarios` or `variances`, on the table and the structure chart also `order` or `orderDirection`. |
 | `WARN_value`, `WARN_value_path` | `bn-text` | `value` is empty, or a placeholder in it does not resolve. |

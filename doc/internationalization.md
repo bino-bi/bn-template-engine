@@ -156,20 +156,20 @@ The `<bn-text>` component can reference translations with the `t()` function. `b
     }
   </bn-internationalization>
 
-  <bn-datasource name="sales">
+  <bn-datasource name="sales_raw">
     [
       { "category": "North", "ac1": 120, "pl1": 100 },
       { "category": "South", "ac1": 80, "pl1": 90 }
     ]
   </bn-datasource>
 
-  <bn-dataset name="sales" datasources="sales">
-    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM sales GROUP BY category
+  <bn-dataset name="sales" datasources="sales_raw">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM sales_raw GROUP BY category
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
     <bn-body>
-      <bn-table scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
+      <bn-table datasets="sales" scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
     </bn-body>
   </bn-page>
 

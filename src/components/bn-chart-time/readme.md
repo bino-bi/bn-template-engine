@@ -126,7 +126,7 @@ See the [Scaling guide](../../../doc/scaling.md) for the full model.
 
 ```html
 <bn-context locale="en">
-  <bn-datasource name="monthly">
+  <bn-datasource name="monthly_raw">
     [
       {"date":"2024-01-01","category":"Sales","ac1":120,"pl1":110},
       {"date":"2024-02-01","category":"Sales","ac1":135,"pl1":115},
@@ -135,13 +135,14 @@ See the [Scaling guide](../../../doc/scaling.md) for the full model.
     ]
   </bn-datasource>
 
-  <bn-dataset name="monthly" datasources="monthly">
-    SELECT date, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM monthly GROUP BY date
+  <bn-dataset name="monthly" datasources="monthly_raw">
+    SELECT date, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM monthly_raw GROUP BY date
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
     <bn-body>
       <bn-chart-time
+        datasets="monthly"
         scenarios="ac1,pl1"
         variances="dac1_pl1_pos"
         date-interval="month"

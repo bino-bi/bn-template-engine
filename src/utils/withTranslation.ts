@@ -105,7 +105,9 @@ const withTranslation = (component: any) => {
     if (key.startsWith(".")) {
       key = getElement(component).localName + key;
     }
-    key = RENAMED_I18N_KEYS[key] ?? key;
+    if (Object.prototype.hasOwnProperty.call(RENAMED_I18N_KEYS, key)) {
+      key = RENAMED_I18N_KEYS[key];
+    }
 
     const locales = stores.internationalization.state;
     const locale = stores.context.state.locale;

@@ -179,7 +179,7 @@ Limit the number of rows per group, aggregating the rest into a "REST" row:
 
 ```html
 <bn-context locale="en">
-  <bn-datasource name="pnl">
+  <bn-datasource name="pnl_raw">
     [
       {"rowGroup":"Revenue","rowGroupIndex":1,"category":"Product Sales","operation":"+","ac1":150,"pl1":140},
       {"rowGroup":"Revenue","rowGroupIndex":1,"category":"Services","operation":"+","ac1":90,"pl1":95},
@@ -188,10 +188,10 @@ Limit the number of rows per group, aggregating the rest into a "REST" row:
     ]
   </bn-datasource>
 
-  <bn-dataset name="pnl" datasources="pnl">
+  <bn-dataset name="pnl" datasources="pnl_raw">
     SELECT rowGroup, rowGroupIndex, category, operation,
            SUM(ac1) as ac1, SUM(pl1) as pl1
-    FROM pnl GROUP BY rowGroup, rowGroupIndex, category, operation
+    FROM pnl_raw GROUP BY rowGroup, rowGroupIndex, category, operation
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
@@ -199,6 +199,7 @@ Limit the number of rows per group, aggregating the rest into a "REST" row:
               measures='[{"name":"P&amp;L","unit":"kEUR"}]'></bn-title>
     <bn-body>
       <bn-table
+        datasets="pnl"
         scenarios="ac1,pl1"
         variances="dac1_pl1_pos"
         grouped="true"

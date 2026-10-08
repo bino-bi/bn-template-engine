@@ -47,7 +47,6 @@ export class Image {
   @Prop({ reflect: true }) selectedStyle?: string;
 
   /**
-  /**
    *  Url of the image.
    *  <br />
    *  if not http it looks up the url in the components asset folder

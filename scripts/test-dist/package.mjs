@@ -102,6 +102,17 @@ test("a schema and package.json can be required", () => {
   assert.equal(name, NAME);
 });
 
+test("Node gets the CommonJS build of both entries, also for import", () => {
+  // dist/index.js and loader/index.js use ES module syntax in a package without "type": "module".
+  // Only a Node that detects the syntax can load them, so the "node" condition must win.
+  const resolved = run(`
+    console.log(JSON.stringify([import.meta.resolve("${NAME}"), import.meta.resolve("${NAME}/loader")]));
+  `);
+
+  assert.match(resolved[0], /\/dist\/index\.cjs\.js$/);
+  assert.match(resolved[1], /\/loader\/index\.cjs\.js$/);
+});
+
 test("a path that is not an entry point does not resolve", () => {
   // dist/components is in the package, but its elements do not render: it is not offered as an entry
   const resolved = run(`
