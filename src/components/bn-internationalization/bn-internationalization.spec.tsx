@@ -157,12 +157,12 @@ describe("i18n-namespace resolution", () => {
     expect(textContent(page)).toBe("Audited");
   });
 
-  it("still honors the deprecated namespace attribute", async () => {
+  it("does not read a plain namespace attribute", async () => {
     const page = await renderI18n(
       `<div>${EXTERNAL}<bn-text namespace="external" value="\${t('global.ac1')}"></bn-text></div>`,
     );
 
-    expect(textContent(page)).toBe("Audited");
+    expect(textContent(page)).toBe("AC");
   });
 
   it("inherits from the nearest ancestor carrying i18n-namespace", async () => {

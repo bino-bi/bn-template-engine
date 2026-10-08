@@ -1,4 +1,4 @@
-import { Component, Element, h, Host } from "@stencil/core";
+import { Component, Element, h, Host, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { Style } from "../../stores/componentStyles";
@@ -30,6 +30,12 @@ export class Body {
       "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
 
   render() {
     return (

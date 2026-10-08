@@ -95,6 +95,12 @@ export class ChartTree {
   private parentObserver: LayoutObserverHandle | null = null;
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    * JSON string defining connections between nodes.
    * Each edge specifies a source (from) and target (to) node ID,
    * with optional operator and styling.

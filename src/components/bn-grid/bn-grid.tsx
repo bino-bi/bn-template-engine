@@ -39,6 +39,12 @@ export class Grid {
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    * Title displayed at top-left of the grid.
    */
   @Prop({ attribute: "chart-title" }) chartTitle: string = "";

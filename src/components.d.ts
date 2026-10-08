@@ -71,8 +71,16 @@ export namespace Components {
     "name": string;
   }
   interface BnBody {
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
   }
   interface BnCard {
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
   }
   /**
    * SVG bubble chart following IBCS template C10.
@@ -101,6 +109,10 @@ export namespace Components {
      */
     "compareWith": string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * Small-multiple panels (IBCS 10E/10F/10G). JSON object: `{"level":"rowgroup"|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.
       * @default ""
      */
@@ -115,6 +127,10 @@ export namespace Components {
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.
       * @default ""
@@ -143,6 +159,10 @@ export namespace Components {
       * Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).
       * @default "auto"
@@ -275,6 +295,10 @@ export namespace Components {
      */
     "chartTitle": string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
       * @default ""
      */
@@ -284,6 +308,10 @@ export namespace Components {
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Value labels. JSON object: `{"show":"auto"|"none","decimals":1}`.
       * @default ""
@@ -327,6 +355,10 @@ export namespace Components {
       * Font-size auto-fit: `""`/`auto` shrink to the parent height (with/without a warning), `none` disables, a number applies a fixed factor.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Target measure - same shape as `actual`. Empty or `"auto"` auto-detects (`pl1` > `pp1` > `fc1`); without any target scenario the chart renders actual bars only.
       * @default ""
@@ -428,6 +460,10 @@ export namespace Components {
      */
     "chartTitle": string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * Small-multiple panels (IBCS 10E/10F/10G style). JSON object: `{"level":"rowgroup"|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.
       * @default ""
      */
@@ -442,6 +478,10 @@ export namespace Components {
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Hyperbolic iso-lines `x·y = k` (IBCS 09C/09D). JSON object: `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD", "highlight":{"from":3}}`. Requires a strictly positive plot domain.
       * @default ""
@@ -475,6 +515,10 @@ export namespace Components {
       * Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).
       * @default "auto"
@@ -578,6 +622,10 @@ export namespace Components {
      */
     "chartTitle": string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering.
       * @example filter="rowGroup = 'Revenue'"
       * @default ""
@@ -588,6 +636,10 @@ export namespace Components {
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Aggregation level that determines which hierarchy dimension each bar represents.  | Value              | Bars represent            | |--------------------|---------------------------| | `"rowGroup"`       | Row groups                | | `"rowGroupIndex"`  | Row groups (dataset order)| | `"category"`       | Categories                | | `"categoryIndex"`  | Categories (dataset order)| | `"subCategory"`    | Sub-categories            | | `"subCategoryIndex"` | Sub-categories (dataset order)| | `"auto"`           | Auto-detect from dataset metadata (no warning) | | not set / `""`     | Auto-detect with `AUTO_level` warning          |  Index variants preserve the original dataset order instead of sorting alphabetically. When `stack.by` is `"dimensions"`, the chart automatically stacks by the next-lower level (e.g. level `"rowGroup"` stacks by category).
       * @example level="category"
@@ -641,6 +693,10 @@ export namespace Components {
       * @example scenarios="ac1,pp1,pl1"
      */
     "scenarios": string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Whether to display category labels on the left side of the chart.  Values: `"true"` | `"false"`.
       * @default "true"
@@ -789,6 +845,10 @@ export namespace Components {
      */
     "chartTitle": string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * Axis Date Interval <br /><br /> values:<br /> ```year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> When set to ```auto```, dateInterval is detected from the dataset silently. When left blank, dateInterval is detected from the dataset with a warning.
      */
     "dateInterval": string;
@@ -802,6 +862,10 @@ export namespace Components {
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Max number of columns. Only used to choose the date interval when dateInterval is AUTO: the finest interval that gives fewer periods than this. The series is never cut.
       * @default 28
@@ -862,6 +926,10 @@ export namespace Components {
       * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
      */
     "scenarios": string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * @default "true"
      */
@@ -1046,6 +1114,10 @@ export namespace Components {
      */
     "i18nNamespace": string;
     "locale": string;
+    /**
+      * Orientation of the sheets the document is printed on: `landscape` or `portrait`. A `<bn-layout-page>` with the other orientation is turned onto the sheet. Without it no page is turned.
+     */
+    "renderOrientation"?: "landscape" | "portrait";
   }
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
@@ -1132,6 +1204,10 @@ export namespace Components {
      */
     "pageNumber": string | null;
     /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
       * Footer text. <br />If empty string (`''` or `null`) the footer row is omitted
      */
     "text": string;
@@ -1177,6 +1253,10 @@ export namespace Components {
      */
     "rowHeaders": string;
     /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
       * Whether to display divider lines between cells.
       * @default "true"
      */
@@ -1194,7 +1274,11 @@ export namespace Components {
   }
   interface BnImage {
     /**
-      * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
+      * /**   Name of the component style to use (the `name` of a   `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
+      * Url of the image. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
      */
     "source": string;
   }
@@ -1464,6 +1548,10 @@ export namespace Components {
      */
     "image": string;
     /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
       * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; any other element is removed with its content, and links keep only `http:`, `https:`, `mailto:` and relative URLs). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
      */
     "text": string;
@@ -1477,6 +1565,10 @@ export namespace Components {
       * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
      */
     "orientation": string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
   }
   interface BnRuleset {
     /**
@@ -1550,6 +1642,10 @@ export namespace Components {
      */
     "dataFormatDigitsPercent": number;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"category = 'Sales'"`).
       * @default ""
      */
@@ -1564,6 +1660,10 @@ export namespace Components {
       * @default "false"
      */
     "grouped": string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `-`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`.
       * @default "none"
@@ -1827,9 +1927,21 @@ export namespace Components {
    */
   interface BnText {
     /**
+      * Names of the datasets the template can read, separated by commas without spaces. Each one is available as `data.<name>`. A name that starts with `$` reads a `<bn-datasource>` directly.
+     */
+    "datasets"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
+    /**
       * Controls font-size scaling relative to the available parent space. Scaling considers both width and height - the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
       * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
@@ -1867,6 +1979,10 @@ export namespace Components {
      */
     "dateStart": string;
     /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
+    /**
       * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
      */
     "measures": string;
@@ -1888,6 +2004,10 @@ export namespace Components {
       * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
      */
     "scenarios": string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
      */
@@ -1970,6 +2090,10 @@ export namespace Components {
       * @default 20
      */
     "nodeSpacing": number;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Show operator labels between sibling nodes.
       * @default "true"
@@ -2363,8 +2487,16 @@ declare namespace LocalJSX {
     "name": string;
   }
   interface BnBody {
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
   }
   interface BnCard {
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
   }
   /**
    * SVG bubble chart following IBCS template C10.
@@ -2393,6 +2525,10 @@ declare namespace LocalJSX {
      */
     "compareWith"?: string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * Small-multiple panels (IBCS 10E/10F/10G). JSON object: `{"level":"rowgroup"|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.
       * @default ""
      */
@@ -2402,6 +2538,10 @@ declare namespace LocalJSX {
       * @default ""
      */
     "filter"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.
       * @default ""
@@ -2430,6 +2570,10 @@ declare namespace LocalJSX {
       * Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).
       * @default "auto"
@@ -2562,10 +2706,18 @@ declare namespace LocalJSX {
      */
     "chartTitle"?: string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).
       * @default ""
      */
     "filter"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Value labels. JSON object: `{"show":"auto"|"none","decimals":1}`.
       * @default ""
@@ -2609,6 +2761,10 @@ declare namespace LocalJSX {
       * Font-size auto-fit: `""`/`auto` shrink to the parent height (with/without a warning), `none` disables, a number applies a fixed factor.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Target measure - same shape as `actual`. Empty or `"auto"` auto-detects (`pl1` > `pp1` > `fc1`); without any target scenario the chart renders actual bars only.
       * @default ""
@@ -2710,6 +2866,10 @@ declare namespace LocalJSX {
      */
     "chartTitle"?: string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * Small-multiple panels (IBCS 10E/10F/10G style). JSON object: `{"level":"rowgroup"|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.
       * @default ""
      */
@@ -2719,6 +2879,10 @@ declare namespace LocalJSX {
       * @default ""
      */
     "filter"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Hyperbolic iso-lines `x·y = k` (IBCS 09C/09D). JSON object: `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD", "highlight":{"from":3}}`. Requires a strictly positive plot domain.
       * @default ""
@@ -2752,6 +2916,10 @@ declare namespace LocalJSX {
       * Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).
       * @default "auto"
@@ -2855,11 +3023,19 @@ declare namespace LocalJSX {
      */
     "chartTitle"?: string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering.
       * @example filter="rowGroup = 'Revenue'"
       * @default ""
      */
     "filter"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Aggregation level that determines which hierarchy dimension each bar represents.  | Value              | Bars represent            | |--------------------|---------------------------| | `"rowGroup"`       | Row groups                | | `"rowGroupIndex"`  | Row groups (dataset order)| | `"category"`       | Categories                | | `"categoryIndex"`  | Categories (dataset order)| | `"subCategory"`    | Sub-categories            | | `"subCategoryIndex"` | Sub-categories (dataset order)| | `"auto"`           | Auto-detect from dataset metadata (no warning) | | not set / `""`     | Auto-detect with `AUTO_level` warning          |  Index variants preserve the original dataset order instead of sorting alphabetically. When `stack.by` is `"dimensions"`, the chart automatically stacks by the next-lower level (e.g. level `"rowGroup"` stacks by category).
       * @example level="category"
@@ -2913,6 +3089,10 @@ declare namespace LocalJSX {
       * @example scenarios="ac1,pp1,pl1"
      */
     "scenarios": string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Whether to display category labels on the left side of the chart.  Values: `"true"` | `"false"`.
       * @default "true"
@@ -3061,6 +3241,10 @@ declare namespace LocalJSX {
      */
     "chartTitle"?: string;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * Axis Date Interval <br /><br /> values:<br /> ```year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> When set to ```auto```, dateInterval is detected from the dataset silently. When left blank, dateInterval is detected from the dataset with a warning.
      */
     "dateInterval": string;
@@ -3069,6 +3253,10 @@ declare namespace LocalJSX {
       * @default ""
      */
     "filter"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Max number of columns. Only used to choose the date interval when dateInterval is AUTO: the finest interval that gives fewer periods than this. The series is never cut.
       * @default 28
@@ -3129,6 +3317,10 @@ declare namespace LocalJSX {
       * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
      */
     "scenarios": string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * @default "true"
      */
@@ -3308,6 +3500,10 @@ declare namespace LocalJSX {
      */
     "i18nNamespace"?: string;
     "locale"?: string;
+    /**
+      * Orientation of the sheets the document is printed on: `landscape` or `portrait`. A `<bn-layout-page>` with the other orientation is turned onto the sheet. Without it no page is turned.
+     */
+    "renderOrientation"?: "landscape" | "portrait";
   }
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
@@ -3394,6 +3590,10 @@ declare namespace LocalJSX {
      */
     "pageNumber"?: string | null;
     /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
       * Footer text. <br />If empty string (`''` or `null`) the footer row is omitted
      */
     "text"?: string;
@@ -3434,6 +3634,10 @@ declare namespace LocalJSX {
      */
     "rowHeaders"?: string;
     /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
       * Whether to display divider lines between cells.
       * @default "true"
      */
@@ -3451,7 +3655,11 @@ declare namespace LocalJSX {
   }
   interface BnImage {
     /**
-      * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
+      * /**   Name of the component style to use (the `name` of a   `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
+      * Url of the image. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
      */
     "source"?: string;
   }
@@ -3721,6 +3929,10 @@ declare namespace LocalJSX {
      */
     "image"?: string;
     /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
       * Message text. Rendered as HTML, sanitized against XSS (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their attributes are kept; any other element is removed with its content, and links keep only `http:`, `https:`, `mailto:` and relative URLs). <br />Use `<br />` for an explicit line break. <br />If empty string (`''` or `null`) the message row is omitted
      */
     "text"?: string;
@@ -3734,6 +3946,10 @@ declare namespace LocalJSX {
       * Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format
      */
     "orientation"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
   }
   interface BnRuleset {
     /**
@@ -3807,6 +4023,10 @@ declare namespace LocalJSX {
      */
     "dataFormatDigitsPercent"?: number;
     /**
+      * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
+     */
+    "datasets"?: string;
+    /**
       * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"category = 'Sales'"`).
       * @default ""
      */
@@ -3816,6 +4036,10 @@ declare namespace LocalJSX {
       * @default "false"
      */
     "grouped"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
     /**
       * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `-`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`.
       * @default "none"
@@ -4075,9 +4299,21 @@ declare namespace LocalJSX {
    */
   interface BnText {
     /**
+      * Names of the datasets the template can read, separated by commas without spaces. Each one is available as `data.<name>`. A name that starts with `$` reads a `<bn-datasource>` directly.
+     */
+    "datasets"?: string;
+    /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
+    /**
       * Controls font-size scaling relative to the available parent space. Scaling considers both width and height - the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
      */
     "scale"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
       * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
@@ -4115,6 +4351,10 @@ declare namespace LocalJSX {
      */
     "dateStart"?: string;
     /**
+      * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
+     */
+    "i18nNamespace"?: string;
+    /**
       * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
      */
     "measures"?: string;
@@ -4136,6 +4376,10 @@ declare namespace LocalJSX {
       * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
      */
     "scenarios"?: string;
+    /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
     /**
       * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
      */
@@ -4214,6 +4458,10 @@ declare namespace LocalJSX {
      */
     "nodeSpacing"?: number;
     /**
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
+     */
+    "selectedStyle"?: string;
+    /**
       * Show operator labels between sibling nodes.
       * @default "true"
      */
@@ -4223,7 +4471,16 @@ declare namespace LocalJSX {
   interface BnAssetAttributes {
     "name": string;
   }
+  interface BnBodyAttributes {
+    "selectedStyle": string;
+  }
+  interface BnCardAttributes {
+    "selectedStyle": string;
+  }
   interface BnChartBubbleAttributes {
+    "datasets": string;
+    "selectedStyle": string;
+    "i18nNamespace": string;
     "ruleset": string;
     "chartTitle": string;
     "filter": string;
@@ -4255,6 +4512,9 @@ declare namespace LocalJSX {
     "containerWidth": number;
   }
   interface BnChartBulletAttributes {
+    "datasets": string;
+    "selectedStyle": string;
+    "i18nNamespace": string;
     "ruleset": string;
     "chartTitle": string;
     "filter": string;
@@ -4282,6 +4542,9 @@ declare namespace LocalJSX {
     "containerWidth": number;
   }
   interface BnChartScatterAttributes {
+    "datasets": string;
+    "selectedStyle": string;
+    "i18nNamespace": string;
     "ruleset": string;
     "chartTitle": string;
     "filter": string;
@@ -4309,6 +4572,9 @@ declare namespace LocalJSX {
     "containerWidth": number;
   }
   interface BnChartStructureAttributes {
+    "datasets": string;
+    "selectedStyle": string;
+    "i18nNamespace": string;
     "chartTitle": string;
     "ruleset": string;
     "filter": string;
@@ -4342,6 +4608,9 @@ declare namespace LocalJSX {
     "showMeasureScale": boolean;
   }
   interface BnChartTimeAttributes {
+    "datasets": string;
+    "selectedStyle": string;
+    "i18nNamespace": string;
     "ruleset": string;
     "chartTitle": string;
     "filter": string;
@@ -4399,6 +4668,7 @@ declare namespace LocalJSX {
   interface BnContextAttributes {
     "locale": string;
     "i18nNamespace": string;
+    "renderOrientation": "landscape" | "portrait";
   }
   interface BnDatasetAttributes {
     "name": string;
@@ -4415,11 +4685,13 @@ declare namespace LocalJSX {
     "src": string;
   }
   interface BnFooterAttributes {
+    "selectedStyle": string;
     "pageNumber": string | null;
     "text": string;
     "displayPageNumber": boolean;
   }
   interface BnGridAttributes {
+    "selectedStyle": string;
     "chartTitle": string;
     "rowHeaders": string;
     "columnHeaders": string;
@@ -4431,6 +4703,7 @@ declare namespace LocalJSX {
     "cellGap": string;
   }
   interface BnImageAttributes {
+    "selectedStyle": string;
     "source": string;
   }
   interface BnInternationalizationAttributes {
@@ -4510,10 +4783,12 @@ declare namespace LocalJSX {
     "pageFitToContent": boolean;
   }
   interface BnMessageAttributes {
+    "selectedStyle": string;
     "text": string;
     "image": string;
   }
   interface BnPageAttributes {
+    "selectedStyle": string;
     "format": string;
     "orientation": string;
   }
@@ -4525,6 +4800,8 @@ declare namespace LocalJSX {
     "value": string;
   }
   interface BnTableAttributes {
+    "datasets": string;
+    "i18nNamespace": string;
     "scale": string;
     "ruleset": string;
     "selectedStyle": string;
@@ -4580,10 +4857,15 @@ declare namespace LocalJSX {
     "scaleFactor": number;
   }
   interface BnTextAttributes {
+    "datasets": string;
+    "selectedStyle": string;
+    "i18nNamespace": string;
     "value": string;
     "scale": string;
   }
   interface BnTitleAttributes {
+    "selectedStyle": string;
+    "i18nNamespace": string;
     "ruleset": string;
     "businessUnit": string;
     "scenarios": string;
@@ -4603,6 +4885,7 @@ declare namespace LocalJSX {
     "locale": string;
   }
   interface BnTreeAttributes {
+    "selectedStyle": string;
     "edges": string;
     "direction": LayoutDirection;
     "levelSpacing": number;
@@ -4614,8 +4897,8 @@ declare namespace LocalJSX {
 
   interface IntrinsicElements {
     "bn-asset": Omit<BnAsset, keyof BnAssetAttributes> & { [K in keyof BnAsset & keyof BnAssetAttributes]?: BnAsset[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `attr:${K}`]?: BnAssetAttributes[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `prop:${K}`]?: BnAsset[K] } & OneOf<"name", BnAsset["name"], BnAssetAttributes["name"]>;
-    "bn-body": BnBody;
-    "bn-card": BnCard;
+    "bn-body": Omit<BnBody, keyof BnBodyAttributes> & { [K in keyof BnBody & keyof BnBodyAttributes]?: BnBody[K] } & { [K in keyof BnBody & keyof BnBodyAttributes as `attr:${K}`]?: BnBodyAttributes[K] } & { [K in keyof BnBody & keyof BnBodyAttributes as `prop:${K}`]?: BnBody[K] };
+    "bn-card": Omit<BnCard, keyof BnCardAttributes> & { [K in keyof BnCard & keyof BnCardAttributes]?: BnCard[K] } & { [K in keyof BnCard & keyof BnCardAttributes as `attr:${K}`]?: BnCardAttributes[K] } & { [K in keyof BnCard & keyof BnCardAttributes as `prop:${K}`]?: BnCard[K] };
     "bn-chart-bubble": Omit<BnChartBubble, keyof BnChartBubbleAttributes> & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes]?: BnChartBubble[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `attr:${K}`]?: BnChartBubbleAttributes[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `prop:${K}`]?: BnChartBubble[K] } & OneOf<"x", BnChartBubble["x"], BnChartBubbleAttributes["x"]> & OneOf<"y", BnChartBubble["y"], BnChartBubbleAttributes["y"]> & OneOf<"size", BnChartBubble["size"], BnChartBubbleAttributes["size"]>;
     "bn-chart-bubble-renderer": Omit<BnChartBubbleRenderer, keyof BnChartBubbleRendererAttributes> & { [K in keyof BnChartBubbleRenderer & keyof BnChartBubbleRendererAttributes]?: BnChartBubbleRenderer[K] } & { [K in keyof BnChartBubbleRenderer & keyof BnChartBubbleRendererAttributes as `attr:${K}`]?: BnChartBubbleRendererAttributes[K] } & { [K in keyof BnChartBubbleRenderer & keyof BnChartBubbleRendererAttributes as `prop:${K}`]?: BnChartBubbleRenderer[K] };
     "bn-chart-bullet": Omit<BnChartBullet, keyof BnChartBulletAttributes> & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes]?: BnChartBullet[K] } & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes as `attr:${K}`]?: BnChartBulletAttributes[K] } & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes as `prop:${K}`]?: BnChartBullet[K] };

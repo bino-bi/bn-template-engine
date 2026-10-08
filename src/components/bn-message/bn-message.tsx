@@ -40,6 +40,12 @@ export class Footer {
   }
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    *  Message text. Rendered as HTML, sanitized against XSS
    *  (only safe tags such as `br`, `b`, `i`, `strong`, `em`, `a` and their
    *  attributes are kept; any other element is removed with its content, and

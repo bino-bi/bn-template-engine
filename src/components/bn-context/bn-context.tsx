@@ -80,6 +80,13 @@ export class Context {
    */
   @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace: string;
 
+  /**
+   * Orientation of the sheets the document is printed on: `landscape` or
+   * `portrait`. A `<bn-layout-page>` with the other orientation is turned
+   * onto the sheet. Without it no page is turned.
+   */
+  @Prop({ reflect: true, attribute: "render-orientation" }) renderOrientation?: "landscape" | "portrait";
+
   @Watch("locale")
   setLocale(newValue: string) {
     this.stores.context.state.locale = newValue;
@@ -89,7 +96,7 @@ export class Context {
   private readonly assignedPageNumbers = new WeakMap<Element, string>();
   private pageObserver: MutationObserver | undefined;
   private pageSizeStyle: HTMLStyleElement | undefined;
-  private renderOrientation: string | null | undefined;
+  private lastRenderOrientation: string | null | undefined;
 
   connectedCallback() {
     // Retrieve (or create) the stores for this context element.
@@ -134,11 +141,11 @@ export class Context {
     });
 
     const renderOrientation = this.element.getAttribute("render-orientation");
-    if (this.renderOrientation !== undefined && this.renderOrientation !== renderOrientation) {
+    if (this.lastRenderOrientation !== undefined && this.lastRenderOrientation !== renderOrientation) {
       // a layout page reads the attribute while it renders
       pages.filter((page) => page.localName === "bn-layout-page").forEach((page) => forceUpdate(page));
     }
-    this.renderOrientation = renderOrientation;
+    this.lastRenderOrientation = renderOrientation;
 
     this.writePageSize(pages[0], renderOrientation);
   }

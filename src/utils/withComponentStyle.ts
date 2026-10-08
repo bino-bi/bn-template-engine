@@ -11,7 +11,7 @@ import { merge } from "@corex/deepmerge";
  * The effective style is computed by deep-merging three layers in order:
  * 1. `_system`  -- built-in defaults (lowest priority)
  * 2. `_default` -- user-defined global overrides
- * 3. The value of the host element's `selected-style` attribute (highest priority)
+ * 3. The style named by the `selectedStyle` prop of the component (highest priority)
  *
  * A MutationObserver watches `selected-style` and the store subscription
  * reacts to updates in the componentStyles store, triggering a re-merge
@@ -42,7 +42,7 @@ const withComponentStyle = (component: any) => {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.attributeName === "selected-style") {
-        selectedStyle = getElement(component).getAttribute("selected-style");
+        selectedStyle = component.selectedStyle;
         updateStyle();
         forceUpdate(component);
       }
@@ -57,13 +57,13 @@ const withComponentStyle = (component: any) => {
 
     observer.observe(element, { attributes: true, attributeFilter: ["selected-style"] });
 
-    selectedStyle = getElement(component).getAttribute("selected-style");
+    selectedStyle = component.selectedStyle;
 
     updateStyle();
 
     subscription = stores.componentStyles.on("set", (key) => {
       if (key === selectedStyle) {
-        selectedStyle = getElement(component).getAttribute("selected-style");
+        selectedStyle = component.selectedStyle;
         updateStyle();
         forceUpdate(getElement(component));
       }

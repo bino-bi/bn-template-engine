@@ -32,6 +32,12 @@ export class Footer {
   }
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    *  Page label: a number or any text, e.g. `3` or `A-1`.
    *  Is displayed if displayPageNumber == true
    */

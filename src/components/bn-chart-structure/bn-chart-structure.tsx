@@ -81,6 +81,27 @@ export class Chart {
   private _lastScaledParentHeight = 0;
 
   /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Title displayed above the chart. When empty, the title is derived
    * from the variance scenario labels (if variances are configured).
    *

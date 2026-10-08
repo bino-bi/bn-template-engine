@@ -42,6 +42,12 @@ export class Image {
 
   /**
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    *  Url of the image.
    *  <br />
    *  if not http it looks up the url in the components asset folder

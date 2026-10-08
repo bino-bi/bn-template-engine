@@ -21,6 +21,10 @@ Geometry always comes from measuring the rendered output, so results stay correc
 
 Types are re-exported from the package root (`LayoutState`, `ComponentLayoutState`, `LayoutRect`, `DualRect`, `ScalingInfo`, …). Additive changes keep `LAYOUT_STATE_VERSION` at `1`; a breaking shape change bumps it. See [doc/layout-state.md](doc/layout-state.md).
 
+#### `datasets`, `selected-style`, `i18n-namespace` and `render-orientation` are declared properties
+
+The components already read these attributes, but did not declare them. They were missing from the generated docs and from the TypeScript types, and setting the JS property did nothing. They are props now: `datasets` on the table, the charts and `bn-text`, `selectedStyle` on every styled component, `i18nNamespace` on every component with translated text, `renderOrientation` on `bn-context`. Each one reflects to its attribute, so markup does not change.
+
 ### ⚠ BREAKING CHANGES
 
 #### `unit-scaling` / `percentage-scaling`: new em-based semantics
@@ -207,6 +211,10 @@ Only the `bn-*` elements listed in the README are public API. A page that select
 `window.componentRegisterFailures[].tag` names the element that threw. For a failure inside a renderer this is now the new tag.
 
 The setter methods `setProps()` and `setBusinessUnit()` of the inner title element are gone.
+
+#### `namespace` is no longer read as `i18n-namespace`
+
+A component took a plain `namespace` attribute as a fallback for `i18n-namespace`. This alias is gone, write `i18n-namespace`. The `namespace` attribute of `<bn-internationalization>` is something else and stays.
 
 ### Fixed
 

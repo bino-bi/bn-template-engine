@@ -28,11 +28,12 @@ Page numbers are assigned by `<bn-context>`, by position. A `page-number` you se
 
 ## Properties
 
-| Property            | Attribute             | Description                                                                                    | Type      | Default     |
-| ------------------- | --------------------- | ---------------------------------------------------------------------------------------------- | --------- | ----------- |
-| `displayPageNumber` | `display-page-number` | Toggle if pagenumer label is displayed                                                         | `boolean` | `true`      |
-| `pageNumber`        | `page-number`         | Page label: a number or any text, e.g. `3` or `A-1`. Is displayed if displayPageNumber == true | `string`  | `null`      |
-| `text`              | `text`                | Footer text. <br />If empty string (`''` or `null`) the footer row is omitted                  | `string`  | `undefined` |
+| Property            | Attribute             | Description                                                                                                             | Type      | Default     |
+| ------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `displayPageNumber` | `display-page-number` | Toggle if pagenumer label is displayed                                                                                  | `boolean` | `true`      |
+| `pageNumber`        | `page-number`         | Page label: a number or any text, e.g. `3` or `A-1`. Is displayed if displayPageNumber == true                          | `string`  | `null`      |
+| `selectedStyle`     | `selected-style`      | Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style. | `string`  | `undefined` |
+| `text`              | `text`                | Footer text. <br />If empty string (`''` or `null`) the footer row is omitted                                           | `string`  | `undefined` |
 
 
 ## Dependencies

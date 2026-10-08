@@ -101,6 +101,21 @@ export class Table {
   @State() private hasBlankSetnames: boolean = false;
 
   /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Controls proportional scaling of the entire table relative to the
    * available parent width. All visual dimensions scale together: font size,
    * em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii,
@@ -231,7 +246,7 @@ export class Table {
    * to the inner `bn-table-renderer` so bar-chart colors and fonts follow the selected
    * style as well.
    */
-  @Prop() selectedStyle?: string;
+  @Prop({ reflect: true }) selectedStyle?: string;
 
   /**
    * Label of the grand-total row at the bottom of the table. Only rendered for

@@ -94,6 +94,27 @@ export class Chart {
   private layoutObserver: LayoutObserverHandle | null = null;
 
   /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
    * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
    * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.

@@ -17,6 +17,13 @@ Content area within a [`<bn-page>`](../bn-page/readme.md). Place visualization c
 <!-- Auto Generated Below -->
 
 
+## Properties
+
+| Property        | Attribute        | Description                                                                                                             | Type     | Default     |
+| --------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `selectedStyle` | `selected-style` | Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style. | `string` | `undefined` |
+
+
 ## Dependencies
 
 ### Used by

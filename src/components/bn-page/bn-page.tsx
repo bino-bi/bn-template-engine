@@ -24,6 +24,12 @@ export class Page {
   }
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    * Defines the size of the page
    * <br /><br />
    * values:

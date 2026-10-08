@@ -152,6 +152,20 @@ describe("bn-context paper size", () => {
     expect(pageSizeRules()).toEqual(["@page { size: 11.69in 8.27in; }"]);
   });
 
+  it("takes the orientation from the renderOrientation property too", async () => {
+    const page = await render(
+      `<bn-context><bn-layout-page page-format="a4" page-orientation="portrait"></bn-layout-page></bn-context>`,
+    );
+    expect(pageSizeRules()).toEqual(["@page { size: 8.27in 11.69in; }"]);
+
+    (page.root as HTMLBnContextElement).renderOrientation = "landscape";
+    await page.waitForChanges();
+    notifyAttributeChange(page.root, "render-orientation");
+
+    expect(page.root.getAttribute("render-orientation")).toBe("landscape");
+    expect(pageSizeRules()).toEqual(["@page { size: 11.69in 8.27in; }"]);
+  });
+
   it.each([
     [
       "a layout page without format in a portrait document",

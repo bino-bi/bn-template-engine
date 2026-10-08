@@ -53,6 +53,27 @@ export class Text {
   }
 
   /**
+   * Names of the datasets the template can read, separated by commas without
+   * spaces. Each one is available as `data.<name>`. A name that starts with
+   * `$` reads a `<bn-datasource>` directly.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Template string rendered as HTML. These placeholders are replaced:
    * `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}`
    * (for names such as the datasource reference `$revenue`), `${t('<key>')}`

@@ -28,7 +28,7 @@ Translations are stored per **namespace**, per **language code**, as a flat key-
 store[namespace][code][key] → label
 ```
 
-- Every component resolves its namespace from the `i18n-namespace` DOM attribute, with **default inheritance**: the element's own attribute wins (the deprecated `namespace` attribute is honored as a fallback); otherwise the nearest ancestor carrying `i18n-namespace` provides it - a layout card, layout page, tree, grid, or the `<bn-context>` itself, crossing shadow boundaries; otherwise the built-in `_system` namespace is used.
+- Every component resolves its namespace from the `i18n-namespace` DOM attribute, with **default inheritance**: the element's own attribute wins; otherwise the nearest ancestor carrying `i18n-namespace` provides it - a layout card, layout page, tree, grid, or the `<bn-context>` itself, crossing shadow boundaries; otherwise the built-in `_system` namespace is used.
 - Keys missing from the resolved namespace fall back to `_system` per key; if a key is missing in both places, `t()` returns the key itself (it never throws).
 - `<bn-layout-page>` and `<bn-layout-card>` reflect their `i18nNamespace` prop as the `i18n-namespace` attribute (so descendants inherit it) and forward it - falling back to the deprecated, title-only `titleNamespace` - to their internal `<bn-title>`.
 

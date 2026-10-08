@@ -59,10 +59,11 @@ A page has exactly the size of a sheet. The first `<bn-context>` of a document w
 
 ## Properties
 
-| Property      | Attribute     | Description                                                                                                                                                                                                                  | Type     | Default     |
-| ------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `format`      | `format`      | Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger ``` <br /><br /> default: <br /> ```xga``` | `string` | `undefined` |
-| `orientation` | `orientation` | Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format                                                                                    | `string` | `undefined` |
+| Property        | Attribute        | Description                                                                                                                                                                                                                  | Type     | Default     |
+| --------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `format`        | `format`         | Defines the size of the page <br /><br /> values: <br /> ``` xga // hd // full-hd // 4k // 4k2k // a6 // a5 // a4 // a3 // a2 // a1 // a0 // letter // legal // tabloid // ledger ``` <br /><br /> default: <br /> ```xga``` | `string` | `undefined` |
+| `orientation`   | `orientation`    | Defines page orientation <br /><br /> values: <br /> ``` landscape // portrait ``` <br /><br /> default: <br /> based on the given format                                                                                    | `string` | `undefined` |
+| `selectedStyle` | `selected-style` | Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.                                                                                                      | `string` | `undefined` |
 
 
 ## Dependencies

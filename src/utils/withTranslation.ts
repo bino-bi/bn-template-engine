@@ -10,8 +10,7 @@ import { findAncestorWithAttr } from "./withInheritedProps";
  *
  * **Namespace resolution** (mirrors the ancestor inheritance of `withRuleSet`,
  * but on by default):
- * 1. The host element's own `i18n-namespace` attribute (the deprecated
- *    `namespace` attribute is honored as a fallback).
+ * 1. The component's own `i18nNamespace` prop (attribute `i18n-namespace`).
  * 2. Otherwise the `i18n-namespace` attribute of the nearest ancestor that
  *    carries one - a layout card, layout page, tree, grid, or the
  *    `bn-context` itself - crossing shadow boundaries. The resolved ancestor
@@ -49,7 +48,7 @@ const withTranslation = (component: any) => {
       ancestorObserver = null;
     }
 
-    namespace = element.getAttribute("i18n-namespace") ?? element.getAttribute("namespace");
+    namespace = component.i18nNamespace;
     if (namespace != null) {
       return;
     }
@@ -67,7 +66,7 @@ const withTranslation = (component: any) => {
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (mutation.attributeName === "i18n-namespace" || mutation.attributeName === "namespace") {
+      if (mutation.attributeName === "i18n-namespace") {
         resolveNamespace();
         forceUpdate(component);
       }
@@ -79,7 +78,7 @@ const withTranslation = (component: any) => {
     const element = getElement(component);
     stores = getStores(element);
 
-    observer.observe(element, { attributes: true, attributeFilter: ["i18n-namespace", "namespace"] });
+    observer.observe(element, { attributes: true, attributeFilter: ["i18n-namespace"] });
 
     resolveNamespace();
 
