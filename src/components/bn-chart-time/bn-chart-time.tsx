@@ -67,7 +67,7 @@ enum AggregationLevel {
  * line charts with up to four scenario layers, optional variance sub-charts,
  * stacking, and proportional auto-scaling. Date normalization and interval
  * detection are delegated to `DateStringFactory`. The heavy SVG rendering
- * is performed by the inner `ibcs-chart-time` element; this outer component
+ * is performed by the inner `bn-chart-time-renderer` element; this outer component
  * validates props, resolves auto-detected metadata, and computes styles.
  */
 @Component({
@@ -839,7 +839,7 @@ export class Chart {
    * inner charts have rendered.
    */
   private measureContentWidth(): number {
-    const inners = this.element.shadowRoot?.querySelectorAll("ibcs-chart-time");
+    const inners = this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer");
     let widest = 0;
     let found = false;
     inners?.forEach((inner) => {
@@ -857,7 +857,7 @@ export class Chart {
 
   /** Content height as the sum of the vertically stacked segment SVGs. */
   private measureContentHeight(): number {
-    const inners = this.element.shadowRoot?.querySelectorAll("ibcs-chart-time");
+    const inners = this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer");
     let total = 0;
     let found = false;
     inners?.forEach((inner) => {
@@ -921,7 +921,7 @@ export class Chart {
   }
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-time");
+    syncEmptyState(this.element, "bn-chart-time-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -1238,7 +1238,7 @@ export class Chart {
   }
 
   /**
-   * Receives the auto-fitted values from the inner ibcs-chart-time (px per
+   * Receives the auto-fitted values from the inner bn-chart-time-renderer (px per
    * unit / px per 1.0 fraction) and surfaces them in the AUTO_* warnings,
    * converted back to the attribute's units-per-em form so users can copy
    * them into a bn-scaling-group.
@@ -1373,7 +1373,7 @@ export class Chart {
         stackColors: $["bn-chart-time"]["stackColors"],
         padding: $["bn-chart-time"]["padding"],
         pattern: null,
-        // placeholder, ibcs-chart-time sets the locale of its context
+        // placeholder, bn-chart-time-renderer sets the locale of its context
         locale: "de",
       };
     });
@@ -1582,7 +1582,7 @@ export class Chart {
     const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
-      <ibcs-chart-time
+      <bn-chart-time-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.prepareChartTitle(idx)}
@@ -1615,7 +1615,7 @@ export class Chart {
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}
-      ></ibcs-chart-time>
+      ></bn-chart-time-renderer>
     );
   }
 
@@ -1638,9 +1638,15 @@ export class Chart {
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
 
     const variances = this.prepareVariances();
-    const layout = collectChartFacadeLayout(this.element, "ibcs-chart-time", ["base", ...variances], origins, detail);
+    const layout = collectChartFacadeLayout(
+      this.element,
+      "bn-chart-time-renderer",
+      ["base", ...variances],
+      origins,
+      detail,
+    );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const firstInner = this.element.shadowRoot?.querySelector("ibcs-chart-time") as any;
+    const firstInner = this.element.shadowRoot?.querySelector("bn-chart-time-renderer") as any;
 
     const state: ComponentLayoutState = {
       version: LAYOUT_STATE_VERSION,

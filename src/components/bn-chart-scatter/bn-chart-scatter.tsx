@@ -43,7 +43,7 @@ const HIERARCHY_DEPTH: Record<string, number> = { rowGroup: 0, category: 1, subC
  * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
  * with series hues, selective labels, highlight bands, and hyperbolic
  * iso-lines (`x·y = k`). The heavy SVG rendering is performed by the inner
- * `ibcs-chart-scatter` element; this facade validates props, resolves
+ * `bn-chart-scatter-renderer` element; this facade validates props, resolves
  * auto-detected metadata, and computes styles.
  */
 @Component({
@@ -312,7 +312,7 @@ export class ChartScatter {
   private _lastObservedWidth = 0;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-scatter");
+    syncEmptyState(this.element, "bn-chart-scatter-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -378,7 +378,7 @@ export class ChartScatter {
   }
 
   private checkOverflow(): void {
-    checkXYOverflow(this.element, "ibcs-chart-scatter", this.errors);
+    checkXYOverflow(this.element, "bn-chart-scatter-renderer", this.errors);
   }
 
   componentDidLoad() {
@@ -725,7 +725,7 @@ export class ChartScatter {
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
     return collectXYFacadeState(
       this.element,
-      "ibcs-chart-scatter",
+      "bn-chart-scatter-renderer",
       this.chartTitle || undefined,
       { fontSizePx, appliedScaleFactor: factor },
       origins,
@@ -829,7 +829,7 @@ export class ChartScatter {
     const fullParentWidth = getParentDimensions(this.element).width;
 
     return (
-      <ibcs-chart-scatter
+      <bn-chart-scatter-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.chartTitle}
@@ -850,7 +850,7 @@ export class ChartScatter {
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
         translator={this.translateForInner}
-      ></ibcs-chart-scatter>
+      ></bn-chart-scatter-renderer>
     );
   }
 

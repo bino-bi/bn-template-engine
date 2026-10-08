@@ -55,30 +55,30 @@ jest.mock("../../context/context-protocol", () => {
 import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
 import { Table } from "./bn-table";
-import { IbcsTable } from "./ibcs-table";
+import { BnTableRenderer } from "./bn-table-renderer/bn-table-renderer";
 import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { resolveHostFont } from "../../utils/testing/hostFont";
 import { join } from "path";
 
 describe("bn-table selected-style forwarding", () => {
-  it("forwards selected-style to the inner ibcs-table", async () => {
+  it("forwards selected-style to the inner bn-table-renderer", async () => {
     const page = await newSpecPage({
-      components: [Table, IbcsTable],
+      components: [Table, BnTableRenderer],
       template: () => <bn-table selected-style="corporate-style"></bn-table>,
     });
 
-    const inner = page.root.shadowRoot.querySelector("ibcs-table");
+    const inner = page.root.shadowRoot.querySelector("bn-table-renderer");
     expect(inner).not.toBeNull();
     expect(inner.getAttribute("selected-style")).toBe("corporate-style");
   });
 
-  it("omits selected-style on the inner ibcs-table when not set", async () => {
+  it("omits selected-style on the inner bn-table-renderer when not set", async () => {
     const page = await newSpecPage({
-      components: [Table, IbcsTable],
+      components: [Table, BnTableRenderer],
       template: () => <bn-table></bn-table>,
     });
 
-    const inner = page.root.shadowRoot.querySelector("ibcs-table");
+    const inner = page.root.shadowRoot.querySelector("bn-table-renderer");
     expect(inner).not.toBeNull();
     expect(inner.hasAttribute("selected-style")).toBe(false);
   });
@@ -89,7 +89,7 @@ describe("bn-table selected-style forwarding", () => {
 describe("bn-table host font", () => {
   it("applies the theme font on the host without a page ancestor", async () => {
     const page = await newSpecPage({
-      components: [Table, IbcsTable],
+      components: [Table, BnTableRenderer],
       template: () => <bn-table scale="none"></bn-table>,
     });
     expect(page.doc.querySelector("bn-page, bn-layout-page")).toBeNull();

@@ -1,7 +1,7 @@
 // Cross-component scaling-group sync: a bn-table and a bn-chart-structure
 // sharing one group must resolve to the same em-ratio - the table passes
-// em-per-unit (1/v) to ibcs-table, the chart passes px-per-unit
-// (effFontPx/v) to ibcs-chart-structure, so chartPx / effFontPx must equal
+// em-per-unit (1/v) to bn-table-renderer, the chart passes px-per-unit
+// (effFontPx/v) to bn-chart-structure-renderer, so chartPx / effFontPx must equal
 // the table's value.
 //
 // jest.mock must physically precede the imports (Stencil's transform does
@@ -60,14 +60,14 @@ import { getStores } from "../../context/context-protocol";
 import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { Chart as ChartStructure } from "../bn-chart-structure/bn-chart-structure";
 import { Table } from "../bn-table/bn-table";
-import { IbcsTable } from "../bn-table/ibcs-table";
+import { BnTableRenderer } from "../bn-table/bn-table-renderer/bn-table-renderer";
 
 const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
 
 describe("cross-component scaling-group sync", () => {
   it("resolves the same em-ratio in bn-table and bn-chart-structure and follows store updates", async () => {
     const page = await newSpecPage({
-      components: [Table, IbcsTable, ChartStructure],
+      components: [Table, BnTableRenderer, ChartStructure],
       html: `
         <div>
           <bn-table unit-scaling="revenue" scale="none"></bn-table>
@@ -76,14 +76,16 @@ describe("cross-component scaling-group sync", () => {
       `,
     });
 
-    const tableInner = page.body.querySelector("bn-table")!.shadowRoot!.querySelector("ibcs-table") as HTMLElement & {
+    const tableInner = page.body
+      .querySelector("bn-table")!
+      .shadowRoot!.querySelector("bn-table-renderer") as HTMLElement & {
       unitScaling: number;
     };
     // The inner structure chart is not registered (its SVG engine needs
     // getBBox), so its number props materialize as attributes.
     const chartInner = page.body
       .querySelector("bn-chart-structure")!
-      .shadowRoot!.querySelector("ibcs-chart-structure")!;
+      .shadowRoot!.querySelector("bn-chart-structure-renderer")!;
     const chartEmRatio = () => Number(chartInner.getAttribute("pixelPerUnit")) / BASE_FONT;
 
     expect(tableInner.unitScaling).toBe(1 / 100);

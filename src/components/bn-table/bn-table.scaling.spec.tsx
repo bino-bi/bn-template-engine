@@ -1,5 +1,5 @@
 // bn-table scaling resolution: units-per-em attribute values are converted
-// to the inner ibcs-table's em-per-unit quantities at the wrapper boundary.
+// to the inner bn-table-renderer's em-per-unit quantities at the wrapper boundary.
 //
 // jest.mock must physically precede the imports (Stencil's transform does
 // not hoist it).
@@ -55,7 +55,7 @@ jest.mock("../../context/context-protocol", () => {
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { AutoScalingReport } from "../../utils/scaling";
 import { Table } from "./bn-table";
-import { IbcsTable } from "./ibcs-table";
+import { BnTableRenderer } from "./bn-table-renderer/bn-table-renderer";
 
 type InnerTable = HTMLElement & {
   unitScaling: number;
@@ -65,10 +65,10 @@ type InnerTable = HTMLElement & {
 
 const renderTable = async (attrs: string): Promise<{ page: SpecPage; inner: InnerTable }> => {
   const page = await newSpecPage({
-    components: [Table, IbcsTable],
+    components: [Table, BnTableRenderer],
     html: `<bn-table ${attrs}></bn-table>`,
   });
-  const inner = page.root!.shadowRoot!.querySelector("ibcs-table") as InnerTable;
+  const inner = page.root!.shadowRoot!.querySelector("bn-table-renderer") as InnerTable;
   return { page, inner };
 };
 

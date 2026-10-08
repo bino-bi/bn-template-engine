@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) - same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as bn-table-renderer.spec.tsx.
 
 // mock-doc has no MutationObserver. The fake stands in for the one of the withBodyObserver /
 // withDatasource mixins and lets a spec report a change of the body.

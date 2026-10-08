@@ -1,6 +1,6 @@
 // bn-chart-time.getLayoutState: structure and model-derived values only -
 // mock-doc returns zeroed rects, so geometry numbers are not asserted here.
-// The inner ibcs-chart-time stays unregistered (its SVG engine needs getBBox);
+// The inner bn-chart-time-renderer stays unregistered (its SVG engine needs getBBox);
 // a hand-built shadow root with the real id conventions stands in for it.
 //
 // jest.mock must physically precede the imports (Stencil's transform does
@@ -60,7 +60,7 @@ import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { AutoScalingReport } from "../../utils/scaling";
 import { BarElement, LabelElement } from "../../utils/layoutState";
 import { Chart } from "./bn-chart-time";
-import { IbcsChartTime } from "./ibcs-chart-time";
+import { BnChartTimeRenderer } from "./bn-chart-time-renderer/bn-chart-time-renderer";
 import { getStores } from "../../context/context-protocol";
 import { resolveHostFont } from "../../utils/testing/hostFont";
 import { join } from "path";
@@ -94,7 +94,7 @@ const renderChart = async (attrs: string): Promise<SpecPage> => {
     components: [Chart],
     html: `<bn-chart-time scenarios="ac1" variances="dac1_pp1_pos" scale="none" ${attrs}></bn-chart-time>`,
   });
-  page.root!.shadowRoot!.querySelectorAll("ibcs-chart-time").forEach((inner) => {
+  page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer").forEach((inner) => {
     const shadow = inner.attachShadow({ mode: "open" });
     shadow.innerHTML = SEGMENT_SVG;
   });
@@ -154,7 +154,7 @@ describe("bn-chart-time.getLayoutState", () => {
 
   it("reports auto scaling from the last inner auto-fit report", async () => {
     const page = await renderChart(`unit-scaling="auto"`);
-    const inner = page.root!.shadowRoot!.querySelector("ibcs-chart-time") as HTMLElement & {
+    const inner = page.root!.shadowRoot!.querySelector("bn-chart-time-renderer") as HTMLElement & {
       reportAutoScaling: (report: AutoScalingReport) => void;
     };
     inner.reportAutoScaling({ unit: 2 });
@@ -169,7 +169,7 @@ describe("bn-chart-time.getLayoutState", () => {
   // auto-fit, which draws the SVG and needs getBBox (missing in mock-doc).
   it("reports no data when every segment renders the empty state", async () => {
     const page = await newSpecPage({
-      components: [Chart, IbcsChartTime],
+      components: [Chart, BnChartTimeRenderer],
       html: `<bn-chart-time scenarios="ac1" variances="dac1_pp1_pos" scale="none" unit-scaling="100" percentage-scaling="2"></bn-chart-time>`,
     });
     const state = await page.rootInstance.getLayoutState();
@@ -177,7 +177,7 @@ describe("bn-chart-time.getLayoutState", () => {
     expect(state.regions).toEqual([]);
     expect(state.metadata.barCount).toBe(0);
     expect(state.metadata.hasNoData).toBe(true);
-    const inners = Array.from(page.root!.shadowRoot!.querySelectorAll("ibcs-chart-time"));
+    const inners = Array.from(page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer"));
     expect(inners).toHaveLength(2);
     expect(inners.every((inner) => inner.classList.contains("no-data"))).toBe(true);
     expect(page.root!.classList.contains("no-data")).toBe(true);

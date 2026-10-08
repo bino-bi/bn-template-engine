@@ -63,17 +63,17 @@ import {
   readDiagnostics,
   resolveStandaloneId,
 } from "../../utils/layoutState";
-import { TableLayoutDetail } from "./ibcs-table";
+import { TableLayoutDetail } from "./bn-table-renderer/bn-table-renderer";
 import { syncEmptyState } from "../../utils/emptyState";
 
 /**
  * Public-facing wrapper for the IBCS table component.
  *
  * Accepts user-facing string/number props, validates them, and converts
- * them into the typed internal format expected by `ibcs-table`. Handles
+ * them into the typed internal format expected by `bn-table-renderer`. Handles
  * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
  * The actual table rendering (header, body, drill-down rows) is delegated
- * to the inner `ibcs-table` element.
+ * to the inner `bn-table-renderer` element.
  */
 @Component({
   tag: "bn-table",
@@ -111,7 +111,7 @@ export class Table {
    * Because the table's SCSS uses `em` units for padding, borders, and
    * column widths, changing the font size cascades to all layout dimensions.
    * SVG elements (bars, pins, patterns) receive the factor via the
-   * `scaleFactor` prop on `ibcs-table` and multiply every pixel constant
+   * `scaleFactor` prop on `bn-table-renderer` and multiply every pixel constant
    * by it, so they stay proportional to the surrounding text.
    *
    * | Value               | Behavior                                                                         |
@@ -228,7 +228,7 @@ export class Table {
 
   /**
    * Name of a registered component style (see `bn-component-style`). Forwarded
-   * to the inner `ibcs-table` so bar-chart colors and fonts follow the selected
+   * to the inner `bn-table-renderer` so bar-chart colors and fonts follow the selected
    * style as well.
    */
   @Prop() selectedStyle?: string;
@@ -1021,7 +1021,7 @@ export class Table {
   private _autoScaleGuard = false;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-table");
+    syncEmptyState(this.element, "bn-table-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -1476,7 +1476,7 @@ export class Table {
       this.errors.remove("AUTO_unitScaling");
       this.autoUnitWarningActive = false;
       this.lastReportedUnitsPerEm = undefined;
-      // Inner ibcs-table expects em per unit; the attribute is units per em.
+      // Inner bn-table-renderer expects em per unit; the attribute is units per em.
       return 1 / resolved.value;
     }
     if (resolved.kind === "auto") {
@@ -1500,7 +1500,7 @@ export class Table {
       this.errors.remove("AUTO_percentageScaling");
       this.autoPctWarningActive = false;
       this.lastReportedPpPerEm = undefined;
-      // Inner ibcs-table expects em per percentage point.
+      // Inner bn-table-renderer expects em per percentage point.
       return 1 / resolved.value;
     }
     if (resolved.kind === "auto") {
@@ -1519,7 +1519,7 @@ export class Table {
   }
 
   /**
-   * Receives the auto-fitted scaling values from the inner ibcs-table
+   * Receives the auto-fitted scaling values from the inner bn-table-renderer
    * (em per unit / em per percentage point) and surfaces them in the AUTO_*
    * warnings, converted back to the attribute's units-per-em form so users
    * can copy them into a bn-scaling-group.
@@ -1627,7 +1627,7 @@ export class Table {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const inner = this.element.shadowRoot?.querySelector("ibcs-table") as any;
+    const inner = this.element.shadowRoot?.querySelector("bn-table-renderer") as any;
     if (inner) {
       const scenarios: string[] = inner.scenarios ?? [];
       state.metadata.scenarios = scenarios.filter((name) => !name.startsWith("d"));
@@ -1707,7 +1707,7 @@ export class Table {
     return (
       <Host style={fontStyles}>
         <div>
-          <ibcs-table
+          <bn-table-renderer
             tableName={this.datasetName}
             dataVersion={this.dataVersion}
             sumTitle={this.prepareSumTitle()}
@@ -1741,7 +1741,7 @@ export class Table {
             scaleFactor={effectiveFactor}
             ruleSetConfig={this.ruleSetConfig()}
             selectedStyle={this.selectedStyle}
-          ></ibcs-table>
+          ></bn-table-renderer>
         </div>
       </Host>
     );

@@ -52,7 +52,7 @@ import { newSpecPage } from "@stencil/core/testing";
 import { getStores } from "../../context/context-protocol";
 import { SYSTEM_STYLE_DEFAULTS } from "../../stores/componentStyles";
 import { ChartBubble } from "./bn-chart-bubble";
-import { IbcsChartBubble } from "./ibcs-chart-bubble";
+import { BnChartBubbleRenderer } from "./bn-chart-bubble-renderer/bn-chart-bubble-renderer";
 
 const VALUE = 32;
 
@@ -75,7 +75,7 @@ const seedData = () => {
 };
 
 const chartRadii = (host: Element): number[] => {
-  const inner = host.shadowRoot!.querySelector("ibcs-chart-bubble");
+  const inner = host.shadowRoot!.querySelector("bn-chart-bubble-renderer");
   const markup = inner?.shadowRoot?.querySelector("div")?.innerHTML ?? "";
   return [...markup.matchAll(/<circle r="([\d.]+)"/g)].map((m) => Number(m[1]));
 };
@@ -91,13 +91,13 @@ describe("bn-chart-bubble named style overrides", () => {
     seedData();
 
     const page = await newSpecPage({
-      components: [ChartBubble, IbcsChartBubble],
+      components: [ChartBubble, BnChartBubbleRenderer],
       html: `<bn-chart-bubble datasets="portfolio" selected-style="blue-series"
         x="ac1" y="ac2" size="ac3"></bn-chart-bubble>`,
     });
     await page.waitForChanges();
 
-    const inner = page.root!.shadowRoot!.querySelector("ibcs-chart-bubble")!;
+    const inner = page.root!.shadowRoot!.querySelector("bn-chart-bubble-renderer")!;
     const markup = inner.shadowRoot!.querySelector("div")!.innerHTML;
     // The single series takes the override's FIRST color - with the old
     // concatenating merge it would still render the default palette.
@@ -110,7 +110,7 @@ describe("bn-chart-bubble scaling-group synchronization", () => {
     seedData();
 
     const page = await newSpecPage({
-      components: [ChartBubble, IbcsChartBubble],
+      components: [ChartBubble, BnChartBubbleRenderer],
       html: `
         <div>
           <bn-chart-bubble id="a" datasets="portfolio" x="ac1" y="ac2"

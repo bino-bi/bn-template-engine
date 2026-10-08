@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) - same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as bn-table-renderer.spec.tsx.
 
 // Mock MutationObserver for the withBodyObserver/withTranslation mixins.
 

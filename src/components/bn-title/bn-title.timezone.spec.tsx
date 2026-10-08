@@ -47,17 +47,17 @@ jest.mock("../../context/context-protocol", () => {
 
 import { newSpecPage } from "@stencil/core/testing";
 import { Title } from "./bn-title";
-import { IbcsTitle } from "./ibcs-title/ibcs-title";
-import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
+import { BnTitleRenderer } from "./bn-title-renderer/bn-title-renderer";
+import { TimePeriod } from "./bn-title-renderer/utils/model/TimePeriod";
 
 describe("bn-title reads date-start and date-end in UTC", () => {
   it("shows the months of the UTC dates", async () => {
     const page = await newSpecPage({
-      components: [Title, IbcsTitle],
+      components: [Title, BnTitleRenderer],
       html: `<bn-title date-start="2024-01-01T00:00:00Z" date-end="2024-03-01T00:00:00Z" date-format="month" date-link="interval"></bn-title>`,
     });
 
-    const inner = page.root.shadowRoot.querySelector("ibcs-title") as HTMLElement & { timeperiod: TimePeriod };
+    const inner = page.root.shadowRoot.querySelector("bn-title-renderer") as HTMLElement & { timeperiod: TimePeriod };
     expect(inner.timeperiod.start.toISO()).toBe("2024-01-01T00:00:00.000Z");
     expect(inner.timeperiod.end.toISO()).toBe("2024-03-01T00:00:00.000Z");
     expect(inner.shadowRoot.querySelector("div > div:last-child").textContent).toBe("Jan..Mar 2024");

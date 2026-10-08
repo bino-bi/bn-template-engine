@@ -44,7 +44,7 @@ jest.mock("../../context/context-protocol", () => {
 
 import { newSpecPage } from "@stencil/core/testing";
 import { Title } from "./bn-title";
-import { IbcsTitle } from "./ibcs-title/ibcs-title";
+import { BnTitleRenderer } from "./bn-title-renderer/bn-title-renderer";
 
 describe("bn-title measures", () => {
   const ids = (host: Element): string[] =>
@@ -52,11 +52,11 @@ describe("bn-title measures", () => {
 
   it("hands the parsed measures to the inner title", async () => {
     const page = await newSpecPage({
-      components: [Title, IbcsTitle],
+      components: [Title, BnTitleRenderer],
       html: `<bn-title measures='[{"name": "Revenue", "unit": "mEUR"}]'></bn-title>`,
     });
 
-    const inner = page.root.shadowRoot.querySelector("ibcs-title") as HTMLElement & { measures: unknown };
+    const inner = page.root.shadowRoot.querySelector("bn-title-renderer") as HTMLElement & { measures: unknown };
     expect(inner.measures).toEqual([{ name: "Revenue", unit: "mEUR" }]);
     expect(ids(page.root)).not.toContain("ERR_measures");
   });
@@ -65,12 +65,12 @@ describe("bn-title measures", () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     // a throw in render() would reject here
     const page = await newSpecPage({
-      components: [Title, IbcsTitle],
+      components: [Title, BnTitleRenderer],
       html: `<bn-title measures='[{"name": '></bn-title>`,
     });
     consoleError.mockRestore();
 
-    const inner = page.root.shadowRoot.querySelector("ibcs-title") as HTMLElement & { measures: unknown };
+    const inner = page.root.shadowRoot.querySelector("bn-title-renderer") as HTMLElement & { measures: unknown };
     expect(inner.measures).toEqual([]);
     expect(ids(page.root)).toContain("ERR_measures");
   });

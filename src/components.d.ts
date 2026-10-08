@@ -6,9 +6,6 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
-import { TableLayoutDetail } from "./components/bn-table/ibcs-table";
-import { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
-import { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 import { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
 import { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 import { XYChartStyle } from "./utils/xy/model/XYChartStyle";
@@ -26,18 +23,18 @@ import { ParentDimensions } from "./utils/parentDimensions";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+import { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 import { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
 import { TableType } from "./components/bn-table/utils/model";
-import { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/ibcs-table";
+import { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableRow } from "./components/bn-table/utils/elements";
 import { Element } from "@stencil/core";
-import { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
-import { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
+import { MeasureEntry } from "./components/bn-title/bn-title-renderer/utils/model/MeasureEntriy";
+import { TimePeriod } from "./components/bn-title/bn-title-renderer/utils/model/TimePeriod";
+import { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
+import { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 export { CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
-export { TableLayoutDetail } from "./components/bn-table/ibcs-table";
-export { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
-export { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 export { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
 export { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 export { XYChartStyle } from "./utils/xy/model/XYChartStyle";
@@ -55,14 +52,17 @@ export { ParentDimensions } from "./utils/parentDimensions";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+export { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 export { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
 export { TableType } from "./components/bn-table/utils/model";
-export { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/ibcs-table";
+export { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableRow } from "./components/bn-table/utils/elements";
 export { Element } from "@stencil/core";
-export { MeasureEntry } from "./components/bn-title/ibcs-title/utils/model/MeasureEntriy";
-export { TimePeriod } from "./components/bn-title/ibcs-title/utils/model/TimePeriod";
+export { MeasureEntry } from "./components/bn-title/bn-title-renderer/utils/model/MeasureEntriy";
+export { TimePeriod } from "./components/bn-title/bn-title-renderer/utils/model/TimePeriod";
+export { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
+export { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 export namespace Components {
   interface BnAsset {
     /**
@@ -81,7 +81,7 @@ export namespace Components {
    * compose series hues with scenario treatments, an optional comparison
    * family overlays behind the primary set (10D), and `share` draws pie
    * sectors inside the bubbles (10E). The heavy SVG rendering is performed
-   * by the inner `ibcs-chart-bubble` element; this facade validates props,
+   * by the inner `bn-chart-bubble-renderer` element; this facade validates props,
    * resolves auto-detected metadata, and computes styles.
    */
   interface BnChartBubble {
@@ -167,6 +167,89 @@ export namespace Components {
     "y": string;
   }
   /**
+   * Inner presentational element of `bn-chart-bubble`: owns the
+   * {@link BubbleChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface BnChartBubbleRenderer {
+    /**
+      * Plot aspect ratio, width/height.
+      * @default 16 / 9
+     */
+    "aspect": number;
+    /**
+      * @default ""
+     */
+    "chartTitle": string;
+    /**
+      * Comparison scenario family, or `null` (10D overlay).
+      * @default null
+     */
+    "compareFamily": string | null;
+    /**
+      * @default 0
+     */
+    "containerWidth": number;
+    /**
+      * Bumped by the facade when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion": number;
+    /**
+      * The facade's error dispatcher - data warnings are synced through it (stable ids).
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default null
+     */
+    "facet": FacetConfig | null;
+    /**
+      * @default ""
+     */
+    "filter": string;
+    /**
+      * @default new Map()
+     */
+    "i18n": Map<string, string>;
+    "labels": LabelConfig;
+    "legend": LegendConfig;
+    /**
+      * @default 0
+     */
+    "limit": number;
+    /**
+      * @default "category"
+     */
+    "pointLevel": PointLevel;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default null
+     */
+    "seriesLevel": GroupLevel | null;
+    /**
+      * @default null
+     */
+    "share": ShareConfig | null;
+    "size": SizeConfig;
+    /**
+      * Scaling-group mode: area px² per data unit (0 = local sizing).
+      * @default 0
+     */
+    "sizeAreaPerUnit": number;
+    "styles": XYChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the scoped alasql database).
+      * @default ""
+     */
+    "tableName": string;
+    /**
+      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+     */
+    "translator"?: (key: string, data?: object) => string;
+    "x": AxisConfig;
+    "y": AxisConfig;
+  }
+  /**
    * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
    * a target marker.
    * Subscribes to a dataset (via `withDataset`) and renders in the IBCS
@@ -177,7 +260,7 @@ export namespace Components {
    * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
    * gray bands). Actual and target scenarios are auto-detected from the
    * dataset meta when not set. The heavy SVG rendering is performed by the
-   * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+   * inner `bn-chart-bullet-renderer` element; this facade validates props, resolves
    * auto-detected metadata, and computes styles.
    */
   interface BnChartBullet {
@@ -256,11 +339,81 @@ export namespace Components {
     "variances": string;
   }
   /**
+   * Inner presentational element of `bn-chart-bullet`: owns the
+   * {@link BulletChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface BnChartBulletRenderer {
+    "actual": BulletMeasureConfig;
+    /**
+      * @default ""
+     */
+    "chartTitle": string;
+    /**
+      * @default 0
+     */
+    "containerWidth": number;
+    /**
+      * Bumped by the facade when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion": number;
+    /**
+      * The facade's error dispatcher - data warnings are synced through it (stable ids).
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default ""
+     */
+    "filter": string;
+    /**
+      * @default new Map()
+     */
+    "i18n": Map<string, string>;
+    "labels": BulletLabelConfig;
+    /**
+      * @default AggregationLevel.CATEGORY
+     */
+    "level": AggregationLevel;
+    /**
+      * @default 0
+     */
+    "limit": number;
+    /**
+      * @default "target"
+     */
+    "normalizeMode": "target" | "none";
+    "order": Order;
+    /**
+      * @default []
+     */
+    "ranges": number[];
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default true
+     */
+    "showVariances": boolean;
+    "styles": BulletChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the scoped alasql database).
+      * @default ""
+     */
+    "tableName": string;
+    /**
+      * @default null
+     */
+    "target": BulletMeasureConfig | null;
+    /**
+      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+     */
+    "translator"?: (key: string, data?: object) => string;
+  }
+  /**
    * SVG scattergram following IBCS template C09.
    * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
    * with series hues, selective labels, highlight bands, and hyperbolic
    * iso-lines (`x·y = k`). The heavy SVG rendering is performed by the inner
-   * `ibcs-chart-scatter` element; this facade validates props, resolves
+   * `bn-chart-scatter-renderer` element; this facade validates props, resolves
    * auto-detected metadata, and computes styles.
    */
   interface BnChartScatter {
@@ -337,12 +490,84 @@ export namespace Components {
     "y": string;
   }
   /**
+   * Inner presentational element of `bn-chart-scatter`: owns the
+   * {@link ScatterChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface BnChartScatterRenderer {
+    /**
+      * Plot aspect ratio, width/height.
+      * @default 16 / 9
+     */
+    "aspect": number;
+    /**
+      * @default ""
+     */
+    "chartTitle": string;
+    /**
+      * @default 0
+     */
+    "containerWidth": number;
+    /**
+      * Bumped by the facade when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion": number;
+    /**
+      * The facade's error dispatcher - data warnings are synced through it (stable ids).
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default null
+     */
+    "facet": FacetConfig | null;
+    /**
+      * @default ""
+     */
+    "filter": string;
+    /**
+      * @default new Map()
+     */
+    "i18n": Map<string, string>;
+    /**
+      * @default null
+     */
+    "iso": IsoConfig | null;
+    "labels": LabelConfig;
+    "legend": LegendConfig;
+    /**
+      * @default 0
+     */
+    "limit": number;
+    /**
+      * @default "category"
+     */
+    "pointLevel": PointLevel;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default null
+     */
+    "seriesLevel": GroupLevel | null;
+    "styles": XYChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the scoped alasql database).
+      * @default ""
+     */
+    "tableName": string;
+    /**
+      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+     */
+    "translator"?: (key: string, data?: object) => string;
+    "x": AxisConfig;
+    "y": AxisConfig;
+  }
+  /**
    * SVG structure (categorical) bar chart following IBCS standards.
    * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
    * charts grouped by category, with up to four scenario layers, optional
    * variance sub-charts, stacking, and proportional auto-scaling (height-
    * based). The heavy SVG rendering is performed by the inner
-   * `ibcs-chart-structure` element; this outer component validates props,
+   * `bn-chart-structure-renderer` element; this outer component validates props,
    * resolves auto-detected metadata, and computes styles.
    */
   interface BnChartStructure {
@@ -449,13 +674,103 @@ export namespace Components {
      */
     "variances": string;
   }
+  interface BnChartStructureRenderer {
+    /**
+      * @default ""
+     */
+    "chartTitle": string;
+    /**
+      * @default { percent: 2, decimal: 1 }
+     */
+    "dataFormatDigits": DataFormatDigits;
+    /**
+      * Bumped by `bn-chart-structure` when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion": number;
+    /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default ""
+     */
+    "filter": string;
+    /**
+      * @default false
+     */
+    "hideCategories": boolean;
+    /**
+      * @default new Map()
+     */
+    "i18n": Map<string, string>;
+    /**
+      * @default AggregationLevel.CATEGORY
+     */
+    "level": AggregationLevel;
+    /**
+      * @default 0
+     */
+    "limit": number;
+    /**
+      * @default "_"
+     */
+    "measureScale": string;
+    /**
+      * @default ""
+     */
+    "measureUnit": string;
+    /**
+      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+     */
+    "order": Order;
+    /**
+      * @default { width: 0, height: 0 }
+     */
+    "parentDimensions": ParentDimensions;
+    /**
+      * @default 50
+     */
+    "pixelPerPercentage": number;
+    /**
+      * @default 10
+     */
+    "pixelPerUnit": number;
+    /**
+      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
+     */
+    "reportAutoScaling"?: (report: AutoScalingReport) => void;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default []
+     */
+    "scenarios": string[];
+    /**
+      * @default true
+     */
+    "showMeasureScale": boolean;
+    /**
+      * @default null
+     */
+    "stackConfig": StackConfigParsed | null;
+    "styles": StructureChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the shared alasql database).
+      * @default ""
+     */
+    "tableName": string;
+    /**
+      * @default []
+     */
+    "variances": string[];
+  }
   /**
    * SVG time-series chart following IBCS standards.
    * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
    * line charts with up to four scenario layers, optional variance sub-charts,
    * stacking, and proportional auto-scaling. Date normalization and interval
    * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-   * is performed by the inner `ibcs-chart-time` element; this outer component
+   * is performed by the inner `bn-chart-time-renderer` element; this outer component
    * validates props, resolves auto-detected metadata, and computes styles.
    */
   interface BnChartTime {
@@ -586,6 +901,133 @@ export namespace Components {
       * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
      */
     "variances": string;
+  }
+  interface BnChartTimeRenderer {
+    /**
+      * @default AxisLabelsMode.SMART
+     */
+    "axisLabelsMode": AxisLabelsMode;
+    /**
+      * @default ChartMode.BAR
+     */
+    "chartMode": ChartMode;
+    "chartTitle"?: string;
+    /**
+      * @default 0
+     */
+    "containerWidth": number;
+    /**
+      * @default { percent: 2, decimal: 1 }
+     */
+    "dataFormatDigits": DataFormatDigits;
+    /**
+      * Bumped by `bn-chart-time` when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion": number;
+    /**
+      * @default DateDistance.AUTO
+     */
+    "dateInterval": DateDistance;
+    /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default ""
+     */
+    "filter": string;
+    /**
+      * @default false
+     */
+    "hideAxisLabels": boolean;
+    /**
+      * @default new Map()
+     */
+    "i18n": Map<string, string>;
+    /**
+      * @default 28
+     */
+    "intervalSpanLimit": number;
+    /**
+      * @default -1
+     */
+    "leftSideOffsetForHorizontalSync": number;
+    /**
+      * @default AggregationLevel.CATEGORY
+     */
+    "level": AggregationLevel;
+    /**
+      * @default 0
+     */
+    "limit": number;
+    /**
+      * @default true
+     */
+    "lineFullWidth": boolean;
+    /**
+      * @default 28
+     */
+    "maxBars": number;
+    /**
+      * @default "_"
+     */
+    "measureScale": string;
+    /**
+      * @default ""
+     */
+    "measureUnit": string;
+    /**
+      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+     */
+    "order": Order;
+    /**
+      * @default { width: 0, height: 0 }
+     */
+    "parentDimensions": ParentDimensions;
+    /**
+      * @default 50
+     */
+    "pixelPerPercentage": number;
+    /**
+      * @default 2
+     */
+    "pixelPerUnit": number;
+    /**
+      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
+     */
+    "reportAutoScaling"?: (report: AutoScalingReport) => void;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default []
+     */
+    "scenarios": string[];
+    /**
+      * @default true
+     */
+    "showMeasureScale": boolean;
+    /**
+      * @default false
+     */
+    "showOverlayAvg": boolean;
+    /**
+      * @default false
+     */
+    "showOverlayMedian": boolean;
+    /**
+      * @default null
+     */
+    "stackConfig": StackConfigParsed1 | null;
+    "styles": TimeChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the shared alasql database).
+      * @default ""
+     */
+    "tableName": string;
+    /**
+      * @default []
+     */
+    "variances": string[];
   }
   interface BnComponentStyle {
     /**
@@ -1067,10 +1509,10 @@ export namespace Components {
   /**
    * Public-facing wrapper for the IBCS table component.
    * Accepts user-facing string/number props, validates them, and converts
-   * them into the typed internal format expected by `ibcs-table`. Handles
+   * them into the typed internal format expected by `bn-table-renderer`. Handles
    * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
    * The actual table rendering (header, body, drill-down rows) is delegated
-   * to the inner `ibcs-table` element.
+   * to the inner `bn-table-renderer` element.
    */
   interface BnTable {
     /**
@@ -1174,7 +1616,7 @@ export namespace Components {
      */
     "ruleset"?: string;
     /**
-      * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `ibcs-table` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.  **Only the width is fitted.** A table that renders taller than its constrained parent is clipped by the layout cell - bottom rows and the grand total simply disappear - so every render reports the measured overflow as a `WARN_overflow` item in `has-error`: an `error` when the size is pinned by `scale` (`"none"` or a factor), a `warning` in auto mode. The same item reports a width overflow, which only a fixed `scale` can produce. Setting `scale="auto"` does not fix a height overflow: give the component more space, reduce rows (`limit`), or set a smaller fixed `scale`.
+      * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `bn-table-renderer` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.  **Only the width is fitted.** A table that renders taller than its constrained parent is clipped by the layout cell - bottom rows and the grand total simply disappear - so every render reports the measured overflow as a `WARN_overflow` item in `has-error`: an `error` when the size is pinned by `scale` (`"none"` or a factor), a `warning` in auto mode. The same item reports a width overflow, which only a fixed `scale` can produce. Setting `scale="auto"` does not fix a height overflow: give the component more space, reduce rows (`limit`), or set a smaller fixed `scale`.
       * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling - always render at base font size <bn-table scale="none" ...></bn-table>
      */
     "scale"?: string;
@@ -1183,7 +1625,7 @@ export namespace Components {
      */
     "scenarios": string;
     /**
-      * Name of a registered component style (see `bn-component-style`). Forwarded to the inner `ibcs-table` so bar-chart colors and fonts follow the selected style as well.
+      * Name of a registered component style (see `bn-component-style`). Forwarded to the inner `bn-table-renderer` so bar-chart colors and fonts follow the selected style as well.
      */
     "selectedStyle"?: string;
     /**
@@ -1229,570 +1671,6 @@ export namespace Components {
     "variances": string;
   }
   /**
-   * Renders a text block from a template with dataset and translation
-   * placeholders.
-   * The `value` prop is markup with `${...}` placeholders. Placeholders are
-   * looked up, never evaluated. Resolved values are HTML-escaped and the
-   * result is sanitized before it is inserted. Supports auto-scaling to fit
-   * the parent container.
-   */
-  interface BnText {
-    /**
-      * Controls font-size scaling relative to the available parent space. Scaling considers both width and height - the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
-     */
-    "scale"?: string;
-    /**
-      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
-      * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
-     */
-    "value"?: string;
-  }
-  /**
-   * Composes an IBCS-compliant report title block.
-   * Renders business unit, scenario labels, measure names with units, a
-   * formatted date/time period, and sort-order indicators as a structured
-   * header. Delegates the actual layout to the inner `ibcs-title` element.
-   */
-  interface BnTitle {
-    /**
-      * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted <br /><br /> Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
-      * @default ""
-     */
-    "businessUnit": string;
-    /**
-      * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-     */
-    "dateEnd": string;
-    /**
-      * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
-      * @default "none"
-     */
-    "dateFormat": string;
-    /**
-      * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
-      * @default "none"
-     */
-    "dateLink": string;
-    /**
-      * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-     */
-    "dateStart": string;
-    /**
-      * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
-     */
-    "measures": string;
-    /**
-      * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
-      * @default "category"
-     */
-    "order": string;
-    /**
-      * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
-      * @default "asc"
-     */
-    "orderDirection": string;
-    /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
-     */
-    "ruleset"?: string;
-    /**
-      * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
-     */
-    "scenarios": string;
-    /**
-      * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
-     */
-    "variances": string;
-  }
-  /**
-   * Renders a hierarchical tree diagram with SVG edge connections.
-   * Nodes are provided as named slots; the `edges` prop defines parent-child
-   * relationships and optional arithmetic operators displayed between siblings.
-   * Layout is computed via CSS Grid with an SVG overlay for edge paths.
-   */
-  interface BnTree {
-    /**
-      * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
-      * @default "ltr"
-     */
-    "direction": LayoutDirection;
-    /**
-      * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
-      * @default "orthogonal"
-     */
-    "edgeStyle": EdgeStyleType;
-    /**
-      * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
-     */
-    "edges": string;
-    /**
-      * Lazily generates this tree's layout state: host box (context- and component-relative, CSS px), the grid region and node/edge counts. With `detail: "full"` every node (slotted content), edge path and operator is listed with its geometry.
-      * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
-     */
-    "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
-    /**
-      * I18n namespace inherited by this tree's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the tree renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
-     */
-    "i18nNamespace": string;
-    /**
-      * Spacing between hierarchy levels in pixels.
-      * @default 60
-     */
-    "levelSpacing": number;
-    /**
-      * Spacing between sibling nodes in pixels.
-      * @default 20
-     */
-    "nodeSpacing": number;
-    /**
-      * Show operator labels between sibling nodes.
-      * @default "true"
-     */
-    "showOperators": string;
-  }
-  /**
-   * Inner presentational element of `bn-chart-bubble`: owns the
-   * {@link BubbleChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface IbcsChartBubble {
-    /**
-      * Plot aspect ratio, width/height.
-      * @default 16 / 9
-     */
-    "aspect": number;
-    /**
-      * @default ""
-     */
-    "chartTitle": string;
-    /**
-      * Comparison scenario family, or `null` (10D overlay).
-      * @default null
-     */
-    "compareFamily": string | null;
-    /**
-      * @default 0
-     */
-    "containerWidth": number;
-    /**
-      * Bumped by the facade when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion": number;
-    /**
-      * The facade's error dispatcher - data warnings are synced through it (stable ids).
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default null
-     */
-    "facet": FacetConfig | null;
-    /**
-      * @default ""
-     */
-    "filter": string;
-    /**
-      * @default new Map()
-     */
-    "i18n": Map<string, string>;
-    "labels": LabelConfig;
-    "legend": LegendConfig;
-    /**
-      * @default 0
-     */
-    "limit": number;
-    /**
-      * @default "category"
-     */
-    "pointLevel": PointLevel;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default null
-     */
-    "seriesLevel": GroupLevel | null;
-    /**
-      * @default null
-     */
-    "share": ShareConfig | null;
-    "size": SizeConfig;
-    /**
-      * Scaling-group mode: area px² per data unit (0 = local sizing).
-      * @default 0
-     */
-    "sizeAreaPerUnit": number;
-    "styles": XYChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the scoped alasql database).
-      * @default ""
-     */
-    "tableName": string;
-    /**
-      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
-     */
-    "translator"?: (key: string, data?: object) => string;
-    "x": AxisConfig;
-    "y": AxisConfig;
-  }
-  /**
-   * Inner presentational element of `bn-chart-bullet`: owns the
-   * {@link BulletChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface IbcsChartBullet {
-    "actual": BulletMeasureConfig;
-    /**
-      * @default ""
-     */
-    "chartTitle": string;
-    /**
-      * @default 0
-     */
-    "containerWidth": number;
-    /**
-      * Bumped by the facade when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion": number;
-    /**
-      * The facade's error dispatcher - data warnings are synced through it (stable ids).
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default ""
-     */
-    "filter": string;
-    /**
-      * @default new Map()
-     */
-    "i18n": Map<string, string>;
-    "labels": BulletLabelConfig;
-    /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level": AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit": number;
-    /**
-      * @default "target"
-     */
-    "normalizeMode": "target" | "none";
-    "order": Order;
-    /**
-      * @default []
-     */
-    "ranges": number[];
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default true
-     */
-    "showVariances": boolean;
-    "styles": BulletChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the scoped alasql database).
-      * @default ""
-     */
-    "tableName": string;
-    /**
-      * @default null
-     */
-    "target": BulletMeasureConfig | null;
-    /**
-      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
-     */
-    "translator"?: (key: string, data?: object) => string;
-  }
-  /**
-   * Inner presentational element of `bn-chart-scatter`: owns the
-   * {@link ScatterChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface IbcsChartScatter {
-    /**
-      * Plot aspect ratio, width/height.
-      * @default 16 / 9
-     */
-    "aspect": number;
-    /**
-      * @default ""
-     */
-    "chartTitle": string;
-    /**
-      * @default 0
-     */
-    "containerWidth": number;
-    /**
-      * Bumped by the facade when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion": number;
-    /**
-      * The facade's error dispatcher - data warnings are synced through it (stable ids).
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default null
-     */
-    "facet": FacetConfig | null;
-    /**
-      * @default ""
-     */
-    "filter": string;
-    /**
-      * @default new Map()
-     */
-    "i18n": Map<string, string>;
-    /**
-      * @default null
-     */
-    "iso": IsoConfig | null;
-    "labels": LabelConfig;
-    "legend": LegendConfig;
-    /**
-      * @default 0
-     */
-    "limit": number;
-    /**
-      * @default "category"
-     */
-    "pointLevel": PointLevel;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default null
-     */
-    "seriesLevel": GroupLevel | null;
-    "styles": XYChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the scoped alasql database).
-      * @default ""
-     */
-    "tableName": string;
-    /**
-      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
-     */
-    "translator"?: (key: string, data?: object) => string;
-    "x": AxisConfig;
-    "y": AxisConfig;
-  }
-  interface IbcsChartStructure {
-    /**
-      * @default ""
-     */
-    "chartTitle": string;
-    /**
-      * @default { percent: 2, decimal: 1 }
-     */
-    "dataFormatDigits": DataFormatDigits;
-    /**
-      * Bumped by `bn-chart-structure` when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion": number;
-    /**
-      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default ""
-     */
-    "filter": string;
-    /**
-      * @default false
-     */
-    "hideCategories": boolean;
-    /**
-      * @default new Map()
-     */
-    "i18n": Map<string, string>;
-    /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level": AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit": number;
-    /**
-      * @default "_"
-     */
-    "measureScale": string;
-    /**
-      * @default ""
-     */
-    "measureUnit": string;
-    /**
-      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
-     */
-    "order": Order;
-    /**
-      * @default { width: 0, height: 0 }
-     */
-    "parentDimensions": ParentDimensions;
-    /**
-      * @default 50
-     */
-    "pixelPerPercentage": number;
-    /**
-      * @default 10
-     */
-    "pixelPerUnit": number;
-    /**
-      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
-     */
-    "reportAutoScaling"?: (report: AutoScalingReport) => void;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default []
-     */
-    "scenarios": string[];
-    /**
-      * @default true
-     */
-    "showMeasureScale": boolean;
-    /**
-      * @default null
-     */
-    "stackConfig": StackConfigParsed | null;
-    "styles": StructureChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the shared alasql database).
-      * @default ""
-     */
-    "tableName": string;
-    /**
-      * @default []
-     */
-    "variances": string[];
-  }
-  interface IbcsChartTime {
-    /**
-      * @default AxisLabelsMode.SMART
-     */
-    "axisLabelsMode": AxisLabelsMode;
-    /**
-      * @default ChartMode.BAR
-     */
-    "chartMode": ChartMode;
-    "chartTitle"?: string;
-    /**
-      * @default 0
-     */
-    "containerWidth": number;
-    /**
-      * @default { percent: 2, decimal: 1 }
-     */
-    "dataFormatDigits": DataFormatDigits;
-    /**
-      * Bumped by `bn-chart-time` when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion": number;
-    /**
-      * @default DateDistance.AUTO
-     */
-    "dateInterval": DateDistance;
-    /**
-      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default ""
-     */
-    "filter": string;
-    /**
-      * @default false
-     */
-    "hideAxisLabels": boolean;
-    /**
-      * @default new Map()
-     */
-    "i18n": Map<string, string>;
-    /**
-      * @default 28
-     */
-    "intervalSpanLimit": number;
-    /**
-      * @default -1
-     */
-    "leftSideOffsetForHorizontalSync": number;
-    /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level": AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit": number;
-    /**
-      * @default true
-     */
-    "lineFullWidth": boolean;
-    /**
-      * @default 28
-     */
-    "maxBars": number;
-    /**
-      * @default "_"
-     */
-    "measureScale": string;
-    /**
-      * @default ""
-     */
-    "measureUnit": string;
-    /**
-      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
-     */
-    "order": Order;
-    /**
-      * @default { width: 0, height: 0 }
-     */
-    "parentDimensions": ParentDimensions;
-    /**
-      * @default 50
-     */
-    "pixelPerPercentage": number;
-    /**
-      * @default 2
-     */
-    "pixelPerUnit": number;
-    /**
-      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
-     */
-    "reportAutoScaling"?: (report: AutoScalingReport) => void;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default []
-     */
-    "scenarios": string[];
-    /**
-      * @default true
-     */
-    "showMeasureScale": boolean;
-    /**
-      * @default false
-     */
-    "showOverlayAvg": boolean;
-    /**
-      * @default false
-     */
-    "showOverlayMedian": boolean;
-    /**
-      * @default null
-     */
-    "stackConfig": StackConfigParsed1 | null;
-    "styles": TimeChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the shared alasql database).
-      * @default ""
-     */
-    "tableName": string;
-    /**
-      * @default []
-     */
-    "variances": string[];
-  }
-  /**
    * Internal rendering engine for `bn-table`.
    * Receives pre-validated, typed props from the outer `bn-table` wrapper and
    * builds the IBCS-compliant HTML table - including header rows, scenario
@@ -1800,7 +1678,7 @@ export namespace Components {
    * partof drill-down rows, and grouped row sections. This component should
    * not be used directly; use `bn-table` instead.
    */
-  interface IbcsTable {
+  interface BnTableRenderer {
     /**
       * @default []
      */
@@ -1939,7 +1817,83 @@ export namespace Components {
      */
     "unitScaling": number;
   }
-  interface IbcsTitle {
+  /**
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
+   */
+  interface BnText {
+    /**
+      * Controls font-size scaling relative to the available parent space. Scaling considers both width and height - the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
+     */
+    "scale"?: string;
+    /**
+      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
+      * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
+     */
+    "value"?: string;
+  }
+  /**
+   * Composes an IBCS-compliant report title block.
+   * Renders business unit, scenario labels, measure names with units, a
+   * formatted date/time period, and sort-order indicators as a structured
+   * header. Delegates the actual layout to the inner `bn-title-renderer` element.
+   */
+  interface BnTitle {
+    /**
+      * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted <br /><br /> Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
+      * @default ""
+     */
+    "businessUnit": string;
+    /**
+      * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
+     */
+    "dateEnd": string;
+    /**
+      * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
+      * @default "none"
+     */
+    "dateFormat": string;
+    /**
+      * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
+      * @default "none"
+     */
+    "dateLink": string;
+    /**
+      * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
+     */
+    "dateStart": string;
+    /**
+      * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
+     */
+    "measures": string;
+    /**
+      * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
+      * @default "category"
+     */
+    "order": string;
+    /**
+      * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
+      * @default "asc"
+     */
+    "orderDirection": string;
+    /**
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+     */
+    "ruleset"?: string;
+    /**
+      * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
+     */
+    "scenarios": string;
+    /**
+      * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+     */
+    "variances": string;
+  }
+  interface BnTitleRenderer {
     /**
       * @default ""
      */
@@ -1976,6 +1930,52 @@ export namespace Components {
     "scenarios": string[];
     "timeperiod"?: TimePeriod;
   }
+  /**
+   * Renders a hierarchical tree diagram with SVG edge connections.
+   * Nodes are provided as named slots; the `edges` prop defines parent-child
+   * relationships and optional arithmetic operators displayed between siblings.
+   * Layout is computed via CSS Grid with an SVG overlay for edge paths.
+   */
+  interface BnTree {
+    /**
+      * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+      * @default "ltr"
+     */
+    "direction": LayoutDirection;
+    /**
+      * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+      * @default "orthogonal"
+     */
+    "edgeStyle": EdgeStyleType;
+    /**
+      * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+     */
+    "edges": string;
+    /**
+      * Lazily generates this tree's layout state: host box (context- and component-relative, CSS px), the grid region and node/edge counts. With `detail: "full"` every node (slotted content), edge path and operator is listed with its geometry.
+      * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
+     */
+    "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
+    /**
+      * I18n namespace inherited by this tree's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the tree renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+     */
+    "i18nNamespace": string;
+    /**
+      * Spacing between hierarchy levels in pixels.
+      * @default 60
+     */
+    "levelSpacing": number;
+    /**
+      * Spacing between sibling nodes in pixels.
+      * @default 20
+     */
+    "nodeSpacing": number;
+    /**
+      * Show operator labels between sibling nodes.
+      * @default "true"
+     */
+    "showOperators": string;
+  }
 }
 declare global {
   interface HTMLBnAssetElement extends Components.BnAsset, HTMLStencilElement {
@@ -2003,7 +2003,7 @@ declare global {
    * compose series hues with scenario treatments, an optional comparison
    * family overlays behind the primary set (10D), and `share` draws pie
    * sectors inside the bubbles (10E). The heavy SVG rendering is performed
-   * by the inner `ibcs-chart-bubble` element; this facade validates props,
+   * by the inner `bn-chart-bubble-renderer` element; this facade validates props,
    * resolves auto-detected metadata, and computes styles.
    */
   interface HTMLBnChartBubbleElement extends Components.BnChartBubble, HTMLStencilElement {
@@ -2011,6 +2011,17 @@ declare global {
   var HTMLBnChartBubbleElement: {
     prototype: HTMLBnChartBubbleElement;
     new(): HTMLBnChartBubbleElement;
+  };
+  /**
+   * Inner presentational element of `bn-chart-bubble`: owns the
+   * {@link BubbleChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface HTMLBnChartBubbleRendererElement extends Components.BnChartBubbleRenderer, HTMLStencilElement {
+  }
+  var HTMLBnChartBubbleRendererElement: {
+    prototype: HTMLBnChartBubbleRendererElement;
+    new(): HTMLBnChartBubbleRendererElement;
   };
   /**
    * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
@@ -2023,7 +2034,7 @@ declare global {
    * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
    * gray bands). Actual and target scenarios are auto-detected from the
    * dataset meta when not set. The heavy SVG rendering is performed by the
-   * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+   * inner `bn-chart-bullet-renderer` element; this facade validates props, resolves
    * auto-detected metadata, and computes styles.
    */
   interface HTMLBnChartBulletElement extends Components.BnChartBullet, HTMLStencilElement {
@@ -2033,11 +2044,22 @@ declare global {
     new(): HTMLBnChartBulletElement;
   };
   /**
+   * Inner presentational element of `bn-chart-bullet`: owns the
+   * {@link BulletChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface HTMLBnChartBulletRendererElement extends Components.BnChartBulletRenderer, HTMLStencilElement {
+  }
+  var HTMLBnChartBulletRendererElement: {
+    prototype: HTMLBnChartBulletRendererElement;
+    new(): HTMLBnChartBulletRendererElement;
+  };
+  /**
    * SVG scattergram following IBCS template C09.
    * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
    * with series hues, selective labels, highlight bands, and hyperbolic
    * iso-lines (`x·y = k`). The heavy SVG rendering is performed by the inner
-   * `ibcs-chart-scatter` element; this facade validates props, resolves
+   * `bn-chart-scatter-renderer` element; this facade validates props, resolves
    * auto-detected metadata, and computes styles.
    */
   interface HTMLBnChartScatterElement extends Components.BnChartScatter, HTMLStencilElement {
@@ -2047,12 +2069,23 @@ declare global {
     new(): HTMLBnChartScatterElement;
   };
   /**
+   * Inner presentational element of `bn-chart-scatter`: owns the
+   * {@link ScatterChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface HTMLBnChartScatterRendererElement extends Components.BnChartScatterRenderer, HTMLStencilElement {
+  }
+  var HTMLBnChartScatterRendererElement: {
+    prototype: HTMLBnChartScatterRendererElement;
+    new(): HTMLBnChartScatterRendererElement;
+  };
+  /**
    * SVG structure (categorical) bar chart following IBCS standards.
    * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
    * charts grouped by category, with up to four scenario layers, optional
    * variance sub-charts, stacking, and proportional auto-scaling (height-
    * based). The heavy SVG rendering is performed by the inner
-   * `ibcs-chart-structure` element; this outer component validates props,
+   * `bn-chart-structure-renderer` element; this outer component validates props,
    * resolves auto-detected metadata, and computes styles.
    */
   interface HTMLBnChartStructureElement extends Components.BnChartStructure, HTMLStencilElement {
@@ -2061,13 +2094,19 @@ declare global {
     prototype: HTMLBnChartStructureElement;
     new(): HTMLBnChartStructureElement;
   };
+  interface HTMLBnChartStructureRendererElement extends Components.BnChartStructureRenderer, HTMLStencilElement {
+  }
+  var HTMLBnChartStructureRendererElement: {
+    prototype: HTMLBnChartStructureRendererElement;
+    new(): HTMLBnChartStructureRendererElement;
+  };
   /**
    * SVG time-series chart following IBCS standards.
    * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
    * line charts with up to four scenario layers, optional variance sub-charts,
    * stacking, and proportional auto-scaling. Date normalization and interval
    * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-   * is performed by the inner `ibcs-chart-time` element; this outer component
+   * is performed by the inner `bn-chart-time-renderer` element; this outer component
    * validates props, resolves auto-detected metadata, and computes styles.
    */
   interface HTMLBnChartTimeElement extends Components.BnChartTime, HTMLStencilElement {
@@ -2075,6 +2114,12 @@ declare global {
   var HTMLBnChartTimeElement: {
     prototype: HTMLBnChartTimeElement;
     new(): HTMLBnChartTimeElement;
+  };
+  interface HTMLBnChartTimeRendererElement extends Components.BnChartTimeRenderer, HTMLStencilElement {
+  }
+  var HTMLBnChartTimeRendererElement: {
+    prototype: HTMLBnChartTimeRendererElement;
+    new(): HTMLBnChartTimeRendererElement;
   };
   interface HTMLBnComponentStyleElement extends Components.BnComponentStyle, HTMLStencilElement {
   }
@@ -2203,16 +2248,30 @@ declare global {
   /**
    * Public-facing wrapper for the IBCS table component.
    * Accepts user-facing string/number props, validates them, and converts
-   * them into the typed internal format expected by `ibcs-table`. Handles
+   * them into the typed internal format expected by `bn-table-renderer`. Handles
    * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
    * The actual table rendering (header, body, drill-down rows) is delegated
-   * to the inner `ibcs-table` element.
+   * to the inner `bn-table-renderer` element.
    */
   interface HTMLBnTableElement extends Components.BnTable, HTMLStencilElement {
   }
   var HTMLBnTableElement: {
     prototype: HTMLBnTableElement;
     new(): HTMLBnTableElement;
+  };
+  /**
+   * Internal rendering engine for `bn-table`.
+   * Receives pre-validated, typed props from the outer `bn-table` wrapper and
+   * builds the IBCS-compliant HTML table - including header rows, scenario
+   * columns, variance columns (with optional inline bar/pin charts), thereof/
+   * partof drill-down rows, and grouped row sections. This component should
+   * not be used directly; use `bn-table` instead.
+   */
+  interface HTMLBnTableRendererElement extends Components.BnTableRenderer, HTMLStencilElement {
+  }
+  var HTMLBnTableRendererElement: {
+    prototype: HTMLBnTableRendererElement;
+    new(): HTMLBnTableRendererElement;
   };
   /**
    * Renders a text block from a template with dataset and translation
@@ -2232,13 +2291,19 @@ declare global {
    * Composes an IBCS-compliant report title block.
    * Renders business unit, scenario labels, measure names with units, a
    * formatted date/time period, and sort-order indicators as a structured
-   * header. Delegates the actual layout to the inner `ibcs-title` element.
+   * header. Delegates the actual layout to the inner `bn-title-renderer` element.
    */
   interface HTMLBnTitleElement extends Components.BnTitle, HTMLStencilElement {
   }
   var HTMLBnTitleElement: {
     prototype: HTMLBnTitleElement;
     new(): HTMLBnTitleElement;
+  };
+  interface HTMLBnTitleRendererElement extends Components.BnTitleRenderer, HTMLStencilElement {
+  }
+  var HTMLBnTitleRendererElement: {
+    prototype: HTMLBnTitleRendererElement;
+    new(): HTMLBnTitleRendererElement;
   };
   /**
    * Renders a hierarchical tree diagram with SVG edge connections.
@@ -2252,80 +2317,20 @@ declare global {
     prototype: HTMLBnTreeElement;
     new(): HTMLBnTreeElement;
   };
-  /**
-   * Inner presentational element of `bn-chart-bubble`: owns the
-   * {@link BubbleChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface HTMLIbcsChartBubbleElement extends Components.IbcsChartBubble, HTMLStencilElement {
-  }
-  var HTMLIbcsChartBubbleElement: {
-    prototype: HTMLIbcsChartBubbleElement;
-    new(): HTMLIbcsChartBubbleElement;
-  };
-  /**
-   * Inner presentational element of `bn-chart-bullet`: owns the
-   * {@link BulletChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface HTMLIbcsChartBulletElement extends Components.IbcsChartBullet, HTMLStencilElement {
-  }
-  var HTMLIbcsChartBulletElement: {
-    prototype: HTMLIbcsChartBulletElement;
-    new(): HTMLIbcsChartBulletElement;
-  };
-  /**
-   * Inner presentational element of `bn-chart-scatter`: owns the
-   * {@link ScatterChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface HTMLIbcsChartScatterElement extends Components.IbcsChartScatter, HTMLStencilElement {
-  }
-  var HTMLIbcsChartScatterElement: {
-    prototype: HTMLIbcsChartScatterElement;
-    new(): HTMLIbcsChartScatterElement;
-  };
-  interface HTMLIbcsChartStructureElement extends Components.IbcsChartStructure, HTMLStencilElement {
-  }
-  var HTMLIbcsChartStructureElement: {
-    prototype: HTMLIbcsChartStructureElement;
-    new(): HTMLIbcsChartStructureElement;
-  };
-  interface HTMLIbcsChartTimeElement extends Components.IbcsChartTime, HTMLStencilElement {
-  }
-  var HTMLIbcsChartTimeElement: {
-    prototype: HTMLIbcsChartTimeElement;
-    new(): HTMLIbcsChartTimeElement;
-  };
-  /**
-   * Internal rendering engine for `bn-table`.
-   * Receives pre-validated, typed props from the outer `bn-table` wrapper and
-   * builds the IBCS-compliant HTML table - including header rows, scenario
-   * columns, variance columns (with optional inline bar/pin charts), thereof/
-   * partof drill-down rows, and grouped row sections. This component should
-   * not be used directly; use `bn-table` instead.
-   */
-  interface HTMLIbcsTableElement extends Components.IbcsTable, HTMLStencilElement {
-  }
-  var HTMLIbcsTableElement: {
-    prototype: HTMLIbcsTableElement;
-    new(): HTMLIbcsTableElement;
-  };
-  interface HTMLIbcsTitleElement extends Components.IbcsTitle, HTMLStencilElement {
-  }
-  var HTMLIbcsTitleElement: {
-    prototype: HTMLIbcsTitleElement;
-    new(): HTMLIbcsTitleElement;
-  };
   interface HTMLElementTagNameMap {
     "bn-asset": HTMLBnAssetElement;
     "bn-body": HTMLBnBodyElement;
     "bn-card": HTMLBnCardElement;
     "bn-chart-bubble": HTMLBnChartBubbleElement;
+    "bn-chart-bubble-renderer": HTMLBnChartBubbleRendererElement;
     "bn-chart-bullet": HTMLBnChartBulletElement;
+    "bn-chart-bullet-renderer": HTMLBnChartBulletRendererElement;
     "bn-chart-scatter": HTMLBnChartScatterElement;
+    "bn-chart-scatter-renderer": HTMLBnChartScatterRendererElement;
     "bn-chart-structure": HTMLBnChartStructureElement;
+    "bn-chart-structure-renderer": HTMLBnChartStructureRendererElement;
     "bn-chart-time": HTMLBnChartTimeElement;
+    "bn-chart-time-renderer": HTMLBnChartTimeRendererElement;
     "bn-component-style": HTMLBnComponentStyleElement;
     "bn-context": HTMLBnContextElement;
     "bn-dataset": HTMLBnDatasetElement;
@@ -2341,16 +2346,11 @@ declare global {
     "bn-ruleset": HTMLBnRulesetElement;
     "bn-scaling-group": HTMLBnScalingGroupElement;
     "bn-table": HTMLBnTableElement;
+    "bn-table-renderer": HTMLBnTableRendererElement;
     "bn-text": HTMLBnTextElement;
     "bn-title": HTMLBnTitleElement;
+    "bn-title-renderer": HTMLBnTitleRendererElement;
     "bn-tree": HTMLBnTreeElement;
-    "ibcs-chart-bubble": HTMLIbcsChartBubbleElement;
-    "ibcs-chart-bullet": HTMLIbcsChartBulletElement;
-    "ibcs-chart-scatter": HTMLIbcsChartScatterElement;
-    "ibcs-chart-structure": HTMLIbcsChartStructureElement;
-    "ibcs-chart-time": HTMLIbcsChartTimeElement;
-    "ibcs-table": HTMLIbcsTableElement;
-    "ibcs-title": HTMLIbcsTitleElement;
   }
 }
 declare namespace LocalJSX {
@@ -2373,7 +2373,7 @@ declare namespace LocalJSX {
    * compose series hues with scenario treatments, an optional comparison
    * family overlays behind the primary set (10D), and `share` draws pie
    * sectors inside the bubbles (10E). The heavy SVG rendering is performed
-   * by the inner `ibcs-chart-bubble` element; this facade validates props,
+   * by the inner `bn-chart-bubble-renderer` element; this facade validates props,
    * resolves auto-detected metadata, and computes styles.
    */
   interface BnChartBubble {
@@ -2454,6 +2454,89 @@ declare namespace LocalJSX {
     "y": string;
   }
   /**
+   * Inner presentational element of `bn-chart-bubble`: owns the
+   * {@link BubbleChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface BnChartBubbleRenderer {
+    /**
+      * Plot aspect ratio, width/height.
+      * @default 16 / 9
+     */
+    "aspect"?: number;
+    /**
+      * @default ""
+     */
+    "chartTitle"?: string;
+    /**
+      * Comparison scenario family, or `null` (10D overlay).
+      * @default null
+     */
+    "compareFamily"?: string | null;
+    /**
+      * @default 0
+     */
+    "containerWidth"?: number;
+    /**
+      * Bumped by the facade when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion"?: number;
+    /**
+      * The facade's error dispatcher - data warnings are synced through it (stable ids).
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default null
+     */
+    "facet"?: FacetConfig | null;
+    /**
+      * @default ""
+     */
+    "filter"?: string;
+    /**
+      * @default new Map()
+     */
+    "i18n"?: Map<string, string>;
+    "labels": LabelConfig;
+    "legend": LegendConfig;
+    /**
+      * @default 0
+     */
+    "limit"?: number;
+    /**
+      * @default "category"
+     */
+    "pointLevel"?: PointLevel;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default null
+     */
+    "seriesLevel"?: GroupLevel | null;
+    /**
+      * @default null
+     */
+    "share"?: ShareConfig | null;
+    "size": SizeConfig;
+    /**
+      * Scaling-group mode: area px² per data unit (0 = local sizing).
+      * @default 0
+     */
+    "sizeAreaPerUnit"?: number;
+    "styles"?: XYChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the scoped alasql database).
+      * @default ""
+     */
+    "tableName"?: string;
+    /**
+      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+     */
+    "translator"?: (key: string, data?: object) => string;
+    "x": AxisConfig;
+    "y": AxisConfig;
+  }
+  /**
    * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
    * a target marker.
    * Subscribes to a dataset (via `withDataset`) and renders in the IBCS
@@ -2464,7 +2547,7 @@ declare namespace LocalJSX {
    * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
    * gray bands). Actual and target scenarios are auto-detected from the
    * dataset meta when not set. The heavy SVG rendering is performed by the
-   * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+   * inner `bn-chart-bullet-renderer` element; this facade validates props, resolves
    * auto-detected metadata, and computes styles.
    */
   interface BnChartBullet {
@@ -2538,11 +2621,81 @@ declare namespace LocalJSX {
     "variances"?: string;
   }
   /**
+   * Inner presentational element of `bn-chart-bullet`: owns the
+   * {@link BulletChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface BnChartBulletRenderer {
+    "actual": BulletMeasureConfig;
+    /**
+      * @default ""
+     */
+    "chartTitle"?: string;
+    /**
+      * @default 0
+     */
+    "containerWidth"?: number;
+    /**
+      * Bumped by the facade when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion"?: number;
+    /**
+      * The facade's error dispatcher - data warnings are synced through it (stable ids).
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default ""
+     */
+    "filter"?: string;
+    /**
+      * @default new Map()
+     */
+    "i18n"?: Map<string, string>;
+    "labels": BulletLabelConfig;
+    /**
+      * @default AggregationLevel.CATEGORY
+     */
+    "level"?: AggregationLevel;
+    /**
+      * @default 0
+     */
+    "limit"?: number;
+    /**
+      * @default "target"
+     */
+    "normalizeMode"?: "target" | "none";
+    "order": Order;
+    /**
+      * @default []
+     */
+    "ranges"?: number[];
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default true
+     */
+    "showVariances"?: boolean;
+    "styles"?: BulletChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the scoped alasql database).
+      * @default ""
+     */
+    "tableName"?: string;
+    /**
+      * @default null
+     */
+    "target"?: BulletMeasureConfig | null;
+    /**
+      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+     */
+    "translator"?: (key: string, data?: object) => string;
+  }
+  /**
    * SVG scattergram following IBCS template C09.
    * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
    * with series hues, selective labels, highlight bands, and hyperbolic
    * iso-lines (`x·y = k`). The heavy SVG rendering is performed by the inner
-   * `ibcs-chart-scatter` element; this facade validates props, resolves
+   * `bn-chart-scatter-renderer` element; this facade validates props, resolves
    * auto-detected metadata, and computes styles.
    */
   interface BnChartScatter {
@@ -2614,12 +2767,84 @@ declare namespace LocalJSX {
     "y": string;
   }
   /**
+   * Inner presentational element of `bn-chart-scatter`: owns the
+   * {@link ScatterChart} orchestrator and emits its SVG string. All props
+   * arrive validated and parsed from the facade.
+   */
+  interface BnChartScatterRenderer {
+    /**
+      * Plot aspect ratio, width/height.
+      * @default 16 / 9
+     */
+    "aspect"?: number;
+    /**
+      * @default ""
+     */
+    "chartTitle"?: string;
+    /**
+      * @default 0
+     */
+    "containerWidth"?: number;
+    /**
+      * Bumped by the facade when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion"?: number;
+    /**
+      * The facade's error dispatcher - data warnings are synced through it (stable ids).
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default null
+     */
+    "facet"?: FacetConfig | null;
+    /**
+      * @default ""
+     */
+    "filter"?: string;
+    /**
+      * @default new Map()
+     */
+    "i18n"?: Map<string, string>;
+    /**
+      * @default null
+     */
+    "iso"?: IsoConfig | null;
+    "labels": LabelConfig;
+    "legend": LegendConfig;
+    /**
+      * @default 0
+     */
+    "limit"?: number;
+    /**
+      * @default "category"
+     */
+    "pointLevel"?: PointLevel;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default null
+     */
+    "seriesLevel"?: GroupLevel | null;
+    "styles"?: XYChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the scoped alasql database).
+      * @default ""
+     */
+    "tableName"?: string;
+    /**
+      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
+     */
+    "translator"?: (key: string, data?: object) => string;
+    "x": AxisConfig;
+    "y": AxisConfig;
+  }
+  /**
    * SVG structure (categorical) bar chart following IBCS standards.
    * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
    * charts grouped by category, with up to four scenario layers, optional
    * variance sub-charts, stacking, and proportional auto-scaling (height-
    * based). The heavy SVG rendering is performed by the inner
-   * `ibcs-chart-structure` element; this outer component validates props,
+   * `bn-chart-structure-renderer` element; this outer component validates props,
    * resolves auto-detected metadata, and computes styles.
    */
   interface BnChartStructure {
@@ -2721,13 +2946,103 @@ declare namespace LocalJSX {
      */
     "variances": string;
   }
+  interface BnChartStructureRenderer {
+    /**
+      * @default ""
+     */
+    "chartTitle"?: string;
+    /**
+      * @default { percent: 2, decimal: 1 }
+     */
+    "dataFormatDigits"?: DataFormatDigits;
+    /**
+      * Bumped by `bn-chart-structure` when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion"?: number;
+    /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default ""
+     */
+    "filter"?: string;
+    /**
+      * @default false
+     */
+    "hideCategories"?: boolean;
+    /**
+      * @default new Map()
+     */
+    "i18n"?: Map<string, string>;
+    /**
+      * @default AggregationLevel.CATEGORY
+     */
+    "level"?: AggregationLevel;
+    /**
+      * @default 0
+     */
+    "limit"?: number;
+    /**
+      * @default "_"
+     */
+    "measureScale"?: string;
+    /**
+      * @default ""
+     */
+    "measureUnit"?: string;
+    /**
+      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+     */
+    "order"?: Order;
+    /**
+      * @default { width: 0, height: 0 }
+     */
+    "parentDimensions"?: ParentDimensions;
+    /**
+      * @default 50
+     */
+    "pixelPerPercentage"?: number;
+    /**
+      * @default 10
+     */
+    "pixelPerUnit"?: number;
+    /**
+      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
+     */
+    "reportAutoScaling"?: (report: AutoScalingReport) => void;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default []
+     */
+    "scenarios"?: string[];
+    /**
+      * @default true
+     */
+    "showMeasureScale"?: boolean;
+    /**
+      * @default null
+     */
+    "stackConfig"?: StackConfigParsed | null;
+    "styles"?: StructureChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the shared alasql database).
+      * @default ""
+     */
+    "tableName"?: string;
+    /**
+      * @default []
+     */
+    "variances"?: string[];
+  }
   /**
    * SVG time-series chart following IBCS standards.
    * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
    * line charts with up to four scenario layers, optional variance sub-charts,
    * stacking, and proportional auto-scaling. Date normalization and interval
    * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-   * is performed by the inner `ibcs-chart-time` element; this outer component
+   * is performed by the inner `bn-chart-time-renderer` element; this outer component
    * validates props, resolves auto-detected metadata, and computes styles.
    */
   interface BnChartTime {
@@ -2853,6 +3168,133 @@ declare namespace LocalJSX {
       * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
      */
     "variances": string;
+  }
+  interface BnChartTimeRenderer {
+    /**
+      * @default AxisLabelsMode.SMART
+     */
+    "axisLabelsMode"?: AxisLabelsMode;
+    /**
+      * @default ChartMode.BAR
+     */
+    "chartMode"?: ChartMode;
+    "chartTitle"?: string;
+    /**
+      * @default 0
+     */
+    "containerWidth"?: number;
+    /**
+      * @default { percent: 2, decimal: 1 }
+     */
+    "dataFormatDigits"?: DataFormatDigits;
+    /**
+      * Bumped by `bn-chart-time` when the dataset changes; triggers re-render.
+      * @default 0
+     */
+    "dataVersion"?: number;
+    /**
+      * @default DateDistance.AUTO
+     */
+    "dateInterval"?: DateDistance;
+    /**
+      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
+     */
+    "errors"?: ErrorDispatcher;
+    /**
+      * @default ""
+     */
+    "filter"?: string;
+    /**
+      * @default false
+     */
+    "hideAxisLabels"?: boolean;
+    /**
+      * @default new Map()
+     */
+    "i18n"?: Map<string, string>;
+    /**
+      * @default 28
+     */
+    "intervalSpanLimit"?: number;
+    /**
+      * @default -1
+     */
+    "leftSideOffsetForHorizontalSync"?: number;
+    /**
+      * @default AggregationLevel.CATEGORY
+     */
+    "level"?: AggregationLevel;
+    /**
+      * @default 0
+     */
+    "limit"?: number;
+    /**
+      * @default true
+     */
+    "lineFullWidth"?: boolean;
+    /**
+      * @default 28
+     */
+    "maxBars"?: number;
+    /**
+      * @default "_"
+     */
+    "measureScale"?: string;
+    /**
+      * @default ""
+     */
+    "measureUnit"?: string;
+    /**
+      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
+     */
+    "order"?: Order;
+    /**
+      * @default { width: 0, height: 0 }
+     */
+    "parentDimensions"?: ParentDimensions;
+    /**
+      * @default 50
+     */
+    "pixelPerPercentage"?: number;
+    /**
+      * @default 2
+     */
+    "pixelPerUnit"?: number;
+    /**
+      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
+     */
+    "reportAutoScaling"?: (report: AutoScalingReport) => void;
+    "ruleSetConfig"?: RuleSetConfig;
+    /**
+      * @default []
+     */
+    "scenarios"?: string[];
+    /**
+      * @default true
+     */
+    "showMeasureScale"?: boolean;
+    /**
+      * @default false
+     */
+    "showOverlayAvg"?: boolean;
+    /**
+      * @default false
+     */
+    "showOverlayMedian"?: boolean;
+    /**
+      * @default null
+     */
+    "stackConfig"?: StackConfigParsed1 | null;
+    "styles"?: TimeChartStyle | undefined;
+    /**
+      * Name of the dataset (table or view in the shared alasql database).
+      * @default ""
+     */
+    "tableName"?: string;
+    /**
+      * @default []
+     */
+    "variances"?: string[];
   }
   interface BnComponentStyle {
     /**
@@ -3324,10 +3766,10 @@ declare namespace LocalJSX {
   /**
    * Public-facing wrapper for the IBCS table component.
    * Accepts user-facing string/number props, validates them, and converts
-   * them into the typed internal format expected by `ibcs-table`. Handles
+   * them into the typed internal format expected by `bn-table-renderer`. Handles
    * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
    * The actual table rendering (header, body, drill-down rows) is delegated
-   * to the inner `ibcs-table` element.
+   * to the inner `bn-table-renderer` element.
    */
   interface BnTable {
     /**
@@ -3426,7 +3868,7 @@ declare namespace LocalJSX {
      */
     "ruleset"?: string;
     /**
-      * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `ibcs-table` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.  **Only the width is fitted.** A table that renders taller than its constrained parent is clipped by the layout cell - bottom rows and the grand total simply disappear - so every render reports the measured overflow as a `WARN_overflow` item in `has-error`: an `error` when the size is pinned by `scale` (`"none"` or a factor), a `warning` in auto mode. The same item reports a width overflow, which only a fixed `scale` can produce. Setting `scale="auto"` does not fix a height overflow: give the component more space, reduce rows (`limit`), or set a smaller fixed `scale`.
+      * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `bn-table-renderer` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `ERR_scale` warning.  **Only the width is fitted.** A table that renders taller than its constrained parent is clipped by the layout cell - bottom rows and the grand total simply disappear - so every render reports the measured overflow as a `WARN_overflow` item in `has-error`: an `error` when the size is pinned by `scale` (`"none"` or a factor), a `warning` in auto mode. The same item reports a width overflow, which only a fixed `scale` can produce. Setting `scale="auto"` does not fix a height overflow: give the component more space, reduce rows (`limit`), or set a smaller fixed `scale`.
       * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling - always render at base font size <bn-table scale="none" ...></bn-table>
      */
     "scale"?: string;
@@ -3435,7 +3877,7 @@ declare namespace LocalJSX {
      */
     "scenarios"?: string;
     /**
-      * Name of a registered component style (see `bn-component-style`). Forwarded to the inner `ibcs-table` so bar-chart colors and fonts follow the selected style as well.
+      * Name of a registered component style (see `bn-component-style`). Forwarded to the inner `bn-table-renderer` so bar-chart colors and fonts follow the selected style as well.
      */
     "selectedStyle"?: string;
     /**
@@ -3481,565 +3923,6 @@ declare namespace LocalJSX {
     "variances"?: string;
   }
   /**
-   * Renders a text block from a template with dataset and translation
-   * placeholders.
-   * The `value` prop is markup with `${...}` placeholders. Placeholders are
-   * looked up, never evaluated. Resolved values are HTML-escaped and the
-   * result is sanitized before it is inserted. Supports auto-scaling to fit
-   * the parent container.
-   */
-  interface BnText {
-    /**
-      * Controls font-size scaling relative to the available parent space. Scaling considers both width and height - the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
-     */
-    "scale"?: string;
-    /**
-      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
-      * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
-     */
-    "value"?: string;
-  }
-  /**
-   * Composes an IBCS-compliant report title block.
-   * Renders business unit, scenario labels, measure names with units, a
-   * formatted date/time period, and sort-order indicators as a structured
-   * header. Delegates the actual layout to the inner `ibcs-title` element.
-   */
-  interface BnTitle {
-    /**
-      * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted <br /><br /> Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
-      * @default ""
-     */
-    "businessUnit"?: string;
-    /**
-      * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-     */
-    "dateEnd"?: string;
-    /**
-      * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
-      * @default "none"
-     */
-    "dateFormat"?: string;
-    /**
-      * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
-      * @default "none"
-     */
-    "dateLink"?: string;
-    /**
-      * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
-     */
-    "dateStart"?: string;
-    /**
-      * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
-     */
-    "measures"?: string;
-    /**
-      * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
-      * @default "category"
-     */
-    "order"?: string;
-    /**
-      * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
-      * @default "asc"
-     */
-    "orderDirection"?: string;
-    /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
-     */
-    "ruleset"?: string;
-    /**
-      * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
-     */
-    "scenarios"?: string;
-    /**
-      * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
-     */
-    "variances"?: string;
-  }
-  /**
-   * Renders a hierarchical tree diagram with SVG edge connections.
-   * Nodes are provided as named slots; the `edges` prop defines parent-child
-   * relationships and optional arithmetic operators displayed between siblings.
-   * Layout is computed via CSS Grid with an SVG overlay for edge paths.
-   */
-  interface BnTree {
-    /**
-      * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
-      * @default "ltr"
-     */
-    "direction"?: LayoutDirection;
-    /**
-      * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
-      * @default "orthogonal"
-     */
-    "edgeStyle"?: EdgeStyleType;
-    /**
-      * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
-     */
-    "edges": string;
-    /**
-      * I18n namespace inherited by this tree's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the tree renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
-     */
-    "i18nNamespace"?: string;
-    /**
-      * Spacing between hierarchy levels in pixels.
-      * @default 60
-     */
-    "levelSpacing"?: number;
-    /**
-      * Spacing between sibling nodes in pixels.
-      * @default 20
-     */
-    "nodeSpacing"?: number;
-    /**
-      * Show operator labels between sibling nodes.
-      * @default "true"
-     */
-    "showOperators"?: string;
-  }
-  /**
-   * Inner presentational element of `bn-chart-bubble`: owns the
-   * {@link BubbleChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface IbcsChartBubble {
-    /**
-      * Plot aspect ratio, width/height.
-      * @default 16 / 9
-     */
-    "aspect"?: number;
-    /**
-      * @default ""
-     */
-    "chartTitle"?: string;
-    /**
-      * Comparison scenario family, or `null` (10D overlay).
-      * @default null
-     */
-    "compareFamily"?: string | null;
-    /**
-      * @default 0
-     */
-    "containerWidth"?: number;
-    /**
-      * Bumped by the facade when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion"?: number;
-    /**
-      * The facade's error dispatcher - data warnings are synced through it (stable ids).
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default null
-     */
-    "facet"?: FacetConfig | null;
-    /**
-      * @default ""
-     */
-    "filter"?: string;
-    /**
-      * @default new Map()
-     */
-    "i18n"?: Map<string, string>;
-    "labels": LabelConfig;
-    "legend": LegendConfig;
-    /**
-      * @default 0
-     */
-    "limit"?: number;
-    /**
-      * @default "category"
-     */
-    "pointLevel"?: PointLevel;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default null
-     */
-    "seriesLevel"?: GroupLevel | null;
-    /**
-      * @default null
-     */
-    "share"?: ShareConfig | null;
-    "size": SizeConfig;
-    /**
-      * Scaling-group mode: area px² per data unit (0 = local sizing).
-      * @default 0
-     */
-    "sizeAreaPerUnit"?: number;
-    "styles"?: XYChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the scoped alasql database).
-      * @default ""
-     */
-    "tableName"?: string;
-    /**
-      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
-     */
-    "translator"?: (key: string, data?: object) => string;
-    "x": AxisConfig;
-    "y": AxisConfig;
-  }
-  /**
-   * Inner presentational element of `bn-chart-bullet`: owns the
-   * {@link BulletChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface IbcsChartBullet {
-    "actual": BulletMeasureConfig;
-    /**
-      * @default ""
-     */
-    "chartTitle"?: string;
-    /**
-      * @default 0
-     */
-    "containerWidth"?: number;
-    /**
-      * Bumped by the facade when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion"?: number;
-    /**
-      * The facade's error dispatcher - data warnings are synced through it (stable ids).
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default ""
-     */
-    "filter"?: string;
-    /**
-      * @default new Map()
-     */
-    "i18n"?: Map<string, string>;
-    "labels": BulletLabelConfig;
-    /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level"?: AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit"?: number;
-    /**
-      * @default "target"
-     */
-    "normalizeMode"?: "target" | "none";
-    "order": Order;
-    /**
-      * @default []
-     */
-    "ranges"?: number[];
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default true
-     */
-    "showVariances"?: boolean;
-    "styles"?: BulletChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the scoped alasql database).
-      * @default ""
-     */
-    "tableName"?: string;
-    /**
-      * @default null
-     */
-    "target"?: BulletMeasureConfig | null;
-    /**
-      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
-     */
-    "translator"?: (key: string, data?: object) => string;
-  }
-  /**
-   * Inner presentational element of `bn-chart-scatter`: owns the
-   * {@link ScatterChart} orchestrator and emits its SVG string. All props
-   * arrive validated and parsed from the facade.
-   */
-  interface IbcsChartScatter {
-    /**
-      * Plot aspect ratio, width/height.
-      * @default 16 / 9
-     */
-    "aspect"?: number;
-    /**
-      * @default ""
-     */
-    "chartTitle"?: string;
-    /**
-      * @default 0
-     */
-    "containerWidth"?: number;
-    /**
-      * Bumped by the facade when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion"?: number;
-    /**
-      * The facade's error dispatcher - data warnings are synced through it (stable ids).
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default null
-     */
-    "facet"?: FacetConfig | null;
-    /**
-      * @default ""
-     */
-    "filter"?: string;
-    /**
-      * @default new Map()
-     */
-    "i18n"?: Map<string, string>;
-    /**
-      * @default null
-     */
-    "iso"?: IsoConfig | null;
-    "labels": LabelConfig;
-    "legend": LegendConfig;
-    /**
-      * @default 0
-     */
-    "limit"?: number;
-    /**
-      * @default "category"
-     */
-    "pointLevel"?: PointLevel;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default null
-     */
-    "seriesLevel"?: GroupLevel | null;
-    "styles"?: XYChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the scoped alasql database).
-      * @default ""
-     */
-    "tableName"?: string;
-    /**
-      * Facade-bound translator for warning messages (resolves `.key` in the facade's namespace).
-     */
-    "translator"?: (key: string, data?: object) => string;
-    "x": AxisConfig;
-    "y": AxisConfig;
-  }
-  interface IbcsChartStructure {
-    /**
-      * @default ""
-     */
-    "chartTitle"?: string;
-    /**
-      * @default { percent: 2, decimal: 1 }
-     */
-    "dataFormatDigits"?: DataFormatDigits;
-    /**
-      * Bumped by `bn-chart-structure` when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion"?: number;
-    /**
-      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default ""
-     */
-    "filter"?: string;
-    /**
-      * @default false
-     */
-    "hideCategories"?: boolean;
-    /**
-      * @default new Map()
-     */
-    "i18n"?: Map<string, string>;
-    /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level"?: AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit"?: number;
-    /**
-      * @default "_"
-     */
-    "measureScale"?: string;
-    /**
-      * @default ""
-     */
-    "measureUnit"?: string;
-    /**
-      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
-     */
-    "order"?: Order;
-    /**
-      * @default { width: 0, height: 0 }
-     */
-    "parentDimensions"?: ParentDimensions;
-    /**
-      * @default 50
-     */
-    "pixelPerPercentage"?: number;
-    /**
-      * @default 10
-     */
-    "pixelPerUnit"?: number;
-    /**
-      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
-     */
-    "reportAutoScaling"?: (report: AutoScalingReport) => void;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default []
-     */
-    "scenarios"?: string[];
-    /**
-      * @default true
-     */
-    "showMeasureScale"?: boolean;
-    /**
-      * @default null
-     */
-    "stackConfig"?: StackConfigParsed | null;
-    "styles"?: StructureChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the shared alasql database).
-      * @default ""
-     */
-    "tableName"?: string;
-    /**
-      * @default []
-     */
-    "variances"?: string[];
-  }
-  interface IbcsChartTime {
-    /**
-      * @default AxisLabelsMode.SMART
-     */
-    "axisLabelsMode"?: AxisLabelsMode;
-    /**
-      * @default ChartMode.BAR
-     */
-    "chartMode"?: ChartMode;
-    "chartTitle"?: string;
-    /**
-      * @default 0
-     */
-    "containerWidth"?: number;
-    /**
-      * @default { percent: 2, decimal: 1 }
-     */
-    "dataFormatDigits"?: DataFormatDigits;
-    /**
-      * Bumped by `bn-chart-time` when the dataset changes; triggers re-render.
-      * @default 0
-     */
-    "dataVersion"?: number;
-    /**
-      * @default DateDistance.AUTO
-     */
-    "dateInterval"?: DateDistance;
-    /**
-      * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
-     */
-    "errors"?: ErrorDispatcher;
-    /**
-      * @default ""
-     */
-    "filter"?: string;
-    /**
-      * @default false
-     */
-    "hideAxisLabels"?: boolean;
-    /**
-      * @default new Map()
-     */
-    "i18n"?: Map<string, string>;
-    /**
-      * @default 28
-     */
-    "intervalSpanLimit"?: number;
-    /**
-      * @default -1
-     */
-    "leftSideOffsetForHorizontalSync"?: number;
-    /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level"?: AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit"?: number;
-    /**
-      * @default true
-     */
-    "lineFullWidth"?: boolean;
-    /**
-      * @default 28
-     */
-    "maxBars"?: number;
-    /**
-      * @default "_"
-     */
-    "measureScale"?: string;
-    /**
-      * @default ""
-     */
-    "measureUnit"?: string;
-    /**
-      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
-     */
-    "order"?: Order;
-    /**
-      * @default { width: 0, height: 0 }
-     */
-    "parentDimensions"?: ParentDimensions;
-    /**
-      * @default 50
-     */
-    "pixelPerPercentage"?: number;
-    /**
-      * @default 2
-     */
-    "pixelPerUnit"?: number;
-    /**
-      * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
-     */
-    "reportAutoScaling"?: (report: AutoScalingReport) => void;
-    "ruleSetConfig"?: RuleSetConfig;
-    /**
-      * @default []
-     */
-    "scenarios"?: string[];
-    /**
-      * @default true
-     */
-    "showMeasureScale"?: boolean;
-    /**
-      * @default false
-     */
-    "showOverlayAvg"?: boolean;
-    /**
-      * @default false
-     */
-    "showOverlayMedian"?: boolean;
-    /**
-      * @default null
-     */
-    "stackConfig"?: StackConfigParsed1 | null;
-    "styles"?: TimeChartStyle | undefined;
-    /**
-      * Name of the dataset (table or view in the shared alasql database).
-      * @default ""
-     */
-    "tableName"?: string;
-    /**
-      * @default []
-     */
-    "variances"?: string[];
-  }
-  /**
    * Internal rendering engine for `bn-table`.
    * Receives pre-validated, typed props from the outer `bn-table` wrapper and
    * builds the IBCS-compliant HTML table - including header rows, scenario
@@ -4047,7 +3930,7 @@ declare namespace LocalJSX {
    * partof drill-down rows, and grouped row sections. This component should
    * not be used directly; use `bn-table` instead.
    */
-  interface IbcsTable {
+  interface BnTableRenderer {
     /**
       * @default []
      */
@@ -4182,7 +4065,83 @@ declare namespace LocalJSX {
      */
     "unitScaling"?: number;
   }
-  interface IbcsTitle {
+  /**
+   * Renders a text block from a template with dataset and translation
+   * placeholders.
+   * The `value` prop is markup with `${...}` placeholders. Placeholders are
+   * looked up, never evaluated. Resolved values are HTML-escaped and the
+   * result is sanitized before it is inserted. Supports auto-scaling to fit
+   * the parent container.
+   */
+  interface BnText {
+    /**
+      * Controls font-size scaling relative to the available parent space. Scaling considers both width and height - the tighter constraint wins.  | Value          | Behavior                                                       | |----------------|----------------------------------------------------------------| | not set / `""` | Auto-scale to fit, emit `AUTO_scale` warning with applied factor | | `"none"`       | No scaling; emit `WARN_overflow` warning if content overflows  | | `"auto"`       | Auto-scale to fit, silent (no warning)                         | | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |  Invalid values (negative, non-numeric, non-keyword) fall back to the default (auto + warning) and emit an `ERR_scale` warning.
+     */
+    "scale"?: string;
+    /**
+      * Template string rendered as HTML. These placeholders are replaced: `${data.<dataset>[<row>].<field>}`, `${data['<name>'][<row>].<field>}` (for names such as the datasource reference `$revenue`), `${t('<key>')}` and `${t('<key>', { <name>: <text, number or data path> })}`. Any other text, including any other `${...}`, is printed as written. Nothing is evaluated.  Resolved values are HTML-escaped, so dataset values and translations are shown as text. Markup written in the template is kept if it is on the allowlist; other elements are removed with their content. A placeholder that does not resolve renders empty and adds a `WARN_value_path` warning.
+      * @example // plain text value="Hello World"  // with dataset interpolation value="Revenue: ${data.kpi[0].ac1}"  // with translation value="${t('report.title')}"  // with HTML formatting value="<b>Total</b>: ${data.kpi[0].ac1}<br>as of today"
+     */
+    "value"?: string;
+  }
+  /**
+   * Composes an IBCS-compliant report title block.
+   * Renders business unit, scenario labels, measure names with units, a
+   * formatted date/time period, and sort-order indicators as a structured
+   * header. Delegates the actual layout to the inner `bn-title-renderer` element.
+   */
+  interface BnTitle {
+    /**
+      * Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted <br /><br /> Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
+      * @default ""
+     */
+    "businessUnit"?: string;
+    /**
+      * String of end date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
+     */
+    "dateEnd"?: string;
+    /**
+      * Date format <br /><br /> values:<br /> ``` year // quarter // month // week // day // hour // auto // none ``` <br /><br />  detail:<br /> ```year: "YYYY"```<br /> ```quarter:  "Q[Q] YYYY"```<br /> ```month: "MMM YYYY"```<br /> ```week: "[KW]WW YYYY"```<br /> ```day: "DD.MM.YYYY"```<br /> ```time: "DD.MM.YYYY HH:mm:ss"```<br /> ```none: "DD.MM.YYYY"```<br />
+      * @default "none"
+     */
+    "dateFormat"?: string;
+    /**
+      * Format in which the start and end date are linked. <br /><br /> If empty string (`''` or `null`) the date row is omitted <br /><br /> values:<br /> ``` avg // interval // cum // start // end // ytd // ytg // cum // mat // none // null``` <br /><br />  detail:<br /> ```avg: "Ø[DATE]"```<br /> ```interval: "[DATE]..[DATE2]"```<br /> ```start: ".[DATE]"```<br /> ```end: "[DATE]."```<br /> ```ytd: "_[DATE]"```<br /> ```ytg: "[DATE]_"```<br /> ```cum: "[DATE]_[DATE2]"```<br /> ```mat: "~[DATE]"```<br /> ```none: "[DATE]"```<br />
+      * @default "none"
+     */
+    "dateLink"?: string;
+    /**
+      * String of start date <br /><br /> format:<br /> ``` yyyy-MM-dd ```
+     */
+    "dateStart"?: string;
+    /**
+      * Stringified Array of measure objects {name: string, unit: string} <br /><br /> If all units are the same the redundant units will be reduced and names concatenated.<br /> If unit is empty string (`''` or `null`) the row is omitted <br /><br /> example:<br /> ``` [{"name": "Bruttoumsatz", "unit": "mEUR"}] ```
+     */
+    "measures"?: string;
+    /**
+      * List of the primary scenarios on which the order direction are applied. <br /><br /> If order is set to a scenario it has also exists in scenariolist.<br /> If order is empty string (`''` or `null`) the order arrow is omitted <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac // fc // py // pl // null ```
+      * @default "category"
+     */
+    "order"?: string;
+    /**
+      * Sets sorting order directon <br /><br /> values:<br /> ``` asc // desc ```
+      * @default "asc"
+     */
+    "orderDirection"?: string;
+    /**
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+     */
+    "ruleset"?: string;
+    /**
+      * List of scenarios displayed in card header. <br /><br /> If scenarios is empty string (`''` or `null`) the scenarios are omitted <br /><br /> values:<br /> ```ac // fc // py // pl // null```
+     */
+    "scenarios"?: string;
+    /**
+      * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+     */
+    "variances"?: string;
+  }
+  interface BnTitleRenderer {
     /**
       * @default ""
      */
@@ -4219,6 +4178,47 @@ declare namespace LocalJSX {
     "scenarios"?: string[];
     "timeperiod"?: TimePeriod;
   }
+  /**
+   * Renders a hierarchical tree diagram with SVG edge connections.
+   * Nodes are provided as named slots; the `edges` prop defines parent-child
+   * relationships and optional arithmetic operators displayed between siblings.
+   * Layout is computed via CSS Grid with an SVG overlay for edge paths.
+   */
+  interface BnTree {
+    /**
+      * Layout direction of the tree. - 'ltr': left to right (root on left) - 'rtl': right to left (root on right) - 'ttb': top to bottom (root on top) - 'btt': bottom to top (root on bottom)
+      * @default "ltr"
+     */
+    "direction"?: LayoutDirection;
+    /**
+      * Edge line style. - 'straight': direct line between nodes - 'orthogonal': right-angle lines (default) - 'curved': smooth bezier curves
+      * @default "orthogonal"
+     */
+    "edgeStyle"?: EdgeStyleType;
+    /**
+      * JSON string defining connections between nodes. Each edge specifies a source (from) and target (to) node ID, with optional operator and styling.  Example: ```json [   {"from":"roi","to":"ros","operator":"x"},   {"from":"roi","to":"capital-turnover"} ] ```
+     */
+    "edges": string;
+    /**
+      * I18n namespace inherited by this tree's children (their own namespace wins). Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; the tree renders no translated text itself. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
+     */
+    "i18nNamespace"?: string;
+    /**
+      * Spacing between hierarchy levels in pixels.
+      * @default 60
+     */
+    "levelSpacing"?: number;
+    /**
+      * Spacing between sibling nodes in pixels.
+      * @default 20
+     */
+    "nodeSpacing"?: number;
+    /**
+      * Show operator labels between sibling nodes.
+      * @default "true"
+     */
+    "showOperators"?: string;
+  }
 
   interface BnAssetAttributes {
     "name": string;
@@ -4241,6 +4241,19 @@ declare namespace LocalJSX {
     "limit": number;
     "scale": string;
   }
+  interface BnChartBubbleRendererAttributes {
+    "tableName": string;
+    "dataVersion": number;
+    "chartTitle": string;
+    "compareFamily": string | null;
+    "pointLevel": PointLevel;
+    "seriesLevel": GroupLevel | null;
+    "aspect": number;
+    "limit": number;
+    "filter": string;
+    "sizeAreaPerUnit": number;
+    "containerWidth": number;
+  }
   interface BnChartBulletAttributes {
     "ruleset": string;
     "chartTitle": string;
@@ -4257,6 +4270,17 @@ declare namespace LocalJSX {
     "labels": string;
     "scale": string;
   }
+  interface BnChartBulletRendererAttributes {
+    "tableName": string;
+    "dataVersion": number;
+    "chartTitle": string;
+    "normalizeMode": "target" | "none";
+    "showVariances": boolean;
+    "level": AggregationLevel;
+    "limit": number;
+    "filter": string;
+    "containerWidth": number;
+  }
   interface BnChartScatterAttributes {
     "ruleset": string;
     "chartTitle": string;
@@ -4272,6 +4296,17 @@ declare namespace LocalJSX {
     "aspect": string;
     "limit": number;
     "scale": string;
+  }
+  interface BnChartScatterRendererAttributes {
+    "tableName": string;
+    "dataVersion": number;
+    "chartTitle": string;
+    "pointLevel": PointLevel;
+    "seriesLevel": GroupLevel | null;
+    "aspect": number;
+    "limit": number;
+    "filter": string;
+    "containerWidth": number;
   }
   interface BnChartStructureAttributes {
     "chartTitle": string;
@@ -4291,6 +4326,20 @@ declare namespace LocalJSX {
     "measureUnit": string;
     "stack": string;
     "scale": string;
+  }
+  interface BnChartStructureRendererAttributes {
+    "tableName": string;
+    "dataVersion": number;
+    "chartTitle": string;
+    "hideCategories": boolean;
+    "pixelPerUnit": number;
+    "pixelPerPercentage": number;
+    "limit": number;
+    "level": AggregationLevel;
+    "filter": string;
+    "measureScale": string;
+    "measureUnit": string;
+    "showMeasureScale": boolean;
   }
   interface BnChartTimeAttributes {
     "ruleset": string;
@@ -4319,6 +4368,30 @@ declare namespace LocalJSX {
     "showOverlayAvg": string;
     "showOverlayMedian": string;
     "measureUnit": string;
+  }
+  interface BnChartTimeRendererAttributes {
+    "tableName": string;
+    "dataVersion": number;
+    "chartTitle": string;
+    "hideAxisLabels": boolean;
+    "pixelPerUnit": number;
+    "pixelPerPercentage": number;
+    "limit": number;
+    "leftSideOffsetForHorizontalSync": number;
+    "level": AggregationLevel;
+    "dateInterval": DateDistance;
+    "intervalSpanLimit": number;
+    "axisLabelsMode": AxisLabelsMode;
+    "filter": string;
+    "measureScale": string;
+    "measureUnit": string;
+    "showMeasureScale": boolean;
+    "showOverlayMedian": boolean;
+    "showOverlayAvg": boolean;
+    "chartMode": ChartMode;
+    "maxBars": number;
+    "lineFullWidth": boolean;
+    "containerWidth": number;
   }
   interface BnComponentStyleAttributes {
     "name": string;
@@ -4483,106 +4556,7 @@ declare namespace LocalJSX {
     "interval": string;
     "tableAttributes": string;
   }
-  interface BnTextAttributes {
-    "value": string;
-    "scale": string;
-  }
-  interface BnTitleAttributes {
-    "ruleset": string;
-    "businessUnit": string;
-    "scenarios": string;
-    "variances": string;
-    "order": string;
-    "orderDirection": string;
-    "measures": string;
-    "dateStart": string;
-    "dateEnd": string;
-    "dateFormat": string;
-    "dateLink": string;
-  }
-  interface BnTreeAttributes {
-    "edges": string;
-    "direction": LayoutDirection;
-    "levelSpacing": number;
-    "nodeSpacing": number;
-    "edgeStyle": EdgeStyleType;
-    "i18nNamespace": string;
-    "showOperators": string;
-  }
-  interface IbcsChartBubbleAttributes {
-    "tableName": string;
-    "dataVersion": number;
-    "chartTitle": string;
-    "compareFamily": string | null;
-    "pointLevel": PointLevel;
-    "seriesLevel": GroupLevel | null;
-    "aspect": number;
-    "limit": number;
-    "filter": string;
-    "sizeAreaPerUnit": number;
-    "containerWidth": number;
-  }
-  interface IbcsChartBulletAttributes {
-    "tableName": string;
-    "dataVersion": number;
-    "chartTitle": string;
-    "normalizeMode": "target" | "none";
-    "showVariances": boolean;
-    "level": AggregationLevel;
-    "limit": number;
-    "filter": string;
-    "containerWidth": number;
-  }
-  interface IbcsChartScatterAttributes {
-    "tableName": string;
-    "dataVersion": number;
-    "chartTitle": string;
-    "pointLevel": PointLevel;
-    "seriesLevel": GroupLevel | null;
-    "aspect": number;
-    "limit": number;
-    "filter": string;
-    "containerWidth": number;
-  }
-  interface IbcsChartStructureAttributes {
-    "tableName": string;
-    "dataVersion": number;
-    "chartTitle": string;
-    "hideCategories": boolean;
-    "pixelPerUnit": number;
-    "pixelPerPercentage": number;
-    "limit": number;
-    "level": AggregationLevel;
-    "filter": string;
-    "measureScale": string;
-    "measureUnit": string;
-    "showMeasureScale": boolean;
-  }
-  interface IbcsChartTimeAttributes {
-    "tableName": string;
-    "dataVersion": number;
-    "chartTitle": string;
-    "hideAxisLabels": boolean;
-    "pixelPerUnit": number;
-    "pixelPerPercentage": number;
-    "limit": number;
-    "leftSideOffsetForHorizontalSync": number;
-    "level": AggregationLevel;
-    "dateInterval": DateDistance;
-    "intervalSpanLimit": number;
-    "axisLabelsMode": AxisLabelsMode;
-    "filter": string;
-    "measureScale": string;
-    "measureUnit": string;
-    "showMeasureScale": boolean;
-    "showOverlayMedian": boolean;
-    "showOverlayAvg": boolean;
-    "chartMode": ChartMode;
-    "maxBars": number;
-    "lineFullWidth": boolean;
-    "containerWidth": number;
-  }
-  interface IbcsTableAttributes {
+  interface BnTableRendererAttributes {
     "tableName": string;
     "dataVersion": number;
     "selectedStyle": string;
@@ -4605,11 +4579,37 @@ declare namespace LocalJSX {
     "percentageScaling": number;
     "scaleFactor": number;
   }
-  interface IbcsTitleAttributes {
+  interface BnTextAttributes {
+    "value": string;
+    "scale": string;
+  }
+  interface BnTitleAttributes {
+    "ruleset": string;
+    "businessUnit": string;
+    "scenarios": string;
+    "variances": string;
+    "order": string;
+    "orderDirection": string;
+    "measures": string;
+    "dateStart": string;
+    "dateEnd": string;
+    "dateFormat": string;
+    "dateLink": string;
+  }
+  interface BnTitleRendererAttributes {
     "businessUnit": string;
     "intervalSpanLimit": number;
     "i18nMode": I18nMode;
     "locale": string;
+  }
+  interface BnTreeAttributes {
+    "edges": string;
+    "direction": LayoutDirection;
+    "levelSpacing": number;
+    "nodeSpacing": number;
+    "edgeStyle": EdgeStyleType;
+    "i18nNamespace": string;
+    "showOperators": string;
   }
 
   interface IntrinsicElements {
@@ -4617,10 +4617,15 @@ declare namespace LocalJSX {
     "bn-body": BnBody;
     "bn-card": BnCard;
     "bn-chart-bubble": Omit<BnChartBubble, keyof BnChartBubbleAttributes> & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes]?: BnChartBubble[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `attr:${K}`]?: BnChartBubbleAttributes[K] } & { [K in keyof BnChartBubble & keyof BnChartBubbleAttributes as `prop:${K}`]?: BnChartBubble[K] } & OneOf<"x", BnChartBubble["x"], BnChartBubbleAttributes["x"]> & OneOf<"y", BnChartBubble["y"], BnChartBubbleAttributes["y"]> & OneOf<"size", BnChartBubble["size"], BnChartBubbleAttributes["size"]>;
+    "bn-chart-bubble-renderer": Omit<BnChartBubbleRenderer, keyof BnChartBubbleRendererAttributes> & { [K in keyof BnChartBubbleRenderer & keyof BnChartBubbleRendererAttributes]?: BnChartBubbleRenderer[K] } & { [K in keyof BnChartBubbleRenderer & keyof BnChartBubbleRendererAttributes as `attr:${K}`]?: BnChartBubbleRendererAttributes[K] } & { [K in keyof BnChartBubbleRenderer & keyof BnChartBubbleRendererAttributes as `prop:${K}`]?: BnChartBubbleRenderer[K] };
     "bn-chart-bullet": Omit<BnChartBullet, keyof BnChartBulletAttributes> & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes]?: BnChartBullet[K] } & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes as `attr:${K}`]?: BnChartBulletAttributes[K] } & { [K in keyof BnChartBullet & keyof BnChartBulletAttributes as `prop:${K}`]?: BnChartBullet[K] };
+    "bn-chart-bullet-renderer": Omit<BnChartBulletRenderer, keyof BnChartBulletRendererAttributes> & { [K in keyof BnChartBulletRenderer & keyof BnChartBulletRendererAttributes]?: BnChartBulletRenderer[K] } & { [K in keyof BnChartBulletRenderer & keyof BnChartBulletRendererAttributes as `attr:${K}`]?: BnChartBulletRendererAttributes[K] } & { [K in keyof BnChartBulletRenderer & keyof BnChartBulletRendererAttributes as `prop:${K}`]?: BnChartBulletRenderer[K] };
     "bn-chart-scatter": Omit<BnChartScatter, keyof BnChartScatterAttributes> & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes]?: BnChartScatter[K] } & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes as `attr:${K}`]?: BnChartScatterAttributes[K] } & { [K in keyof BnChartScatter & keyof BnChartScatterAttributes as `prop:${K}`]?: BnChartScatter[K] } & OneOf<"x", BnChartScatter["x"], BnChartScatterAttributes["x"]> & OneOf<"y", BnChartScatter["y"], BnChartScatterAttributes["y"]>;
+    "bn-chart-scatter-renderer": Omit<BnChartScatterRenderer, keyof BnChartScatterRendererAttributes> & { [K in keyof BnChartScatterRenderer & keyof BnChartScatterRendererAttributes]?: BnChartScatterRenderer[K] } & { [K in keyof BnChartScatterRenderer & keyof BnChartScatterRendererAttributes as `attr:${K}`]?: BnChartScatterRendererAttributes[K] } & { [K in keyof BnChartScatterRenderer & keyof BnChartScatterRendererAttributes as `prop:${K}`]?: BnChartScatterRenderer[K] };
     "bn-chart-structure": Omit<BnChartStructure, keyof BnChartStructureAttributes> & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes]?: BnChartStructure[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `attr:${K}`]?: BnChartStructureAttributes[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `prop:${K}`]?: BnChartStructure[K] } & OneOf<"scenarios", BnChartStructure["scenarios"], BnChartStructureAttributes["scenarios"]> & OneOf<"variances", BnChartStructure["variances"], BnChartStructureAttributes["variances"]> & OneOf<"unitScaling", BnChartStructure["unitScaling"], BnChartStructureAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartStructure["percentageScaling"], BnChartStructureAttributes["percentageScaling"]> & OneOf<"level", BnChartStructure["level"], BnChartStructureAttributes["level"]> & OneOf<"order", BnChartStructure["order"], BnChartStructureAttributes["order"]> & OneOf<"orderDirection", BnChartStructure["orderDirection"], BnChartStructureAttributes["orderDirection"]>;
+    "bn-chart-structure-renderer": Omit<BnChartStructureRenderer, keyof BnChartStructureRendererAttributes> & { [K in keyof BnChartStructureRenderer & keyof BnChartStructureRendererAttributes]?: BnChartStructureRenderer[K] } & { [K in keyof BnChartStructureRenderer & keyof BnChartStructureRendererAttributes as `attr:${K}`]?: BnChartStructureRendererAttributes[K] } & { [K in keyof BnChartStructureRenderer & keyof BnChartStructureRendererAttributes as `prop:${K}`]?: BnChartStructureRenderer[K] };
     "bn-chart-time": Omit<BnChartTime, keyof BnChartTimeAttributes> & { [K in keyof BnChartTime & keyof BnChartTimeAttributes]?: BnChartTime[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `attr:${K}`]?: BnChartTimeAttributes[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `prop:${K}`]?: BnChartTime[K] } & OneOf<"scenarios", BnChartTime["scenarios"], BnChartTimeAttributes["scenarios"]> & OneOf<"variances", BnChartTime["variances"], BnChartTimeAttributes["variances"]> & OneOf<"unitScaling", BnChartTime["unitScaling"], BnChartTimeAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartTime["percentageScaling"], BnChartTimeAttributes["percentageScaling"]> & OneOf<"level", BnChartTime["level"], BnChartTimeAttributes["level"]> & OneOf<"order", BnChartTime["order"], BnChartTimeAttributes["order"]> & OneOf<"orderDirection", BnChartTime["orderDirection"], BnChartTimeAttributes["orderDirection"]> & OneOf<"dateInterval", BnChartTime["dateInterval"], BnChartTimeAttributes["dateInterval"]> & OneOf<"axisLabelsMode", BnChartTime["axisLabelsMode"], BnChartTimeAttributes["axisLabelsMode"]>;
+    "bn-chart-time-renderer": Omit<BnChartTimeRenderer, keyof BnChartTimeRendererAttributes> & { [K in keyof BnChartTimeRenderer & keyof BnChartTimeRendererAttributes]?: BnChartTimeRenderer[K] } & { [K in keyof BnChartTimeRenderer & keyof BnChartTimeRendererAttributes as `attr:${K}`]?: BnChartTimeRendererAttributes[K] } & { [K in keyof BnChartTimeRenderer & keyof BnChartTimeRendererAttributes as `prop:${K}`]?: BnChartTimeRenderer[K] };
     "bn-component-style": Omit<BnComponentStyle, keyof BnComponentStyleAttributes> & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes]?: BnComponentStyle[K] } & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes as `attr:${K}`]?: BnComponentStyleAttributes[K] } & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes as `prop:${K}`]?: BnComponentStyle[K] };
     "bn-context": Omit<BnContext, keyof BnContextAttributes> & { [K in keyof BnContext & keyof BnContextAttributes]?: BnContext[K] } & { [K in keyof BnContext & keyof BnContextAttributes as `attr:${K}`]?: BnContextAttributes[K] } & { [K in keyof BnContext & keyof BnContextAttributes as `prop:${K}`]?: BnContext[K] };
     "bn-dataset": Omit<BnDataset, keyof BnDatasetAttributes> & { [K in keyof BnDataset & keyof BnDatasetAttributes]?: BnDataset[K] } & { [K in keyof BnDataset & keyof BnDatasetAttributes as `attr:${K}`]?: BnDatasetAttributes[K] } & { [K in keyof BnDataset & keyof BnDatasetAttributes as `prop:${K}`]?: BnDataset[K] } & OneOf<"name", BnDataset["name"], BnDatasetAttributes["name"]>;
@@ -4636,16 +4641,11 @@ declare namespace LocalJSX {
     "bn-ruleset": Omit<BnRuleset, keyof BnRulesetAttributes> & { [K in keyof BnRuleset & keyof BnRulesetAttributes]?: BnRuleset[K] } & { [K in keyof BnRuleset & keyof BnRulesetAttributes as `attr:${K}`]?: BnRulesetAttributes[K] } & { [K in keyof BnRuleset & keyof BnRulesetAttributes as `prop:${K}`]?: BnRuleset[K] };
     "bn-scaling-group": Omit<BnScalingGroup, keyof BnScalingGroupAttributes> & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes]?: BnScalingGroup[K] } & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes as `attr:${K}`]?: BnScalingGroupAttributes[K] } & { [K in keyof BnScalingGroup & keyof BnScalingGroupAttributes as `prop:${K}`]?: BnScalingGroup[K] } & OneOf<"name", BnScalingGroup["name"], BnScalingGroupAttributes["name"]> & OneOf<"value", BnScalingGroup["value"], BnScalingGroupAttributes["value"]>;
     "bn-table": Omit<BnTable, keyof BnTableAttributes> & { [K in keyof BnTable & keyof BnTableAttributes]?: BnTable[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `attr:${K}`]?: BnTableAttributes[K] } & { [K in keyof BnTable & keyof BnTableAttributes as `prop:${K}`]?: BnTable[K] };
+    "bn-table-renderer": Omit<BnTableRenderer, keyof BnTableRendererAttributes> & { [K in keyof BnTableRenderer & keyof BnTableRendererAttributes]?: BnTableRenderer[K] } & { [K in keyof BnTableRenderer & keyof BnTableRendererAttributes as `attr:${K}`]?: BnTableRendererAttributes[K] } & { [K in keyof BnTableRenderer & keyof BnTableRendererAttributes as `prop:${K}`]?: BnTableRenderer[K] };
     "bn-text": Omit<BnText, keyof BnTextAttributes> & { [K in keyof BnText & keyof BnTextAttributes]?: BnText[K] } & { [K in keyof BnText & keyof BnTextAttributes as `attr:${K}`]?: BnTextAttributes[K] } & { [K in keyof BnText & keyof BnTextAttributes as `prop:${K}`]?: BnText[K] };
     "bn-title": Omit<BnTitle, keyof BnTitleAttributes> & { [K in keyof BnTitle & keyof BnTitleAttributes]?: BnTitle[K] } & { [K in keyof BnTitle & keyof BnTitleAttributes as `attr:${K}`]?: BnTitleAttributes[K] } & { [K in keyof BnTitle & keyof BnTitleAttributes as `prop:${K}`]?: BnTitle[K] };
+    "bn-title-renderer": Omit<BnTitleRenderer, keyof BnTitleRendererAttributes> & { [K in keyof BnTitleRenderer & keyof BnTitleRendererAttributes]?: BnTitleRenderer[K] } & { [K in keyof BnTitleRenderer & keyof BnTitleRendererAttributes as `attr:${K}`]?: BnTitleRendererAttributes[K] } & { [K in keyof BnTitleRenderer & keyof BnTitleRendererAttributes as `prop:${K}`]?: BnTitleRenderer[K] };
     "bn-tree": Omit<BnTree, keyof BnTreeAttributes> & { [K in keyof BnTree & keyof BnTreeAttributes]?: BnTree[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `attr:${K}`]?: BnTreeAttributes[K] } & { [K in keyof BnTree & keyof BnTreeAttributes as `prop:${K}`]?: BnTree[K] } & OneOf<"edges", BnTree["edges"], BnTreeAttributes["edges"]>;
-    "ibcs-chart-bubble": Omit<IbcsChartBubble, keyof IbcsChartBubbleAttributes> & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes]?: IbcsChartBubble[K] } & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes as `attr:${K}`]?: IbcsChartBubbleAttributes[K] } & { [K in keyof IbcsChartBubble & keyof IbcsChartBubbleAttributes as `prop:${K}`]?: IbcsChartBubble[K] };
-    "ibcs-chart-bullet": Omit<IbcsChartBullet, keyof IbcsChartBulletAttributes> & { [K in keyof IbcsChartBullet & keyof IbcsChartBulletAttributes]?: IbcsChartBullet[K] } & { [K in keyof IbcsChartBullet & keyof IbcsChartBulletAttributes as `attr:${K}`]?: IbcsChartBulletAttributes[K] } & { [K in keyof IbcsChartBullet & keyof IbcsChartBulletAttributes as `prop:${K}`]?: IbcsChartBullet[K] };
-    "ibcs-chart-scatter": Omit<IbcsChartScatter, keyof IbcsChartScatterAttributes> & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes]?: IbcsChartScatter[K] } & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes as `attr:${K}`]?: IbcsChartScatterAttributes[K] } & { [K in keyof IbcsChartScatter & keyof IbcsChartScatterAttributes as `prop:${K}`]?: IbcsChartScatter[K] };
-    "ibcs-chart-structure": Omit<IbcsChartStructure, keyof IbcsChartStructureAttributes> & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes]?: IbcsChartStructure[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `attr:${K}`]?: IbcsChartStructureAttributes[K] } & { [K in keyof IbcsChartStructure & keyof IbcsChartStructureAttributes as `prop:${K}`]?: IbcsChartStructure[K] };
-    "ibcs-chart-time": Omit<IbcsChartTime, keyof IbcsChartTimeAttributes> & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes]?: IbcsChartTime[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `attr:${K}`]?: IbcsChartTimeAttributes[K] } & { [K in keyof IbcsChartTime & keyof IbcsChartTimeAttributes as `prop:${K}`]?: IbcsChartTime[K] };
-    "ibcs-table": Omit<IbcsTable, keyof IbcsTableAttributes> & { [K in keyof IbcsTable & keyof IbcsTableAttributes]?: IbcsTable[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `attr:${K}`]?: IbcsTableAttributes[K] } & { [K in keyof IbcsTable & keyof IbcsTableAttributes as `prop:${K}`]?: IbcsTable[K] };
-    "ibcs-title": Omit<IbcsTitle, keyof IbcsTitleAttributes> & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes]?: IbcsTitle[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `attr:${K}`]?: IbcsTitleAttributes[K] } & { [K in keyof IbcsTitle & keyof IbcsTitleAttributes as `prop:${K}`]?: IbcsTitle[K] };
   }
 }
 export { LocalJSX as JSX };
@@ -4662,10 +4662,16 @@ declare module "@stencil/core" {
        * compose series hues with scenario treatments, an optional comparison
        * family overlays behind the primary set (10D), and `share` draws pie
        * sectors inside the bubbles (10E). The heavy SVG rendering is performed
-       * by the inner `ibcs-chart-bubble` element; this facade validates props,
+       * by the inner `bn-chart-bubble-renderer` element; this facade validates props,
        * resolves auto-detected metadata, and computes styles.
        */
       "bn-chart-bubble": LocalJSX.IntrinsicElements["bn-chart-bubble"] & JSXBase.HTMLAttributes<HTMLBnChartBubbleElement>;
+      /**
+       * Inner presentational element of `bn-chart-bubble`: owns the
+       * {@link BubbleChart} orchestrator and emits its SVG string. All props
+       * arrive validated and parsed from the facade.
+       */
+      "bn-chart-bubble-renderer": LocalJSX.IntrinsicElements["bn-chart-bubble-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartBubbleRendererElement>;
       /**
        * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
        * a target marker.
@@ -4677,39 +4683,53 @@ declare module "@stencil/core" {
        * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
        * gray bands). Actual and target scenarios are auto-detected from the
        * dataset meta when not set. The heavy SVG rendering is performed by the
-       * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+       * inner `bn-chart-bullet-renderer` element; this facade validates props, resolves
        * auto-detected metadata, and computes styles.
        */
       "bn-chart-bullet": LocalJSX.IntrinsicElements["bn-chart-bullet"] & JSXBase.HTMLAttributes<HTMLBnChartBulletElement>;
+      /**
+       * Inner presentational element of `bn-chart-bullet`: owns the
+       * {@link BulletChart} orchestrator and emits its SVG string. All props
+       * arrive validated and parsed from the facade.
+       */
+      "bn-chart-bullet-renderer": LocalJSX.IntrinsicElements["bn-chart-bullet-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartBulletRendererElement>;
       /**
        * SVG scattergram following IBCS template C09.
        * Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
        * with series hues, selective labels, highlight bands, and hyperbolic
        * iso-lines (`x·y = k`). The heavy SVG rendering is performed by the inner
-       * `ibcs-chart-scatter` element; this facade validates props, resolves
+       * `bn-chart-scatter-renderer` element; this facade validates props, resolves
        * auto-detected metadata, and computes styles.
        */
       "bn-chart-scatter": LocalJSX.IntrinsicElements["bn-chart-scatter"] & JSXBase.HTMLAttributes<HTMLBnChartScatterElement>;
+      /**
+       * Inner presentational element of `bn-chart-scatter`: owns the
+       * {@link ScatterChart} orchestrator and emits its SVG string. All props
+       * arrive validated and parsed from the facade.
+       */
+      "bn-chart-scatter-renderer": LocalJSX.IntrinsicElements["bn-chart-scatter-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartScatterRendererElement>;
       /**
        * SVG structure (categorical) bar chart following IBCS standards.
        * Subscribes to a dataset (via `withDataset`) and renders horizontal bar
        * charts grouped by category, with up to four scenario layers, optional
        * variance sub-charts, stacking, and proportional auto-scaling (height-
        * based). The heavy SVG rendering is performed by the inner
-       * `ibcs-chart-structure` element; this outer component validates props,
+       * `bn-chart-structure-renderer` element; this outer component validates props,
        * resolves auto-detected metadata, and computes styles.
        */
       "bn-chart-structure": LocalJSX.IntrinsicElements["bn-chart-structure"] & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;
+      "bn-chart-structure-renderer": LocalJSX.IntrinsicElements["bn-chart-structure-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartStructureRendererElement>;
       /**
        * SVG time-series chart following IBCS standards.
        * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
        * line charts with up to four scenario layers, optional variance sub-charts,
        * stacking, and proportional auto-scaling. Date normalization and interval
        * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-       * is performed by the inner `ibcs-chart-time` element; this outer component
+       * is performed by the inner `bn-chart-time-renderer` element; this outer component
        * validates props, resolves auto-detected metadata, and computes styles.
        */
       "bn-chart-time": LocalJSX.IntrinsicElements["bn-chart-time"] & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
+      "bn-chart-time-renderer": LocalJSX.IntrinsicElements["bn-chart-time-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartTimeRendererElement>;
       "bn-component-style": LocalJSX.IntrinsicElements["bn-component-style"] & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;
       "bn-context": LocalJSX.IntrinsicElements["bn-context"] & JSXBase.HTMLAttributes<HTMLBnContextElement>;
       /**
@@ -4767,12 +4787,21 @@ declare module "@stencil/core" {
       /**
        * Public-facing wrapper for the IBCS table component.
        * Accepts user-facing string/number props, validates them, and converts
-       * them into the typed internal format expected by `ibcs-table`. Handles
+       * them into the typed internal format expected by `bn-table-renderer`. Handles
        * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
        * The actual table rendering (header, body, drill-down rows) is delegated
-       * to the inner `ibcs-table` element.
+       * to the inner `bn-table-renderer` element.
        */
       "bn-table": LocalJSX.IntrinsicElements["bn-table"] & JSXBase.HTMLAttributes<HTMLBnTableElement>;
+      /**
+       * Internal rendering engine for `bn-table`.
+       * Receives pre-validated, typed props from the outer `bn-table` wrapper and
+       * builds the IBCS-compliant HTML table - including header rows, scenario
+       * columns, variance columns (with optional inline bar/pin charts), thereof/
+       * partof drill-down rows, and grouped row sections. This component should
+       * not be used directly; use `bn-table` instead.
+       */
+      "bn-table-renderer": LocalJSX.IntrinsicElements["bn-table-renderer"] & JSXBase.HTMLAttributes<HTMLBnTableRendererElement>;
       /**
        * Renders a text block from a template with dataset and translation
        * placeholders.
@@ -4786,9 +4815,10 @@ declare module "@stencil/core" {
        * Composes an IBCS-compliant report title block.
        * Renders business unit, scenario labels, measure names with units, a
        * formatted date/time period, and sort-order indicators as a structured
-       * header. Delegates the actual layout to the inner `ibcs-title` element.
+       * header. Delegates the actual layout to the inner `bn-title-renderer` element.
        */
       "bn-title": LocalJSX.IntrinsicElements["bn-title"] & JSXBase.HTMLAttributes<HTMLBnTitleElement>;
+      "bn-title-renderer": LocalJSX.IntrinsicElements["bn-title-renderer"] & JSXBase.HTMLAttributes<HTMLBnTitleRendererElement>;
       /**
        * Renders a hierarchical tree diagram with SVG edge connections.
        * Nodes are provided as named slots; the `edges` prop defines parent-child
@@ -4796,36 +4826,6 @@ declare module "@stencil/core" {
        * Layout is computed via CSS Grid with an SVG overlay for edge paths.
        */
       "bn-tree": LocalJSX.IntrinsicElements["bn-tree"] & JSXBase.HTMLAttributes<HTMLBnTreeElement>;
-      /**
-       * Inner presentational element of `bn-chart-bubble`: owns the
-       * {@link BubbleChart} orchestrator and emits its SVG string. All props
-       * arrive validated and parsed from the facade.
-       */
-      "ibcs-chart-bubble": LocalJSX.IntrinsicElements["ibcs-chart-bubble"] & JSXBase.HTMLAttributes<HTMLIbcsChartBubbleElement>;
-      /**
-       * Inner presentational element of `bn-chart-bullet`: owns the
-       * {@link BulletChart} orchestrator and emits its SVG string. All props
-       * arrive validated and parsed from the facade.
-       */
-      "ibcs-chart-bullet": LocalJSX.IntrinsicElements["ibcs-chart-bullet"] & JSXBase.HTMLAttributes<HTMLIbcsChartBulletElement>;
-      /**
-       * Inner presentational element of `bn-chart-scatter`: owns the
-       * {@link ScatterChart} orchestrator and emits its SVG string. All props
-       * arrive validated and parsed from the facade.
-       */
-      "ibcs-chart-scatter": LocalJSX.IntrinsicElements["ibcs-chart-scatter"] & JSXBase.HTMLAttributes<HTMLIbcsChartScatterElement>;
-      "ibcs-chart-structure": LocalJSX.IntrinsicElements["ibcs-chart-structure"] & JSXBase.HTMLAttributes<HTMLIbcsChartStructureElement>;
-      "ibcs-chart-time": LocalJSX.IntrinsicElements["ibcs-chart-time"] & JSXBase.HTMLAttributes<HTMLIbcsChartTimeElement>;
-      /**
-       * Internal rendering engine for `bn-table`.
-       * Receives pre-validated, typed props from the outer `bn-table` wrapper and
-       * builds the IBCS-compliant HTML table - including header rows, scenario
-       * columns, variance columns (with optional inline bar/pin charts), thereof/
-       * partof drill-down rows, and grouped row sections. This component should
-       * not be used directly; use `bn-table` instead.
-       */
-      "ibcs-table": LocalJSX.IntrinsicElements["ibcs-table"] & JSXBase.HTMLAttributes<HTMLIbcsTableElement>;
-      "ibcs-title": LocalJSX.IntrinsicElements["ibcs-title"] & JSXBase.HTMLAttributes<HTMLIbcsTitleElement>;
     }
   }
 }

@@ -1,5 +1,5 @@
 // Shared no-data look for the table and chart components. Loaded by the outer
-// bn-* and the inner ibcs-* stylesheets. The inner sets `no-data` on its host
+// bn-* and the inner renderer stylesheets. The inner sets `no-data` on its host
 // in the no-data branch, the outer mirrors it (see utils/emptyState.ts), so
 // both hosts fill their parent and the box fills the layout cell.
 

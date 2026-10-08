@@ -70,7 +70,7 @@ Composes an IBCS-compliant report title block.
 
 Renders business unit, scenario labels, measure names with units, a
 formatted date/time period, and sort-order indicators as a structured
-header. Delegates the actual layout to the inner `ibcs-title` element.
+header. Delegates the actual layout to the inner `bn-title-renderer` element.
 
 ## Properties
 
@@ -98,12 +98,12 @@ header. Delegates the actual layout to the inner `ibcs-title` element.
 
 ### Depends on
 
-- [ibcs-title](ibcs-title)
+- bn-title-renderer
 
 ### Graph
 ```mermaid
 graph TD;
-  bn-title --> ibcs-title
+  bn-title --> bn-title-renderer
   bn-layout-card --> bn-title
   bn-layout-page --> bn-title
   style bn-title fill:#f9f,stroke:#333,stroke-width:4px

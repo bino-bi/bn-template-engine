@@ -62,7 +62,7 @@ const renderChart = async (attrs: string): Promise<SpecPage> => {
     components: [ChartScatter],
     html: `<bn-chart-scatter x="ac1" y="ac2" scale="none" ${attrs}></bn-chart-scatter>`,
   });
-  const inner = page.root!.shadowRoot!.querySelector("ibcs-chart-scatter");
+  const inner = page.root!.shadowRoot!.querySelector("bn-chart-scatter-renderer");
   const shadow = inner.attachShadow({ mode: "open" });
   shadow.innerHTML = `
     <div>

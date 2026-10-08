@@ -104,7 +104,7 @@ describe("bn-chart-time: omitted optional props", () => {
 describe("bn-chart-time: interval-span-limit", () => {
   // the unregistered inner element gets number props as attributes
   const innerLimit = (page: SpecPage): number =>
-    Number(page.root!.shadowRoot!.querySelector("ibcs-chart-time")!.getAttribute("intervalSpanLimit"));
+    Number(page.root!.shadowRoot!.querySelector("bn-chart-time-renderer")!.getAttribute("intervalSpanLimit"));
 
   it("passes a positive limit on", async () => {
     const page = await renderChart(`interval-span-limit="12"`);

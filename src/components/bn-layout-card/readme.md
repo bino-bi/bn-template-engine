@@ -92,7 +92,7 @@ graph TD;
   bn-layout-card --> bn-title
   bn-layout-card --> bn-body
   bn-layout-card --> bn-footer
-  bn-title --> ibcs-title
+  bn-title --> bn-title-renderer
   style bn-layout-card fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

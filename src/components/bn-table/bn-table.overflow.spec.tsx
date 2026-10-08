@@ -65,7 +65,7 @@ import { forceUpdate } from "@stencil/core";
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { ErrorItem } from "../../utils/withHasError";
 import { Table } from "./bn-table";
-import { IbcsTable } from "./ibcs-table";
+import { BnTableRenderer } from "./bn-table-renderer/bn-table-renderer";
 
 // mock-doc has no layout: pretend the host rendered 400 px wide (fits the
 // 512 px cell) but `height` px tall.
@@ -77,7 +77,7 @@ const stubSize = (page: SpecPage, height: number): void => {
 // 672 px is the measured height of the clipped table in the reported page.
 const renderTable = async (attrs: string, height = 672): Promise<SpecPage> => {
   const page = await newSpecPage({
-    components: [Table, IbcsTable],
+    components: [Table, BnTableRenderer],
     html: `<bn-table ${attrs}></bn-table>`,
   });
   stubSize(page, height);

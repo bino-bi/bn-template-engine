@@ -1,5 +1,5 @@
 // bn-chart-time scaling resolution: units-per-em attribute values are
-// converted to the inner ibcs-chart-time's px quantities at the wrapper
+// converted to the inner bn-chart-time-renderer's px quantities at the wrapper
 // boundary (pixelPerUnit = effFontPx / unitsPerEm, pixelPerPercentage =
 // 100 × effFontPx / ppPerEm), with group and numeric values treated
 // identically (no hidden ×100).
@@ -62,7 +62,7 @@ import { Chart } from "./bn-chart-time";
 
 const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
 
-// The inner ibcs-chart-time stays unregistered (its SVG engine needs getBBox,
+// The inner bn-chart-time-renderer stays unregistered (its SVG engine needs getBBox,
 // which mock-doc lacks). Stencil's vdom then materializes number props as
 // attributes and function props as element properties - both readable.
 type InnerChart = {
@@ -79,7 +79,7 @@ const renderChart = async (attrs: string): Promise<{ page: SpecPage; inner: Inne
     components: [Chart],
     html: `<bn-chart-time scenarios="ac1" variances="" ${scaleAttr} ${attrs}></bn-chart-time>`,
   });
-  const el = page.root!.shadowRoot!.querySelector("ibcs-chart-time") as HTMLElement & {
+  const el = page.root!.shadowRoot!.querySelector("bn-chart-time-renderer") as HTMLElement & {
     reportAutoScaling: (report: AutoScalingReport) => void;
   };
   const inner: InnerChart = {

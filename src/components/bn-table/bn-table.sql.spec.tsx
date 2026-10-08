@@ -58,7 +58,7 @@ import { ErrorItem } from "../../utils/withHasError";
 import { DataAnalyzer } from "../../utils/dataAnalyzer";
 import { SiPrefix } from "../../utils/model/SiPrefix";
 import { Table } from "./bn-table";
-import { IbcsTable } from "./ibcs-table";
+import { BnTableRenderer } from "./bn-table-renderer/bn-table-renderer";
 
 // Pasted into a quoted SQL literal, this value ends the literal and runs as AlaSQL inline JavaScript.
 const payloadGroup = "Kids' OR ``(globalThis.__pwned = 1)`` OR '";
@@ -102,14 +102,14 @@ describe("bn-table: data values in queries", () => {
       ...props,
     };
     const page = await newSpecPage({
-      components: [Table, IbcsTable],
+      components: [Table, BnTableRenderer],
       template: () => <bn-table {...attrs}></bn-table>,
     });
     await page.waitForChanges();
     return page;
   };
 
-  const inner = (page: SpecPage): Element => page.root.shadowRoot.querySelector("ibcs-table");
+  const inner = (page: SpecPage): Element => page.root.shadowRoot.querySelector("bn-table-renderer");
   const bodyRows = (page: SpecPage): Element[] => Array.from(inner(page).shadowRoot.querySelectorAll("tbody tr"));
   const hasClass = (element: Element, name: string): boolean =>
     element.getAttribute("class")?.split(" ").includes(name) ?? false;

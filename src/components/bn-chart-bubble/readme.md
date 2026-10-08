@@ -57,50 +57,71 @@ examples 10A/10B/10D/10E/10F/10G.
 
 ## Overview
 
-Inner presentational element of `bn-chart-bubble`: owns the
-{@link BubbleChart} orchestrator and emits its SVG string. All props
-arrive validated and parsed from the facade.
+SVG bubble chart following IBCS template C10.
+
+Subscribes to a dataset (via `withDataset`) and renders an XY bubble
+portfolio: bubble **area** is proportional to the size measure, marks
+compose series hues with scenario treatments, an optional comparison
+family overlays behind the primary set (10D), and `share` draws pie
+sectors inside the bubbles (10E). The heavy SVG rendering is performed
+by the inner `bn-chart-bubble-renderer` element; this facade validates props,
+resolves auto-detected metadata, and computes styles.
 
 ## Properties
 
-| Property              | Attribute            | Description                                                                               | Type                                        | Default      |
-| --------------------- | -------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------- | ------------ |
-| `aspect`              | `aspect`             | Plot aspect ratio, width/height.                                                          | `number`                                    | `16 / 9`     |
-| `chartTitle`          | `chart-title`        |                                                                                           | `string`                                    | `""`         |
-| `compareFamily`       | `compare-family`     | Comparison scenario family, or `null` (10D overlay).                                      | `string`                                    | `null`       |
-| `containerWidth`      | `container-width`    |                                                                                           | `number`                                    | `0`          |
-| `dataVersion`         | `data-version`       | Bumped by the facade when the dataset changes; triggers re-render.                        | `number`                                    | `0`          |
-| `errors`              | --                   | The facade's error dispatcher - data warnings are synced through it (stable ids).         | `ErrorDispatcher`                           | `undefined`  |
-| `facet`               | --                   |                                                                                           | `FacetConfig`                               | `null`       |
-| `filter`              | `filter`             |                                                                                           | `string`                                    | `""`         |
-| `i18n`                | --                   |                                                                                           | `Map<string, string>`                       | `new Map()`  |
-| `labels` _(required)_ | --                   |                                                                                           | `LabelConfig`                               | `undefined`  |
-| `legend` _(required)_ | --                   |                                                                                           | `LegendConfig`                              | `undefined`  |
-| `limit`               | `limit`              |                                                                                           | `number`                                    | `0`          |
-| `pointLevel`          | `point-level`        |                                                                                           | `"category" \| "rowGroup" \| "subCategory"` | `"category"` |
-| `ruleSetConfig`       | --                   |                                                                                           | `RuleSetConfig`                             | `undefined`  |
-| `seriesLevel`         | `series-level`       |                                                                                           | `"category" \| "rowGroup"`                  | `null`       |
-| `share`               | --                   |                                                                                           | `ShareConfig`                               | `null`       |
-| `size` _(required)_   | --                   |                                                                                           | `SizeConfig`                                | `undefined`  |
-| `sizeAreaPerUnit`     | `size-area-per-unit` | Scaling-group mode: area px² per data unit (0 = local sizing).                            | `number`                                    | `0`          |
-| `styles`              | --                   |                                                                                           | `XYChartStyle`                              | `undefined`  |
-| `tableName`           | `table-name`         | Name of the dataset (table or view in the scoped alasql database).                        | `string`                                    | `""`         |
-| `translator`          | --                   | Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). | `(key: string, data?: object) => string`    | `undefined`  |
-| `x` _(required)_      | --                   |                                                                                           | `AxisConfig`                                | `undefined`  |
-| `y` _(required)_      | --                   |                                                                                           | `AxisConfig`                                | `undefined`  |
+| Property            | Attribute      | Description                                                                                                                                                                                                                                                                                                             | Type     | Default     |
+| ------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `aspect`            | `aspect`       | Plot aspect ratio as `"w:h"` (default `"16:9"`). XY charts have no data-driven height; this is the explicit height control.                                                                                                                                                                                             | `string` | `"16:9"`    |
+| `chartTitle`        | `chart-title`  | Custom chart title                                                                                                                                                                                                                                                                                                      | `string` | `""`        |
+| `compareWith`       | `compare-with` | Comparison scenario family (`ac`/`pp`/`fc`/`pl`) overlaid behind the primary set from the same slot numbers (IBCS 10D). Must differ from the primary family; invalid with variance-token axes.                                                                                                                          | `string` | `""`        |
+| `facet`             | `facet`        | Small-multiple panels (IBCS 10E/10F/10G). JSON object: `{"level":"rowgroup"\|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.                                                                                                                                                | `string` | `""`        |
+| `filter`            | `filter`       | AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).                                                                                                                                                                                              | `string` | `""`        |
+| `labels`            | `labels`       | Point labeling. JSON object: `{"points":"auto"\|"none"\|"all"\|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.                                                                                                                             | `string` | `""`        |
+| `legend`            | `legend`       | Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"\|"bottom"}`.                                                                                                                                                                                           | `string` | `""`        |
+| `level`             | `level`        | Point identity level: `auto` (deepest populated level from the dataset meta), `category`, or `subcategory`.                                                                                                                                                                                                             | `string` | `"auto"`    |
+| `limit`             | `limit`        | Maximum number of bubbles per panel (0 = unlimited); keeps the top N by size.                                                                                                                                                                                                                                           | `number` | `0`         |
+| `ruleset`           | `ruleset`      | Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario treatments and display names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.                                                                                  | `string` | `undefined` |
+| `scale`             | `scale`        | Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.                                                                                                                                                                                  | `string` | `undefined` |
+| `seriesLevel`       | `series-level` | Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).                                                                                                                                                                                                   | `string` | `"auto"`    |
+| `share`             | `share`        | Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare token; the measure holds a fraction 0..1 of the bubble.                                                                                                                                                                                             | `string` | `""`        |
+| `size` _(required)_ | `size`         | Bubble size mapping (required). Bubble **area** is proportional to the value; values must be >= 0. JSON object or bare token: `{"measure":"ac3","label":"Net sales","unit":"mEUR", "group":"netsales-area"}`. `group` references a `bn-scaling-group` for cross-chart value→area synchronization.                       | `string` | `undefined` |
+| `x` _(required)_    | `x`            | X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %). | `string` | `undefined` |
+| `y` _(required)_    | `y`            | Y axis mapping - same shape as `x`.                                                                                                                                                                                                                                                                                     | `string` | `undefined` |
+
+
+## Methods
+
+### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
+
+Lazily generates this chart's layout state: host box (context- and
+component-relative, CSS px), the canvas region, point count and
+diagnostics. With `detail: "full"` the rendered marks and labels are
+listed with their geometry (tag-classified - XY marks carry no ids).
+
+#### Parameters
+
+| Name      | Type                 | Description                                              |
+| --------- | -------------------- | -------------------------------------------------------- |
+| `options` | `LayoutStateOptions` | - `{ detail: "summary" \| "full" }`, default `"summary"` |
+
+#### Returns
+
+Type: `Promise<ComponentLayoutState>`
+
+
 
 
 ## Dependencies
 
-### Used by
+### Depends on
 
- - [bn-chart-bubble](.)
+- bn-chart-bubble-renderer
 
 ### Graph
 ```mermaid
 graph TD;
-  bn-chart-bubble --> ibcs-chart-bubble
-  style ibcs-chart-bubble fill:#f9f,stroke:#333,stroke-width:4px
+  bn-chart-bubble --> bn-chart-bubble-renderer
+  style bn-chart-bubble fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

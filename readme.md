@@ -91,6 +91,8 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 
 ## Components
 
+The `bn-*` elements listed below are the public API: their tags, attributes, properties and methods follow semantic versioning. Elements named `bn-*-renderer` are internal. A public element renders one of them in its shadow root, and their tags, props and markup can change in any release. Do not use them in a page.
+
 ### Core Data Flow
 
 | Component | Description |

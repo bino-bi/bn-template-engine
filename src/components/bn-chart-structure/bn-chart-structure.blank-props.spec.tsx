@@ -100,7 +100,7 @@ describe("bn-chart-structure: omitted optional props", () => {
 describe("bn-chart-structure: stack colours of the theme", () => {
   const innerStackColors = (page: SpecPage): string[] | undefined =>
     (
-      page.root!.shadowRoot!.querySelector("ibcs-chart-structure") as unknown as {
+      page.root!.shadowRoot!.querySelector("bn-chart-structure-renderer") as unknown as {
         styles: { stackColors?: string[] };
       }
     ).styles.stackColors;

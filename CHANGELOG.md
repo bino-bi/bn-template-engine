@@ -198,6 +198,16 @@ The JS property `normalize` replaced `Node.normalize()` on the element, so a Typ
 - `bn-layout-page` / `bn-layout-card`: the layouts `gold3` and `gold4`. They were never documented. A page that names one now gets a single cell, like any unknown layout name.
 - `bn-layout-page` / `bn-layout-card`: the method `getNumberOfSlot()`.
 
+#### The inner renderer elements are internal and have new names
+
+Each table, chart and title element draws through an inner element in its shadow root. These were named `ibcs-*`. They are now `bn-*-renderer` (`ibcs-table` is `bn-table-renderer`, `ibcs-chart-time` is `bn-chart-time-renderer`, and so on, `ibcs-title` is `bn-title-renderer`). Their props and methods are marked internal and are no longer part of the published JSX types.
+
+Only the `bn-*` elements listed in the README are public API. A page that selected an inner element by tag must select the public element.
+
+`window.componentRegisterFailures[].tag` names the element that threw. For a failure inside a renderer this is now the new tag.
+
+The setter methods `setProps()` and `setBusinessUnit()` of the inner title element are gone.
+
 ### Fixed
 
 - `bn-chart-time`: a chart without rows threw in its auto-fit, because the average overlay (on by default) reads the first and the last period. The chart showed "No Data" anyway, the exception was only logged.

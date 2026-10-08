@@ -52,7 +52,7 @@ import { syncEmptyState } from "../../utils/emptyState";
  * charts grouped by category, with up to four scenario layers, optional
  * variance sub-charts, stacking, and proportional auto-scaling (height-
  * based). The heavy SVG rendering is performed by the inner
- * `ibcs-chart-structure` element; this outer component validates props,
+ * `bn-chart-structure-renderer` element; this outer component validates props,
  * resolves auto-detected metadata, and computes styles.
  */
 @Component({
@@ -616,7 +616,7 @@ export class Chart {
   private _autoScaleGuard = false;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-structure");
+    syncEmptyState(this.element, "bn-chart-structure-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -739,7 +739,7 @@ export class Chart {
    * before the inner charts have rendered.
    */
   private measureContentWidth(): number {
-    const inners = this.element.shadowRoot?.querySelectorAll("ibcs-chart-structure");
+    const inners = this.element.shadowRoot?.querySelectorAll("bn-chart-structure-renderer");
     let total = 0;
     let found = false;
     inners?.forEach((inner) => {
@@ -928,7 +928,7 @@ export class Chart {
   }
 
   /**
-   * Receives the auto-fitted values from the inner ibcs-chart-structure (px
+   * Receives the auto-fitted values from the inner bn-chart-structure-renderer (px
    * per unit / px per 1.0 fraction) and surfaces them in the AUTO_* warnings,
    * converted back to the attribute's units-per-em form so users can copy
    * them into a bn-scaling-group.
@@ -1198,7 +1198,7 @@ export class Chart {
     const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
-      <ibcs-chart-structure
+      <bn-chart-structure-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.prepareChartTitle(idx)}
@@ -1221,7 +1221,7 @@ export class Chart {
         stackConfig={stackConfig}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}
-      ></ibcs-chart-structure>
+      ></bn-chart-structure-renderer>
     );
   }
 
@@ -1246,13 +1246,13 @@ export class Chart {
     const variances = this.prepareVariances();
     const layout = collectChartFacadeLayout(
       this.element,
-      "ibcs-chart-structure",
+      "bn-chart-structure-renderer",
       ["base", ...variances],
       origins,
       detail,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const firstInner = this.element.shadowRoot?.querySelector("ibcs-chart-structure") as any;
+    const firstInner = this.element.shadowRoot?.querySelector("bn-chart-structure-renderer") as any;
 
     const state: ComponentLayoutState = {
       version: LAYOUT_STATE_VERSION,

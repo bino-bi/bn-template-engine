@@ -23,9 +23,9 @@ import { Style } from "../../stores/componentStyles";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { I18nMode } from "../../utils/constants";
 import { Order, OrderDirection } from "../../utils/model/Order";
-import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
+import { TimePeriod } from "./bn-title-renderer/utils/model/TimePeriod";
 import { DateDistance, DateLink } from "../../utils/DateStringFactory";
-import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
+import { MeasureEntry } from "./bn-title-renderer/utils/model/MeasureEntriy";
 import { getStores } from "../../context/context-protocol";
 
 /**
@@ -33,7 +33,7 @@ import { getStores } from "../../context/context-protocol";
  *
  * Renders business unit, scenario labels, measure names with units, a
  * formatted date/time period, and sort-order indicators as a structured
- * header. Delegates the actual layout to the inner `ibcs-title` element.
+ * header. Delegates the actual layout to the inner `bn-title-renderer` element.
  */
 @Component({
   tag: "bn-title",
@@ -420,7 +420,7 @@ export class Title {
 
     return (
       <Host style={fontStyles}>
-        <ibcs-title
+        <bn-title-renderer
           businessUnit={this.prepareBusinessUnit()}
           scenarios={this.prepareScenarios()}
           measures={this.prepareMeasures()}
@@ -430,7 +430,7 @@ export class Title {
           i18n-mode={this.prepareI18nMode()}
           locale={this.prepareLocale()}
           ruleSetConfig={this.ruleSetConfig()}
-        ></ibcs-title>
+        ></bn-title-renderer>
       </Host>
     );
   }

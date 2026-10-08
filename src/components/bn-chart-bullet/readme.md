@@ -67,46 +67,73 @@ default normalized mode.
 
 ## Overview
 
-Inner presentational element of `bn-chart-bullet`: owns the
-{@link BulletChart} orchestrator and emits its SVG string. All props
-arrive validated and parsed from the facade.
+IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
+a target marker.
+
+Subscribes to a dataset (via `withDataset`) and renders in the IBCS
+default mode with **normalized targets** - every row is scaled to
+fractions of its target so one continuous target line spans all rows and
+KPIs become visually comparable - plus integrated variance bars in the
+IBCS variance colors. The classic Stephen Few look is opt-in via
+`normalize="none"` (per-row scales) and `ranges` (max two qualitative
+gray bands). Actual and target scenarios are auto-detected from the
+dataset meta when not set. The heavy SVG rendering is performed by the
+inner `bn-chart-bullet-renderer` element; this facade validates props, resolves
+auto-detected metadata, and computes styles.
 
 ## Properties
 
-| Property              | Attribute         | Description                                                                               | Type                                                                                                                                                                                              | Default                     |
-| --------------------- | ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `actual` _(required)_ | --                |                                                                                           | `BulletMeasureConfig`                                                                                                                                                                             | `undefined`                 |
-| `chartTitle`          | `chart-title`     |                                                                                           | `string`                                                                                                                                                                                          | `""`                        |
-| `containerWidth`      | `container-width` |                                                                                           | `number`                                                                                                                                                                                          | `0`                         |
-| `dataVersion`         | `data-version`    | Bumped by the facade when the dataset changes; triggers re-render.                        | `number`                                                                                                                                                                                          | `0`                         |
-| `errors`              | --                | The facade's error dispatcher - data warnings are synced through it (stable ids).         | `ErrorDispatcher`                                                                                                                                                                                 | `undefined`                 |
-| `filter`              | `filter`          |                                                                                           | `string`                                                                                                                                                                                          | `""`                        |
-| `i18n`                | --                |                                                                                           | `Map<string, string>`                                                                                                                                                                             | `new Map()`                 |
-| `labels` _(required)_ | --                |                                                                                           | `BulletLabelConfig`                                                                                                                                                                               | `undefined`                 |
-| `level`               | `level`           |                                                                                           | `AggregationLevel.CATEGORY \| AggregationLevel.CATEGORYINDEX \| AggregationLevel.ROWGROUP \| AggregationLevel.ROWGROUPINDEX \| AggregationLevel.SUBCATEGORY \| AggregationLevel.SUBCATEGORYINDEX` | `AggregationLevel.CATEGORY` |
-| `limit`               | `limit`           |                                                                                           | `number`                                                                                                                                                                                          | `0`                         |
-| `normalizeMode`       | `normalize-mode`  |                                                                                           | `"none" \| "target"`                                                                                                                                                                              | `"target"`                  |
-| `order` _(required)_  | --                |                                                                                           | `Order`                                                                                                                                                                                           | `undefined`                 |
-| `ranges`              | --                |                                                                                           | `number[]`                                                                                                                                                                                        | `[]`                        |
-| `ruleSetConfig`       | --                |                                                                                           | `RuleSetConfig`                                                                                                                                                                                   | `undefined`                 |
-| `showVariances`       | `show-variances`  |                                                                                           | `boolean`                                                                                                                                                                                         | `true`                      |
-| `styles`              | --                |                                                                                           | `BulletChartStyle`                                                                                                                                                                                | `undefined`                 |
-| `tableName`           | `table-name`      | Name of the dataset (table or view in the scoped alasql database).                        | `string`                                                                                                                                                                                          | `""`                        |
-| `target`              | --                |                                                                                           | `BulletMeasureConfig`                                                                                                                                                                             | `null`                      |
-| `translator`          | --                | Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). | `(key: string, data?: object) => string`                                                                                                                                                          | `undefined`                 |
+| Property         | Attribute         | Description                                                                                                                                                                                                                                                                             | Type     | Default     |
+| ---------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `actual`         | `actual`          | Actual-value measure. JSON object or a bare scenario slot as shorthand: `{"measure":"ac1","label":"Revenue","unit":"EUR k"}`. Only plain scenario slots (`ac1`…`pl4`) are allowed - variance tokens are not. Empty or `"auto"` auto-detects (`ac1`, else the first available scenario). | `string` | `""`        |
+| `chartTitle`     | `chart-title`     | Custom chart title                                                                                                                                                                                                                                                                      | `string` | `""`        |
+| `filter`         | `filter`          | AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).                                                                                                                                                              | `string` | `""`        |
+| `labels`         | `labels`          | Value labels. JSON object: `{"show":"auto"\|"none","decimals":1}`.                                                                                                                                                                                                                      | `string` | `""`        |
+| `level`          | `level`           | KPI row level: `auto` (deepest populated level from the dataset meta), `rowgroup`, `category`, or `subcategory`.                                                                                                                                                                        | `string` | `"auto"`    |
+| `limit`          | `limit`           | Maximum number of KPI rows (0 = unlimited). Truncates - there is no REST aggregate, summing heterogeneous KPIs would be meaningless.                                                                                                                                                    | `number` | `0`         |
+| `normalizeMode`  | `normalize`       | Target normalization: `target` (default - rows share an aligned target position, the IBCS-comparable form) or `none` (classic per-row scales with tick strips).                                                                                                                         | `string` | `"target"`  |
+| `order`          | `order`           | Sort key(s) of the KPI rows: hierarchy columns or scenario slots (e.g. `"ac1"`), comma-separated for multi-level sorting. Empty or `"auto"` uses the dataset's suggested order.                                                                                                         | `string` | `""`        |
+| `orderDirection` | `order-direction` | Sorting direction: `asc` or `desc`.                                                                                                                                                                                                                                                     | `string` | `""`        |
+| `ranges`         | `ranges`          | Qualitative range bands as a JSON array of ascending fractions of the target, at most two - e.g. `[0.6, 0.9]` (IBCS rejects a third band of arbitrary length). Classic mode only; ignored while `normalize` is `"target"`.                                                              | `string` | `""`        |
+| `ruleset`        | `ruleset`         | Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario treatments and display names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.                                                  | `string` | `undefined` |
+| `scale`          | `scale`           | Font-size auto-fit: `""`/`auto` shrink to the parent height (with/without a warning), `none` disables, a number applies a fixed factor.                                                                                                                                                 | `string` | `undefined` |
+| `target`         | `target`          | Target measure - same shape as `actual`. Empty or `"auto"` auto-detects (`pl1` > `pp1` > `fc1`); without any target scenario the chart renders actual bars only.                                                                                                                        | `string` | `""`        |
+| `variances`      | `variances`       | Variance bars between actual and target: `auto` (default - drawn in normalized mode, favorable/unfavorable in the IBCS variance colors) or `none`.                                                                                                                                      | `string` | `"auto"`    |
+
+
+## Methods
+
+### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
+
+Lazily generates this chart's layout state: host box (context- and
+component-relative, CSS px), the canvas region and diagnostics. With
+`detail: "full"` the rendered marks and labels are listed with their
+geometry (tag-classified - bullet marks carry no ids).
+
+#### Parameters
+
+| Name      | Type                 | Description                                              |
+| --------- | -------------------- | -------------------------------------------------------- |
+| `options` | `LayoutStateOptions` | - `{ detail: "summary" \| "full" }`, default `"summary"` |
+
+#### Returns
+
+Type: `Promise<ComponentLayoutState>`
+
+
 
 
 ## Dependencies
 
-### Used by
+### Depends on
 
- - [bn-chart-bullet](.)
+- bn-chart-bullet-renderer
 
 ### Graph
 ```mermaid
 graph TD;
-  bn-chart-bullet --> ibcs-chart-bullet
-  style ibcs-chart-bullet fill:#f9f,stroke:#333,stroke-width:4px
+  bn-chart-bullet --> bn-chart-bullet-renderer
+  style bn-chart-bullet fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

@@ -50,7 +50,7 @@ const COMPARE_FAMILIES = ["ac", "pp", "fc", "pl"];
  * compose series hues with scenario treatments, an optional comparison
  * family overlays behind the primary set (10D), and `share` draws pie
  * sectors inside the bubbles (10E). The heavy SVG rendering is performed
- * by the inner `ibcs-chart-bubble` element; this facade validates props,
+ * by the inner `bn-chart-bubble-renderer` element; this facade validates props,
  * resolves auto-detected metadata, and computes styles.
  */
 @Component({
@@ -357,7 +357,7 @@ export class ChartBubble {
   private _lastObservedWidth = 0;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-bubble");
+    syncEmptyState(this.element, "bn-chart-bubble-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -423,7 +423,7 @@ export class ChartBubble {
   }
 
   private checkOverflow(): void {
-    checkXYOverflow(this.element, "ibcs-chart-bubble", this.errors);
+    checkXYOverflow(this.element, "bn-chart-bubble-renderer", this.errors);
   }
 
   componentDidLoad() {
@@ -841,7 +841,7 @@ export class ChartBubble {
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
     return collectXYFacadeState(
       this.element,
-      "ibcs-chart-bubble",
+      "bn-chart-bubble-renderer",
       this.chartTitle || undefined,
       { fontSizePx, appliedScaleFactor: factor },
       origins,
@@ -965,7 +965,7 @@ export class ChartBubble {
     const fullParentWidth = getParentDimensions(this.element).width;
 
     return (
-      <ibcs-chart-bubble
+      <bn-chart-bubble-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.chartTitle}
@@ -989,7 +989,7 @@ export class ChartBubble {
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
         translator={this.translateForInner}
-      ></ibcs-chart-bubble>
+      ></bn-chart-bubble-renderer>
     );
   }
 

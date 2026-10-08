@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) - same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as bn-table-renderer.spec.tsx.
 
 // Mock MutationObserver for the withComponentStyle/withTranslation mixins.
 
@@ -49,7 +49,7 @@ jest.mock("../../context/context-protocol", () => {
 
 import { newSpecPage } from "@stencil/core/testing";
 import { ChartScatter } from "./bn-chart-scatter";
-import { IbcsChartScatter } from "./ibcs-chart-scatter";
+import { BnChartScatterRenderer } from "./bn-chart-scatter-renderer/bn-chart-scatter-renderer";
 
 interface ErrorEntry {
   id: string;
@@ -59,7 +59,7 @@ interface ErrorEntry {
 
 const renderScatter = async (attrs: string) => {
   const page = await newSpecPage({
-    components: [ChartScatter, IbcsChartScatter],
+    components: [ChartScatter, BnChartScatterRenderer],
     html: `<bn-chart-scatter ${attrs}></bn-chart-scatter>`,
   });
   await page.waitForChanges();
@@ -76,7 +76,7 @@ describe("bn-chart-scatter validation matrix", () => {
     const page = await renderScatter(`x="ac1" y="ac2"`);
     const errors = readErrors(page);
     expect(errors.filter((e) => e.type === "error")).toEqual([]);
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-scatter")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-scatter-renderer")).not.toBeNull();
   });
 
   it("raises xy-prop-json on unparseable object props", async () => {
@@ -87,7 +87,7 @@ describe("bn-chart-scatter validation matrix", () => {
     expect(jsonError!.type).toBe("error");
     expect(jsonError!.message).toContain("invalid JSON");
     // Blocking error: the inner element is not rendered.
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-scatter")).toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-scatter-renderer")).toBeNull();
   });
 
   it("raises xy-measure-invalid for unknown measure tokens", async () => {
@@ -110,7 +110,7 @@ describe("bn-chart-scatter validation matrix", () => {
     expect(error!.type).toBe("error");
     expect(error!.message).toContain("ac");
     expect(error!.message).toContain("pp");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-scatter")).toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-scatter-renderer")).toBeNull();
   });
 
   it("raises xy-level-order when the facet level does not sit above the series level", async () => {
@@ -135,7 +135,7 @@ describe("bn-chart-scatter validation matrix", () => {
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
     expect(warning!.message).toContain("futureKnob");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-scatter")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-scatter-renderer")).not.toBeNull();
   });
 
   it("warns and ignores an inverted min/max domain override", async () => {

@@ -44,7 +44,7 @@ const TARGET_SLOT_PREFERENCE = ["pl1", "pp1", "fc1"];
  * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
  * gray bands). Actual and target scenarios are auto-detected from the
  * dataset meta when not set. The heavy SVG rendering is performed by the
- * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+ * inner `bn-chart-bullet-renderer` element; this facade validates props, resolves
  * auto-detected metadata, and computes styles.
  */
 @Component({
@@ -341,7 +341,7 @@ export class ChartBullet {
   private _lastScaledParentHeight = 0;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-bullet");
+    syncEmptyState(this.element, "bn-chart-bullet-renderer");
 
     // Bullet height is data-driven (rows × rowHeight), so the auto-fit
     // scales against the parent HEIGHT - the structure-chart variant, not
@@ -737,7 +737,7 @@ export class ChartBullet {
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
     return collectXYFacadeState(
       this.element,
-      "ibcs-chart-bullet",
+      "bn-chart-bullet-renderer",
       this.chartTitle || undefined,
       { fontSizePx, appliedScaleFactor: factor },
       origins,
@@ -837,7 +837,7 @@ export class ChartBullet {
     }
 
     return (
-      <ibcs-chart-bullet
+      <bn-chart-bullet-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.chartTitle}
@@ -857,7 +857,7 @@ export class ChartBullet {
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
         translator={this.translateForInner}
-      ></ibcs-chart-bullet>
+      ></bn-chart-bullet-renderer>
     );
   }
 

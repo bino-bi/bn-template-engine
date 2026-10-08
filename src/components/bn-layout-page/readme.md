@@ -123,7 +123,7 @@ graph TD;
   bn-layout-page --> bn-title
   bn-layout-page --> bn-body
   bn-layout-page --> bn-footer
-  bn-title --> ibcs-title
+  bn-title --> bn-title-renderer
   style bn-layout-page fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
