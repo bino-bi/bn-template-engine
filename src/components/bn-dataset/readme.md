@@ -46,10 +46,10 @@ set, the body and the `static` and `raw` props are ignored.
 <bn-dataset name="remote-data" src="https://example.com/api/sales.json"></bn-dataset>
 ```
 
-Set the `interval` prop (in seconds) to enable periodic re-fetching:
+Set the `refresh-interval` attribute (in seconds) to enable periodic re-fetching:
 
 ```html
-<bn-dataset name="live-data" src="/api/sales.json" interval="30"></bn-dataset>
+<bn-dataset name="live-data" src="/api/sales.json" refresh-interval="30"></bn-dataset>
 ```
 
 Polling stops when the component is removed from the DOM or when `src` is
@@ -86,19 +86,19 @@ The body content is observed via `withBodyObserver` and is always inline:
    parsed body directly to the `datasets` store.
 
 Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
-write it to the `datasets` store. Set the `interval` prop (in seconds)
+write it to the `datasets` store. Set the `refresh-interval` attribute (in seconds)
 to enable periodic re-fetching.
 
 ## Properties
 
-| Property            | Attribute     | Description                                                                                                                                                                                                                      | Type      | Default     |
-| ------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| `datasources`       | `datasources` | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                                                                                                                         | `string`  | `""`        |
-| `interval`          | `interval`    | Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
-| `name` _(required)_ | `name`        | Unique (template scope) name of the datasource                                                                                                                                                                                   | `string`  | `undefined` |
-| `raw`               | `raw`         | When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`).                                                                                        | `boolean` | `true`      |
-| `src`               | `src`         | URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).                                                         | `string`  | `undefined` |
-| `static`            | `static`      | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.                                                                                                  | `boolean` | `false`     |
+| Property            | Attribute          | Description                                                                                                                                                                                                                      | Type      | Default     |
+| ------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `datasources`       | `datasources`      | Commaseperated list of datasourcees <br /><br />  example: <br />  ```source1,source2```                                                                                                                                         | `string`  | `""`        |
+| `name` _(required)_ | `name`             | Unique (template scope) name of the datasource                                                                                                                                                                                   | `string`  | `undefined` |
+| `raw`               | `raw`              | When true (default), body content is plain text (SQL or JSON). When false, body content is a compressed payload (`<hash>:<base64_gzip>`).                                                                                        | `boolean` | `true`      |
+| `refreshInterval`   | `refresh-interval` | Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
+| `src`               | `src`              | URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).                                                         | `string`  | `undefined` |
+| `static`            | `static`           | When true, bypasses the AlaSQL query engine and parses the body content as raw JSON, writing it directly to the datasets store.                                                                                                  | `boolean` | `false`     |
 
 
 ----------------------------------------------

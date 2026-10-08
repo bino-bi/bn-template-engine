@@ -121,11 +121,15 @@ describe("bn-chart-structure: stack colours of the theme", () => {
   });
 });
 
-describe("bn-chart-structure: show-measure-scale diagnostic", () => {
-  it("reports an invalid value under the id of the prop", async () => {
-    const page = await renderChart(`show-measure-scale="maybe"`);
+describe("bn-chart-structure: boolean attributes", () => {
+  it.each([
+    ["no attribute", "", [true, false]],
+    ["the text true", `show-categories="true" show-measure-scale="true"`, [true, true]],
+    ["the text false", `show-categories="false" show-measure-scale="false"`, [false, false]],
+    ["an attribute without value", "show-measure-scale", [true, true]],
+  ])("reads %s", async (_name, attrs, expected) => {
+    const chart = (await renderChart(attrs)).root as HTMLBnChartStructureElement;
 
-    expect(errorIds(page)).toContain("ERR_showMeasureScale");
-    expect(errorIds(page)).not.toContain("ERR_grouped");
+    expect([chart.showCategories, chart.showMeasureScale]).toEqual(expected);
   });
 });

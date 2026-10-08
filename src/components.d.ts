@@ -702,13 +702,13 @@ export namespace Components {
       * @default "true"
       * @example show-categories="false"
      */
-    "showCategories": string;
+    "showCategories": boolean;
     /**
       * Toggles display of the SI prefix and unit label in the chart footer (e.g. "k EUR").  Values: `"true"` | `"false"`.
       * @default "false"
       * @example show-measure-scale="true"
      */
-    "showMeasureScale": string;
+    "showMeasureScale": boolean;
     /**
       * Stacking configuration as a JSON string. When set, bars are drawn as stacked segments instead of side-by-side.  **Properties:**  | Key     | Values                                        | Description                                        | |---------|-----------------------------------------------|----------------------------------------------------| | `by`    | `"scenarios"` \| `"dimensions"`               | **Required.** What to stack.                       | | `mode`  | `"absolute"` \| `"relative"` \| `"absolute-relative"` | Stacking mode. Default: `"absolute"`.        | | `order` | `"asc"` \| `"desc"` \| `"dataset"`           | Segment sort order. Default: `"dataset"`.          |  - `by: "scenarios"` - stacks the scenarios listed in the `scenarios` prop end-to-end. - `by: "dimensions"` - stacks by the next-lower hierarchy level derived from `level`   (e.g. level `"rowGroup"` stacks by category). Only the first scenario is used;   extra scenarios trigger a `WARN_stack_dimensions_scenarios` warning. - `mode: "relative"` - normalizes each bar to 100%, showing proportions. - `mode: "absolute-relative"` - absolute bars with percentage labels.  Segment colors are configurable via the `stackColors` array in component styles.
       * @default "" (no stacking)
@@ -872,19 +872,10 @@ export namespace Components {
      */
     "intervalSpanLimit": number;
     /**
-      * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory // auto``` <br /> <br />  When set to ```auto```, level is detected from the dataset silently.  When left blank, level is detected from the dataset with a warning.
-     */
-    "level": string;
-    /**
-      * Set the maximum number of columns stacks The value 0 means *no limit* <br /><br />  columns stacks wich where cut by the limit are cumulated as REST
-      * @default 0
-     */
-    "limit": number;
-    /**
       * When true (default), line charts stretch to fill the full parent width instead of using fixed per-data-point spacing. Has no effect in bar mode. <br /><br /> values:<br /> ```true // false```
-      * @default "true"
+      * @default true
      */
-    "lineFullWidth": string;
+    "lineFullWidth": boolean;
     /**
       * Max Bars - threshold for auto-switching to line mode <br /><br /> When chartMode is set to 'auto' and the number of data points exceeds this value, the chart will render as a line chart.
       * @default 28
@@ -900,14 +891,6 @@ export namespace Components {
       * @default ""
      */
     "measureUnit": string;
-    /**
-      * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently. When left blank, order is detected from the dataset with a warning.
-     */
-    "order": string;
-    /**
-      * set sorting order direction <br /><br /> values:<br /> ```asc // desc```
-     */
-    "orderDirection": string;
     /**
       * Percentage points displayed per 1 em of pin/bar length for relative variances - a larger value means shorter pins.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
       * @example percentage-scaling="10"
@@ -931,22 +914,22 @@ export namespace Components {
      */
     "selectedStyle"?: string;
     /**
-      * @default "true"
+      * @default true
      */
-    "showCategories": string;
+    "showCategories": boolean;
     /**
       * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-      * @default "false"
+      * @default false
      */
-    "showMeasureScale": string;
+    "showMeasureScale": boolean;
     /**
-      * @default "true"
+      * @default true
      */
-    "showOverlayAvg": string;
+    "showOverlayAvg": boolean;
     /**
-      * @default "false"
+      * @default false
      */
-    "showOverlayMedian": string;
+    "showOverlayMedian": boolean;
     /**
       * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenario" | "category" | "subcategory" | "rowgroup",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): The dimension to stack.   - `"scenario"` - stack the scenarios from the `scenarios` prop as layers.   - `"category"` / `"subcategory"` / `"rowgroup"` - decompose a single     scenario by this data dimension. Must be finer than `level`. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
       * @default '' (empty - no stacking)
@@ -1022,14 +1005,6 @@ export namespace Components {
      */
     "leftSideOffsetForHorizontalSync": number;
     /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level": AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit": number;
-    /**
       * @default true
      */
     "lineFullWidth": boolean;
@@ -1045,10 +1020,6 @@ export namespace Components {
       * @default ""
      */
     "measureUnit": string;
-    /**
-      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
-     */
-    "order": Order;
     /**
       * @default { width: 0, height: 0 }
      */
@@ -1127,7 +1098,7 @@ export namespace Components {
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
    * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
-   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * write it to the `datasets` store. Set the `refresh-interval` attribute (in seconds)
    * to enable periodic re-fetching.
    */
   interface BnDataset {
@@ -1137,11 +1108,6 @@ export namespace Components {
      */
     "datasources": string;
     /**
-      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
-      * @default 0
-     */
-    "interval": number;
-    /**
       * Unique (template scope) name of the datasource
      */
     "name": string;
@@ -1150,6 +1116,11 @@ export namespace Components {
       * @default true
      */
     "raw": boolean;
+    /**
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * @default 0
+     */
+    "refreshInterval": number;
     /**
       * URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).
      */
@@ -1166,18 +1137,13 @@ export namespace Components {
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
    * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
-   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    Set the `refresh-interval` attribute (in seconds) to enable periodic re-fetching
    *    (polling).
    * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
   interface BnDatasource {
-    /**
-      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
-      * @default 0
-     */
-    "interval": number;
     /**
       * Unique (template scope) name of the datasource.
      */
@@ -1187,6 +1153,11 @@ export namespace Components {
       * @default true
      */
     "raw": boolean;
+    /**
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * @default 0
+     */
+    "refreshInterval": number;
     /**
       * URL to fetch the JSON from. When set, the body is ignored.
      */
@@ -1258,19 +1229,19 @@ export namespace Components {
     "selectedStyle"?: string;
     /**
       * Whether to display divider lines between cells.
-      * @default "true"
+      * @default true
      */
-    "showBorders": string;
+    "showBorders": boolean;
     /**
       * Whether to display column headers.
-      * @default "true"
+      * @default true
      */
-    "showColumnHeaders": string;
+    "showColumnHeaders": boolean;
     /**
       * Whether to display row headers.
-      * @default "true"
+      * @default true
      */
-    "showRowHeaders": string;
+    "showRowHeaders": boolean;
   }
   interface BnImage {
     /**
@@ -1657,9 +1628,9 @@ export namespace Components {
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
     /**
       * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
-      * @default "false"
+      * @default false
      */
-    "grouped": string;
+    "grouped": boolean;
     /**
       * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
      */
@@ -1730,14 +1701,14 @@ export namespace Components {
     "selectedStyle"?: string;
     /**
       * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
-      * @default "true"
+      * @default true
      */
-    "showGroupTitle": string;
+    "showGroupTitle": boolean;
     /**
       * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-      * @default "false"
+      * @default false
      */
-    "showMeasureScale": string;
+    "showMeasureScale": boolean;
     /**
       * Label of the grand-total row at the bottom of the table. Only rendered for `type="sum"` and `type="opt"`; the other table types have no total row. When empty, the IBCS total symbol (❖) is used.
       * @default ""
@@ -2096,9 +2067,9 @@ export namespace Components {
     "selectedStyle"?: string;
     /**
       * Show operator labels between sibling nodes.
-      * @default "true"
+      * @default true
      */
-    "showOperators": string;
+    "showOperators": boolean;
   }
 }
 declare global {
@@ -2265,7 +2236,7 @@ declare global {
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
    * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
-   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * write it to the `datasets` store. Set the `refresh-interval` attribute (in seconds)
    * to enable periodic re-fetching.
    */
   interface HTMLBnDatasetElement extends Components.BnDataset, HTMLStencilElement {
@@ -2280,7 +2251,7 @@ declare global {
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
    * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
-   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    Set the `refresh-interval` attribute (in seconds) to enable periodic re-fetching
    *    (polling).
    * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
@@ -3098,13 +3069,13 @@ declare namespace LocalJSX {
       * @default "true"
       * @example show-categories="false"
      */
-    "showCategories"?: string;
+    "showCategories"?: boolean;
     /**
       * Toggles display of the SI prefix and unit label in the chart footer (e.g. "k EUR").  Values: `"true"` | `"false"`.
       * @default "false"
       * @example show-measure-scale="true"
      */
-    "showMeasureScale"?: string;
+    "showMeasureScale"?: boolean;
     /**
       * Stacking configuration as a JSON string. When set, bars are drawn as stacked segments instead of side-by-side.  **Properties:**  | Key     | Values                                        | Description                                        | |---------|-----------------------------------------------|----------------------------------------------------| | `by`    | `"scenarios"` \| `"dimensions"`               | **Required.** What to stack.                       | | `mode`  | `"absolute"` \| `"relative"` \| `"absolute-relative"` | Stacking mode. Default: `"absolute"`.        | | `order` | `"asc"` \| `"desc"` \| `"dataset"`           | Segment sort order. Default: `"dataset"`.          |  - `by: "scenarios"` - stacks the scenarios listed in the `scenarios` prop end-to-end. - `by: "dimensions"` - stacks by the next-lower hierarchy level derived from `level`   (e.g. level `"rowGroup"` stacks by category). Only the first scenario is used;   extra scenarios trigger a `WARN_stack_dimensions_scenarios` warning. - `mode: "relative"` - normalizes each bar to 100%, showing proportions. - `mode: "absolute-relative"` - absolute bars with percentage labels.  Segment colors are configurable via the `stackColors` array in component styles.
       * @default "" (no stacking)
@@ -3263,19 +3234,10 @@ declare namespace LocalJSX {
      */
     "intervalSpanLimit"?: number;
     /**
-      * Determines level on which the chart is aggregated on. <br /> <br />  values:<br/> ``` rowcategory // category // subcategory // auto``` <br /> <br />  When set to ```auto```, level is detected from the dataset silently.  When left blank, level is detected from the dataset with a warning.
-     */
-    "level": string;
-    /**
-      * Set the maximum number of columns stacks The value 0 means *no limit* <br /><br />  columns stacks wich where cut by the limit are cumulated as REST
-      * @default 0
-     */
-    "limit"?: number;
-    /**
       * When true (default), line charts stretch to fill the full parent width instead of using fixed per-data-point spacing. Has no effect in bar mode. <br /><br /> values:<br /> ```true // false```
-      * @default "true"
+      * @default true
      */
-    "lineFullWidth"?: string;
+    "lineFullWidth"?: boolean;
     /**
       * Max Bars - threshold for auto-switching to line mode <br /><br /> When chartMode is set to 'auto' and the number of data points exceeds this value, the chart will render as a line chart.
       * @default 28
@@ -3291,14 +3253,6 @@ declare namespace LocalJSX {
       * @default ""
      */
     "measureUnit"?: string;
-    /**
-      * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values:<br /> ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently. When left blank, order is detected from the dataset with a warning.
-     */
-    "order": string;
-    /**
-      * set sorting order direction <br /><br /> values:<br /> ```asc // desc```
-     */
-    "orderDirection": string;
     /**
       * Percentage points displayed per 1 em of pin/bar length for relative variances - a larger value means shorter pins.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available height (same two-pass as unit-scaling)  | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
       * @example percentage-scaling="10"
@@ -3322,22 +3276,22 @@ declare namespace LocalJSX {
      */
     "selectedStyle"?: string;
     /**
-      * @default "true"
+      * @default true
      */
-    "showCategories"?: string;
+    "showCategories"?: boolean;
     /**
       * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-      * @default "false"
+      * @default false
      */
-    "showMeasureScale"?: string;
+    "showMeasureScale"?: boolean;
     /**
-      * @default "true"
+      * @default true
      */
-    "showOverlayAvg"?: string;
+    "showOverlayAvg"?: boolean;
     /**
-      * @default "false"
+      * @default false
      */
-    "showOverlayMedian"?: string;
+    "showOverlayMedian"?: boolean;
     /**
       * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenario" | "category" | "subcategory" | "rowgroup",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset" } ```  - `by` (required): The dimension to stack.   - `"scenario"` - stack the scenarios from the `scenarios` prop as layers.   - `"category"` / `"subcategory"` / `"rowgroup"` - decompose a single     scenario by this data dimension. Must be finer than `level`. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order.
       * @default '' (empty - no stacking)
@@ -3413,14 +3367,6 @@ declare namespace LocalJSX {
      */
     "leftSideOffsetForHorizontalSync"?: number;
     /**
-      * @default AggregationLevel.CATEGORY
-     */
-    "level"?: AggregationLevel;
-    /**
-      * @default 0
-     */
-    "limit"?: number;
-    /**
       * @default true
      */
     "lineFullWidth"?: boolean;
@@ -3436,10 +3382,6 @@ declare namespace LocalJSX {
       * @default ""
      */
     "measureUnit"?: string;
-    /**
-      * @default {     hierarchy: [],     direction: OrderDirection.ASC,   }
-     */
-    "order"?: Order;
     /**
       * @default { width: 0, height: 0 }
      */
@@ -3513,7 +3455,7 @@ declare namespace LocalJSX {
    * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
    *    parsed body directly to the `datasets` store.
    * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
-   * write it to the `datasets` store. Set the `interval` prop (in seconds)
+   * write it to the `datasets` store. Set the `refresh-interval` attribute (in seconds)
    * to enable periodic re-fetching.
    */
   interface BnDataset {
@@ -3523,11 +3465,6 @@ declare namespace LocalJSX {
      */
     "datasources"?: string;
     /**
-      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
-      * @default 0
-     */
-    "interval"?: number;
-    /**
       * Unique (template scope) name of the datasource
      */
     "name": string;
@@ -3536,6 +3473,11 @@ declare namespace LocalJSX {
       * @default true
      */
     "raw"?: boolean;
+    /**
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for SQL, inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * @default 0
+     */
+    "refreshInterval"?: number;
     /**
       * URL to fetch the dataset JSON from. When set, the body is ignored and the fetched payload is written directly to the `datasets` store (`static` and `raw` do not apply).
      */
@@ -3552,18 +3494,13 @@ declare namespace LocalJSX {
    * 1. **Inline JSON** - Place JSON text inside the element body (default).
    * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
    * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
-   *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+   *    Set the `refresh-interval` attribute (in seconds) to enable periodic re-fetching
    *    (polling).
    * The body is always inline data and is ignored while `src` is set.
    * Other components (e.g. `bn-dataset`) reference the stored data by the
    * `name` prop to run queries against it.
    */
   interface BnDatasource {
-    /**
-      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
-      * @default 0
-     */
-    "interval"?: number;
     /**
       * Unique (template scope) name of the datasource.
      */
@@ -3573,6 +3510,11 @@ declare namespace LocalJSX {
       * @default true
      */
     "raw"?: boolean;
+    /**
+      * Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling.
+      * @default 0
+     */
+    "refreshInterval"?: number;
     /**
       * URL to fetch the JSON from. When set, the body is ignored.
      */
@@ -3639,19 +3581,19 @@ declare namespace LocalJSX {
     "selectedStyle"?: string;
     /**
       * Whether to display divider lines between cells.
-      * @default "true"
+      * @default true
      */
-    "showBorders"?: string;
+    "showBorders"?: boolean;
     /**
       * Whether to display column headers.
-      * @default "true"
+      * @default true
      */
-    "showColumnHeaders"?: string;
+    "showColumnHeaders"?: boolean;
     /**
       * Whether to display row headers.
-      * @default "true"
+      * @default true
      */
-    "showRowHeaders"?: string;
+    "showRowHeaders"?: boolean;
   }
   interface BnImage {
     /**
@@ -4033,9 +3975,9 @@ declare namespace LocalJSX {
     "filter"?: string;
     /**
       * Toggles of data should be grouped by 'rowgroup'. <br /><br /> values: <br /> ```true // false```
-      * @default "false"
+      * @default false
      */
-    "grouped"?: string;
+    "grouped"?: boolean;
     /**
       * Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.
      */
@@ -4106,14 +4048,14 @@ declare namespace LocalJSX {
     "selectedStyle"?: string;
     /**
       * Toggles a title header for each (row-)group the title header value is found set by 'rowgroup' <br /><br /> values: <br /> ```true // false```
-      * @default "true"
+      * @default true
      */
-    "showGroupTitle"?: string;
+    "showGroupTitle"?: boolean;
     /**
       * Toggles display of measure units in table header <br /><br /> values: <br /> ```true // false```
-      * @default "false"
+      * @default false
      */
-    "showMeasureScale"?: string;
+    "showMeasureScale"?: boolean;
     /**
       * Label of the grand-total row at the bottom of the table. Only rendered for `type="sum"` and `type="opt"`; the other table types have no total row. When empty, the IBCS total symbol (❖) is used.
       * @default ""
@@ -4463,9 +4405,9 @@ declare namespace LocalJSX {
     "selectedStyle"?: string;
     /**
       * Show operator labels between sibling nodes.
-      * @default "true"
+      * @default true
      */
-    "showOperators"?: string;
+    "showOperators"?: boolean;
   }
 
   interface BnAssetAttributes {
@@ -4586,9 +4528,9 @@ declare namespace LocalJSX {
     "order": string;
     "orderDirection": string;
     "limit": number;
-    "showCategories": string;
+    "showCategories": boolean;
     "measureScale": string;
-    "showMeasureScale": string;
+    "showMeasureScale": boolean;
     "measureUnit": string;
     "stack": string;
     "scale": string;
@@ -4617,12 +4559,8 @@ declare namespace LocalJSX {
     "scenarios": string;
     "variances": string;
     "syncSpaceLeft": number;
-    "limit": number;
     "unitScaling": string;
     "percentageScaling": string;
-    "level": string;
-    "order": string;
-    "orderDirection": string;
     "dateInterval": string;
     "chartMode": string;
     "maxBars": number;
@@ -4630,12 +4568,12 @@ declare namespace LocalJSX {
     "scale": string;
     "intervalSpanLimit": number;
     "axisLabelsMode": string;
-    "lineFullWidth": string;
-    "showCategories": string;
+    "lineFullWidth": boolean;
+    "showCategories": boolean;
     "measureScale": string;
-    "showMeasureScale": string;
-    "showOverlayAvg": string;
-    "showOverlayMedian": string;
+    "showMeasureScale": boolean;
+    "showOverlayAvg": boolean;
+    "showOverlayMedian": boolean;
     "measureUnit": string;
   }
   interface BnChartTimeRendererAttributes {
@@ -4645,9 +4583,7 @@ declare namespace LocalJSX {
     "hideAxisLabels": boolean;
     "pixelPerUnit": number;
     "pixelPerPercentage": number;
-    "limit": number;
     "leftSideOffsetForHorizontalSync": number;
-    "level": AggregationLevel;
     "dateInterval": DateDistance;
     "intervalSpanLimit": number;
     "axisLabelsMode": AxisLabelsMode;
@@ -4675,13 +4611,13 @@ declare namespace LocalJSX {
     "datasources": string;
     "static": boolean;
     "raw": boolean;
-    "interval": number;
+    "refreshInterval": number;
     "src": string;
   }
   interface BnDatasourceAttributes {
     "name": string;
     "raw": boolean;
-    "interval": number;
+    "refreshInterval": number;
     "src": string;
   }
   interface BnFooterAttributes {
@@ -4695,10 +4631,10 @@ declare namespace LocalJSX {
     "chartTitle": string;
     "rowHeaders": string;
     "columnHeaders": string;
-    "showRowHeaders": string;
-    "showColumnHeaders": string;
+    "showRowHeaders": boolean;
+    "showColumnHeaders": boolean;
     "i18nNamespace": string;
-    "showBorders": string;
+    "showBorders": boolean;
     "rowHeaderWidth": string;
     "cellGap": string;
   }
@@ -4815,9 +4751,9 @@ declare namespace LocalJSX {
     "unitScaling": string;
     "percentageScaling": string;
     "dataFormat": string;
-    "grouped": string;
-    "showMeasureScale": string;
-    "showGroupTitle": string;
+    "grouped": boolean;
+    "showMeasureScale": boolean;
+    "showGroupTitle": boolean;
     "type": string;
     "limit": number;
     "thereof": string;
@@ -4892,7 +4828,7 @@ declare namespace LocalJSX {
     "nodeSpacing": number;
     "edgeStyle": EdgeStyleType;
     "i18nNamespace": string;
-    "showOperators": string;
+    "showOperators": boolean;
   }
 
   interface IntrinsicElements {
@@ -4907,7 +4843,7 @@ declare namespace LocalJSX {
     "bn-chart-scatter-renderer": Omit<BnChartScatterRenderer, keyof BnChartScatterRendererAttributes> & { [K in keyof BnChartScatterRenderer & keyof BnChartScatterRendererAttributes]?: BnChartScatterRenderer[K] } & { [K in keyof BnChartScatterRenderer & keyof BnChartScatterRendererAttributes as `attr:${K}`]?: BnChartScatterRendererAttributes[K] } & { [K in keyof BnChartScatterRenderer & keyof BnChartScatterRendererAttributes as `prop:${K}`]?: BnChartScatterRenderer[K] };
     "bn-chart-structure": Omit<BnChartStructure, keyof BnChartStructureAttributes> & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes]?: BnChartStructure[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `attr:${K}`]?: BnChartStructureAttributes[K] } & { [K in keyof BnChartStructure & keyof BnChartStructureAttributes as `prop:${K}`]?: BnChartStructure[K] } & OneOf<"scenarios", BnChartStructure["scenarios"], BnChartStructureAttributes["scenarios"]> & OneOf<"variances", BnChartStructure["variances"], BnChartStructureAttributes["variances"]> & OneOf<"unitScaling", BnChartStructure["unitScaling"], BnChartStructureAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartStructure["percentageScaling"], BnChartStructureAttributes["percentageScaling"]> & OneOf<"level", BnChartStructure["level"], BnChartStructureAttributes["level"]> & OneOf<"order", BnChartStructure["order"], BnChartStructureAttributes["order"]> & OneOf<"orderDirection", BnChartStructure["orderDirection"], BnChartStructureAttributes["orderDirection"]>;
     "bn-chart-structure-renderer": Omit<BnChartStructureRenderer, keyof BnChartStructureRendererAttributes> & { [K in keyof BnChartStructureRenderer & keyof BnChartStructureRendererAttributes]?: BnChartStructureRenderer[K] } & { [K in keyof BnChartStructureRenderer & keyof BnChartStructureRendererAttributes as `attr:${K}`]?: BnChartStructureRendererAttributes[K] } & { [K in keyof BnChartStructureRenderer & keyof BnChartStructureRendererAttributes as `prop:${K}`]?: BnChartStructureRenderer[K] };
-    "bn-chart-time": Omit<BnChartTime, keyof BnChartTimeAttributes> & { [K in keyof BnChartTime & keyof BnChartTimeAttributes]?: BnChartTime[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `attr:${K}`]?: BnChartTimeAttributes[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `prop:${K}`]?: BnChartTime[K] } & OneOf<"scenarios", BnChartTime["scenarios"], BnChartTimeAttributes["scenarios"]> & OneOf<"variances", BnChartTime["variances"], BnChartTimeAttributes["variances"]> & OneOf<"unitScaling", BnChartTime["unitScaling"], BnChartTimeAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartTime["percentageScaling"], BnChartTimeAttributes["percentageScaling"]> & OneOf<"level", BnChartTime["level"], BnChartTimeAttributes["level"]> & OneOf<"order", BnChartTime["order"], BnChartTimeAttributes["order"]> & OneOf<"orderDirection", BnChartTime["orderDirection"], BnChartTimeAttributes["orderDirection"]> & OneOf<"dateInterval", BnChartTime["dateInterval"], BnChartTimeAttributes["dateInterval"]> & OneOf<"axisLabelsMode", BnChartTime["axisLabelsMode"], BnChartTimeAttributes["axisLabelsMode"]>;
+    "bn-chart-time": Omit<BnChartTime, keyof BnChartTimeAttributes> & { [K in keyof BnChartTime & keyof BnChartTimeAttributes]?: BnChartTime[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `attr:${K}`]?: BnChartTimeAttributes[K] } & { [K in keyof BnChartTime & keyof BnChartTimeAttributes as `prop:${K}`]?: BnChartTime[K] } & OneOf<"scenarios", BnChartTime["scenarios"], BnChartTimeAttributes["scenarios"]> & OneOf<"variances", BnChartTime["variances"], BnChartTimeAttributes["variances"]> & OneOf<"unitScaling", BnChartTime["unitScaling"], BnChartTimeAttributes["unitScaling"]> & OneOf<"percentageScaling", BnChartTime["percentageScaling"], BnChartTimeAttributes["percentageScaling"]> & OneOf<"dateInterval", BnChartTime["dateInterval"], BnChartTimeAttributes["dateInterval"]> & OneOf<"axisLabelsMode", BnChartTime["axisLabelsMode"], BnChartTimeAttributes["axisLabelsMode"]>;
     "bn-chart-time-renderer": Omit<BnChartTimeRenderer, keyof BnChartTimeRendererAttributes> & { [K in keyof BnChartTimeRenderer & keyof BnChartTimeRendererAttributes]?: BnChartTimeRenderer[K] } & { [K in keyof BnChartTimeRenderer & keyof BnChartTimeRendererAttributes as `attr:${K}`]?: BnChartTimeRendererAttributes[K] } & { [K in keyof BnChartTimeRenderer & keyof BnChartTimeRendererAttributes as `prop:${K}`]?: BnChartTimeRenderer[K] };
     "bn-component-style": Omit<BnComponentStyle, keyof BnComponentStyleAttributes> & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes]?: BnComponentStyle[K] } & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes as `attr:${K}`]?: BnComponentStyleAttributes[K] } & { [K in keyof BnComponentStyle & keyof BnComponentStyleAttributes as `prop:${K}`]?: BnComponentStyle[K] };
     "bn-context": Omit<BnContext, keyof BnContextAttributes> & { [K in keyof BnContext & keyof BnContextAttributes]?: BnContext[K] } & { [K in keyof BnContext & keyof BnContextAttributes as `attr:${K}`]?: BnContextAttributes[K] } & { [K in keyof BnContext & keyof BnContextAttributes as `prop:${K}`]?: BnContext[K] };
@@ -5023,7 +4959,7 @@ declare module "@stencil/core" {
        * 2. **Static JSON** - set `static="true"` to bypass SQL and write the
        *    parsed body directly to the `datasets` store.
        * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
-       * write it to the `datasets` store. Set the `interval` prop (in seconds)
+       * write it to the `datasets` store. Set the `refresh-interval` attribute (in seconds)
        * to enable periodic re-fetching.
        */
       "bn-dataset": LocalJSX.IntrinsicElements["bn-dataset"] & JSXBase.HTMLAttributes<HTMLBnDatasetElement>;
@@ -5033,7 +4969,7 @@ declare module "@stencil/core" {
        * 1. **Inline JSON** - Place JSON text inside the element body (default).
        * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
        * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
-       *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+       *    Set the `refresh-interval` attribute (in seconds) to enable periodic re-fetching
        *    (polling).
        * The body is always inline data and is ignored while `src` is set.
        * Other components (e.g. `bn-dataset`) reference the stored data by the

@@ -261,16 +261,17 @@ describe("bn-table: data values in queries", () => {
     expect(inner(page).shadowRoot.querySelector("table")).not.toBeNull();
   });
 
-  it("reports grouped and show-measure-scale under their own ids", async () => {
-    const page = await renderTable({ grouped: "maybe", "show-measure-scale": "perhaps" });
+  it("reads the text true and false for the boolean props, as property and as attribute", async () => {
+    const page = await renderTable({ grouped: "true", showGroupTitle: "false", "show-measure-scale": "true" });
+    const table = page.root as HTMLBnTableElement;
 
-    expect(errors(page).map((e) => e.id)).toEqual(expect.arrayContaining(["ERR_grouped", "ERR_showMeasureScale"]));
+    expect([table.grouped, table.showGroupTitle, table.showMeasureScale]).toEqual([true, false, true]);
   });
 
-  it("keeps the grouped item when show-measure-scale is valid", async () => {
-    const page = await renderTable({ grouped: "maybe", "show-measure-scale": "true" });
+  it("keeps the defaults of the boolean props", async () => {
+    const table = (await renderTable({ grouped: undefined })).root as HTMLBnTableElement;
 
-    expect(errors(page).map((e) => e.id)).toContain("ERR_grouped");
+    expect([table.grouped, table.showGroupTitle, table.showMeasureScale]).toEqual([false, true, false]);
   });
 
   it("shows no data and no error for a dataset that is not registered", async () => {

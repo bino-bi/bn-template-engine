@@ -5,7 +5,6 @@ import { TimeChartStylesAdapter } from "../../components/bn-chart-time/utils/mod
 import { ScaleFactorsTimeChartAdapter } from "../../components/bn-chart-time/utils/model/styles/ScaleFactorsTimeChart";
 import { createScopedDb, buildFromExpr } from "../../context/scopedDb";
 import { IBCSRuleSet } from "../ibcsRuleSet";
-import { OrderAdapter } from "../model/Order";
 import { StringAdapter } from "../helper/StringAdapter";
 import { DataFormatDigitsAdapter } from "../model/DataFormatDigits";
 import { FontStyleAdapter } from "../model/styles/FontStyle";
@@ -28,12 +27,11 @@ export function buildTimeChart(rows: Record<string, unknown>[], config: Record<s
 
   const chartConfig = new TimeChartComponentConfigAdapter(
     new TimeChartDataRowAdapter(),
-    new OrderAdapter(new StringAdapter()),
     new StringAdapter(),
     new DataFormatDigitsAdapter(),
     db,
     buildFromExpr(TABLE, ""),
-  ).adapt({ level: "category", ...config });
+  ).adapt(config);
 
   const styles = new TimeChartStylesAdapter(
     new ScaleFactorsTimeChartAdapter(),

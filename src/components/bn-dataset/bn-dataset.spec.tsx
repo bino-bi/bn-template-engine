@@ -274,7 +274,7 @@ describe("bn-dataset rename and re-attach", () => {
   it("fetches again and restarts polling after re-attach", async () => {
     const page = await newSpecPage({
       components: [Dataset],
-      html: `<bn-dataset name="src_again" src="/sales.json" interval="60"></bn-dataset>`,
+      html: `<bn-dataset name="src_again" src="/sales.json" refresh-interval="60"></bn-dataset>`,
     });
     await page.waitForChanges();
     const el = page.root;
@@ -538,7 +538,7 @@ describe("bn-dataset readiness", () => {
 
     const page = await newSpecPage({
       components: [Dataset],
-      html: `<bn-dataset name="rd_slow" src="/sales.json" interval="0.05"></bn-dataset>`,
+      html: `<bn-dataset name="rd_slow" src="/sales.json" refresh-interval="0.05"></bn-dataset>`,
     });
     // two poll ticks pass while the first request is pending
     await new Promise((resolve) => setTimeout(resolve, 130));

@@ -311,7 +311,7 @@ describe("bn-datasource readiness", () => {
 
     const page = await newSpecPage({
       components: [Datasource],
-      html: `<bn-datasource name="rd_slow" src="/rows.json" interval="0.05"></bn-datasource>`,
+      html: `<bn-datasource name="rd_slow" src="/rows.json" refresh-interval="0.05"></bn-datasource>`,
     });
     // two poll ticks pass while the first request is pending
     await new Promise((resolve) => setTimeout(resolve, 130));

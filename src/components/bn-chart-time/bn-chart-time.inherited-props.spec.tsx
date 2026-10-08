@@ -1,5 +1,5 @@
 // bn-chart-time prop inheritance: "inherited-closest" / "inherited-page" on
-// scenarios, variances, order and orderDirection.
+// scenarios and variances.
 //
 // The layout ancestors are plain elements here: the lookup only reads tag
 // names and attributes.
@@ -53,7 +53,6 @@ jest.mock("../../context/context-protocol", () => {
 });
 
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
-import { OrderDirection } from "../../utils/model/Order";
 import { Chart } from "./bn-chart-time";
 
 // scale="none": mock-doc has no layout, so auto-scale would resolve to NaN.
@@ -75,7 +74,7 @@ const diagnosticIds = (page: SpecPage): string[] => diagnostics(page).map((item)
 const unresolvedWarnings = (page: SpecPage): string[] =>
   diagnosticIds(page).filter((id) => id.startsWith("WARN_inherited_"));
 
-/** Gives the chart a dataset to auto-detect scenarios and order from. */
+/** Gives the chart a dataset to auto-detect scenarios from. */
 const withDatasetMeta = async (page: SpecPage): Promise<SpecPage> => {
   page.rootInstance.datasetMeta = {
     availableScenarios: ["ac1", "pp1"],
@@ -123,13 +122,13 @@ describe("bn-chart-time: inherited-closest takes the nearest ancestor that sets 
     expect(unresolvedWarnings(page)).toEqual([]);
   });
 
-  it("resolves scenarios from the card and the order direction from the page in one component", async () => {
+  it("resolves scenarios from the card and variances from the page in one component", async () => {
     const page = await mount(
-      `<bn-layout-page title-scenarios="ac1,pp1" title-order-direction="desc"><bn-layout-card title-scenarios="ac1" title-order-direction="asc">${chart(`scenarios="inherited-closest" order-direction="inherited-page"`)}</bn-layout-card></bn-layout-page>`,
+      `<bn-layout-page title-scenarios="ac1" title-variances="dac1_pp1_pos"><bn-layout-card title-scenarios="ac1,pp1" title-variances="dpp1_ac1_pos">${chart(`scenarios="inherited-closest" variances="inherited-page"`)}</bn-layout-card></bn-layout-page>`,
     );
 
-    expect(page.rootInstance.prepareScenarios()).toEqual(["ac1"]);
-    expect(page.rootInstance.prepareOrder().direction).toBe(OrderDirection.DESC);
+    expect(page.rootInstance.prepareScenarios()).toEqual(["ac1", "pp1"]);
+    expect(page.rootInstance.prepareVariances()).toEqual(["dac1_pp1_pos"]);
   });
 
   it("picks up title-scenarios that the page gets after connect", async () => {
@@ -144,7 +143,7 @@ describe("bn-chart-time: inherited-closest takes the nearest ancestor that sets 
 });
 
 describe("bn-chart-time: an inherited keyword that cannot be resolved", () => {
-  const KEYWORDS = `scenarios="inherited-page" variances="inherited-page" order="inherited-page" order-direction="inherited-page"`;
+  const KEYWORDS = `scenarios="inherited-page" variances="inherited-page"`;
 
   describe.each([
     ["without a layout ancestor", (inner: string) => inner],
@@ -160,36 +159,29 @@ describe("bn-chart-time: an inherited keyword that cannot be resolved", () => {
         type: "warning",
         message: "scenarios: 'inherited-page' could not be resolved, no surrounding page sets titleScenarios",
       });
-      expect(diagnosticIds(page)).toEqual(
-        expect.arrayContaining(["WARN_inherited_variances", "WARN_inherited_order", "WARN_inherited_orderDirection"]),
-      );
+      expect(diagnosticIds(page)).toContain("WARN_inherited_variances");
       expect(diagnosticIds(page)).not.toContain("AUTO_scenarios");
-      expect(diagnosticIds(page)).not.toContain("AUTO_order");
     });
 
     it("renders like a chart without these attributes", async () => {
       const keywords = await withDatasetMeta(await mount(wrap(chart(KEYWORDS))));
       const scenarios = keywords.rootInstance.prepareScenarios();
       const variances = keywords.rootInstance.prepareVariances();
-      const order = keywords.rootInstance.prepareOrder();
 
       const blank = await withDatasetMeta(await mount(wrap(chart(""))));
 
       expect(scenarios).toEqual(blank.rootInstance.prepareScenarios());
       expect(variances).toEqual(blank.rootInstance.prepareVariances());
-      expect(order).toEqual(blank.rootInstance.prepareOrder());
-      expect(diagnosticIds(blank)).toEqual(expect.arrayContaining(["AUTO_scenarios", "AUTO_order"]));
+      expect(diagnosticIds(blank)).toContain("AUTO_scenarios");
     });
   });
 
   it("renders like a chart without these attributes when the dataset suggests nothing", async () => {
     const keywords = await mount(chart(KEYWORDS));
-    const order = keywords.rootInstance.prepareOrder();
     const scenarios = keywords.rootInstance.prepareScenarios();
 
     const blank = await mount(chart(""));
 
-    expect(order).toEqual(blank.rootInstance.prepareOrder());
     expect(scenarios).toEqual(blank.rootInstance.prepareScenarios());
   });
 
@@ -221,16 +213,14 @@ describe("bn-chart-time: an inherited keyword that cannot be resolved", () => {
   it("does not warn when the keyword resolves", async () => {
     const page = await withDatasetMeta(
       await mount(
-        `<bn-layout-page title-scenarios="fc1" title-variances="dfc1_ac1_pos" title-order="fc1" title-order-direction="desc">${chart(KEYWORDS)}</bn-layout-page>`,
+        `<bn-layout-page title-scenarios="fc1" title-variances="dfc1_ac1_pos">${chart(KEYWORDS)}</bn-layout-page>`,
       ),
     );
 
     expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
     expect(page.rootInstance.prepareVariances()).toEqual(["dfc1_ac1_pos"]);
-    expect(page.rootInstance.prepareOrder().direction).toBe(OrderDirection.DESC);
     expect(diagnosticIds(page).filter((id) => id.startsWith("WARN_inherited_"))).toEqual([]);
     expect(diagnosticIds(page)).not.toContain("AUTO_scenarios");
-    expect(diagnosticIds(page)).not.toContain("AUTO_order");
   });
 
   it("drops the warning once the page sets the field", async () => {

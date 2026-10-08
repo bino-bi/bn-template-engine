@@ -19,7 +19,7 @@ import { errorText } from "../../utils/queryError";
  *    parsed body directly to the `datasets` store.
  *
  * Set the `src` attribute to fetch JSON from an HTTP endpoint instead and
- * write it to the `datasets` store. Set the `interval` prop (in seconds)
+ * write it to the `datasets` store. Set the `refresh-interval` attribute (in seconds)
  * to enable periodic re-fetching.
  */
 @Component({
@@ -78,7 +78,7 @@ export class Dataset {
    * interval. Has no effect for SQL, inline JSON or compressed content.
    * Set to `0` or leave unset to disable polling.
    */
-  @Prop() interval: number = 0;
+  @Prop() refreshInterval: number = 0;
 
   /**
    * URL to fetch the dataset JSON from. When set, the body is ignored and
@@ -288,7 +288,7 @@ export class Dataset {
     if (this.name && this.element.isConnected) this.sync(this.element.textContent ?? "");
   }
 
-  @Watch("interval")
+  @Watch("refreshInterval")
   onIntervalChange(): void {
     if (this.currentUrl) {
       this.startPolling();
@@ -436,12 +436,12 @@ export class Dataset {
    *  only resets the interval timer. */
   private startPolling(): void {
     this.clearPollTimer();
-    if (this.currentUrl && this.interval > 0) {
+    if (this.currentUrl && this.refreshInterval > 0) {
       this.pollTimerId = setInterval(() => {
         if (this.currentUrl && !this.firstLoadPending) {
           this.fetchAndStore(this.currentUrl);
         }
-      }, this.interval * 1000);
+      }, this.refreshInterval * 1000);
     }
   }
 

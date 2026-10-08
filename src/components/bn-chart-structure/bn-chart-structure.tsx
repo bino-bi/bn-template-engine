@@ -2,7 +2,6 @@ import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, w
 import { hasInlineJs } from "../../context/scopedDb";
 import {
   isBlankInput,
-  isValidBoolean,
   isValidDirection,
   isValidInteger,
   isValidLevel,
@@ -425,22 +424,7 @@ export class Chart {
    * @default "true"
    * @example show-categories="false"
    */
-  @Prop() showCategories: string = "true";
-
-  @Watch("showCategories")
-  validateShowCategories(newValue: string) {
-    const errId: string = "ERR_showCategories";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showCategories: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showCategories: boolean = true;
 
   /**
    * SI prefix applied to data values, dividing them for display
@@ -485,22 +469,7 @@ export class Chart {
    * @default "false"
    * @example show-measure-scale="true"
    */
-  @Prop() showMeasureScale: string = "false";
-
-  @Watch("showMeasureScale")
-  validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_showMeasureScale";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showMeasureScale: boolean = false;
 
   /**
    * Unit label displayed alongside the SI prefix in the chart footer
@@ -627,9 +596,7 @@ export class Chart {
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
-    this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
-    this.validateShowMeasureScale(this.showMeasureScale);
     this.validateStack(this.stack);
     this.validateScaling(this.scale);
   }
@@ -868,7 +835,7 @@ export class Chart {
   }
 
   private prepareHideCategories(idx: number): boolean {
-    return idx >= 1 || this.showCategories !== "true";
+    return idx >= 1 || !this.showCategories;
   }
 
   private prepareI18n(): Map<string, string> {
@@ -1201,7 +1168,7 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx === 0 && this.showMeasureScale === "true";
+    return idx === 0 && this.showMeasureScale;
   }
   prepareMeasureUnit(): string {
     if (this.measureUnit === "" || this.measureUnit == null) {

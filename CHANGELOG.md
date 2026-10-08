@@ -216,6 +216,42 @@ The setter methods `setProps()` and `setBusinessUnit()` of the inner title eleme
 
 A component took a plain `namespace` attribute as a fallback for `i18n-namespace`. This alias is gone, write `i18n-namespace`. The `namespace` attribute of `<bn-internationalization>` is something else and stays.
 
+#### Boolean attributes are real booleans everywhere
+
+These props were strings that had to be `"true"` or `"false"`. They are booleans now, like the boolean props of the other components:
+
+- `bn-table`: `grouped`, `show-measure-scale`, `show-group-title`
+- `bn-chart-time`: `line-full-width`, `show-categories`, `show-measure-scale`, `show-overlay-avg`, `show-overlay-median`
+- `bn-chart-structure`: `show-categories`, `show-measure-scale`
+- `bn-grid`: `show-row-headers`, `show-column-headers`, `show-borders`
+- `bn-tree`: `show-operators`
+
+`attr="true"` and `attr="false"` work as before, and the defaults are the same. What changes:
+
+- An attribute without a value, or with any text other than `false`, is true. Before, such a value counted as false and gave a warning.
+- The warnings `ERR_grouped`, `ERR_showMeasureScale`, `ERR_showGroupTitle`, `ERR_lineFullWidth`, `ERR_showCategories`, `ERR_showOverlayAvg`, `ERR_showOverlayMedian`, `ERR_showRowHeaders`, `ERR_showColumnHeaders`, `ERR_showBorders` and `ERR_showOperators` no longer exist.
+- Removing the attribute at runtime sets the prop to false, also when its default is true. Write `attr="true"` to switch it on again.
+- In JS the property is a boolean: `table.grouped = true`.
+
+#### `bn-dataset` / `bn-datasource`: `interval` is `refresh-interval`
+
+`interval` meant the polling time in seconds here and the column bucketing on `bn-table`. The polling attribute is now `refresh-interval` (property `refreshInterval`). `interval` on `bn-table` is unchanged.
+
+```html
+<bn-dataset name="live" src="/api/sales.json" refresh-interval="30"></bn-dataset>
+```
+
+#### `bn-chart-time`: `level`, `order`, `order-direction` and `limit` are removed
+
+A time chart always shows one value per period, in date order. These four attributes were validated and gave `ERR_*` and `AUTO_*` items, but had no effect on the chart. They are removed together with their items (`ERR_level`, `ERR_order`, `ERR_orderDirection`, `ERR_limit`, `AUTO_level`, `AUTO_order`, `WARN_inherited_order`, `WARN_inherited_orderDirection` on this element). Markup that still has the attributes renders as before.
+
+### Deprecated
+
+These still work in all 1.x versions and are removed in 2.0:
+
+- `title-namespace` on `bn-layout-page` and `bn-layout-card`. Use `i18n-namespace`, which also applies to the content of the page or card.
+- The `asset:` prefix in `source` of `bn-image`, `image` of `bn-message`, `message-image` of `bn-layout-page` and `title-image` of `bn-layout-card`. Write the plain asset name: `source="logo"` instead of `source="asset:logo"`.
+
 ### Fixed
 
 - `bn-chart-time`: a chart without rows threw in its auto-fit, because the average overlay (on by default) reads the first and the last period. The chart showed "No Data" anyway, the exception was only logged.

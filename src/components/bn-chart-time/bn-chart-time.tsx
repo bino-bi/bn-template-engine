@@ -3,14 +3,10 @@ import { hasInlineJs } from "../../context/scopedDb";
 import {
   isBlankInput,
   isValidAxisLabelsMode,
-  isValidBoolean,
   isValidDateFormat,
-  isValidDirection,
   isValidInteger,
-  isValidLevel,
   isValidMeasureScale,
   isValidNumber,
-  validateOrderList,
   validateScenarioList,
   validateStackConfig,
   validateVariancesList,
@@ -33,7 +29,6 @@ import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObs
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { VarianceScenario } from "../../utils/model/VarianceScenario";
 import { TimeChartStyle } from "./utils/model";
-import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
 import { StackConfigParsed } from "./utils/model/TimeChartComponentConfig";
@@ -50,15 +45,6 @@ import {
   resolveStandaloneId,
 } from "../../utils/layoutState";
 import { syncEmptyState } from "../../utils/emptyState";
-
-enum AggregationLevel {
-  ROWGROUP = "rowGroup",
-  ROWGROUPINDEX = "rowGroupIndex",
-  CATEGORY = "category",
-  CATEGORYINDEX = "categoryIndex",
-  SUBCATEGORY = "subCategory",
-  SUBCATEGORYINDEX = "subCategoryIndex",
-}
 
 /**
  * SVG time-series chart following IBCS standards.
@@ -246,30 +232,6 @@ export class Chart {
   }
 
   /**
-   * Set the maximum number of columns stacks The value 0 means *no limit*
-   * <br /><br />
-   *
-   * columns stacks wich where cut by the limit are cumulated as REST
-   *
-   */
-  @Prop() limit: number = 0;
-
-  @Watch("limit")
-  validateLimit(newValue: number) {
-    const errId: string = "ERR_limit";
-
-    if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "limit: invalid value '" + newValue?.toString() + "' is not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /**
    * Data units displayed per 1 em of bar length (vertical bars) - map-scale
    * semantics: a larger value means smaller bars.
    *
@@ -336,95 +298,6 @@ export class Chart {
         id: errId,
         type: "warning",
         message: "percentageScaling: invalid value(s) '" + newValue + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /**
-   * Determines level on which the chart is aggregated on.
-   * <br /> <br />
-   *
-   * values:<br/>
-   * ``` rowcategory // category // subcategory // auto```
-   * <br /> <br />
-   *  When set to ```auto```, level is detected from the dataset silently.
-   *  When left blank, level is detected from the dataset with a warning.
-   *
-   */
-  @Prop() level!: string;
-
-  @Watch("level")
-  validateLevel(newValue: string) {
-    const errId: string = "ERR_level";
-
-    if (isBlankInput(newValue)) {
-      this.errors.remove(errId);
-      return;
-    }
-
-    if (!isValidLevel(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "level: invalid value(s) '" + newValue + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /** List of the primary scenarios on which the order direction are applied  valid scenarios are
-   *  If order is set to a scenario it has also exists in scenariolist
-   *  <br /><br />
-   *  values:<br />
-   *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto```
-   *  <br /><br />
-   *  When set to ```auto```, order is detected from the dataset silently.
-   *  When left blank, order is detected from the dataset with a warning.
-   */
-  @Prop() order!: string;
-
-  @Watch("order")
-  validateOrderList(newValue: string) {
-    const errId: string = "ERR_order";
-    if (isInheritedValue(newValue)) {
-      this.errors.remove(errId);
-      return;
-    }
-    const invalidElements: string[] = validateOrderList(newValue);
-    if (invalidElements.length > 0) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "order: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /** set sorting order direction
-   *  <br /><br />
-   *  values:<br />
-   *  ```asc // desc```
-   */
-  @Prop() orderDirection!: string;
-
-  @Watch("orderDirection")
-  validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
-    if (isInheritedValue(newValue) || isBlankInput(newValue)) {
-      this.errors.remove(errId);
-      return;
-    }
-
-    if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "orderDirection: invalid value '" + newValue?.toString() + "' is not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -645,39 +518,9 @@ export class Chart {
    *  values:<br />
    *  ```true // false```
    */
-  @Prop() lineFullWidth: string = "true";
+  @Prop() lineFullWidth: boolean = true;
 
-  @Watch("lineFullWidth")
-  validateLineFullWidth(newValue: string) {
-    const errId: string = "ERR_lineFullWidth";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "lineFullWidth: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  @Prop() showCategories: string = "true";
-
-  @Watch("showCategories")
-  validateShowCategories(newValue: string) {
-    const errId: string = "ERR_showCategories";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showCategories: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showCategories: boolean = true;
 
   /**
    *  Sets the SiPrefix of the Mesaurements and converts the
@@ -736,55 +579,10 @@ export class Chart {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() showMeasureScale: string = "false";
+  @Prop() showMeasureScale: boolean = false;
 
-  @Watch("showMeasureScale")
-  validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_showMeasureScale";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  @Prop() showOverlayAvg: string = "true";
-  @Watch("showOverlayAvg")
-  validateShowOverlayAvg(newValue: string) {
-    const errId: string = "ERR_showOverlayAvg";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showOverlayAvg: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  @Prop() showOverlayMedian: string = "false";
-  @Watch("showOverlayMedian")
-  validateShowOverlayMedian(newValue: string) {
-    const errId: string = "ERR_showOverlayMedian";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showOverlayMedian: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
+  @Prop() showOverlayAvg: boolean = true;
+  @Prop() showOverlayMedian: boolean = false;
   /**
    * measureUnit displayed in table.
    */
@@ -816,8 +614,6 @@ export class Chart {
       [
         { propName: "scenarios", ancestorAttr: "title-scenarios" },
         { propName: "variances", ancestorAttr: "title-variances" },
-        { propName: "order", ancestorAttr: "title-order" },
-        { propName: "orderDirection", ancestorAttr: "title-order-direction" },
       ],
       this.errors,
     );
@@ -828,21 +624,11 @@ export class Chart {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateUnitScaling(this.unitScaling);
-    this.validateLimit(this.limit);
     // this.validateStyles(this.styles);
-    this.validateLevel(this.level);
-    this.validateOrderDirection(this.orderDirection);
-    this.validateOrderList(this.order);
     this.validateLeftSync(this.syncSpaceLeft);
     this.validateDateInterval(this.dateInterval);
     this.validateAxisLabelsMode(this.axisLabelsMode);
-
-    this.validateLineFullWidth(this.lineFullWidth);
-    this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
-    this.validateShowMeasureScale(this.showMeasureScale);
-    this.validateShowOverlayAvg(this.showOverlayAvg);
-    this.validateShowOverlayMedian(this.showOverlayMedian);
     this.validateChartMode(this.chartMode);
     this.validateMaxBars(this.maxBars);
     this.validateStack(this.stack);
@@ -1100,7 +886,7 @@ export class Chart {
     // The measure-scale footer (first segment only) renders below its SVG:
     // reserve roughly one em for it so the fitted charts leave it room.
     const segmentCount = 1 + variancesList.length;
-    const footerAllowance = this.showMeasureScale === "true" ? this.getEffectiveFontPx() : 0;
+    const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
     return { width: this.canvasWidthSegmented, height: Math.max(0, parent.height - footerAllowance) / segmentCount };
   }
 
@@ -1132,11 +918,11 @@ export class Chart {
   }
 
   private prepareAvg(): boolean {
-    return this.showOverlayAvg === "true";
+    return this.showOverlayAvg;
   }
 
   private prepareMedian(): boolean {
-    return this.showOverlayMedian === "true";
+    return this.showOverlayMedian;
   }
 
   private prepareVariances(): string[] {
@@ -1178,7 +964,7 @@ export class Chart {
   }
 
   private prepareHideAxisLabels(idx: number): boolean {
-    return idx >= 1 || this.showCategories !== "true";
+    return idx >= 1 || !this.showCategories;
   }
 
   private prepareI18n(): Map<string, string> {
@@ -1298,64 +1084,6 @@ export class Chart {
     }
   };
 
-  private prepareLevel(): AggregationLevel {
-    const isAuto = this.level?.trim().toLowerCase() === "auto";
-    if (isBlankInput(this.level) || isAuto) {
-      if (this.datasetMeta?.suggestedLevel) {
-        if (!isAuto) {
-          this.errors.addOrReplace({
-            id: "AUTO_level",
-            type: "warning",
-            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`,
-          });
-        } else {
-          this.errors.remove("AUTO_level");
-        }
-        return AggregationLevel[this.datasetMeta.suggestedLevel.toUpperCase() as keyof typeof AggregationLevel];
-      }
-      return undefined;
-    }
-    this.errors.remove("AUTO_level");
-    return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
-  }
-
-  private prepareOrder(): Order {
-    const order = this.resolveInherited("order", this.order);
-    const effectiveOrder = order.value;
-    const effectiveDirection = this.resolveInherited("orderDirection", this.orderDirection).value;
-
-    const isLevelAuto = isBlankInput(this.level) || this.level?.trim().toLowerCase() === "auto";
-    let entryValue = isLevelAuto && this.datasetMeta?.suggestedLevel ? this.datasetMeta.suggestedLevel : this.level;
-
-    const isOrderAuto = effectiveOrder?.trim().toLowerCase() === "auto";
-    if (isBlankInput(effectiveOrder) || isOrderAuto) {
-      if (this.datasetMeta?.suggestedLevel) {
-        // An unresolved keyword has its own warning, so it gets no AUTO_order on top.
-        if (!isOrderAuto && !order.unresolved) {
-          this.errors.addOrReplace({
-            id: "AUTO_order",
-            type: "warning",
-            message: `order: not set, auto-detected: ${entryValue}`,
-          });
-        } else {
-          this.errors.remove("AUTO_order");
-        }
-      }
-    } else {
-      this.errors.remove("AUTO_order");
-      if (effectiveOrder?.toLocaleLowerCase() === "levelindex") {
-        entryValue += "Index";
-      }
-    }
-
-    const tableOrder: Order = {
-      hierarchy: [OrderColumn[entryValue?.toUpperCase() as keyof typeof OrderColumn]],
-      direction: OrderDirection[effectiveDirection?.toUpperCase() as keyof typeof OrderDirection],
-    };
-
-    return tableOrder;
-  }
-
   private prepareStyle(): TimeChartStyle {
     const effectiveFactor = this.getEffectiveScaleFactor();
     return this.componentStyle(($) => {
@@ -1424,10 +1152,6 @@ export class Chart {
     }
 
     return this.chartTitle;
-  }
-
-  private prepareLimit(): number {
-    return Math.floor(Number(this.limit) || 0);
   }
 
   private prepareDateInterval(): DateDistance {
@@ -1528,7 +1252,7 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx === 0 && this.showMeasureScale === "true";
+    return idx === 0 && this.showMeasureScale;
   }
 
   prepareMeasureUnit(): string {
@@ -1575,7 +1299,7 @@ export class Chart {
   }
 
   private prepareLineFullWidth(): boolean {
-    return this.lineFullWidth === "true";
+    return this.lineFullWidth;
   }
 
   private prepareChartMode(): ChartMode {
@@ -1614,12 +1338,9 @@ export class Chart {
         pixelPerPercentage={ppp}
         reportAutoScaling={this.handleAutoScalingReport}
         errors={this.errors}
-        limit={this.prepareLimit()}
         leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
         styles={preparedStyle}
         i18n={preparedI18n}
-        order={this.prepareOrder()}
-        level={this.prepareLevel()}
         dateInterval={this.prepareDateInterval()}
         intervalSpanLimit={this.prepareIntervalSpanLimit()}
         axisLabelsMode={this.prepareAxisLabelsMode()}

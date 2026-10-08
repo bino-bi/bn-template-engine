@@ -5,7 +5,6 @@ import { TimeChartStylesAdapter } from "./model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChartAdapter } from "./model/styles/ScaleFactorsTimeChart";
 import { createScopedDb, buildFromExpr } from "../../../context/scopedDb";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
-import { OrderAdapter } from "../../../utils/model/Order";
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
 import { DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
 import { FontStyleAdapter } from "../../../utils/model/styles/FontStyle";
@@ -28,7 +27,6 @@ const buildChart = (): TimeChart => {
 
   const config = new TimeChartComponentConfigAdapter(
     new TimeChartDataRowAdapter(),
-    new OrderAdapter(new StringAdapter()),
     new StringAdapter(),
     new DataFormatDigitsAdapter(),
     db,
@@ -36,7 +34,6 @@ const buildChart = (): TimeChart => {
   ).adapt({
     scenarios: ["ac1", "pp1"],
     variances: ["dac1_pp1_pos"],
-    level: "category",
     dateInterval: "month",
   });
 

@@ -4,7 +4,6 @@ import {
   isBlankInput,
   isTableBarColumnWidth,
   isTableCategoryWidth,
-  isValidBoolean,
   isValidDataFormat,
   isValidDateFormat,
   isValidDirection,
@@ -517,22 +516,7 @@ export class Table {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() grouped: string = "false";
-
-  @Watch("grouped")
-  validateGrouped(newValue: string) {
-    const errId: string = "ERR_grouped";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "grouped: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() grouped: boolean = false;
 
   /**
    *  Toggles display of measure units in table header
@@ -540,22 +524,7 @@ export class Table {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() showMeasureScale: string = "false";
-
-  @Watch("showMeasureScale")
-  validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_showMeasureScale";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showMeasureScale: boolean = false;
 
   /**
    *  Toggles a title header for each (row-)group
@@ -565,22 +534,7 @@ export class Table {
    *  ```true // false```
    *
    */
-  @Prop() showGroupTitle: string = "true";
-
-  @Watch("showGroupTitle")
-  validateShowGroupTitle(newValue: string) {
-    const errId: string = "ERR_showGroupTitle";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showGroupTitle: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showGroupTitle: boolean = true;
 
   /**
    *  Set the table type
@@ -988,8 +942,6 @@ export class Table {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateDataFormat(this.dataFormat);
-    this.validateGrouped(this.grouped);
-    this.validateShowGroupTitle(this.showGroupTitle);
     this.validateType(this.type);
     this.validateLimit(this.limit);
     this.validateThereOf(this.thereof);
@@ -1004,7 +956,6 @@ export class Table {
     this.validateColumnThereOf(this.columnthereof);
     this.validateInterval(this.interval);
     this.validateTableAttributes(this.tableAttributes);
-    this.validateShowMeasureScale(this.showMeasureScale);
     this.validateBarColumns(this.barColumns);
     this.validateBarColumnWidth(this.barColumnWidth);
     this.validateUnitScaling(this.unitScaling);
@@ -1157,11 +1108,11 @@ export class Table {
   }
 
   private prepareGrouped(): boolean {
-    return this.grouped === "true";
+    return this.grouped;
   }
 
   private prepareShowGroupTitle(): boolean {
-    return this.showGroupTitle === "true";
+    return this.showGroupTitle;
   }
 
   private prepareTableType(): TableType {
@@ -1445,7 +1396,7 @@ export class Table {
   }
 
   prepareShowMeasureScale(): boolean {
-    return this.showMeasureScale === "true";
+    return this.showMeasureScale;
   }
   prepareMeasureUnit(): string {
     if (this.measureUnit === "" || this.measureUnit == null) {

@@ -1,5 +1,5 @@
 import { Component, Element, h, Host, Method, Prop, State, Watch } from "@stencil/core";
-import { isValidBoolean, isValidNumber } from "../../utils/validate";
+import { isValidNumber } from "../../utils/validate";
 import {
   ComponentLayoutState,
   EdgeElement,
@@ -242,22 +242,7 @@ export class ChartTree {
   /**
    * Show operator labels between sibling nodes.
    */
-  @Prop({ attribute: "show-operators" }) showOperators: string = "true";
-
-  @Watch("showOperators")
-  validateShowOperators(newValue: string) {
-    const errId = "ERR_showOperators";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: `show-operators: invalid value '${newValue}', must be 'true' or 'false'`,
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop({ attribute: "show-operators" }) showOperators: boolean = true;
 
   constructor() {
     withStyled(this);
@@ -362,7 +347,6 @@ export class ChartTree {
     this.validateLevelSpacing(this.levelSpacing);
     this.validateNodeSpacing(this.nodeSpacing);
     this.validateEdgeStyle(this.edgeStyle);
-    this.validateShowOperators(this.showOperators);
   }
 
   connectedCallback() {
@@ -593,7 +577,7 @@ export class ChartTree {
     }
 
     // Render operators between siblings
-    if (this.showOperators === "true") {
+    if (this.showOperators) {
       for (const [parent, children] of this.treeConfig.adjacencyList.entries()) {
         const bend = bends.get(parent);
         if (bend === undefined) {

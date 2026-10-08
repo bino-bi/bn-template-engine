@@ -26,19 +26,12 @@ import { DateTime } from "luxon";
 import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
-import {
-  AggregationLevel,
-  AxisLabelsMode,
-  ChartMode,
-  RELATIVE_STACK_UNITS,
-  StackBy,
-  StackMode,
-} from "../../../utils/constants";
+import { AxisLabelsMode, ChartMode, RELATIVE_STACK_UNITS, StackBy, StackMode } from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { layoutStack, stackExtent, stackLabelSide, StackLayout } from "../../../utils/stackLayout";
 import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
 import { drawAttached } from "../../../utils/measurementHost";
-import { DataFormatDigits, Order } from "../../../components";
+import { DataFormatDigits } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { relativeVariance } from "../../../utils/relativeVariance";
@@ -301,7 +294,7 @@ export class TimeChart {
     this.intervalSpanLimit = config.intervalSpanLimit;
     this.dateInterval = this.findDateInterval(config.dateInterval);
 
-    this.dataModel = this.populateModel(scenarios, this.dateInterval, config.level, config.sortOrder);
+    this.dataModel = this.populateModel(scenarios, this.dateInterval);
     this.variancesDataModel = this.populateVarianceModel(config.variances, this.dataModel);
     this.configTitle = config.title;
     this.configVariances = config?.variances ?? [];
@@ -809,12 +802,7 @@ export class TimeChart {
     return result;
   }
 
-  private populateModel(
-    selectedScenarios: string[],
-    dateInterval: DateDistance,
-    _level: AggregationLevel,
-    _sortOrder: Order,
-  ): TimeChartDataModelEntry[] {
+  private populateModel(selectedScenarios: string[], dateInterval: DateDistance): TimeChartDataModelEntry[] {
     if (this.rowCount === 0 || !this.fromExpr) {
       return [];
     }

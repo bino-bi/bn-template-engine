@@ -13,7 +13,7 @@ import { sourceExpr } from "../../../context/scopedDb";
 import { TimeChartStyle, TimeChartStylesAdapter } from "../utils/model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChartAdapter } from "../utils/model/styles/ScaleFactorsTimeChart";
 import { DateDistance } from "../../../utils/DateStringFactory";
-import { AggregationLevel, AxisLabelsMode, ChartMode } from "../../../utils/constants";
+import { AxisLabelsMode, ChartMode } from "../../../utils/constants";
 import { ParentDimensions } from "../../../utils/parentDimensions";
 import { AutoScalingReport } from "../../../utils/scaling";
 import { MIN_PIXEL_SCALE, solveAutoFitStep } from "../../../utils/autoFit";
@@ -24,7 +24,6 @@ import { ErrorDispatcher } from "../../../utils/withHasError";
 import { errorText, reportQueryError } from "../../../utils/queryError";
 import { RuleSetConfig } from "../../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
-import { OrderDirection, OrderAdapter, Order } from "../../../utils/model/Order";
 import { FontStyleAdapter } from "../../../utils/model/styles/FontStyle";
 import { PaddingAdapter } from "../../../utils/model/styles/Padding";
 import { SVGStyleAdapter } from "../../../utils/model/styles/SVGStyle";
@@ -86,9 +85,6 @@ export class BnChartTimeRenderer {
   @Prop() errors?: ErrorDispatcher;
 
   /** @internal */
-  @Prop() limit: number = 0;
-
-  /** @internal */
   @Prop() leftSideOffsetForHorizontalSync: number = -1;
   /** @internal */
   @Prop({ mutable: true })
@@ -98,17 +94,6 @@ export class BnChartTimeRenderer {
   /** @internal */
   @Prop({ mutable: true })
   i18n: Map<string, string> = new Map(); //  I18nMode;
-
-  /** @internal */
-  @Prop()
-  order: Order = {
-    hierarchy: [],
-    direction: OrderDirection.ASC,
-  };
-
-  /** @internal */
-  @Prop()
-  level: AggregationLevel = AggregationLevel.CATEGORY;
 
   /** @internal */
   @Prop()
@@ -444,7 +429,6 @@ export class BnChartTimeRenderer {
     this.measureScaleError = undefined;
     return new TimeChartComponentConfigAdapter(
       new TimeChartDataRowAdapter(),
-      new OrderAdapter(new StringAdapter()),
       new StringAdapter(),
       new DataFormatDigitsAdapter(),
       db,
@@ -459,11 +443,8 @@ export class BnChartTimeRenderer {
       hideAxisLabels: this.hideAxisLabels,
       pixelPerUnit: this.pixelPerUnit,
       pixelPerPercentage: this.pixelPerPercentage,
-      level: this.level,
       dateInterval: this.dateInterval,
       axisLabelsMode: this.axisLabelsMode,
-      limit: this.limit,
-      sortOrder: this.order,
       leftSideOffsetForHorizontalSync: this.leftSideOffsetForHorizontalSync,
       intervalSpanLimit: this.intervalSpanLimit,
       filter: this.filter,
