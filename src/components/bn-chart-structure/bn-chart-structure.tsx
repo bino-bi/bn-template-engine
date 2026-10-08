@@ -420,9 +420,7 @@ export class Chart {
   /**
    * Whether to display category labels on the left side of the chart.
    *
-   * Values: `"true"` | `"false"`.
-   *
-   * @default "true"
+   * @default true
    * @example show-categories="false"
    */
   @Prop() showCategories: boolean = true;
@@ -465,16 +463,14 @@ export class Chart {
    * Toggles display of the SI prefix and unit label in the chart footer
    * (e.g. "k EUR").
    *
-   * Values: `"true"` | `"false"`.
-   *
-   * @default "false"
+   * @default false
    * @example show-measure-scale="true"
    */
   @Prop() showMeasureScale: boolean = false;
 
   /**
    * Unit label displayed alongside the SI prefix in the chart footer
-   * (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is `"true"`.
+   * (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is on.
    *
    * @default ""
    * @example measure-unit="EUR"

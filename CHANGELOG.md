@@ -23,7 +23,7 @@ Types are re-exported from the package root (`LayoutState`, `ComponentLayoutStat
 
 #### `datasets`, `selected-style`, `i18n-namespace` and `render-orientation` are declared properties
 
-The components already read these attributes, but did not declare them. They were missing from the generated docs and from the TypeScript types, and setting the JS property did nothing. They are props now: `datasets` on the table, the charts and `bn-text`, `selectedStyle` on every styled component, `i18nNamespace` on every component with translated text, `renderOrientation` on `bn-context`. Each one reflects to its attribute, so markup does not change.
+The components already read these attributes, but did not declare them. They were missing from the generated docs and from the TypeScript types, and setting the JS property did nothing. They are props now: `datasets` on the table, the charts and `bn-text`, `selectedStyle` on every styled component, `i18nNamespace` on every component with translated text, `renderOrientation` on `bn-context`. Each one reflects to its attribute, so markup does not change. Clearing `datasets` now empties the component, before it kept its last data.
 
 #### `bn-ruleset`: `name` and `colorIndex` work in the table, the time chart, the structure chart and the title
 
@@ -97,10 +97,10 @@ A body that started with `/`, `http://` or `https://` used to be fetched as a UR
 <!-- before -->
 <bn-dataset name="sales" interval="30">https://example.com/api/sales.json</bn-dataset>
 <!-- after -->
-<bn-dataset name="sales" interval="30" src="https://example.com/api/sales.json"></bn-dataset>
+<bn-dataset name="sales" refresh-interval="30" src="https://example.com/api/sales.json"></bn-dataset>
 ```
 
-While `src` is set the body is ignored. `interval` keeps its meaning.
+While `src` is set the body is ignored. The polling attribute `interval` is `refresh-interval` now, see below.
 
 #### Sanitized HTML: disallowed elements are removed with their content
 
@@ -183,7 +183,7 @@ A `has-error` item, also one of type `error`, is not a failed component. A page 
 - `bn-dataset`, `bn-datasource`: `ERR_body` when the body cannot be decoded or parsed or is not a JSON array, `ERR_src` when the request fails, **when the server answers with an HTTP error status**, or when the response is not a JSON array, `ERR_name` on every element when two of them produce the same name (also a dataset with the name of its datasource). When the name is no longer shared, the remaining element loads its data again, and a dataset on top of that name reads it again too. An empty body and the JSON value `null` mean "no rows" and are no error. A static `bn-dataset` with an empty body is now registered as a table without rows.
 - `bn-internationalization`: `ERR_body` for a body that is not a JSON object.
 - `bn-component-style`: `ERR_keys` (type `error`) lists the keys that are not part of the style. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`. The theming guide named sections that were never read (`text`, `timeChart`, `structureChart`, `tree`, `grid`). The sections are the tag names: `bn-text`, `bn-chart-time`, `bn-chart-structure`, `bn-tree`, `bn-grid`. See [doc/theming.md](doc/theming.md).
-- `show-measure-scale`, `show-overlay-avg` and `show-overlay-median` shared the id `ERR_grouped`. A valid value of one removed the item of another. The ids are now `ERR_showMeasureScale`, `ERR_showOverlayAvg` and `ERR_showOverlayMedian`.
+- `show-measure-scale`, `show-overlay-avg` and `show-overlay-median` shared the id `ERR_grouped`. A valid value of one removed the item of another. These three attributes are booleans now and have no item any more, see below.
 
 #### `bn-page`: true page sizes, `full-hd` works, `@page` rule
 
@@ -283,6 +283,7 @@ Most attribute checks reported a warning under an id that began with `ERR_`, and
 - `JSON_PARSE` on `bn-component-style` and `bn-ruleset` is `ERR_body`, as on the data elements.
 - `no_value` on `bn-text` is `WARN_value`.
 - `WARN_use_dataset` is `WARN_datasets`.
+- `LAYOUT_cellPairing_<section>_<row>` in the `diagnostics` of the layout state of a table is `WARN_layout_cell_pairing_<section>_<row>`.
 - The data warnings of scatter, bubble and bullet use underscores only: `WARN_xy-duplicate-point` is `WARN_xy_duplicate_point`, and the same for the other `WARN_xy-*`, `WARN_bubble-*` and `WARN_bullet-*` ids.
 
 The ids that stay as they were: all `AUTO_*` ids, all ids of type `error` (`ERR_sql`, `ERR_filter`, `ERR_body`, `ERR_src`, `ERR_name`, `ERR_keys`, `ERR_edges`, `ERR_rowHeaders`, `ERR_columnHeaders`, `ERR_xy_*`, `ERR_bullet_*`) and the other `WARN_*` ids.
@@ -291,7 +292,7 @@ The ids that stay as they were: all `AUTO_*` ids, all ids of type `error` (`ERR_
 
 #### Translation keys: `bn-title.SEPARATOR_WS` and `bn-table.thereof`
 
-Two built-in keys were misspelled: `bn-title.SEPERATOR_WS` is now `bn-title.SEPARATOR_WS`, and `bn-table.there_of` is now `bn-table.thereof`. A `<bn-internationalization>` body that still uses an old name keeps working: the value is read under the new name. Rename the keys in your translations, the old names end with 2.0.
+Two built-in keys were misspelled: `bn-title.SEPERATOR_WS` is now `bn-title.SEPARATOR_WS`, and `bn-table.there_of` is now `bn-table.thereof`. The old names keep working: a `<bn-internationalization>` body that uses one is read under the new name, and `t('bn-table.there_of')` in a `bn-text` template still finds the text. Rename the keys in your translations, the old names end with 2.0.
 
 #### Theme: every `scaleFactors` value is a multiple of the font size
 
@@ -308,12 +309,12 @@ These lines now get thinner and thicker with `scale` and with the font size, lik
 
 #### npm package: entry points
 
-- The package has an `exports` map with `.`, `./loader`, `./components/<tag>`, `./schemas/<name>.schema.json` and `./package.json`. Node and bundlers no longer resolve other paths inside the package, for example `@bino-bi/bn-template-engine/dist/...`. URLs on a CDN are not affected.
+- The package has an `exports` map with `.`, `./loader`, `./schemas/<name>.schema.json` and `./package.json`. Node and bundlers no longer resolve other paths inside the package, for example `@bino-bi/bn-template-engine/dist/...`. URLs on a CDN are not affected.
 - `types` points at `dist/types/index.d.ts`. `import { LAYOUT_STATE_VERSION, type LayoutState } from "@bino-bi/bn-template-engine"` type-checks now. Before, the type entry had the elements but not the layout state.
 - The fields `es2015` and `es2017` are gone. They named a file that was never built.
-- `dist/components` brings its own runtime. Before, these files imported `@stencil/core`, which the package does not install.
-- A TypeScript project with `skipLibCheck: false` compiles against the package: the type declarations no longer use the typings of alasql, and `@types/luxon` is a dependency.
+- A TypeScript project with `skipLibCheck: false` compiles against the package: the type declarations no longer use the typings of alasql, `@types/luxon` is a dependency, and the type entry has no import of a style sheet.
 - Spec helpers are no longer built into `dist`.
+- `dist/components` (one module per element) is not an entry point. Its modules register the elements, but the elements do not render, and they never did. They no longer import `@stencil/core`. Use the loader.
 
 [doc/installation.md](doc/installation.md) lists the entry points.
 
@@ -336,10 +337,10 @@ These still work in all 1.x versions and are removed in 2.0:
 - Spec runs: the 500 ms timer of the status register fired after a spec file had ended ("Cannot log after tests are done"), which made small runs exit with 1.
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.
 - Tables and charts with no rows printed the no-data label with literal `==` markers (`==No Data==` / `==Keine Daten==`). The built-in label is now `No Data` (en) / `Keine Daten` (de). A `*.no-data` key set to `""` now hides the label instead of bringing the placeholder back.
-- `bn-table`: a table that rendered taller than its layout cell was clipped without a trace - the bottom rows, grand total included, simply disappeared and no diagnostic mentioned it. The table now measures its rendered size against the constrained parent on every render and publishes a `WARN_overflow` item in `has-error` with the measured magnitude (an `error` when `scale` pins the size, a `warning` in auto mode). Scaling is unchanged: `scale` still fits the width only, so a height overflow is fixed by more space, fewer rows (`limit`) or a smaller `scale`.
+- `bn-table`: a table that rendered taller than its layout cell was clipped without a trace - the bottom rows, grand total included, simply disappeared and no diagnostic mentioned it. The table now measures its rendered size against the constrained parent on every render and publishes an item in `has-error` with the measured magnitude (the error `ERR_overflow` when `scale` pins the size, the warning `WARN_overflow` in auto mode). Scaling is unchanged: `scale` still fits the width only, so a height overflow is fixed by more space, fewer rows (`limit`) or a smaller `scale`.
 - `bn-chart-time`: the measure-scale footer ("in kEUR") floated beside the base chart's SVG whenever the SVG was narrow enough to fit next to it, shifting the base chart right by the footer width while the variance segments stayed put. Base and variance bars were misaligned by exactly that width. The footer now always sits above the SVG.
 - Chart wrappers: stale `AUTO_percentageScaling` warning was not cleared when a scaling group resolved.
-- `bn-chart-structure` / `bn-chart-time`: an optional attribute that was simply not set produced a warning of its own - `level: invalid value(s) 'undefined' are not supported.` and the same for `order-direction`, `unit-scaling`, `percentage-scaling`, `date-interval` and `axis-labels-mode` - next to the correct `AUTO_<field>` notice for the very same blank value. On a report with many charts these drowned out the real warnings. An omitted field now yields only its documented `AUTO_<field>` notice; `ERR_<field>` is reserved for a value that was written and is wrong.
+- `bn-chart-structure` / `bn-chart-time`: an optional attribute that was simply not set produced a warning of its own - `level: invalid value(s) 'undefined' are not supported.` and the same for `order-direction`, `unit-scaling`, `percentage-scaling`, `date-interval` and `axis-labels-mode` - next to the correct `AUTO_<field>` notice for the very same blank value. On a report with many charts these drowned out the real warnings. An omitted field now yields only its documented `AUTO_<field>` notice; `WARN_<field>` is reserved for a value that was written and is wrong.
 - SI prefix tables: removed a stray `"P"` (peta) from the negative-prefix table (femto range was shifted); `measure-scale` now accepts both `"my"` and `"μ"` for micro; magnitude→prefix picking is now `Math.log10`-based and handles exponential notation (`1e-7`, `1e24`) and boundary values correctly.
 - `bn-dataset`, `bn-datasource`: changing `name` left the data under the old name. A static dataset kept its old table, a SQL dataset was never registered under the new name, and a `src` dataset moved only with the next poll. The old table or view is now dropped, its consumers are notified, and the data loads again under the new name. A SQL dataset whose source was renamed or removed now delivers no rows and sets `ERR_sql`, so a table behind it does not keep the old numbers.
 - `bn-dataset`, `bn-datasource`: an element that was removed and attached again stayed empty, did not restart polling and kept writing to the `bn-context` it came from. It now loads again in the context it is attached to.

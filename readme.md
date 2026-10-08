@@ -75,6 +75,7 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
   ├── <bn-datasource>        Raw data input
   ├── <bn-dataset>           SQL query layer
   ├── <bn-component-style>   Theming (optional)
+  ├── <bn-ruleset>           Scenario order, look and names (optional)
   ├── <bn-internationalization>  i18n (optional)
   ├── <bn-asset>             Images/resources (optional)
   │
@@ -85,7 +86,8 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
   │   │   ├── <bn-chart-time>      Time series chart
   │   │   ├── <bn-chart-structure>  Structure chart
   │   │   ├── <bn-chart-scatter>   XY scattergram (IBCS C09)
-  │   │   └── <bn-chart-bubble>    Bubble portfolio chart (IBCS C10)
+  │   │   ├── <bn-chart-bubble>    Bubble portfolio chart (IBCS C10)
+  │   │   └── <bn-chart-bullet>    Bullet graph
   │   └── <bn-footer>        Footer
 ```
 
@@ -110,6 +112,7 @@ The `bn-*` elements listed below are the public API: their tags, attributes, pro
 | [`<bn-chart-structure>`](src/components/bn-chart-structure/readme.md) | Categorical/structural bar chart |
 | [`<bn-chart-scatter>`](src/components/bn-chart-scatter/readme.md) | XY scattergram with iso-lines and highlight bands (IBCS C09) |
 | [`<bn-chart-bubble>`](src/components/bn-chart-bubble/readme.md) | Area-true bubble chart with scenario overlay and pie shares (IBCS C10) |
+| [`<bn-chart-bullet>`](src/components/bn-chart-bullet/readme.md) | Bullet graph: one row per KPI with actual bar and target marker |
 
 ### Layout
 
@@ -144,6 +147,7 @@ The `bn-*` elements listed below are the public API: their tags, attributes, pro
 | Component | Description |
 |-----------|-------------|
 | [`<bn-component-style>`](src/components/bn-component-style/readme.md) | Theme/style configuration |
+| [`<bn-ruleset>`](src/components/bn-ruleset/readme.md) | Order, look and names of the scenarios |
 | [`<bn-internationalization>`](src/components/bn-internationalization/readme.md) | Translation/locale configuration |
 | [`<bn-scaling-group>`](src/components/bn-scaling-group/readme.md) | Named scaling value shared across charts and tables |
 

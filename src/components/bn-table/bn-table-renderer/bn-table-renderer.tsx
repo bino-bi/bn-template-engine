@@ -297,7 +297,7 @@ export class BnTableRenderer {
         const domCells = Array.from(tr.children);
         if (cells.length !== domCells.length) {
           result.diagnostics.push({
-            id: `LAYOUT_cellPairing_${section}_${rowIndex}`,
+            id: `WARN_layout_cell_pairing_${section}_${rowIndex}`,
             type: "warning",
             message: `layout-state: model/DOM cell count mismatch in ${section} row ${rowIndex} (${cells.length} vs ${domCells.length}); cell details skipped for this row.`,
           });

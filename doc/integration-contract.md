@@ -56,11 +56,11 @@ A component that has something to report sets the attribute `has-error` on itsel
 | Field | Type | Meaning |
 |-------|------|---------|
 | `id` | string | Names the finding. Stable. One element has at most one item per id. |
-| `type` | `"error"` or `"warning"` | An error means the component could not draw what was asked: it shows nothing, an error state, or content that is cut off although the author fixed the size. A warning means it drew something, with a fallback or an automatic choice. |
+| `type` | `"error"` or `"warning"` | An error means the component could not draw what was asked: it shows nothing or an error state. A table, a time chart or a structure chart also reports an error when its content is cut off although the author fixed the size. A warning means the component drew something, with a fallback or an automatic choice. |
 | `message` | string | Text for a person. It can change between versions and some messages are translated. Do not parse it. |
 | `description` | string, optional | More text for a person. Not used today. |
 
-The order of the items has no meaning. `getLayoutState()` returns the same items as `diagnostics` of each component.
+The order of the items has no meaning. `getLayoutState()` returns the same items as `diagnostics` of each component. For a table it can add `WARN_layout_cell_pairing_<section>_<row>` when it could not match its cells, this item is not in `has-error`.
 
 ### The id rule
 
@@ -72,7 +72,7 @@ An id is a prefix, an underscore and a name. The prefix tells the type:
 | `WARN_` | `warning` | An input was ignored or looks wrong. |
 | `AUTO_` | `warning` | A value was not set, the engine chose one. |
 
-The name is the property name in camelCase when the item is about one attribute (`WARN_orderDirection` for `order-direction`). Otherwise it is a short description in lower snake case (`WARN_value_path`).
+The name is the attribute name in camelCase when the item is about one attribute (`WARN_orderDirection` for `order-direction`). Otherwise it is a short description in lower snake case (`WARN_value_path`).
 
 ### Errors
 
@@ -93,7 +93,7 @@ The name is the property name in camelCase when the item is about one attribute 
 
 ### Warnings about one attribute
 
-`WARN_<property>`: the attribute has a value the component cannot use. The component ignores it and uses its default.
+`WARN_<attribute>`: the attribute has a value the component cannot use. The component ignores it and uses its default.
 
 `WARN_aspect`, `WARN_attributes`, `WARN_axisLabelsMode`, `WARN_barColumns`, `WARN_barColumnWidth`, `WARN_cardCustomTemplate`, `WARN_categoryWidth`, `WARN_chartMode`, `WARN_columnthereof`, `WARN_compareWith`, `WARN_dataFormat`, `WARN_dataFormatDigitsDecimal`, `WARN_dataFormatDigitsPercent`, `WARN_dateEnd`, `WARN_dateFormat`, `WARN_dateInterval`, `WARN_dateLink`, `WARN_dateStart`, `WARN_direction`, `WARN_edgeStyle`, `WARN_format`, `WARN_interval`, `WARN_level`, `WARN_levelSpacing`, `WARN_limit`, `WARN_maxBars`, `WARN_measures`, `WARN_measureScale`, `WARN_measureType`, `WARN_nodeSpacing`, `WARN_normalize`, `WARN_order`, `WARN_orderDirection`, `WARN_orientation`, `WARN_pageCustomTemplate`, `WARN_partof`, `WARN_percentageScaling`, `WARN_scale`, `WARN_scenarios`, `WARN_seriesLevel`, `WARN_stack`, `WARN_syncSpaceLeft`, `WARN_thereof`, `WARN_type`, `WARN_unitScaling`, `WARN_variances`.
 
@@ -101,9 +101,9 @@ The name is the property name in camelCase when the item is about one attribute 
 
 | Id | On | Meaning |
 |----|----|---------|
-| `WARN_overflow` | table, charts, `bn-text`, `bn-tree` | The content is larger than its cell, although the engine chose the size. |
+| `WARN_overflow` | table, charts, `bn-text`, `bn-tree` | The content is larger than its cell. On `bn-table`, `bn-chart-time` and `bn-chart-structure` this id means that the engine chose the size, a fixed size gives `ERR_overflow` there. The other components use this id in both cases. |
 | `WARN_datasets` | table, charts, `bn-text` | `datasets` names a datasource (`$name`) and not a dataset. |
-| `WARN_inherited_<prop>` | table, charts, `bn-title` | The keyword `inherited-closest` or `inherited-page` found no value. `<prop>` is `scenarios`, `variances`, `order` or `orderDirection`. |
+| `WARN_inherited_<prop>` | `bn-table`, `bn-chart-time`, `bn-chart-structure` | The keyword `inherited-closest` or `inherited-page` found no value. `<prop>` is `scenarios` or `variances`, on the table and the structure chart also `order` or `orderDirection`. |
 | `WARN_value`, `WARN_value_path` | `bn-text` | `value` is empty, or a placeholder in it does not resolve. |
 | `WARN_blankRowGroup`, `WARN_intervalConflict`, `WARN_intervalNoDate`, `WARN_intervalSetname` | `bn-table` | Rows without a row group, or `interval` does not fit the other attributes or the data. |
 | `WARN_variances_scenario` | `bn-chart-time` | A variance uses a scenario that is not drawn. |
@@ -120,7 +120,7 @@ The name is the property name in camelCase when the item is about one attribute 
 | Id | Meaning |
 |----|---------|
 | `AUTO_scale` | The component was scaled to fit its cell. |
-| `AUTO_unitScaling`, `AUTO_percentageScaling` | The bar scaling was not set or not usable. The message has the value that was chosen. |
+| `AUTO_unitScaling`, `AUTO_percentageScaling` | The bar scaling was not set or not usable. The message can name the value that was chosen. |
 | `AUTO_scenarios`, `AUTO_level`, `AUTO_order`, `AUTO_dateInterval`, `AUTO_actual`, `AUTO_target` | The attribute was not set. The value was taken from the dataset. |
 
 A new version can add ids. It does not rename or remove one of these, and it does not change the type of one.

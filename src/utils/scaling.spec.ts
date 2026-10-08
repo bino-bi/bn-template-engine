@@ -1,4 +1,5 @@
 import { formatScalingValue, parseScalingValue, resolveScalingValue, strokeWidthPx } from "./scaling";
+import { SYSTEM_STYLE_DEFAULTS } from "../stores/componentStyles";
 
 describe("strokeWidthPx", () => {
   it.each([
@@ -8,6 +9,17 @@ describe("strokeWidthPx", () => {
     [0.075, 8, 0.6],
   ])("%p of a %p px font is %p px", (factor, fontSizePx, expected) => {
     expect(strokeWidthPx(factor, fontSizePx)).toBe(expected);
+  });
+
+  it("gives the line widths of the built-in theme whole pixels at its font size", () => {
+    const font = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
+    const bullet = SYSTEM_STYLE_DEFAULTS["bn-chart-bullet"].scaleFactors;
+    const scatter = SYSTEM_STYLE_DEFAULTS["bn-chart-scatter"].scaleFactors;
+
+    expect(strokeWidthPx(bullet.targetLineWidth, font)).toBe(2);
+    expect(strokeWidthPx(bullet.axisLineWidth, font)).toBe(1);
+    expect(strokeWidthPx(scatter.refLineWidth, font)).toBe(1);
+    expect(strokeWidthPx(scatter.gridLineWidth, font)).toBe(1);
   });
 });
 

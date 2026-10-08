@@ -56,6 +56,7 @@ describe("JSON Schemas", () => {
       ["i18n", { global: { ac1: "Actual" }, "bn-table": { thereof: "of which", SUM_TOTAL: "Total" } }],
       ["thereof", [{ rowGroup: "Umsatz", category: "Applications", subCategory: "Applications-A" }]],
       ["partof", [{ rowGroup: "Umsatz", category: "Applications" }]],
+      ["partof", [{ rowGroup: "Umsatz", category: "Hamburg", subCategory: "" }]],
       ["stack", { by: "scenarios" }],
       ["stack", { by: "dimensions", mode: "relative", order: "asc" }],
       ["axis", { measure: "ac1", label: "Revenue", unit: "EUR", min: 0, highlight: { from: 10 } }],

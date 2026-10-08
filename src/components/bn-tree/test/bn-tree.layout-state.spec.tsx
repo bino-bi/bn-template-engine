@@ -97,3 +97,18 @@ describe("bn-tree.getLayoutState", () => {
     expect(operators.map((o: any) => o.text)).toEqual(["×"]);
   });
 });
+
+describe("bn-tree: show-operators is a boolean attribute", () => {
+  it.each([
+    ["no attribute", "", true],
+    ["the text false", `show-operators="false"`, false],
+    ["the text true", `show-operators="true"`, true],
+  ])("reads %s", async (_name, attrs, expected) => {
+    const page = await newSpecPage({
+      components: [ChartTree],
+      html: `<bn-tree ${attrs} edges='[{"from":"a","to":"b"}]'><div slot="a">A</div><div slot="b">B</div></bn-tree>`,
+    });
+
+    expect((page.root as HTMLBnTreeElement).showOperators).toBe(expected);
+  });
+});

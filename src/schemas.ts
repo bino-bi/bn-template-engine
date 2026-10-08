@@ -38,6 +38,8 @@ export interface PartofEntry {
   rowGroup: string;
   /** Category whose share of the row group is shown. */
   category: string;
+  /** Accepted, not used. */
+  subCategory?: string;
 }
 
 /** The `partof` attribute of `bn-table`. */

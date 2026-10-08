@@ -658,7 +658,7 @@ export namespace Components {
      */
     "measureScale": string;
     /**
-      * Unit label displayed alongside the SI prefix in the chart footer (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is `"true"`.
+      * Unit label displayed alongside the SI prefix in the chart footer (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is on.
       * @default ""
       * @example measure-unit="EUR"
      */
@@ -698,14 +698,14 @@ export namespace Components {
      */
     "selectedStyle"?: string;
     /**
-      * Whether to display category labels on the left side of the chart.  Values: `"true"` | `"false"`.
-      * @default "true"
+      * Whether to display category labels on the left side of the chart.
+      * @default true
       * @example show-categories="false"
      */
     "showCategories": boolean;
     /**
-      * Toggles display of the SI prefix and unit label in the chart footer (e.g. "k EUR").  Values: `"true"` | `"false"`.
-      * @default "false"
+      * Toggles display of the SI prefix and unit label in the chart footer (e.g. "k EUR").
+      * @default false
       * @example show-measure-scale="true"
      */
     "showMeasureScale": boolean;
@@ -1245,11 +1245,11 @@ export namespace Components {
   }
   interface BnImage {
     /**
-      * /**   Name of the component style to use (the `name` of a   `<bn-component-style>`). Its values go on top of the default style.
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
      */
     "selectedStyle"?: string;
     /**
-      * Url of the image. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
+      * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
      */
     "source": string;
   }
@@ -3025,7 +3025,7 @@ declare namespace LocalJSX {
      */
     "measureScale"?: string;
     /**
-      * Unit label displayed alongside the SI prefix in the chart footer (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is `"true"`.
+      * Unit label displayed alongside the SI prefix in the chart footer (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is on.
       * @default ""
       * @example measure-unit="EUR"
      */
@@ -3065,14 +3065,14 @@ declare namespace LocalJSX {
      */
     "selectedStyle"?: string;
     /**
-      * Whether to display category labels on the left side of the chart.  Values: `"true"` | `"false"`.
-      * @default "true"
+      * Whether to display category labels on the left side of the chart.
+      * @default true
       * @example show-categories="false"
      */
     "showCategories"?: boolean;
     /**
-      * Toggles display of the SI prefix and unit label in the chart footer (e.g. "k EUR").  Values: `"true"` | `"false"`.
-      * @default "false"
+      * Toggles display of the SI prefix and unit label in the chart footer (e.g. "k EUR").
+      * @default false
       * @example show-measure-scale="true"
      */
     "showMeasureScale"?: boolean;
@@ -3597,11 +3597,11 @@ declare namespace LocalJSX {
   }
   interface BnImage {
     /**
-      * /**   Name of the component style to use (the `name` of a   `<bn-component-style>`). Its values go on top of the default style.
+      * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
      */
     "selectedStyle"?: string;
     /**
-      * Url of the image. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png```
+      * /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png```
      */
     "source"?: string;
   }

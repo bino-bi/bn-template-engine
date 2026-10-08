@@ -70,7 +70,7 @@ When `grouped="true"`, rows are organized under their `rowGroup` headers with su
 ```html
 <bn-table
   scenarios="ac1,pl1"
-  thereof='[{"rowgroup": "Revenue", "category": "Product Sales", "subcategory": ""}]'>
+  thereof='[{"rowGroup": "Revenue", "category": "Product Sales", "subCategory": "Licenses"}]'>
 </bn-table>
 ```
 
@@ -79,7 +79,7 @@ When `grouped="true"`, rows are organized under their `rowGroup` headers with su
 ```html
 <bn-table
   scenarios="ac1,pl1"
-  partof='[{"rowgroup": "Revenue", "category": "Product Sales", "subcategory": ""}]'>
+  partof='[{"rowGroup": "Revenue", "category": "Product Sales"}]'>
 </bn-table>
 ```
 
