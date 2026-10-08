@@ -12,8 +12,20 @@
 import alasql from "alasql";
 import { DateTime } from "luxon";
 
-/** Concrete type of an alasql database instance (the `alasql` module exports it as a value, not a named type). */
-export type AlaSQLDatabase = InstanceType<typeof alasql.Database>;
+/**
+ * The part of an alasql database the engine uses. A local type on purpose:
+ * the typings of alasql import a package it does not install, and this type
+ * is part of the published type declarations.
+ */
+export interface AlaSQLDatabase {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  exec<T = any>(sql: string, params?: unknown[]): T;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tables: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  views?: Record<string, any>;
+  resetSqlCache(): void;
+}
 
 /**
  * Builds a SQL FROM-clause expression for a dataset, optionally filtered.

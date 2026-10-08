@@ -3,6 +3,8 @@ import { sass } from '@stencil/sass';
 
 export const config: Config = {
   namespace: 'bn-template-engine',
+  // the build leaves out the specs and their helpers, tsconfig.json keeps them for the type check
+  tsconfig: 'tsconfig.build.json',
   globalStyle: 'src/global.css',
   plugins: [
     sass()
@@ -17,6 +19,8 @@ export const config: Config = {
     // },
     {
       type: 'dist-custom-elements',
+      // a consumer of dist/components does not have to install @stencil/core
+      externalRuntime: false,
     },
     {
       type: 'docs-readme',

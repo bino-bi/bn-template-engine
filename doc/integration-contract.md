@@ -8,6 +8,7 @@ A tool that prints, embeds or checks a report needs three things from the engine
 - The readiness values on `window` and the console line.
 - `getLayoutState()`, versioned by `LAYOUT_STATE_VERSION`.
 - The `has-error` attribute: the item shape, the id rule and the ids on this page.
+- The entry points of the npm package (see [Installation](installation.md)) and the JSON Schemas in it.
 
 Not stable: the `bn-*-renderer` elements, the markup and the CSS classes inside a shadow root, and the text of a message.
 

@@ -306,6 +306,17 @@ Four line widths in `scaleFactors` were pixels, next to values that are multiple
 
 These lines now get thinner and thicker with `scale` and with the font size, like the lines of the time and structure chart. A theme that sets one of the four keys must divide its value by the font size (13.3333 by default). [doc/theming.md](doc/theming.md) has a table with the unit of every key.
 
+#### npm package: entry points
+
+- The package has an `exports` map with `.`, `./loader`, `./components/<tag>`, `./schemas/<name>.schema.json` and `./package.json`. Node and bundlers no longer resolve other paths inside the package, for example `@bino-bi/bn-template-engine/dist/...`. URLs on a CDN are not affected.
+- `types` points at `dist/types/index.d.ts`. `import { LAYOUT_STATE_VERSION, type LayoutState } from "@bino-bi/bn-template-engine"` type-checks now. Before, the type entry had the elements but not the layout state.
+- The fields `es2015` and `es2017` are gone. They named a file that was never built.
+- `dist/components` brings its own runtime. Before, these files imported `@stencil/core`, which the package does not install.
+- A TypeScript project with `skipLibCheck: false` compiles against the package: the type declarations no longer use the typings of alasql, and `@types/luxon` is a dependency.
+- Spec helpers are no longer built into `dist`.
+
+[doc/installation.md](doc/installation.md) lists the entry points.
+
 ### Deprecated
 
 These still work in all 1.x versions and are removed in 2.0:

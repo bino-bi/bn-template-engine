@@ -18,15 +18,34 @@ defineCustomElements();
 
 This registers all `<bn-*>` custom elements. Components are loaded on demand when they appear in the DOM.
 
-### Custom Elements Bundle
+### Single Components
 
-For bundlers that tree-shake (Vite, Webpack 5, Rollup), use the custom elements output:
+To load only the components a page uses, import them one by one. Each module exports a `defineCustomElement()` function. Call it to register the element and the elements it renders:
 
 ```js
-import { BnContext, BnDatasource, BnDataset, BnTable } from '@bino-bi/bn-template-engine/dist/custom-elements';
+import { defineCustomElement as defineContext } from '@bino-bi/bn-template-engine/components/bn-context';
+import { defineCustomElement as defineDatasource } from '@bino-bi/bn-template-engine/components/bn-datasource';
+import { defineCustomElement as defineDataset } from '@bino-bi/bn-template-engine/components/bn-dataset';
+import { defineCustomElement as defineTable } from '@bino-bi/bn-template-engine/components/bn-table';
+
+defineContext();
+defineDatasource();
+defineDataset();
+defineTable();
 ```
 
-Each import registers the component as a custom element. Only import what you use.
+An import alone registers nothing. These modules bring their own runtime, no other package is needed.
+
+### Package Entry Points
+
+| Import | Content |
+|--------|---------|
+| `@bino-bi/bn-template-engine` | `LAYOUT_STATE_VERSION` and the TypeScript types of the elements and of the layout state |
+| `@bino-bi/bn-template-engine/loader` | `defineCustomElements()` for lazy loading |
+| `@bino-bi/bn-template-engine/components/<tag>` | one element with `defineCustomElement()` |
+| `@bino-bi/bn-template-engine/schemas/<name>.schema.json` | JSON Schemas for `theme`, `ruleset`, `i18n`, `thereof`, `partof`, `stack` and `axis` |
+
+A TypeScript project needs `moduleResolution` `bundler`, `node16` or `nodenext` for the last two.
 
 ## CDN / Script Tag
 
