@@ -295,7 +295,7 @@ describe("bn-layout-page grid template", () => {
 
     expect(grid(page.root).style.gridTemplateAreas).toBe('"a"');
     expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(1);
-    expect(ids(page.root)).toEqual(["ERR_pageCustomTemplate"]);
+    expect(ids(page.root)).toEqual(["WARN_pageCustomTemplate"]);
   });
 
   it("drops the warning when the template is corrected", async () => {

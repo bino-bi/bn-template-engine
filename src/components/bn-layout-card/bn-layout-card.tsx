@@ -1,4 +1,4 @@
-import { Component, h, Element, Prop, Method, Fragment } from "@stencil/core";
+import { Component, h, Element, Prop, Fragment } from "@stencil/core";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -347,22 +347,16 @@ export class LayoutCard {
     return templateAreas(name, this.cardCustomTemplate);
   }
 
-  @Method()
-  async getNumberOfSlot(name: string) {
-    const template = this.getTemplatePattern(name);
-    return this.extractSlotNames(template).length;
-  }
-
   componentWillRender() {
     const problem = this.cardLayout === CUSTOM_TEMPLATE ? templateProblem(this.cardCustomTemplate) : undefined;
     if (problem) {
       this.errors.addOrReplace({
-        id: "ERR_cardCustomTemplate",
+        id: "WARN_cardCustomTemplate",
         type: "warning",
         message: `cardCustomTemplate: ${problem}`,
       });
     } else {
-      this.errors.remove("ERR_cardCustomTemplate");
+      this.errors.remove("WARN_cardCustomTemplate");
     }
   }
 

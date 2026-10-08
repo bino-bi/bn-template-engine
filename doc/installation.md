@@ -18,15 +18,17 @@ defineCustomElements();
 
 This registers all `<bn-*>` custom elements. Components are loaded on demand when they appear in the DOM.
 
-### Custom Elements Bundle
+### Package Entry Points
 
-For bundlers that tree-shake (Vite, Webpack 5, Rollup), use the custom elements output:
+| Import | Content |
+|--------|---------|
+| `@bino-bi/bn-template-engine` | `LAYOUT_STATE_VERSION` and the TypeScript types of the elements and of the layout state |
+| `@bino-bi/bn-template-engine/loader` | `defineCustomElements()` for lazy loading |
+| `@bino-bi/bn-template-engine/schemas/<name>.schema.json` | JSON Schemas for `theme`, `ruleset`, `i18n`, `thereof`, `partof`, `stack` and `axis` |
 
-```js
-import { BnContext, BnDatasource, BnDataset, BnTable } from '@bino-bi/bn-template-engine/dist/custom-elements';
-```
+A TypeScript project needs `moduleResolution` `bundler`, `node16` or `nodenext` for the schema imports.
 
-Each import registers the component as a custom element. Only import what you use.
+Other files of the package are not entry points. This includes `dist/components`: the per-element modules there register the elements, but the elements do not render yet. Use the loader.
 
 ## CDN / Script Tag
 
@@ -68,20 +70,20 @@ Once loaded, use the components in plain HTML:
 ```html
 <bn-context locale="en">
 
-  <bn-datasource name="sales">
+  <bn-datasource name="raw">
     [
       { "category": "North", "ac1": 120, "pl1": 100 },
       { "category": "South", "ac1": 80, "pl1": 90 }
     ]
   </bn-datasource>
 
-  <bn-dataset name="sales" datasources="sales">
-    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM sales GROUP BY category
+  <bn-dataset name="sales" datasources="raw">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM raw GROUP BY category
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
     <bn-body>
-      <bn-table scenarios="ac1,pl1"></bn-table>
+      <bn-table datasets="sales" scenarios="ac1,pl1"></bn-table>
     </bn-body>
   </bn-page>
 

@@ -69,12 +69,12 @@ jest.mock("../../context/context-protocol", () => {
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { ErrorItem } from "../../utils/withHasError";
 import { ChartScatter } from "./bn-chart-scatter";
-import { IbcsChartScatter } from "./ibcs-chart-scatter";
+import { BnChartScatterRenderer } from "./bn-chart-scatter-renderer/bn-chart-scatter-renderer";
 
 const renderScatter = async (parentHeight: number, attrs: string): Promise<SpecPage> => {
   mockParentHeight = parentHeight;
   const page = await newSpecPage({
-    components: [ChartScatter, IbcsChartScatter],
+    components: [ChartScatter, BnChartScatterRenderer],
     html: `<bn-chart-scatter datasets="points" x="ac1" y="ac2" ${attrs}></bn-chart-scatter>`,
   });
   await page.waitForChanges();
@@ -88,7 +88,7 @@ const overflowItem = (page: SpecPage): ErrorItem | undefined =>
 const chartHeight = (page: SpecPage): number =>
   Number(
     page
-      .root!.shadowRoot!.querySelector("ibcs-chart-scatter")!
+      .root!.shadowRoot!.querySelector("bn-chart-scatter-renderer")!
       .shadowRoot!.querySelector("svg#drawCanvas")!
       .getAttribute("height"),
   );

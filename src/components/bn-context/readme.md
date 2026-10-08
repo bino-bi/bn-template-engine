@@ -8,12 +8,12 @@ Root wrapper element for all bn-template-engine components. Every `<bn-*>` compo
 
 ```html
 <bn-context locale="en">
-  <bn-datasource name="sales">...</bn-datasource>
-  <bn-dataset name="sales" datasources="sales">...</bn-dataset>
+  <bn-datasource name="raw">...</bn-datasource>
+  <bn-dataset name="sales" datasources="raw">...</bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
     <bn-body>
-      <bn-table scenarios="ac1,pl1"></bn-table>
+      <bn-table datasets="sales" scenarios="ac1,pl1"></bn-table>
     </bn-body>
   </bn-page>
 </bn-context>
@@ -56,15 +56,18 @@ Read them like this: the flag is `true`, the page is ready. The failures list is
 
 A `has-error` item on a component is something else: it reports a problem with the input (a wrong attribute, a failing query), and the page still counts as rendered.
 
+These values and the `has-error` ids are stable in 1.x, see the [Integration Contract](../../../doc/integration-contract.md).
+
 <!-- Auto Generated Below -->
 
 
 ## Properties
 
-| Property        | Attribute        | Description                                                                                                                                                                                                                                                                                                                                         | Type     | Default     |
-| --------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `i18nNamespace` | `i18n-namespace` | Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute. | `string` | `undefined` |
-| `locale`        | `locale`         |                                                                                                                                                                                                                                                                                                                                                     | `string` | `undefined` |
+| Property            | Attribute            | Description                                                                                                                                                                                                                                                                                                                                         | Type                        | Default     |
+| ------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ----------- |
+| `i18nNamespace`     | `i18n-namespace`     | Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute. | `string`                    | `undefined` |
+| `locale`            | `locale`             |                                                                                                                                                                                                                                                                                                                                                     | `string`                    | `undefined` |
+| `renderOrientation` | `render-orientation` | Orientation of the sheets the document is printed on: `landscape` or `portrait`. A `<bn-layout-page>` with the other orientation is turned onto the sheet. Without it no page is turned.                                                                                                                                                            | `"landscape" \| "portrait"` | `undefined` |
 
 
 ## Methods

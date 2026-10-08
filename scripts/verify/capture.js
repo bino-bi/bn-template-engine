@@ -137,13 +137,13 @@ async function capture(page, outDir) {
     `(() => {
       ${SERIALIZER}
 
-      // Collect every bn-*/ibcs-* host in document order, crossing shadow roots.
+      // Collect every bn-* host in document order, crossing shadow roots.
       const hosts = [];
       (function collect(root) {
         const els = root.querySelectorAll("*");
         for (const el of els) {
           const t = el.tagName.toLowerCase();
-          if (t.startsWith("bn-") || t.startsWith("ibcs-")) hosts.push(el);
+          if (t.startsWith("bn-")) hosts.push(el);
           if (el.shadowRoot) collect(el.shadowRoot);
         }
       })(document);
@@ -155,7 +155,7 @@ async function capture(page, outDir) {
         seen[t] = (seen[t] || 0) + 1;
         // Only the inner renderers get their own file: they are where the
         // refactors land, and per-component files localize a diff.
-        if (t.startsWith("ibcs-")) {
+        if (t.endsWith("-renderer")) {
           components[t + "[" + (seen[t] - 1) + "]"] = canonicalize(el);
         }
       }

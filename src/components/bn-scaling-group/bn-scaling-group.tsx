@@ -112,50 +112,50 @@ export class ScalingGroup {
     // Validate: "auto" is reserved
     if (nameParse.kind === "auto") {
       this.errors.addOrReplace({
-        id: "ERR_reserved_name",
+        id: "WARN_reserved_name",
         type: "warning",
         message: `bn-scaling-group: name "auto" is reserved and cannot be used.`,
       });
       return;
     }
 
-    this.errors.remove("ERR_reserved_name");
+    this.errors.remove("WARN_reserved_name");
 
     if (!trimmedName) {
       this.errors.addOrReplace({
-        id: "ERR_empty_name",
+        id: "WARN_empty_name",
         type: "warning",
         message: `bn-scaling-group: name is required.`,
       });
       return;
     }
 
-    this.errors.remove("ERR_empty_name");
+    this.errors.remove("WARN_empty_name");
 
     // Validate: a name that parses as a number/SI value would be ambiguous
     // with a literal scaling value at the referencing component.
     if (nameParse.kind === "number") {
       this.errors.addOrReplace({
-        id: "ERR_numeric_name",
+        id: "WARN_numeric_name",
         type: "warning",
         message: `bn-scaling-group: name "${trimmedName}" is not allowed - it would be ambiguous with a numeric scaling value.`,
       });
       return;
     }
 
-    this.errors.remove("ERR_numeric_name");
+    this.errors.remove("WARN_numeric_name");
 
     const parsedValue = parseScalingValue(this.value);
     if (parsedValue.kind !== "number") {
       this.errors.addOrReplace({
-        id: "ERR_invalid_value",
+        id: "WARN_invalid_value",
         type: "warning",
         message: `bn-scaling-group: invalid value "${this.value}" - must be a positive number, optionally with k/M/G/T suffix.`,
       });
       return;
     }
 
-    this.errors.remove("ERR_invalid_value");
+    this.errors.remove("WARN_invalid_value");
 
     const existing = this.stores.scalingGroups.state[trimmedName];
     const wroteExisting = this.storedName === trimmedName && this.storedValue === existing;

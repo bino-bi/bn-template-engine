@@ -58,7 +58,7 @@ import { ErrorItem } from "../../utils/withHasError";
 import { DataAnalyzer } from "../../utils/dataAnalyzer";
 import { SiPrefix } from "../../utils/model/SiPrefix";
 import { Table } from "./bn-table";
-import { IbcsTable } from "./ibcs-table";
+import { BnTableRenderer } from "./bn-table-renderer/bn-table-renderer";
 
 // Pasted into a quoted SQL literal, this value ends the literal and runs as AlaSQL inline JavaScript.
 const payloadGroup = "Kids' OR ``(globalThis.__pwned = 1)`` OR '";
@@ -102,14 +102,14 @@ describe("bn-table: data values in queries", () => {
       ...props,
     };
     const page = await newSpecPage({
-      components: [Table, IbcsTable],
+      components: [Table, BnTableRenderer],
       template: () => <bn-table {...attrs}></bn-table>,
     });
     await page.waitForChanges();
     return page;
   };
 
-  const inner = (page: SpecPage): Element => page.root.shadowRoot.querySelector("ibcs-table");
+  const inner = (page: SpecPage): Element => page.root.shadowRoot.querySelector("bn-table-renderer");
   const bodyRows = (page: SpecPage): Element[] => Array.from(inner(page).shadowRoot.querySelectorAll("tbody tr"));
   const hasClass = (element: Element, name: string): boolean =>
     element.getAttribute("class")?.split(" ").includes(name) ?? false;
@@ -248,9 +248,9 @@ describe("bn-table: data values in queries", () => {
   });
 
   it.each([
-    ["thereof", "ERR_thereof"],
-    ["partof", "ERR_partof"],
-    ["columnthereof", "ERR_categorythereof"],
+    ["thereof", "WARN_thereof"],
+    ["partof", "WARN_partof"],
+    ["columnthereof", "WARN_columnthereof"],
   ])("renders with %s that is no JSON, and keeps the warning of the validator", async (prop, id) => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     // a throw in render() would reject here
@@ -261,16 +261,17 @@ describe("bn-table: data values in queries", () => {
     expect(inner(page).shadowRoot.querySelector("table")).not.toBeNull();
   });
 
-  it("reports grouped and show-measure-scale under their own ids", async () => {
-    const page = await renderTable({ grouped: "maybe", "show-measure-scale": "perhaps" });
+  it("reads the text true and false for the boolean props, as property and as attribute", async () => {
+    const page = await renderTable({ grouped: "true", showGroupTitle: "false", "show-measure-scale": "true" });
+    const table = page.root as HTMLBnTableElement;
 
-    expect(errors(page).map((e) => e.id)).toEqual(expect.arrayContaining(["ERR_grouped", "ERR_showMeasureScale"]));
+    expect([table.grouped, table.showGroupTitle, table.showMeasureScale]).toEqual([true, false, true]);
   });
 
-  it("keeps the grouped item when show-measure-scale is valid", async () => {
-    const page = await renderTable({ grouped: "maybe", "show-measure-scale": "true" });
+  it("keeps the defaults of the boolean props", async () => {
+    const table = (await renderTable({ grouped: undefined })).root as HTMLBnTableElement;
 
-    expect(errors(page).map((e) => e.id)).toContain("ERR_grouped");
+    expect([table.grouped, table.showGroupTitle, table.showMeasureScale]).toEqual([false, true, false]);
   });
 
   it("shows no data and no error for a dataset that is not registered", async () => {

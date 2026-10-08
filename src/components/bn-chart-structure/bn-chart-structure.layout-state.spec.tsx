@@ -85,7 +85,7 @@ const renderChart = async (attrs: string): Promise<SpecPage> => {
     components: [Chart],
     html: `<bn-chart-structure scenarios="ac1" variances="" scale="none" ${attrs}></bn-chart-structure>`,
   });
-  page.root!.shadowRoot!.querySelectorAll("ibcs-chart-structure").forEach((inner) => {
+  page.root!.shadowRoot!.querySelectorAll("bn-chart-structure-renderer").forEach((inner) => {
     const shadow = inner.attachShadow({ mode: "open" });
     shadow.innerHTML = SEGMENT_SVG;
   });

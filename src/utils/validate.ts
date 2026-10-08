@@ -242,15 +242,6 @@ export function isValidDataFormat(value: string): boolean {
   return value?.toUpperCase() in DataFormat;
 }
 
-export function isValidBoolean(value: unknown): boolean {
-  if (isBlankInput(value)) {
-    return false;
-  }
-
-  const validValues: (string | boolean)[] = ["true", "false", true, false];
-  return validValues.some((elem) => elem === value);
-}
-
 export function isValidTableType(value: string): boolean {
   if (isBlankInput(value)) {
     return false;

@@ -28,7 +28,7 @@ Translations are stored per **namespace**, per **language code**, as a flat key-
 store[namespace][code][key] → label
 ```
 
-- Every component resolves its namespace from the `i18n-namespace` DOM attribute, with **default inheritance**: the element's own attribute wins (the deprecated `namespace` attribute is honored as a fallback); otherwise the nearest ancestor carrying `i18n-namespace` provides it - a layout card, layout page, tree, grid, or the `<bn-context>` itself, crossing shadow boundaries; otherwise the built-in `_system` namespace is used.
+- Every component resolves its namespace from the `i18n-namespace` DOM attribute, with **default inheritance**: the element's own attribute wins; otherwise the nearest ancestor carrying `i18n-namespace` provides it - a layout card, layout page, tree, grid, or the `<bn-context>` itself, crossing shadow boundaries; otherwise the built-in `_system` namespace is used.
 - Keys missing from the resolved namespace fall back to `_system` per key; if a key is missing in both places, `t()` returns the key itself (it never throws).
 - `<bn-layout-page>` and `<bn-layout-card>` reflect their `i18nNamespace` prop as the `i18n-namespace` attribute (so descendants inherit it) and forward it - falling back to the deprecated, title-only `titleNamespace` - to their internal `<bn-title>`.
 
@@ -46,6 +46,8 @@ The **namespace is a storage slot, not a key prefix**. Keys are stored verbatim 
 | `global.pl1` | PL | PL |
 
 (Slots 2-4 follow the same pattern: `global.ac2` → AC2, `global.pp3` → PY3, etc.)
+
+A `name` that a [`<bn-ruleset>`](../src/components/bn-ruleset/readme.md) gives a scenario wins over these keys, in every locale.
 
 ### Sort Indicators & Variance Symbols (key prefix `global.`)
 
@@ -65,7 +67,7 @@ The `{%}` token is replaced at render time with the comparison scenario abbrevia
 | Key | English | German |
 |-----|---------|--------|
 | `bn-table.in` | in | in |
-| `bn-table.there_of` | there of | davon |
+| `bn-table.thereof` | there of | davon |
 | `bn-table.part_of` | in % of | in % von |
 | `bn-table.SUM_TOTAL` | ❖ | ❖ |
 | `bn-table.REST` | REST | REST |
@@ -74,11 +76,11 @@ The `{%}` token is replaced at render time with the comparison scenario abbrevia
 
 | Key | English | German |
 |-----|---------|--------|
-| `bn-title.SEPERATOR_WS` | `, ` | `, ` |
+| `bn-title.SEPARATOR_WS` | `, ` | `, ` |
 | `bn-title.CONNECTOR_WS` | ` and ` | ` und ` |
 | `bn-title.in` | in | in |
 
-Note the key really is spelled `SEPERATOR_WS`.
+The keys `bn-title.SEPERATOR_WS` and `bn-table.there_of` are the old names of `bn-title.SEPARATOR_WS` and `bn-table.thereof`. A translation that still uses an old name is read under the new one. This is deprecated and ends with 2.0.
 
 The XY and bullet charts have additional message keys under `bn-chart-scatter.`, `bn-chart-bubble.`, and `bn-chart-bullet.` - see `src/stores/internationalization.ts` for the complete list.
 
@@ -92,7 +94,7 @@ Override or add translations with `<bn-internationalization>`. Without a `namesp
   <bn-internationalization code="en">
     {
       "global": { "ac1": "Actual", "pl1": "Budget", "pp1": "Prior Year" },
-      "bn-table": { "there_of": "of which", "SUM_TOTAL": "Total" }
+      "bn-table": { "thereof": "of which", "SUM_TOTAL": "Total" }
     }
   </bn-internationalization>
 
@@ -100,7 +102,7 @@ Override or add translations with `<bn-internationalization>`. Without a `namesp
 </bn-context>
 ```
 
-Nested objects are flattened with dot-separated keys, so the payload above stores `global.ac1`, `bn-table.there_of`, … - exactly the built-in key shape. A flat payload (`{"global.ac1": "Actual"}`) is equivalent.
+Nested objects are flattened with dot-separated keys, so the payload above stores `global.ac1`, `bn-table.thereof`, … - exactly the built-in key shape. A flat payload (`{"global.ac1": "Actual"}`) is equivalent.
 
 Multiple `<bn-internationalization>` elements for the same namespace and code merge in document order (later elements win per key).
 
@@ -150,24 +152,24 @@ The `<bn-text>` component can reference translations with the `t()` function. `b
   <bn-internationalization code="en">
     {
       "global": { "ac1": "Actual", "pl1": "Budget", "pp1": "Prior Year", "fc1": "Forecast" },
-      "bn-table": { "there_of": "of which", "SUM_TOTAL": "Grand Total" }
+      "bn-table": { "thereof": "of which", "SUM_TOTAL": "Grand Total" }
     }
   </bn-internationalization>
 
-  <bn-datasource name="sales">
+  <bn-datasource name="sales_raw">
     [
       { "category": "North", "ac1": 120, "pl1": 100 },
       { "category": "South", "ac1": 80, "pl1": 90 }
     ]
   </bn-datasource>
 
-  <bn-dataset name="sales" datasources="sales">
-    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM sales GROUP BY category
+  <bn-dataset name="sales" datasources="sales_raw">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM sales_raw GROUP BY category
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
     <bn-body>
-      <bn-table scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
+      <bn-table datasets="sales" scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
     </bn-body>
   </bn-page>
 

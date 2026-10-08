@@ -56,47 +56,70 @@ examples 09A-09D.
 
 ## Overview
 
-Inner presentational element of `bn-chart-scatter`: owns the
-{@link ScatterChart} orchestrator and emits its SVG string. All props
-arrive validated and parsed from the facade.
+SVG scattergram following IBCS template C09.
+
+Subscribes to a dataset (via `withDataset`) and renders an XY point cloud
+with series hues, selective labels, highlight bands, and hyperbolic
+iso-lines (`x·y = k`). The heavy SVG rendering is performed by the inner
+`bn-chart-scatter-renderer` element; this facade validates props, resolves
+auto-detected metadata, and computes styles.
 
 ## Properties
 
-| Property              | Attribute         | Description                                                                               | Type                                        | Default      |
-| --------------------- | ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------- | ------------ |
-| `aspect`              | `aspect`          | Plot aspect ratio, width/height.                                                          | `number`                                    | `16 / 9`     |
-| `chartTitle`          | `chart-title`     |                                                                                           | `string`                                    | `""`         |
-| `containerWidth`      | `container-width` |                                                                                           | `number`                                    | `0`          |
-| `dataVersion`         | `data-version`    | Bumped by the facade when the dataset changes; triggers re-render.                        | `number`                                    | `0`          |
-| `errors`              | --                | The facade's error dispatcher - data warnings are synced through it (stable ids).         | `ErrorDispatcher`                           | `undefined`  |
-| `facet`               | --                |                                                                                           | `FacetConfig`                               | `null`       |
-| `filter`              | `filter`          |                                                                                           | `string`                                    | `""`         |
-| `i18n`                | --                |                                                                                           | `Map<string, string>`                       | `new Map()`  |
-| `iso`                 | --                |                                                                                           | `IsoConfig`                                 | `null`       |
-| `labels` _(required)_ | --                |                                                                                           | `LabelConfig`                               | `undefined`  |
-| `legend` _(required)_ | --                |                                                                                           | `LegendConfig`                              | `undefined`  |
-| `limit`               | `limit`           |                                                                                           | `number`                                    | `0`          |
-| `pointLevel`          | `point-level`     |                                                                                           | `"category" \| "rowGroup" \| "subCategory"` | `"category"` |
-| `ruleSetConfig`       | --                |                                                                                           | `RuleSetConfig`                             | `undefined`  |
-| `seriesLevel`         | `series-level`    |                                                                                           | `"category" \| "rowGroup"`                  | `null`       |
-| `styles`              | --                |                                                                                           | `XYChartStyle`                              | `undefined`  |
-| `tableName`           | `table-name`      | Name of the dataset (table or view in the scoped alasql database).                        | `string`                                    | `""`         |
-| `translate`           | --                | Facade-bound translator for warning messages (resolves `.key` in the facade's namespace). | `(key: string, data?: object) => string`    | `undefined`  |
-| `x` _(required)_      | --                |                                                                                           | `AxisConfig`                                | `undefined`  |
-| `y` _(required)_      | --                |                                                                                           | `AxisConfig`                                | `undefined`  |
+| Property         | Attribute        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Type     | Default     |
+| ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ----------- |
+| `aspect`         | `aspect`         | Plot aspect ratio as `"w:h"` (default `"16:9"`). XY charts have no data-driven height; this is the explicit height control.                                                                                                                                                                                                                                                                                                                                              | `string` | `"16:9"`    |
+| `chartTitle`     | `chart-title`    | Custom chart title                                                                                                                                                                                                                                                                                                                                                                                                                                                       | `string` | `""`        |
+| `datasets`       | `datasets`       | Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.                                                                                                                                                                                                                                                                                                                   | `string` | `undefined` |
+| `facet`          | `facet`          | Small-multiple panels (IBCS 10E/10F/10G style). JSON object: `{"level":"rowgroup"\|"category","columns":6}`. The facet level must sit above the series level in the hierarchy.                                                                                                                                                                                                                                                                                           | `string` | `""`        |
+| `filter`         | `filter`         | AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"rowGroup = 'Revenue'"`).                                                                                                                                                                                                                                                                                                                                               | `string` | `""`        |
+| `i18nNamespace`  | `i18n-namespace` | Namespace of the translations to use (the `namespace` of a `<bn-internationalization>`). Without it the component takes the `i18n-namespace` of the nearest ancestor that has one, then the built-in texts.                                                                                                                                                                                                                                                              | `string` | `undefined` |
+| `iso`            | `iso`            | Hyperbolic iso-lines `x·y = k` (IBCS 09C/09D). JSON object: `{"values":"auto"\|[1,2,3],"label":"Gross profit","unit":"mUSD", "highlight":{"from":3}}`. Requires a strictly positive plot domain.                                                                                                                                                                                                                                                                         | `string` | `""`        |
+| `labels`         | `labels`         | Point labeling. JSON object: `{"points":"auto"\|"none"\|"all"\|["VAB"], "max":12}` (IBCS requires selective, proximate labels).                                                                                                                                                                                                                                                                                                                                          | `string` | `""`        |
+| `legend`         | `legend`         | Series-color legend. JSON object: `{"show":true,"position":"right"\|"bottom"}`.                                                                                                                                                                                                                                                                                                                                                                                          | `string` | `""`        |
+| `level`          | `level`          | Point identity level: `auto` (deepest populated level from the dataset meta), `category`, or `subcategory`.                                                                                                                                                                                                                                                                                                                                                              | `string` | `"auto"`    |
+| `limit`          | `limit`          | Maximum number of points per panel (0 = unlimited). Scatter keeps the first N rows in dataset order.                                                                                                                                                                                                                                                                                                                                                                     | `number` | `0`         |
+| `ruleset`        | `ruleset`        | Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario treatments and display names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.                                                                                                                                                                                                                                   | `string` | `undefined` |
+| `scale`          | `scale`          | Font-size auto-fit: `""`/`auto` shrink to the parent width (with/without a warning), `none` disables, a number applies a fixed factor.                                                                                                                                                                                                                                                                                                                                   | `string` | `undefined` |
+| `selectedStyle`  | `selected-style` | Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.                                                                                                                                                                                                                                                                                                                                                  | `string` | `undefined` |
+| `seriesLevel`    | `series-level`   | Series (color) grouping level: `auto` (parent of the point level), `rowgroup`, `category`, or `none` (single series).                                                                                                                                                                                                                                                                                                                                                    | `string` | `"auto"`    |
+| `x` _(required)_ | `x`              | X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %). | `string` | `undefined` |
+| `y` _(required)_ | `y`              | Y axis mapping - same shape as `x`.                                                                                                                                                                                                                                                                                                                                                                                                                                      | `string` | `undefined` |
+
+
+## Methods
+
+### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
+
+Lazily generates this chart's layout state: host box (context- and
+component-relative, CSS px), the canvas region, point count and
+diagnostics. With `detail: "full"` the rendered marks and labels are
+listed with their geometry (tag-classified - XY marks carry no ids).
+
+#### Parameters
+
+| Name      | Type                 | Description                                              |
+| --------- | -------------------- | -------------------------------------------------------- |
+| `options` | `LayoutStateOptions` | - `{ detail: "summary" \| "full" }`, default `"summary"` |
+
+#### Returns
+
+Type: `Promise<ComponentLayoutState>`
+
+
 
 
 ## Dependencies
 
-### Used by
+### Depends on
 
- - [bn-chart-scatter](.)
+- bn-chart-scatter-renderer
 
 ### Graph
 ```mermaid
 graph TD;
-  bn-chart-scatter --> ibcs-chart-scatter
-  style ibcs-chart-scatter fill:#f9f,stroke:#333,stroke-width:4px
+  bn-chart-scatter --> bn-chart-scatter-renderer
+  style bn-chart-scatter fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

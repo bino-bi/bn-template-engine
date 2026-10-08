@@ -51,7 +51,7 @@ Data can be provided in three ways:
 1. **Inline JSON** - Place JSON text inside the element body (default).
 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
-   Set the `interval` prop (in seconds) to enable periodic re-fetching
+   Set the `refresh-interval` attribute (in seconds) to enable periodic re-fetching
    (polling).
 
 The body is always inline data and is ignored while `src` is set.
@@ -61,12 +61,12 @@ Other components (e.g. `bn-dataset`) reference the stored data by the
 
 ## Properties
 
-| Property            | Attribute  | Description                                                                                                                                                                                                                 | Type      | Default     |
-| ------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| `interval`          | `interval` | Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
-| `name` _(required)_ | `name`     | Unique (template scope) name of the datasource.                                                                                                                                                                             | `string`  | `undefined` |
-| `raw`               | `raw`      | When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored when `src` is set.                                                                 | `boolean` | `true`      |
-| `src`               | `src`      | URL to fetch the JSON from. When set, the body is ignored.                                                                                                                                                                  | `string`  | `undefined` |
+| Property            | Attribute          | Description                                                                                                                                                                                                                 | Type      | Default     |
+| ------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `name` _(required)_ | `name`             | Unique (template scope) name of the datasource.                                                                                                                                                                             | `string`  | `undefined` |
+| `raw`               | `raw`              | When true (default), body content is plain JSON text. When false, body content is a compressed payload (`<hash>:<base64_gzip>`). Ignored when `src` is set.                                                                 | `boolean` | `true`      |
+| `refreshInterval`   | `refresh-interval` | Polling interval in **seconds** for `src`. When set together with `src`, the component re-fetches data at this interval. Has no effect for inline JSON or compressed content. Set to `0` or leave unset to disable polling. | `number`  | `0`         |
+| `src`               | `src`              | URL to fetch the JSON from. When set, the body is ignored.                                                                                                                                                                  | `string`  | `undefined` |
 
 
 ----------------------------------------------

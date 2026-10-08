@@ -1,0 +1,337 @@
+@use "../../../styles/empty-state";
+
+:host {
+  position: relative;
+  display: inline-block;
+}
+
+table {
+  background-color: var(--bn-font-background, white);
+  font-size: var(--bn-font-size, 1em);
+  color: var(--bn-font-color, black);
+  font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
+  border-spacing: 0.3em 0;
+}
+
+thead {
+  border-style: none;
+}
+
+tr:first-child td {
+  border-top: none;
+  padding-top: 0.5em;
+}
+
+td.ac1,
+td.ac2,
+td.ac3,
+td.ac4,
+td.pp1,
+td.pp2,
+td.pp3,
+td.pp4,
+td.pl1,
+td.pl2,
+td.pl3,
+td.pl4,
+td.fc1,
+td.fc2,
+td.fc3,
+td.fc4,
+td.share,
+td.variance,
+td.pos_pos,
+td.pos_neg,
+td.neg_pos,
+td.neg_neg,
+td.pos_neutral,
+td.neg_neutral {
+  text-align: right;
+}
+
+.category-w100 {
+  min-width: 100em;
+  max-width: 100em;
+}
+
+.category-w50 {
+  min-width: 50em;
+  max-width: 50em;
+}
+
+.category-w25 {
+  min-width: 25em;
+  max-width: 25em;
+}
+
+.category-w20 {
+  min-width: 20em;
+  max-width: 20em;
+}
+
+.category-w15 {
+  min-width: 15em;
+  max-width: 15em;
+}
+
+.category-w10 {
+  min-width: 10em;
+  max-width: 10em;
+}
+
+.category-w5 {
+  min-width: 5em;
+  max-width: 5em;
+}
+
+.prefix-second {
+  color: transparent;
+  font-style: normal;
+}
+
+.prefix-first {
+  font-style: normal;
+}
+
+th {
+  border-bottom: 0.1em solid black;
+  text-align: right;
+  font-weight: normal;
+  vertical-align: text-top;
+}
+
+td.columnGroup,
+th.columnGroup {
+  font-size: 0.6em;
+}
+
+td.columnSubGroup,
+th.columnSubGroup {
+  font-size: 0.6em;
+  border-spacing: 0em 0;
+  font-style: italic;
+}
+
+td.base,
+th.base {
+  font-style: normal;
+}
+
+th.ofit,
+td.ofit,
+tr.ofit,
+th.partof,
+td.partof,
+tr.partof {
+  font-size: 0.6em;
+  font-style: italic;
+}
+
+td.ofit,
+td.partof {
+  font-size: 0.6em;
+  font-style: italic;
+}
+
+th.ofit td,
+tr.ofit td,
+th.partof td,
+tr.partof td {
+  border-top: 0em solid black;
+  padding-left: 1em;
+}
+
+th.ofit share,
+th.partof share,
+tr.share td {
+  border-top: 0em solid black;
+}
+
+th.share,
+tr.share,
+td.share {
+  font-size: 0.6em;
+  font-style: italic;
+}
+
+th.filler {
+  border-bottom: 0em solid black;
+  text-align: right;
+}
+
+td.filler {
+  border-top: 0em none !important;
+  border-bottom: 0em none;
+  text-align: right;
+}
+
+th.group {
+  text-align: center;
+  border-spacing: 1em 0;
+}
+
+th.headerlabel {
+  border-bottom: 0em none black;
+  padding-bottom: 0em;
+}
+
+/* spanning interval band cells (bn-table `interval` attribute); must follow
+   th.headerlabel to win the border-bottom override */
+th.intervalGroup {
+  border-bottom: 0.1em solid black;
+  text-align: center;
+  font-weight: bold;
+}
+
+td.variance:after {
+  content: "%";
+}
+
+td.relative_variance {
+  font-style: italic;
+}
+
+td.percent {
+  font-style: italic;
+  text-align: right;
+}
+
+td.decimal,
+td.percentpoint {
+  text-align: right;
+}
+
+td.pos_pos {
+  color: #008f96;
+}
+
+td.neg_pos {
+  color: #ff0000;
+}
+
+td.pos_neg {
+  color: #ff0000;
+}
+
+td.neg_neg {
+  color: #008f96;
+}
+
+td.pos_pos:before {
+  content: "+";
+}
+
+td.pos_neg:before {
+  content: "+";
+}
+
+td.pos_neu:before {
+  content: "+";
+}
+
+th.ac1,
+th.ac2,
+th.ac3,
+th.ac4 {
+  padding-top: 0em;
+  border-bottom: 0.3em solid black;
+}
+
+th.pp1,
+th.pp2,
+th.pp3,
+th.pp4 {
+  padding-top: 0em;
+  border-bottom: 0.3em solid grey;
+}
+
+th.pl1,
+th.pl2,
+th.pl3,
+th.pl4 {
+  padding-top: 0em;
+  border-bottom: 0.3em double black;
+}
+
+th.fc1,
+th.fc2,
+th.fc3,
+th.fc4 {
+  border-bottom: 0.3em solid;
+  border-image: repeating-linear-gradient(-45deg, white, white, black, white, white 0.3em) 2;
+}
+
+td.colsum {
+  font-weight: bold;
+}
+
+th.colsum {
+  padding-top: 0em;
+  font-weight: bold;
+}
+
+tr.sum td {
+  border-top: 0.1em solid black;
+  font-weight: bold;
+  padding-bottom: 0.5em;
+}
+
+tr.groupheader td {
+  border-top: 0em dotted #ddd;
+  padding-top: 0.5em;
+  font-weight: bold;
+  font-style: italic;
+}
+
+tr.begingroup td {
+  border-top: 0em dotted #ddd;
+  padding-top: 0.5em;
+}
+
+th.begin-group {
+  padding-left: 0.75em;
+}
+
+th.end-group {
+  padding-left: 0.75em;
+}
+
+td {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border-top: 0.1em dashed #ddd;
+  padding-left: 0.5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-footer {
+  font-size: 0.6em;
+}
+
+// Bar chart cell styles
+.cell-bar-chart {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.bar-chart-empty {
+  color: #999;
+}
+
+td:has(.cell-bar-chart) {
+  padding: 0 0.25em;
+  vertical-align: middle;
+}
+
+// Remove the +/- prefix and % suffix for bar chart columns
+td:has(.cell-bar-chart).pos_pos:before,
+td:has(.cell-bar-chart).pos_neg:before,
+td:has(.cell-bar-chart).pos_neu:before {
+  content: none;
+}
+
+td:has(.cell-bar-chart).variance:after {
+  content: none;
+}

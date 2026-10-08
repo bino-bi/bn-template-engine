@@ -5,7 +5,7 @@ import { TimeChartStylesAdapter } from "../../components/bn-chart-time/utils/mod
 import { ScaleFactorsTimeChartAdapter } from "../../components/bn-chart-time/utils/model/styles/ScaleFactorsTimeChart";
 import { createScopedDb, buildFromExpr } from "../../context/scopedDb";
 import { IBCSRuleSet } from "../ibcsRuleSet";
-import { OrderAdapter } from "../model/Order";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import { StringAdapter } from "../helper/StringAdapter";
 import { DataFormatDigitsAdapter } from "../model/DataFormatDigits";
 import { FontStyleAdapter } from "../model/styles/FontStyle";
@@ -22,18 +22,21 @@ export function timeRow(date: string | number, values: Record<string, unknown>):
 }
 
 /** Builds a TimeChart over `rows` in a scoped database of its own, for specs. */
-export function buildTimeChart(rows: Record<string, unknown>[], config: Record<string, unknown>): TimeChart {
+export function buildTimeChart(
+  rows: Record<string, unknown>[],
+  config: Record<string, unknown>,
+  ruleSet?: RuleSetConfig,
+): TimeChart {
   const db = createScopedDb().db;
   db.tables[TABLE] = { data: rows };
 
   const chartConfig = new TimeChartComponentConfigAdapter(
     new TimeChartDataRowAdapter(),
-    new OrderAdapter(new StringAdapter()),
     new StringAdapter(),
     new DataFormatDigitsAdapter(),
     db,
     buildFromExpr(TABLE, ""),
-  ).adapt({ level: "category", ...config });
+  ).adapt(config);
 
   const styles = new TimeChartStylesAdapter(
     new ScaleFactorsTimeChartAdapter(),
@@ -43,5 +46,5 @@ export function buildTimeChart(rows: Record<string, unknown>[], config: Record<s
     new PaddingAdapter(),
   ).adapt({});
 
-  return new TimeChart(new IBCSRuleSet(), db, TABLE, chartConfig, styles);
+  return new TimeChart(new IBCSRuleSet(ruleSet), db, TABLE, chartConfig, styles);
 }

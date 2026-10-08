@@ -111,7 +111,7 @@ const de = flattenObject({
     ibcssymbol_delta_generic_relative: "Δ({%})%",
   },
   "bn-title": {
-    SEPERATOR_WS: ", ",
+    SEPARATOR_WS: ", ",
     CONNECTOR_WS: " und ",
     in: "in",
   },
@@ -152,7 +152,7 @@ const de = flattenObject({
     in: "in",
     category: " ",
     operation: " ",
-    there_of: "davon",
+    thereof: "davon",
     part_of: "in % von",
     SUM_TOTAL: "❖",
     REST: "REST",
@@ -186,7 +186,7 @@ const en = flattenObject({
     ibcssymbol_delta_generic_relative: "Δ({%})%",
   },
   "bn-title": {
-    SEPERATOR_WS: ", ",
+    SEPARATOR_WS: ", ",
     CONNECTOR_WS: " and ",
     in: "in",
   },
@@ -226,7 +226,7 @@ const en = flattenObject({
     in: "in",
     category: " ",
     operation: " ",
-    there_of: "there of",
+    thereof: "there of",
     part_of: "in % of",
     SUM_TOTAL: "❖",
     REST: "REST",
@@ -234,8 +234,12 @@ const en = flattenObject({
   },
 });
 
-const BN_INTERNATIONALIZATION_KEYS = Object.keys(de || {});
+/** Old key names (deprecated) and what they are called now. A text is still found and still read under the old name. */
+export const RENAMED_I18N_KEYS: Record<string, string> = {
+  "bn-title.SEPERATOR_WS": "bn-title.SEPARATOR_WS",
+  "bn-table.there_of": "bn-table.thereof",
+};
 
 export const SYSTEM_I18N_DEFAULTS: Record<string, unknown> = { _system: { de, en } };
 
-export { globalLabelKeys, BN_INTERNATIONALIZATION_KEYS };
+export { globalLabelKeys };

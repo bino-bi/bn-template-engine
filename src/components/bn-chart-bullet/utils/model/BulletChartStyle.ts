@@ -25,10 +25,10 @@ export class ScaleFactorsBulletChart {
   public varianceHeight: number = 0.4;
   /** Height of a per-row target tick (classic mode). */
   public targetTickHeight: number = 1.1;
-  /** Stroke width of the shared target line, in pixels. */
-  public targetLineWidth: number = 2;
-  /** Stroke width of the baseline axis, in pixels. */
-  public axisLineWidth: number = 1;
+  /** Stroke width of the shared target line (2 px at the default font size). */
+  public targetLineWidth: number = 0.15;
+  /** Stroke width of the baseline axis (1 px at the default font size). */
+  public axisLineWidth: number = 0.075;
   /** Gap between a bar end and its value label. */
   public labelToBar: number = 0.3;
   /** Gap between the category label column and the baseline axis. */

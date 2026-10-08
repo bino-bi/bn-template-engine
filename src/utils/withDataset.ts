@@ -18,7 +18,7 @@ const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => 
   return [matches, nonMatches];
 };
 
-const WARN_DATASOURCE_ID = "WARN_use_dataset";
+const WARN_DATASOURCE_ID = "WARN_datasets";
 
 /**
  * Emits a warning via the component's ErrorDispatcher when datasource refs
@@ -44,7 +44,7 @@ const warnIfDatasource = (component: any, datasources: string[]) => {
 /**
  * Mixin that subscribes a Stencil component to one or more datasets/datasources.
  *
- * **Naming convention:** The `datasets` HTML attribute accepts a comma-separated list of names.
+ * **Naming convention:** The `datasets` prop of the component accepts a comma-separated list of names.
  * Names prefixed with `$` (e.g. `$revenue`) read directly from the raw datasource tables;
  * unprefixed names read from datasets (registered as tables/views by `<bn-dataset>`).
  *
@@ -52,8 +52,8 @@ const warnIfDatasource = (component: any, datasources: string[]) => {
  * name is registered with `stores.db.subscribe(...)` and the rows are materialized
  * via `db.exec("SELECT * FROM <name>")` whenever the producer fires `notify(name)`.
  *
- * The mixin installs a MutationObserver on the host element's `datasets` attribute so
- * bindings update automatically when the attribute is changed at runtime.
+ * The prop reflects to the `datasets` attribute. The mixin watches that attribute with a
+ * MutationObserver, so bindings follow a change of the attribute or the property.
  *
  * @param component - The Stencil component instance (must expose a host element via `@Element()`)
  * @param onUpdate - Callback invoked with `(name, data)` whenever a subscribed dataset or datasource changes
@@ -71,6 +71,22 @@ const withDataset = (
   let datasets: string[] = [];
   let datasources: string[] = [];
   let stores: ScopedStores;
+
+  /** The `datasets` value the subscriptions were made for. */
+  let bound = "";
+
+  // the prop, not the attribute: a property set before the first render is not reflected yet
+  const bind = () => {
+    const previous = bound;
+    bound = component.datasets || "";
+    if (previous !== "" && previous !== bound) {
+      // the names changed: start empty, or the component keeps the data of a name that is gone
+      onUpdate("", []);
+    }
+    [datasources, datasets] = partition((s) => s.startsWith("$"), bound.split(","));
+    warnIfDatasource(component, datasources);
+    rebind();
+  };
 
   /** Materialize the current rows for a subscribed name via the shared db, then deliver. */
   const deliver = (name: string, isDatasource: boolean) => {
@@ -113,13 +129,9 @@ const withDataset = (
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (mutation.attributeName === "datasets") {
-        [datasources, datasets] = partition(
-          (s) => s.startsWith("$"),
-          getElement(component).getAttribute("datasets").split(","),
-        );
-        warnIfDatasource(component, datasources);
-        rebind();
+      // Stencil writes a reflected attribute again with the same value in the first render
+      if (mutation.attributeName === "datasets" && (component.datasets || "") !== bound) {
+        bind();
       }
     });
   });
@@ -129,9 +141,7 @@ const withDataset = (
     const element = getElement(component);
     stores = getStores(element);
 
-    [datasources, datasets] = partition((s) => s.startsWith("$"), (element.getAttribute("datasets") || "").split(","));
-    warnIfDatasource(component, datasources);
-    rebind();
+    bind();
 
     observer.observe(element, { attributes: true, attributeFilter: ["datasets"] });
 

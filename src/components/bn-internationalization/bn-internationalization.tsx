@@ -2,6 +2,7 @@ import { Component, Prop, h, Host } from "@stencil/core";
 import withBodyObserver from "../../utils/withBodyObserver";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import flattenObject from "../../utils/flattenObject";
+import { RENAMED_I18N_KEYS } from "../../stores/internationalization";
 import { errorText } from "../../utils/queryError";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -35,6 +36,10 @@ export class Internationalization {
           throw new Error("not a JSON object.");
         }
         const i18n = flattenObject(parsed);
+        // a translation that still uses an old key name is read under the new one
+        for (const [oldKey, key] of Object.entries(RENAMED_I18N_KEYS)) {
+          if (oldKey in i18n && !(key in i18n)) i18n[key] = i18n[oldKey];
+        }
         const ns = this.namespace || "_system";
 
         const namespace = { ...(this.stores.internationalization.get(ns) as Record<string, unknown>) };

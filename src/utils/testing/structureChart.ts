@@ -7,6 +7,7 @@ import {
 import { StructureChartStylesAdapter } from "../../components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { createScopedDb, buildFromExpr } from "../../context/scopedDb";
 import { IBCSRuleSet } from "../ibcsRuleSet";
+import { RuleSetConfig } from "../../stores/ruleSets";
 import { OrderAdapter } from "../model/Order";
 import { StringAdapter } from "../helper/StringAdapter";
 import { DataFormatDigitsAdapter } from "../model/DataFormatDigits";
@@ -28,7 +29,11 @@ export function structureRow(
 }
 
 /** Builds a StructureChart over `rows` in a scoped database of its own, for specs. */
-export function buildStructureChart(rows: Record<string, unknown>[], config: Record<string, unknown>): StructureChart {
+export function buildStructureChart(
+  rows: Record<string, unknown>[],
+  config: Record<string, unknown>,
+  ruleSet?: RuleSetConfig,
+): StructureChart {
   const db = createScopedDb().db;
   db.tables[TABLE] = { data: rows };
 
@@ -49,5 +54,5 @@ export function buildStructureChart(rows: Record<string, unknown>[], config: Rec
     new PaddingAdapter(),
   ).adapt({});
 
-  return new StructureChart(new IBCSRuleSet(), db, TABLE, chartConfig, styles);
+  return new StructureChart(new IBCSRuleSet(ruleSet), db, TABLE, chartConfig, styles);
 }

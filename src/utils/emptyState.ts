@@ -1,7 +1,7 @@
 /**
  * Mirrors the inner no-data state on the outer component's host.
  *
- * Only the inner `ibcs-*` element knows it has no rows; it sets `no-data` on
+ * Only the inner `bn-*-renderer` element knows it has no rows; it sets `no-data` on
  * its own host. The outer host sits in a layout slot wrapper as an
  * inline-block, so it must fill that wrapper too before the empty-state box
  * can fill the cell (see styles/_empty-state.scss). Call from the outer

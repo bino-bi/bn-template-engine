@@ -50,15 +50,15 @@ jest.mock("../context/context-protocol", () => {
 import { newSpecPage } from "@stencil/core/testing";
 import { getStores } from "../context/context-protocol";
 import { ChartBubble } from "../components/bn-chart-bubble/bn-chart-bubble";
-import { IbcsChartBubble } from "../components/bn-chart-bubble/ibcs-chart-bubble";
+import { BnChartBubbleRenderer } from "../components/bn-chart-bubble/bn-chart-bubble-renderer/bn-chart-bubble-renderer";
 import { ChartBullet } from "../components/bn-chart-bullet/bn-chart-bullet";
-import { IbcsChartBullet } from "../components/bn-chart-bullet/ibcs-chart-bullet";
+import { BnChartBulletRenderer } from "../components/bn-chart-bullet/bn-chart-bullet-renderer/bn-chart-bullet-renderer";
 import { ChartScatter } from "../components/bn-chart-scatter/bn-chart-scatter";
-import { IbcsChartScatter } from "../components/bn-chart-scatter/ibcs-chart-scatter";
+import { BnChartScatterRenderer } from "../components/bn-chart-scatter/bn-chart-scatter-renderer/bn-chart-scatter-renderer";
 import { Chart as ChartStructure } from "../components/bn-chart-structure/bn-chart-structure";
-import { IbcsChartStructure } from "../components/bn-chart-structure/ibcs-chart-structure";
+import { BnChartStructureRenderer } from "../components/bn-chart-structure/bn-chart-structure-renderer/bn-chart-structure-renderer";
 import { Chart as ChartTime } from "../components/bn-chart-time/bn-chart-time";
-import { IbcsChartTime } from "../components/bn-chart-time/ibcs-chart-time";
+import { BnChartTimeRenderer } from "../components/bn-chart-time/bn-chart-time-renderer/bn-chart-time-renderer";
 import { DataAnalyzer } from "./dataAnalyzer";
 import { SiPrefix } from "./model/SiPrefix";
 import { ErrorDispatcher, ErrorItem } from "./withHasError";
@@ -68,16 +68,16 @@ import { errorText, reportQueryError } from "./queryError";
 const FIXED_SCALE = `scale="none" unit-scaling="100" percentage-scaling="2"`;
 
 const CHARTS: [tag: string, inner: string, components: unknown[], attrs: string][] = [
-  ["bn-chart-time", "ibcs-chart-time", [ChartTime, IbcsChartTime], `scenarios="ac1" ${FIXED_SCALE}`],
+  ["bn-chart-time", "bn-chart-time-renderer", [ChartTime, BnChartTimeRenderer], `scenarios="ac1" ${FIXED_SCALE}`],
   [
     "bn-chart-structure",
-    "ibcs-chart-structure",
-    [ChartStructure, IbcsChartStructure],
+    "bn-chart-structure-renderer",
+    [ChartStructure, BnChartStructureRenderer],
     `scenarios="ac1" ${FIXED_SCALE}`,
   ],
-  ["bn-chart-bullet", "ibcs-chart-bullet", [ChartBullet, IbcsChartBullet], `actual="ac1" target="pl1"`],
-  ["bn-chart-scatter", "ibcs-chart-scatter", [ChartScatter, IbcsChartScatter], `x="ac1" y="ac2"`],
-  ["bn-chart-bubble", "ibcs-chart-bubble", [ChartBubble, IbcsChartBubble], `x="ac1" y="ac2" size="ac3"`],
+  ["bn-chart-bullet", "bn-chart-bullet-renderer", [ChartBullet, BnChartBulletRenderer], `actual="ac1" target="pl1"`],
+  ["bn-chart-scatter", "bn-chart-scatter-renderer", [ChartScatter, BnChartScatterRenderer], `x="ac1" y="ac2"`],
+  ["bn-chart-bubble", "bn-chart-bubble-renderer", [ChartBubble, BnChartBubbleRenderer], `x="ac1" y="ac2" size="ac3"`],
 ];
 
 const render = async (tag: string, components: unknown[], attrs: string) => {

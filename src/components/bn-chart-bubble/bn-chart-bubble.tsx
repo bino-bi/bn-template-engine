@@ -50,7 +50,7 @@ const COMPARE_FAMILIES = ["ac", "pp", "fc", "pl"];
  * compose series hues with scenario treatments, an optional comparison
  * family overlays behind the primary set (10D), and `share` draws pie
  * sectors inside the bubbles (10E). The heavy SVG rendering is performed
- * by the inner `ibcs-chart-bubble` element; this facade validates props,
+ * by the inner `bn-chart-bubble-renderer` element; this facade validates props,
  * resolves auto-detected metadata, and computes styles.
  */
 @Component({
@@ -81,6 +81,27 @@ export class ChartBubble {
   private pixelPerUnitGroupMap: Map<string, number> = new Map();
 
   /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
    * treatments and display names. Supports `"inherited-closest"` /
    * `"inherited-page"` to take over the value from an ancestor
@@ -104,7 +125,7 @@ export class ChartBubble {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -170,7 +191,7 @@ export class ChartBubble {
   @Prop() compareWith: string = "";
   @Watch("compareWith")
   validateCompareWith(newValue: string) {
-    const errId = "ERR_compareWith";
+    const errId = "WARN_compareWith";
     if (isBlankInput(newValue) || COMPARE_FAMILIES.includes(newValue.trim().toLowerCase())) {
       this.errors.remove(errId);
     } else {
@@ -189,7 +210,7 @@ export class ChartBubble {
   @Prop() level: string = "auto";
   @Watch("level")
   validateLevel(newValue: string) {
-    const errId = "ERR_level";
+    const errId = "WARN_level";
     const valid = ["auto", "category", "subcategory"];
     if (isBlankInput(newValue) || valid.includes(newValue.trim().toLowerCase())) {
       this.errors.remove(errId);
@@ -209,7 +230,7 @@ export class ChartBubble {
   @Prop() seriesLevel: string = "auto";
   @Watch("seriesLevel")
   validateSeriesLevel(newValue: string) {
-    const errId = "ERR_seriesLevel";
+    const errId = "WARN_seriesLevel";
     const valid = ["auto", "rowgroup", "category", "none"];
     if (isBlankInput(newValue) || valid.includes(newValue.trim().toLowerCase())) {
       this.errors.remove(errId);
@@ -261,7 +282,7 @@ export class ChartBubble {
   @Prop() aspect: string = "16:9";
   @Watch("aspect")
   validateAspect(newValue: string) {
-    const errId = "ERR_aspect";
+    const errId = "WARN_aspect";
     if (isBlankInput(newValue) || this.parseAspect(newValue) !== null) {
       this.errors.remove(errId);
     } else {
@@ -280,7 +301,7 @@ export class ChartBubble {
   @Prop() limit: number = 0;
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId = "ERR_limit";
+    const errId = "WARN_limit";
     if (isValidInteger(newValue) && Number(newValue) >= 0) {
       this.errors.remove(errId);
     } else {
@@ -299,7 +320,7 @@ export class ChartBubble {
   @Prop() scale?: string;
   @Watch("scale")
   validateScale(newValue: string) {
-    const errId = "ERR_scale";
+    const errId = "WARN_scale";
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -357,7 +378,7 @@ export class ChartBubble {
   private _lastObservedWidth = 0;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-bubble");
+    syncEmptyState(this.element, "bn-chart-bubble-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -423,7 +444,7 @@ export class ChartBubble {
   }
 
   private checkOverflow(): void {
-    checkXYOverflow(this.element, "ibcs-chart-bubble", this.errors);
+    checkXYOverflow(this.element, "bn-chart-bubble-renderer", this.errors);
   }
 
   componentDidLoad() {
@@ -463,7 +484,7 @@ export class ChartBubble {
   }
 
   /** Sets or clears a blocking error (type `error`) with a stable id. */
-  private setBlockingError(id: string, message: string | null): void {
+  private setBlockingError(id: `ERR_${string}`, message: string | null): void {
     if (message === null) {
       this.errors.remove(id);
       this.activeErrors.delete(id);
@@ -498,9 +519,9 @@ export class ChartBubble {
     required: boolean,
     convert: (data: Record<string, unknown>) => SpecResult<T>,
   ): void {
-    const jsonId = `ERR_xy_json_${prop}`;
-    const measureId = `ERR_xy_measure_${prop}`;
-    const fieldsId = `WARN_xy_fields_${prop}`;
+    const jsonId = `ERR_xy_json_${prop}` as const;
+    const measureId = `ERR_xy_measure_${prop}` as const;
+    const fieldsId = `WARN_xy_fields_${prop}` as const;
 
     const { data, parseError } = parseSpec(raw, "measure");
 
@@ -534,8 +555,8 @@ export class ChartBubble {
     raw: string,
     convert: (data: Record<string, unknown>) => SpecResult<T>,
   ): void {
-    const jsonId = `ERR_xy_json_${prop}`;
-    const fieldsId = `WARN_xy_fields_${prop}`;
+    const jsonId = `ERR_xy_json_${prop}` as const;
+    const fieldsId = `WARN_xy_fields_${prop}` as const;
 
     const { data, parseError } = parseSpec(raw, null);
 
@@ -555,7 +576,7 @@ export class ChartBubble {
   }
 
   /** Unknown sub-fields → warning, never error (forward compatibility). */
-  private reportSpecIssues<T>(errId: string, prop: string, result: SpecResult<T> | null): void {
+  private reportSpecIssues<T>(errId: `WARN_${string}`, prop: string, result: SpecResult<T> | null): void {
     const issues: string[] = [];
     if (result !== null && result.invalidFields.length > 0) {
       issues.push(`invalid: ${result.invalidFields.join(", ")}`);
@@ -841,7 +862,7 @@ export class ChartBubble {
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
     return collectXYFacadeState(
       this.element,
-      "ibcs-chart-bubble",
+      "bn-chart-bubble-renderer",
       this.chartTitle || undefined,
       { fontSizePx, appliedScaleFactor: factor },
       origins,
@@ -879,7 +900,7 @@ export class ChartBubble {
   private readonly translateForInner = (key: string, data?: object): string => this.t(key, data);
 
   /**
-   * Dataset field map for the editor-companion: hierarchy fields plus the
+   * Dataset field map: hierarchy fields plus the
    * 16 scenario slots; descriptions of currently-mapped slots reflect the
    * live mapping (e.g. `ac3 → "size: Net sales"`).
    */
@@ -965,7 +986,7 @@ export class ChartBubble {
     const fullParentWidth = getParentDimensions(this.element).width;
 
     return (
-      <ibcs-chart-bubble
+      <bn-chart-bubble-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.chartTitle}
@@ -988,8 +1009,8 @@ export class ChartBubble {
         containerWidth={fullParentWidth}
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
-        translate={this.translateForInner}
-      ></ibcs-chart-bubble>
+        translator={this.translateForInner}
+      ></bn-chart-bubble-renderer>
     );
   }
 

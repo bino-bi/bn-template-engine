@@ -4,14 +4,7 @@
 // import { Order, OrderAdapter } from "../../../../utils/model/Order";
 // import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
 
-import {
-  AggregationLevel,
-  AxisLabelsMode,
-  ChartMode,
-  StackBy,
-  StackMode,
-  StackOrder,
-} from "../../../../utils/constants";
+import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../../../utils/constants";
 import { DataAnalyzer } from "../../../../utils/dataAnalyzer";
 import { DateDistance } from "../../../../utils/DateStringFactory";
 import { AdapterUtils } from "../../../../utils/helper/AdapterUtils";
@@ -19,7 +12,6 @@ import { CompareUtil } from "../../../../utils/helper/CompareUtil";
 import { IAdapter } from "../../../../utils/helper/IAdapter";
 import { StringAdapter } from "../../../../utils/helper/StringAdapter";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../../utils/model/DataFormatDigits";
-import { Order, OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { TimeChartDataRow, TimeChartDataRowAdapter } from "./TimeChartDataRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
@@ -46,10 +38,6 @@ export class TimeChartComponentConfig {
   public pixelPerUnit: number = 10;
   /** Vertical scale factor for percentage variances: pixels per 1.0 (=100%). */
   public pixelPerPercentage: number = 50;
-  /** Maximum data points to display; 0 means unlimited. */
-  public limit: number = 0;
-  public sortOrder: Order = new OrderAdapter(new StringAdapter()).default();
-  public level: AggregationLevel = AggregationLevel.CATEGORY;
   /** Pixel offset from left edge for horizontal alignment across multiple charts. -1 disables sync. */
   public leftSideOffsetForHorizontalSync: number = -1;
   /** Date granularity (year, quarter, month, etc.). AUTO auto-detects from data. */
@@ -87,7 +75,6 @@ export class TimeChartComponentConfig {
 export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartComponentConfig> {
   constructor(
     private dataRowAdapter: TimeChartDataRowAdapter,
-    private orderAdapter: OrderAdapter,
     private stringAdapter: StringAdapter,
     private dataFormatDigitsAdapter: DataFormatDigitsAdapter,
     private db: AlaSQLDatabase,
@@ -119,18 +106,6 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isNumber(data.pixelPerPercentage)) {
       config.pixelPerPercentage = data.pixelPerPercentage;
-    }
-
-    if (CompareUtil.isNumber(data.limit)) {
-      config.limit = data.limit;
-    }
-
-    if (CompareUtil.isExisting(data.sortOrder)) {
-      config.sortOrder = this.orderAdapter.adapt(data.sortOrder as Record<string, unknown>);
-    }
-
-    if (CompareUtil.isExisting(data.level)) {
-      config.level = data.level as AggregationLevel;
     }
 
     if (CompareUtil.isExisting(data.dateInterval)) {

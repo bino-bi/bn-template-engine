@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) - same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as bn-table-renderer.spec.tsx.
 
 // Mock MutationObserver for the withComponentStyle/withTranslation mixins.
 
@@ -49,7 +49,7 @@ jest.mock("../../context/context-protocol", () => {
 
 import { newSpecPage } from "@stencil/core/testing";
 import { ChartBullet } from "./bn-chart-bullet";
-import { IbcsChartBullet } from "./ibcs-chart-bullet";
+import { BnChartBulletRenderer } from "./bn-chart-bullet-renderer/bn-chart-bullet-renderer";
 
 interface ErrorEntry {
   id: string;
@@ -59,7 +59,7 @@ interface ErrorEntry {
 
 const renderBullet = async (attrs: string) => {
   const page = await newSpecPage({
-    components: [ChartBullet, IbcsChartBullet],
+    components: [ChartBullet, BnChartBulletRenderer],
     html: `<bn-chart-bullet ${attrs}></bn-chart-bullet>`,
   });
   await page.waitForChanges();
@@ -75,13 +75,13 @@ describe("bn-chart-bullet validation matrix", () => {
   it("renders with zero attributes - everything auto-detects", async () => {
     const page = await renderBullet(``);
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).not.toBeNull();
   });
 
   it("accepts the bare-token shorthand and JSON object forms", async () => {
     const page = await renderBullet(`actual='{"measure":"ac1","label":"Revenue","unit":"EUR k"}' target="pl1"`);
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).not.toBeNull();
   });
 
   it("raises bullet-prop-json on unparseable object props", async () => {
@@ -91,7 +91,7 @@ describe("bn-chart-bullet validation matrix", () => {
     expect(jsonError!.type).toBe("error");
     expect(jsonError!.message).toContain("invalid JSON");
     // Blocking error: the inner element is not rendered.
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).toBeNull();
   });
 
   it("rejects variance tokens - bullet measures are plain scenario slots", async () => {
@@ -100,7 +100,7 @@ describe("bn-chart-bullet validation matrix", () => {
     expect(error).toBeDefined();
     expect(error!.type).toBe("error");
     expect(error!.message).toContain("drac1_pl1");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).toBeNull();
   });
 
   it("rejects unknown measure tokens", async () => {
@@ -116,19 +116,19 @@ describe("bn-chart-bullet validation matrix", () => {
     const error = readErrors(page).find((e) => e.id === "ERR_bullet_measure_same");
     expect(error).toBeDefined();
     expect(error!.type).toBe("error");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).toBeNull();
   });
 
   it("warns on invalid enum props and falls back to defaults", async () => {
     const page = await renderBullet(`normalize="bogus" variances="x" level="bogus" order-direction="up" limit="-1"`);
     const ids = readErrors(page).map((e) => e.id);
-    expect(ids).toContain("ERR_normalize");
-    expect(ids).toContain("ERR_variances");
-    expect(ids).toContain("ERR_level");
-    expect(ids).toContain("ERR_orderDirection");
-    expect(ids).toContain("ERR_limit");
+    expect(ids).toContain("WARN_normalize");
+    expect(ids).toContain("WARN_variances");
+    expect(ids).toContain("WARN_level");
+    expect(ids).toContain("WARN_orderDirection");
+    expect(ids).toContain("WARN_limit");
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).not.toBeNull();
   });
 
   it("blocks on unparseable ranges", async () => {
@@ -136,7 +136,7 @@ describe("bn-chart-bullet validation matrix", () => {
     const error = readErrors(page).find((e) => e.id === "ERR_bullet_json_ranges");
     expect(error).toBeDefined();
     expect(error!.type).toBe("error");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).toBeNull();
   });
 
   it("repairs unsorted/oversized ranges with a warning and keeps rendering", async () => {
@@ -144,7 +144,7 @@ describe("bn-chart-bullet validation matrix", () => {
     const warning = readErrors(page).find((e) => e.id === "WARN_bullet_ranges");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).not.toBeNull();
   });
 
   it("warns that ranges are ignored in the default normalized mode", async () => {
@@ -152,7 +152,7 @@ describe("bn-chart-bullet validation matrix", () => {
     const warning = readErrors(page).find((e) => e.id === "WARN_bullet_ranges_ignored");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).not.toBeNull();
   });
 
   it("does not raise the ignored-ranges warning in classic mode", async () => {
@@ -166,7 +166,7 @@ describe("bn-chart-bullet validation matrix", () => {
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
     expect(warning!.message).toContain("futureKnob");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).not.toBeNull();
   });
 
   it("warns on unknown labels fields", async () => {
@@ -189,7 +189,7 @@ describe("bn-chart-bullet data-warning transport", () => {
     };
 
     const page = await renderBullet(`datasets="kpis" actual="ac1" target="pl1"`);
-    const warning = readErrors(page).find((e) => e.id === "WARN_bullet-target-missing");
+    const warning = readErrors(page).find((e) => e.id === "WARN_bullet_target_missing");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
     // The en bundle message with {{count}} interpolated.
@@ -215,7 +215,7 @@ describe("bn-chart-bullet getDataStructure", () => {
 describe("bn-chart-bullet empty state", () => {
   it("marks the host no-data when the chart has no rows", async () => {
     const page = await renderBullet(``);
-    const inner = page.root!.shadowRoot!.querySelector("ibcs-chart-bullet")!;
+    const inner = page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")!;
 
     expect(inner.classList.contains("no-data")).toBe(true);
     expect(page.root!.classList.contains("no-data")).toBe(true);

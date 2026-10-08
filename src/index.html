@@ -733,9 +733,9 @@
          OVERFLOW REPRO - sandbox xi2yhengahefyte
          Mixed ± variance (ΔPY −13..+12) in fixed 512×341 cells.
          A/C: everything auto → must never exceed the cell.
-         B/D: fixed scaling far too small → WARN_overflow error expected.
-         E/F: a table with more rows than the cell can show → WARN_overflow,
-              a warning in auto mode (E), an error with scale='none' (F).
+         B/D: fixed scaling far too small → ERR_overflow expected.
+         E/F: a table with more rows than the cell can show → WARN_overflow
+              in auto mode (E), ERR_overflow with scale='none' (F).
          ═══════════════════════════════════════════════════════════════ -->
     <bn-datasource name='cities_overflow'>[
       {"rowGroup": "Revenue", "rowGroupIndex": 1, "category": "Amsterdam", "categoryIndex": 1, "operation": "+",
@@ -1115,7 +1115,7 @@
       title-scenarios='ac1,fc1,pl1' page-layout='full' page-format='xga' page-orientation='landscape'
       footer-text='Stacked bar chart, stack by scenarios, absolute mode'>
       <div slot='slot-0' data-bino-kind='ChartTime'>
-        <bn-chart-time level="category" datasets='$umsatz_monthly' chart-mode='bar'
+        <bn-chart-time datasets='$umsatz_monthly' chart-mode='bar'
           stack='{&#34;by&#34;:&#34;dimensions&#34;}' date-interval='month' measure-scale='greatest' measure-unit='EUR'
           unit-scaling='auto' show-measure-scale='true' scenarios='ac1'></bn-chart-time>
       </div>
@@ -1752,7 +1752,7 @@
       <div slot='slot-0' data-bino-kind='ChartScatter'>
         <bn-layout-card card-layout='full' card-show-border='true'
           title-business-unit='x ticks 0,025 and 0,030, and four points: Basic and Plus in Cars and in Trucks'
-          footer-text='Before: the ticks 0,03 and 0,03, and only two points (WARN_xy-duplicate-point).'>
+          footer-text='Before: the ticks 0,03 and 0,03, and only two points (WARN_xy_duplicate_point).'>
           <div slot='card-slot-0' data-bino-kind='ChartScatter'>
             <bn-chart-scatter datasets='$fix_xy_small' level='subcategory' series-level='category'
               x='{"measure":"ac1","label":"Margin"}' y='{"measure":"ac2","label":"Net sales"}'
@@ -1825,7 +1825,7 @@
          FIX DEMO 13: BULLET CHART AND TREE
          Bullet: a KPI group with + and - rows shows its net value, 100
          minus 30 is 70. Before: 130. A negative actual has no bar and
-         sets WARN_bullet-actual-negative. Before: a warning about the
+         sets WARN_bullet_actual_negative. Before: a warning about the
          target, or none at all with normalize=none.
          Tree: with three children the two operators sit between their
          siblings on the line that joins the children. Before: both on
@@ -2121,7 +2121,7 @@
           const target = document.getElementById(output.getAttribute("data-fix-errors-of"));
           // without the AUTO_ notices and the hint that these demos read a datasource directly
           const items = JSON.parse((target && target.getAttribute("has-error")) || "[]").filter(
-            (item) => !String(item.id).startsWith("AUTO_") && item.id !== "WARN_use_dataset",
+            (item) => !String(item.id).startsWith("AUTO_") && item.id !== "WARN_datasets",
           );
           const text = "has-error: " + (items.map((item) => `${item.id}: ${item.message}`).join(" | ") || "none");
           // a write of the same text is still a DOM mutation, and the page would never count as settled

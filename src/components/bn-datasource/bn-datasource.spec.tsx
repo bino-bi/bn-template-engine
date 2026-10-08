@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) - same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as bn-table-renderer.spec.tsx.
 
 // Mock MutationObserver for the withBodyObserver mixin
 (global as any).MutationObserver = class {
@@ -311,7 +311,7 @@ describe("bn-datasource readiness", () => {
 
     const page = await newSpecPage({
       components: [Datasource],
-      html: `<bn-datasource name="rd_slow" src="/rows.json" interval="0.05"></bn-datasource>`,
+      html: `<bn-datasource name="rd_slow" src="/rows.json" refresh-interval="0.05"></bn-datasource>`,
     });
     // two poll ticks pass while the first request is pending
     await new Promise((resolve) => setTimeout(resolve, 130));

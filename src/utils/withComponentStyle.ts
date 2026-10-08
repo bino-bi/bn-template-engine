@@ -11,11 +11,11 @@ import { merge } from "@corex/deepmerge";
  * The effective style is computed by deep-merging three layers in order:
  * 1. `_system`  -- built-in defaults (lowest priority)
  * 2. `_default` -- user-defined global overrides
- * 3. The value of the host element's `selected-style` attribute (highest priority)
+ * 3. The style named by the `selectedStyle` prop of the component (highest priority)
  *
- * A MutationObserver watches `selected-style` and the store subscription
- * reacts to updates in the componentStyles store, triggering a re-merge
- * and forced re-render on changes.
+ * The prop is read again each time the style is used, and the store
+ * subscription reacts to updates in the componentStyles store, triggering a
+ * re-merge and forced re-render on changes.
  *
  * @param component - The Stencil component instance
  * @returns A query function `componentStyle(<selector>)` that provides type-safe
@@ -39,31 +39,19 @@ const withComponentStyle = (component: any) => {
     );
   };
 
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === "selected-style") {
-        selectedStyle = getElement(component).getAttribute("selected-style");
-        updateStyle();
-        forceUpdate(component);
-      }
-    });
-  });
-
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
     const element = getElement(component);
     stores = getStores(element);
     style = stores.componentStyles.state["_system"];
 
-    observer.observe(element, { attributes: true, attributeFilter: ["selected-style"] });
-
-    selectedStyle = getElement(component).getAttribute("selected-style");
+    selectedStyle = component.selectedStyle;
 
     updateStyle();
 
     subscription = stores.componentStyles.on("set", (key) => {
       if (key === selectedStyle) {
-        selectedStyle = getElement(component).getAttribute("selected-style");
+        selectedStyle = component.selectedStyle;
         updateStyle();
         forceUpdate(getElement(component));
       }
@@ -74,13 +62,18 @@ const withComponentStyle = (component: any) => {
 
   const disconnectedCallback = component["disconnectedCallback"];
   component["disconnectedCallback"] = () => {
-    observer.disconnect();
     runIfExisits(subscription);
     clearStoresCache(getElement(component));
     runIfExisits(disconnectedCallback, component);
   };
 
   const componentStyle = <T>(q: ($style: Style) => T): T => {
+    // A change of the prop renders the component, and the style is read while it renders.
+    // So the prop is compared here: no observer, and a property write counts like an attribute.
+    if (stores !== undefined && component.selectedStyle !== selectedStyle) {
+      selectedStyle = component.selectedStyle;
+      updateStyle();
+    }
     return q(style);
   };
 

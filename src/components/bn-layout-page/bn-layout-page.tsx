@@ -1,4 +1,4 @@
-import { Component, h, Host, Element, Prop, Method, Fragment } from "@stencil/core";
+import { Component, h, Host, Element, Prop, Fragment } from "@stencil/core";
 import { sheetGeometry } from "../bn-page/pageFormats";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -368,12 +368,6 @@ export class LayoutPage {
     return isTemplateLayout(name) ? templateColumns(this.getTemplateAreas(name)) : "1fr";
   }
 
-  @Method()
-  async getNumberOfSlot(name: string) {
-    const template = this.getTemplateAreas(name);
-    return this.extractSlotNames(template).length;
-  }
-
   private mirror(attribute: string, value: string | null | undefined): void {
     if (value == null) {
       if (this.element.hasAttribute(attribute)) this.element.removeAttribute(attribute);
@@ -392,12 +386,12 @@ export class LayoutPage {
     const problem = this.pageLayout === CUSTOM_TEMPLATE ? templateProblem(this.pageCustomTemplate) : undefined;
     if (problem) {
       this.errors.addOrReplace({
-        id: "ERR_pageCustomTemplate",
+        id: "WARN_pageCustomTemplate",
         type: "warning",
         message: `pageCustomTemplate: ${problem}`,
       });
     } else {
-      this.errors.remove("ERR_pageCustomTemplate");
+      this.errors.remove("WARN_pageCustomTemplate");
     }
   }
 

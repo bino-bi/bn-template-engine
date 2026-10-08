@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) - same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as bn-table-renderer.spec.tsx.
 
 // Mock MutationObserver for the withBodyObserver/withTranslation mixins.
 
@@ -79,10 +79,28 @@ describe("bn-internationalization store updates", () => {
     const en = i18nBundle("_system", "en");
     expect(en["global.ac1"]).toBe("Actual");
     // Built-in keys survive a partial override.
-    expect(en["bn-table.there_of"]).toBe("there of");
+    expect(en["bn-table.thereof"]).toBe("there of");
     expect(en["global.pl1"]).toBe("PL");
     // Nothing lands in an unreachable "undefined" slot.
     expect(getStores(null).internationalization.get("undefined")).toBeUndefined();
+  });
+
+  it("reads a translation under an old key name as the renamed key", async () => {
+    await renderI18n(
+      `<bn-internationalization code="en">{"bn-table": {"there_of": "of which"}, "bn-title": {"SEPERATOR_WS": " | "}}</bn-internationalization>`,
+    );
+
+    const en = i18nBundle("_system", "en");
+    expect(en["bn-table.thereof"]).toBe("of which");
+    expect(en["bn-title.SEPARATOR_WS"]).toBe(" | ");
+  });
+
+  it("prefers the new key name when a body has both", async () => {
+    await renderI18n(
+      `<bn-internationalization code="en">{"bn-table": {"there_of": "old", "thereof": "new"}}</bn-internationalization>`,
+    );
+
+    expect(i18nBundle("_system", "en")["bn-table.thereof"]).toBe("new");
   });
 
   it("keeps other language bundles untouched", async () => {
@@ -157,12 +175,12 @@ describe("i18n-namespace resolution", () => {
     expect(textContent(page)).toBe("Audited");
   });
 
-  it("still honors the deprecated namespace attribute", async () => {
+  it("does not read a plain namespace attribute", async () => {
     const page = await renderI18n(
       `<div>${EXTERNAL}<bn-text namespace="external" value="\${t('global.ac1')}"></bn-text></div>`,
     );
 
-    expect(textContent(page)).toBe("Audited");
+    expect(textContent(page)).toBe("AC");
   });
 
   it("inherits from the nearest ancestor carrying i18n-namespace", async () => {

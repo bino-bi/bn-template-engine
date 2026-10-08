@@ -9,7 +9,6 @@ import {
   isValidDataFormat,
   validateScenarioList,
   validateVariancesList,
-  isValidBoolean,
   isValidMeasureScale,
   isValidTableType,
   isValidInteger,
@@ -307,32 +306,6 @@ describe("isValidDataFormat", () => {
 
   it('returns false for "42" ', () => {
     expect(isValidDataFormat("42")).toEqual(false);
-  });
-});
-
-describe("isValidBoolean", () => {
-  it('returns true for "true"', () => {
-    expect(isValidBoolean("true")).toEqual(true);
-  });
-
-  it('returns true for "false"', () => {
-    expect(isValidBoolean("false")).toEqual(true);
-  });
-
-  it("returns true for true", () => {
-    expect(isValidBoolean("true")).toEqual(true);
-  });
-
-  it("returns true for false", () => {
-    expect(isValidBoolean("false")).toEqual(true);
-  });
-
-  it('returns false for ""  ', () => {
-    expect(isValidBoolean("")).toEqual(false);
-  });
-
-  it('returns false for "42" ', () => {
-    expect(isValidBoolean("42")).toEqual(false);
   });
 });
 

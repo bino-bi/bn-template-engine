@@ -61,6 +61,6 @@ describe("bn-component-style body", () => {
     const page = await render("broken", `{"global": `);
     consoleError.mockRestore();
 
-    expect(items(page.root).map((e) => [e.id, e.type])).toEqual([["JSON_PARSE", "error"]]);
+    expect(items(page.root).map((e) => [e.id, e.type])).toEqual([["ERR_body", "error"]]);
   });
 });

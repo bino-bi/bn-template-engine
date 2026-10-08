@@ -4,7 +4,6 @@ import {
   isBlankInput,
   isTableBarColumnWidth,
   isTableCategoryWidth,
-  isValidBoolean,
   isValidDataFormat,
   isValidDateFormat,
   isValidDirection,
@@ -29,11 +28,12 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import { ruleSetLabels } from "../../utils/ibcsRuleSet";
 import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { Style } from "../../stores/componentStyles";
 
-import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
@@ -63,17 +63,17 @@ import {
   readDiagnostics,
   resolveStandaloneId,
 } from "../../utils/layoutState";
-import { TableLayoutDetail } from "./ibcs-table";
+import { TableLayoutDetail } from "./bn-table-renderer/bn-table-renderer";
 import { syncEmptyState } from "../../utils/emptyState";
 
 /**
  * Public-facing wrapper for the IBCS table component.
  *
  * Accepts user-facing string/number props, validates them, and converts
- * them into the typed internal format expected by `ibcs-table`. Handles
+ * them into the typed internal format expected by `bn-table-renderer`. Handles
  * auto-scaling, dataset subscription (via `withDataset`), and i18n setup.
  * The actual table rendering (header, body, drill-down rows) is delegated
- * to the inner `ibcs-table` element.
+ * to the inner `bn-table-renderer` element.
  */
 @Component({
   tag: "bn-table",
@@ -86,7 +86,7 @@ export class Table {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
-  private readonly ruleSetConfig: () => RuleSetConfig;
+  private readonly ruleSetConfig: (layers?: "all" | "user") => RuleSetConfig;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
   /** Last parent width seen, used to suppress ResizeObserver noise. */
@@ -101,6 +101,21 @@ export class Table {
   @State() private hasBlankSetnames: boolean = false;
 
   /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Controls proportional scaling of the entire table relative to the
    * available parent width. All visual dimensions scale together: font size,
    * em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii,
@@ -111,7 +126,7 @@ export class Table {
    * Because the table's SCSS uses `em` units for padding, borders, and
    * column widths, changing the font size cascades to all layout dimensions.
    * SVG elements (bars, pins, patterns) receive the factor via the
-   * `scaleFactor` prop on `ibcs-table` and multiply every pixel constant
+   * `scaleFactor` prop on `bn-table-renderer` and multiply every pixel constant
    * by it, so they stay proportional to the surrounding text.
    *
    * | Value               | Behavior                                                                         |
@@ -137,14 +152,14 @@ export class Table {
    *
    * Invalid values (negative numbers, non-numeric strings that are not
    * `"none"` or `"auto"`) fall back to the default behaviour (auto + warning)
-   * and emit an `ERR_scale` warning.
+   * and emit an `WARN_scale` warning.
    *
    * **Only the width is fitted.** A table that renders taller than its
    * constrained parent is clipped by the layout cell - bottom rows and the
    * grand total simply disappear - so every render reports the measured
-   * overflow as a `WARN_overflow` item in `has-error`: an `error` when the
-   * size is pinned by `scale` (`"none"` or a factor), a `warning` in auto
-   * mode. The same item reports a width overflow, which only a fixed `scale`
+   * overflow in `has-error`: as the error `ERR_overflow` when the size is
+   * pinned by `scale` (`"none"` or a factor), as the warning `WARN_overflow`
+   * in auto mode. The same item reports a width overflow, which only a fixed `scale`
    * can produce. Setting `scale="auto"` does not fix a height overflow: give
    * the component more space, reduce rows (`limit`), or set a smaller fixed
    * `scale`.
@@ -167,18 +182,18 @@ export class Table {
   @Watch("scale")
   validateScaling(newValue: string) {
     if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
       this.errors.addOrReplace({
-        id: "ERR_scale",
+        id: "WARN_scale",
         type: "warning",
         message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
       });
     } else {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
     }
   }
 
@@ -221,17 +236,17 @@ export class Table {
 
   /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
-   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
-   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   * ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to
+   * take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
    */
   @Prop({ reflect: true }) ruleset?: string;
 
   /**
    * Name of a registered component style (see `bn-component-style`). Forwarded
-   * to the inner `ibcs-table` so bar-chart colors and fonts follow the selected
+   * to the inner `bn-table-renderer` so bar-chart colors and fonts follow the selected
    * style as well.
    */
-  @Prop() selectedStyle?: string;
+  @Prop({ reflect: true }) selectedStyle?: string;
 
   /**
    * Label of the grand-total row at the bottom of the table. Only rendered for
@@ -249,7 +264,7 @@ export class Table {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -279,7 +294,7 @@ export class Table {
 
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = "ERR_scenarios";
+    const errId = "WARN_scenarios";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -319,7 +334,7 @@ export class Table {
 
   @Watch("variances")
   validateVariances(newValue: string) {
-    const errId: string = "ERR_variances";
+    const errId = "WARN_variances";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -356,7 +371,7 @@ export class Table {
 
   @Watch("barColumns")
   validateBarColumns(newValue: string) {
-    const errId: string = "ERR_barColumns";
+    const errId = "WARN_barColumns";
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -386,7 +401,7 @@ export class Table {
 
   @Watch("barColumnWidth")
   validateBarColumnWidth(newValue: string) {
-    const errId: string = "ERR_barColumnWidth";
+    const errId = "WARN_barColumnWidth";
 
     if (!isTableBarColumnWidth(newValue)) {
       this.errors.addOrReplace({
@@ -420,7 +435,7 @@ export class Table {
 
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = "ERR_unitScaling";
+    const errId = "WARN_unitScaling";
 
     if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
@@ -453,7 +468,7 @@ export class Table {
 
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = "ERR_percentageScaling";
+    const errId = "WARN_percentageScaling";
 
     if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
@@ -482,7 +497,7 @@ export class Table {
 
   @Watch("dataFormat")
   validateDataFormat(newValue: string) {
-    const errId: string = "ERR_dataFormat";
+    const errId = "WARN_dataFormat";
 
     if (!isValidDataFormat(newValue)) {
       this.errors.addOrReplace({
@@ -502,22 +517,7 @@ export class Table {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() grouped: string = "false";
-
-  @Watch("grouped")
-  validateGrouped(newValue: string) {
-    const errId: string = "ERR_grouped";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "grouped: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() grouped: boolean = false;
 
   /**
    *  Toggles display of measure units in table header
@@ -525,22 +525,7 @@ export class Table {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() showMeasureScale: string = "false";
-
-  @Watch("showMeasureScale")
-  validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_showMeasureScale";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showMeasureScale: boolean = false;
 
   /**
    *  Toggles a title header for each (row-)group
@@ -550,22 +535,7 @@ export class Table {
    *  ```true // false```
    *
    */
-  @Prop() showGroupTitle: string = "true";
-
-  @Watch("showGroupTitle")
-  validateShowGroupTitle(newValue: string) {
-    const errId: string = "ERR_showGroupTitle";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showGroupTitle: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showGroupTitle: boolean = true;
 
   /**
    *  Set the table type
@@ -578,7 +548,7 @@ export class Table {
 
   @Watch("type")
   validateType(newValue: string | boolean) {
-    const errId: string = "ERR_type";
+    const errId = "WARN_type";
 
     if (!isValidTableType(newValue as string)) {
       this.errors.addOrReplace({
@@ -602,7 +572,7 @@ export class Table {
 
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId: string = "ERR_limit";
+    const errId = "WARN_limit";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -616,26 +586,20 @@ export class Table {
   }
 
   /**
-   * Stringified Array of drilldown Objects {
-            "rowGroup": string,<br />
-            "category": string,<br />
-            "subCategory": string,<br />
-          },<br /><br />
-   * rowgroup, categroy defines the location of the drill
-   * subcategory is the displayed label of the data row
-   *<br /><br />
+   * JSON array of drilldown objects with the keys `rowGroup`, `category` and
+   * `subCategory` (all strings, all required).
+   * <br /><br />
+   * `rowGroup` and `category` name the row the drilldown belongs to,
+   * `subCategory` is the label of the data row that is shown below it.
+   * <br /><br />
    * example:<br />
-   * ```[{
-   "rowGroup":"Umsatz",
-   "category": "Applications",
-   "subCategory": "Applications-A",
-   },]```
+   * ```[{"rowGroup": "Umsatz", "category": "Applications", "subCategory": "Applications-A"}]```
    */
   @Prop() thereof: string = "[]";
 
   @Watch("thereof")
   validateThereOf(newValue: string) {
-    const errId: string = "ERR_thereof";
+    const errId = "WARN_thereof";
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
 
     if (invalidElements.length > 0) {
@@ -650,24 +614,20 @@ export class Table {
   }
 
   /**
-   * Stringified Array of Partof Objects <br />{<br />
-            "rowGroup": string,<br />
-            "category": string<br />
-          },<br /><br />
-   * rowgroup, categroy defines the location of the drill
-   * percentage of category in rowgorup
-   *<br /><br />
+   * JSON array of part-of objects with the keys `rowGroup` and `category`
+   * (both strings, both required).
+   * <br /><br />
+   * Each object names a category. The table shows its share of the row group
+   * in percent.
+   * <br /><br />
    * example:<br />
-   * ```[{
-   "rowGroups":"Umsatz",
-   "category": "Applications",
-   },]```
+   * ```[{"rowGroup": "Umsatz", "category": "Applications"}]```
    */
   @Prop() partof: string = "[]";
 
   @Watch("partof")
   validatePartOf(newValue: string) {
-    const errId: string = "ERR_partof";
+    const errId = "WARN_partof";
     const invalidElements: string[] = validatePartOfJsonStr(newValue);
 
     if (invalidElements.length > 0) {
@@ -693,7 +653,7 @@ export class Table {
 
   @Watch("order")
   validateOrderList(newValue: string) {
-    const errId: string = "ERR_order";
+    const errId = "WARN_order";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -720,7 +680,7 @@ export class Table {
 
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -749,7 +709,7 @@ export class Table {
 
   @Watch("measureType")
   validateMeasureType(newValue: string) {
-    const errId: string = "ERR_measureType";
+    const errId = "WARN_measureType";
 
     if (!isValidMeasureType(newValue)) {
       this.errors.addOrReplace({
@@ -800,7 +760,7 @@ export class Table {
 
   @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = "ERR_measureScale";
+    const errId = "WARN_measureScale";
 
     if (!isValidMeasureScale(newValue)) {
       this.errors.addOrReplace({
@@ -820,7 +780,7 @@ export class Table {
 
   @Watch("dataFormatDigitsDecimal")
   validateDataFormatDigitsDecimal(newValue: number) {
-    const errId: string = "ERR_dataFormatDigitsDecimal";
+    const errId = "WARN_dataFormatDigitsDecimal";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -840,7 +800,7 @@ export class Table {
 
   @Watch("dataFormatDigitsPercent")
   validateDateFormatDigitsPercent(newValue: number) {
-    const errId: string = "ERR_dataFormatDigitsPercent";
+    const errId = "WARN_dataFormatDigitsPercent";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -868,7 +828,7 @@ export class Table {
 
   @Watch("categoryWidth")
   validateCategoryWidth(newValue: string) {
-    const errId: string = "ERR_categoryWidth";
+    const errId = "WARN_categoryWidth";
 
     if (!isTableCategoryWidth(newValue)) {
       this.errors.addOrReplace({
@@ -882,22 +842,21 @@ export class Table {
   }
 
   /**
-   * Defines which drill-column is displayed. <br />
+   * JSON array that defines which drill columns are shown. Each object has
+   * the keys `scenario`, `name` and `subGroups` (all required).
    * <br /><br />
-   * ```scenario``` the scenaro to drill <br/>
-   * ```group``` is a list of child columns of the parent <br/><br/>
-   * ```subGroups``` is a list of child columns of the parent <br/><br/>
+   * ```scenario``` the scenario to drill <br/>
+   * ```name``` the label of the parent column <br/>
+   * ```subGroups``` the list of child columns of the parent <br/><br/>
    * example:<br />
-   * ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]},
-   *     {"scenario": "ac2", "name": "UK", "subGroups": []}],
-   *    ```
+   * ```[{"scenario": "ac1", "name": "DE", "subGroups": ["Berlin"]}, {"scenario": "ac2", "name": "UK", "subGroups": []}]```
    */
   @Prop() columnthereof: string | null = null;
 
   @Watch("columnthereof")
   validateColumnThereOf(newValue: string | null) {
     const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
-    const errId: string = "ERR_categorythereof";
+    const errId = "WARN_columnthereof";
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({
         id: errId,
@@ -926,7 +885,7 @@ export class Table {
 
   @Watch("interval")
   validateInterval(newValue: string) {
-    const errId: string = "ERR_interval";
+    const errId = "WARN_interval";
     const value = newValue?.trim().toLowerCase();
 
     if (isBlankInput(newValue) || value === INTERVAL_NONE || value === INTERVAL_SETNAME || isValidDateFormat(value)) {
@@ -954,7 +913,7 @@ export class Table {
 
   @Watch("tableAttributes")
   validateTableAttributes(newValue: string) {
-    const errId: string = "ERR_attributes";
+    const errId = "WARN_attributes";
     const invalidElements: string[] = validateAttributesJsonStr(newValue);
 
     if (invalidElements.length > 0) {
@@ -973,8 +932,6 @@ export class Table {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateDataFormat(this.dataFormat);
-    this.validateGrouped(this.grouped);
-    this.validateShowGroupTitle(this.showGroupTitle);
     this.validateType(this.type);
     this.validateLimit(this.limit);
     this.validateThereOf(this.thereof);
@@ -989,7 +946,6 @@ export class Table {
     this.validateColumnThereOf(this.columnthereof);
     this.validateInterval(this.interval);
     this.validateTableAttributes(this.tableAttributes);
-    this.validateShowMeasureScale(this.showMeasureScale);
     this.validateBarColumns(this.barColumns);
     this.validateBarColumnWidth(this.barColumnWidth);
     this.validateUnitScaling(this.unitScaling);
@@ -1021,7 +977,7 @@ export class Table {
   private _autoScaleGuard = false;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-table");
+    syncEmptyState(this.element, "bn-table-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -1101,7 +1057,7 @@ export class Table {
   }
 
   /**
-   * Reports a WARN_overflow item when the rendered table exceeds its
+   * Reports an overflow item when the rendered table exceeds its
    * container. The table only auto-fits its WIDTH, so nothing prevents it
    * from growing taller than the layout cell, which clips the bottom rows
    * (grand total included) without a trace - this item is the only signal.
@@ -1109,7 +1065,6 @@ export class Table {
    * In auto mode it is a warning.
    */
   private checkOverflow(): void {
-    const errId = "WARN_overflow";
     const parent = getParentDimensions(this.element);
     const contentWidth = this.element.scrollWidth;
     const contentHeight = this.element.scrollHeight;
@@ -1117,7 +1072,7 @@ export class Table {
     const heightOver = parent.height > 0 && contentHeight > parent.height + 1;
 
     if (!widthOver && !heightOver) {
-      this.errors.remove(errId);
+      reportOverflow(this.errors, null);
       return;
     }
 
@@ -1128,13 +1083,12 @@ export class Table {
     if (widthOver) dims.push(`width (${Math.round(contentWidth)}px > ${Math.round(parent.width)}px)`);
     if (heightOver) dims.push(`height (${Math.round(contentHeight)}px > ${Math.round(parent.height)}px)`);
 
-    this.errors.addOrReplace({
-      id: errId,
-      type: fixedScale ? "error" : "warning",
-      message:
-        `Table exceeds available ${dims.join(" and ")}. ` +
+    reportOverflow(
+      this.errors,
+      `Table exceeds available ${dims.join(" and ")}. ` +
         "Give the component more space, reduce rows (e.g. limit), or set a smaller scale.",
-    });
+      fixedScale,
+    );
   }
 
   private prepareDataFormat(): DataFormat {
@@ -1142,11 +1096,11 @@ export class Table {
   }
 
   private prepareGrouped(): boolean {
-    return this.grouped === "true";
+    return this.grouped;
   }
 
   private prepareShowGroupTitle(): boolean {
-    return this.showGroupTitle === "true";
+    return this.showGroupTitle;
   }
 
   private prepareTableType(): TableType {
@@ -1206,14 +1160,19 @@ export class Table {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL", "no-data", "REST"];
+    const i18nMetaLabelsLocal = ["in", "category", "operation", "thereof", "part_of", "SUM_TOTAL", "no-data", "REST"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system
     const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
     const i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
 
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    // a name from a <bn-ruleset> wins over the i18n label of the scenario
+    return new Map([
+      ...i18nMapGlobal.entries(),
+      ...i18nMapLocal.entries(),
+      ...ruleSetLabels(this.ruleSetConfig("user")),
+    ]);
   }
 
   private prepareDataFormatDigits(): DataFormatDigits {
@@ -1346,9 +1305,9 @@ export class Table {
   }
 
   private prepareInterval(): string {
-    const conflictErrId = "ERR_intervalConflict";
-    const noDateErrId = "ERR_intervalNoDate";
-    const setnameErrId = "ERR_intervalSetname";
+    const conflictErrId = "WARN_intervalConflict";
+    const noDateErrId = "WARN_intervalNoDate";
+    const setnameErrId = "WARN_intervalSetname";
 
     const interval = isBlankInput(this.interval) ? INTERVAL_NONE : this.interval.trim().toLowerCase();
     const isValid = interval === INTERVAL_NONE || interval === INTERVAL_SETNAME || isValidDateFormat(interval);
@@ -1430,7 +1389,7 @@ export class Table {
   }
 
   prepareShowMeasureScale(): boolean {
-    return this.showMeasureScale === "true";
+    return this.showMeasureScale;
   }
   prepareMeasureUnit(): string {
     if (this.measureUnit === "" || this.measureUnit == null) {
@@ -1476,7 +1435,7 @@ export class Table {
       this.errors.remove("AUTO_unitScaling");
       this.autoUnitWarningActive = false;
       this.lastReportedUnitsPerEm = undefined;
-      // Inner ibcs-table expects em per unit; the attribute is units per em.
+      // Inner bn-table-renderer expects em per unit; the attribute is units per em.
       return 1 / resolved.value;
     }
     if (resolved.kind === "auto") {
@@ -1500,7 +1459,7 @@ export class Table {
       this.errors.remove("AUTO_percentageScaling");
       this.autoPctWarningActive = false;
       this.lastReportedPpPerEm = undefined;
-      // Inner ibcs-table expects em per percentage point.
+      // Inner bn-table-renderer expects em per percentage point.
       return 1 / resolved.value;
     }
     if (resolved.kind === "auto") {
@@ -1519,7 +1478,7 @@ export class Table {
   }
 
   /**
-   * Receives the auto-fitted scaling values from the inner ibcs-table
+   * Receives the auto-fitted scaling values from the inner bn-table-renderer
    * (em per unit / em per percentage point) and surfaces them in the AUTO_*
    * warnings, converted back to the attribute's units-per-em form so users
    * can copy them into a bn-scaling-group.
@@ -1627,7 +1586,7 @@ export class Table {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const inner = this.element.shadowRoot?.querySelector("ibcs-table") as any;
+    const inner = this.element.shadowRoot?.querySelector("bn-table-renderer") as any;
     if (inner) {
       const scenarios: string[] = inner.scenarios ?? [];
       state.metadata.scenarios = scenarios.filter((name) => !name.startsWith("d"));
@@ -1707,7 +1666,7 @@ export class Table {
     return (
       <Host style={fontStyles}>
         <div>
-          <ibcs-table
+          <bn-table-renderer
             tableName={this.datasetName}
             dataVersion={this.dataVersion}
             sumTitle={this.prepareSumTitle()}
@@ -1741,7 +1700,7 @@ export class Table {
             scaleFactor={effectiveFactor}
             ruleSetConfig={this.ruleSetConfig()}
             selectedStyle={this.selectedStyle}
-          ></ibcs-table>
+          ></bn-table-renderer>
         </div>
       </Host>
     );

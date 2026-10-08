@@ -1,5 +1,5 @@
 import { Component, Element, h, Host, Method, Prop, State, Watch } from "@stencil/core";
-import { isValidBoolean, isValidNumber } from "../../utils/validate";
+import { isValidNumber } from "../../utils/validate";
 import {
   ComponentLayoutState,
   EdgeElement,
@@ -95,6 +95,12 @@ export class ChartTree {
   private parentObserver: LayoutObserverHandle | null = null;
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    * JSON string defining connections between nodes.
    * Each edge specifies a source (from) and target (to) node ID,
    * with optional operator and styling.
@@ -140,7 +146,7 @@ export class ChartTree {
 
   @Watch("direction")
   validateDirection(newValue: string) {
-    const errId = "ERR_direction";
+    const errId = "WARN_direction";
     const validValues = ["ltr", "rtl", "ttb", "btt"];
 
     if (!validValues.includes(newValue)) {
@@ -163,7 +169,7 @@ export class ChartTree {
 
   @Watch("levelSpacing")
   validateLevelSpacing(newValue: number) {
-    const errId = "ERR_levelSpacing";
+    const errId = "WARN_levelSpacing";
 
     if (!isValidNumber(newValue) || newValue < 0) {
       this.errors.addOrReplace({
@@ -185,7 +191,7 @@ export class ChartTree {
 
   @Watch("nodeSpacing")
   validateNodeSpacing(newValue: number) {
-    const errId = "ERR_nodeSpacing";
+    const errId = "WARN_nodeSpacing";
 
     if (!isValidNumber(newValue) || newValue < 0) {
       this.errors.addOrReplace({
@@ -219,7 +225,7 @@ export class ChartTree {
 
   @Watch("edgeStyle")
   validateEdgeStyle(newValue: string) {
-    const errId = "ERR_edgeStyle";
+    const errId = "WARN_edgeStyle";
     const validValues = ["straight", "orthogonal", "curved"];
 
     if (!validValues.includes(newValue)) {
@@ -236,22 +242,7 @@ export class ChartTree {
   /**
    * Show operator labels between sibling nodes.
    */
-  @Prop({ attribute: "show-operators" }) showOperators: string = "true";
-
-  @Watch("showOperators")
-  validateShowOperators(newValue: string) {
-    const errId = "ERR_showOperators";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: `show-operators: invalid value '${newValue}', must be 'true' or 'false'`,
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop({ attribute: "show-operators" }) showOperators: boolean = true;
 
   constructor() {
     withStyled(this);
@@ -356,7 +347,6 @@ export class ChartTree {
     this.validateLevelSpacing(this.levelSpacing);
     this.validateNodeSpacing(this.nodeSpacing);
     this.validateEdgeStyle(this.edgeStyle);
-    this.validateShowOperators(this.showOperators);
   }
 
   connectedCallback() {
@@ -587,7 +577,7 @@ export class ChartTree {
     }
 
     // Render operators between siblings
-    if (this.showOperators === "true") {
+    if (this.showOperators) {
       for (const [parent, children] of this.treeConfig.adjacencyList.entries()) {
         const bend = bends.get(parent);
         if (bend === undefined) {

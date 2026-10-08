@@ -92,7 +92,7 @@ test("page formats: an unknown format keeps the default size and warns", async (
     height: getComputedStyle(el).height,
     ids: JSON.parse(el.getAttribute("has-error") ?? "[]").map((item) => item.id),
   }));
-  assert.deepEqual(result, { width: "1024px", height: "768px", ids: ["ERR_format"] });
+  assert.deepEqual(result, { width: "1024px", height: "768px", ids: ["WARN_format"] });
 });
 
 // A page fills the sheet exactly, so the document must not add a margin of its own.
@@ -273,7 +273,7 @@ test("layout: a custom template that is no template is one cell and a warning, n
     slots: el.shadowRoot.querySelectorAll("slot").length,
     items: JSON.parse(el.getAttribute("has-error") ?? "[]").map((item) => [item.id, item.type]),
   }));
-  assert.deepEqual(result, { slots: 1, items: [["ERR_pageCustomTemplate", "warning"]] });
+  assert.deepEqual(result, { slots: 1, items: [["WARN_pageCustomTemplate", "warning"]] });
 });
 
 test("orientation: the sheet of a portrait document with default pages is portrait", async () => {
@@ -423,4 +423,83 @@ test("readiness: a component that throws in render is a failure, and the flag is
   // same console line as before, with the value false
   assert.ok(lines.includes("componentRegisterIsRendered: false"), lines.join("\n"));
   assert.ok(!lines.includes("componentRegisterIsRendered: true"), lines.join("\n"));
+});
+
+const RULESET_ROWS = JSON.stringify(
+  [1, 2, 3].map((month) => ({
+    date: `2024-0${month}-01`,
+    rowGroup: "G",
+    rowGroupIndex: 1,
+    category: "A",
+    categoryIndex: 1,
+    operation: "+",
+    ac1: 10 + month,
+    pp1: 8 + month,
+  })),
+);
+
+/** What table, time chart and structure chart show for the scenario pp, with an optional rule set. */
+async function scenarioLook(ruleset) {
+  const { page } = await open(
+    ruleset +
+      `<bn-datasource name="d">${esc(RULESET_ROWS)}</bn-datasource>` +
+      `<bn-table datasets="$d" scenarios="ac1,pp1" bar-columns="pp1" scale="none"></bn-table>` +
+      `<bn-chart-time datasets="$d" scenarios="ac1,pp1" date-interval="month" scale="none" unit-scaling="1" show-overlay-avg="false"></bn-chart-time>` +
+      `<bn-chart-structure datasets="$d" scenarios="ac1,pp1" scale="none" unit-scaling="1"></bn-chart-structure>`,
+  );
+  const look = await page.evaluate(() => {
+    const inner = (tag) => document.querySelector(tag).shadowRoot.querySelector(`${tag}-renderer`).shadowRoot;
+    const fills = (root, selector) => [
+      ...new Set([...root.querySelectorAll(selector)].map((r) => r.getAttribute("fill"))),
+    ];
+    const texts = (root) => [...root.querySelectorAll("svg text")].map((t) => t.textContent);
+    const [labels, underlines] = [...inner("bn-table").querySelectorAll("thead tr")];
+    return {
+      tableLabels: [...labels.children].map((th) => th.textContent.trim()),
+      tableUnderlines: [...underlines.children].map((th) => th.className.trim().split(" ")[0]),
+      tableBars: fills(inner("bn-table"), "tbody svg rect"),
+      timeBars: fills(inner("bn-chart-time"), "svg rect"),
+      timeLabels: texts(inner("bn-chart-time")),
+      structureBars: fills(inner("bn-chart-structure"), "svg rect"),
+      structureLabels: texts(inner("bn-chart-structure")),
+    };
+  });
+  await page.close();
+  return look;
+}
+
+test("rule set: without one a scenario keeps its own look and its translated name", async () => {
+  const look = await scenarioLook("");
+
+  assert.deepEqual(look.tableLabels, ["", "PY", "AC"]);
+  assert.deepEqual(look.tableUnderlines, ["category", "pp1", "ac1"]);
+  assert.ok(look.tableBars.includes("#A6A6A6"));
+  assert.ok(look.timeBars.includes("#a6a6a6") && look.timeLabels.includes("PY"));
+  assert.ok(look.structureBars.includes("#a6a6a6") && look.structureLabels.includes("PY"));
+  for (const bars of [look.tableBars, look.timeBars, look.structureBars]) {
+    assert.ok(!bars.some((fill) => fill.startsWith("url(")), `no hatch expected: ${bars}`);
+  }
+});
+
+test("rule set: name and colorIndex change the scenario in table, time chart and structure chart", async () => {
+  const look = await scenarioLook(`<bn-ruleset>{"scenarios":{"pp":{"name":"Prior","colorIndex":30}}}</bn-ruleset>`);
+
+  assert.deepEqual(look.tableLabels, ["", "Prior", "AC"]);
+  // the line under the column is the one of the forecast look
+  assert.deepEqual(look.tableUnderlines, ["category", "fc1", "ac1"]);
+  for (const [name, bars] of Object.entries({
+    table: look.tableBars,
+    time: look.timeBars,
+    structure: look.structureBars,
+  })) {
+    assert.ok(
+      bars.some((fill) => fill.startsWith("url(#pattern")),
+      `${name}: hatched bars expected, got ${bars}`,
+    );
+    assert.ok(!bars.some((fill) => fill.toLowerCase() === "#a6a6a6"), `${name}: no bar in the pp look expected`);
+  }
+  assert.ok(look.timeLabels.includes("Prior") && !look.timeLabels.includes("PY"));
+  assert.ok(look.structureLabels.includes("Prior") && !look.structureLabels.includes("PY"));
+  // the other scenario is untouched
+  assert.ok(look.timeBars.includes("#404040") && look.timeLabels.includes("AC"));
 });

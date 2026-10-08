@@ -3,14 +3,10 @@ import { hasInlineJs } from "../../context/scopedDb";
 import {
   isBlankInput,
   isValidAxisLabelsMode,
-  isValidBoolean,
   isValidDateFormat,
-  isValidDirection,
   isValidInteger,
-  isValidLevel,
   isValidMeasureScale,
   isValidNumber,
-  validateOrderList,
   validateScenarioList,
   validateStackConfig,
   validateVariancesList,
@@ -23,9 +19,10 @@ import withScalingGroup from "../../utils/withScalingGroup";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import { ruleSetLabels } from "../../utils/ibcsRuleSet";
 import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
-import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
@@ -33,7 +30,6 @@ import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObs
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { VarianceScenario } from "../../utils/model/VarianceScenario";
 import { TimeChartStyle } from "./utils/model";
-import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
 import { StackConfigParsed } from "./utils/model/TimeChartComponentConfig";
@@ -51,15 +47,6 @@ import {
 } from "../../utils/layoutState";
 import { syncEmptyState } from "../../utils/emptyState";
 
-enum AggregationLevel {
-  ROWGROUP = "rowGroup",
-  ROWGROUPINDEX = "rowGroupIndex",
-  CATEGORY = "category",
-  CATEGORYINDEX = "categoryIndex",
-  SUBCATEGORY = "subCategory",
-  SUBCATEGORYINDEX = "subCategoryIndex",
-}
-
 /**
  * SVG time-series chart following IBCS standards.
  *
@@ -67,7 +54,7 @@ enum AggregationLevel {
  * line charts with up to four scenario layers, optional variance sub-charts,
  * stacking, and proportional auto-scaling. Date normalization and interval
  * detection are delegated to `DateStringFactory`. The heavy SVG rendering
- * is performed by the inner `ibcs-chart-time` element; this outer component
+ * is performed by the inner `bn-chart-time-renderer` element; this outer component
  * validates props, resolves auto-detected metadata, and computes styles.
  */
 @Component({
@@ -88,15 +75,36 @@ export class Chart {
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T>(q: (Style) => T) => T;
-  private readonly ruleSetConfig: () => RuleSetConfig;
+  private readonly ruleSetConfig: (layers?: "all" | "user") => RuleSetConfig;
   private readonly errors: ErrorDispatcher;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
 
   /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
-   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
-   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   * ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to
+   * take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
    */
   @Prop({ reflect: true })
   ruleset?: string;
@@ -116,7 +124,7 @@ export class Chart {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -145,7 +153,7 @@ export class Chart {
   @Prop() scenarios!: string;
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = "ERR_scenarios";
+    const errId = "WARN_scenarios";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -189,7 +197,7 @@ export class Chart {
 
   @Watch("variances")
   validateVariances(newValue: string) {
-    const errIdVar: string = "ERR_variances";
+    const errIdVar = "WARN_variances";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errIdVar);
       return;
@@ -211,37 +219,13 @@ export class Chart {
 
   @Watch("syncSpaceLeft")
   validateLeftSync(newValue: string | number) {
-    const errId: string = "ERR_syncSpaceLeft";
+    const errId = "WARN_syncSpaceLeft";
 
     if (!isValidNumber(newValue as number)) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
         message: "syncSpaceLeft: invalid value(s) '" + newValue + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /**
-   * Set the maximum number of columns stacks The value 0 means *no limit*
-   * <br /><br />
-   *
-   * columns stacks wich where cut by the limit are cumulated as REST
-   *
-   */
-  @Prop() limit: number = 0;
-
-  @Watch("limit")
-  validateLimit(newValue: number) {
-    const errId: string = "ERR_limit";
-
-    if (!isValidInteger(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "limit: invalid value '" + newValue?.toString() + "' is not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -267,7 +251,7 @@ export class Chart {
 
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = "ERR_unitScaling";
+    const errId = "WARN_unitScaling";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -303,7 +287,7 @@ export class Chart {
 
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = "ERR_percentageScaling";
+    const errId = "WARN_percentageScaling";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -315,95 +299,6 @@ export class Chart {
         id: errId,
         type: "warning",
         message: "percentageScaling: invalid value(s) '" + newValue + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /**
-   * Determines level on which the chart is aggregated on.
-   * <br /> <br />
-   *
-   * values:<br/>
-   * ``` rowcategory // category // subcategory // auto```
-   * <br /> <br />
-   *  When set to ```auto```, level is detected from the dataset silently.
-   *  When left blank, level is detected from the dataset with a warning.
-   *
-   */
-  @Prop() level!: string;
-
-  @Watch("level")
-  validateLevel(newValue: string) {
-    const errId: string = "ERR_level";
-
-    if (isBlankInput(newValue)) {
-      this.errors.remove(errId);
-      return;
-    }
-
-    if (!isValidLevel(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "level: invalid value(s) '" + newValue + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /** List of the primary scenarios on which the order direction are applied  valid scenarios are
-   *  If order is set to a scenario it has also exists in scenariolist
-   *  <br /><br />
-   *  values:<br />
-   *  ``` category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // py[1-4] // pl[1-4] // auto```
-   *  <br /><br />
-   *  When set to ```auto```, order is detected from the dataset silently.
-   *  When left blank, order is detected from the dataset with a warning.
-   */
-  @Prop() order!: string;
-
-  @Watch("order")
-  validateOrderList(newValue: string) {
-    const errId: string = "ERR_order";
-    if (isInheritedValue(newValue)) {
-      this.errors.remove(errId);
-      return;
-    }
-    const invalidElements: string[] = validateOrderList(newValue);
-    if (invalidElements.length > 0) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "order: invalid value(s) '" + JSON.stringify(invalidElements) + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  /** set sorting order direction
-   *  <br /><br />
-   *  values:<br />
-   *  ```asc // desc```
-   */
-  @Prop() orderDirection!: string;
-
-  @Watch("orderDirection")
-  validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
-    if (isInheritedValue(newValue) || isBlankInput(newValue)) {
-      this.errors.remove(errId);
-      return;
-    }
-
-    if (!isValidDirection(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "orderDirection: invalid value '" + newValue?.toString() + "' is not supported.",
       });
     } else {
       this.errors.remove(errId);
@@ -422,7 +317,7 @@ export class Chart {
 
   @Watch("dateInterval")
   validateDateInterval(newValue: string) {
-    const errId: string = "ERR_dateInterval";
+    const errId = "WARN_dateInterval";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -452,7 +347,7 @@ export class Chart {
 
   @Watch("chartMode")
   validateChartMode(newValue: string) {
-    const errId: string = "ERR_chartMode";
+    const errId = "WARN_chartMode";
     const validModes = ["bar", "line", "auto"];
 
     if (!validModes.includes(newValue?.toLowerCase())) {
@@ -478,7 +373,7 @@ export class Chart {
 
   @Watch("maxBars")
   validateMaxBars(newValue: number) {
-    const errId: string = "ERR_maxBars";
+    const errId = "WARN_maxBars";
 
     if (!isValidInteger(newValue) || newValue < 1) {
       this.errors.addOrReplace({
@@ -501,16 +396,16 @@ export class Chart {
    * **JSON schema:**
    * ```json
    * {
-   *   "by": "scenario" | "category" | "subcategory" | "rowgroup",
+   *   "by": "scenarios" | "dimensions",
    *   "mode": "absolute" | "relative" | "absolute-relative",
    *   "order": "asc" | "desc" | "dataset"
    * }
    * ```
    *
-   * - `by` (required): The dimension to stack.
-   *   - `"scenario"` - stack the scenarios from the `scenarios` prop as layers.
-   *   - `"category"` / `"subcategory"` / `"rowgroup"` - decompose a single
-   *     scenario by this data dimension. Must be finer than `level`.
+   * - `by` (required): What a stack is made of.
+   *   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers.
+   *   - `"dimensions"` - only the first scenario is drawn. A time chart has one
+   *     value per period, so each stack has one segment.
    * - `mode` (optional, default `"absolute"`):
    *   - `"absolute"` - additive stacking, axis shows absolute units.
    *   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is
@@ -526,17 +421,17 @@ export class Chart {
    *
    * @example
    * // Stack scenarios
-   * stack='{"by":"scenario"}'
+   * stack='{"by":"scenarios"}'
    *
    * @example
-   * // Stack by category, relative mode
-   * stack='{"by":"category","mode":"relative"}'
+   * // Stack scenarios, relative mode
+   * stack='{"by":"scenarios","mode":"relative"}'
    */
   @Prop() stack: string = "";
 
   @Watch("stack")
   validateStack(newValue: string) {
-    const errId: string = "ERR_stack";
+    const errId = "WARN_stack";
     const errors = validateStackConfig(newValue);
 
     if (errors.length > 0) {
@@ -565,18 +460,18 @@ export class Chart {
   @Watch("scale")
   validateScaling(newValue: string) {
     if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
       this.errors.addOrReplace({
-        id: "ERR_scale",
+        id: "WARN_scale",
         type: "warning",
         message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
       });
     } else {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
     }
   }
 
@@ -599,7 +494,7 @@ export class Chart {
 
   @Watch("axisLabelsMode")
   validateAxisLabelsMode(newValue: string) {
-    const errId: string = "ERR_axisLabelsMode";
+    const errId = "WARN_axisLabelsMode";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -624,39 +519,9 @@ export class Chart {
    *  values:<br />
    *  ```true // false```
    */
-  @Prop() lineFullWidth: string = "true";
+  @Prop() lineFullWidth: boolean = true;
 
-  @Watch("lineFullWidth")
-  validateLineFullWidth(newValue: string) {
-    const errId: string = "ERR_lineFullWidth";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "lineFullWidth: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  @Prop() showCategories: string = "true";
-
-  @Watch("showCategories")
-  validateShowCategories(newValue: string) {
-    const errId: string = "ERR_showCategories";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showCategories: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showCategories: boolean = true;
 
   /**
    *  Sets the SiPrefix of the Mesaurements and converts the
@@ -696,7 +561,7 @@ export class Chart {
 
   @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = "ERR_measureScale";
+    const errId = "WARN_measureScale";
 
     if (!isValidMeasureScale(newValue)) {
       this.errors.addOrReplace({
@@ -715,55 +580,10 @@ export class Chart {
    *  values: <br />
    *  ```true // false```
    */
-  @Prop() showMeasureScale: string = "false";
+  @Prop() showMeasureScale: boolean = false;
 
-  @Watch("showMeasureScale")
-  validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_showMeasureScale";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  @Prop() showOverlayAvg: string = "true";
-  @Watch("showOverlayAvg")
-  validateShowOverlayAvg(newValue: string) {
-    const errId: string = "ERR_showOverlayAvg";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showOverlayAvg: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
-  @Prop() showOverlayMedian: string = "false";
-  @Watch("showOverlayMedian")
-  validateShowOverlayMedian(newValue: string) {
-    const errId: string = "ERR_showOverlayMedian";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showOverlayMedian: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
+  @Prop() showOverlayAvg: boolean = true;
+  @Prop() showOverlayMedian: boolean = false;
   /**
    * measureUnit displayed in table.
    */
@@ -795,8 +615,6 @@ export class Chart {
       [
         { propName: "scenarios", ancestorAttr: "title-scenarios" },
         { propName: "variances", ancestorAttr: "title-variances" },
-        { propName: "order", ancestorAttr: "title-order" },
-        { propName: "orderDirection", ancestorAttr: "title-order-direction" },
       ],
       this.errors,
     );
@@ -807,21 +625,11 @@ export class Chart {
     this.validateScenario(this.scenarios);
     this.validateVariances(this.variances);
     this.validateUnitScaling(this.unitScaling);
-    this.validateLimit(this.limit);
     // this.validateStyles(this.styles);
-    this.validateLevel(this.level);
-    this.validateOrderDirection(this.orderDirection);
-    this.validateOrderList(this.order);
     this.validateLeftSync(this.syncSpaceLeft);
     this.validateDateInterval(this.dateInterval);
     this.validateAxisLabelsMode(this.axisLabelsMode);
-
-    this.validateLineFullWidth(this.lineFullWidth);
-    this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
-    this.validateShowMeasureScale(this.showMeasureScale);
-    this.validateShowOverlayAvg(this.showOverlayAvg);
-    this.validateShowOverlayMedian(this.showOverlayMedian);
     this.validateChartMode(this.chartMode);
     this.validateMaxBars(this.maxBars);
     this.validateStack(this.stack);
@@ -839,7 +647,7 @@ export class Chart {
    * inner charts have rendered.
    */
   private measureContentWidth(): number {
-    const inners = this.element.shadowRoot?.querySelectorAll("ibcs-chart-time");
+    const inners = this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer");
     let widest = 0;
     let found = false;
     inners?.forEach((inner) => {
@@ -857,7 +665,7 @@ export class Chart {
 
   /** Content height as the sum of the vertically stacked segment SVGs. */
   private measureContentHeight(): number {
-    const inners = this.element.shadowRoot?.querySelectorAll("ibcs-chart-time");
+    const inners = this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer");
     let total = 0;
     let found = false;
     inners?.forEach((inner) => {
@@ -874,14 +682,13 @@ export class Chart {
   }
 
   /**
-   * Reports a WARN_overflow item when the rendered chart exceeds its
+   * Reports an overflow item when the rendered chart exceeds its
    * container. Overflow attributable to a fixed scaling attribute is an
    * error (height: unit-scaling / percentage-scaling, width: scale);
    * overflow in fully-auto mode is a warning - auto-fit prevents it by
    * construction, so it only fires when the content cannot fit at any scale.
    */
   private checkOverflow(): void {
-    const errId = "WARN_overflow";
     const parent = getParentDimensions(this.element);
     const contentWidth = this.measureContentWidth();
     const contentHeight = this.measureContentHeight();
@@ -889,7 +696,7 @@ export class Chart {
     const heightOver = parent.height > 0 && contentHeight > parent.height + 1;
 
     if (!widthOver && !heightOver) {
-      this.errors.remove(errId);
+      reportOverflow(this.errors, null);
       return;
     }
 
@@ -909,19 +716,18 @@ export class Chart {
     if (widthOver) dims.push(`width (${Math.round(contentWidth)}px > ${Math.round(parent.width)}px)`);
     if (heightOver) dims.push(`height (${Math.round(contentHeight)}px > ${Math.round(parent.height)}px)`);
 
-    this.errors.addOrReplace({
-      id: errId,
-      type: fixedAttrs.length > 0 ? "error" : "warning",
-      message:
-        `Chart exceeds available ${dims.join(" and ")}. ` +
+    reportOverflow(
+      this.errors,
+      `Chart exceeds available ${dims.join(" and ")}. ` +
         (fixedAttrs.length > 0
           ? `Adjust ${fixedAttrs.join(" / ")} or set to "auto".`
           : "Content does not fit even at minimum auto scaling; enlarge the container."),
-    });
+      fixedAttrs.length > 0,
+    );
   }
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-time");
+    syncEmptyState(this.element, "bn-chart-time-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -1079,7 +885,7 @@ export class Chart {
     // The measure-scale footer (first segment only) renders below its SVG:
     // reserve roughly one em for it so the fitted charts leave it room.
     const segmentCount = 1 + variancesList.length;
-    const footerAllowance = this.showMeasureScale === "true" ? this.getEffectiveFontPx() : 0;
+    const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
     return { width: this.canvasWidthSegmented, height: Math.max(0, parent.height - footerAllowance) / segmentCount };
   }
 
@@ -1111,11 +917,11 @@ export class Chart {
   }
 
   private prepareAvg(): boolean {
-    return this.showOverlayAvg === "true";
+    return this.showOverlayAvg;
   }
 
   private prepareMedian(): boolean {
-    return this.showOverlayMedian === "true";
+    return this.showOverlayMedian;
   }
 
   private prepareVariances(): string[] {
@@ -1134,7 +940,7 @@ export class Chart {
 
     for (const variance of variances) {
       const parsed = new VarianceScenario(variance);
-      // a variance with a syntax error has ERR_variances
+      // a variance with a syntax error has WARN_variances
       if (!parsed.isValid) {
         continue;
       }
@@ -1157,7 +963,7 @@ export class Chart {
   }
 
   private prepareHideAxisLabels(idx: number): boolean {
-    return idx >= 1 || this.showCategories !== "true";
+    return idx >= 1 || !this.showCategories;
   }
 
   private prepareI18n(): Map<string, string> {
@@ -1167,7 +973,12 @@ export class Chart {
     const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
     const i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
 
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    // a name from a <bn-ruleset> wins over the i18n label of the scenario
+    return new Map([
+      ...i18nMapGlobal.entries(),
+      ...i18nMapLocal.entries(),
+      ...ruleSetLabels(this.ruleSetConfig("user")),
+    ]);
   }
 
   private autoUnitWarningActive = false;
@@ -1238,7 +1049,7 @@ export class Chart {
   }
 
   /**
-   * Receives the auto-fitted values from the inner ibcs-chart-time (px per
+   * Receives the auto-fitted values from the inner bn-chart-time-renderer (px per
    * unit / px per 1.0 fraction) and surfaces them in the AUTO_* warnings,
    * converted back to the attribute's units-per-em form so users can copy
    * them into a bn-scaling-group.
@@ -1276,64 +1087,6 @@ export class Chart {
       }
     }
   };
-
-  private prepareLevel(): AggregationLevel {
-    const isAuto = this.level?.trim().toLowerCase() === "auto";
-    if (isBlankInput(this.level) || isAuto) {
-      if (this.datasetMeta?.suggestedLevel) {
-        if (!isAuto) {
-          this.errors.addOrReplace({
-            id: "AUTO_level",
-            type: "warning",
-            message: `level: not set, auto-detected: ${this.datasetMeta.suggestedLevel}`,
-          });
-        } else {
-          this.errors.remove("AUTO_level");
-        }
-        return AggregationLevel[this.datasetMeta.suggestedLevel.toUpperCase() as keyof typeof AggregationLevel];
-      }
-      return undefined;
-    }
-    this.errors.remove("AUTO_level");
-    return AggregationLevel[this.level?.toUpperCase() as keyof typeof AggregationLevel];
-  }
-
-  private prepareOrder(): Order {
-    const order = this.resolveInherited("order", this.order);
-    const effectiveOrder = order.value;
-    const effectiveDirection = this.resolveInherited("orderDirection", this.orderDirection).value;
-
-    const isLevelAuto = isBlankInput(this.level) || this.level?.trim().toLowerCase() === "auto";
-    let entryValue = isLevelAuto && this.datasetMeta?.suggestedLevel ? this.datasetMeta.suggestedLevel : this.level;
-
-    const isOrderAuto = effectiveOrder?.trim().toLowerCase() === "auto";
-    if (isBlankInput(effectiveOrder) || isOrderAuto) {
-      if (this.datasetMeta?.suggestedLevel) {
-        // An unresolved keyword has its own warning, so it gets no AUTO_order on top.
-        if (!isOrderAuto && !order.unresolved) {
-          this.errors.addOrReplace({
-            id: "AUTO_order",
-            type: "warning",
-            message: `order: not set, auto-detected: ${entryValue}`,
-          });
-        } else {
-          this.errors.remove("AUTO_order");
-        }
-      }
-    } else {
-      this.errors.remove("AUTO_order");
-      if (effectiveOrder?.toLocaleLowerCase() === "levelindex") {
-        entryValue += "Index";
-      }
-    }
-
-    const tableOrder: Order = {
-      hierarchy: [OrderColumn[entryValue?.toUpperCase() as keyof typeof OrderColumn]],
-      direction: OrderDirection[effectiveDirection?.toUpperCase() as keyof typeof OrderDirection],
-    };
-
-    return tableOrder;
-  }
 
   private prepareStyle(): TimeChartStyle {
     const effectiveFactor = this.getEffectiveScaleFactor();
@@ -1373,7 +1126,7 @@ export class Chart {
         stackColors: $["bn-chart-time"]["stackColors"],
         padding: $["bn-chart-time"]["padding"],
         pattern: null,
-        // placeholder, ibcs-chart-time sets the locale of its context
+        // placeholder, bn-chart-time-renderer sets the locale of its context
         locale: "de",
       };
     });
@@ -1403,10 +1156,6 @@ export class Chart {
     }
 
     return this.chartTitle;
-  }
-
-  private prepareLimit(): number {
-    return Math.floor(Number(this.limit) || 0);
   }
 
   private prepareDateInterval(): DateDistance {
@@ -1507,7 +1256,7 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx === 0 && this.showMeasureScale === "true";
+    return idx === 0 && this.showMeasureScale;
   }
 
   prepareMeasureUnit(): string {
@@ -1554,7 +1303,7 @@ export class Chart {
   }
 
   private prepareLineFullWidth(): boolean {
-    return this.lineFullWidth === "true";
+    return this.lineFullWidth;
   }
 
   private prepareChartMode(): ChartMode {
@@ -1582,7 +1331,7 @@ export class Chart {
     const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
-      <ibcs-chart-time
+      <bn-chart-time-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.prepareChartTitle(idx)}
@@ -1593,12 +1342,9 @@ export class Chart {
         pixelPerPercentage={ppp}
         reportAutoScaling={this.handleAutoScalingReport}
         errors={this.errors}
-        limit={this.prepareLimit()}
         leftSideOffsetForHorizontalSync={this.prepareLeftSideOffset(preparedI18n, preparedStyle)}
         styles={preparedStyle}
         i18n={preparedI18n}
-        order={this.prepareOrder()}
-        level={this.prepareLevel()}
         dateInterval={this.prepareDateInterval()}
         intervalSpanLimit={this.prepareIntervalSpanLimit()}
         axisLabelsMode={this.prepareAxisLabelsMode()}
@@ -1615,7 +1361,7 @@ export class Chart {
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}
-      ></ibcs-chart-time>
+      ></bn-chart-time-renderer>
     );
   }
 
@@ -1638,9 +1384,15 @@ export class Chart {
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
 
     const variances = this.prepareVariances();
-    const layout = collectChartFacadeLayout(this.element, "ibcs-chart-time", ["base", ...variances], origins, detail);
+    const layout = collectChartFacadeLayout(
+      this.element,
+      "bn-chart-time-renderer",
+      ["base", ...variances],
+      origins,
+      detail,
+    );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const firstInner = this.element.shadowRoot?.querySelector("ibcs-chart-time") as any;
+    const firstInner = this.element.shadowRoot?.querySelector("bn-chart-time-renderer") as any;
 
     const state: ComponentLayoutState = {
       version: LAYOUT_STATE_VERSION,

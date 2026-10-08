@@ -27,7 +27,7 @@ See the [Installation Guide](doc/installation.md) for framework integration, ES 
 
 <bn-context locale="en">
 
-  <bn-datasource name="revenue">
+  <bn-datasource name="revenue_raw">
     [
       { "category": "Software", "ac1": 150, "pl1": 140 },
       { "category": "Services", "ac1": 90, "pl1": 100 },
@@ -35,8 +35,8 @@ See the [Installation Guide](doc/installation.md) for framework integration, ES 
     ]
   </bn-datasource>
 
-  <bn-dataset name="revenue" datasources="revenue">
-    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM revenue GROUP BY category
+  <bn-dataset name="revenue" datasources="revenue_raw">
+    SELECT category, SUM(ac1) as ac1, SUM(pl1) as pl1 FROM revenue_raw GROUP BY category
   </bn-dataset>
 
   <bn-page format="hd" orientation="landscape">
@@ -46,7 +46,7 @@ See the [Installation Guide](doc/installation.md) for framework integration, ES 
       measures='[{"name":"Revenue","unit":"mEUR"}]'>
     </bn-title>
     <bn-body>
-      <bn-table scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
+      <bn-table datasets="revenue" scenarios="ac1,pl1" variances="dac1_pl1_pos"></bn-table>
     </bn-body>
   </bn-page>
 
@@ -75,6 +75,7 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
   ├── <bn-datasource>        Raw data input
   ├── <bn-dataset>           SQL query layer
   ├── <bn-component-style>   Theming (optional)
+  ├── <bn-ruleset>           Scenario order, look and names (optional)
   ├── <bn-internationalization>  i18n (optional)
   ├── <bn-asset>             Images/resources (optional)
   │
@@ -85,13 +86,14 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
   │   │   ├── <bn-chart-time>      Time series chart
   │   │   ├── <bn-chart-structure>  Structure chart
   │   │   ├── <bn-chart-scatter>   XY scattergram (IBCS C09)
-  │   │   └── <bn-chart-bubble>    Bubble portfolio chart (IBCS C10)
+  │   │   ├── <bn-chart-bubble>    Bubble portfolio chart (IBCS C10)
+  │   │   └── <bn-chart-bullet>    Bullet graph
   │   └── <bn-footer>        Footer
-  │
-  └── <bn-template>          Multi-page wrapper (optional)
 ```
 
 ## Components
+
+The `bn-*` elements listed below are the public API: their tags, attributes, properties and methods follow semantic versioning. Elements named `bn-*-renderer` are internal. A public element renders one of them in its shadow root, and their tags, props and markup can change in any release. Do not use them in a page.
 
 ### Core Data Flow
 
@@ -110,6 +112,7 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 | [`<bn-chart-structure>`](src/components/bn-chart-structure/readme.md) | Categorical/structural bar chart |
 | [`<bn-chart-scatter>`](src/components/bn-chart-scatter/readme.md) | XY scattergram with iso-lines and highlight bands (IBCS C09) |
 | [`<bn-chart-bubble>`](src/components/bn-chart-bubble/readme.md) | Area-true bubble chart with scenario overlay and pie shares (IBCS C10) |
+| [`<bn-chart-bullet>`](src/components/bn-chart-bullet/readme.md) | Bullet graph: one row per KPI with actual bar and target marker |
 
 ### Layout
 
@@ -121,7 +124,6 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 | [`<bn-grid>`](src/components/bn-grid/readme.md) | CSS Grid layout with headers and borders |
 | [`<bn-layout-page>`](src/components/bn-layout-page/readme.md) | High-level page layout with card arrangements |
 | [`<bn-layout-card>`](src/components/bn-layout-card/readme.md) | Card layout with grid patterns |
-| [`<bn-template>`](src/components/bn-template/readme.md) | Multi-page template container |
 
 ### Content
 
@@ -145,6 +147,7 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 | Component | Description |
 |-----------|-------------|
 | [`<bn-component-style>`](src/components/bn-component-style/readme.md) | Theme/style configuration |
+| [`<bn-ruleset>`](src/components/bn-ruleset/readme.md) | Order, look and names of the scenarios |
 | [`<bn-internationalization>`](src/components/bn-internationalization/readme.md) | Translation/locale configuration |
 | [`<bn-scaling-group>`](src/components/bn-scaling-group/readme.md) | Named scaling value shared across charts and tables |
 
@@ -155,6 +158,7 @@ All components must be wrapped in a **`<bn-context>`** element, which provides s
 - [Theming](doc/theming.md) - Colors, fonts, chart styles, style layers
 - [Internationalization](doc/internationalization.md) - Locale setup, translations, scenario labels
 - [Layout State](doc/layout-state.md) - `getLayoutState()`: machine-readable geometry, metadata and diagnostics of a rendered report
+- [Integration Contract](doc/integration-contract.md) - What a tool can rely on in 1.x: readiness signals, layout state, `has-error` ids
 - [Installation](doc/installation.md) - npm, CDN, framework integration
 
 ## Browser Support

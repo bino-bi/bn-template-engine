@@ -40,6 +40,24 @@ The `name` prop determines the style layer:
 
 ## Style Properties
 
+### Units
+
+All lengths are plain numbers. Which unit a number has depends on where it stands:
+
+| Key | Unit |
+|-----|------|
+| `fontSizePx` | px |
+| every key in a `scaleFactors` group | multiple of the font size. `0.075` is 1 px at the default font size of 13.3333 px, and it follows `scale` |
+| `width` in `barStyles` and `varianceStyles`, `dasharray` | px, does not follow `scale` |
+| `padding` | px, does not follow `scale` |
+| `bn-tree`: `edgeWidth`, `operatorCircleRadius` | px |
+| `bn-tree`: `operatorFontSizeScale` | multiple of the font size |
+| `bn-grid`: `borderWidth`, `cellPadding` | px |
+
+`fillpattern` in `barStyles` and `varianceStyles` is `solid`, `hatched` or `outlined`. The old value `fc` still works and means `hatched`.
+
+The keys `ac`, `pp`, `fc` and `pl` of `barStyles` are style slots. A scenario uses the slot of its own name, unless a [`<bn-ruleset>`](../src/components/bn-ruleset/readme.md) gives it another `colorIndex`. The hatch pattern always takes its colours from the `fc` slot.
+
 ### Global
 
 Typography settings inherited by all components:

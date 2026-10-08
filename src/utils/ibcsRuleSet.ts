@@ -3,6 +3,52 @@ import { ScenarioStyle, VisualisationRuleSet } from "../components/bn-table/util
 import { RuleSetConfig, SYSTEM_RULESET_DEFAULTS } from "../stores/ruleSets";
 import { VarianceScenario } from "./model/VarianceScenario";
 
+/** The slots of a theme style group. A scenario is drawn with the style of one slot. */
+export type StyleSlot = "ac" | "pp" | "fc" | "pl";
+
+const FAMILIES: StyleSlot[] = ["ac", "pp", "fc", "pl"];
+const SLOT_BY_COLOR_INDEX: Record<number, StyleSlot> = { 10: "ac", 20: "pp", 30: "fc", 50: "pl" };
+
+/** The theme style slot a colorIndex selects. An unknown value counts as 10. */
+export function styleSlot(colorIndex: number): StyleSlot {
+  return SLOT_BY_COLOR_INDEX[colorIndex] ?? "ac";
+}
+
+/**
+ * A style group (ac, pp, fc, pl) with each scenario on the slot its colorIndex
+ * selects. Returns `styles` itself when no scenario moves, which is the case
+ * for the built-in rule set.
+ */
+export function stylesBySlot<T extends Record<StyleSlot, unknown>>(styles: T, ruleSet: VisualisationRuleSet): T {
+  const slots = FAMILIES.map((family) => styleSlot(ruleSet.getScenarioColorIndex(`${family}1`)));
+  if (slots.every((slot, index) => slot === FAMILIES[index])) {
+    return styles;
+  }
+  // keeps the prototype: a style group can be a class with methods
+  const moved: T = Object.assign(Object.create(Object.getPrototypeOf(styles)), styles);
+  FAMILIES.forEach((family, index) => {
+    (moved as Record<StyleSlot, unknown>)[family] = styles[slots[index]];
+  });
+  return moved;
+}
+
+/**
+ * The labels a rule set gives the scenarios, keyed like the i18n map (ac1 ...
+ * pl4): the name as is for slot 1, with the number for slots 2 to 4. Pass the
+ * user layers only, the built-in names are not labels.
+ */
+export function ruleSetLabels(config: RuleSetConfig | undefined): Map<string, string> {
+  const labels = new Map<string, string>();
+  for (const family of FAMILIES) {
+    const name = config?.scenarios?.[family]?.name;
+    if (!name) continue;
+    for (const slot of [1, 2, 3, 4]) {
+      labels.set(`${family}${slot}`, slot === 1 ? name : `${name}${slot}`);
+    }
+  }
+  return labels;
+}
+
 /**
  * IBCS rule set defining scenario→style mappings per IBCS notation standard v1.2.
  *

@@ -9,7 +9,7 @@ Loads translation overrides and stores them in the scoped i18n store. See the [I
 <bn-internationalization code="en">
   {
     "global": { "ac1": "Actual", "pl1": "Budget", "pp1": "Prior Year" },
-    "bn-table": { "there_of": "of which", "SUM_TOTAL": "Grand Total" }
+    "bn-table": { "thereof": "of which", "SUM_TOTAL": "Grand Total" }
   }
 </bn-internationalization>
 ```

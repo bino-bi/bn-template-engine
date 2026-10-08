@@ -260,7 +260,7 @@ export class ScenarioFactory {
     this.svgGroups.scenario1Label.front();
   }
 
-  public createLineSeries(dataPoints: LineSeriesDataPoint[], scenarioName: string): LineSeries {
+  public createLineSeries(dataPoints: LineSeriesDataPoint[], scenarioName: string, lineSlot?: string): LineSeries {
     const lineSeriesGroup = this.svgGroups.parent.group().id("LineSeries_" + scenarioName);
     const labelGroup = this.svgGroups.scenario1Label.group().id("LineSeries_Label_" + scenarioName);
 
@@ -277,6 +277,7 @@ export class ScenarioFactory {
       scenarioLabel,
       this.i18n,
       this.collisionManager,
+      lineSlot,
     );
   }
 }

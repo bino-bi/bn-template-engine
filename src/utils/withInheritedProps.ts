@@ -238,7 +238,7 @@ const withInheritedProps = (
    * for, and that reports a keyword no ancestor satisfies.
    */
   const resolve: InheritedResolver = (propName: string, currentValue: string, fallback?: string): InheritedProp => {
-    const warningId = `WARN_inherited_${propName}`;
+    const warningId = `WARN_inherited_${propName}` as const;
     const isKeyword = isInheritedValue(currentValue);
 
     // The prop became a keyword, or a different one, after the last lookup.

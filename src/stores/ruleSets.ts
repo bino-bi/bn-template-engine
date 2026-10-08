@@ -14,9 +14,18 @@
 
 /** Per-scenario-prefix rule overrides. Variants 1-4 are derived from the base values. */
 export interface ScenarioRuleConfig {
-  /** Display base name; variants get "1".."4" appended (e.g. "AC" -> "AC1"). */
+  /**
+   * Display name. Slot 1 shows it as is, the slots 2 to 4 with their number
+   * ("Budget", "Budget2"). A name that a `<bn-ruleset>` sets replaces the
+   * i18n labels `global.<prefix>1` to `global.<prefix>4`. The built-in names
+   * do not.
+   */
   name?: string;
-  /** IBCS color encoding: 10 = solid dark, 20 = light gray, 30 = hatched, 50 = outlined. */
+  /**
+   * Selects the theme style slot the scenario is drawn in: 10 = `ac` (solid),
+   * 20 = `pp` (light), 30 = `fc` (hatched), 50 = `pl` (outlined). Any other
+   * value counts as 10.
+   */
   colorIndex?: number;
   /** Base sort index for column ordering; variant n adds n*10. */
   sortIndex?: number;
@@ -24,7 +33,10 @@ export interface ScenarioRuleConfig {
 
 /** Serializable rule-set configuration written by `<bn-ruleset>` and consumed by `IBCSRuleSet`. */
 export interface RuleSetConfig {
-  /** Keyed by scenario prefix: ac, fc, pl, bu, pp, py, dac..dpy, drac..drpy, or user-defined. */
+  /**
+   * Keyed by scenario prefix. Data columns exist for `ac`, `pp`, `fc` and `pl`.
+   * Of the variance prefixes (`dac`, `drac`, ...) only `sortIndex` is read.
+   */
   scenarios?: Record<string, ScenarioRuleConfig>;
   /** Style returned for scenario names not present in `scenarios`. */
   fallback?: {

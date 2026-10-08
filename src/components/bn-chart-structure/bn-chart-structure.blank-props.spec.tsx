@@ -69,7 +69,7 @@ const renderChart = (attrs = ""): Promise<SpecPage> =>
   });
 
 describe("bn-chart-structure: omitted optional props", () => {
-  it.each(["ERR_level", "ERR_orderDirection", "ERR_unitScaling", "ERR_percentageScaling"])(
+  it.each(["WARN_level", "WARN_orderDirection", "WARN_unitScaling", "WARN_percentageScaling"])(
     "does not emit %s when the field is omitted",
     async (id) => {
       const page = await renderChart();
@@ -84,23 +84,23 @@ describe("bn-chart-structure: omitted optional props", () => {
     expect(errorIds(page)).toEqual(expect.arrayContaining(["AUTO_unitScaling", "AUTO_percentageScaling"]));
   });
 
-  it("still emits ERR_orderDirection for a value that is actually invalid", async () => {
+  it("still emits WARN_orderDirection for a value that is actually invalid", async () => {
     const page = await renderChart(`order-direction="sideways"`);
 
-    expect(errorIds(page)).toContain("ERR_orderDirection");
+    expect(errorIds(page)).toContain("WARN_orderDirection");
   });
 
-  it("still emits ERR_level for a value that is actually invalid", async () => {
+  it("still emits WARN_level for a value that is actually invalid", async () => {
     const page = await renderChart(`level="banana"`);
 
-    expect(errorIds(page)).toContain("ERR_level");
+    expect(errorIds(page)).toContain("WARN_level");
   });
 });
 
 describe("bn-chart-structure: stack colours of the theme", () => {
   const innerStackColors = (page: SpecPage): string[] | undefined =>
     (
-      page.root!.shadowRoot!.querySelector("ibcs-chart-structure") as unknown as {
+      page.root!.shadowRoot!.querySelector("bn-chart-structure-renderer") as unknown as {
         styles: { stackColors?: string[] };
       }
     ).styles.stackColors;
@@ -121,11 +121,15 @@ describe("bn-chart-structure: stack colours of the theme", () => {
   });
 });
 
-describe("bn-chart-structure: show-measure-scale diagnostic", () => {
-  it("reports an invalid value under the id of the prop", async () => {
-    const page = await renderChart(`show-measure-scale="maybe"`);
+describe("bn-chart-structure: boolean attributes", () => {
+  it.each([
+    ["no attribute", "", [true, false]],
+    ["the text true", `show-categories="true" show-measure-scale="true"`, [true, true]],
+    ["the text false", `show-categories="false" show-measure-scale="false"`, [false, false]],
+    ["an attribute without value", "show-measure-scale", [true, true]],
+  ])("reads %s", async (_name, attrs, expected) => {
+    const chart = (await renderChart(attrs)).root as HTMLBnChartStructureElement;
 
-    expect(errorIds(page)).toContain("ERR_showMeasureScale");
-    expect(errorIds(page)).not.toContain("ERR_grouped");
+    expect([chart.showCategories, chart.showMeasureScale]).toEqual(expected);
   });
 });

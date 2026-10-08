@@ -2,8 +2,8 @@ import { absoluteBarGeometry, relativePinGeometry, waterfallGeometry } from "./b
 
 /**
  * `bar-column-width="wN"` and `category-width="wN"` must render the same width.
- * `.category-wN` sets a border-box of `N em` (ibcs-table.scss:50-83); a bar cell is
- * sized by its SVG plus `0.5em` of padding (ibcs-table.scss:320), so the SVG has to
+ * `.category-wN` sets a border-box of `N em` (bn-table-renderer.scss:50-83); a bar cell is
+ * sized by its SVG plus `0.5em` of padding (bn-table-renderer.scss:320), so the SVG has to
  * come out at `(N - 0.5) em`.
  */
 const EM = 20; // round number: keeps every expectation exact

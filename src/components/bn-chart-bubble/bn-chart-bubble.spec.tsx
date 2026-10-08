@@ -1,5 +1,5 @@
 // jest.mock must physically precede the imports (Stencil's transform does
-// not hoist it) - same pattern as ibcs-table.spec.tsx.
+// not hoist it) - same pattern as bn-table-renderer.spec.tsx.
 
 // Mock MutationObserver for the withComponentStyle/withTranslation mixins.
 (global as any).MutationObserver = class {
@@ -47,7 +47,7 @@ jest.mock("../../context/context-protocol", () => {
 
 import { newSpecPage } from "@stencil/core/testing";
 import { ChartBubble } from "./bn-chart-bubble";
-import { IbcsChartBubble } from "./ibcs-chart-bubble";
+import { BnChartBubbleRenderer } from "./bn-chart-bubble-renderer/bn-chart-bubble-renderer";
 
 interface ErrorEntry {
   id: string;
@@ -57,7 +57,7 @@ interface ErrorEntry {
 
 const renderBubble = async (attrs: string) => {
   const page = await newSpecPage({
-    components: [ChartBubble, IbcsChartBubble],
+    components: [ChartBubble, BnChartBubbleRenderer],
     html: `<bn-chart-bubble ${attrs}></bn-chart-bubble>`,
   });
   await page.waitForChanges();
@@ -73,7 +73,7 @@ describe("bn-chart-bubble validation matrix", () => {
   it("accepts shorthand tokens for x/y/size", async () => {
     const page = await renderBubble(`x="ac1" y="ac2" size="ac3"`);
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bubble")).not.toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bubble-renderer")).not.toBeNull();
   });
 
   it("requires the size measure", async () => {
@@ -81,7 +81,7 @@ describe("bn-chart-bubble validation matrix", () => {
     const error = readErrors(page).find((e) => e.id === "ERR_xy_measure_size");
     expect(error).toBeDefined();
     expect(error!.type).toBe("error");
-    expect(page.root!.shadowRoot!.querySelector("ibcs-chart-bubble")).toBeNull();
+    expect(page.root!.shadowRoot!.querySelector("bn-chart-bubble-renderer")).toBeNull();
   });
 
   it("raises xy-family-mixed across x/y/size/share", async () => {
@@ -112,7 +112,7 @@ describe("bn-chart-bubble validation matrix", () => {
 
   it("warns on unknown compareWith values and ignores them", async () => {
     const page = await renderBubble(`x="ac1" y="ac2" size="ac3" compare-with="xx"`);
-    const warning = readErrors(page).find((e) => e.id === "ERR_compareWith");
+    const warning = readErrors(page).find((e) => e.id === "WARN_compareWith");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);

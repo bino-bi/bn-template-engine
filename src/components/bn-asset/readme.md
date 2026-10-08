@@ -1,6 +1,6 @@
 # bn-asset
 
-Registers a named asset (image, icon, etc.) that can be referenced by other components like [`<bn-image>`](../bn-image/readme.md), [`<bn-footer>`](../bn-footer/readme.md), and [`<bn-message>`](../bn-message/readme.md).
+Registers a named asset (image, icon, etc.) that can be referenced by other components like [`<bn-image>`](../bn-image/readme.md) and [`<bn-message>`](../bn-message/readme.md).
 
 ## Usage
 

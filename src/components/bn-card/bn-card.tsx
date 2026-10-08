@@ -1,4 +1,4 @@
-import { Component, h, Host, Element } from "@stencil/core";
+import { Component, h, Host, Element, Prop } from "@stencil/core";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -21,6 +21,12 @@ export class Card {
 
   // @ts-ignore - Required by mixins (withComponentStatus, withHasError, withComponentStyle)
   @Element() private element: HTMLElement;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
 
   render() {
     return (

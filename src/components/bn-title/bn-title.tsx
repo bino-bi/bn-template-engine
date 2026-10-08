@@ -17,15 +17,16 @@ import withTranslation from "../../utils/withTranslation";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import { ruleSetLabels } from "../../utils/ibcsRuleSet";
 import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { Style } from "../../stores/componentStyles";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { I18nMode } from "../../utils/constants";
 import { Order, OrderDirection } from "../../utils/model/Order";
-import { TimePeriod } from "./ibcs-title/utils/model/TimePeriod";
+import { TimePeriod } from "./bn-title-renderer/utils/model/TimePeriod";
 import { DateDistance, DateLink } from "../../utils/DateStringFactory";
-import { MeasureEntry } from "./ibcs-title/utils/model/MeasureEntriy";
+import { MeasureEntry } from "./bn-title-renderer/utils/model/MeasureEntriy";
 import { getStores } from "../../context/context-protocol";
 
 /**
@@ -33,7 +34,7 @@ import { getStores } from "../../context/context-protocol";
  *
  * Renders business unit, scenario labels, measure names with units, a
  * formatted date/time period, and sort-order indicators as a structured
- * header. Delegates the actual layout to the inner `ibcs-title` element.
+ * header. Delegates the actual layout to the inner `bn-title-renderer` element.
  */
 @Component({
   tag: "bn-title",
@@ -46,7 +47,7 @@ export class Title {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
-  private readonly ruleSetConfig: () => RuleSetConfig;
+  private readonly ruleSetConfig: (layers?: "all" | "user") => RuleSetConfig;
 
   constructor() {
     withStyled(this);
@@ -58,9 +59,23 @@ export class Title {
   }
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
+
+  /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
-   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
-   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   * ordering and names. Supports `"inherited-closest"` / `"inherited-page"` to
+   * take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
    */
   @Prop({ reflect: true }) readonly ruleset?: string;
 
@@ -80,7 +95,7 @@ export class Title {
 
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = "ERR_scenarios";
+    const errId = "WARN_scenarios";
 
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
@@ -116,7 +131,7 @@ export class Title {
 
   @Watch("variances")
   validateVariances(newValue: string) {
-    const errId: string = "ERR_variances";
+    const errId = "WARN_variances";
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
@@ -142,7 +157,7 @@ export class Title {
   @Watch("order")
   validateOrder(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
-    const errId: string = "ERR_order";
+    const errId = "WARN_order";
 
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({
@@ -163,7 +178,7 @@ export class Title {
 
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
 
     if (!isValidDirection(newValue)) {
       this.errors.addOrReplace({
@@ -187,7 +202,7 @@ export class Title {
 
   @Watch("measures")
   validateMeasures(newValue: string) {
-    const errId: string = "ERR_measures";
+    const errId = "WARN_measures";
     const invalidMeasures: string[] = validateMeasureList(newValue);
 
     if (invalidMeasures.length > 0) {
@@ -212,7 +227,7 @@ export class Title {
 
   @Watch("dateStart")
   validateDateStart(newValue: string) {
-    const errId: string = "ERR_dateStart";
+    const errId = "WARN_dateStart";
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -232,7 +247,7 @@ export class Title {
 
   @Watch("dateEnd")
   validateDateEnd(newValue: string) {
-    const errId: string = "ERR_dateEnd";
+    const errId = "WARN_dateEnd";
 
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
@@ -264,7 +279,7 @@ export class Title {
 
   @Watch("dateFormat")
   validateDateFormat(newValue: string) {
-    const errId: string = "ERR_dateFormat";
+    const errId = "WARN_dateFormat";
 
     if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
@@ -300,7 +315,7 @@ export class Title {
 
   @Watch("dateLink")
   validateDateLink(newValue: string) {
-    const errId: string = "ERR_dateLink";
+    const errId = "WARN_dateLink";
     if (!isValidDateLink(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -325,7 +340,7 @@ export class Title {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["SEPERATOR_WS", "in", "CONNECTOR_WS"];
+    const i18nMetaLabelsLocal = ["SEPARATOR_WS", "in", "CONNECTOR_WS"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     // system
@@ -333,7 +348,12 @@ export class Title {
     const i18nMapSystemGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
     //let i18nMapCustom =
 
-    return new Map([...i18nMapSystemGlobal.entries(), ...i18nMapSystemLocal.entries()]);
+    // a name from a <bn-ruleset> wins over the i18n label of the scenario
+    return new Map([
+      ...i18nMapSystemGlobal.entries(),
+      ...i18nMapSystemLocal.entries(),
+      ...ruleSetLabels(this.ruleSetConfig("user")),
+    ]);
   }
 
   private prepareI18nMode(): I18nMode {
@@ -420,7 +440,7 @@ export class Title {
 
     return (
       <Host style={fontStyles}>
-        <ibcs-title
+        <bn-title-renderer
           businessUnit={this.prepareBusinessUnit()}
           scenarios={this.prepareScenarios()}
           measures={this.prepareMeasures()}
@@ -430,7 +450,7 @@ export class Title {
           i18n-mode={this.prepareI18nMode()}
           locale={this.prepareLocale()}
           ruleSetConfig={this.ruleSetConfig()}
-        ></ibcs-title>
+        ></bn-title-renderer>
       </Host>
     );
   }

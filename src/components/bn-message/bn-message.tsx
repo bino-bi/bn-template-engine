@@ -9,7 +9,6 @@ import { sanitizeHtml } from "../../utils/sanitizeHtml";
 @Component({
   tag: "bn-message",
   styleUrl: "bn-message.scss",
-  assetsDirs: ["assets"],
   shadow: true,
 })
 export class Footer {
@@ -39,6 +38,12 @@ export class Footer {
       "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
   }
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
 
   /**
    *  Message text. Rendered as HTML, sanitized against XSS

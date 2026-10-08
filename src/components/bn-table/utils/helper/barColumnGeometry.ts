@@ -18,10 +18,10 @@ export const BAR_LABEL_FONT_RATIO = 0.85;
 
 /**
  * Horizontal padding of a bar cell, in table em:
- * `td:has(.cell-bar-chart) { padding: 0 0.25em }` (ibcs-table.scss:320).
+ * `td:has(.cell-bar-chart) { padding: 0 0.25em }` (bn-table-renderer.scss:320).
  * With `box-sizing: border-box` the SVG has to be that much narrower than the requested
  * column width, so the cell's border box lands on exactly N em - the same box
- * `.category-wN` (ibcs-table.scss:50-83) produces.
+ * `.category-wN` (bn-table-renderer.scss:50-83) produces.
  */
 const BAR_CELL_PADDING_EM = 0.5;
 

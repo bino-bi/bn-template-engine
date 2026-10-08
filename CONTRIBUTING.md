@@ -30,6 +30,8 @@ src/
 doc/                # Concept guides
 ```
 
+Only the `bn-*` elements listed in the README are public API. A table or chart is two elements: the public one (for example `bn-table`) validates attributes and resolves data, style and translations, and an internal `bn-*-renderer` element in its own sub-folder draws the result. Mark every prop and method of a renderer with `@internal`. A renderer can change in any release, a public element can not.
+
 All `bn-*` components must be wrapped in a `<bn-context>` element. Each component needs `@Element() private element: HTMLElement;` because mixins rely on the host element reference.
 
 ## Coding Standards

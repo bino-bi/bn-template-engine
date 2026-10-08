@@ -3,7 +3,7 @@ import { ElementPositions } from "../helper";
 import { G, Svg } from "@svgdotjs/svg.js";
 
 import { HookLocation, Label } from "./Label";
-// import {HookLocation} from "../../../ibcs-chart-time/utils/elements";
+// import {HookLocation} from "../../../bn-chart-time-renderer/utils/elements";
 
 /**
  * Renders the vertical baseline axis for a structure chart.

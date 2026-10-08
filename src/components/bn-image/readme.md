@@ -20,9 +20,10 @@ If `source` is an HTTP/HTTPS URL, it is used directly. Otherwise, it is looked u
 
 ## Properties
 
-| Property | Attribute | Description                                                                                                                                                                                                                        | Type     | Default     |
-| -------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `source` | `source`  | /**    Url of the image.    <br />    if not http it looks up the url in the components asset folder    <br />    If empty string (`''` or `null`) the image is omitted   <br /><br />    example:<br /> ```debug/concordia.png``` | `string` | `undefined` |
+| Property        | Attribute        | Description                                                                                                                                                                                                | Type     | Default     |
+| --------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `selectedStyle` | `selected-style` | Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.                                                                                    | `string` | `undefined` |
+| `source`        | `source`         | Url of the image. <br /> if not http it looks up the url in the components asset folder <br /> If empty string (`''` or `null`) the image is omitted <br /><br /> example:<br /> ```debug/concordia.png``` | `string` | `undefined` |
 
 
 ----------------------------------------------

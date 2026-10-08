@@ -4,11 +4,10 @@ import { IAdapter } from "../../helper/IAdapter";
 /**
  * Proportional scale factors for XY chart elements (scatter and bubble).
  *
- * All values except the `*LineWidth` entries are expressed in **font-size
- * multiples** (em-like units), so the chart scales uniformly when the base
- * font size changes. The chart renderer multiplies each factor by the
- * computed font size to get pixel dimensions. Line widths are absolute
- * pixel values (hairlines must not scale with the font).
+ * All values are expressed in **font-size multiples** (em-like units), so
+ * the chart scales uniformly when the base font size changes. The chart
+ * renderer multiplies each factor by the computed font size to get pixel
+ * dimensions. The line widths give 1 px at the default font size.
  */
 export class ScaleFactorsXYChart {
   /** Radius of a scatter point. */
@@ -25,10 +24,10 @@ export class ScaleFactorsXYChart {
   public legendSwatch: number = 0.9;
   /** Gap between facet panels. */
   public panelGap: number = 1.6;
-  /** Stroke width of reference lines, in pixels. */
-  public refLineWidth: number = 1;
-  /** Stroke width of gridlines and the plot frame, in pixels. */
-  public gridLineWidth: number = 1;
+  /** Stroke width of reference lines. */
+  public refLineWidth: number = 0.075;
+  /** Stroke width of gridlines and the plot frame. */
+  public gridLineWidth: number = 0.075;
 
   constructor() {}
 }

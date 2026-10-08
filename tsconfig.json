@@ -23,7 +23,8 @@
   },
   "include": [
     "src",
-    "types/jsx.d.ts"
+    "types/jsx.d.ts",
+    "types/xlsx.d.ts"
   ],
   "exclude": [
     "node_modules"

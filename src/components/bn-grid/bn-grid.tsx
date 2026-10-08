@@ -1,5 +1,4 @@
 import { Component, Element, h, Host, Method, Prop, State, Watch } from "@stencil/core";
-import { isValidBoolean } from "../../utils/validate";
 import {
   ComponentLayoutState,
   GridCellElement,
@@ -37,6 +36,12 @@ export class Grid {
 
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
 
   /**
    * Title displayed at top-left of the grid.
@@ -96,27 +101,12 @@ export class Grid {
   /**
    * Whether to display row headers.
    */
-  @Prop({ attribute: "show-row-headers" }) showRowHeaders: string = "true";
-
-  @Watch("showRowHeaders")
-  validateShowRowHeaders(newValue: string) {
-    const errId = "ERR_showRowHeaders";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: `show-row-headers: invalid value '${newValue}', must be 'true' or 'false'`,
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop({ attribute: "show-row-headers" }) showRowHeaders: boolean = true;
 
   /**
    * Whether to display column headers.
    */
-  @Prop({ attribute: "show-column-headers" }) showColumnHeaders: string = "true";
+  @Prop({ attribute: "show-column-headers" }) showColumnHeaders: boolean = true;
 
   /**
    * I18n namespace inherited by this grid's children (their own namespace
@@ -127,40 +117,10 @@ export class Grid {
    */
   @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace: string;
 
-  @Watch("showColumnHeaders")
-  validateShowColumnHeaders(newValue: string) {
-    const errId = "ERR_showColumnHeaders";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: `show-column-headers: invalid value '${newValue}', must be 'true' or 'false'`,
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
-
   /**
    * Whether to display divider lines between cells.
    */
-  @Prop({ attribute: "show-borders" }) showBorders: string = "true";
-
-  @Watch("showBorders")
-  validateShowBorders(newValue: string) {
-    const errId = "ERR_showBorders";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: `show-borders: invalid value '${newValue}', must be 'true' or 'false'`,
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop({ attribute: "show-borders" }) showBorders: boolean = true;
 
   /**
    * Width of row header column. Accepts CSS values (e.g., 'auto', '100px', '20%').
@@ -267,9 +227,6 @@ export class Grid {
   componentWillLoad() {
     this.validateRowHeaders(this.rowHeaders);
     this.validateColumnHeaders(this.columnHeaders);
-    this.validateShowRowHeaders(this.showRowHeaders);
-    this.validateShowColumnHeaders(this.showColumnHeaders);
-    this.validateShowBorders(this.showBorders);
   }
 
   private updateGridConfig() {
@@ -277,15 +234,15 @@ export class Grid {
   }
 
   private shouldShowRowHeaders(): boolean {
-    return this.showRowHeaders === "true" && this.gridConfig.rows.length > 0;
+    return this.showRowHeaders && this.gridConfig.rows.length > 0;
   }
 
   private shouldShowColumnHeaders(): boolean {
-    return this.showColumnHeaders === "true" && this.gridConfig.columns.length > 0;
+    return this.showColumnHeaders && this.gridConfig.columns.length > 0;
   }
 
   private shouldShowBorders(): boolean {
-    return this.showBorders === "true";
+    return this.showBorders;
   }
 
   private getGridTemplateColumns(): string {

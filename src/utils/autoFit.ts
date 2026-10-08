@@ -1,6 +1,6 @@
 /**
- * Pure math for the chart auto-fit loops (ibcs-chart-structure fits width,
- * ibcs-chart-time fits height). Kept free of chart/svg.js imports so it can
+ * Pure math for the chart auto-fit loops (bn-chart-structure-renderer fits width,
+ * bn-chart-time-renderer fits height). Kept free of chart/svg.js imports so it can
  * be unit-tested under mock-doc (which lacks getBBox).
  *
  * Model: a chart's size along its fit axis is affine in the pixel scales,

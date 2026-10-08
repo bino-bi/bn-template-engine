@@ -115,12 +115,12 @@ test("sanitizeHtml: no handler runs, no payload element survives", async () => {
 });
 
 const tableRendered = () =>
-  !!document.querySelector("bn-table").shadowRoot.querySelector("ibcs-table")?.shadowRoot?.querySelector("tbody tr");
+  !!document.querySelector("bn-table").shadowRoot.querySelector("bn-table-renderer")?.shadowRoot?.querySelector("tbody tr");
 
 const chartRendered = () =>
   !!document
     .querySelector("bn-chart-structure")
-    .shadowRoot.querySelector("ibcs-chart-structure")
+    .shadowRoot.querySelector("bn-chart-structure-renderer")
     ?.shadowRoot?.querySelector("svg text");
 
 test("bn-table: row groups with quotes and backticks all render and add up", async () => {
@@ -154,8 +154,8 @@ test("bn-table: row groups with quotes and backticks all render and add up", asy
   // A category that looks like markup is text, in the table and in the chart.
   const markup = await page.evaluate(() =>
     [
-      document.querySelector("bn-table").shadowRoot.querySelector("ibcs-table").shadowRoot,
-      document.querySelector("bn-chart-structure").shadowRoot.querySelector("ibcs-chart-structure").shadowRoot,
+      document.querySelector("bn-table").shadowRoot.querySelector("bn-table-renderer").shadowRoot,
+      document.querySelector("bn-chart-structure").shadowRoot.querySelector("bn-chart-structure-renderer").shadowRoot,
     ].map((root) => ({ images: root.querySelectorAll("img").length, text: root.textContent })),
   );
   for (const root of markup) {

@@ -21,6 +21,38 @@ Geometry always comes from measuring the rendered output, so results stay correc
 
 Types are re-exported from the package root (`LayoutState`, `ComponentLayoutState`, `LayoutRect`, `DualRect`, `ScalingInfo`, …). Additive changes keep `LAYOUT_STATE_VERSION` at `1`; a breaking shape change bumps it. See [doc/layout-state.md](doc/layout-state.md).
 
+#### `datasets`, `selected-style`, `i18n-namespace` and `render-orientation` are declared properties
+
+The components already read these attributes, but did not declare them. They were missing from the generated docs and from the TypeScript types, and setting the JS property did nothing. They are props now: `datasets` on the table, the charts and `bn-text`, `selectedStyle` on every styled component, `i18nNamespace` on every component with translated text, `renderOrientation` on `bn-context`. Each one reflects to its attribute, so markup does not change. A change of `datasets` now drops the data of the names that are gone, and an empty value empties the component. Before, the old data stayed.
+
+#### `bn-ruleset`: `name` and `colorIndex` work in the table, the time chart, the structure chart and the title
+
+A rule set could already reorder scenarios everywhere, but its `name` and `colorIndex` only had an effect in the scatter, bubble and bullet chart. They now work in `bn-table`, `bn-chart-time`, `bn-chart-structure` and `bn-title` too.
+
+- `colorIndex` selects the style slot a scenario is drawn in: `10` the `ac` look (solid), `20` the `pp` look (light), `30` the `fc` look (hatched), `50` the `pl` look (outlined). The theme still decides how each slot looks. It applies to bars, markers, lines, the variance axis, the in-cell bars of a table and the line under a table column header. Any other value counts as `10`, now also for the target of a bullet chart.
+- `name` labels the scenario: `"pl": { "name": "Budget" }` gives "Budget" for `pl1` and "Budget2" for `pl2`. It replaces the translated label `global.pl1`, in every language. Only a name that a `<bn-ruleset>` sets counts, the built-in names do not label anything.
+
+Without a `<bn-ruleset>` nothing changes. A report that already sets `name` or `colorIndex` in a rule set now sees them in these four components.
+
+```html
+<bn-ruleset>{ "scenarios": { "pl": { "name": "Budget", "colorIndex": 30 } } }</bn-ruleset>
+```
+
+#### JSON Schemas for the JSON attributes and element contents
+
+The npm package now has a JSON Schema (draft-07) for each of these documents, in `dist/schemas/`:
+
+| File | Describes |
+|------|-----------|
+| `theme.schema.json` | content of `<bn-component-style>` |
+| `ruleset.schema.json` | content of `<bn-ruleset>` |
+| `i18n.schema.json` | content of `<bn-internationalization>` |
+| `thereof.schema.json`, `partof.schema.json` | `thereof` and `partof` of `bn-table` |
+| `stack.schema.json` | `stack` of `bn-chart-time` and `bn-chart-structure` |
+| `axis.schema.json` | `x` and `y` of `bn-chart-scatter` and `bn-chart-bubble` |
+
+Import one with `@bino-bi/bn-template-engine/schemas/theme.schema.json`. The schemas are generated from the types the components use, and a test checks that the built-in style, rule set and texts are valid against them.
+
 ### ⚠ BREAKING CHANGES
 
 #### `unit-scaling` / `percentage-scaling`: new em-based semantics
@@ -65,10 +97,10 @@ A body that started with `/`, `http://` or `https://` used to be fetched as a UR
 <!-- before -->
 <bn-dataset name="sales" interval="30">https://example.com/api/sales.json</bn-dataset>
 <!-- after -->
-<bn-dataset name="sales" interval="30" src="https://example.com/api/sales.json"></bn-dataset>
+<bn-dataset name="sales" refresh-interval="30" src="https://example.com/api/sales.json"></bn-dataset>
 ```
 
-While `src` is set the body is ignored. `interval` keeps its meaning.
+While `src` is set the body is ignored. The polling attribute `interval` is `refresh-interval` now, see below.
 
 #### Sanitized HTML: disallowed elements are removed with their content
 
@@ -127,7 +159,7 @@ The chart drew at most `interval-span-limit` (28) periods and dropped the rest, 
 
 #### `bn-chart-bullet`: a group with `+` and `-` rows shows the net value
 
-A level value that holds `"+"` and `"-"` rows was summed as if every row were `"+"`: revenue 100 and cost 30 showed `130`. It now shows the net value `70`, for actual and target, and the rows are sorted and limited by this value. The text of `WARN_bullet-mixed-operation` says so. A level value with only `"-"` rows keeps its positive value.
+A level value that holds `"+"` and `"-"` rows was summed as if every row were `"+"`: revenue 100 and cost 30 showed `130`. It now shows the net value `70`, for actual and target, and the rows are sorted and limited by this value. The text of `WARN_bullet_mixed_operation` says so. A level value with only `"-"` rows keeps its positive value.
 
 #### Readiness: a component that threw makes the page "not rendered"
 
@@ -151,7 +183,7 @@ A `has-error` item, also one of type `error`, is not a failed component. A page 
 - `bn-dataset`, `bn-datasource`: `ERR_body` when the body cannot be decoded or parsed or is not a JSON array, `ERR_src` when the request fails, **when the server answers with an HTTP error status**, or when the response is not a JSON array, `ERR_name` on every element when two of them produce the same name (also a dataset with the name of its datasource). When the name is no longer shared, the remaining element loads its data again, and a dataset on top of that name reads it again too. An empty body and the JSON value `null` mean "no rows" and are no error. A static `bn-dataset` with an empty body is now registered as a table without rows.
 - `bn-internationalization`: `ERR_body` for a body that is not a JSON object.
 - `bn-component-style`: `ERR_keys` (type `error`) lists the keys that are not part of the style. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`. The theming guide named sections that were never read (`text`, `timeChart`, `structureChart`, `tree`, `grid`). The sections are the tag names: `bn-text`, `bn-chart-time`, `bn-chart-structure`, `bn-tree`, `bn-grid`. See [doc/theming.md](doc/theming.md).
-- `show-measure-scale`, `show-overlay-avg` and `show-overlay-median` shared the id `ERR_grouped`. A valid value of one removed the item of another. The ids are now `ERR_showMeasureScale`, `ERR_showOverlayAvg` and `ERR_showOverlayMedian`.
+- `show-measure-scale`, `show-overlay-avg` and `show-overlay-median` shared the id `ERR_grouped`. A valid value of one removed the item of another. These three attributes are booleans now and have no item any more, see below.
 
 #### `bn-page`: true page sizes, `full-hd` works, `@page` rule
 
@@ -180,14 +212,124 @@ A page whose orientation differs from the `render-orientation` of `bn-context` i
 
 The layout `1-over-3` got four column tracks instead of three, so its content took three quarters of the width. It has three columns now.
 
-A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `ERR_pageCustomTemplate` or `ERR_cardCustomTemplate`. The same item reports rows of different length, a pair of quotes without a cell and a row that cannot be read (a cell name may hold letters, digits, `_` and `.`). Rows can be written in double or in single quotes, the latter fit into a double-quoted attribute: `page-custom-template="'a a' 'b c'"`.
+A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `WARN_pageCustomTemplate` or `WARN_cardCustomTemplate`. The same item reports rows of different length, a pair of quotes without a cell and a row that cannot be read (a cell name may hold letters, digits, `_` and `.`). Rows can be written in double or in single quotes, the latter fit into a double-quoted attribute: `page-custom-template="'a a' 'b c'"`.
 
 #### `bn-layout-card`: an inherited keyword stays on the host
 
 A card with `title-scenarios="inherited-page"` (or another inherited title field, or `ruleset`) replaced the keyword in its own attribute with the value it had read at connect. It stopped following the page, and a component inside the card read the stale value. The card keeps the attribute as the author wrote it now. A component inside it that uses `inherited-closest` still gets the page value: such a card stands for the page, the cards between the two are not asked. When the page has no value, the card counts as not setting one, as before.
 
+#### `bn-chart-bullet`: the `normalize` property is `normalizeMode`
+
+The JS property `normalize` replaced `Node.normalize()` on the element, so a TypeScript project that checks library types could not compile against the package. The property is now `normalizeMode`. The HTML attribute stays `normalize`, markup does not change.
+
+#### Removed: elements, props and layouts that nothing used
+
+- `<bn-template>`: it only rendered its slot. Remove the tag, its children stay where they are.
+- `<editor-companion>`: no page used it.
+- `bn-footer`: the `code` attribute and the sample barcode images it could show.
+- `bn-layout-page` / `bn-layout-card`: the layouts `gold3` and `gold4`. They were never documented. A page that names one now gets a single cell, like any unknown layout name.
+- `bn-layout-page` / `bn-layout-card`: the method `getNumberOfSlot()`.
+
+#### The inner renderer elements are internal and have new names
+
+Each table, chart and title element draws through an inner element in its shadow root. These were named `ibcs-*`. They are now `bn-*-renderer` (`ibcs-table` is `bn-table-renderer`, `ibcs-chart-time` is `bn-chart-time-renderer`, and so on, `ibcs-title` is `bn-title-renderer`). Their props and methods are marked internal and are no longer part of the published JSX types.
+
+Only the `bn-*` elements listed in the README are public API. A page that selected an inner element by tag must select the public element.
+
+`window.componentRegisterFailures[].tag` names the element that threw. For a failure inside a renderer this is now the new tag.
+
+The setter methods `setProps()` and `setBusinessUnit()` of the inner title element are gone.
+
+#### `namespace` is no longer read as `i18n-namespace`
+
+A component took a plain `namespace` attribute as a fallback for `i18n-namespace`. This alias is gone, write `i18n-namespace`. The `namespace` attribute of `<bn-internationalization>` is something else and stays.
+
+#### Boolean attributes are real booleans everywhere
+
+These props were strings that had to be `"true"` or `"false"`. They are booleans now, like the boolean props of the other components:
+
+- `bn-table`: `grouped`, `show-measure-scale`, `show-group-title`
+- `bn-chart-time`: `line-full-width`, `show-categories`, `show-measure-scale`, `show-overlay-avg`, `show-overlay-median`
+- `bn-chart-structure`: `show-categories`, `show-measure-scale`
+- `bn-grid`: `show-row-headers`, `show-column-headers`, `show-borders`
+- `bn-tree`: `show-operators`
+
+`attr="true"` and `attr="false"` work as before, and the defaults are the same. What changes:
+
+- An attribute without a value, or with any text other than `false`, is true. Before, such a value counted as false and gave a warning.
+- The warnings `ERR_grouped`, `ERR_showMeasureScale`, `ERR_showGroupTitle`, `ERR_lineFullWidth`, `ERR_showCategories`, `ERR_showOverlayAvg`, `ERR_showOverlayMedian`, `ERR_showRowHeaders`, `ERR_showColumnHeaders`, `ERR_showBorders` and `ERR_showOperators` no longer exist.
+- Removing the attribute at runtime sets the prop to false, also when its default is true. Write `attr="true"` to switch it on again.
+- In JS the property is a boolean: `table.grouped = true`.
+
+#### `bn-dataset` / `bn-datasource`: `interval` is `refresh-interval`
+
+`interval` meant the polling time in seconds here and the column bucketing on `bn-table`. The polling attribute is now `refresh-interval` (property `refreshInterval`). `interval` on `bn-table` is unchanged.
+
+```html
+<bn-dataset name="live" src="/api/sales.json" refresh-interval="30"></bn-dataset>
+```
+
+#### `bn-chart-time`: `level`, `order`, `order-direction` and `limit` are removed
+
+A time chart always shows one value per period, in date order. These four attributes were validated and gave `ERR_*` and `AUTO_*` items, but had no effect on the chart. They are removed together with their items (`ERR_level`, `ERR_order`, `ERR_orderDirection`, `ERR_limit`, `AUTO_level`, `AUTO_order`, `WARN_inherited_order`, `WARN_inherited_orderDirection` on this element). Markup that still has the attributes renders as before.
+
+#### `has-error`: the id prefix tells the type, many ids are renamed
+
+Most attribute checks reported a warning under an id that began with `ERR_`, and three ids had no prefix at all. Now the prefix and the `type` of an item always agree: `ERR_` is an error, `WARN_` and `AUTO_` are warnings. The severity of an item did not change, only its id. The other ids in this file use the new names.
+
+- **`ERR_<name>` is `WARN_<name>`** for every item of type `warning`: `aspect`, `attributes`, `axisLabelsMode`, `barColumns`, `barColumnWidth`, `cardCustomTemplate`, `categoryWidth`, `chartMode`, `compareWith`, `dataFormat`, `dataFormatDigitsDecimal`, `dataFormatDigitsPercent`, `dateEnd`, `dateFormat`, `dateInterval`, `dateLink`, `dateStart`, `direction`, `edgeStyle`, `empty_name`, `format`, `interval`, `intervalConflict`, `intervalNoDate`, `intervalSetname`, `invalid_value`, `level`, `levelSpacing`, `limit`, `maxBars`, `measures`, `measureScale`, `measureType`, `nodeSpacing`, `normalize`, `numeric_name`, `order`, `orderDirection`, `orientation`, `pageCustomTemplate`, `partof`, `percentageScaling`, `reserved_name`, `scale`, `scenarios`, `seriesLevel`, `stack`, `syncSpaceLeft`, `thereof`, `type`, `unitScaling`, `variances`.
+- `ERR_categorythereof` is `WARN_columnthereof`, after the attribute it checks.
+- `WARN_overflow` with type `error` (content does not fit although the author fixed the size) is `ERR_overflow`. The warning keeps the id `WARN_overflow`.
+- `JSON_PARSE` on `bn-component-style` and `bn-ruleset` is `ERR_body`, as on the data elements.
+- `no_value` on `bn-text` is `WARN_value`.
+- `WARN_use_dataset` is `WARN_datasets`.
+- `LAYOUT_cellPairing_<section>_<row>` in the `diagnostics` of the layout state of a table is `WARN_layout_cell_pairing_<section>_<row>`.
+- The data warnings of scatter, bubble and bullet use underscores only: `WARN_xy-duplicate-point` is `WARN_xy_duplicate_point`, and the same for the other `WARN_xy-*`, `WARN_bubble-*` and `WARN_bullet-*` ids.
+
+The ids that stay as they were: all `AUTO_*` ids, all ids of type `error` (`ERR_sql`, `ERR_filter`, `ERR_body`, `ERR_src`, `ERR_name`, `ERR_keys`, `ERR_edges`, `ERR_rowHeaders`, `ERR_columnHeaders`, `ERR_xy_*`, `ERR_bullet_*`) and the other `WARN_*` ids.
+
+[doc/integration-contract.md](doc/integration-contract.md) lists every id and states what stays stable in 1.x: the readiness values on `window`, the console line, `getLayoutState()` and the `has-error` items.
+
+#### Translation keys: `bn-title.SEPARATOR_WS` and `bn-table.thereof`
+
+Two built-in keys were misspelled: `bn-title.SEPERATOR_WS` is now `bn-title.SEPARATOR_WS`, and `bn-table.there_of` is now `bn-table.thereof`. The old names keep working: a `<bn-internationalization>` body that uses one is read under the new name, and `t('bn-table.there_of')` in a `bn-text` template still finds the text. Rename the keys in your translations, the old names end with 2.0.
+
+#### Theme: every `scaleFactors` value is a multiple of the font size
+
+Four line widths in `scaleFactors` were pixels, next to values that are multiples of the font size. They are multiples now, like the rest. The defaults give the same pixels at the default font size:
+
+| Section | Key | Before (px) | Now (× font size) |
+|---------|-----|-------------|-------------------|
+| `bn-chart-bullet` | `targetLineWidth` | `2` | `0.15` |
+| `bn-chart-bullet` | `axisLineWidth` | `1` | `0.075` |
+| `bn-chart-scatter`, `bn-chart-bubble` | `refLineWidth` | `1` | `0.075` |
+| `bn-chart-scatter`, `bn-chart-bubble` | `gridLineWidth` | `1` | `0.075` |
+
+These lines now get thinner and thicker with `scale` and with the font size, like the lines of the time and structure chart. A theme that sets one of the four keys must divide its value by the font size (13.3333 by default). [doc/theming.md](doc/theming.md) has a table with the unit of every key.
+
+#### npm package: entry points
+
+- The package has an `exports` map with `.`, `./loader`, `./schemas/<name>.schema.json` and `./package.json`. Node and bundlers no longer resolve other paths inside the package, for example `@bino-bi/bn-template-engine/dist/...`. URLs on a CDN are not affected.
+- `types` points at `dist/types/index.d.ts`. `import { LAYOUT_STATE_VERSION, type LayoutState } from "@bino-bi/bn-template-engine"` type-checks now. Before, the type entry had the elements but not the layout state.
+- The fields `es2015` and `es2017` are gone. They named a file that was never built.
+- A TypeScript project with `skipLibCheck: false` compiles against the package: the type declarations no longer use the typings of alasql, `@types/luxon` is a dependency, and the type entry has no import of a style sheet.
+- Spec helpers are no longer built into `dist`.
+- `dist/components` (one module per element) is not an entry point. Its modules register the elements, but the elements do not render, and they never did. They no longer import `@stencil/core`. Use the loader.
+
+[doc/installation.md](doc/installation.md) lists the entry points.
+
+### Deprecated
+
+These still work in all 1.x versions and are removed in 2.0:
+
+- `title-namespace` on `bn-layout-page` and `bn-layout-card`. Use `i18n-namespace`, which also applies to the content of the page or card.
+- The `asset:` prefix in `source` of `bn-image`, `image` of `bn-message`, `message-image` of `bn-layout-page` and `title-image` of `bn-layout-card`. Write the plain asset name: `source="logo"` instead of `source="asset:logo"`.
+- The `fillpattern` value `fc` in a theme. Write `hatched`. The built-in theme uses `hatched` now.
+- The translation keys `bn-title.SEPERATOR_WS` and `bn-table.there_of`, see above.
+
 ### Fixed
 
+- Docs: the examples of `thereof`, `partof` and `columnthereof` on `bn-table` were not valid JSON, and the one of `partof` used the key `rowGroups` instead of `rowGroup`. The `stack` docs of `bn-chart-time` and `bn-chart-structure` listed `by` values that are not accepted. They name `scenarios` and `dimensions` now.
 - `bn-chart-time`: a chart without rows threw in its auto-fit, because the average overlay (on by default) reads the first and the last period. The chart showed "No Data" anyway, the exception was only logged.
 - `bn-table`, `bn-title`: invalid JSON in `thereof`, `partof`, `columnthereof` or `measures` threw in `render()`. The validators report the value, and the component now renders without it.
 - `bn-text`: the auto-fit measured once, also when a web font was still loading. It measures again when fonts have loaded.
@@ -195,14 +337,14 @@ A card with `title-scenarios="inherited-page"` (or another inherited title field
 - Spec runs: the 500 ms timer of the status register fired after a spec file had ended ("Cannot log after tests are done"), which made small runs exit with 1.
 - `bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: with no rows, each component printed its no-data text as a bare paragraph in the top-left corner, styled differently per component (small italic in the structure chart) and repeated once per variance segment in the time and structure charts. All six now show one box that fills the component's space, with a thin dashed grey border and the text centered in muted grey. Layout state still reports `hasNoData`; the component rect now spans the cell.
 - Tables and charts with no rows printed the no-data label with literal `==` markers (`==No Data==` / `==Keine Daten==`). The built-in label is now `No Data` (en) / `Keine Daten` (de). A `*.no-data` key set to `""` now hides the label instead of bringing the placeholder back.
-- `bn-table`: a table that rendered taller than its layout cell was clipped without a trace - the bottom rows, grand total included, simply disappeared and no diagnostic mentioned it. The table now measures its rendered size against the constrained parent on every render and publishes a `WARN_overflow` item in `has-error` with the measured magnitude (an `error` when `scale` pins the size, a `warning` in auto mode). Scaling is unchanged: `scale` still fits the width only, so a height overflow is fixed by more space, fewer rows (`limit`) or a smaller `scale`.
+- `bn-table`: a table that rendered taller than its layout cell was clipped without a trace - the bottom rows, grand total included, simply disappeared and no diagnostic mentioned it. The table now measures its rendered size against the constrained parent on every render and publishes an item in `has-error` with the measured magnitude (the error `ERR_overflow` when `scale` pins the size, the warning `WARN_overflow` in auto mode). Scaling is unchanged: `scale` still fits the width only, so a height overflow is fixed by more space, fewer rows (`limit`) or a smaller `scale`.
 - `bn-chart-time`: the measure-scale footer ("in kEUR") floated beside the base chart's SVG whenever the SVG was narrow enough to fit next to it, shifting the base chart right by the footer width while the variance segments stayed put. Base and variance bars were misaligned by exactly that width. The footer now always sits above the SVG.
 - Chart wrappers: stale `AUTO_percentageScaling` warning was not cleared when a scaling group resolved.
-- `bn-chart-structure` / `bn-chart-time`: an optional attribute that was simply not set produced a warning of its own - `level: invalid value(s) 'undefined' are not supported.` and the same for `order-direction`, `unit-scaling`, `percentage-scaling`, `date-interval` and `axis-labels-mode` - next to the correct `AUTO_<field>` notice for the very same blank value. On a report with many charts these drowned out the real warnings. An omitted field now yields only its documented `AUTO_<field>` notice; `ERR_<field>` is reserved for a value that was written and is wrong.
+- `bn-chart-structure` / `bn-chart-time`: an optional attribute that was simply not set produced a warning of its own - `level: invalid value(s) 'undefined' are not supported.` and the same for `order-direction`, `unit-scaling`, `percentage-scaling`, `date-interval` and `axis-labels-mode` - next to the correct `AUTO_<field>` notice for the very same blank value. On a report with many charts these drowned out the real warnings. An omitted field now yields only its documented `AUTO_<field>` notice; `WARN_<field>` is reserved for a value that was written and is wrong.
 - SI prefix tables: removed a stray `"P"` (peta) from the negative-prefix table (femto range was shifted); `measure-scale` now accepts both `"my"` and `"μ"` for micro; magnitude→prefix picking is now `Math.log10`-based and handles exponential notation (`1e-7`, `1e24`) and boundary values correctly.
 - `bn-dataset`, `bn-datasource`: changing `name` left the data under the old name. A static dataset kept its old table, a SQL dataset was never registered under the new name, and a `src` dataset moved only with the next poll. The old table or view is now dropped, its consumers are notified, and the data loads again under the new name. A SQL dataset whose source was renamed or removed now delivers no rows and sets `ERR_sql`, so a table behind it does not keep the old numbers.
 - `bn-dataset`, `bn-datasource`: an element that was removed and attached again stayed empty, did not restart polling and kept writing to the `bn-context` it came from. It now loads again in the context it is attached to.
-- `bn-datasource`, `bn-dataset`: `window.componentRegisterIsRenderedResult` became `true` while the first request for `src` was still running, so a PDF could be rendered with empty tables. The component now counts as rendering until that request has succeeded, failed or been cancelled. Polling requests (`interval`) do not hold the flag, and a poll tick that comes while the first request is still running is skipped instead of cancelling it. An element that is removed and attached again no longer counts as rendering forever.
+- `bn-datasource`, `bn-dataset`: `window.componentRegisterIsRenderedResult` became `true` while the first request for `src` was still running, so a PDF could be rendered with empty tables. The component now counts as rendering until that request has succeeded, failed or been cancelled. Polling requests (`refresh-interval`) do not hold the flag, and a poll tick that comes while the first request is still running is skipped instead of cancelling it. An element that is removed and attached again no longer counts as rendering forever.
 - `bn-table` and all charts: a small negative value that rounds to zero was printed as `-0,0` or `-0,0%`. It is printed as `0,0` or `0,0%` now.
 - `bn-table`: in a grouped table, rows with an empty `rowGroup` (`null`, `""` or missing) made the table repeat every row of every group under a header `null`, and the group sum printed `-`. These rows are now shown once, in one group labelled `-` whose sum is part of the total. A warning `WARN_blankRowGroup` is set in `has-error`. A numeric `rowGroup` had the same problem and is fixed too.
 - `bn-table`: in a percent table (`data-format="percent"`) an absolute variance was printed as a plain decimal, so 3,10% against 5,20% showed `-0,0`. It is printed in percentage points with the percent digits now: `-2,10`. The measure scale is not applied to it. These cells have the class and the layout state type `percentpoint` now (before `decimal`).
@@ -225,10 +367,10 @@ A card with `title-scenarios="inherited-page"` (or another inherited title field
 - `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: axis ticks had at most two decimals, taken from the text of a float, so ticks repeated (`0,02 | 0,03 | 0,03 | 0,04`) or got needless decimals (`0,60` for a step of 0,2). Decimals now come from the tick step. For a domain narrower than the float resolution of its values the chart did not finish rendering. It gets one tick now.
 - `bn-chart-scatter`: iso lines were labelled without decimals (`1` for 0,5, `3` for 2,5). The labels have the decimals of the finest value, and the space next to the frame fits them.
 - `bn-chart-bubble`: value labels always had one decimal (`0,0` for 0,032). They show three significant digits of the largest value: `32,0`, `0,0320`, `1.234.567`.
-- `bn-chart-scatter`, `bn-chart-bubble`: two points with the same name in different series counted as one, the second was dropped with `WARN_xy-duplicate-point`. The series is part of the point identity now.
+- `bn-chart-scatter`, `bn-chart-bubble`: two points with the same name in different series counted as one, the second was dropped with `WARN_xy_duplicate_point`. The series is part of the point identity now.
 - `bn-chart-bubble`: the legend swatch of a forecast series was a white circle, the same as plan. It has the hatch pattern of the bubbles now.
 - `bn-chart-scatter`, `bn-chart-bubble`: a chart higher than its layout cell was cut off without a diagnostic, only the width was checked. `WARN_overflow` is now also set when a container that hides its overflow cuts the chart off at the bottom. It names the measured sizes and works with automatic scaling too. A page that just grows or scrolls gives no warning.
-- `bn-chart-bullet`: a negative actual value has no bar. With `normalize="target"` this was reported as `WARN_bullet-target-invalid` (a text about the target), with `normalize="none"` not at all. Both modes set `WARN_bullet-actual-negative` now.
+- `bn-chart-bullet`: a negative actual value has no bar. With `normalize="target"` this was reported as `WARN_bullet_target_invalid` (a text about the target), with `normalize="none"` not at all. Both modes set `WARN_bullet_actual_negative` now.
 - `bn-tree`: edges with a cycle below the root crashed the component. They are reported under `ERR_edges`, as are nodes that are not connected to the root.
 - `bn-tree`: the operators between three or more siblings were drawn on one spot, and for `rtl` and `btt` they sat off the edges. Each operator now sits between its two siblings on the line that joins the children. All edges of a parent bend at the same place. In `ttb` and `btt` a parent sits centred over its children (before: over the first child). Parents that share a child keep the column of their first child.
 - `bn-tree`: a tree that was invalid when it loaded drew no edges after `edges` was corrected, and a change of `direction`, `level-spacing` or `node-spacing` kept the old edge positions. The tree measures after every render now.

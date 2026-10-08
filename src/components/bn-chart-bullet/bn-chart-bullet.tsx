@@ -14,6 +14,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withDataset from "../../utils/withDataset";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { ruleSetLabels } from "../../utils/ibcsRuleSet";
 import withRuleSet from "../../utils/withRuleSet";
 import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
@@ -44,7 +45,7 @@ const TARGET_SLOT_PREFERENCE = ["pl1", "pp1", "fc1"];
  * `normalize="none"` (per-row scales) and `ranges` (max two qualitative
  * gray bands). Actual and target scenarios are auto-detected from the
  * dataset meta when not set. The heavy SVG rendering is performed by the
- * inner `ibcs-chart-bullet` element; this facade validates props, resolves
+ * inner `bn-chart-bullet-renderer` element; this facade validates props, resolves
  * auto-detected metadata, and computes styles.
  */
 @Component({
@@ -66,11 +67,32 @@ export class ChartBullet {
   private readonly t: (key: string, data?: object) => string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private readonly componentStyle: <T>(q: (s: any) => T) => T;
-  private readonly ruleSetConfig: () => RuleSetConfig;
+  private readonly ruleSetConfig: (layers?: "all" | "user") => RuleSetConfig;
   private readonly errors: ErrorDispatcher;
   private layoutObserver: LayoutObserverHandle | null = null;
   /** Ids of currently-active blocking errors - the chart renders empty while any is set. */
   private readonly activeErrors: Set<string> = new Set();
+
+  /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
 
   /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
@@ -96,7 +118,7 @@ export class ChartBullet {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -168,10 +190,10 @@ export class ChartBullet {
    * position, the IBCS-comparable form) or `none` (classic per-row scales
    * with tick strips).
    */
-  @Prop() normalize: string = "target";
-  @Watch("normalize")
+  @Prop({ attribute: "normalize" }) normalizeMode: string = "target";
+  @Watch("normalizeMode")
   validateNormalize(newValue: string) {
-    this.validateEnum("normalize", "ERR_normalize", newValue, ["target", "none"], "target");
+    this.validateEnum("normalize", "WARN_normalize", newValue, ["target", "none"], "target");
   }
 
   /**
@@ -182,7 +204,7 @@ export class ChartBullet {
   @Prop() variances: string = "auto";
   @Watch("variances")
   validateVariances(newValue: string) {
-    this.validateEnum("variances", "ERR_variances", newValue, ["auto", "none"], "auto");
+    this.validateEnum("variances", "WARN_variances", newValue, ["auto", "none"], "auto");
   }
 
   /**
@@ -192,7 +214,7 @@ export class ChartBullet {
   @Prop() level: string = "auto";
   @Watch("level")
   validateLevel(newValue: string) {
-    this.validateEnum("level", "ERR_level", newValue, ["auto", "rowgroup", "category", "subcategory"], "auto");
+    this.validateEnum("level", "WARN_level", newValue, ["auto", "rowgroup", "category", "subcategory"], "auto");
   }
 
   /**
@@ -203,7 +225,7 @@ export class ChartBullet {
   @Prop() order: string = "";
   @Watch("order")
   validateOrder(newValue: string) {
-    const errId = "ERR_order";
+    const errId = "WARN_order";
     const invalid = validateOrderList(newValue).filter((entry) => entry !== "");
     if (invalid.length === 0) {
       this.errors.remove(errId);
@@ -222,7 +244,7 @@ export class ChartBullet {
   @Prop() orderDirection: string = "";
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
     if (isBlankInput(newValue) || isValidDirection(newValue)) {
       this.errors.remove(errId);
     } else {
@@ -241,7 +263,7 @@ export class ChartBullet {
   @Prop() limit: number = 0;
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId = "ERR_limit";
+    const errId = "WARN_limit";
     if (isValidInteger(newValue) && Number(newValue) >= 0) {
       this.errors.remove(errId);
     } else {
@@ -286,7 +308,7 @@ export class ChartBullet {
   @Prop() scale?: string;
   @Watch("scale")
   validateScale(newValue: string) {
-    const errId = "ERR_scale";
+    const errId = "WARN_scale";
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -327,7 +349,7 @@ export class ChartBullet {
     this.validateActual(this.actual);
     this.validateTarget(this.target);
     this.validateRanges(this.ranges);
-    this.validateNormalize(this.normalize);
+    this.validateNormalize(this.normalizeMode);
     this.validateVariances(this.variances);
     this.validateLevel(this.level);
     this.validateOrder(this.order);
@@ -341,7 +363,7 @@ export class ChartBullet {
   private _lastScaledParentHeight = 0;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-bullet");
+    syncEmptyState(this.element, "bn-chart-bullet-renderer");
 
     // Bullet height is data-driven (rows × rowHeight), so the auto-fit
     // scales against the parent HEIGHT - the structure-chart variant, not
@@ -433,7 +455,7 @@ export class ChartBullet {
   }
 
   /** Sets or clears a blocking error (type `error`) with a stable id. */
-  private setBlockingError(id: string, message: string | null): void {
+  private setBlockingError(id: `ERR_${string}`, message: string | null): void {
     if (message === null) {
       this.errors.remove(id);
       this.activeErrors.delete(id);
@@ -449,9 +471,9 @@ export class ChartBullet {
 
   /** Shared validator for the measure-carrying object props (actual/target). */
   private validateMeasureSpec(prop: "actual" | "target", raw: string): void {
-    const jsonId = `ERR_bullet_json_${prop}`;
-    const measureId = `ERR_bullet_measure_${prop}`;
-    const fieldsId = `WARN_bullet_fields_${prop}`;
+    const jsonId = `ERR_bullet_json_${prop}` as const;
+    const measureId = `ERR_bullet_measure_${prop}` as const;
+    const fieldsId = `WARN_bullet_fields_${prop}` as const;
 
     const { data, parseError } = parseSpec(raw, "measure");
 
@@ -483,7 +505,7 @@ export class ChartBullet {
     this.reportSpecIssues(fieldsId, prop, toBulletMeasureConfig(data));
   }
 
-  private validateEnum(prop: string, errId: string, raw: string, valid: string[], fallback: string): void {
+  private validateEnum(prop: string, errId: `WARN_${string}`, raw: string, valid: string[], fallback: string): void {
     if (isBlankInput(raw) || valid.includes(raw.trim().toLowerCase())) {
       this.errors.remove(errId);
     } else {
@@ -496,7 +518,7 @@ export class ChartBullet {
   }
 
   /** Unknown sub-fields → warning, never error (forward compatibility). */
-  private reportSpecIssues<T>(errId: string, prop: string, result: SpecResult<T> | null): void {
+  private reportSpecIssues<T>(errId: `WARN_${string}`, prop: string, result: SpecResult<T> | null): void {
     const issues: string[] = [];
     if (result !== null && result.invalidFields.length > 0) {
       issues.push(`invalid: ${result.invalidFields.join(", ")}`);
@@ -570,7 +592,7 @@ export class ChartBullet {
 
       if (detected === undefined) {
         this.errors.remove("AUTO_target");
-        // Distinct id from the orchestrator-synced WARN_bullet-target-none:
+        // Distinct id from the orchestrator-synced WARN_bullet_target_none:
         // the inner element's sync walk would otherwise clear this warning.
         if (this.datasetMeta !== null) {
           this.errors.addOrReplace({
@@ -603,7 +625,7 @@ export class ChartBullet {
   }
 
   private prepareNormalize(): "target" | "none" {
-    return this.normalize?.trim().toLowerCase() === "none" ? "none" : "target";
+    return this.normalizeMode?.trim().toLowerCase() === "none" ? "none" : "target";
   }
 
   private prepareShowVariances(): boolean {
@@ -692,7 +714,12 @@ export class ChartBullet {
   private prepareI18n(): Map<string, string> {
     const i18nMapLocal = new Map(this.i18nLocalKeys().map((key) => [key, this.t(".".concat(key))]));
     const i18nMapGlobal = new Map(globalLabelKeys.map((key) => [key, this.t("global.".concat(key))]));
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    // a name from a <bn-ruleset> wins over the i18n label of the scenario
+    return new Map([
+      ...i18nMapGlobal.entries(),
+      ...i18nMapLocal.entries(),
+      ...ruleSetLabels(this.ruleSetConfig("user")),
+    ]);
   }
 
   private prepareStyle(): BulletChartStyle {
@@ -737,7 +764,7 @@ export class ChartBullet {
     const fontSizePx = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
     return collectXYFacadeState(
       this.element,
-      "ibcs-chart-bullet",
+      "bn-chart-bullet-renderer",
       this.chartTitle || undefined,
       { fontSizePx, appliedScaleFactor: factor },
       origins,
@@ -769,7 +796,7 @@ export class ChartBullet {
   private readonly translateForInner = (key: string, data?: object): string => this.t(key, data);
 
   /**
-   * Dataset field map for the editor-companion: hierarchy fields plus the
+   * Dataset field map: hierarchy fields plus the
    * 16 scenario slots; descriptions of currently-mapped slots reflect the
    * live mapping (e.g. `pl1 → "target: Plan"`).
    */
@@ -837,14 +864,14 @@ export class ChartBullet {
     }
 
     return (
-      <ibcs-chart-bullet
+      <bn-chart-bullet-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.chartTitle}
         actual={actual}
         target={target}
         ranges={ranges}
-        normalize={normalize}
+        normalizeMode={normalize}
         showVariances={this.prepareShowVariances()}
         level={this.prepareLevel()}
         order={this.prepareOrder()}
@@ -856,8 +883,8 @@ export class ChartBullet {
         containerWidth={getParentDimensions(this.element).width}
         ruleSetConfig={this.ruleSetConfig()}
         errors={this.errors}
-        translate={this.translateForInner}
-      ></ibcs-chart-bullet>
+        translator={this.translateForInner}
+      ></bn-chart-bullet-renderer>
     );
   }
 

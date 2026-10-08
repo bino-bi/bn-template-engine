@@ -41,7 +41,7 @@ export class Table {
   constructor(ruleSet: VisualisationRuleSet, db: AlaSQLDatabase, tableName: string, config: TableComponentConfig) {
     this.ruleSet = ruleSet || new IBCSRuleSet();
     this.db = db;
-    this.dataSetFactory = new TableDataSetFactory();
+    this.dataSetFactory = new TableDataSetFactory(this.ruleSet);
 
     this.config = this.initConfig(config);
     this.i18n = this.initI18n(new Map<string, string>());
@@ -68,7 +68,7 @@ export class Table {
   private initI18n(i18n: Map<string, string>): Map<string, string> {
     const defaultI18n: Map<string, string> = new Map<string, string>([
       ["", ""],
-      ["SEPERATOR_WS", ", "],
+      ["SEPARATOR_WS", ", "],
       ["in", "in"],
       ["ORDER_asc", "↑"],
       ["ORDER_desc", "↓"],
@@ -90,7 +90,7 @@ export class Table {
       ["pl4", "PL4"],
       ["category", " "],
       ["operation", " "],
-      ["there_of", "davon"],
+      ["thereof", "davon"],
       ["part_of", "in % von"],
       ["ibcssymbol_delta_ac", "Δ{%}"],
       ["ibcssymbol_delta_generic", "Δ({%})"],

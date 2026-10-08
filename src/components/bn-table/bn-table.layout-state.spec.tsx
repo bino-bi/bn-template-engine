@@ -60,7 +60,7 @@ import { CellElement, Origins } from "../../utils/layoutState";
 import { I18nMode } from "../../utils/constants";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Table } from "./bn-table";
-import { IbcsTable, TableLayoutDetail } from "./ibcs-table";
+import { BnTableRenderer, TableLayoutDetail } from "./bn-table-renderer/bn-table-renderer";
 
 const origins: Origins = { context: { x: 0, y: 0 }, component: { x: 0, y: 0 } };
 
@@ -77,7 +77,7 @@ const makeRow = (category: string, categoryIndex: number, ac1: number) => ({
   pp1: ac1 + 1,
 });
 
-describe("ibcs-table.getLayoutDetail", () => {
+describe("bn-table-renderer.getLayoutDetail", () => {
   beforeAll(() => {
     getStores(null).db.db.tables["layoutDs"] = {
       data: [makeRow("Category A", 1, 10), makeRow("Category B", 2, -4), makeRow("Category C", 3, 7)],
@@ -86,9 +86,9 @@ describe("ibcs-table.getLayoutDetail", () => {
 
   const renderInner = async () => {
     const page = await newSpecPage({
-      components: [IbcsTable],
+      components: [BnTableRenderer],
       template: () => (
-        <ibcs-table
+        <bn-table-renderer
           scenarios={["ac1", "pp1", "dac1_pp1_pos", "drac1_pp1_pos"]}
           measure-scale="_"
           order={{ hierarchy: [OrderColumn.CATEGORY], direction: OrderDirection.ASC } as Order}
@@ -146,8 +146,8 @@ describe("ibcs-table.getLayoutDetail", () => {
   it("reports no data and no regions when the dataset has no rows", async () => {
     getStores(null).db.db.tables["layoutEmptyDs"] = { data: [] };
     const page = await newSpecPage({
-      components: [IbcsTable],
-      template: () => <ibcs-table scenarios={["ac1"]} measure-scale="_" tableName="layoutEmptyDs" />,
+      components: [BnTableRenderer],
+      template: () => <bn-table-renderer scenarios={["ac1"]} measure-scale="_" tableName="layoutEmptyDs" />,
     });
     const detail: TableLayoutDetail = await page.rootInstance.getLayoutDetail(origins, "summary");
 
@@ -159,7 +159,7 @@ describe("ibcs-table.getLayoutDetail", () => {
 describe("bn-table.getLayoutState", () => {
   const renderFacade = async (attrs: string = "") => {
     const page = await newSpecPage({
-      components: [Table, IbcsTable],
+      components: [Table, BnTableRenderer],
       html: `<bn-table ${attrs}></bn-table>`,
     });
     return page;

@@ -2,7 +2,6 @@ import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, w
 import { hasInlineJs } from "../../context/scopedDb";
 import {
   isBlankInput,
-  isValidBoolean,
   isValidDirection,
   isValidInteger,
   isValidLevel,
@@ -20,9 +19,10 @@ import withScalingGroup from "../../utils/withScalingGroup";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import { ruleSetLabels } from "../../utils/ibcsRuleSet";
 import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
-import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
@@ -52,7 +52,7 @@ import { syncEmptyState } from "../../utils/emptyState";
  * charts grouped by category, with up to four scenario layers, optional
  * variance sub-charts, stacking, and proportional auto-scaling (height-
  * based). The heavy SVG rendering is performed by the inner
- * `ibcs-chart-structure` element; this outer component validates props,
+ * `bn-chart-structure-renderer` element; this outer component validates props,
  * resolves auto-detected metadata, and computes styles.
  */
 @Component({
@@ -73,12 +73,33 @@ export class Chart {
 
   private readonly t: (key: string, data?: object) => string;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
-  private readonly ruleSetConfig: () => RuleSetConfig;
+  private readonly ruleSetConfig: (layers?: "all" | "user") => RuleSetConfig;
   private readonly errors: ErrorDispatcher;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
   /** Last parent height seen, used to suppress ResizeObserver noise. */
   private _lastScaledParentHeight = 0;
+
+  /**
+   * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
+   * that starts with `$` reads a `<bn-datasource>` directly, which gives a
+   * warning.
+   */
+  @Prop({ reflect: true }) datasets?: string;
+
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
+   * Namespace of the translations to use (the `namespace` of a
+   * `<bn-internationalization>`). Without it the component takes the
+   * `i18n-namespace` of the nearest ancestor that has one, then the built-in
+   * texts.
+   */
+  @Prop({ reflect: true, attribute: "i18n-namespace" }) i18nNamespace?: string;
 
   /**
    * Title displayed above the chart. When empty, the title is derived
@@ -91,8 +112,8 @@ export class Chart {
 
   /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
-   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
-   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   * ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to
+   * take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
    */
   @Prop({ reflect: true })
   ruleset?: string;
@@ -108,7 +129,7 @@ export class Chart {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -137,7 +158,7 @@ export class Chart {
   @Prop() scenarios!: string;
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = "ERR_scenarios";
+    const errId = "WARN_scenarios";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -172,7 +193,7 @@ export class Chart {
   @Prop() variances!: string;
   @Watch("variances")
   validateVariances(newValue: string) {
-    const errIdVar: string = "ERR_variances";
+    const errIdVar = "WARN_variances";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errIdVar);
       return;
@@ -202,7 +223,7 @@ export class Chart {
    * | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
    *
    * When using a custom value that causes the chart to exceed its container,
-   * a `WARN_overflow` error is emitted.
+   * an `ERR_overflow` error is emitted.
    *
    * @example unit-scaling="auto"
    * @example unit-scaling="1M"
@@ -212,7 +233,7 @@ export class Chart {
 
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = "ERR_unitScaling";
+    const errId = "WARN_unitScaling";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -247,7 +268,7 @@ export class Chart {
   @Prop() percentageScaling!: string | number;
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = "ERR_percentageScaling";
+    const errId = "WARN_percentageScaling";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -289,7 +310,7 @@ export class Chart {
 
   @Watch("level")
   validateLevel(newValue: string) {
-    const errId: string = "ERR_level";
+    const errId = "WARN_level";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -327,7 +348,7 @@ export class Chart {
 
   @Watch("order")
   validateOrderList(newValue: string) {
-    const errId: string = "ERR_order";
+    const errId = "WARN_order";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -356,7 +377,7 @@ export class Chart {
   @Prop() orderDirection!: string;
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
     if (isInheritedValue(newValue) || isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -383,7 +404,7 @@ export class Chart {
 
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId: string = "ERR_limit";
+    const errId = "WARN_limit";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -399,27 +420,10 @@ export class Chart {
   /**
    * Whether to display category labels on the left side of the chart.
    *
-   * Values: `"true"` | `"false"`.
-   *
-   * @default "true"
+   * @default true
    * @example show-categories="false"
    */
-  @Prop() showCategories: string = "true";
-
-  @Watch("showCategories")
-  validateShowCategories(newValue: string) {
-    const errId: string = "ERR_showCategories";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showCategories: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showCategories: boolean = true;
 
   /**
    * SI prefix applied to data values, dividing them for display
@@ -442,7 +446,7 @@ export class Chart {
 
   @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = "ERR_measureScale";
+    const errId = "WARN_measureScale";
 
     if (!isValidMeasureScale(newValue)) {
       this.errors.addOrReplace({
@@ -459,31 +463,14 @@ export class Chart {
    * Toggles display of the SI prefix and unit label in the chart footer
    * (e.g. "k EUR").
    *
-   * Values: `"true"` | `"false"`.
-   *
-   * @default "false"
+   * @default false
    * @example show-measure-scale="true"
    */
-  @Prop() showMeasureScale: string = "false";
-
-  @Watch("showMeasureScale")
-  validateShowMeasureScale(newValue: string) {
-    const errId: string = "ERR_showMeasureScale";
-
-    if (!isValidBoolean(newValue)) {
-      this.errors.addOrReplace({
-        id: errId,
-        type: "warning",
-        message: "showMeasureScale: invalid value(s) '" + newValue?.toString() + "' are not supported.",
-      });
-    } else {
-      this.errors.remove(errId);
-    }
-  }
+  @Prop() showMeasureScale: boolean = false;
 
   /**
    * Unit label displayed alongside the SI prefix in the chart footer
-   * (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is `"true"`.
+   * (e.g. "EUR", "USD", "pcs"). Only visible when `show-measure-scale` is on.
    *
    * @default ""
    * @example measure-unit="EUR"
@@ -519,7 +506,7 @@ export class Chart {
 
   @Watch("stack")
   validateStack(newValue: string) {
-    const errId: string = "ERR_stack";
+    const errId = "WARN_stack";
     const errors = validateStackConfig(newValue);
 
     if (errors.length > 0) {
@@ -548,18 +535,18 @@ export class Chart {
   @Watch("scale")
   validateScaling(newValue: string) {
     if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
       this.errors.addOrReplace({
-        id: "ERR_scale",
+        id: "WARN_scale",
         type: "warning",
         message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
       });
     } else {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
     }
   }
 
@@ -606,9 +593,7 @@ export class Chart {
     this.validateLevel(this.level);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
-    this.validateShowCategories(this.showCategories);
     this.validateMeasureScale(this.measureScale);
-    this.validateShowMeasureScale(this.showMeasureScale);
     this.validateStack(this.stack);
     this.validateScaling(this.scale);
   }
@@ -616,7 +601,7 @@ export class Chart {
   private _autoScaleGuard = false;
 
   componentDidRender() {
-    syncEmptyState(this.element, "ibcs-chart-structure");
+    syncEmptyState(this.element, "bn-chart-structure-renderer");
 
     const { mode } = parseScaling(this.scale);
 
@@ -739,7 +724,7 @@ export class Chart {
    * before the inner charts have rendered.
    */
   private measureContentWidth(): number {
-    const inners = this.element.shadowRoot?.querySelectorAll("ibcs-chart-structure");
+    const inners = this.element.shadowRoot?.querySelectorAll("bn-chart-structure-renderer");
     let total = 0;
     let found = false;
     inners?.forEach((inner) => {
@@ -757,14 +742,13 @@ export class Chart {
   }
 
   /**
-   * Reports a WARN_overflow item when the rendered chart exceeds its
+   * Reports an overflow item when the rendered chart exceeds its
    * container. Overflow attributable to a fixed scaling attribute is an
    * error (width: unit-scaling / percentage-scaling, height: scale);
    * overflow in fully-auto mode is a warning - auto-fit prevents it by
    * construction, so it only fires when the content cannot fit at any scale.
    */
   private checkOverflow(): void {
-    const errId = "WARN_overflow";
     const parent = getParentDimensions(this.element);
     const contentWidth = this.measureContentWidth();
     const contentHeight = this.element.scrollHeight;
@@ -772,7 +756,7 @@ export class Chart {
     const heightOver = parent.height > 0 && contentHeight > parent.height + 1;
 
     if (!widthOver && !heightOver) {
-      this.errors.remove(errId);
+      reportOverflow(this.errors, null);
       return;
     }
 
@@ -792,15 +776,14 @@ export class Chart {
     if (widthOver) dims.push(`width (${Math.round(contentWidth)}px > ${Math.round(parent.width)}px)`);
     if (heightOver) dims.push(`height (${Math.round(contentHeight)}px > ${Math.round(parent.height)}px)`);
 
-    this.errors.addOrReplace({
-      id: errId,
-      type: fixedAttrs.length > 0 ? "error" : "warning",
-      message:
-        `Chart exceeds available ${dims.join(" and ")}. ` +
+    reportOverflow(
+      this.errors,
+      `Chart exceeds available ${dims.join(" and ")}. ` +
         (fixedAttrs.length > 0
           ? `Adjust ${fixedAttrs.join(" / ")} or set to "auto".`
           : "Content does not fit even at minimum auto scaling; enlarge the container."),
-    });
+      fixedAttrs.length > 0,
+    );
   }
 
   prepareDimension(): ParentDimensions {
@@ -847,7 +830,7 @@ export class Chart {
   }
 
   private prepareHideCategories(idx: number): boolean {
-    return idx >= 1 || this.showCategories !== "true";
+    return idx >= 1 || !this.showCategories;
   }
 
   private prepareI18n(): Map<string, string> {
@@ -857,7 +840,12 @@ export class Chart {
     const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
     const i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
 
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    // a name from a <bn-ruleset> wins over the i18n label of the scenario
+    return new Map([
+      ...i18nMapGlobal.entries(),
+      ...i18nMapLocal.entries(),
+      ...ruleSetLabels(this.ruleSetConfig("user")),
+    ]);
   }
 
   private autoUnitWarningActive = false;
@@ -928,7 +916,7 @@ export class Chart {
   }
 
   /**
-   * Receives the auto-fitted values from the inner ibcs-chart-structure (px
+   * Receives the auto-fitted values from the inner bn-chart-structure-renderer (px
    * per unit / px per 1.0 fraction) and surfaces them in the AUTO_* warnings,
    * converted back to the attribute's units-per-em form so users can copy
    * them into a bn-scaling-group.
@@ -1180,7 +1168,7 @@ export class Chart {
   }
 
   prepareShowMeasureScale(idx: number): boolean {
-    return idx === 0 && this.showMeasureScale === "true";
+    return idx === 0 && this.showMeasureScale;
   }
   prepareMeasureUnit(): string {
     if (this.measureUnit === "" || this.measureUnit == null) {
@@ -1198,7 +1186,7 @@ export class Chart {
     const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
-      <ibcs-chart-structure
+      <bn-chart-structure-renderer
         tableName={this.datasetName}
         dataVersion={this.dataVersion}
         chartTitle={this.prepareChartTitle(idx)}
@@ -1221,7 +1209,7 @@ export class Chart {
         stackConfig={stackConfig}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}
-      ></ibcs-chart-structure>
+      ></bn-chart-structure-renderer>
     );
   }
 
@@ -1246,13 +1234,13 @@ export class Chart {
     const variances = this.prepareVariances();
     const layout = collectChartFacadeLayout(
       this.element,
-      "ibcs-chart-structure",
+      "bn-chart-structure-renderer",
       ["base", ...variances],
       origins,
       detail,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const firstInner = this.element.shadowRoot?.querySelector("ibcs-chart-structure") as any;
+    const firstInner = this.element.shadowRoot?.querySelector("bn-chart-structure-renderer") as any;
 
     const state: ComponentLayoutState = {
       version: LAYOUT_STATE_VERSION,

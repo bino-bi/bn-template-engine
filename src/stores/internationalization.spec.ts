@@ -18,9 +18,8 @@ import { SYSTEM_I18N_DEFAULTS, globalLabelKeys } from "./internationalization";
  * - bn-chart-bullet.tsx     `i18nLocalKeys()`
  */
 const localLabelKeys: Record<string, string[]> = {
-  "bn-table": ["in", "category", "operation", "there_of", "part_of", "SUM_TOTAL", "no-data", "REST"],
-  // The engine key really is spelled SEPERATOR_WS.
-  "bn-title": ["SEPERATOR_WS", "in", "CONNECTOR_WS"],
+  "bn-table": ["in", "category", "operation", "thereof", "part_of", "SUM_TOTAL", "no-data", "REST"],
+  "bn-title": ["SEPARATOR_WS", "in", "CONNECTOR_WS"],
   "bn-chart-time": ["no-data"],
   "bn-chart-structure": ["no-data", "REST"],
   "bn-chart-scatter": ["no-data", "axis.in", "legend.title"],

@@ -12,7 +12,7 @@ import { errorText } from "../../utils/queryError";
  * 1. **Inline JSON** - Place JSON text inside the element body (default).
  * 2. **Compressed payload** - Set `raw="false"` and provide `<hash>:<base64_gzip>` format.
  * 3. **URL** - Set the `src` attribute to fetch JSON from an HTTP endpoint.
- *    Set the `interval` prop (in seconds) to enable periodic re-fetching
+ *    Set the `refresh-interval` attribute (in seconds) to enable periodic re-fetching
  *    (polling).
  *
  * The body is always inline data and is ignored while `src` is set.
@@ -44,7 +44,7 @@ export class Datasource {
    * interval. Has no effect for inline JSON or compressed content.
    * Set to `0` or leave unset to disable polling.
    */
-  @Prop() interval: number = 0;
+  @Prop() refreshInterval: number = 0;
 
   /**
    * URL to fetch the JSON from. When set, the body is ignored.
@@ -171,7 +171,7 @@ export class Datasource {
     this.stores.db.notify(this.name);
   }
 
-  @Watch("interval")
+  @Watch("refreshInterval")
   onIntervalChange(): void {
     if (this.currentUrl) {
       this.startPolling();
@@ -266,12 +266,12 @@ export class Datasource {
    *  only resets the interval timer. */
   private startPolling(): void {
     this.clearPollTimer();
-    if (this.currentUrl && this.interval > 0) {
+    if (this.currentUrl && this.refreshInterval > 0) {
       this.pollTimerId = setInterval(() => {
         if (this.currentUrl && !this.firstLoadPending) {
           this.fetchAndStore(this.currentUrl);
         }
-      }, this.interval * 1000);
+      }, this.refreshInterval * 1000);
     }
   }
 

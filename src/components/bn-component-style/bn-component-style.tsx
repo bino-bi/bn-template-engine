@@ -28,7 +28,7 @@ export class ComponentStyle {
         const parsedData = JSON.parse(data);
         // @ts-ignore
         this.stores.componentStyles.set(this.name, parsedData as Style);
-        this.errors.remove("JSON_PARSE");
+        this.errors.remove("ERR_body");
         const unknown = unknownStyleKeys(parsedData);
         if (unknown.length > 0) {
           this.errors.addOrReplace({
@@ -41,7 +41,7 @@ export class ComponentStyle {
         }
       } catch (e) {
         this.errors.addOrReplace({
-          id: "JSON_PARSE",
+          id: "ERR_body",
           type: "error",
           message: `bn-component-style: Failed to parse JSON body - ${(e as Error).message}`,
         });

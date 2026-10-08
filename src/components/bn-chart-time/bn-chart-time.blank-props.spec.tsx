@@ -69,18 +69,14 @@ const renderChart = (attrs = ""): Promise<SpecPage> =>
   });
 
 describe("bn-chart-time: omitted optional props", () => {
-  it.each([
-    "ERR_level",
-    "ERR_orderDirection",
-    "ERR_unitScaling",
-    "ERR_percentageScaling",
-    "ERR_axisLabelsMode",
-    "ERR_dateInterval",
-  ])("does not emit %s when the field is omitted", async (id) => {
-    const page = await renderChart();
+  it.each(["WARN_unitScaling", "WARN_percentageScaling", "WARN_axisLabelsMode", "WARN_dateInterval"])(
+    "does not emit %s when the field is omitted",
+    async (id) => {
+      const page = await renderChart();
 
-    expect(errorIds(page)).not.toContain(id);
-  });
+      expect(errorIds(page)).not.toContain(id);
+    },
+  );
 
   it("still emits the AUTO_* notices for the omitted scaling fields", async () => {
     const page = await renderChart();
@@ -88,23 +84,23 @@ describe("bn-chart-time: omitted optional props", () => {
     expect(errorIds(page)).toEqual(expect.arrayContaining(["AUTO_unitScaling", "AUTO_percentageScaling"]));
   });
 
-  it("still emits ERR_axisLabelsMode for a value that is actually invalid", async () => {
+  it("still emits WARN_axisLabelsMode for a value that is actually invalid", async () => {
     const page = await renderChart(`axis-labels-mode="verbose"`);
 
-    expect(errorIds(page)).toContain("ERR_axisLabelsMode");
+    expect(errorIds(page)).toContain("WARN_axisLabelsMode");
   });
 
-  it("still emits ERR_dateInterval for a value that is actually invalid", async () => {
+  it("still emits WARN_dateInterval for a value that is actually invalid", async () => {
     const page = await renderChart(`date-interval="fortnight"`);
 
-    expect(errorIds(page)).toContain("ERR_dateInterval");
+    expect(errorIds(page)).toContain("WARN_dateInterval");
   });
 });
 
 describe("bn-chart-time: interval-span-limit", () => {
   // the unregistered inner element gets number props as attributes
   const innerLimit = (page: SpecPage): number =>
-    Number(page.root!.shadowRoot!.querySelector("ibcs-chart-time")!.getAttribute("intervalSpanLimit"));
+    Number(page.root!.shadowRoot!.querySelector("bn-chart-time-renderer")!.getAttribute("intervalSpanLimit"));
 
   it("passes a positive limit on", async () => {
     const page = await renderChart(`interval-span-limit="12"`);
@@ -158,23 +154,25 @@ describe("bn-chart-time: variance over a scenario that is not drawn", () => {
   });
 });
 
-describe("bn-chart-time: one diagnostic id per boolean prop", () => {
-  it("keeps the item of an invalid prop when another boolean prop is valid", async () => {
-    const page = await renderChart(`show-overlay-avg="maybe" show-overlay-median="true" show-measure-scale="true"`);
+describe("bn-chart-time: boolean attributes", () => {
+  const values = (chart: HTMLBnChartTimeElement) => [
+    chart.lineFullWidth,
+    chart.showCategories,
+    chart.showMeasureScale,
+    chart.showOverlayAvg,
+    chart.showOverlayMedian,
+  ];
 
-    // the three validators shared one id: the last valid one removed the item of the invalid one
-    expect(errorIds(page)).toContain("ERR_showOverlayAvg");
-    expect(errorIds(page)).not.toContain("ERR_showOverlayMedian");
-    expect(errorIds(page)).not.toContain("ERR_showMeasureScale");
+  it("keeps the defaults without attributes", async () => {
+    expect(values((await renderChart()).root as HTMLBnChartTimeElement)).toEqual([true, true, false, true, false]);
   });
 
-  it("reports every invalid boolean prop under its own id", async () => {
-    const page = await renderChart(`show-overlay-avg="a" show-overlay-median="b" show-measure-scale="c"`);
-
-    expect(errorIds(page)).toEqual(
-      expect.arrayContaining(["ERR_showOverlayAvg", "ERR_showOverlayMedian", "ERR_showMeasureScale"]),
+  it("reads the text true and false", async () => {
+    const page = await renderChart(
+      `line-full-width="false" show-categories="false" show-measure-scale="true" show-overlay-avg="false" show-overlay-median="true"`,
     );
-    expect(errorIds(page)).not.toContain("ERR_grouped");
+
+    expect(values(page.root as HTMLBnChartTimeElement)).toEqual([false, false, true, false, true]);
   });
 });
 

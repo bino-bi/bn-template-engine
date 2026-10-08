@@ -2,6 +2,7 @@ import { getStores, clearStoresCache, ScopedStores } from "../context/context-pr
 import { forceUpdate, getElement } from "@stencil/core";
 import { runIfExisits } from "./utils";
 import { findAncestorWithAttr } from "./withInheritedProps";
+import { RENAMED_I18N_KEYS } from "../stores/internationalization";
 
 /**
  * Mixin that provides i18n translation support to a Stencil component.
@@ -10,8 +11,7 @@ import { findAncestorWithAttr } from "./withInheritedProps";
  *
  * **Namespace resolution** (mirrors the ancestor inheritance of `withRuleSet`,
  * but on by default):
- * 1. The host element's own `i18n-namespace` attribute (the deprecated
- *    `namespace` attribute is honored as a fallback).
+ * 1. The component's own `i18nNamespace` prop (attribute `i18n-namespace`).
  * 2. Otherwise the `i18n-namespace` attribute of the nearest ancestor that
  *    carries one - a layout card, layout page, tree, grid, or the
  *    `bn-context` itself - crossing shadow boundaries. The resolved ancestor
@@ -37,6 +37,8 @@ import { findAncestorWithAttr } from "./withInheritedProps";
 const withTranslation = (component: any) => {
   let subscription: () => void;
   let namespace: string | undefined = undefined;
+  /** The `i18nNamespace` prop value that `namespace` was resolved for. */
+  let ownNamespace: string | null | undefined = undefined;
   let stores: ScopedStores;
 
   let ancestorObserver: MutationObserver | null = null;
@@ -49,7 +51,8 @@ const withTranslation = (component: any) => {
       ancestorObserver = null;
     }
 
-    namespace = element.getAttribute("i18n-namespace") ?? element.getAttribute("namespace");
+    ownNamespace = component.i18nNamespace;
+    namespace = ownNamespace;
     if (namespace != null) {
       return;
     }
@@ -65,21 +68,10 @@ const withTranslation = (component: any) => {
     }
   };
 
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === "i18n-namespace" || mutation.attributeName === "namespace") {
-        resolveNamespace();
-        forceUpdate(component);
-      }
-    });
-  });
-
   const connectedCallback = component["connectedCallback"];
   component["connectedCallback"] = () => {
     const element = getElement(component);
     stores = getStores(element);
-
-    observer.observe(element, { attributes: true, attributeFilter: ["i18n-namespace", "namespace"] });
 
     resolveNamespace();
 
@@ -94,7 +86,6 @@ const withTranslation = (component: any) => {
 
   const disconnectedCallback = component["disconnectedCallback"];
   component["disconnectedCallback"] = () => {
-    observer.disconnect();
     if (ancestorObserver) {
       ancestorObserver.disconnect();
       ancestorObserver = null;
@@ -105,8 +96,17 @@ const withTranslation = (component: any) => {
   };
 
   const t = (key: string, data?: object) => {
+    // A change of the prop renders the component, and texts are looked up while it renders:
+    // compared here, a property write counts like an attribute.
+    if (stores !== undefined && component.i18nNamespace !== ownNamespace) {
+      resolveNamespace();
+    }
+
     if (key.startsWith(".")) {
       key = getElement(component).localName + key;
+    }
+    if (Object.prototype.hasOwnProperty.call(RENAMED_I18N_KEYS, key)) {
+      key = RENAMED_I18N_KEYS[key];
     }
 
     const locales = stores.internationalization.state;

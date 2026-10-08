@@ -23,6 +23,7 @@ import {
   XYWarningRecord,
 } from "../../../utils/xy/model/XYChartDataRow";
 import { XYChartStyle } from "../../../utils/xy/model/XYChartStyle";
+import { strokeWidthPx } from "../../../utils/scaling";
 
 /** Prepared configuration handed to the scatter orchestrator by the inner element. */
 export interface ScatterChartConfig {
@@ -562,7 +563,10 @@ export class ScatterChart {
       }
     }
 
-    const stroke = { color: this.styles.axisStyles.fc.stroke, width: this.styles.scaleFactors.gridLineWidth };
+    const stroke = {
+      color: this.styles.axisStyles.fc.stroke,
+      width: strokeWidthPx(this.styles.scaleFactors.gridLineWidth, this.em),
+    };
     let topExit: { x: number; y: number } | null = null;
 
     for (const [index, k] of ks.entries()) {

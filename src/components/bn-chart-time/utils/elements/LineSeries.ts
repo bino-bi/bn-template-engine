@@ -63,6 +63,8 @@ export class LineSeries {
     scenarioLabel: string | null,
     _i18n: Map<string | number, string>,
     collisionManager: LabelCollisionManager | null = null,
+    /** Style slot (ac, pp, fc, pl) of the line. Without it the scenario name decides. */
+    private readonly lineSlot?: string,
   ) {
     this.position = position;
     this.styles = styles;
@@ -119,7 +121,7 @@ export class LineSeries {
   }
 
   private getLineStyle(): LineSeriesStyle {
-    const scenarioType = this.scenarioName?.slice(0, 2)?.toLowerCase() || "ac";
+    const scenarioType = this.lineSlot ?? (this.scenarioName?.slice(0, 2)?.toLowerCase() || "ac");
     return IBCS_LINE_STYLES[scenarioType] || IBCS_LINE_STYLES.ac;
   }
 

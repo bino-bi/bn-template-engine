@@ -24,6 +24,12 @@ export class Page {
   }
 
   /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its values go on top of the default style.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
+  /**
    * Defines the size of the page
    * <br /><br />
    * values:
@@ -46,7 +52,7 @@ export class Page {
 
   @Watch("format")
   validateFormat(newValue: string) {
-    const errId = "ERR_format";
+    const errId = "WARN_format";
     if (!isBlankInput(newValue) && !VALID_FORMATS.includes(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -60,7 +66,7 @@ export class Page {
 
   @Watch("orientation")
   validateOrientation(newValue: string) {
-    const errId = "ERR_orientation";
+    const errId = "WARN_orientation";
     if (!isBlankInput(newValue) && !VALID_ORIENTATIONS.includes(newValue)) {
       this.errors.addOrReplace({
         id: errId,

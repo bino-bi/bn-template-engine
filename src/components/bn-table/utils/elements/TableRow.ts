@@ -89,7 +89,7 @@ export class TableRow {
     if (this.type === TableRowType.HEADER) {
       cssStyle = "headerlabel";
     } else if (this.type === TableRowType.SEPERATORLINE) {
-      cssStyle = scenario;
+      cssStyle = cellStyle ?? scenario;
     }
 
     if (this.type === TableRowType.PARTELEMENT) {

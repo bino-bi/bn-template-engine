@@ -84,3 +84,23 @@ describe("bn-grid.getLayoutState", () => {
     expect(dataCells.map((c) => `${c.rowId}/${c.columnId}`)).toEqual(["0/0", "0/1", "1/0", "1/1"]);
   });
 });
+
+describe("bn-grid: boolean attributes", () => {
+  const values = async (attrs: string) => {
+    const page = await newSpecPage({ components: [Grid], html: `<bn-grid ${attrs}></bn-grid>` });
+    const grid = page.root as HTMLBnGridElement;
+    return [grid.showRowHeaders, grid.showColumnHeaders, grid.showBorders];
+  };
+
+  it("keeps the defaults without attributes", async () => {
+    expect(await values("")).toEqual([true, true, true]);
+  });
+
+  it("reads the text true and false", async () => {
+    expect(await values(`show-row-headers="false" show-column-headers="true" show-borders="false"`)).toEqual([
+      false,
+      true,
+      false,
+    ]);
+  });
+});
