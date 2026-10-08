@@ -56,7 +56,7 @@ describe("bn-scaling-group value parsing", () => {
   });
 
   it.each(["0", "-5", "banana", "auto", ""])(
-    "rejects invalid value %j with ERR_invalid_value and no write",
+    "rejects invalid value %j with WARN_invalid_value and no write",
     async (value) => {
       const page = await newSpecPage({
         components: [ScalingGroup],
@@ -64,7 +64,7 @@ describe("bn-scaling-group value parsing", () => {
       });
 
       expect(groupState()["revenue"]).toBeUndefined();
-      expect(hasError(page.root!, "ERR_invalid_value")).toBe(true);
+      expect(hasError(page.root!, "WARN_invalid_value")).toBe(true);
     },
   );
 });
@@ -77,7 +77,7 @@ describe("bn-scaling-group name validation", () => {
     });
 
     expect(groupState()["auto"]).toBeUndefined();
-    expect(hasError(page.root!, "ERR_reserved_name")).toBe(true);
+    expect(hasError(page.root!, "WARN_reserved_name")).toBe(true);
   });
 
   it.each(["1M", "250"])("rejects name %j that parses as a scaling value", async (name) => {
@@ -87,7 +87,7 @@ describe("bn-scaling-group name validation", () => {
     });
 
     expect(groupState()[name]).toBeUndefined();
-    expect(hasError(page.root!, "ERR_numeric_name")).toBe(true);
+    expect(hasError(page.root!, "WARN_numeric_name")).toBe(true);
   });
 });
 

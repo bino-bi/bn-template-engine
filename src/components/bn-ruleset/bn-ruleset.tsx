@@ -27,10 +27,10 @@ export class Ruleset {
       try {
         const parsedData = JSON.parse(data);
         this.stores.ruleSets.set(this.name, parsedData as RuleSetConfig);
-        this.errors.remove("JSON_PARSE");
+        this.errors.remove("ERR_body");
       } catch (e) {
         this.errors.addOrReplace({
-          id: "JSON_PARSE",
+          id: "ERR_body",
           type: "error",
           message: `bn-ruleset: Failed to parse JSON body - ${(e as Error).message}`,
         });

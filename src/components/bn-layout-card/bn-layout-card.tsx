@@ -351,12 +351,12 @@ export class LayoutCard {
     const problem = this.cardLayout === CUSTOM_TEMPLATE ? templateProblem(this.cardCustomTemplate) : undefined;
     if (problem) {
       this.errors.addOrReplace({
-        id: "ERR_cardCustomTemplate",
+        id: "WARN_cardCustomTemplate",
         type: "warning",
         message: `cardCustomTemplate: ${problem}`,
       });
     } else {
-      this.errors.remove("ERR_cardCustomTemplate");
+      this.errors.remove("WARN_cardCustomTemplate");
     }
   }
 

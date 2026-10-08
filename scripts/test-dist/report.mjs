@@ -92,7 +92,7 @@ test("page formats: an unknown format keeps the default size and warns", async (
     height: getComputedStyle(el).height,
     ids: JSON.parse(el.getAttribute("has-error") ?? "[]").map((item) => item.id),
   }));
-  assert.deepEqual(result, { width: "1024px", height: "768px", ids: ["ERR_format"] });
+  assert.deepEqual(result, { width: "1024px", height: "768px", ids: ["WARN_format"] });
 });
 
 // A page fills the sheet exactly, so the document must not add a margin of its own.
@@ -273,7 +273,7 @@ test("layout: a custom template that is no template is one cell and a warning, n
     slots: el.shadowRoot.querySelectorAll("slot").length,
     items: JSON.parse(el.getAttribute("has-error") ?? "[]").map((item) => [item.id, item.type]),
   }));
-  assert.deepEqual(result, { slots: 1, items: [["ERR_pageCustomTemplate", "warning"]] });
+  assert.deepEqual(result, { slots: 1, items: [["WARN_pageCustomTemplate", "warning"]] });
 });
 
 test("orientation: the sheet of a portrait document with default pages is portrait", async () => {

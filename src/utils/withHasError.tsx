@@ -14,6 +14,14 @@ export interface ErrorItem {
 }
 
 /**
+ * What a component reports. The id prefix fixes the type: `ERR_` is an error,
+ * `WARN_` and `AUTO_` are warnings. A mismatch does not compile.
+ */
+export type ErrorReport =
+  | { id: `ERR_${string}`; type: "error"; message: string; description?: string }
+  | { id: `WARN_${string}` | `AUTO_${string}`; type: "warning"; message: string; description?: string };
+
+/**
  * API returned by {@link withHasError} for managing a component's error/warning list.
  * Mutations automatically sync to the host element's `has-error` attribute as JSON.
  */
@@ -21,8 +29,24 @@ export interface ErrorDispatcher {
   clear: () => void;
   replace: (errors: ErrorItem[]) => void;
   add: (error: ErrorItem) => string;
-  addOrReplace: (error: ErrorItem) => string;
+  addOrReplace: (error: ErrorReport) => string;
   remove: (id: string) => void;
+}
+
+/**
+ * Reports content that does not fit: `ERR_overflow` when the author fixed the
+ * size, `WARN_overflow` otherwise. The id carries the type, so the other id is
+ * cleared. `message` null clears both.
+ */
+export function reportOverflow(errors: ErrorDispatcher, message: string | null, fixedSize = false): void {
+  errors.remove(message !== null && fixedSize ? "WARN_overflow" : "ERR_overflow");
+  if (message === null) {
+    errors.remove("WARN_overflow");
+  } else if (fixedSize) {
+    errors.addOrReplace({ id: "ERR_overflow", type: "error", message });
+  } else {
+    errors.addOrReplace({ id: "WARN_overflow", type: "warning", message });
+  }
 }
 
 /**
@@ -67,8 +91,7 @@ const withHasError = (component: any) => {
       modify((current) => [...current, error]);
       return error.id;
     },
-    addOrReplace: (error: ErrorItem) => {
-      if (error.id === undefined) throw "missing";
+    addOrReplace: (error: ErrorReport) => {
       modify((current) => [...current.filter((item) => item.id !== error.id), error]);
       return error.id;
     },

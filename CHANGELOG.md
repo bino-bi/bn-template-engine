@@ -131,7 +131,7 @@ The chart drew at most `interval-span-limit` (28) periods and dropped the rest, 
 
 #### `bn-chart-bullet`: a group with `+` and `-` rows shows the net value
 
-A level value that holds `"+"` and `"-"` rows was summed as if every row were `"+"`: revenue 100 and cost 30 showed `130`. It now shows the net value `70`, for actual and target, and the rows are sorted and limited by this value. The text of `WARN_bullet-mixed-operation` says so. A level value with only `"-"` rows keeps its positive value.
+A level value that holds `"+"` and `"-"` rows was summed as if every row were `"+"`: revenue 100 and cost 30 showed `130`. It now shows the net value `70`, for actual and target, and the rows are sorted and limited by this value. The text of `WARN_bullet_mixed_operation` says so. A level value with only `"-"` rows keeps its positive value.
 
 #### Readiness: a component that threw makes the page "not rendered"
 
@@ -184,7 +184,7 @@ A page whose orientation differs from the `render-orientation` of `bn-context` i
 
 The layout `1-over-3` got four column tracks instead of three, so its content took three quarters of the width. It has three columns now.
 
-A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `ERR_pageCustomTemplate` or `ERR_cardCustomTemplate`. The same item reports rows of different length, a pair of quotes without a cell and a row that cannot be read (a cell name may hold letters, digits, `_` and `.`). Rows can be written in double or in single quotes, the latter fit into a double-quoted attribute: `page-custom-template="'a a' 'b c'"`.
+A `custom-template` without a quoted row threw in `render()` on the page. It is drawn as a single cell now and reported as `WARN_pageCustomTemplate` or `WARN_cardCustomTemplate`. The same item reports rows of different length, a pair of quotes without a cell and a row that cannot be read (a cell name may hold letters, digits, `_` and `.`). Rows can be written in double or in single quotes, the latter fit into a double-quoted attribute: `page-custom-template="'a a' 'b c'"`.
 
 #### `bn-layout-card`: an inherited keyword stays on the host
 
@@ -245,6 +245,22 @@ These props were strings that had to be `"true"` or `"false"`. They are booleans
 
 A time chart always shows one value per period, in date order. These four attributes were validated and gave `ERR_*` and `AUTO_*` items, but had no effect on the chart. They are removed together with their items (`ERR_level`, `ERR_order`, `ERR_orderDirection`, `ERR_limit`, `AUTO_level`, `AUTO_order`, `WARN_inherited_order`, `WARN_inherited_orderDirection` on this element). Markup that still has the attributes renders as before.
 
+#### `has-error`: the id prefix tells the type, many ids are renamed
+
+Most attribute checks reported a warning under an id that began with `ERR_`, and three ids had no prefix at all. Now the prefix and the `type` of an item always agree: `ERR_` is an error, `WARN_` and `AUTO_` are warnings. The severity of an item did not change, only its id. The other ids in this file use the new names.
+
+- **`ERR_<name>` is `WARN_<name>`** for every item of type `warning`: `aspect`, `attributes`, `axisLabelsMode`, `barColumns`, `barColumnWidth`, `cardCustomTemplate`, `categoryWidth`, `chartMode`, `compareWith`, `dataFormat`, `dataFormatDigitsDecimal`, `dataFormatDigitsPercent`, `dateEnd`, `dateFormat`, `dateInterval`, `dateLink`, `dateStart`, `direction`, `edgeStyle`, `empty_name`, `format`, `interval`, `intervalConflict`, `intervalNoDate`, `intervalSetname`, `invalid_value`, `level`, `levelSpacing`, `limit`, `maxBars`, `measures`, `measureScale`, `measureType`, `nodeSpacing`, `normalize`, `numeric_name`, `order`, `orderDirection`, `orientation`, `pageCustomTemplate`, `partof`, `percentageScaling`, `reserved_name`, `scale`, `scenarios`, `seriesLevel`, `stack`, `syncSpaceLeft`, `thereof`, `type`, `unitScaling`, `variances`.
+- `ERR_categorythereof` is `WARN_columnthereof`, after the attribute it checks.
+- `WARN_overflow` with type `error` (content does not fit although the author fixed the size) is `ERR_overflow`. The warning keeps the id `WARN_overflow`.
+- `JSON_PARSE` on `bn-component-style` and `bn-ruleset` is `ERR_body`, as on the data elements.
+- `no_value` on `bn-text` is `WARN_value`.
+- `WARN_use_dataset` is `WARN_datasets`.
+- The data warnings of scatter, bubble and bullet use underscores only: `WARN_xy-duplicate-point` is `WARN_xy_duplicate_point`, and the same for the other `WARN_xy-*`, `WARN_bubble-*` and `WARN_bullet-*` ids.
+
+The ids that stay as they were: all `AUTO_*` ids, all ids of type `error` (`ERR_sql`, `ERR_filter`, `ERR_body`, `ERR_src`, `ERR_name`, `ERR_keys`, `ERR_edges`, `ERR_rowHeaders`, `ERR_columnHeaders`, `ERR_xy_*`, `ERR_bullet_*`) and the other `WARN_*` ids.
+
+[doc/integration-contract.md](doc/integration-contract.md) lists every id and states what stays stable in 1.x: the readiness values on `window`, the console line, `getLayoutState()` and the `has-error` items.
+
 ### Deprecated
 
 These still work in all 1.x versions and are removed in 2.0:
@@ -291,10 +307,10 @@ These still work in all 1.x versions and are removed in 2.0:
 - `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`: axis ticks had at most two decimals, taken from the text of a float, so ticks repeated (`0,02 | 0,03 | 0,03 | 0,04`) or got needless decimals (`0,60` for a step of 0,2). Decimals now come from the tick step. For a domain narrower than the float resolution of its values the chart did not finish rendering. It gets one tick now.
 - `bn-chart-scatter`: iso lines were labelled without decimals (`1` for 0,5, `3` for 2,5). The labels have the decimals of the finest value, and the space next to the frame fits them.
 - `bn-chart-bubble`: value labels always had one decimal (`0,0` for 0,032). They show three significant digits of the largest value: `32,0`, `0,0320`, `1.234.567`.
-- `bn-chart-scatter`, `bn-chart-bubble`: two points with the same name in different series counted as one, the second was dropped with `WARN_xy-duplicate-point`. The series is part of the point identity now.
+- `bn-chart-scatter`, `bn-chart-bubble`: two points with the same name in different series counted as one, the second was dropped with `WARN_xy_duplicate_point`. The series is part of the point identity now.
 - `bn-chart-bubble`: the legend swatch of a forecast series was a white circle, the same as plan. It has the hatch pattern of the bubbles now.
 - `bn-chart-scatter`, `bn-chart-bubble`: a chart higher than its layout cell was cut off without a diagnostic, only the width was checked. `WARN_overflow` is now also set when a container that hides its overflow cuts the chart off at the bottom. It names the measured sizes and works with automatic scaling too. A page that just grows or scrolls gives no warning.
-- `bn-chart-bullet`: a negative actual value has no bar. With `normalize="target"` this was reported as `WARN_bullet-target-invalid` (a text about the target), with `normalize="none"` not at all. Both modes set `WARN_bullet-actual-negative` now.
+- `bn-chart-bullet`: a negative actual value has no bar. With `normalize="target"` this was reported as `WARN_bullet_target_invalid` (a text about the target), with `normalize="none"` not at all. Both modes set `WARN_bullet_actual_negative` now.
 - `bn-tree`: edges with a cycle below the root crashed the component. They are reported under `ERR_edges`, as are nodes that are not connected to the root.
 - `bn-tree`: the operators between three or more siblings were drawn on one spot, and for `rtl` and `btt` they sat off the edges. Each operator now sits between its two siblings on the line that joins the children. All edges of a parent bend at the same place. In `ttb` and `btt` a parent sits centred over its children (before: over the first child). Parents that share a child keep the column of their first child.
 - `bn-tree`: a tree that was invalid when it loaded drew no edges after `edges` was corrected, and a change of `direction`, `level-spacing` or `node-spacing` kept the old edge positions. The tree measures after every render now.

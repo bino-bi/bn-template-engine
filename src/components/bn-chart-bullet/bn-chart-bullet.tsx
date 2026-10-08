@@ -117,7 +117,7 @@ export class ChartBullet {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -192,7 +192,7 @@ export class ChartBullet {
   @Prop({ attribute: "normalize" }) normalizeMode: string = "target";
   @Watch("normalizeMode")
   validateNormalize(newValue: string) {
-    this.validateEnum("normalize", "ERR_normalize", newValue, ["target", "none"], "target");
+    this.validateEnum("normalize", "WARN_normalize", newValue, ["target", "none"], "target");
   }
 
   /**
@@ -203,7 +203,7 @@ export class ChartBullet {
   @Prop() variances: string = "auto";
   @Watch("variances")
   validateVariances(newValue: string) {
-    this.validateEnum("variances", "ERR_variances", newValue, ["auto", "none"], "auto");
+    this.validateEnum("variances", "WARN_variances", newValue, ["auto", "none"], "auto");
   }
 
   /**
@@ -213,7 +213,7 @@ export class ChartBullet {
   @Prop() level: string = "auto";
   @Watch("level")
   validateLevel(newValue: string) {
-    this.validateEnum("level", "ERR_level", newValue, ["auto", "rowgroup", "category", "subcategory"], "auto");
+    this.validateEnum("level", "WARN_level", newValue, ["auto", "rowgroup", "category", "subcategory"], "auto");
   }
 
   /**
@@ -224,7 +224,7 @@ export class ChartBullet {
   @Prop() order: string = "";
   @Watch("order")
   validateOrder(newValue: string) {
-    const errId = "ERR_order";
+    const errId = "WARN_order";
     const invalid = validateOrderList(newValue).filter((entry) => entry !== "");
     if (invalid.length === 0) {
       this.errors.remove(errId);
@@ -243,7 +243,7 @@ export class ChartBullet {
   @Prop() orderDirection: string = "";
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
     if (isBlankInput(newValue) || isValidDirection(newValue)) {
       this.errors.remove(errId);
     } else {
@@ -262,7 +262,7 @@ export class ChartBullet {
   @Prop() limit: number = 0;
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId = "ERR_limit";
+    const errId = "WARN_limit";
     if (isValidInteger(newValue) && Number(newValue) >= 0) {
       this.errors.remove(errId);
     } else {
@@ -307,7 +307,7 @@ export class ChartBullet {
   @Prop() scale?: string;
   @Watch("scale")
   validateScale(newValue: string) {
-    const errId = "ERR_scale";
+    const errId = "WARN_scale";
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -454,7 +454,7 @@ export class ChartBullet {
   }
 
   /** Sets or clears a blocking error (type `error`) with a stable id. */
-  private setBlockingError(id: string, message: string | null): void {
+  private setBlockingError(id: `ERR_${string}`, message: string | null): void {
     if (message === null) {
       this.errors.remove(id);
       this.activeErrors.delete(id);
@@ -470,9 +470,9 @@ export class ChartBullet {
 
   /** Shared validator for the measure-carrying object props (actual/target). */
   private validateMeasureSpec(prop: "actual" | "target", raw: string): void {
-    const jsonId = `ERR_bullet_json_${prop}`;
-    const measureId = `ERR_bullet_measure_${prop}`;
-    const fieldsId = `WARN_bullet_fields_${prop}`;
+    const jsonId = `ERR_bullet_json_${prop}` as const;
+    const measureId = `ERR_bullet_measure_${prop}` as const;
+    const fieldsId = `WARN_bullet_fields_${prop}` as const;
 
     const { data, parseError } = parseSpec(raw, "measure");
 
@@ -504,7 +504,7 @@ export class ChartBullet {
     this.reportSpecIssues(fieldsId, prop, toBulletMeasureConfig(data));
   }
 
-  private validateEnum(prop: string, errId: string, raw: string, valid: string[], fallback: string): void {
+  private validateEnum(prop: string, errId: `WARN_${string}`, raw: string, valid: string[], fallback: string): void {
     if (isBlankInput(raw) || valid.includes(raw.trim().toLowerCase())) {
       this.errors.remove(errId);
     } else {
@@ -517,7 +517,7 @@ export class ChartBullet {
   }
 
   /** Unknown sub-fields → warning, never error (forward compatibility). */
-  private reportSpecIssues<T>(errId: string, prop: string, result: SpecResult<T> | null): void {
+  private reportSpecIssues<T>(errId: `WARN_${string}`, prop: string, result: SpecResult<T> | null): void {
     const issues: string[] = [];
     if (result !== null && result.invalidFields.length > 0) {
       issues.push(`invalid: ${result.invalidFields.join(", ")}`);
@@ -591,7 +591,7 @@ export class ChartBullet {
 
       if (detected === undefined) {
         this.errors.remove("AUTO_target");
-        // Distinct id from the orchestrator-synced WARN_bullet-target-none:
+        // Distinct id from the orchestrator-synced WARN_bullet_target_none:
         // the inner element's sync walk would otherwise clear this warning.
         if (this.datasetMeta !== null) {
           this.errors.addOrReplace({

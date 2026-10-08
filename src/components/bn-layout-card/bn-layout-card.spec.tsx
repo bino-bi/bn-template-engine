@@ -244,12 +244,12 @@ describe("bn-layout-card grid template", () => {
     const page = await mount(`card-layout="custom-template" card-custom-template="a b"`);
 
     expect(grid(page.root).style.gridTemplateAreas).toBe('"a"');
-    expect(ids(page.root)).toEqual(["ERR_cardCustomTemplate"]);
+    expect(ids(page.root)).toEqual(["WARN_cardCustomTemplate"]);
   });
 
   it("warns about rows of different length", async () => {
     const page = await mount(`card-layout="custom-template" card-custom-template='"a b" "c"'`);
 
-    expect(ids(page.root)).toEqual(["ERR_cardCustomTemplate"]);
+    expect(ids(page.root)).toEqual(["WARN_cardCustomTemplate"]);
   });
 });

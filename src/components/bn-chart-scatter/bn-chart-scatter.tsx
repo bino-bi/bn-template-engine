@@ -116,7 +116,7 @@ export class ChartScatter {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -170,7 +170,7 @@ export class ChartScatter {
   @Prop() level: string = "auto";
   @Watch("level")
   validateLevel(newValue: string) {
-    const errId = "ERR_level";
+    const errId = "WARN_level";
     const valid = ["auto", "category", "subcategory"];
     if (isBlankInput(newValue) || valid.includes(newValue.trim().toLowerCase())) {
       this.errors.remove(errId);
@@ -190,7 +190,7 @@ export class ChartScatter {
   @Prop() seriesLevel: string = "auto";
   @Watch("seriesLevel")
   validateSeriesLevel(newValue: string) {
-    const errId = "ERR_seriesLevel";
+    const errId = "WARN_seriesLevel";
     const valid = ["auto", "rowgroup", "category", "none"];
     if (isBlankInput(newValue) || valid.includes(newValue.trim().toLowerCase())) {
       this.errors.remove(errId);
@@ -240,7 +240,7 @@ export class ChartScatter {
   @Prop() aspect: string = "16:9";
   @Watch("aspect")
   validateAspect(newValue: string) {
-    const errId = "ERR_aspect";
+    const errId = "WARN_aspect";
     if (isBlankInput(newValue) || this.parseAspect(newValue) !== null) {
       this.errors.remove(errId);
     } else {
@@ -259,7 +259,7 @@ export class ChartScatter {
   @Prop() limit: number = 0;
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId = "ERR_limit";
+    const errId = "WARN_limit";
     if (isValidInteger(newValue) && Number(newValue) >= 0) {
       this.errors.remove(errId);
     } else {
@@ -278,7 +278,7 @@ export class ChartScatter {
   @Prop() scale?: string;
   @Watch("scale")
   validateScale(newValue: string) {
-    const errId = "ERR_scale";
+    const errId = "WARN_scale";
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -439,7 +439,7 @@ export class ChartScatter {
   }
 
   /** Sets or clears a blocking error (type `error`) with a stable id. */
-  private setBlockingError(id: string, message: string | null): void {
+  private setBlockingError(id: `ERR_${string}`, message: string | null): void {
     if (message === null) {
       this.errors.remove(id);
       this.activeErrors.delete(id);
@@ -455,9 +455,9 @@ export class ChartScatter {
 
   /** Shared validator for the x/y axis props. */
   protected validateAxisSpec(prop: "x" | "y" | "size" | "share", raw: string): void {
-    const jsonId = `ERR_xy_json_${prop}`;
-    const measureId = `ERR_xy_measure_${prop}`;
-    const fieldsId = `WARN_xy_fields_${prop}`;
+    const jsonId = `ERR_xy_json_${prop}` as const;
+    const measureId = `ERR_xy_measure_${prop}` as const;
+    const fieldsId = `WARN_xy_fields_${prop}` as const;
     const required = prop === "x" || prop === "y" || prop === "size";
 
     const { data, parseError } = parseSpec(raw, "measure");
@@ -495,8 +495,8 @@ export class ChartScatter {
     shorthandKey: string | null,
     convert: (data: Record<string, unknown>) => SpecResult<T>,
   ): void {
-    const jsonId = `ERR_xy_json_${prop}`;
-    const fieldsId = `WARN_xy_fields_${prop}`;
+    const jsonId = `ERR_xy_json_${prop}` as const;
+    const fieldsId = `WARN_xy_fields_${prop}` as const;
 
     const { data, parseError } = parseSpec(raw, shorthandKey);
 
@@ -516,7 +516,7 @@ export class ChartScatter {
   }
 
   /** Unknown sub-fields → warning, never error (forward compatibility). */
-  private reportSpecIssues<T>(errId: string, prop: string, result: SpecResult<T> | null): void {
+  private reportSpecIssues<T>(errId: `WARN_${string}`, prop: string, result: SpecResult<T> | null): void {
     const issues: string[] = [];
     if (result !== null && result.invalidFields.length > 0) {
       issues.push(`invalid: ${result.invalidFields.join(", ")}`);

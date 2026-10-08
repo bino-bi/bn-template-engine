@@ -90,7 +90,7 @@ describe("bn-table scaling resolution", () => {
     expect(inner.unitScaling).toBe(0);
     expect(inner.percentageScaling).toBe(0);
     expect(hostErrors(page)).not.toContain("AUTO_unitScaling");
-    expect(hostErrors(page)).not.toContain("ERR_unitScaling");
+    expect(hostErrors(page)).not.toContain("WARN_unitScaling");
   });
 
   it("resolves SI-suffixed values as units per em", async () => {
@@ -114,7 +114,7 @@ describe("bn-table scaling resolution", () => {
 
     expect(inner.unitScaling).toBe(0);
     expect(hostErrors(page)).toContain("AUTO_unitScaling");
-    expect(hostErrors(page)).toContain("ERR_unitScaling");
+    expect(hostErrors(page)).toContain("WARN_unitScaling");
   });
 
   it("treats an unknown group name like an invalid value (auto + warnings)", async () => {
@@ -122,7 +122,7 @@ describe("bn-table scaling resolution", () => {
 
     expect(inner.percentageScaling).toBe(0);
     expect(hostErrors(page)).toContain("AUTO_percentageScaling");
-    expect(hostErrors(page)).toContain("ERR_percentageScaling");
+    expect(hostErrors(page)).toContain("WARN_percentageScaling");
   });
 });
 

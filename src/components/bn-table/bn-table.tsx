@@ -32,7 +32,7 @@ import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { Style } from "../../stores/componentStyles";
 
-import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
@@ -151,14 +151,14 @@ export class Table {
    *
    * Invalid values (negative numbers, non-numeric strings that are not
    * `"none"` or `"auto"`) fall back to the default behaviour (auto + warning)
-   * and emit an `ERR_scale` warning.
+   * and emit an `WARN_scale` warning.
    *
    * **Only the width is fitted.** A table that renders taller than its
    * constrained parent is clipped by the layout cell - bottom rows and the
    * grand total simply disappear - so every render reports the measured
-   * overflow as a `WARN_overflow` item in `has-error`: an `error` when the
-   * size is pinned by `scale` (`"none"` or a factor), a `warning` in auto
-   * mode. The same item reports a width overflow, which only a fixed `scale`
+   * overflow in `has-error`: as the error `ERR_overflow` when the size is
+   * pinned by `scale` (`"none"` or a factor), as the warning `WARN_overflow`
+   * in auto mode. The same item reports a width overflow, which only a fixed `scale`
    * can produce. Setting `scale="auto"` does not fix a height overflow: give
    * the component more space, reduce rows (`limit`), or set a smaller fixed
    * `scale`.
@@ -181,18 +181,18 @@ export class Table {
   @Watch("scale")
   validateScaling(newValue: string) {
     if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
       this.errors.addOrReplace({
-        id: "ERR_scale",
+        id: "WARN_scale",
         type: "warning",
         message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
       });
     } else {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
     }
   }
 
@@ -263,7 +263,7 @@ export class Table {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -293,7 +293,7 @@ export class Table {
 
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = "ERR_scenarios";
+    const errId = "WARN_scenarios";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -333,7 +333,7 @@ export class Table {
 
   @Watch("variances")
   validateVariances(newValue: string) {
-    const errId: string = "ERR_variances";
+    const errId = "WARN_variances";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -370,7 +370,7 @@ export class Table {
 
   @Watch("barColumns")
   validateBarColumns(newValue: string) {
-    const errId: string = "ERR_barColumns";
+    const errId = "WARN_barColumns";
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -400,7 +400,7 @@ export class Table {
 
   @Watch("barColumnWidth")
   validateBarColumnWidth(newValue: string) {
-    const errId: string = "ERR_barColumnWidth";
+    const errId = "WARN_barColumnWidth";
 
     if (!isTableBarColumnWidth(newValue)) {
       this.errors.addOrReplace({
@@ -434,7 +434,7 @@ export class Table {
 
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = "ERR_unitScaling";
+    const errId = "WARN_unitScaling";
 
     if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
@@ -467,7 +467,7 @@ export class Table {
 
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = "ERR_percentageScaling";
+    const errId = "WARN_percentageScaling";
 
     if (resolveScalingValue(newValue, this.pixelPerUnitGroupMap).kind === "invalid") {
       this.errors.addOrReplace({
@@ -496,7 +496,7 @@ export class Table {
 
   @Watch("dataFormat")
   validateDataFormat(newValue: string) {
-    const errId: string = "ERR_dataFormat";
+    const errId = "WARN_dataFormat";
 
     if (!isValidDataFormat(newValue)) {
       this.errors.addOrReplace({
@@ -547,7 +547,7 @@ export class Table {
 
   @Watch("type")
   validateType(newValue: string | boolean) {
-    const errId: string = "ERR_type";
+    const errId = "WARN_type";
 
     if (!isValidTableType(newValue as string)) {
       this.errors.addOrReplace({
@@ -571,7 +571,7 @@ export class Table {
 
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId: string = "ERR_limit";
+    const errId = "WARN_limit";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -604,7 +604,7 @@ export class Table {
 
   @Watch("thereof")
   validateThereOf(newValue: string) {
-    const errId: string = "ERR_thereof";
+    const errId = "WARN_thereof";
     const invalidElements: string[] = validateThereOfJsonStr(newValue);
 
     if (invalidElements.length > 0) {
@@ -636,7 +636,7 @@ export class Table {
 
   @Watch("partof")
   validatePartOf(newValue: string) {
-    const errId: string = "ERR_partof";
+    const errId = "WARN_partof";
     const invalidElements: string[] = validatePartOfJsonStr(newValue);
 
     if (invalidElements.length > 0) {
@@ -662,7 +662,7 @@ export class Table {
 
   @Watch("order")
   validateOrderList(newValue: string) {
-    const errId: string = "ERR_order";
+    const errId = "WARN_order";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -689,7 +689,7 @@ export class Table {
 
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -718,7 +718,7 @@ export class Table {
 
   @Watch("measureType")
   validateMeasureType(newValue: string) {
-    const errId: string = "ERR_measureType";
+    const errId = "WARN_measureType";
 
     if (!isValidMeasureType(newValue)) {
       this.errors.addOrReplace({
@@ -769,7 +769,7 @@ export class Table {
 
   @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = "ERR_measureScale";
+    const errId = "WARN_measureScale";
 
     if (!isValidMeasureScale(newValue)) {
       this.errors.addOrReplace({
@@ -789,7 +789,7 @@ export class Table {
 
   @Watch("dataFormatDigitsDecimal")
   validateDataFormatDigitsDecimal(newValue: number) {
-    const errId: string = "ERR_dataFormatDigitsDecimal";
+    const errId = "WARN_dataFormatDigitsDecimal";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -809,7 +809,7 @@ export class Table {
 
   @Watch("dataFormatDigitsPercent")
   validateDateFormatDigitsPercent(newValue: number) {
-    const errId: string = "ERR_dataFormatDigitsPercent";
+    const errId = "WARN_dataFormatDigitsPercent";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -837,7 +837,7 @@ export class Table {
 
   @Watch("categoryWidth")
   validateCategoryWidth(newValue: string) {
-    const errId: string = "ERR_categoryWidth";
+    const errId = "WARN_categoryWidth";
 
     if (!isTableCategoryWidth(newValue)) {
       this.errors.addOrReplace({
@@ -866,7 +866,7 @@ export class Table {
   @Watch("columnthereof")
   validateColumnThereOf(newValue: string | null) {
     const invalidElements: string[] = validateColumnThereOfJsonStr(newValue);
-    const errId: string = "ERR_categorythereof";
+    const errId = "WARN_columnthereof";
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({
         id: errId,
@@ -895,7 +895,7 @@ export class Table {
 
   @Watch("interval")
   validateInterval(newValue: string) {
-    const errId: string = "ERR_interval";
+    const errId = "WARN_interval";
     const value = newValue?.trim().toLowerCase();
 
     if (isBlankInput(newValue) || value === INTERVAL_NONE || value === INTERVAL_SETNAME || isValidDateFormat(value)) {
@@ -923,7 +923,7 @@ export class Table {
 
   @Watch("tableAttributes")
   validateTableAttributes(newValue: string) {
-    const errId: string = "ERR_attributes";
+    const errId = "WARN_attributes";
     const invalidElements: string[] = validateAttributesJsonStr(newValue);
 
     if (invalidElements.length > 0) {
@@ -1067,7 +1067,7 @@ export class Table {
   }
 
   /**
-   * Reports a WARN_overflow item when the rendered table exceeds its
+   * Reports an overflow item when the rendered table exceeds its
    * container. The table only auto-fits its WIDTH, so nothing prevents it
    * from growing taller than the layout cell, which clips the bottom rows
    * (grand total included) without a trace - this item is the only signal.
@@ -1075,7 +1075,6 @@ export class Table {
    * In auto mode it is a warning.
    */
   private checkOverflow(): void {
-    const errId = "WARN_overflow";
     const parent = getParentDimensions(this.element);
     const contentWidth = this.element.scrollWidth;
     const contentHeight = this.element.scrollHeight;
@@ -1083,7 +1082,7 @@ export class Table {
     const heightOver = parent.height > 0 && contentHeight > parent.height + 1;
 
     if (!widthOver && !heightOver) {
-      this.errors.remove(errId);
+      reportOverflow(this.errors, null);
       return;
     }
 
@@ -1094,13 +1093,12 @@ export class Table {
     if (widthOver) dims.push(`width (${Math.round(contentWidth)}px > ${Math.round(parent.width)}px)`);
     if (heightOver) dims.push(`height (${Math.round(contentHeight)}px > ${Math.round(parent.height)}px)`);
 
-    this.errors.addOrReplace({
-      id: errId,
-      type: fixedScale ? "error" : "warning",
-      message:
-        `Table exceeds available ${dims.join(" and ")}. ` +
+    reportOverflow(
+      this.errors,
+      `Table exceeds available ${dims.join(" and ")}. ` +
         "Give the component more space, reduce rows (e.g. limit), or set a smaller scale.",
-    });
+      fixedScale,
+    );
   }
 
   private prepareDataFormat(): DataFormat {
@@ -1312,9 +1310,9 @@ export class Table {
   }
 
   private prepareInterval(): string {
-    const conflictErrId = "ERR_intervalConflict";
-    const noDateErrId = "ERR_intervalNoDate";
-    const setnameErrId = "ERR_intervalSetname";
+    const conflictErrId = "WARN_intervalConflict";
+    const noDateErrId = "WARN_intervalNoDate";
+    const setnameErrId = "WARN_intervalSetname";
 
     const interval = isBlankInput(this.interval) ? INTERVAL_NONE : this.interval.trim().toLowerCase();
     const isValid = interval === INTERVAL_NONE || interval === INTERVAL_SETNAME || isValidDateFormat(interval);

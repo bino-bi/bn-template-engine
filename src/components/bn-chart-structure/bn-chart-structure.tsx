@@ -21,7 +21,7 @@ import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
-import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
@@ -128,7 +128,7 @@ export class Chart {
 
   @Watch("filter")
   validateFilter(newValue: string) {
-    const errId: string = "ERR_filter";
+    const errId = "ERR_filter";
     if (hasInlineJs(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -157,7 +157,7 @@ export class Chart {
   @Prop() scenarios!: string;
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = "ERR_scenarios";
+    const errId = "WARN_scenarios";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -192,7 +192,7 @@ export class Chart {
   @Prop() variances!: string;
   @Watch("variances")
   validateVariances(newValue: string) {
-    const errIdVar: string = "ERR_variances";
+    const errIdVar = "WARN_variances";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errIdVar);
       return;
@@ -222,7 +222,7 @@ export class Chart {
    * | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
    *
    * When using a custom value that causes the chart to exceed its container,
-   * a `WARN_overflow` error is emitted.
+   * an `ERR_overflow` error is emitted.
    *
    * @example unit-scaling="auto"
    * @example unit-scaling="1M"
@@ -232,7 +232,7 @@ export class Chart {
 
   @Watch("unitScaling")
   validateUnitScaling(newValue: string | number) {
-    const errId: string = "ERR_unitScaling";
+    const errId = "WARN_unitScaling";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -267,7 +267,7 @@ export class Chart {
   @Prop() percentageScaling!: string | number;
   @Watch("percentageScaling")
   validatePercentageScaling(newValue: string | number) {
-    const errId: string = "ERR_percentageScaling";
+    const errId = "WARN_percentageScaling";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -309,7 +309,7 @@ export class Chart {
 
   @Watch("level")
   validateLevel(newValue: string) {
-    const errId: string = "ERR_level";
+    const errId = "WARN_level";
 
     if (isBlankInput(newValue)) {
       this.errors.remove(errId);
@@ -347,7 +347,7 @@ export class Chart {
 
   @Watch("order")
   validateOrderList(newValue: string) {
-    const errId: string = "ERR_order";
+    const errId = "WARN_order";
     if (isInheritedValue(newValue)) {
       this.errors.remove(errId);
       return;
@@ -376,7 +376,7 @@ export class Chart {
   @Prop() orderDirection!: string;
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
     if (isInheritedValue(newValue) || isBlankInput(newValue)) {
       this.errors.remove(errId);
       return;
@@ -403,7 +403,7 @@ export class Chart {
 
   @Watch("limit")
   validateLimit(newValue: number) {
-    const errId: string = "ERR_limit";
+    const errId = "WARN_limit";
 
     if (!isValidInteger(newValue)) {
       this.errors.addOrReplace({
@@ -447,7 +447,7 @@ export class Chart {
 
   @Watch("measureScale")
   validateMeasureScale(newValue: string) {
-    const errId: string = "ERR_measureScale";
+    const errId = "WARN_measureScale";
 
     if (!isValidMeasureScale(newValue)) {
       this.errors.addOrReplace({
@@ -509,7 +509,7 @@ export class Chart {
 
   @Watch("stack")
   validateStack(newValue: string) {
-    const errId: string = "ERR_stack";
+    const errId = "WARN_stack";
     const errors = validateStackConfig(newValue);
 
     if (errors.length > 0) {
@@ -538,18 +538,18 @@ export class Chart {
   @Watch("scale")
   validateScaling(newValue: string) {
     if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
       this.errors.addOrReplace({
-        id: "ERR_scale",
+        id: "WARN_scale",
         type: "warning",
         message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
       });
     } else {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
     }
   }
 
@@ -745,14 +745,13 @@ export class Chart {
   }
 
   /**
-   * Reports a WARN_overflow item when the rendered chart exceeds its
+   * Reports an overflow item when the rendered chart exceeds its
    * container. Overflow attributable to a fixed scaling attribute is an
    * error (width: unit-scaling / percentage-scaling, height: scale);
    * overflow in fully-auto mode is a warning - auto-fit prevents it by
    * construction, so it only fires when the content cannot fit at any scale.
    */
   private checkOverflow(): void {
-    const errId = "WARN_overflow";
     const parent = getParentDimensions(this.element);
     const contentWidth = this.measureContentWidth();
     const contentHeight = this.element.scrollHeight;
@@ -760,7 +759,7 @@ export class Chart {
     const heightOver = parent.height > 0 && contentHeight > parent.height + 1;
 
     if (!widthOver && !heightOver) {
-      this.errors.remove(errId);
+      reportOverflow(this.errors, null);
       return;
     }
 
@@ -780,15 +779,14 @@ export class Chart {
     if (widthOver) dims.push(`width (${Math.round(contentWidth)}px > ${Math.round(parent.width)}px)`);
     if (heightOver) dims.push(`height (${Math.round(contentHeight)}px > ${Math.round(parent.height)}px)`);
 
-    this.errors.addOrReplace({
-      id: errId,
-      type: fixedAttrs.length > 0 ? "error" : "warning",
-      message:
-        `Chart exceeds available ${dims.join(" and ")}. ` +
+    reportOverflow(
+      this.errors,
+      `Chart exceeds available ${dims.join(" and ")}. ` +
         (fixedAttrs.length > 0
           ? `Adjust ${fixedAttrs.join(" / ")} or set to "auto".`
           : "Content does not fit even at minimum auto scaling; enlarge the container."),
-    });
+      fixedAttrs.length > 0,
+    );
   }
 
   prepareDimension(): ParentDimensions {

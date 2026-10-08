@@ -112,7 +112,7 @@ describe("bn-chart-bubble validation matrix", () => {
 
   it("warns on unknown compareWith values and ignores them", async () => {
     const page = await renderBubble(`x="ac1" y="ac2" size="ac3" compare-with="xx"`);
-    const warning = readErrors(page).find((e) => e.id === "ERR_compareWith");
+    const warning = readErrors(page).find((e) => e.id === "WARN_compareWith");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);

@@ -18,7 +18,7 @@ const partition = <T>(predicate: (item: T) => boolean, arr: T[]): [T[], T[]] => 
   return [matches, nonMatches];
 };
 
-const WARN_DATASOURCE_ID = "WARN_use_dataset";
+const WARN_DATASOURCE_ID = "WARN_datasets";
 
 /**
  * Emits a warning via the component's ErrorDispatcher when datasource refs

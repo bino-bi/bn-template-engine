@@ -146,7 +146,7 @@ export class ChartTree {
 
   @Watch("direction")
   validateDirection(newValue: string) {
-    const errId = "ERR_direction";
+    const errId = "WARN_direction";
     const validValues = ["ltr", "rtl", "ttb", "btt"];
 
     if (!validValues.includes(newValue)) {
@@ -169,7 +169,7 @@ export class ChartTree {
 
   @Watch("levelSpacing")
   validateLevelSpacing(newValue: number) {
-    const errId = "ERR_levelSpacing";
+    const errId = "WARN_levelSpacing";
 
     if (!isValidNumber(newValue) || newValue < 0) {
       this.errors.addOrReplace({
@@ -191,7 +191,7 @@ export class ChartTree {
 
   @Watch("nodeSpacing")
   validateNodeSpacing(newValue: number) {
-    const errId = "ERR_nodeSpacing";
+    const errId = "WARN_nodeSpacing";
 
     if (!isValidNumber(newValue) || newValue < 0) {
       this.errors.addOrReplace({
@@ -225,7 +225,7 @@ export class ChartTree {
 
   @Watch("edgeStyle")
   validateEdgeStyle(newValue: string) {
-    const errId = "ERR_edgeStyle";
+    const errId = "WARN_edgeStyle";
     const validValues = ["straight", "orthogonal", "curved"];
 
     if (!validValues.includes(newValue)) {

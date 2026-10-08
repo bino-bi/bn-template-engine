@@ -154,6 +154,7 @@ The `bn-*` elements listed below are the public API: their tags, attributes, pro
 - [Theming](doc/theming.md) - Colors, fonts, chart styles, style layers
 - [Internationalization](doc/internationalization.md) - Locale setup, translations, scenario labels
 - [Layout State](doc/layout-state.md) - `getLayoutState()`: machine-readable geometry, metadata and diagnostics of a rendered report
+- [Integration Contract](doc/integration-contract.md) - What a tool can rely on in 1.x: readiness signals, layout state, `has-error` ids
 - [Installation](doc/installation.md) - npm, CDN, framework integration
 
 ## Browser Support

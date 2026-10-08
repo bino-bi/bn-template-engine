@@ -169,7 +169,7 @@ export class BnChartScatterRenderer {
 
     const present = new Map(warnings.map((warning) => [warning.code, warning.data]));
     for (const code of SCATTER_DATA_WARNING_CODES) {
-      const id = `WARN_${code}`;
+      const id = `WARN_${code.replace(/-/g, "_")}` as const;
       if (present.has(code)) {
         const message = this.translator !== undefined ? this.translator(`.${code}`, present.get(code)) : code;
         this.errors.addOrReplace({ id, type: "warning", message });

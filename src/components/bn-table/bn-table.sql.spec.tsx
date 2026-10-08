@@ -248,9 +248,9 @@ describe("bn-table: data values in queries", () => {
   });
 
   it.each([
-    ["thereof", "ERR_thereof"],
-    ["partof", "ERR_partof"],
-    ["columnthereof", "ERR_categorythereof"],
+    ["thereof", "WARN_thereof"],
+    ["partof", "WARN_partof"],
+    ["columnthereof", "WARN_columnthereof"],
   ])("renders with %s that is no JSON, and keeps the warning of the validator", async (prop, id) => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
     // a throw in render() would reject here

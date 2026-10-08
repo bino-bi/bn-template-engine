@@ -69,7 +69,7 @@ const renderChart = (attrs = ""): Promise<SpecPage> =>
   });
 
 describe("bn-chart-time: omitted optional props", () => {
-  it.each(["ERR_unitScaling", "ERR_percentageScaling", "ERR_axisLabelsMode", "ERR_dateInterval"])(
+  it.each(["WARN_unitScaling", "WARN_percentageScaling", "WARN_axisLabelsMode", "WARN_dateInterval"])(
     "does not emit %s when the field is omitted",
     async (id) => {
       const page = await renderChart();
@@ -84,16 +84,16 @@ describe("bn-chart-time: omitted optional props", () => {
     expect(errorIds(page)).toEqual(expect.arrayContaining(["AUTO_unitScaling", "AUTO_percentageScaling"]));
   });
 
-  it("still emits ERR_axisLabelsMode for a value that is actually invalid", async () => {
+  it("still emits WARN_axisLabelsMode for a value that is actually invalid", async () => {
     const page = await renderChart(`axis-labels-mode="verbose"`);
 
-    expect(errorIds(page)).toContain("ERR_axisLabelsMode");
+    expect(errorIds(page)).toContain("WARN_axisLabelsMode");
   });
 
-  it("still emits ERR_dateInterval for a value that is actually invalid", async () => {
+  it("still emits WARN_dateInterval for a value that is actually invalid", async () => {
     const page = await renderChart(`date-interval="fortnight"`);
 
-    expect(errorIds(page)).toContain("ERR_dateInterval");
+    expect(errorIds(page)).toContain("WARN_dateInterval");
   });
 });
 

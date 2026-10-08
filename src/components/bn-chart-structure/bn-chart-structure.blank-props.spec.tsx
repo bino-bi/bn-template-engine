@@ -69,7 +69,7 @@ const renderChart = (attrs = ""): Promise<SpecPage> =>
   });
 
 describe("bn-chart-structure: omitted optional props", () => {
-  it.each(["ERR_level", "ERR_orderDirection", "ERR_unitScaling", "ERR_percentageScaling"])(
+  it.each(["WARN_level", "WARN_orderDirection", "WARN_unitScaling", "WARN_percentageScaling"])(
     "does not emit %s when the field is omitted",
     async (id) => {
       const page = await renderChart();
@@ -84,16 +84,16 @@ describe("bn-chart-structure: omitted optional props", () => {
     expect(errorIds(page)).toEqual(expect.arrayContaining(["AUTO_unitScaling", "AUTO_percentageScaling"]));
   });
 
-  it("still emits ERR_orderDirection for a value that is actually invalid", async () => {
+  it("still emits WARN_orderDirection for a value that is actually invalid", async () => {
     const page = await renderChart(`order-direction="sideways"`);
 
-    expect(errorIds(page)).toContain("ERR_orderDirection");
+    expect(errorIds(page)).toContain("WARN_orderDirection");
   });
 
-  it("still emits ERR_level for a value that is actually invalid", async () => {
+  it("still emits WARN_level for a value that is actually invalid", async () => {
     const page = await renderChart(`level="banana"`);
 
-    expect(errorIds(page)).toContain("ERR_level");
+    expect(errorIds(page)).toContain("WARN_level");
   });
 });
 

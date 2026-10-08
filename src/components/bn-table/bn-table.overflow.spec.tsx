@@ -1,5 +1,5 @@
 // A bn-table whose rendered height exceeds its constrained parent must publish
-// WARN_overflow, as the charts do (bn-chart-structure.checkOverflow). The
+// WARN_overflow or ERR_overflow, as the charts do (bn-chart-structure.checkOverflow). The
 // table only fits and measures width, so without this check the host stays
 // silent and the layout-page slot wrapper (overflow: hidden) clips the
 // bottom rows.
@@ -94,7 +94,7 @@ const hostErrors = (page: SpecPage): string => page.root!.getAttribute("has-erro
 const overflowItem = (page: SpecPage): ErrorItem | undefined => {
   const raw = hostErrors(page);
   if (raw === "") return undefined;
-  return (JSON.parse(raw) as ErrorItem[]).find((item) => item.id === "WARN_overflow");
+  return (JSON.parse(raw) as ErrorItem[]).find((item) => item.id === "WARN_overflow" || item.id === "ERR_overflow");
 };
 
 describe("bn-table height overflow", () => {
@@ -103,14 +103,14 @@ describe("bn-table height overflow", () => {
     expect(hostErrors(page)).toContain("WARN_overflow");
   });
 
-  it("publishes WARN_overflow with scale=none", async () => {
+  it("publishes ERR_overflow with scale=none", async () => {
     const page = await renderTable(`scale="none"`);
-    expect(hostErrors(page)).toContain("WARN_overflow");
+    expect(hostErrors(page)).toContain("ERR_overflow");
   });
 
-  it("publishes WARN_overflow with a fixed scale factor", async () => {
+  it("publishes ERR_overflow with a fixed scale factor", async () => {
     const page = await renderTable(`scale="0.7"`);
-    expect(hostErrors(page)).toContain("WARN_overflow");
+    expect(hostErrors(page)).toContain("ERR_overflow");
   });
 
   it("reports the measured magnitude", async () => {
@@ -120,7 +120,18 @@ describe("bn-table height overflow", () => {
 
   it("stays silent when the table fits", async () => {
     const page = await renderTable("", 200);
-    expect(hostErrors(page)).not.toContain("WARN_overflow");
+    expect(overflowItem(page)).toBeUndefined();
+  });
+
+  it("removes the entry of a fixed scale once the table fits again", async () => {
+    const page = await renderTable(`scale="none"`);
+    expect(hostErrors(page)).toContain("ERR_overflow");
+
+    stubSize(page, 200);
+    forceUpdate(page.root!);
+    await page.waitForChanges();
+
+    expect(overflowItem(page)).toBeUndefined();
   });
 
   it("removes the entry once the table fits again", async () => {
@@ -142,12 +153,12 @@ describe("bn-table height overflow", () => {
 
     it("is an error with scale=none", async () => {
       const page = await renderTable(`scale="none"`);
-      expect(overflowItem(page)?.type).toBe("error");
+      expect(overflowItem(page)).toMatchObject({ id: "ERR_overflow", type: "error" });
     });
 
     it("is an error with a fixed scale factor", async () => {
       const page = await renderTable(`scale="0.7"`);
-      expect(overflowItem(page)?.type).toBe("error");
+      expect(overflowItem(page)).toMatchObject({ id: "ERR_overflow", type: "error" });
     });
   });
 });

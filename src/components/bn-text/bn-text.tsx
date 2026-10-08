@@ -113,7 +113,7 @@ export class Text {
    * | `"0.5"`, `"1.2"`, … | Apply `baseFontSize × factor`; emit `WARN_overflow` if still overflows |
    *
    * Invalid values (negative, non-numeric, non-keyword) fall back to the
-   * default (auto + warning) and emit an `ERR_scale` warning.
+   * default (auto + warning) and emit an `WARN_scale` warning.
    */
   @Prop() scale?: string;
 
@@ -127,27 +127,27 @@ export class Text {
   validateValue(newValue: string) {
     const isBlank = typeof newValue !== "string" || newValue === "";
     if (isBlank) {
-      this.errors.addOrReplace({ id: "no_value", type: "warning", message: "Empty value" });
+      this.errors.addOrReplace({ id: "WARN_value", type: "warning", message: "Empty value" });
     } else {
-      this.errors.remove("no_value");
+      this.errors.remove("WARN_value");
     }
   }
 
   @Watch("scale")
   validateScaling(newValue: string) {
     if (newValue == null || newValue === "" || newValue === "none" || newValue === "auto") {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
       return;
     }
     const num = Number(newValue);
     if (isNaN(num) || num <= 0) {
       this.errors.addOrReplace({
-        id: "ERR_scale",
+        id: "WARN_scale",
         type: "warning",
         message: `Invalid scale value: "${newValue}". Use "none", "auto", or a positive number.`,
       });
     } else {
-      this.errors.remove("ERR_scale");
+      this.errors.remove("WARN_scale");
     }
   }
 

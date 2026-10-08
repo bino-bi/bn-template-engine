@@ -112,7 +112,7 @@ describe("bn-chart-time unit-scaling resolution", () => {
 
     expect(inner.pixelPerUnit).toBe(0);
     expect(hostErrors(page)).not.toContain("AUTO_unitScaling");
-    expect(hostErrors(page)).not.toContain("ERR_unitScaling");
+    expect(hostErrors(page)).not.toContain("WARN_unitScaling");
   });
 
   it("falls back to auto with AUTO_* and ERR_* warnings on invalid values", async () => {
@@ -120,7 +120,7 @@ describe("bn-chart-time unit-scaling resolution", () => {
 
     expect(inner.pixelPerUnit).toBe(0);
     expect(hostErrors(page)).toContain("AUTO_unitScaling");
-    expect(hostErrors(page)).toContain("ERR_unitScaling");
+    expect(hostErrors(page)).toContain("WARN_unitScaling");
   });
 
   it("doubles pixelPerUnit when scale doubles the font size", async () => {

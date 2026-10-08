@@ -386,12 +386,12 @@ export class LayoutPage {
     const problem = this.pageLayout === CUSTOM_TEMPLATE ? templateProblem(this.pageCustomTemplate) : undefined;
     if (problem) {
       this.errors.addOrReplace({
-        id: "ERR_pageCustomTemplate",
+        id: "WARN_pageCustomTemplate",
         type: "warning",
         message: `pageCustomTemplate: ${problem}`,
       });
     } else {
-      this.errors.remove("ERR_pageCustomTemplate");
+      this.errors.remove("WARN_pageCustomTemplate");
     }
   }
 

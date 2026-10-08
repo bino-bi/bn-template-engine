@@ -35,7 +35,7 @@ Page container that defines the output dimensions and orientation. Place [`<bn-t
 | `tabloid` | 11 x 17 in | portrait |
 | `ledger` | 17 x 11 in | landscape |
 
-Without `format` the page is `xga`. An unknown format is reported as `ERR_format` and also draws the `xga` size.
+Without `format` the page is `xga`. An unknown format is reported as `WARN_format` and also draws the `xga` size.
 
 ### Orientation
 

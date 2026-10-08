@@ -148,9 +148,9 @@ describe("bn-chart-scatter validation matrix", () => {
   it("warns on invalid enum props and falls back to defaults", async () => {
     const page = await renderScatter(`x="ac1" y="ac2" level="bogus" aspect="wide" limit="-3"`);
     const ids = readErrors(page).map((e) => e.id);
-    expect(ids).toContain("ERR_level");
-    expect(ids).toContain("ERR_aspect");
-    expect(ids).toContain("ERR_limit");
+    expect(ids).toContain("WARN_level");
+    expect(ids).toContain("WARN_aspect");
+    expect(ids).toContain("WARN_limit");
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);
   });
 
@@ -174,7 +174,7 @@ describe("bn-chart-scatter data-warning transport", () => {
     };
 
     const page = await renderScatter(`datasets="dupes" x="ac1" y="ac2" level="category"`);
-    const warning = readErrors(page).find((e) => e.id === "WARN_xy-duplicate-point");
+    const warning = readErrors(page).find((e) => e.id === "WARN_xy_duplicate_point");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
     // The en bundle message with {{count}}/{{names}} interpolated.

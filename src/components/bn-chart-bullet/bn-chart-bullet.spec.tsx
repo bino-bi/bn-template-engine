@@ -122,11 +122,11 @@ describe("bn-chart-bullet validation matrix", () => {
   it("warns on invalid enum props and falls back to defaults", async () => {
     const page = await renderBullet(`normalize="bogus" variances="x" level="bogus" order-direction="up" limit="-1"`);
     const ids = readErrors(page).map((e) => e.id);
-    expect(ids).toContain("ERR_normalize");
-    expect(ids).toContain("ERR_variances");
-    expect(ids).toContain("ERR_level");
-    expect(ids).toContain("ERR_orderDirection");
-    expect(ids).toContain("ERR_limit");
+    expect(ids).toContain("WARN_normalize");
+    expect(ids).toContain("WARN_variances");
+    expect(ids).toContain("WARN_level");
+    expect(ids).toContain("WARN_orderDirection");
+    expect(ids).toContain("WARN_limit");
     expect(readErrors(page).filter((e) => e.type === "error")).toEqual([]);
     expect(page.root!.shadowRoot!.querySelector("bn-chart-bullet-renderer")).not.toBeNull();
   });
@@ -189,7 +189,7 @@ describe("bn-chart-bullet data-warning transport", () => {
     };
 
     const page = await renderBullet(`datasets="kpis" actual="ac1" target="pl1"`);
-    const warning = readErrors(page).find((e) => e.id === "WARN_bullet-target-missing");
+    const warning = readErrors(page).find((e) => e.id === "WARN_bullet_target_missing");
     expect(warning).toBeDefined();
     expect(warning!.type).toBe("warning");
     // The en bundle message with {{count}} interpolated.

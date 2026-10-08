@@ -56,6 +56,8 @@ Read them like this: the flag is `true`, the page is ready. The failures list is
 
 A `has-error` item on a component is something else: it reports a problem with the input (a wrong attribute, a failing query), and the page still counts as rendered.
 
+These values and the `has-error` ids are stable in 1.x, see the [Integration Contract](../../../doc/integration-contract.md).
+
 <!-- Auto Generated Below -->
 
 

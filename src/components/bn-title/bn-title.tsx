@@ -94,7 +94,7 @@ export class Title {
 
   @Watch("scenarios")
   validateScenario(newValue: string) {
-    const errId: string = "ERR_scenarios";
+    const errId = "WARN_scenarios";
 
     const invalidScenarios: string[] = validateScenarioList(newValue);
 
@@ -130,7 +130,7 @@ export class Title {
 
   @Watch("variances")
   validateVariances(newValue: string) {
-    const errId: string = "ERR_variances";
+    const errId = "WARN_variances";
     const invalidVariances: string[] = validateVariancesList(newValue);
 
     if (invalidVariances.length > 0) {
@@ -156,7 +156,7 @@ export class Title {
   @Watch("order")
   validateOrder(newValue: string) {
     const invalidElements: string[] = validateOrderList(newValue);
-    const errId: string = "ERR_order";
+    const errId = "WARN_order";
 
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({
@@ -177,7 +177,7 @@ export class Title {
 
   @Watch("orderDirection")
   validateOrderDirection(newValue: string) {
-    const errId: string = "ERR_orderDirection";
+    const errId = "WARN_orderDirection";
 
     if (!isValidDirection(newValue)) {
       this.errors.addOrReplace({
@@ -201,7 +201,7 @@ export class Title {
 
   @Watch("measures")
   validateMeasures(newValue: string) {
-    const errId: string = "ERR_measures";
+    const errId = "WARN_measures";
     const invalidMeasures: string[] = validateMeasureList(newValue);
 
     if (invalidMeasures.length > 0) {
@@ -226,7 +226,7 @@ export class Title {
 
   @Watch("dateStart")
   validateDateStart(newValue: string) {
-    const errId: string = "ERR_dateStart";
+    const errId = "WARN_dateStart";
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
         id: errId,
@@ -246,7 +246,7 @@ export class Title {
 
   @Watch("dateEnd")
   validateDateEnd(newValue: string) {
-    const errId: string = "ERR_dateEnd";
+    const errId = "WARN_dateEnd";
 
     if (!isValidDate(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
@@ -278,7 +278,7 @@ export class Title {
 
   @Watch("dateFormat")
   validateDateFormat(newValue: string) {
-    const errId: string = "ERR_dateFormat";
+    const errId = "WARN_dateFormat";
 
     if (!isValidDateFormat(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
@@ -314,7 +314,7 @@ export class Title {
 
   @Watch("dateLink")
   validateDateLink(newValue: string) {
-    const errId: string = "ERR_dateLink";
+    const errId = "WARN_dateLink";
     if (!isValidDateLink(newValue) && !isBlankInput(newValue)) {
       this.errors.addOrReplace({
         id: errId,

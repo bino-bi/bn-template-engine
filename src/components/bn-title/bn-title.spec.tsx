@@ -58,7 +58,7 @@ describe("bn-title measures", () => {
 
     const inner = page.root.shadowRoot.querySelector("bn-title-renderer") as HTMLElement & { measures: unknown };
     expect(inner.measures).toEqual([{ name: "Revenue", unit: "mEUR" }]);
-    expect(ids(page.root)).not.toContain("ERR_measures");
+    expect(ids(page.root)).not.toContain("WARN_measures");
   });
 
   it("renders with measures that are no JSON, and keeps the warning of the validator", async () => {
@@ -72,6 +72,6 @@ describe("bn-title measures", () => {
 
     const inner = page.root.shadowRoot.querySelector("bn-title-renderer") as HTMLElement & { measures: unknown };
     expect(inner.measures).toEqual([]);
-    expect(ids(page.root)).toContain("ERR_measures");
+    expect(ids(page.root)).toContain("WARN_measures");
   });
 });

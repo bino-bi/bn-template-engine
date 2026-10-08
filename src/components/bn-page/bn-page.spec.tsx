@@ -71,14 +71,14 @@ describe("bn-page validation", () => {
   it("warns about an unknown format that is there from the start", async () => {
     const page = await render(`format="full_hd"`);
 
-    expect(ids(page.root)).toEqual(["ERR_format"]);
+    expect(ids(page.root)).toEqual(["WARN_format"]);
     expect(page.root.style.width).toBe("");
   });
 
   it("warns about an unknown orientation that is there from the start", async () => {
     const page = await render(`format="a4" orientation="sideways"`);
 
-    expect(ids(page.root)).toEqual(["ERR_orientation"]);
+    expect(ids(page.root)).toEqual(["WARN_orientation"]);
   });
 
   it("removes the warning when the format is corrected", async () => {

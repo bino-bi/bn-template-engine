@@ -108,7 +108,7 @@ Exported TypeScript interfaces (from the package root): `LayoutState`,
 | `em` | `{ fontSizePx, appliedScaleFactor }`. |
 | `regions` | Named sub-areas: `canvas:base` / `canvas:<variance>` (charts), `canvas` (xy charts), `header` / `body` (table), `grid` (tree/grid). |
 | `metadata` | Counts and semantics - see the matrix below. |
-| `diagnostics` | The component's current `has-error` items (warnings/errors, incl. `AUTO_*` auto-fit notices and `WARN_overflow`). |
+| `diagnostics` | The component's current `has-error` items (warnings/errors, incl. `AUTO_*` auto-fit notices and `WARN_overflow` / `ERR_overflow`). |
 | `scaling?` | Resolved value scaling - see below. |
 | `elements?` | Per-element geometry, only with `detail: "full"`. |
 | `table?` | Row/column model, only with `detail: "full"` on `bn-table`. |
