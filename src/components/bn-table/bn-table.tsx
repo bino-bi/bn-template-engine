@@ -28,6 +28,7 @@ import { globalLabelKeys } from "../../stores/internationalization";
 import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
+import { ruleSetLabels } from "../../utils/ibcsRuleSet";
 import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { Style } from "../../stores/componentStyles";
@@ -85,7 +86,7 @@ export class Table {
   private readonly t: (key: string, data?: object) => string;
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
-  private readonly ruleSetConfig: () => RuleSetConfig;
+  private readonly ruleSetConfig: (layers?: "all" | "user") => RuleSetConfig;
   private readonly resolveInherited: InheritedResolver;
   private layoutObserver: LayoutObserverHandle | null = null;
   /** Last parent width seen, used to suppress ResizeObserver noise. */
@@ -235,8 +236,8 @@ export class Table {
 
   /**
    * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario
-   * ordering. Supports `"inherited-closest"` / `"inherited-page"` to take
-   * over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+   * ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to
+   * take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
    */
   @Prop({ reflect: true }) ruleset?: string;
 
@@ -1166,7 +1167,12 @@ export class Table {
     const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
     const i18nMapGlobal = new Map(i18nMetaLabelsGlobal.map((key) => [key, this.t("global.".concat(key))]));
 
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    // a name from a <bn-ruleset> wins over the i18n label of the scenario
+    return new Map([
+      ...i18nMapGlobal.entries(),
+      ...i18nMapLocal.entries(),
+      ...ruleSetLabels(this.ruleSetConfig("user")),
+    ]);
   }
 
   private prepareDataFormatDigits(): DataFormatDigits {

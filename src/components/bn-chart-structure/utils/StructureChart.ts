@@ -21,7 +21,7 @@ import { AggregationLevel, StackBy, StackMode } from "../../../utils/constants";
 import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/autoFit";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { layoutStack, stackExtent, stackLabelSide, StackLayout } from "../../../utils/stackLayout";
-import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { IBCSRuleSet, styleSlot, stylesBySlot } from "../../../utils/ibcsRuleSet";
 import { relativeVariance } from "../../../utils/relativeVariance";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { Order, OrderColumn } from "../../../utils/model/Order";
@@ -470,13 +470,26 @@ export class StructureChart {
     return Formatter.translateScenarioLabel("in", this.i18n) + " " + this.measureScale.prefix + this.measureUnit;
   }
 
+  /**
+   * The styles with each scenario on the bar style slot its colorIndex selects.
+   * `this.styles` stays the theme: the hatch pattern is built from its `fc` slot.
+   */
+  private scenarioStyles(): StructureChartStyle {
+    const barStyles = stylesBySlot(this.styles.barStyles, this.ruleSet);
+    if (barStyles === this.styles.barStyles) {
+      return this.styles;
+    }
+    return Object.assign(Object.create(Object.getPrototypeOf(this.styles)), this.styles, { barStyles });
+  }
+
   private setAxisScenario(scenarios: string[]): Scenario {
     let result: Scenario = Scenario.AC1;
 
     if (scenarios != null && scenarios.length > 0) {
       const axis: VarianceScenario = new VarianceScenario(scenarios.toString());
       if (axis.isValid) {
-        result = <Scenario>axis.delta;
+        // the axis is drawn in the look of the slot the reference scenario has
+        result = <Scenario>(styleSlot(this.ruleSet.getScenarioColorIndex(axis.delta)) + axis.delta.slice(2));
       }
     }
 
@@ -1045,7 +1058,13 @@ export class StructureChart {
   private drawScenarios(dataModel: StructureChartDataModelEntry[], svgContainer: Svg) {
     const barsGroup: G = svgContainer.group().id("Scenarios");
 
-    const scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(
+      this.position,
+      barsGroup,
+      this.scenarioStyles(),
+      dataModel.length,
+      this.i18n,
+    );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
@@ -1059,7 +1078,13 @@ export class StructureChart {
   private drawVarianceScenario(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): G {
     const barsGroup: G = svgContainer.group().id("Scenarios");
 
-    const scenarioFactory = new ScenarioFactory(this.position, barsGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(
+      this.position,
+      barsGroup,
+      this.scenarioStyles(),
+      dataModel.length,
+      this.i18n,
+    );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {

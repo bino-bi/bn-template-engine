@@ -100,6 +100,35 @@ describe("IBCS Table ruleset column ordering", () => {
     expect(cellTexts(berlinRow).slice(0, 4)).toEqual(["Berlin", "40.0", "45.0", "50.0"]);
   });
 
+  // the last header row draws the line under each scenario column, by class
+  const underlineClasses = (page: SpecPage): string[] =>
+    Array.from(page.root.shadowRoot.querySelectorAll("thead tr:last-child th")).map(
+      (cell) => cell.className.trim().split(" ")[0],
+    );
+
+  it("underlines each scenario column in its own look by default", async () => {
+    const classes = underlineClasses(await renderTable());
+
+    expect(classes).toEqual(expect.arrayContaining(["pp1", "pl1", "ac1"]));
+  });
+
+  it("underlines a scenario column in the look of the slot its colorIndex selects", async () => {
+    const classes = underlineClasses(await renderTable({ scenarios: { pl: { colorIndex: 30 } } }));
+
+    expect(classes).toEqual(expect.arrayContaining(["pp1", "fc1", "ac1"]));
+    expect(classes).not.toContain("pl1");
+  });
+
+  it("draws the in-cell bars of a scenario in the style of its slot", async () => {
+    const plain = (await renderTable()).rootInstance.prepareBarChartStyles().scenarios;
+    const moved = (await renderTable({ scenarios: { pl: { colorIndex: 30 } } })).rootInstance.prepareBarChartStyles()
+      .scenarios;
+
+    expect(plain.pl.fillpattern).toBe("outlined");
+    expect(moved.pl).toEqual(plain.fc);
+    expect(moved.ac).toEqual(plain.ac);
+  });
+
   it("reorders scenario columns when the ruleSetConfig overrides a sortIndex", async () => {
     const page = await renderTable({ scenarios: { ac: { sortIndex: 0 } } });
 

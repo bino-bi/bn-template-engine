@@ -25,6 +25,19 @@ Types are re-exported from the package root (`LayoutState`, `ComponentLayoutStat
 
 The components already read these attributes, but did not declare them. They were missing from the generated docs and from the TypeScript types, and setting the JS property did nothing. They are props now: `datasets` on the table, the charts and `bn-text`, `selectedStyle` on every styled component, `i18nNamespace` on every component with translated text, `renderOrientation` on `bn-context`. Each one reflects to its attribute, so markup does not change.
 
+#### `bn-ruleset`: `name` and `colorIndex` work in the table, the time chart, the structure chart and the title
+
+A rule set could already reorder scenarios everywhere, but its `name` and `colorIndex` only had an effect in the scatter, bubble and bullet chart. They now work in `bn-table`, `bn-chart-time`, `bn-chart-structure` and `bn-title` too.
+
+- `colorIndex` selects the style slot a scenario is drawn in: `10` the `ac` look (solid), `20` the `pp` look (light), `30` the `fc` look (hatched), `50` the `pl` look (outlined). The theme still decides how each slot looks. It applies to bars, markers, lines, the variance axis, the in-cell bars of a table and the line under a table column header. Any other value counts as `10`, now also for the target of a bullet chart.
+- `name` labels the scenario: `"pl": { "name": "Budget" }` gives "Budget" for `pl1` and "Budget2" for `pl2`. It replaces the translated label `global.pl1`, in every language. Only a name that a `<bn-ruleset>` sets counts, the built-in names do not label anything.
+
+Without a `<bn-ruleset>` nothing changes. A report that already sets `name` or `colorIndex` in a rule set now sees them in these four components.
+
+```html
+<bn-ruleset>{ "scenarios": { "pl": { "name": "Budget", "colorIndex": 30 } } }</bn-ruleset>
+```
+
 ### ⚠ BREAKING CHANGES
 
 #### `unit-scaling` / `percentage-scaling`: new em-based semantics

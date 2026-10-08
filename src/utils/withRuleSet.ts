@@ -25,7 +25,8 @@ import { merge } from "@corex/deepmerge";
  * path is observed for changes.
  *
  * @param component - The Stencil component instance
- * @returns A function returning the merged {@link RuleSetConfig}
+ * @returns A function returning the merged {@link RuleSetConfig}. With `"user"` it returns the
+ *   `_default` and the selected layer only.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withRuleSet = (component: any) => {
@@ -34,16 +35,15 @@ const withRuleSet = (component: any) => {
 
   let selectedRuleset: string;
   let config: RuleSetConfig;
+  let userConfig: RuleSetConfig;
 
   let ancestorObserver: MutationObserver | null = null;
 
   const updateConfig = () => {
     const state = stores.ruleSets.state;
-    config = merge([
-      state["_system"] || ({} as RuleSetConfig),
-      state["_default"] || ({} as RuleSetConfig),
-      state[selectedRuleset] || ({} as RuleSetConfig),
-    ]);
+    // what a <bn-ruleset> set, without the built-in layer: only these names are labels
+    userConfig = merge([state["_default"] || ({} as RuleSetConfig), state[selectedRuleset] || ({} as RuleSetConfig)]);
+    config = merge([state["_system"] || ({} as RuleSetConfig), userConfig]);
   };
 
   const resolveRulesetName = () => {
@@ -117,7 +117,7 @@ const withRuleSet = (component: any) => {
     runIfExisits(disconnectedCallback, component);
   };
 
-  const ruleSetConfig = (): RuleSetConfig => config;
+  const ruleSetConfig = (layers: "all" | "user" = "all"): RuleSetConfig => (layers === "user" ? userConfig : config);
 
   return ruleSetConfig;
 };

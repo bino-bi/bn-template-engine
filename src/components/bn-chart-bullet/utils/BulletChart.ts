@@ -4,10 +4,9 @@ import { AlaSQLDatabase } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
 import { AggregationLevel } from "../../../utils/constants";
 import { Formatter } from "../../../utils/formatter";
-import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { IBCSRuleSet, styleSlot } from "../../../utils/ibcsRuleSet";
 import { Order, OrderColumn } from "../../../utils/model/Order";
 import { NumericScale } from "../../../utils/xy/NumericScale";
-import { scenarioFamily } from "../../../utils/xy/VarianceMeasure";
 import { XYWarningRecord } from "../../../utils/xy/model/XYChartDataRow";
 import { BulletChartStyle } from "./model/BulletChartStyle";
 import { strokeWidthPx } from "../../../utils/scaling";
@@ -334,8 +333,7 @@ export class BulletChart {
    */
   private targetFamily(): string {
     const slot = this.config.target?.measure ?? "pl1";
-    const byColorIndex: Record<number, string> = { 10: "ac", 20: "pp", 30: "fc", 50: "pl" };
-    return byColorIndex[this.ruleSet.getScenarioColorIndex(slot)] ?? scenarioFamily(slot);
+    return styleSlot(this.ruleSet.getScenarioColorIndex(slot));
   }
 
   /** Measure label shown above the first row, e.g. "AC". */

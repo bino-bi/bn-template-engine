@@ -33,7 +33,7 @@ import { computePercentBarExtent, computeUnitBarExtent } from "../../../utils/au
 import { drawAttached } from "../../../utils/measurementHost";
 import { DataFormatDigits } from "../../../components";
 import { Formatter } from "../../../utils";
-import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { IBCSRuleSet, styleSlot, stylesBySlot } from "../../../utils/ibcsRuleSet";
 import { relativeVariance } from "../../../utils/relativeVariance";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
@@ -784,13 +784,26 @@ export class TimeChart {
     return width;
   }
 
+  /**
+   * The styles with each scenario on the bar style slot its colorIndex selects.
+   * `this.styles` stays the theme: the hatch pattern is built from its `fc` slot.
+   */
+  private scenarioStyles(): TimeChartStyle {
+    const barStyles = stylesBySlot(this.styles.barStyles, this.ruleSet);
+    if (barStyles === this.styles.barStyles) {
+      return this.styles;
+    }
+    return Object.assign(Object.create(Object.getPrototypeOf(this.styles)), this.styles, { barStyles });
+  }
+
   private setAxisScenario(scenarios: string[]): Scenario {
     let result: Scenario = Scenario.AC1;
 
     if (scenarios != null && scenarios.length > 0) {
       const axis: VarianceScenario = new VarianceScenario(scenarios.toString());
       if (axis.isValid) {
-        result = <Scenario>axis.delta;
+        // the axis is drawn in the look of the slot the reference scenario has
+        result = <Scenario>(styleSlot(this.ruleSet.getScenarioColorIndex(axis.delta)) + axis.delta.slice(2));
       }
     }
 
@@ -1217,7 +1230,13 @@ export class TimeChart {
   private drawScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
     const columnGroup: G = svgContainer.group().id("Scenarios");
 
-    const scenarioFactory = new ScenarioFactory(this.position, columnGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(
+      this.position,
+      columnGroup,
+      this.scenarioStyles(),
+      dataModel.length,
+      this.i18n,
+    );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     let hasValidPrim: boolean = false;
@@ -1254,7 +1273,13 @@ export class TimeChart {
     // Create collision manager for label overlap detection across all line series
     const collisionManager = new LabelCollisionManager();
 
-    const scenarioFactory = new ScenarioFactory(this.position, lineGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(
+      this.position,
+      lineGroup,
+      this.scenarioStyles(),
+      dataModel.length,
+      this.i18n,
+    );
     scenarioFactory.setCollisionManager(collisionManager);
 
     // Collect data points for each scenario
@@ -1292,7 +1317,11 @@ export class TimeChart {
     // Create LineSeries in z-order (SVG group creation order = render order)
     const seriesList: { series: LineSeries; scenarioType: string }[] = [];
     for (const scenario of scenarios) {
-      const series = scenarioFactory.createLineSeries(scenario.points, scenario.scenarioName);
+      const series = scenarioFactory.createLineSeries(
+        scenario.points,
+        scenario.scenarioName,
+        styleSlot(this.ruleSet.getScenarioColorIndex(scenario.scenarioName)),
+      );
       seriesList.push({ series, scenarioType: scenario.scenarioType });
     }
 
@@ -1457,7 +1486,13 @@ export class TimeChart {
   private drawVarianceScenario(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): G {
     const columnGroup: G = svgContainer.group().id("Scenarios");
 
-    const scenarioFactory = new ScenarioFactory(this.position, columnGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(
+      this.position,
+      columnGroup,
+      this.scenarioStyles(),
+      dataModel.length,
+      this.i18n,
+    );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
@@ -1760,7 +1795,9 @@ export class TimeChart {
       const upperPoints = toAreaPoints(layerIdx, "end");
       const lowerPoints = toAreaPoints(layerIdx, "start");
 
-      const scenarioType = isScenarioStack ? layerScenarios[layerIdx] : null;
+      const scenarioType = isScenarioStack
+        ? styleSlot(this.ruleSet.getScenarioColorIndex(layerScenarios[layerIdx]))
+        : null;
 
       const areaFill = new AreaFill(areaGroup, upperPoints, lowerPoints, scenarioType, layerIdx, isScenarioStack);
       areaFill.draw();
@@ -1782,7 +1819,13 @@ export class TimeChart {
 
     const overlayGroup: G = svgContainer.group().id("Overlay");
 
-    const scenarioFactory = new ScenarioFactory(this.position, overlayGroup, this.styles, dataModel.length, this.i18n);
+    const scenarioFactory = new ScenarioFactory(
+      this.position,
+      overlayGroup,
+      this.scenarioStyles(),
+      dataModel.length,
+      this.i18n,
+    );
 
     if (this.showOverlayAvg === true) {
       let previousDataPoint: DataPoint | null = null;

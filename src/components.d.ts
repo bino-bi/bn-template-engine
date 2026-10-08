@@ -681,7 +681,7 @@ export namespace Components {
      */
     "percentageScaling": string | number;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**
@@ -898,7 +898,7 @@ export namespace Components {
      */
     "percentageScaling": string | number;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**
@@ -1683,7 +1683,7 @@ export namespace Components {
      */
     "percentageScaling": string | number;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**
@@ -1968,7 +1968,7 @@ export namespace Components {
      */
     "orderDirection": string;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**
@@ -3048,7 +3048,7 @@ declare namespace LocalJSX {
      */
     "percentageScaling": string | number;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**
@@ -3260,7 +3260,7 @@ declare namespace LocalJSX {
      */
     "percentageScaling": string | number;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**
@@ -4030,7 +4030,7 @@ declare namespace LocalJSX {
      */
     "percentageScaling"?: string | number;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**
@@ -4311,7 +4311,7 @@ declare namespace LocalJSX {
      */
     "orderDirection"?: string;
     /**
-      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
+      * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
      */
     "ruleset"?: string;
     /**

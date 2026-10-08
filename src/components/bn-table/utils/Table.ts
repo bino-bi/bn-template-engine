@@ -41,7 +41,7 @@ export class Table {
   constructor(ruleSet: VisualisationRuleSet, db: AlaSQLDatabase, tableName: string, config: TableComponentConfig) {
     this.ruleSet = ruleSet || new IBCSRuleSet();
     this.db = db;
-    this.dataSetFactory = new TableDataSetFactory();
+    this.dataSetFactory = new TableDataSetFactory(this.ruleSet);
 
     this.config = this.initConfig(config);
     this.i18n = this.initI18n(new Map<string, string>());

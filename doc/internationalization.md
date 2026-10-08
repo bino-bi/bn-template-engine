@@ -47,6 +47,8 @@ The **namespace is a storage slot, not a key prefix**. Keys are stored verbatim 
 
 (Slots 2-4 follow the same pattern: `global.ac2` → AC2, `global.pp3` → PY3, etc.)
 
+A `name` that a [`<bn-ruleset>`](../src/components/bn-ruleset/readme.md) gives a scenario wins over these keys, in every locale.
+
 ### Sort Indicators & Variance Symbols (key prefix `global.`)
 
 | Key | Value | Description |

@@ -1,5 +1,5 @@
 import { TableRow } from "../elements";
-import { ScenarioHeaderColumn, TableRowType, TableType } from "../model";
+import { ScenarioHeaderColumn, TableRowType, TableType, VisualisationRuleSet } from "../model";
 import {
   BLANK_BUCKET_LABEL,
   computeWaterfall,
@@ -19,6 +19,7 @@ import { ColumnStats } from "../elements/Cell";
 import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
+import { styleSlot } from "../../../../utils/ibcsRuleSet";
 
 /**
  * Transforms raw query results into structured TableRow collections for header and body.
@@ -37,7 +38,15 @@ export class TableDataSetFactory {
   /** Set by createBodyRows(): the grouped table has rows with a blank rowGroup. */
   public hasBlankRowGroup = false;
 
-  constructor() {}
+  constructor(private readonly ruleSet?: VisualisationRuleSet) {}
+
+  /** The underline class of a scenario column: the one of the style slot its colorIndex selects. */
+  private underlineClass(type: string): string | null {
+    if (!this.ruleSet || !/^(ac|pp|fc|pl)[1-4]$/.test(type)) {
+      return null;
+    }
+    return styleSlot(this.ruleSet.getScenarioColorIndex(type)) + type.slice(2);
+  }
 
   /** Effective column list (category/operation + attributes + scenarios × buckets), set by createHeader(). */
   public getNormalizedHeader(): ScenarioHeaderColumn[] {
@@ -95,7 +104,7 @@ export class TableDataSetFactory {
         this.createColumnType(scenario),
         null,
         null,
-        null,
+        this.underlineClass(scenario.type),
         null,
         null,
         null,

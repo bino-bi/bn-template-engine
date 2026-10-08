@@ -14,6 +14,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withDataset from "../../utils/withDataset";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { ruleSetLabels } from "../../utils/ibcsRuleSet";
 import withRuleSet from "../../utils/withRuleSet";
 import withTranslation from "../../utils/withTranslation";
 import { withStyled } from "../../utils/styled/withStyled";
@@ -66,7 +67,7 @@ export class ChartBullet {
   private readonly t: (key: string, data?: object) => string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private readonly componentStyle: <T>(q: (s: any) => T) => T;
-  private readonly ruleSetConfig: () => RuleSetConfig;
+  private readonly ruleSetConfig: (layers?: "all" | "user") => RuleSetConfig;
   private readonly errors: ErrorDispatcher;
   private layoutObserver: LayoutObserverHandle | null = null;
   /** Ids of currently-active blocking errors - the chart renders empty while any is set. */
@@ -713,7 +714,12 @@ export class ChartBullet {
   private prepareI18n(): Map<string, string> {
     const i18nMapLocal = new Map(this.i18nLocalKeys().map((key) => [key, this.t(".".concat(key))]));
     const i18nMapGlobal = new Map(globalLabelKeys.map((key) => [key, this.t("global.".concat(key))]));
-    return new Map([...i18nMapGlobal.entries(), ...i18nMapLocal.entries()]);
+    // a name from a <bn-ruleset> wins over the i18n label of the scenario
+    return new Map([
+      ...i18nMapGlobal.entries(),
+      ...i18nMapLocal.entries(),
+      ...ruleSetLabels(this.ruleSetConfig("user")),
+    ]);
   }
 
   private prepareStyle(): BulletChartStyle {

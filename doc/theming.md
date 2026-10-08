@@ -56,6 +56,8 @@ All lengths are plain numbers. Which unit a number has depends on where it stand
 
 `fillpattern` in `barStyles` and `varianceStyles` is `solid`, `hatched` or `outlined`. The old value `fc` still works and means `hatched`.
 
+The keys `ac`, `pp`, `fc` and `pl` of `barStyles` are style slots. A scenario uses the slot of its own name, unless a [`<bn-ruleset>`](../src/components/bn-ruleset/readme.md) gives it another `colorIndex`. The hatch pattern always takes its colours from the `fc` slot.
+
 ### Global
 
 Typography settings inherited by all components:

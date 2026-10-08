@@ -22,7 +22,7 @@ import { TableAttribute } from "../utils/model/TableAttribute";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../../utils/constants";
 
 import { StringAdapter } from "../../../utils/helper/StringAdapter";
-import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
+import { IBCSRuleSet, stylesBySlot } from "../../../utils/ibcsRuleSet";
 import { RuleSetConfig } from "../../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
 import { Order, OrderAdapter } from "../../../utils/model/Order";
@@ -573,28 +573,32 @@ export class BnTableRenderer {
           fill: varianceStyles?.neu?.fill || defaultNeu.fill,
           fillpattern: normalizeFillPattern(varianceStyles?.neu?.fillpattern) || defaultNeu.fillpattern,
         },
-        scenarios: {
-          ac: {
-            stroke: barStyles?.ac?.stroke || defaultAc.stroke,
-            fill: barStyles?.ac?.fill || defaultAc.fill,
-            fillpattern: normalizeFillPattern(barStyles?.ac?.fillpattern) || defaultAc.fillpattern,
+        // each scenario is drawn in the style slot its colorIndex selects
+        scenarios: stylesBySlot(
+          {
+            ac: {
+              stroke: barStyles?.ac?.stroke || defaultAc.stroke,
+              fill: barStyles?.ac?.fill || defaultAc.fill,
+              fillpattern: normalizeFillPattern(barStyles?.ac?.fillpattern) || defaultAc.fillpattern,
+            },
+            pp: {
+              stroke: barStyles?.pp?.stroke || defaultPp.stroke,
+              fill: barStyles?.pp?.fill || defaultPp.fill,
+              fillpattern: normalizeFillPattern(barStyles?.pp?.fillpattern) || defaultPp.fillpattern,
+            },
+            fc: {
+              stroke: barStyles?.fc?.stroke || defaultFc.stroke,
+              fill: barStyles?.fc?.fill || defaultFc.fill,
+              fillpattern: normalizeFillPattern(barStyles?.fc?.fillpattern) || defaultFc.fillpattern,
+            },
+            pl: {
+              stroke: barStyles?.pl?.stroke || defaultPl.stroke,
+              fill: barStyles?.pl?.fill || defaultPl.fill,
+              fillpattern: normalizeFillPattern(barStyles?.pl?.fillpattern) || defaultPl.fillpattern,
+            },
           },
-          pp: {
-            stroke: barStyles?.pp?.stroke || defaultPp.stroke,
-            fill: barStyles?.pp?.fill || defaultPp.fill,
-            fillpattern: normalizeFillPattern(barStyles?.pp?.fillpattern) || defaultPp.fillpattern,
-          },
-          fc: {
-            stroke: barStyles?.fc?.stroke || defaultFc.stroke,
-            fill: barStyles?.fc?.fill || defaultFc.fill,
-            fillpattern: normalizeFillPattern(barStyles?.fc?.fillpattern) || defaultFc.fillpattern,
-          },
-          pl: {
-            stroke: barStyles?.pl?.stroke || defaultPl.stroke,
-            fill: barStyles?.pl?.fill || defaultPl.fill,
-            fillpattern: normalizeFillPattern(barStyles?.pl?.fillpattern) || defaultPl.fillpattern,
-          },
-        },
+          new IBCSRuleSet(this.ruleSetConfig),
+        ),
         fontColor: $["global"]?.["fontColor"] || "#000000",
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * BAR_LABEL_FONT_RATIO * this.scaleFactor,
         emPx: ($["global"]?.["fontSizePx"] || 13.3333) * this.scaleFactor,

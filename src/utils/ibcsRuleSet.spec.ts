@@ -1,4 +1,83 @@
-import { IBCSRuleSet } from "./ibcsRuleSet";
+import { IBCSRuleSet, ruleSetLabels, styleSlot, stylesBySlot } from "./ibcsRuleSet";
+import { SVGStyleAdapter } from "./model/styles/SVGStyle";
+import { SVGStyleGroup, SVGStyleGroupAdapter } from "./model/styles/SVGStyleGroup";
+
+describe("styleSlot", () => {
+  it.each([
+    [10, "ac"],
+    [20, "pp"],
+    [30, "fc"],
+    [50, "pl"],
+    [99, "ac"],
+  ])("colorIndex %p selects the slot %p", (colorIndex, slot) => {
+    expect(styleSlot(colorIndex)).toBe(slot);
+  });
+});
+
+describe("stylesBySlot", () => {
+  const group = (): SVGStyleGroup => new SVGStyleGroupAdapter(new SVGStyleAdapter()).adapt({});
+
+  it("returns the same object for the built-in rule set", () => {
+    const styles = group();
+
+    expect(stylesBySlot(styles, new IBCSRuleSet())).toBe(styles);
+  });
+
+  it("returns the same object for a rule set that restates the built-in color indices", () => {
+    const styles = group();
+    const ruleSet = new IBCSRuleSet({ scenarios: { ac: { colorIndex: 10 }, pl: { colorIndex: 50 } } });
+
+    expect(stylesBySlot(styles, ruleSet)).toBe(styles);
+  });
+
+  it("puts a scenario on the slot its colorIndex selects and leaves the input alone", () => {
+    const styles = group();
+    const moved = stylesBySlot(styles, new IBCSRuleSet({ scenarios: { pl: { colorIndex: 30 } } }));
+
+    expect(moved).not.toBe(styles);
+    expect(moved.pl).toBe(styles.fc);
+    expect(moved.ac).toBe(styles.ac);
+    expect(styles.pl).not.toBe(styles.fc);
+  });
+
+  it("keeps the methods of a style group", () => {
+    const styles = group();
+    const moved = stylesBySlot(styles, new IBCSRuleSet({ scenarios: { pl: { colorIndex: 30 } } }));
+
+    expect(moved).toBeInstanceOf(SVGStyleGroup);
+    expect(moved.getSVGStyle("pl")).toBe(styles.fc);
+  });
+
+  it("treats an unknown colorIndex as 10", () => {
+    const styles = group();
+
+    expect(stylesBySlot(styles, new IBCSRuleSet({ scenarios: { pp: { colorIndex: 99 } } })).pp).toBe(styles.ac);
+  });
+});
+
+describe("ruleSetLabels", () => {
+  it("is empty without a config or without names", () => {
+    expect(ruleSetLabels(undefined).size).toBe(0);
+    expect(ruleSetLabels({ scenarios: { ac: { sortIndex: 1 } } }).size).toBe(0);
+  });
+
+  it("names slot 1 as given and the slots 2 to 4 with their number", () => {
+    const labels = ruleSetLabels({ scenarios: { pl: { name: "Budget" } } });
+
+    expect([...labels.entries()]).toEqual([
+      ["pl1", "Budget"],
+      ["pl2", "Budget2"],
+      ["pl3", "Budget3"],
+      ["pl4", "Budget4"],
+    ]);
+  });
+
+  it("ignores empty names and prefixes that have no data column", () => {
+    const labels = ruleSetLabels({ scenarios: { ac: { name: "" }, bu: { name: "BU" }, dac: { name: "dAC" } } });
+
+    expect(labels.size).toBe(0);
+  });
+});
 
 describe("IBCSRuleSet", () => {
   describe("default construction (no config)", () => {
