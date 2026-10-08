@@ -11,17 +11,15 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
+      "node": "./dist/index.cjs.js",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs.js"
     },
     "./loader": {
       "types": "./loader/index.d.ts",
+      "node": "./loader/index.cjs.js",
       "import": "./loader/index.js",
       "require": "./loader/index.cjs.js"
-    },
-    "./components/*": {
-      "types": "./dist/components/*.d.ts",
-      "import": "./dist/components/*.js"
     },
     "./schemas/*": "./dist/schemas/*",
     "./package.json": "./package.json"
@@ -44,7 +42,7 @@
     "test:tz": "TZ=America/New_York stencil test --spec -- .timezone.spec",
     "dependencies.update": "npx npm-upgrade check",
     "exportdoc": "node scripts/docExporter.js ../www/docs/product/components/",
-    "lint": "eslint src/",
+    "lint": "eslint src/ && tsc --noEmit -p .",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,scss,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,scss,css,json}\"",

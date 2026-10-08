@@ -1,32 +1,27 @@
 /**
  * Checks the npm package the way a consumer gets it: pack it, install the
  * tarball into an empty project, then use every entry point of the `exports`
- * map and type-check a file against the published types.
+ * map and type-check a strict file against the published types.
  *
  * Run after `npm run build`. Needs the npm registry for the dependencies.
  */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import puppeteer from "puppeteer";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const NAME = "@bino-bi/bn-template-engine";
 
 let project;
-let packageDir;
 let packedFiles;
 
 /** Runs ES module code in the consumer project and returns what it printed as JSON. */
 const run = (code) =>
-  JSON.parse(
-    execFileSync(process.execPath, ["--input-type=module", "-e", code], { cwd: project, encoding: "utf8" }),
-  );
+  JSON.parse(execFileSync(process.execPath, ["--input-type=module", "-e", code], { cwd: project, encoding: "utf8" }));
 
 before(() => {
   assert.ok(fs.existsSync(path.join(REPO_ROOT, "dist/index.js")), "No build found. Run: npm run build");
@@ -47,7 +42,6 @@ before(() => {
     ["install", path.join(project, packed.filename), "--ignore-scripts", "--omit=optional", "--no-audit", "--no-fund"],
     { cwd: project, stdio: "pipe" },
   );
-  packageDir = path.join(project, "node_modules", NAME);
 });
 
 after(() => {
@@ -59,8 +53,6 @@ test("the tarball has the entry points and the schemas, and no test helpers", ()
     "dist/index.js",
     "dist/index.cjs.js",
     "dist/types/index.d.ts",
-    "dist/components/bn-table.js",
-    "dist/components/bn-table.d.ts",
     "dist/schemas/theme.schema.json",
     "loader/index.js",
     "loader/index.d.ts",
@@ -110,53 +102,17 @@ test("a schema and package.json can be required", () => {
   assert.equal(name, NAME);
 });
 
-test("a component entry resolves and defines its element in a browser, without other packages", async () => {
-  const [resolved] = run(`console.log(JSON.stringify([import.meta.resolve("${NAME}/components/bn-table")]));`);
-  const file = fileURLToPath(resolved);
-  assert.ok(fs.existsSync(file), `not a file: ${file}`);
-  const entry = "/" + path.relative(packageDir, fs.realpathSync(file)).split(path.sep).join("/");
+test("a path that is not an entry point does not resolve", () => {
+  // dist/components is in the package, but its elements do not render: it is not offered as an entry
+  const resolved = run(`
+    const tryResolve = (specifier) => { try { return import.meta.resolve(specifier); } catch { return null; } };
+    console.log(JSON.stringify([
+      tryResolve("${NAME}/components/bn-table"),
+      tryResolve("${NAME}/dist/components/bn-table.js"),
+    ]));
+  `);
 
-  // only files of the installed package are served: a bare import of another package would fail
-  const server = http.createServer((req, res) => {
-    const urlPath = decodeURIComponent(req.url.split("?")[0]);
-    if (urlPath === "/") {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(
-        `<!DOCTYPE html><script type="module">
-          import { defineCustomElement } from "${entry}";
-          defineCustomElement();
-          window.__defined = ["bn-table", "bn-table-renderer"].map((tag) => customElements.get(tag) !== undefined);
-        </script>`,
-      );
-      return;
-    }
-    const filePath = path.join(fs.realpathSync(packageDir), urlPath);
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404).end();
-        return;
-      }
-      res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8" });
-      res.end(data);
-    });
-  });
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  // Where Chrome's sandbox is not available, set PUPPETEER_DANGEROUS_NO_SANDBOX=true.
-  const browser = await puppeteer.launch();
-  try {
-    const page = await browser.newPage();
-    const errors = [];
-    page.on("pageerror", (error) => errors.push(String(error)));
-    page.on("requestfailed", (request) => errors.push(`failed: ${request.url()}`));
-    await page.goto(`http://127.0.0.1:${server.address().port}/`, { waitUntil: "load" });
-    await page.waitForFunction(() => window.__defined !== undefined, { timeout: 30000 }).catch(() => {});
-
-    assert.deepEqual(errors, []);
-    assert.deepEqual(await page.evaluate(() => window.__defined), [true, true]);
-  } finally {
-    await browser.close();
-    server.close();
-  }
+  assert.deepEqual(resolved, [null, null]);
 });
 
 test("a strict TypeScript consumer compiles against the published types", () => {
@@ -164,7 +120,6 @@ test("a strict TypeScript consumer compiles against the published types", () => 
     path.join(project, "consumer.ts"),
     `import { LAYOUT_STATE_VERSION, type LayoutState, type Components } from "${NAME}";
 import { defineCustomElements } from "${NAME}/loader";
-import { defineCustomElement } from "${NAME}/components/bn-table";
 
 const version: number = LAYOUT_STATE_VERSION;
 const bullet = document.createElement("bn-chart-bullet");
@@ -173,7 +128,6 @@ bullet.normalize();
 const grouped: Components.BnTable["grouped"] = true;
 export const state: LayoutState | undefined = undefined;
 defineCustomElements();
-defineCustomElement();
 console.log(version, grouped);
 `,
   );
@@ -189,6 +143,8 @@ console.log(version, grouped);
         target: "es2022",
         lib: ["dom", "es2022"],
         types: [],
+        // the default of TypeScript 6 and newer
+        noUncheckedSideEffectImports: true,
       },
       files: ["consumer.ts"],
     }),
