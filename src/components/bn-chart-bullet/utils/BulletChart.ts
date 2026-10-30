@@ -1,4 +1,6 @@
-import { G, Svg } from "@svgdotjs/svg.js";
+import { G, Svg, Text } from "@svgdotjs/svg.js";
+import { dataPointAttributes, levelKey } from "../../../utils/layoutState/dataPoint";
+import { DataPointKey } from "../../../utils/layoutState/types";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
@@ -260,8 +262,8 @@ export class BulletChart {
     x: number,
     y: number,
     options: { anchor?: string; bold?: boolean; color?: string; size?: number } = {},
-  ): void {
-    group
+  ): Text {
+    return group
       .text(text)
       .font({
         size: options.size ?? this.styles.fontStyles.size,
@@ -461,7 +463,7 @@ export class BulletChart {
 
       if (row.fraction === null) {
         // Not normalizable (missing/invalid target or negative actual): value text only.
-        this.drawValueText(root, valueTexts[index], plotX + factors.labelToBar * em, cy);
+        this.drawValueText(root, valueTexts[index], plotX + factors.labelToBar * em, cy, row);
         return;
       }
 
@@ -471,7 +473,8 @@ export class BulletChart {
         .rect(Math.max(0, barEnd - plotX), barH)
         .move(plotX, cy - barH / 2)
         .fill(this.styles.barStyles.ac.fill)
-        .stroke({ color: this.styles.barStyles.ac.stroke, width: this.styles.barStyles.ac.width });
+        .stroke({ color: this.styles.barStyles.ac.stroke, width: this.styles.barStyles.ac.width })
+        .attr(dataPointAttributes(this.rowKey(row), "element"));
 
       if (this.config.showVariances && row.sentiment !== "neu") {
         const varianceH = factors.varianceHeight * em;
@@ -483,7 +486,7 @@ export class BulletChart {
           .stroke({ color: varianceStyle.stroke, width: varianceStyle.width });
       }
 
-      this.drawValueText(root, valueTexts[index], Math.max(barEnd, targetX) + factors.labelToBar * em, cy);
+      this.drawValueText(root, valueTexts[index], Math.max(barEnd, targetX) + factors.labelToBar * em, cy, row);
     });
   }
 
@@ -509,7 +512,7 @@ export class BulletChart {
       const rowMax = Math.max(row.actual ?? 0, row.target ?? 0, ...bandEnds);
 
       if (rowMax <= 0) {
-        this.drawValueText(root, valueTexts[index], plotX + factors.labelToBar * em, cy);
+        this.drawValueText(root, valueTexts[index], plotX + factors.labelToBar * em, cy, row);
         return;
       }
 
@@ -536,7 +539,8 @@ export class BulletChart {
           .rect(barEnd - plotX, barH)
           .move(plotX, cy - barH / 2)
           .fill(this.styles.barStyles.ac.fill)
-          .stroke({ color: this.styles.barStyles.ac.stroke, width: this.styles.barStyles.ac.width });
+          .stroke({ color: this.styles.barStyles.ac.stroke, width: this.styles.barStyles.ac.width })
+          .attr(dataPointAttributes(this.rowKey(row), "element"));
         rowRight = barEnd;
       }
 
@@ -557,7 +561,7 @@ export class BulletChart {
       }
 
       rowRight = Math.max(rowRight, bandStart);
-      this.drawValueText(root, valueTexts[index], rowRight + factors.labelToBar * em, cy);
+      this.drawValueText(root, valueTexts[index], rowRight + factors.labelToBar * em, cy, row);
 
       // Per-row tick strip below the band.
       const ticks = scale.ticks(4);
@@ -579,10 +583,15 @@ export class BulletChart {
     });
   }
 
-  private drawValueText(root: G, text: string, x: number, cy: number): void {
+  private drawValueText(root: G, text: string, x: number, cy: number, row: BulletRowModel): void {
     if (text === "") {
       return;
     }
-    this.drawText(root, text, x, cy + 0.35 * this.em, {});
+    this.drawText(root, text, x, cy + 0.35 * this.em, {}).attr(dataPointAttributes(this.rowKey(row), "label"));
+  }
+
+  /** The row of a bullet: its value of the chart's level and the actual measure. */
+  private rowKey(row: BulletRowModel): DataPointKey {
+    return { ...levelKey(this.config.level, row.category), scenario: this.config.actual.measure };
   }
 }

@@ -5,6 +5,8 @@ import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { Formatter } from "../../../../utils";
 import { getContrastTextColor } from "../../../../utils/stackColors";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
+import { DataPointKey, DataPointPart } from "../../../../utils/layoutState/types";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
@@ -48,6 +50,8 @@ export class Label {
   private segmentFillColor: string | null = null;
   private verticalHookLocation: HookLocation;
   private horizontalHookLocation: HookLocation;
+  private pointKey?: DataPointKey;
+  private pointPart: DataPointPart = "label";
 
   constructor(
     parent: G,
@@ -86,6 +90,13 @@ export class Label {
 
   public setSegmentFill(color: string): Label {
     this.segmentFillColor = color;
+    return this;
+  }
+
+  /** The data row this label belongs to. Written on the label group when the label is visible. */
+  public setPoint(key: DataPointKey | undefined, part: DataPointPart = "label"): Label {
+    this.pointKey = key;
+    this.pointPart = part;
     return this;
   }
 
@@ -139,6 +150,8 @@ export class Label {
     if (displayLabel === false) {
       text.addClass("hide");
       label.addClass("hide");
+    } else if (this.pointKey) {
+      label.attr(dataPointAttributes(this.pointKey, this.pointPart));
     }
 
     return this;
@@ -159,6 +172,9 @@ export class Label {
     const labelStr = "" + this.value;
 
     this.drawLabel(label, labelStr);
+    if (this.pointKey) {
+      label.attr(dataPointAttributes(this.pointKey, this.pointPart));
+    }
 
     return this;
   }

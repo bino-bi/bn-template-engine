@@ -67,6 +67,29 @@ export interface ScalingInfo {
   percentageMode?: "fixed" | "auto";
 }
 
+/**
+ * Which data row a rendered element shows. Values are the raw dataset values
+ * (not formatted labels), dates are `YYYY-MM-DD`. Only the known fields are set.
+ */
+export interface DataPointKey {
+  rowGroup?: string;
+  category?: string;
+  subCategory?: string;
+  date?: string;
+  /** A slot like `ac1`, a variance like `dac1_pl1_pos`, a table column key. */
+  scenario?: string;
+  /** Set on the subtotal and total rows of a table. */
+  row?: "subtotal" | "total";
+}
+
+/** `element`: the bar, mark or cell. `label`: its value label. `total`: the total label of a stack. */
+export type DataPointPart = "element" | "label" | "total";
+
+/** The key of a data-point element, read from its `data-bn-*` attributes. */
+export interface LayoutPoint extends DataPointKey {
+  part: DataPointPart;
+}
+
 /** Named sub-area of a component, e.g. "canvas:base", "header", "grid". */
 export interface LayoutRegion {
   id: string;
@@ -87,6 +110,7 @@ export interface BarElement extends LayoutElementBase {
   scenario?: string;
   /** Ordinal of the bar's category within the segment. */
   index: number;
+  point?: LayoutPoint;
 }
 
 export interface LabelElement extends LayoutElementBase {
@@ -95,6 +119,7 @@ export interface LabelElement extends LayoutElementBase {
   text: string;
   segment?: string;
   index?: number;
+  point?: LayoutPoint;
 }
 
 export interface AxisElement extends LayoutElementBase {
@@ -111,6 +136,7 @@ export interface PointElement extends LayoutElementBase {
   series?: string;
   index: number;
   text?: string;
+  point?: LayoutPoint;
 }
 
 export interface CellBarInfo {
@@ -136,6 +162,7 @@ export interface CellElement extends LayoutElementBase {
   type?: string;
   /** Present when the cell hosts a bar/waterfall SVG. */
   bar?: CellBarInfo;
+  point?: LayoutPoint;
 }
 
 export interface NodeElement extends LayoutElementBase {
@@ -179,6 +206,7 @@ export interface TableRowInfo {
   /** TableRowType name (e.g. "HEADER", "SUM", "STANDARD"). */
   type: string;
   rect: DualRect;
+  point?: LayoutPoint;
 }
 
 export interface TableColumnInfo {

@@ -6,6 +6,8 @@ import { ElementPositions } from "../helper";
 // import {SVGPolgonPattern} from "../../../../utils/model";
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGPolgonPattern } from "../../../../utils/model";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
+import { DataPointKey } from "../../../../utils/layoutState/types";
 
 /**
  * Renders a diamond/triangle marker indicator for PP or PL reference values in a time chart.
@@ -43,6 +45,7 @@ export class Marker {
     clipped: false,
   };
   private hasData: boolean = false;
+  private pointKey?: DataPointKey;
 
   constructor(
     position: ElementPositions,
@@ -65,6 +68,7 @@ export class Marker {
 
     if (dataPoint?.isEmpty() !== true) {
       this.hasData = true;
+      this.pointKey = dataPoint.key;
       this.dimensions = this.createMarkerDimensions(dataPoint, index, isPrimaryMarker);
       this.scenarioLabel = this.getScenarioLabel(labelText, styles, isPrimaryMarker);
     }
@@ -88,6 +92,8 @@ export class Marker {
       }
     }
 
+    this.markerGroup.attr(dataPointAttributes(this.pointKey));
+
     this.markerGroup
       .polygon(this.markerPattern.background)
       .fill(whiteBorder)
@@ -99,7 +105,8 @@ export class Marker {
       .fill(fillStyle)
       .stroke(strokeStyle)
       .cy(this.dimensions.yPos - this.dimensions.columnLength)
-      .cx(this.dimensions.xPos);
+      .cx(this.dimensions.xPos)
+      .attr(dataPointAttributes(this.pointKey, "element"));
 
     if (this.scenarioLabel != null && !this.scenarioLabel.isEmpty()) {
       this.scenarioLabel.setPos(this.dimensions.scenarioLabelXPos, this.dimensions.scenarioLabelYPos).draw();

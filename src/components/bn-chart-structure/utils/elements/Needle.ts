@@ -5,6 +5,7 @@ import { G } from "@svgdotjs/svg.js";
 import { ElementPositions } from "../helper";
 import { SVGStyle } from "../../../../utils/model";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 // import {SVGStyle} from "../../../../utils/model/styles/SVGStyle";
 
 /**
@@ -81,7 +82,7 @@ export class Needle {
         HookLocation.Center,
         textLabelHook,
       );
-      this.label.setToRelativeVarianceLabel();
+      this.label.setToRelativeVarianceLabel().setPoint(dataPoint.key);
     }
   }
 
@@ -108,6 +109,9 @@ export class Needle {
     if (this.dimensions == null) {
       return this;
     }
+
+    this.scenarioGroup.attr(dataPointAttributes(this.dataPoint.key));
+    this.barGroup.attr(dataPointAttributes(this.dataPoint.key, "element"));
 
     // Needles always use varianceStyles (falls back to 'neu'); bars use barStyles (falls back to 'ac')
     const scenarioStyle: SVGStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle());

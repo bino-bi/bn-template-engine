@@ -271,7 +271,7 @@ export class DataQuery {
         .map((name) => `SUM(${name}) as ${name}`)
         .join(", ");
       querys.push(
-        `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, 'REST' as ${QueryColumnNames.CATEGORY} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
+        `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, ${this.bind(String(rowGroupEntry.rowGroup ?? ""))} as restRowGroup, 'REST' as ${QueryColumnNames.CATEGORY} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
           ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP}, ${groups.select()} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
           ` t WHERE t.rowNr > ${this.config.limit}`,
       );
@@ -457,6 +457,7 @@ export class DataQuery {
               drillItem.rowGroup !== "" &&
               duplicateSubCategoriesList.includes(`${drillItem.category}##${drillItem.subCategory}`)
             ) {
+              drillItem.rawSubCategory = drillItem.subCategory;
               drillItem.subCategory = `${drillItem.subCategory} (${drillItem.rowGroup})`;
             }
 

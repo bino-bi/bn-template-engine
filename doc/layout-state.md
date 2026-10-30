@@ -121,18 +121,46 @@ rendered element carries one).
 
 | `kind` | Emitted by | Key fields |
 | --- | --- | --- |
-| `bar` | time/structure charts | `segment` (`"base"` or variance name), `scenario` (`"scenario1"`-`"scenario4"`), `index` (category ordinal) |
-| `label` | charts, tree | `role`: `data`, `scenario`, `category`, `axisLabel`, `title`, `footer`, `legend`, `operator`; `text` |
+| `bar` | time/structure charts, bullet chart | `segment` (`"base"` or variance name), `scenario` (`"scenario1"`-`"scenario4"`, `"stack:<key>"` for a stack segment, the measure on a bullet bar), `index` (category ordinal), `point?` |
+| `label` | charts, tree | `role`: `data`, `scenario`, `category`, `axisLabel`, `title`, `footer`, `legend`, `operator`; `text`; `point?` |
 | `axis` | time/structure charts | `style` (`ac`/`pp`/`fc`/`pl`/`default`), `orientation` |
-| `point` | scatter/bubble/bullet | `index`, `series?`, `text?` (tag-classified - xy marks carry no ids) |
-| `cell` / `headerCell` | table | `row`, `column`, `key` (column identity), `colSpan`, `value` (model value), `text` (rendered), `type`, `bar?` (in-cell bar: `variant` `absolute`/`relative`/`waterfall` + rect) |
+| `point` | scatter/bubble/bullet, line and scenario markers of a time/structure chart | `index`, `series?`, `text?`, `point?` (xy marks carry no ids: tag-classified) |
+| `cell` / `headerCell` | table | `row`, `column`, `key` (column identity), `colSpan`, `value` (model value), `text` (rendered), `type`, `bar?` (in-cell bar: `variant` `absolute`/`relative`/`waterfall` + rect), `point?` |
 | `node` | tree | `nodeId` (slot name) |
 | `edge` | tree | `from`, `to`, `operator?`, `path?` (SVG path data) |
 | `gridCell` / `gridHeader` / `gridTitle` | grid | `rowId?`, `columnId?`, `slot?`, `label?` |
 
+### Data points (`point`)
+
+An element that shows a data row says which one, in `point`:
+
+```json
+{ "date": "2024-01-01", "scenario": "pl1", "part": "element" }
+```
+
+| Field | Value |
+| --- | --- |
+| `rowGroup`, `category`, `subCategory` | The raw dataset value, not the translated or formatted label. Only the dimensions the element is known to show are set. |
+| `date` | Time charts and the date columns of a table with `interval`: the first day of the bucket, `YYYY-MM-DD`. With `date-interval="year"` a row of `2024-03-15` is in the bucket `2024-01-01`. A bucket that does not start at midnight also has the time: `2024-01-01T09:00:00`. |
+| `scenario` | A slot (`ac1`), a variance (`dac1_pl1_pos`), or the column key of a table cell. |
+| `row` | `subtotal` or `total` on a table row and its cells. |
+| `part` | `element`: the bar, mark, row or cell. `label`: its value label. `total`: the total label of a stack. |
+
+Per component:
+
+- **Time chart**: `date` and `scenario`. The chart adds up the rows of a bucket, so it knows no other dimension. A stack total has `date` only. When a stack overlays scenario families (`ac` and `pl`), each family has its own total and `scenario` is the family.
+- **Structure chart**: the dimension of `level` and `scenario`. With `stack` by dimensions, a segment also has the next lower dimension, and a total has the dimension of `level` only.
+- **Scatter, bubble**: the dimensions of the point level, the series level and the facet level, no `scenario`. A name label is the `label` of its mark. A bubble's share slice and its comparison bubble have no `point`.
+- **Bullet chart**: the dimension of `level` and the actual measure as `scenario`, on the bar and its value label. Target marks and variance bars have no `point`.
+- **Table**: `rowGroup`, `category` and `subCategory` on body rows and thereof rows, `row` and the parent `rowGroup` on a subtotal, `row` alone on the total. A cell adds its scenario column as `scenario`, and the bucket as `date` in a column of a date `interval`. Header rows and group headers have no `point`, and neither have part-of rows: they would repeat the key of the row they belong to. All columns of one scenario with `columnthereof`, or with `interval="setname"`, have the same key: a point cannot tell them apart.
+
+An element without a value has no `point`: an empty bucket draws a bar of height 0, a stack segment without a value draws nothing, a table cell without a value is blank or shows `-`. An area chart (`chart-mode="line"` with `stack`) has no data-point elements.
+
+The same values are on the elements as `data-bn-row-group`, `data-bn-category`, `data-bn-sub-category`, `data-bn-date`, `data-bn-scenario`, `data-bn-row` and `data-bn-part`. These sit inside shadow roots and are not API: read `point`.
+
 ### Table detail (`table`, `bn-table` only)
 
-- `rows`: `{ section: "header" | "body", index, type, rect }` - `type` is the
+- `rows`: `{ section: "header" | "body", index, type, rect, point? }` - `type` is the
   model row type (`HEADER`, `SEPERATORLINE`, `GROUPHEAD`, `SUM`, `STANDARD`,
   `DRILLELEMENT`, `PARTELEMENT`, …).
 - `columns`: `{ index, key, group?, type?, bucket? }` - the effective column
@@ -155,8 +183,8 @@ Reported by `bn-table`, `bn-chart-time` and `bn-chart-structure`:
 | Component | summary | full adds |
 | --- | --- | --- |
 | `bn-table` | header/body regions, row/column/cell counts, scenarios, scaling | every cell (+ in-cell bar SVGs), row rects, column definitions |
-| `bn-chart-time` / `bn-chart-structure` | canvas region per segment, bar count, scenarios/variances, scaling | every bar, data/scenario label, category label, axis, title, footer per segment |
-| `bn-chart-scatter` / `bubble` / `bullet` | canvas region, point count | tag-classified marks and text labels (xy SVGs carry no ids/classes - no per-series mapping) |
+| `bn-chart-time` / `bn-chart-structure` | canvas region per segment, bar count (stacks in a stacked chart), scenarios/variances, scaling | every bar, stack segment, stack total, marker, data/scenario label, category label, axis, title, footer per segment |
+| `bn-chart-scatter` / `bubble` / `bullet` | canvas region, point count | tag-classified marks, bullet bars and text labels (xy SVGs carry no ids/classes, `point` names the data row) |
 | `bn-tree` | grid region, node/edge counts | node boxes (slotted content), edge paths, operators |
 | `bn-grid` | grid region, row/column counts | title, headers, data cells with slot names |
 | all other visual components | box, identity, em, diagnostics | - |

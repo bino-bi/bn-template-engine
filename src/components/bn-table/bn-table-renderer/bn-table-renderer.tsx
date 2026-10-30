@@ -10,7 +10,9 @@ import {
   Origins,
   TableDetail,
   TableRowInfo,
+  dataPointAttributes,
   measure,
+  readLayoutPoint,
 } from "../../../utils/layoutState";
 
 import { TableRow } from "../utils/elements";
@@ -291,7 +293,13 @@ export class BnTableRenderer {
       modelRows.forEach((row, rowIndex) => {
         const tr = domRows[rowIndex];
         if (!tr) return;
-        rows.push({ section, index: rowIndex, type: row.type, rect: measure(tr, origins) });
+        rows.push({
+          section,
+          index: rowIndex,
+          type: row.type,
+          rect: measure(tr, origins),
+          point: readLayoutPoint(tr),
+        });
 
         const cells = row.getCells();
         const domCells = Array.from(tr.children);
@@ -316,6 +324,7 @@ export class BnTableRenderer {
             text: domCell.textContent?.trim() || undefined,
             type: cell.type || undefined,
             rect: measure(domCell, origins),
+            point: readLayoutPoint(domCell),
           };
           const barSvg = domCell.querySelector("svg.cell-bar-chart");
           if (barSvg) {
@@ -392,9 +401,15 @@ export class BnTableRenderer {
           </thead>
           <tbody>
             {this.table.getBody().map((row: TableRow) => (
-              <tr class={row.cssStyle}>
+              <tr class={row.cssStyle} {...dataPointAttributes(row.key, "element")}>
                 {row?.getCells().map((cell: Cell) => (
-                  <td colSpan={cell.colSpan} class={cell.type ? `${cell.cssStyle} ${cell.type}` : cell.cssStyle}>
+                  <td
+                    colSpan={cell.colSpan}
+                    class={cell.type ? `${cell.cssStyle} ${cell.type}` : cell.cssStyle}
+                    {...(row.key && cell.value != null && cell.value !== "-"
+                      ? dataPointAttributes({ ...row.key, date: cell.date, scenario: cell.key }, "element")
+                      : {})}
+                  >
                     {cell.prefix != null ? (
                       <span class={cell.cssStyle + " " + cell.prefixStyle}>{cell.drawPrefix()}</span>
                     ) : (

@@ -1,4 +1,6 @@
-import { G, Svg } from "@svgdotjs/svg.js";
+import { G, Svg, Text } from "@svgdotjs/svg.js";
+import { dataPointAttributes } from "../../../utils/layoutState/dataPoint";
+import { xyPointKey } from "../../../utils/xy/pointKey";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
@@ -135,8 +137,8 @@ export class ScatterChart {
     x: number,
     y: number,
     options: { anchor?: string; bold?: boolean; color?: string; size?: number } = {},
-  ): void {
-    group
+  ): Text {
+    return group
       .text(text)
       .font({
         size: options.size ?? this.styles.fontStyles.size,
@@ -486,14 +488,15 @@ export class ScatterChart {
         .circle(radius * 2)
         .center(cx, cy)
         .fill(treatment.fill)
-        .stroke({ color: treatment.stroke, width: treatment.strokeWidth });
+        .stroke({ color: treatment.stroke, width: treatment.strokeWidth })
+        .attr(dataPointAttributes(xyPointKey(point, facet.key, this.config), "element"));
       if (treatment.dasharray !== undefined) {
         circle.attr("stroke-dasharray", treatment.dasharray);
       }
       labeler.registerMark(cx, cy, radius);
     }
 
-    this.drawPointLabels(group, labeler, marks, radius);
+    this.drawPointLabels(group, labeler, marks, radius, facet.key);
 
     panel.frame.drawTickLabels(group, {
       ticksX,
@@ -516,6 +519,7 @@ export class ScatterChart {
     labeler: PointLabeler,
     marks: { point: XYPoint; cx: number; cy: number; treatment: MarkTreatment }[],
     radius: number,
+    facetKey: string,
   ): void {
     // Rank by extremity: distance from the pixel-space centroid.
     const centroidX = marks.reduce((sum, m) => sum + m.cx, 0) / Math.max(1, marks.length);
@@ -534,17 +538,24 @@ export class ScatterChart {
       this.addWarningOnce("xy-label-unknown", { names: unknownNames.join(", ") });
     }
 
-    const candidates: LabelCandidate[] = selected.map((mark) => ({
-      name: mark.point.name,
-      cx: mark.cx,
-      cy: mark.cy,
-      r: radius,
-      width: this.textWidth(mark.point.name),
-      height: 1.1 * this.em,
-    }));
+    const pointOf = new Map<LabelCandidate, XYPoint>();
+    const candidates: LabelCandidate[] = selected.map((mark) => {
+      const candidate: LabelCandidate = {
+        name: mark.point.name,
+        cx: mark.cx,
+        cy: mark.cy,
+        r: radius,
+        width: this.textWidth(mark.point.name),
+        height: 1.1 * this.em,
+      };
+      pointOf.set(candidate, mark.point);
+      return candidate;
+    });
 
     for (const placed of labeler.place(candidates)) {
-      this.drawText(group, placed.candidate.name, placed.x, placed.y + 0.9 * placed.candidate.height, {});
+      this.drawText(group, placed.candidate.name, placed.x, placed.y + 0.9 * placed.candidate.height, {}).attr(
+        dataPointAttributes(xyPointKey(pointOf.get(placed.candidate)!, facetKey, this.config), "label"),
+      );
     }
   }
 

@@ -54,10 +54,11 @@ jest.mock("../../context/context-protocol", () => {
 });
 
 import { h } from "@stencil/core";
-import { newSpecPage } from "@stencil/core/testing";
+import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { getStores } from "../../context/context-protocol";
 import { CellElement, Origins } from "../../utils/layoutState";
 import { I18nMode } from "../../utils/constants";
+import { TableType } from "./utils/model";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Table } from "./bn-table";
 import { BnTableRenderer, TableLayoutDetail } from "./bn-table-renderer/bn-table-renderer";
@@ -75,6 +76,97 @@ const makeRow = (category: string, categoryIndex: number, ac1: number) => ({
   subCategoryIndex: 1,
   ac1,
   pp1: ac1 + 1,
+});
+
+describe("bn-table-renderer data-point keys", () => {
+  const groupedRows = [
+    { ...makeRow("Category A", 1, 10), rowGroup: "Europe", rowGroupIndex: 1 },
+    { ...makeRow("Category B", 2, 4), rowGroup: "Asia", rowGroupIndex: 2 },
+  ];
+
+  beforeAll(() => {
+    getStores(null).db.db.tables["groupedDs"] = { data: groupedRows };
+  });
+
+  const renderGrouped = () =>
+    newSpecPage({
+      components: [BnTableRenderer],
+      template: () => (
+        <bn-table-renderer
+          scenarios={["ac1", "pp1"]}
+          measure-scale="_"
+          order={{ hierarchy: [OrderColumn.CATEGORY], direction: OrderDirection.ASC } as Order}
+          i18n-mode={I18nMode.META}
+          tableName="groupedDs"
+          grouped={true}
+          type={TableType.SUM}
+        />
+      ),
+    });
+
+  const bodyRows = (page: SpecPage) => Array.from(page.root.shadowRoot.querySelectorAll("tbody tr"));
+  const keyOf = (element: Element) =>
+    Object.fromEntries(
+      Array.from(element.attributes)
+        .map((attribute) => [attribute.name, attribute.value])
+        .filter(([name]) => name.startsWith("data-bn-")),
+    );
+
+  it("keys a body row and its cells with the raw values", async () => {
+    const page = await renderGrouped();
+    const row = bodyRows(page).find((tr) => tr.getAttribute("data-bn-category") === "Category A");
+
+    expect(keyOf(row)).toEqual({
+      "data-bn-row-group": "Europe",
+      "data-bn-category": "Category A",
+      "data-bn-part": "element",
+    });
+    const cell = Array.from(row.children).find((td) => td.getAttribute("data-bn-scenario") === "ac1");
+    expect(keyOf(cell)).toEqual({
+      "data-bn-row-group": "Europe",
+      "data-bn-category": "Category A",
+      "data-bn-scenario": "ac1",
+      "data-bn-part": "element",
+    });
+  });
+
+  it("keys a subtotal row with its row group and a total row with nothing else", async () => {
+    const page = await renderGrouped();
+    const rows = bodyRows(page).map(keyOf);
+
+    expect(rows).toContainEqual({
+      "data-bn-row-group": "Europe",
+      "data-bn-row": "subtotal",
+      "data-bn-part": "element",
+    });
+    expect(rows).toContainEqual({ "data-bn-row": "total", "data-bn-part": "element" });
+  });
+
+  it("leaves a group header without a key", async () => {
+    const page = await renderGrouped();
+    const heads = bodyRows(page).filter((tr) => tr.classList.contains("groupheader"));
+
+    expect(heads.length).toBeGreaterThan(0);
+    heads.forEach((head) => expect(keyOf(head)).toEqual({}));
+  });
+
+  it("returns the keys in the layout state, on cells and on rows", async () => {
+    const page = await renderGrouped();
+    const detail: TableLayoutDetail = await page.rootInstance.getLayoutDetail(origins, "full");
+
+    const cells = detail.elements as CellElement[];
+    expect(cells.find((c) => c.point?.row === "total" && c.key === "ac1").point).toEqual({
+      row: "total",
+      scenario: "ac1",
+      part: "element",
+    });
+    expect(detail.table.rows.find((r) => r.point?.category === "Category B").point).toEqual({
+      rowGroup: "Asia",
+      category: "Category B",
+      part: "element",
+    });
+    expect(detail.table.rows.filter((r) => r.section === "header").every((r) => r.point === undefined)).toBe(true);
+  });
 });
 
 describe("bn-table-renderer.getLayoutDetail", () => {

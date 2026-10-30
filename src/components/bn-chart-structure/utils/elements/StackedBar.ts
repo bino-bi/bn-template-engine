@@ -7,6 +7,8 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StackMode } from "../../../../utils/constants";
 import { Formatter } from "../../../../utils/formatter";
 import { StackLayout, StackSegment } from "../../../../utils/stackLayout";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
+import { DataPointKey } from "../../../../utils/layoutState/types";
 
 /**
  * Renders a single horizontal stacked bar segment for the structure chart.
@@ -79,6 +81,7 @@ export class StackedBar {
     const fillStyle = { color: fillColor };
     const strokeStyle = { color: fillColor, width: 0.5 };
 
+    this.barGroup.attr(dataPointAttributes(this.dataPoint.key, "element"));
     this.barGroup.rect(Math.max(segmentLength, 0.5), barWidth).fill(fillStyle).stroke(strokeStyle).cy(yPos).x(xPos);
 
     // Draw segment value label centered on bar if wide enough
@@ -108,12 +111,14 @@ export class StackedBar {
         )
           .setSegmentFill(fillColor)
           .setMaxWidth(availableWidth)
+          .setPoint(this.dataPoint.key)
           .draw();
       } else {
         // Pass raw numeric value - Label.draw() formats with measureScale
         new Label(this.group, labelX, yPos, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
           .setSegmentFill(fillColor)
           .setMaxWidth(availableWidth)
+          .setPoint(this.dataPoint.key)
           .draw(dataFormatDigits, measureScale);
       }
     }
@@ -122,6 +127,7 @@ export class StackedBar {
   public drawTotalLabel(
     dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
     measureScale: SiPrefix = new SiPrefix(),
+    key?: DataPointKey,
   ): void {
     if (this.stackMode === StackMode.RELATIVE) {
       return;
@@ -143,6 +149,6 @@ export class StackedBar {
       HookLocation.Center,
       isNegative ? HookLocation.Right : HookLocation.Left,
     );
-    label.draw(dataFormatDigits, measureScale);
+    label.setPoint(key, "total").draw(dataFormatDigits, measureScale);
   }
 }

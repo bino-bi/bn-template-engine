@@ -26,6 +26,7 @@ import { DateTime } from "luxon";
 import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
 import { DateDistance, DateStringFactory } from "../../../utils/DateStringFactory";
+import { pointDate } from "../../../utils/layoutState/dataPoint";
 import { AxisLabelsMode, ChartMode, RELATIVE_STACK_UNITS, StackBy, StackMode } from "../../../utils/constants";
 import { getScenarioPrefix, IBCS_LAYER_ORDER } from "../../../utils/stackColors";
 import { layoutStack, stackExtent, stackLabelSide, StackLayout } from "../../../utils/stackLayout";
@@ -986,7 +987,21 @@ export class TimeChart {
       //}
     });
 
+    for (const entry of dataModel) {
+      for (const dataPoint of [entry.scenario1, entry.scenario2, entry.scenario3, entry.scenario4]) {
+        // a bucket without a value has a bar of height 0: nothing an annotation can point at
+        if (dataPoint.value != null && !Number.isNaN(dataPoint.value)) {
+          dataPoint.key = { date: TimeChart.pointDate(entry.date), scenario: dataPoint.scenario ?? undefined };
+        }
+      }
+    }
+
     return dataModel;
+  }
+
+  /** The bucket a point belongs to. */
+  private static pointDate(date: DateTime): string | undefined {
+    return pointDate(date?.toISO?.());
   }
 
   private findSmallestDataPointValue(dataModel: TimeChartDataModelEntry[]): DataPoint {
@@ -1048,17 +1063,24 @@ export class TimeChart {
         const pixelPerUnit = scenarios.type === "dr" ? this.pixelPerPercentage : this.pixelPerUnit;
 
         for (const index in dataModel) {
+          const point = new DataPoint(
+            this.calculateVariance(scenarios, dataModel[index], scenariomap),
+            scenarios.delta,
+            pixelPerUnit,
+            directon,
+          );
+          if (point.value !== null && !Number.isNaN(point.value)) {
+            point.key = {
+              date: TimeChart.pointDate(dataModel[index].date),
+              scenario: variancesConfig[varianceScenario],
+            };
+          }
           varianceModel.push({
             id: Number(index),
             category: dataModel[index].category,
             type: scenarios.type === "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
             date: dataModel[index].date,
-            scenario1: new DataPoint(
-              this.calculateVariance(scenarios, dataModel[index], scenariomap),
-              scenarios.delta,
-              pixelPerUnit,
-              directon,
-            ),
+            scenario1: point,
             scenario2: new DataPoint(null, null, null, null),
             scenario3: new DataPoint(null, null, null, null),
             scenario4: new DataPoint(null, null, null, null),
@@ -1639,7 +1661,11 @@ export class TimeChart {
         });
 
         if (lastColumn && group.hasValue) {
-          (lastColumn as StackedColumn).drawTotalLabel(this.dataFormatDigits, this.measureScale);
+          // an overlay has one total per scenario family: the family tells them apart
+          (lastColumn as StackedColumn).drawTotalLabel(this.dataFormatDigits, this.measureScale, {
+            date: TimeChart.pointDate(elements.date),
+            scenario: groups.length > 1 ? group.prefix : undefined,
+          });
         }
       });
     });

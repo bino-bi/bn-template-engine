@@ -30,6 +30,7 @@ import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
+import { levelKey } from "../../../utils/layoutState/dataPoint";
 
 /** Internal data model entry: one category with up to 4 scenario DataPoints and optional stack segments. */
 type StructureChartDataModelEntry = {
@@ -89,6 +90,8 @@ export class StructureChart {
 
   private pixelPerUnit: number = 1;
   private pixelPerPercentage: number = 1;
+  /** The dimension a bar stands for: names the `data-bn-*` key of its value. */
+  private level: AggregationLevel = AggregationLevel.CATEGORY;
   private hideCategories: boolean = false;
   private axisScenario: Scenario = Scenario.AC1;
   readonly CSS_CATEGORIES: string = "categories";
@@ -178,7 +181,16 @@ export class StructureChart {
     this.pixelPerUnit = config.pixelPerUnit || 1;
     this.pixelPerPercentage = config.pixelPerPercentage || 100;
     this.setSource(config.filter);
+    this.level = config.level;
     this.dataModel = this.populateModel(scenarios, config.level, config.sortOrder);
+    for (const row of this.dataModel) {
+      for (const dataPoint of [row.scenario1, row.scenario2, row.scenario3, row.scenario4]) {
+        // a category without a value has no bar: nothing an annotation can point at
+        if (dataPoint.value != null && !Number.isNaN(dataPoint.value)) {
+          dataPoint.key = { ...levelKey(this.level, row.category), scenario: dataPoint.scenario ?? undefined };
+        }
+      }
+    }
 
     // Populate per-dimension stack segments when stacking by a data dimension
     if (config.stackConfig && config.stackConfig.by !== StackBy.SCENARIOS) {
@@ -905,16 +917,23 @@ export class StructureChart {
         }
 
         for (const index in dataModel) {
+          const point = new DataPoint(
+            this.calculateVariance(scenarios, dataModel[index], scenariomap),
+            scenarios.base,
+            pixelPerUnit,
+            directon,
+          );
+          if (point.value !== null && !Number.isNaN(point.value)) {
+            point.key = {
+              ...levelKey(this.level, dataModel[index].category),
+              scenario: variancesConfig[varianceScenario],
+            };
+          }
           varianceModel.push({
             id: Number(index),
             category: dataModel[index].category,
             type: scenarios.type === "dr" ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
-            scenario1: new DataPoint(
-              this.calculateVariance(scenarios, dataModel[index], scenariomap),
-              scenarios.base,
-              pixelPerUnit,
-              directon,
-            ),
+            scenario1: point,
             scenario2: new DataPoint(null, null, null, null),
             scenario3: new DataPoint(null, null, null, null),
             scenario4: new DataPoint(null, null, null, null),
@@ -1148,7 +1167,11 @@ export class StructureChart {
         });
 
         if (lastBar && group.hasValue) {
-          (lastBar as StackedBar).drawTotalLabel(this.dataFormatDigits, this.measureScale);
+          // an overlay has one total per scenario family: the family tells them apart
+          (lastBar as StackedBar).drawTotalLabel(this.dataFormatDigits, this.measureScale, {
+            ...levelKey(this.level, elements.category),
+            scenario: groups.length > 1 ? group.prefix : undefined,
+          });
         }
       });
     });
@@ -1367,11 +1390,11 @@ export class StructureChart {
     for (const row of this.dataModel) {
       const segments = groupMap.get(row.category);
       if (segments && segments.length > 0) {
-        row.stackSegments = segments.map((seg: { label: string; value: number }) => ({
-          label: seg.label,
-          value: seg.value,
-          dataPoint: new DataPoint(seg.value, scenario, this.pixelPerUnit, Scenario.NEU),
-        }));
+        row.stackSegments = segments.map((seg: { label: string; value: number }) => {
+          const dataPoint = new DataPoint(seg.value, scenario, this.pixelPerUnit, Scenario.NEU);
+          dataPoint.key = { ...levelKey(this.level, row.category), [stackColumn]: seg.label, scenario };
+          return { label: seg.label, value: seg.value, dataPoint };
+        });
       } else {
         row.stackSegments = [];
       }

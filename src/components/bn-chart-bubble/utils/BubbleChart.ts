@@ -1,4 +1,6 @@
-import { Container, G, Svg } from "@svgdotjs/svg.js";
+import { Container, G, Shape, Svg, Text } from "@svgdotjs/svg.js";
+import { dataPointAttributes } from "../../../utils/layoutState/dataPoint";
+import { xyPointKey } from "../../../utils/xy/pointKey";
 import CalculateSize from "calculate-size";
 import { AlaSQLDatabase } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
@@ -174,8 +176,8 @@ export class BubbleChart {
     x: number,
     y: number,
     options: { anchor?: string; bold?: boolean; color?: string } = {},
-  ): void {
-    group
+  ): Text {
+    return group
       .text(text)
       .font({
         size: this.styles.fontStyles.size,
@@ -588,11 +590,13 @@ export class BubbleChart {
         }
       }
 
-      this.drawBubble(primaryGroup, cx, cy, r, treatment, seriesIndex, hue);
+      const key = xyPointKey(point, facet.key, this.config);
+      this.drawBubble(primaryGroup, cx, cy, r, treatment, seriesIndex, hue)?.attr(dataPointAttributes(key, "element"));
       labeler.registerMark(cx, cy, r);
 
       if (point.share !== undefined && r > 0) {
-        this.drawShareSlice(primaryGroup, cx, cy, r, point.share, shade(hue));
+        // no part: the bubble is the one addressable mark of this point
+        this.drawShareSlice(primaryGroup, cx, cy, r, point.share, shade(hue))?.attr(dataPointAttributes(key));
       }
 
       if (this.config.labels.values && point.size !== undefined) {
@@ -602,7 +606,7 @@ export class BubbleChart {
       marks.push({ point, cx, cy, r, seriesIndex, hue, treatment });
     }
 
-    this.drawNameLabels(group, labeler, marks);
+    this.drawNameLabels(group, labeler, marks, facet.key);
 
     panel.frame.drawTickLabels(group, {
       ticksX,
@@ -632,11 +636,11 @@ export class BubbleChart {
     treatment: MarkTreatment,
     seriesIndex: number,
     hue: string,
-  ): void {
+  ): Shape | undefined {
     if (r <= 0) {
-      return;
+      return undefined;
     }
-    group
+    return group
       .circle(r * 2)
       .center(cx, cy)
       .fill(this.treatmentFill(treatment, seriesIndex, hue))
@@ -644,16 +648,15 @@ export class BubbleChart {
   }
 
   /** Pie sector from 12 o'clock, clockwise, angle = share·360° (10E). */
-  private drawShareSlice(group: G, cx: number, cy: number, r: number, share: number, fill: string): void {
+  private drawShareSlice(group: G, cx: number, cy: number, r: number, share: number, fill: string): Shape | undefined {
     if (share <= 0) {
-      return;
+      return undefined;
     }
     if (share >= 1) {
-      group
+      return group
         .circle(r * 2)
         .center(cx, cy)
         .fill(fill);
-      return;
     }
 
     const angle = share * 2 * Math.PI;
@@ -661,7 +664,7 @@ export class BubbleChart {
     const endY = cy - r * Math.cos(angle);
     const largeArc = angle > Math.PI ? 1 : 0;
 
-    group
+    return group
       .path(`M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 ${largeArc} 1 ${endX} ${endY} Z`)
       .fill(fill)
       .stroke("none");
@@ -681,7 +684,7 @@ export class BubbleChart {
   }
 
   /** Name labels - bubbles are few, named entities; labels prefer the spot above (10A). */
-  private drawNameLabels(group: G, labeler: PointLabeler, marks: BubbleMark[]): void {
+  private drawNameLabels(group: G, labeler: PointLabeler, marks: BubbleMark[], facetKey: string): void {
     // Rank by size descending: big bubbles claim their labels first.
     const ranked = [...marks].sort((a, b) => (b.point.size ?? 0) - (a.point.size ?? 0));
 
@@ -695,17 +698,24 @@ export class BubbleChart {
       this.addWarningOnce("xy-label-unknown", { names: unknownNames.join(", ") });
     }
 
-    const candidates: LabelCandidate[] = selected.map((mark) => ({
-      name: mark.point.name,
-      cx: mark.cx,
-      cy: mark.cy,
-      r: mark.r,
-      width: this.textWidth(mark.point.name),
-      height: 1.1 * this.em,
-    }));
+    const pointOf = new Map<LabelCandidate, XYPoint>();
+    const candidates: LabelCandidate[] = selected.map((mark) => {
+      const candidate: LabelCandidate = {
+        name: mark.point.name,
+        cx: mark.cx,
+        cy: mark.cy,
+        r: mark.r,
+        width: this.textWidth(mark.point.name),
+        height: 1.1 * this.em,
+      };
+      pointOf.set(candidate, mark.point);
+      return candidate;
+    });
 
     for (const placed of labeler.place(candidates)) {
-      this.drawText(group, placed.candidate.name, placed.x, placed.y + 0.9 * placed.candidate.height, {});
+      this.drawText(group, placed.candidate.name, placed.x, placed.y + 0.9 * placed.candidate.height, {}).attr(
+        dataPointAttributes(xyPointKey(pointOf.get(placed.candidate)!, facetKey, this.config), "label"),
+      );
     }
   }
 
