@@ -4,7 +4,11 @@ jest.mock("nanoid", () => ({ nanoid: () => `id-${nextId++}` }));
 
 jest.mock("../../context/context-protocol", () => {
   const { createStore } = require("@stencil/store");
-  const stores = { annotationsUnplaced: createStore({}) };
+  const { SYSTEM_STYLE_DEFAULTS } = require("../../stores/componentStyles");
+  const stores = {
+    annotationsUnplaced: createStore({}),
+    componentStyles: createStore({ _system: SYSTEM_STYLE_DEFAULTS }),
+  };
   return { getStores: () => stores, clearStoresCache: () => {}, findContextElement: () => undefined };
 });
 

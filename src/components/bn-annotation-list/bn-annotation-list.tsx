@@ -2,12 +2,14 @@ import { Component, Element, forceUpdate, h, Host, Prop } from "@stencil/core";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import { annotationColor, annotationPageKey, parseListItems } from "../../utils/annotations";
 import { sanitizeHtml } from "../../utils/sanitizeHtml";
+import { Style } from "../../stores/componentStyles";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 
 /**
  * Prints the numbered texts of the annotations of a page: the number in a
- * circle like the ones on the page (always in the highlight colour), the bold
+ * circle like the ones on the page (always in the main colour of the style), the bold
  * title, then the text.
  *
  * The numbers are given. An entry without a number has no circle, and neither
@@ -33,8 +35,15 @@ export class AnnotationList {
    */
   @Prop() items?: string;
 
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its section `bn-annotation` sets the colour of the circles.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private stores: ScopedStores;
   private pageKey = "";
   private unsubscribe?: () => void;
@@ -42,6 +51,7 @@ export class AnnotationList {
   constructor() {
     withComponentStatus(this);
     this.errors = withHasError(this);
+    this.componentStyle = withComponentStyle(this);
   }
 
   connectedCallback() {
@@ -65,6 +75,10 @@ export class AnnotationList {
     } else {
       this.errors.addOrReplace({ id: "ERR_items", type: "error", message: "items: not a JSON array of objects." });
     }
+    const color = annotationColor(
+      undefined,
+      this.componentStyle(($) => $["bn-annotation"]),
+    );
     const unplaced = this.stores?.annotationsUnplaced.state[this.pageKey] ?? [];
 
     return (
@@ -73,7 +87,7 @@ export class AnnotationList {
           {(items ?? []).map((item) => (
             <li>
               {item.label != null && !unplaced.includes(item.label) ? (
-                <div class="badge" style={{ background: annotationColor() }}>
+                <div class="badge" style={{ background: color }}>
                   <span>{item.label}</span>
                 </div>
               ) : item.label != null ? (

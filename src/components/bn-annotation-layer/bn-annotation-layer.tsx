@@ -8,8 +8,10 @@ import {
   parseLayerItems,
 } from "../../utils/annotations";
 import { ComponentRegister } from "../../utils/componentRegister";
-import { ComponentLayoutState } from "../../utils/layoutState/types";
+import { ComponentLayoutState, DualRect } from "../../utils/layoutState/types";
+import { Style } from "../../stores/componentStyles";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Box, buildMark, DrawnMark } from "./utils/marks";
 import { isWholeComponent, matchPoint } from "./utils/matchPoint";
@@ -21,7 +23,13 @@ interface TargetElement extends HTMLElement {
 }
 
 /** The result of looking up one end of an item, in viewport coordinates. */
-type Anchor = { box: Box; whole: boolean } | { problem: string };
+type Anchor = { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[] } | { problem: string };
+
+/** The text of a cell: its screen box, and the width of the sign in front of it. */
+interface CellText {
+  box: Box;
+  sign?: number;
+}
 
 /** A chart can draw its data late: a point without a match is reported when the page has been quiet for two checks. */
 const REPORT_CHECK_MS = 200;
@@ -84,11 +92,18 @@ export class AnnotationLayer {
    */
   @Prop() items?: string;
 
+  /**
+   * Name of the component style to use (the `name` of a
+   * `<bn-component-style>`). Its section `bn-annotation` sets the colours.
+   */
+  @Prop({ reflect: true }) selectedStyle?: string;
+
   @State() private marks: DrawnMark[] = [];
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
   private readonly holdStatus: (work: Promise<unknown>) => void;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
   private stores: ScopedStores;
   private pageKey = "";
   private parsedItems: AnnotationLayerItem[] = [];
@@ -103,6 +118,7 @@ export class AnnotationLayer {
   constructor() {
     this.holdStatus = withComponentStatus(this);
     this.errors = withHasError(this);
+    this.componentStyle = withComponentStyle(this);
   }
 
   connectedCallback() {
@@ -210,16 +226,33 @@ export class AnnotationLayer {
       if (found.length !== 1) {
         return { problem: `${found.length} elements match the point ${JSON.stringify(point)} in "${id}"` };
       }
-      const { x, y, width, height } = found[0].component;
-      const box = { x: host.left + x, y: host.top + y, width, height };
+      const onScreen = ({ component: { x, y, width, height } }: DualRect): Box => ({
+        x: host.left + x,
+        y: host.top + y,
+        width,
+        height,
+      });
+      const box = onScreen(found[0].rect);
       // measuring ignores clipping: a row cut off by its cell would get its mark on the next component
       if (isCutOff(box, slots.get(visual)!) || !isVisibleIn(box, this.element)) {
         return { problem: `the point ${JSON.stringify(point)} in "${id}" is cut off` };
       }
-      return { box, whole: false };
+      const content = found[0].content;
+      if (!content) return { box, whole: false };
+      const cells = (state!.elements ?? []).flatMap((element) =>
+        element.kind === "cell" && element.content
+          ? [{ box: onScreen(element.content), sign: element.contentSign }]
+          : [],
+      );
+      return { box, whole: false, text: { box: onScreen(content), sign: found[0].contentSign }, obstacles: cells };
     };
 
     const toLocal = this.toLocalSpace();
+    // here the text runs along x and a layout px is a px, also on a rotated or scaled page
+    const textToLocal = ({ box, sign = 0 }: CellText): Box => {
+      const local = toLocal(box);
+      return { ...local, x: local.x - sign, width: local.width + sign };
+    };
     const em = parseFloat(getComputedStyle(this.svg).fontSize) || 13.3333;
     // the layout size: on a rotated page the screen box has the sides swapped
     const area = { width: this.element.clientWidth, height: this.element.clientHeight };
@@ -234,17 +267,14 @@ export class AnnotationLayer {
         problems.push({ item, problem: failed.problem });
         continue;
       }
-      const start = from as { box: Box; whole: boolean };
+      const start = from as { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[] };
       const end = to as { box: Box } | undefined;
-      const mark = buildMark(
-        item,
-        annotationColor(item.color),
-        toLocal(start.box),
-        end && toLocal(end.box),
-        em,
-        start.whole,
+      const mark = buildMark(item, toLocal(start.box), end && toLocal(end.box), em, {
+        whole: start.whole,
         area,
-      );
+        text: start.text && textToLocal(start.text),
+        obstacles: start.obstacles?.map(textToLocal),
+      });
       if (mark) {
         marks.push(mark);
       } else {
@@ -342,10 +372,14 @@ export class AnnotationLayer {
   }
 
   private renderMark(mark: DrawnMark) {
+    const color = annotationColor(
+      mark.color,
+      this.componentStyle(($) => $["bn-annotation"]),
+    );
     if (mark.kind === "marker") {
       return (
         <g class="mark marker" data-label={mark.badge.label}>
-          {this.renderBadge(mark.badge, mark.color)}
+          {this.renderBadge(mark.badge, color)}
         </g>
       );
     }
@@ -358,23 +392,18 @@ export class AnnotationLayer {
             width={mark.width}
             height={mark.height}
             rx={mark.rx}
-            style={{ fill: "none", stroke: mark.color, strokeWidth: "1.5" }}
+            ry={mark.ry}
+            style={{ fill: "none", stroke: color, strokeWidth: "1.5" }}
           ></rect>
-          {this.renderBadge(mark.badge, mark.color)}
+          {this.renderBadge(mark.badge, color)}
         </g>
       );
     }
     return (
       <g class="mark arrow" data-label={mark.badge?.label}>
-        <line
-          x1={mark.x1}
-          y1={mark.y1}
-          x2={mark.x2}
-          y2={mark.y2}
-          style={{ stroke: mark.color, strokeWidth: "1.5" }}
-        ></line>
-        <polygon points={mark.head} style={{ fill: mark.color }}></polygon>
-        {this.renderBadge(mark.badge, mark.color)}
+        <line x1={mark.x1} y1={mark.y1} x2={mark.x2} y2={mark.y2} style={{ stroke: color, strokeWidth: "1.5" }}></line>
+        <polygon points={mark.head} style={{ fill: color }}></polygon>
+        {this.renderBadge(mark.badge, color)}
       </g>
     );
   }

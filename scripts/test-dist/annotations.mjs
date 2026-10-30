@@ -109,6 +109,24 @@ const drawnMarks = (page) =>
     }),
   );
 
+/** Screen box of the text of the only element matching `selector` inside the target `id`. */
+const textBoxOf = (page, id, selector) =>
+  page.evaluate(
+    (id, selector) => {
+      const host = document.querySelector(`[data-bino-annotation-target="${id}"]`);
+      const [element] = window.deep(host, selector);
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const r = range.getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    },
+    id,
+    selector,
+  );
+
+const disjoint = (a, b) =>
+  a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y;
+
 const centre = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 
 const assertSameCentre = (actual, expected, message) => {
@@ -196,7 +214,12 @@ const assertFixturePlacement = async (page) => {
   assertOnEdge(marks[2].tip, bar, "arrow ends at the edge of the second bar");
 
   assertSameCentre(marks[3].circle, await boxOf(page, "structure", STRUCTURE_BAR), "marker on a structure bar");
-  assertSurrounds(marks[4].rect, await boxOf(page, "table", CELL), "frame around a table cell");
+  // the frame sits on the number in the cell, not on the cell, and the marker does not cover a number
+  const text = await textBoxOf(page, "table", CELL);
+  assertSurrounds(marks[4].rect, text, "frame around the number of a table cell");
+  assertSameCentre(marks[4].rect, text, "frame centred on the number");
+  const cellBox = await boxOf(page, "table", CELL);
+  assert.ok(marks[4].rect.width < cellBox.width + cellBox.height, "the frame is about the size of the number");
   assertSameCentre(marks[5].circle, await boxOf(page, "table", ROW), "marker on a whole table row");
 };
 
@@ -465,16 +488,228 @@ test("table: the parent of a thereof row, a date bucket and a REST row of a grou
     "parent row",
   );
   assertSameCentre(marks[1].circle, await boxOf(page, "thereof", 'tr[data-bn-sub-category="X"]'), "thereof row");
-  assertSameCentre(
-    marks[2].circle,
-    await boxOf(page, "interval", 'td[data-bn-category="A"][data-bn-date="2024-01-01"]'),
-    "bucket cell",
+  // a marker on a cell sits next to the number, on its line
+  for (const [mark, id, selector] of [
+    [marks[2], "interval", 'td[data-bn-category="A"][data-bn-date="2024-01-01"]'],
+    [marks[3], "rest", 'td[data-bn-category="REST"][data-bn-scenario="ac1"]'],
+  ]) {
+    const text = await textBoxOf(page, id, selector);
+    assert.ok(disjoint(mark.circle, text), JSON.stringify({ label: mark.label, circle: mark.circle, text }));
+    assert.ok(Math.abs(centre(mark.circle).y - centre(text).y) < 1, JSON.stringify({ circle: mark.circle, text }));
+  }
+});
+
+test("table: a marker on a cell does not cover any number of its row", async () => {
+  const items = [
+    { label: "1", target: "table", point: { row: "total", scenario: "pl1" } },
+    { label: "2", target: "table", point: { row: "total", scenario: "ac1" } },
+    { label: "3", target: "table", point: { rowGroup: "Europe", category: "Software", scenario: "ac1" } },
+  ];
+  const page = await openDeep(DATA + pageOf(FIXTURE_SLOTS, items));
+  const marks = await drawnMarks(page);
+  assert.equal(marks.length, 3);
+
+  const numbers = await page.evaluate(() => {
+    const host = document.querySelector('[data-bino-annotation-target="table"]');
+    return window.deep(host, "td[data-bn-part]").flatMap((td) => {
+      const range = document.createRange();
+      range.selectNodeContents(td);
+      const r = range.getBoundingClientRect();
+      return r.width > 0 ? [{ x: r.left, y: r.top, width: r.width, height: r.height }] : [];
+    });
+  });
+  for (const mark of marks) {
+    for (const number of numbers) {
+      assert.ok(disjoint(mark.circle, number), JSON.stringify({ label: mark.label, circle: mark.circle, number }));
+    }
+  }
+});
+
+const PAGE = 'page-format="xga" page-orientation="landscape"';
+const SCALED = `${PAGE} style="transform: scale(0.7); transform-origin: 0 0"`;
+for (const [name, contextAttrs, pageAttrs, scale] of [
+  ["on a page", "", PAGE, 1],
+  ["on a rotated page", 'render-orientation="portrait"', PAGE, 1],
+  ["on a scaled page", "", SCALED, 0.7],
+  ["on a scaled and rotated page", 'render-orientation="portrait"', SCALED, 0.7],
+]) {
+  test(`table: the marks around a cell know what the cell shows, ${name}`, async () => {
+    const long = "A category label that is much too long for its column";
+    const rows = [
+      row("2024-01-01", "E", 1, long, 1, { ac1: 50, pl1: 20 }),
+      row("2024-01-01", "E", 1, "B", 2, { ac1: 10, pl1: 30 }),
+    ];
+    const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+    const common = `datasets="$t" level="category" scenarios="ac1,pl1" variances="dac1_pl1_pos" unit-scaling="auto"`;
+    const plain = `<bn-table ${common} category-width="w5"></bn-table>`;
+    const bars = `<bn-table ${common} bar-columns="dac1_pl1_pos" bar-column-width="w15"></bn-table>`;
+    const items = [
+      { label: "1", target: "plain", point: { category: "B", scenario: "dac1_pl1_pos" } },
+      { mark: "frame", target: "plain", point: { category: long, scenario: "dac1_pl1_pos" } },
+      { mark: "frame", target: "bars", point: { category: "B", scenario: "dac1_pl1_pos" } },
+    ];
+    const page = await openDeep(
+      data + pageOf([slot(0, "plain", plain), slot(1, "bars", bars)], items, pageAttrs),
+      contextAttrs,
+    );
+
+    const result = await page.evaluate((long) => {
+      const box = (r) => ({ x: r.left, y: r.top, width: r.width, height: r.height });
+      const at = (id, selector) =>
+        window.deep(document.querySelector(`[data-bino-annotation-target="${id}"]`), selector)[0];
+      const textOf = (td) => {
+        const range = document.createRange();
+        range.selectNodeContents(td);
+        return box(range.getBoundingClientRect());
+      };
+      const variance = at("plain", `td[data-bn-category="${long}"][data-bn-scenario="dac1_pl1_pos"]`);
+      const label = at("plain", `td[data-bn-category="${long}"][data-bn-scenario="category"]`);
+      const barCell = at("bars", 'td[data-bn-category="B"][data-bn-scenario="dac1_pl1_pos"]');
+      return {
+        before: getComputedStyle(variance, "::before").content,
+        varianceText: textOf(variance),
+        labelBox: box(label.getBoundingClientRect()),
+        labelText: textOf(label),
+        barNumber: box(barCell.querySelector("svg text").getBoundingClientRect()),
+        barChart: box(barCell.querySelector("svg").getBoundingClientRect()),
+      };
+    }, long);
+    assert.equal(result.before, '"+"', "a positive variance has its sign in a pseudo element");
+
+    const marks = await drawnMarks(page);
+    assert.equal(marks.length, 3);
+
+    // the oval takes the sign in: on one side it reaches further than the padding alone
+    const oval = marks[1].rect;
+    const text = result.varianceText;
+    assertSurrounds(oval, text, "oval around the number");
+    const spare = Math.max(text.x - oval.x, oval.y + oval.height - (text.y + text.height));
+    assert.ok(spare > (0.45 * 13 + 3) * scale, `the sign is in the box: ${JSON.stringify({ oval, text })}`);
+
+    // the marker stays clear of the sign, which is about 7.5 layout px wide
+    const markerText = await textBoxOf(page, "plain", 'td[data-bn-category="B"][data-bn-scenario="dac1_pl1_pos"]');
+    const withSign = {
+      x: markerText.x - 7 * scale,
+      y: markerText.y,
+      width: markerText.width + 7 * scale,
+      height: markerText.height + (contextAttrs ? 7 * scale : 0),
+    };
+    assert.ok(disjoint(marks[0].circle, withSign), JSON.stringify({ circle: marks[0].circle, withSign }));
+
+    // a bar cell: the oval goes around the number, not around the whole bar
+    assertSurrounds(marks[2].rect, result.barNumber, "oval around the number of a bar");
+    const longSide = (b) => Math.max(b.width, b.height);
+    assert.ok(longSide(marks[2].rect) < longSide(result.barChart) * 0.6, JSON.stringify(marks[2].rect));
+
+    // a clipped label is no longer than its cell
+    const content = await page.evaluate(async (long) => {
+      const state = await document.querySelector("bn-table").getLayoutState({ detail: "full" });
+      const cell = state.elements.find((e) => e.point?.category === long && e.point.scenario === "category");
+      return { content: cell.content.component, rect: cell.rect.component };
+    }, long);
+    assert.ok(longSide(result.labelText) > longSide(result.labelBox), "the label is cut off by its cell");
+    assert.ok(longSide(content.content) <= longSide(content.rect) + 0.5, JSON.stringify(content));
+  });
+}
+
+test("table: the hidden prefix of a second thereof row is not part of the text", async () => {
+  const rows = [
+    { ...row("2024-01-01", "E", 1, "A", 1, { ac1: 10 }), subCategory: "X", subCategoryIndex: 1 },
+    { ...row("2024-01-01", "E", 1, "A", 1, { ac1: 20 }), subCategory: "Y", subCategoryIndex: 2 },
+  ];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+  const table = `<bn-table datasets="$t" level="category" scenarios="ac1" unit-scaling="auto" thereof='[{"category":"A"}]'></bn-table>`;
+  const items = [{ mark: "frame", target: "t", point: { category: "A", subCategory: "Y", scenario: "category" } }];
+  const page = await openDeep(data + pageOf([slot(0, "t", table)], items));
+
+  const [mark] = await drawnMarks(page);
+  const visible = await page.evaluate(() => {
+    const host = document.querySelector('[data-bino-annotation-target="t"]');
+    const td = window.deep(host, 'td[data-bn-sub-category="Y"][data-bn-scenario="category"]')[0];
+    const range = document.createRange();
+    range.selectNodeContents(td);
+    const prefix = td.querySelector(".prefix-second");
+    if (!prefix || prefix.textContent.trim() === "") throw new Error("the row has no hidden prefix");
+    range.setStartAfter(prefix);
+    const r = range.getBoundingClientRect();
+    return { x: r.left, y: r.top, width: r.width, height: r.height };
+  });
+  assertSameCentre(mark.rect, visible, "frame around the visible label");
+});
+
+test("table: in a dense table the marker gets smaller and stays between the numbers", async () => {
+  const rows = [row("2024-01-01", "E", 1, "A", 1, { ac1: 1234, pl1: 1234, fc1: 1234 })];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+  const table = `<bn-table datasets="$t" level="category" scenarios="ac1,pl1,fc1" unit-scaling="auto"></bn-table>`;
+  const items = [{ label: "1", target: "t", point: { category: "A", scenario: "ac1" } }];
+  const page = await openDeep(data + pageOf([slot(0, "t", table)], items));
+
+  const [mark] = await drawnMarks(page);
+  const texts = await page.evaluate(() => {
+    const host = document.querySelector('[data-bino-annotation-target="t"]');
+    return ["ac1", "pl1", "fc1"].map((scenario) => {
+      const range = document.createRange();
+      range.selectNodeContents(window.deep(host, `td[data-bn-category="A"][data-bn-scenario="${scenario}"]`)[0]);
+      const r = range.getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    });
+  });
+  const middle = centre(mark.circle);
+  assert.ok(mark.circle.width < 14, JSON.stringify(mark.circle));
+  assert.ok(
+    texts.every((text) => middle.x < text.x || middle.x > text.x + text.width),
+    JSON.stringify({ middle, texts }),
   );
-  assertSameCentre(
-    marks[3].circle,
-    await boxOf(page, "rest", 'td[data-bn-category="REST"][data-bn-scenario="ac1"]'),
-    "REST cell",
+  const line = centre(texts[0]);
+  assert.ok(Math.abs(middle.y - line.y) < 1, JSON.stringify({ middle, line }));
+});
+
+test("style: the colours come from the style section bn-annotation", async () => {
+  const style = (name, body) => `<bn-component-style name="${name}">${esc(JSON.stringify(body))}</bn-component-style>`;
+  const items = [
+    { label: "1", target: "structure", point: { category: "Software", scenario: "ac1" } },
+    { label: "2", color: "brand", target: "structure", point: { category: "Hardware", scenario: "ac1" } },
+    { label: "3", color: "negative", target: "structure", point: { category: "Services", scenario: "ac1" } },
+  ];
+  const list = `<div slot="slot-2"><bn-annotation-list items="${esc(JSON.stringify([{ label: "1", title: "x" }]))}"></bn-annotation-list></div>`;
+  const page = await openDeep(
+    style("_default", { "bn-annotation": { color: "#112233", colors: { brand: "#445566" } } }) +
+      DATA +
+      pageOf([FIXTURE_SLOTS[1], list], items),
   );
+  const fills = () =>
+    page.evaluate(() => ({
+      marks: [...document.querySelector("bn-annotation-layer").shadowRoot.querySelectorAll("circle")].map(
+        (circle) => getComputedStyle(circle).fill,
+      ),
+      list: getComputedStyle(document.querySelector("bn-annotation-list").shadowRoot.querySelector(".badge"))
+        .backgroundColor,
+    }));
+
+  assert.deepEqual(await fills(), {
+    marks: ["rgb(17, 34, 51)", "rgb(68, 85, 102)", "rgb(255, 0, 0)"],
+    list: "rgb(17, 34, 51)",
+  });
+
+  // a custom property of the page wins over the style
+  await page.$eval("bn-layout-page", (el) => el.style.setProperty("--bn-annotation-color", "#010203"));
+  assert.equal((await fills()).marks[0], "rgb(1, 2, 3)");
+});
+
+test("style: a style that comes after the page, and a selected style, reach the marks", async () => {
+  const style = (name, color) =>
+    `<bn-component-style name="${name}">${esc(JSON.stringify({ "bn-annotation": { color } }))}</bn-component-style>`;
+  const items = [{ label: "1", target: "structure", point: { category: "Software", scenario: "ac1" } }];
+  const page = await openDeep(
+    DATA +
+      pageOf([FIXTURE_SLOTS[1]], items).replace("<bn-annotation-layer", '<bn-annotation-layer selected-style="late"') +
+      style("late", "#112233"),
+  );
+  const fill = await page.$eval(
+    "bn-annotation-layer",
+    (el) => getComputedStyle(el.shadowRoot.querySelector("circle")).fill,
+  );
+  assert.equal(fill, "rgb(17, 34, 51)");
 });
 
 test("table: a cell without a value has no key, and a mark on it is not drawn", async () => {

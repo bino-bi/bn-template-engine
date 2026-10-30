@@ -86,10 +86,14 @@ export namespace Components {
    * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole.
    */
   "items"?: string;
+  /**
+   * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colours.
+   */
+  "selectedStyle"?: string;
  }
  /**
   * Prints the numbered texts of the annotations of a page: the number in a
-  * circle like the ones on the page (always in the highlight colour), the bold
+  * circle like the ones on the page (always in the main colour of the style), the bold
   * title, then the text.
   * The numbers are given. An entry without a number has no circle, and neither
   * has an entry whose mark `bn-annotation-layer` could not place on this page.
@@ -102,6 +106,10 @@ export namespace Components {
    * JSON array of the entries, each one `{ label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted.
    */
   "items"?: string;
+  /**
+   * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colour of the circles.
+   */
+  "selectedStyle"?: string;
  }
   interface BnAsset {
     /**
@@ -2137,7 +2145,7 @@ declare global {
  };
  /**
   * Prints the numbered texts of the annotations of a page: the number in a
-  * circle like the ones on the page (always in the highlight colour), the bold
+  * circle like the ones on the page (always in the main colour of the style), the bold
   * title, then the text.
   * The numbers are given. An entry without a number has no circle, and neither
   * has an entry whose mark `bn-annotation-layer` could not place on this page.
@@ -2553,10 +2561,14 @@ declare namespace LocalJSX {
    * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole.
    */
   "items"?: string;
+  /**
+   * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colours.
+   */
+  "selectedStyle"?: string;
  }
  /**
   * Prints the numbered texts of the annotations of a page: the number in a
-  * circle like the ones on the page (always in the highlight colour), the bold
+  * circle like the ones on the page (always in the main colour of the style), the bold
   * title, then the text.
   * The numbers are given. An entry without a number has no circle, and neither
   * has an entry whose mark `bn-annotation-layer` could not place on this page.
@@ -2569,6 +2581,10 @@ declare namespace LocalJSX {
    * JSON array of the entries, each one `{ label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted.
    */
   "items"?: string;
+  /**
+   * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colour of the circles.
+   */
+  "selectedStyle"?: string;
  }
   interface BnAsset {
     /**
@@ -4531,9 +4547,11 @@ declare namespace LocalJSX {
 
  interface BnAnnotationLayerAttributes {
   "items": string;
+  "selectedStyle": string;
  }
  interface BnAnnotationListAttributes {
   "items": string;
+  "selectedStyle": string;
  }
   interface BnAssetAttributes {
     "name": string;
@@ -5018,7 +5036,7 @@ declare module "@stencil/core" {
    "bn-annotation-layer": LocalJSX.IntrinsicElements["bn-annotation-layer"] & JSXBase.HTMLAttributes<HTMLBnAnnotationLayerElement>;
    /**
     * Prints the numbered texts of the annotations of a page: the number in a
-    * circle like the ones on the page (always in the highlight colour), the bold
+    * circle like the ones on the page (always in the main colour of the style), the bold
     * title, then the text.
     * The numbers are given. An entry without a number has no circle, and neither
     * has an entry whose mark `bn-annotation-layer` could not place on this page.

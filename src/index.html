@@ -2093,8 +2093,11 @@
   </bn-context>
 
   <!-- ANNOTATIONS ON A ROTATED PAGE: this document prints in portrait, so the landscape page is
-       turned onto the sheet. The marks sit on the same elements as on the page demo_annotations. -->
+       turned onto the sheet. The marks sit on the same elements as on the page demo_annotations,
+       here in the colours of the style of this context. -->
   <bn-context locale='en' render-orientation='portrait'>
+    <!-- The colours of the marks and the list come from the style section bn-annotation. -->
+    <bn-component-style name='_default'>{&#34;bn-annotation&#34;:{&#34;color&#34;:&#34;#7b1fa2&#34;,&#34;colors&#34;:{&#34;negative&#34;:&#34;#e65100&#34;}}}</bn-component-style>
     <bn-datasource name='annotations_data'>[
       {"date": "2023-01-01", "rowGroup": "Europe", "rowGroupIndex": 1, "category": "Hardware", "categoryIndex": 1,
       "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 40, "ac2": 15, "pl1": 35, "pp1": 30},

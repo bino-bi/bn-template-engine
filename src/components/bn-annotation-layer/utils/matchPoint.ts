@@ -1,6 +1,13 @@
 import { AnnotationPoint } from "../../../utils/annotations";
 import { ComponentLayoutState, DualRect, LayoutPoint } from "../../../utils/layoutState/types";
 
+/** The box of a point, and the box of its text when it is a table cell. */
+export interface MatchedPoint {
+  rect: DualRect;
+  content?: DualRect;
+  contentSign?: number;
+}
+
 const KEY_FIELDS = ["rowGroup", "category", "subCategory", "date", "scenario", "row"] as const;
 
 /** A point without a field, or no point at all, means the component as a whole. */
@@ -19,11 +26,11 @@ function matches(found: LayoutPoint | undefined, point: AnnotationPoint): boolea
  * of a table repeats the key of its parent and adds a `subCategory`, so a point
  * without one means the parent: otherwise the parent could never be named.
  */
-export function matchPoint(state: ComponentLayoutState, point: AnnotationPoint): DualRect[] {
-  const candidates: { rect: DualRect; point?: LayoutPoint }[] =
+export function matchPoint(state: ComponentLayoutState, point: AnnotationPoint): MatchedPoint[] {
+  const candidates: (MatchedPoint & { point?: LayoutPoint })[] =
     state.table && point.scenario == null ? state.table.rows : ((state.elements ?? []) as typeof candidates);
   const noThereof = state.table != null && point.subCategory == null;
   return candidates
     .filter((candidate) => matches(candidate.point, point) && !(noThereof && candidate.point!.subCategory != null))
-    .map((candidate) => candidate.rect);
+    .map(({ rect, content, contentSign }) => ({ rect, content, contentSign }));
 }

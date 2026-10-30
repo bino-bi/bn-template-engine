@@ -70,7 +70,7 @@ A tool that decides which annotations a page has emits two elements. The engine 
 |-------|---------|
 | `label` | Number on the mark. Absent when the annotation has none. |
 | `mark` | `marker` (default): a filled circle. `frame`: a rounded rect around the anchor. `arrow`: a straight line from the first anchor to the second. |
-| `color` | A name. Resolves to the custom property `--bn-annotation-color-<name>`. `negative` and `positive` have a built-in value, any other name falls back to `--bn-annotation-color`, the highlight blue. |
+| `color` | A name from `colors` of the style section `bn-annotation`, see [Theming](theming.md#annotations). Built in are `negative` and `positive`. Any other name is the main colour of the style. |
 | `target`, `point` | The component, and the data point in it. |
 | `to`, `toPoint` | The second end of an arrow. |
 
@@ -78,9 +78,11 @@ A tool that decides which annotations a page has emits two elements. The engine 
 
 A point must match exactly one element that is not cut off by its cell. With no match or several matches the layer draws nothing for that item, writes a `console.warn` that names it, and does not fail: this is a finding in the data, not a broken page. An entry of the list with the same `label` loses its circle and keeps its place, the other labels stay as they are.
 
-`items` of the list, a JSON array of `{ label?, title?, html? }`. `title` is text. `html` is inline markup and is sanitized. The circle has the highlight colour, whatever the `color` of the mark. A number in `label` counts as text, on both elements. A field of another type is ignored.
+`items` of the list, a JSON array of `{ label?, title?, html? }`. `title` is text. `html` is inline markup and is sanitized. The circle has the main colour of the style, whatever the `color` of the mark. A number in `label` counts as text, on both elements. A field of another type is ignored.
 
 The layer counts as working until its marks are placed, so the readiness values above include them. It places them again when a component resizes or draws again.
+
+On a table cell, a marker sits next to the number and not on it: on the left, else on the right. A dense table has no room for that: there it is smaller and sits in the wider gap next to the number. A frame goes around the number and not around the cell. A frame around a text is an oval.
 
 The marks are not part of a component. A screenshot of a single component does not show them.
 

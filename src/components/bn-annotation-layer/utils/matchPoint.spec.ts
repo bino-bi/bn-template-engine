@@ -1,5 +1,5 @@
 import { ComponentLayoutState, DualRect, LayoutElement, TableRowInfo } from "../../../utils/layoutState/types";
-import { isWholeComponent, matchPoint } from "./matchPoint";
+import { isWholeComponent, matchPoint, MatchedPoint } from "./matchPoint";
 
 const rect = (x: number): DualRect => ({
   context: { x, y: 0, width: 1, height: 1 },
@@ -19,7 +19,7 @@ const CHART = state([
   bar(4, { date: "2025-01-01", part: "total" }),
 ]);
 
-const xs = (found: DualRect[]) => found.map((r) => r.component.x);
+const xs = (found: MatchedPoint[]) => found.map((match) => match.rect.component.x);
 
 describe("matchPoint", () => {
   it("needs every given field to be equal", () => {
@@ -40,6 +40,11 @@ describe("matchPoint", () => {
   it("keeps subCategory a wildcard in a chart", () => {
     const stacked = state([bar(1, { category: "A", subCategory: "X", scenario: "ac1" })]);
     expect(xs(matchPoint(stacked, { category: "A", scenario: "ac1" }))).toEqual([1]);
+  });
+
+  it("gives the box of the text of a cell", () => {
+    const cell = { ...bar(1, { category: "A", scenario: "ac1" }), content: rect(7) } as LayoutElement;
+    expect(matchPoint(state([cell]), { category: "A", scenario: "ac1" })[0].content).toEqual(rect(7));
   });
 
   it("skips elements without a key", () => {

@@ -1,23 +1,34 @@
 import { MockDocument } from "@stencil/core/mock-doc";
+import { SYSTEM_STYLE_DEFAULTS } from "../stores/componentStyles";
 import { annotationColor, annotationPageKey, parseLayerItems, parseListItems } from "./annotations";
 
 describe("annotationColor", () => {
+  const STYLE = SYSTEM_STYLE_DEFAULTS["bn-annotation"];
+
   it("is the highlight blue without a name", () => {
-    expect(annotationColor()).toBe("var(--bn-annotation-color, #0070c0)");
+    expect(annotationColor(undefined, STYLE)).toBe("var(--bn-annotation-color, #0070c0)");
   });
 
-  it("resolves a name to its custom property, with a built-in value when it has one", () => {
-    expect(annotationColor("negative")).toBe("var(--bn-annotation-color-negative, #ff0000)");
-    expect(annotationColor("brand-1")).toBe("var(--bn-annotation-color-brand-1, var(--bn-annotation-color, #0070c0))");
+  it("resolves a name to its custom property, with the value of the style when it has one", () => {
+    expect(annotationColor("negative", STYLE)).toBe("var(--bn-annotation-color-negative, #ff0000)");
+    expect(annotationColor("brand-1", STYLE)).toBe(
+      "var(--bn-annotation-color-brand-1, var(--bn-annotation-color, #0070c0))",
+    );
+  });
+
+  it("takes the colours of the style", () => {
+    const style = { color: "#111111", colors: { brand: "#222222" } };
+    expect(annotationColor(undefined, style)).toBe("var(--bn-annotation-color, #111111)");
+    expect(annotationColor("brand", style)).toBe("var(--bn-annotation-color-brand, #222222)");
   });
 
   it("does not let anything but a name into the style", () => {
-    expect(annotationColor("red);background:url(x)")).toBe("var(--bn-annotation-color, #0070c0)");
-    expect(annotationColor("#ff0000")).toBe("var(--bn-annotation-color, #0070c0)");
+    expect(annotationColor("red);background:url(x)", STYLE)).toBe("var(--bn-annotation-color, #0070c0)");
+    expect(annotationColor("#ff0000", STYLE)).toBe("var(--bn-annotation-color, #0070c0)");
   });
 
   it("does not take a member of Object for a built-in colour", () => {
-    expect(annotationColor("constructor")).toBe(
+    expect(annotationColor("constructor", STYLE)).toBe(
       "var(--bn-annotation-color-constructor, var(--bn-annotation-color, #0070c0))",
     );
   });

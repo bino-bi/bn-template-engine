@@ -198,6 +198,31 @@ Customize `<bn-grid>` borders and cell spacing:
 }
 ```
 
+### Annotations
+
+Colours of the marks of `<bn-annotation-layer>` and the circles of `<bn-annotation-list>`:
+
+```json
+{
+  "bn-annotation": {
+    "color": "#0070c0",
+    "colors": {
+      "negative": "#ff0000",
+      "positive": "#008f96"
+    }
+  }
+}
+```
+
+| Key | Effect |
+|-----|--------|
+| `color` | The colour of a mark without a `color`, of a mark with a name that `colors` does not have, and of the circles of the list. |
+| `colors` | The names a mark can use in its `color`, with their colours. Add your own, for example `"brand": "#7b1fa2"`. |
+
+The section works like any other: in `_default` for all marks, or in a named style that the layer and the list select with `selected-style`. Both elements read it on their own, so give a named style to both.
+
+A page can also set the custom properties `--bn-annotation-color` and `--bn-annotation-color-<name>`. They win over the style.
+
 ### Unknown keys
 
 A key that is not part of the style is ignored. `<bn-component-style>` reports such keys in its `has-error` attribute as `ERR_keys`, for example `timeChart` (the section is `bn-chart-time`) or a misspelled scale factor. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`.

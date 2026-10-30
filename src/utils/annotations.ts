@@ -1,3 +1,4 @@
+import { AnnotationStyle } from "../stores/componentStyles";
 import { DataPointPart } from "./layoutState/types";
 
 /** What an annotation points at. Values are raw dataset values, a field left out is a wildcard. */
@@ -33,22 +34,19 @@ export interface AnnotationListItem {
   html?: string;
 }
 
-const DEFAULT_COLOR = "#0070c0";
-const NAMED_DEFAULTS = new Map([
-  ["negative", "#ff0000"],
-  ["positive", "#008f96"],
-]);
 const COLOR_NAME = /^[a-z][a-z0-9-]*$/i;
 
 /**
  * CSS value of a named colour: `--bn-annotation-color-<name>` when the page
- * sets it, else the built-in value of the name, else the highlight blue
- * (`--bn-annotation-color`). The name ends up in a style, so only a plain name counts.
+ * sets it, else the colour of that name in the style, else the main colour
+ * (`--bn-annotation-color`, else `color` of the style). The name ends up in a
+ * style, so only a plain name counts.
  */
-export function annotationColor(name?: string): string {
-  const base = `var(--bn-annotation-color, ${DEFAULT_COLOR})`;
+export function annotationColor(name: string | undefined, style: AnnotationStyle): string {
+  const base = `var(--bn-annotation-color, ${style.color})`;
   if (!name || !COLOR_NAME.test(name)) return base;
-  return `var(--bn-annotation-color-${name}, ${NAMED_DEFAULTS.get(name.toLowerCase()) ?? base})`;
+  const own = Object.prototype.hasOwnProperty.call(style.colors, name) ? style.colors[name] : undefined;
+  return `var(--bn-annotation-color-${name}, ${own ?? base})`;
 }
 
 /** A value of an item as text. Anything else is dropped: an object in a JSX child would be taken for a vnode. */

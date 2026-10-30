@@ -19,11 +19,32 @@ interface Badge {
   label?: string;
 }
 
-/** What the layer draws for one item, in the coordinates of its SVG. */
+/** What the layer draws for one item, in the coordinates of its SVG. `color` is the name given in the item. */
 export type DrawnMark =
-  | { kind: "marker"; color: string; badge: Badge }
-  | { kind: "frame"; color: string; x: number; y: number; width: number; height: number; rx: number; badge?: Badge }
-  | { kind: "arrow"; color: string; x1: number; y1: number; x2: number; y2: number; head: string; badge?: Badge };
+  | { kind: "marker"; color?: string; badge: Badge }
+  | {
+      kind: "frame";
+      color?: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      rx: number;
+      ry: number;
+      badge?: Badge;
+    }
+  | { kind: "arrow"; color?: string; x1: number; y1: number; x2: number; y2: number; head: string; badge?: Badge };
+
+export interface MarkOptions {
+  /** The box is a component and not one of its data points. */
+  whole?: boolean;
+  /** The size of the layer: marks that would leave it stay inside. */
+  area?: Area;
+  /** The box of the text, when the data point is a table cell. */
+  text?: Box;
+  /** What a marker next to a text must not cover: the texts of the other cells. */
+  obstacles?: Box[];
+}
 
 const centre = (box: Box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 
@@ -50,22 +71,58 @@ function keepInside(badge: Badge, area: Area | undefined): Badge {
   };
 }
 
+const overlaps = (a: Box, b: Box): boolean =>
+  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
 /**
- * The geometry of one item. `whole` says that the box is a component and not
- * one of its data points: a marker then sits in the top-right corner. An arrow
- * between two boxes with the same centre has no direction and gives `undefined`.
- * `area` is the size of the layer: a frame that would leave it stays inside.
+ * A marker must not hide the number it points at: left of the text, else right
+ * of it. A dense table has no room for that, so there it gets smaller and sits
+ * in the middle of the wider gap next to the number.
+ */
+function besideText(text: Box, r: number, em: number, options: MarkOptions): { x: number; y: number; r: number } {
+  const gap = 0.25 * em;
+  const y = text.y + text.height / 2;
+  const obstacles = options.obstacles ?? [];
+  const isFree = (x: number): boolean => {
+    const circle = { x: x - r, y: y - r, width: 2 * r, height: 2 * r };
+    const area = options.area;
+    const inside = !area || (circle.x >= 0 && circle.x + circle.width <= area.width);
+    return inside && !obstacles.some((box) => overlaps(circle, box));
+  };
+  const textRight = text.x + text.width;
+  const left = text.x - gap - r;
+  const right = textRight + gap + r;
+  if (isFree(left)) return { x: left, y, r };
+  if (isFree(right)) return { x: right, y, r };
+
+  const onLine = obstacles.filter((box) => box.y < y && box.y + box.height > y);
+  const leftEdge = Math.max(0, ...onLine.filter((box) => box.x + box.width <= text.x).map((box) => box.x + box.width));
+  const rightEdge = Math.min(
+    options.area?.width ?? textRight + 2 * r,
+    ...onLine.filter((box) => box.x >= textRight).map((box) => box.x),
+  );
+  const leftGap = text.x - leftEdge;
+  const rightGap = rightEdge - textRight;
+  const x = rightGap >= leftGap ? textRight + rightGap / 2 : text.x - leftGap / 2;
+  return { x, y, r: Math.min(r, 0.5 * em) };
+}
+
+/**
+ * The geometry of one item. On a whole component a marker sits in the top-right
+ * corner, and on a table cell next to the number. A frame goes around the text
+ * of a cell. It is an oval around a text, and long sides stay straight, so it
+ * also fits a long label; a whole component keeps its corners. An arrow between
+ * two boxes with the same centre has no direction and gives `undefined`.
  */
 export function buildMark(
   item: AnnotationLayerItem,
-  color: string,
   box: Box,
   toBox: Box | undefined,
   em: number,
-  whole: boolean,
-  area?: Area,
+  options: MarkOptions = {},
 ): DrawnMark | undefined {
-  const label = item.label;
+  const { label, color } = item;
+  const { whole, area, text } = options;
 
   if (item.mark === "arrow") {
     if (!toBox) return undefined;
@@ -105,15 +162,27 @@ export function buildMark(
   }
 
   if (item.mark === "frame") {
-    const padding = 0.2 * em;
+    const around = text ?? box;
+    const part = item.point?.part;
+    const oval = !whole && (text != null || part === "label" || part === "total");
+    const paddingX = (oval ? 0.45 : 0.2) * em;
+    const paddingY = (oval ? 0.1 : 0.2) * em;
+    // a single digit gets a circle and not a narrow upright oval
+    const width = oval ? Math.max(around.width, around.height) : around.width;
+    const midX = around.x + around.width / 2;
     // half of the stroke stays inside the layer too
     const inset = 1;
-    const left = area ? Math.max(inset, box.x - padding) : box.x - padding;
-    const top = area ? Math.max(inset, box.y - padding) : box.y - padding;
-    const right = box.x + box.width + padding;
-    const bottom = box.y + box.height + padding;
-    const x2 = area ? Math.min(area.width - inset, right) : right;
-    const y2 = area ? Math.min(area.height - inset, bottom) : bottom;
+    const left = Math.max(area ? inset : -Infinity, midX - width / 2 - paddingX);
+    const top = Math.max(area ? inset : -Infinity, around.y - paddingY);
+    const x2 = Math.min(area ? area.width - inset : Infinity, midX + width / 2 + paddingX);
+    const y2 = Math.min(area ? area.height - inset : Infinity, around.y + around.height + paddingY);
+    const short = Math.min(x2 - left, y2 - top) / 2;
+    const ry = whole ? 0.25 * em : short;
+    const rx = whole ? 0.25 * em : oval ? Math.min((x2 - left) / 2, 1.6 * short) : short;
+    // the number sits on the outline, also where the outline is round; on a tight oval just outside, to not hide the text
+    const curve = 1 - Math.SQRT1_2;
+    const badgeR = 0.65 * em;
+    const outside = oval ? 0.6 * badgeR : 0;
     return {
       kind: "frame",
       color,
@@ -121,13 +190,21 @@ export function buildMark(
       y: top,
       width: x2 - left,
       height: y2 - top,
-      rx: 0.25 * em,
-      badge: label != null ? keepInside({ cx: x2, cy: top, r: 0.65 * em, label }, area) : undefined,
+      rx,
+      ry,
+      badge:
+        label != null
+          ? keepInside({ cx: x2 - rx * curve + outside, cy: top + ry * curve - outside, r: badgeR, label }, area)
+          : undefined,
     };
   }
 
   // without a number the circle is only a dot
-  const r = label != null ? 0.75 * em : 0.4 * em;
+  if (text && !whole) {
+    const beside = besideText(text, label == null ? 0.4 * em : 0.65 * em, em, options);
+    return { kind: "marker", color, badge: keepInside({ cx: beside.x, cy: beside.y, r: beside.r, label }, area) };
+  }
+  const r = label == null ? 0.4 * em : 0.75 * em;
   const at = whole ? { x: box.x + box.width - r, y: box.y + r } : centre(box);
   return { kind: "marker", color, badge: keepInside({ cx: at.x, cy: at.y, r, label }, area) };
 }

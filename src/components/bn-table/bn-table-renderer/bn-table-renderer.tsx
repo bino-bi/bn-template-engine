@@ -12,6 +12,8 @@ import {
   TableRowInfo,
   dataPointAttributes,
   measure,
+  measureContent,
+  measureSign,
   readLayoutPoint,
 } from "../../../utils/layoutState";
 
@@ -326,6 +328,10 @@ export class BnTableRenderer {
             rect: measure(domCell, origins),
             point: readLayoutPoint(domCell),
           };
+          if (entry.point) {
+            entry.content = measureContent(domCell, origins);
+            entry.contentSign = measureSign(domCell) || undefined;
+          }
           const barSvg = domCell.querySelector("svg.cell-bar-chart");
           if (barSvg) {
             entry.bar = {

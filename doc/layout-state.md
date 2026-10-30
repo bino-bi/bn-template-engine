@@ -125,7 +125,7 @@ rendered element carries one).
 | `label` | charts, tree | `role`: `data`, `scenario`, `category`, `axisLabel`, `title`, `footer`, `legend`, `operator`; `text`; `point?` |
 | `axis` | time/structure charts | `style` (`ac`/`pp`/`fc`/`pl`/`default`), `orientation` |
 | `point` | scatter/bubble/bullet, line and scenario markers of a time/structure chart | `index`, `series?`, `text?`, `point?` (xy marks carry no ids: tag-classified) |
-| `cell` / `headerCell` | table | `row`, `column`, `key` (column identity), `colSpan`, `value` (model value), `text` (rendered), `type`, `bar?` (in-cell bar: `variant` `absolute`/`relative`/`waterfall` + rect), `point?` |
+| `cell` / `headerCell` | table | `row`, `column`, `key` (column identity), `colSpan`, `value` (model value), `text` (rendered), `type`, `bar?` (in-cell bar: `variant` `absolute`/`relative`/`waterfall` + rect), `point?`, `content?` (box of what the cell shows, without its free space, on cells with a `point`), `contentSign?` (width in layout px of the "+" of a variance in front of `content`) |
 | `node` | tree | `nodeId` (slot name) |
 | `edge` | tree | `from`, `to`, `operator?`, `path?` (SVG path data) |
 | `gridCell` / `gridHeader` / `gridTitle` | grid | `rowId?`, `columnId?`, `slot?`, `label?` |

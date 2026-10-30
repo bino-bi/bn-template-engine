@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 #### Annotations: `bn-annotation-layer` and `bn-annotation-list`
 
-A page can point at a number: a numbered circle on a bar or table cell, a rounded frame around a value, a straight arrow between two data points, and a numbered list of the texts. The layer sits in the new `annotations` slot of `bn-layout-page` and draws over the page, so the charts stay as they are. The numbers are given by the caller, the engine never counts. A point with no match or several matches draws nothing and does not fail the page, and its list entry loses the circle. See [doc/integration-contract.md](doc/integration-contract.md#annotations).
+A page can point at a number: a numbered circle on a bar or table cell, a rounded frame around a value, a straight arrow between two data points, and a numbered list of the texts. The layer sits in the new `annotations` slot of `bn-layout-page` and draws over the page, so the charts stay as they are. The numbers are given by the caller, the engine never counts. A point with no match or several matches draws nothing and does not fail the page, and its list entry loses the circle. The colours come from the new style section `bn-annotation`. See [doc/integration-contract.md](doc/integration-contract.md#annotations) and [doc/theming.md](doc/theming.md#annotations).
 
 #### `getLayoutState()`: data points say which row they show
 

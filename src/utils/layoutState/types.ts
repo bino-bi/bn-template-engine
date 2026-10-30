@@ -163,6 +163,10 @@ export interface CellElement extends LayoutElementBase {
   /** Present when the cell hosts a bar/waterfall SVG. */
   bar?: CellBarInfo;
   point?: LayoutPoint;
+  /** Box of what the cell shows, without its free space. Set on cells with a `point`. */
+  content?: DualRect;
+  /** Width in layout px of a sign drawn in front of `content` (the "+" of a variance), which the box leaves out. */
+  contentSign?: number;
 }
 
 export interface NodeElement extends LayoutElementBase {
