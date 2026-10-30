@@ -641,7 +641,7 @@ test("table: in a dense table the marker gets smaller and stays between the numb
   const rows = [row("2024-01-01", "E", 1, "A", 1, { ac1: 1234, pl1: 1234, fc1: 1234 })];
   const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
   const table = `<bn-table datasets="$t" level="category" scenarios="ac1,pl1,fc1" unit-scaling="auto"></bn-table>`;
-  const items = [{ label: "1", target: "t", point: { category: "A", scenario: "ac1" } }];
+  const items = [{ label: "1", target: "t", point: { category: "A", scenario: "fc1" } }];
   const page = await openDeep(data + pageOf([slot(0, "t", table)], items));
 
   const [mark] = await drawnMarks(page);
@@ -660,7 +660,7 @@ test("table: in a dense table the marker gets smaller and stays between the numb
     texts.every((text) => middle.x < text.x || middle.x > text.x + text.width),
     JSON.stringify({ middle, texts }),
   );
-  const line = centre(texts[0]);
+  const line = centre(texts[2]);
   assert.ok(Math.abs(middle.y - line.y) < 1, JSON.stringify({ middle, line }));
 });
 
