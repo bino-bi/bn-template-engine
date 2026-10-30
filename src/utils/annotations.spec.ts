@@ -16,6 +16,15 @@ describe("annotationColor", () => {
     );
   });
 
+  it("falls back to the defaults when a style sets the section or a key to null", () => {
+    expect(annotationColor("negative", null)).toBe(
+      "var(--bn-annotation-color-negative, var(--bn-annotation-color, #0070c0))",
+    );
+    expect(annotationColor("brand", { color: null, colors: null } as never)).toBe(
+      "var(--bn-annotation-color-brand, var(--bn-annotation-color, #0070c0))",
+    );
+  });
+
   it("takes the colours of the style", () => {
     const style = { color: "#111111", colors: { brand: "#222222" } };
     expect(annotationColor(undefined, style)).toBe("var(--bn-annotation-color, #111111)");

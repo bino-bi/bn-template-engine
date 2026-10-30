@@ -243,7 +243,7 @@ export class LineSeries {
           marker = this.drawSquareMarker(markerGroup, centerX, centerY, lineStyle);
           break;
       }
-      marker.attr(dataPointAttributes(point.dataPoint.key, "element"));
+      marker.attr(dataPointAttributes(point.dataPoint.key, "element")).attr("data-bn-index", String(point.index));
     }
   }
 

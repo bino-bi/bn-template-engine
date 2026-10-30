@@ -474,7 +474,8 @@ export class BulletChart {
         .move(plotX, cy - barH / 2)
         .fill(this.styles.barStyles.ac.fill)
         .stroke({ color: this.styles.barStyles.ac.stroke, width: this.styles.barStyles.ac.width })
-        .attr(dataPointAttributes(this.rowKey(row), "element"));
+        .attr(dataPointAttributes(this.rowKey(row), "element"))
+        .attr("data-bn-index", String(index));
 
       if (this.config.showVariances && row.sentiment !== "neu") {
         const varianceH = factors.varianceHeight * em;
@@ -540,7 +541,8 @@ export class BulletChart {
           .move(plotX, cy - barH / 2)
           .fill(this.styles.barStyles.ac.fill)
           .stroke({ color: this.styles.barStyles.ac.stroke, width: this.styles.barStyles.ac.width })
-          .attr(dataPointAttributes(this.rowKey(row), "element"));
+          .attr(dataPointAttributes(this.rowKey(row), "element"))
+          .attr("data-bn-index", String(index));
         rowRight = barEnd;
       }
 

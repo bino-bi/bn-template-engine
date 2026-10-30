@@ -82,7 +82,7 @@ A point must match exactly one element that is not cut off by its cell. With no 
 
 The layer counts as working until its marks are placed, so the readiness values above include them. It places them again when a component resizes or draws again.
 
-On a table cell, a marker sits next to the number and not on it: on the left, else on the right. A dense table has no room for that: there it is smaller and sits in the wider gap next to the number. A frame goes around the number and not around the cell. A frame around a text is an oval.
+On a table cell, a marker sits next to the number and not on it: on the left, else on the right. A dense table has no room for that: there it is smaller and sits in the wider gap next to the number. On a whole table row, a marker sits in the middle of the row, or next to the number that is there. A frame goes around the number and not around the cell. A frame around a text is an oval.
 
 The marks are not part of a component. A screenshot of a single component does not show them.
 

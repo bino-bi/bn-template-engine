@@ -412,7 +412,7 @@ export class BnTableRenderer {
                   <td
                     colSpan={cell.colSpan}
                     class={cell.type ? `${cell.cssStyle} ${cell.type}` : cell.cssStyle}
-                    {...(row.key && cell.value != null && cell.value !== "-"
+                    {...(row.key && cell.value != null && cell.value !== "" && cell.value !== "-"
                       ? dataPointAttributes({ ...row.key, date: cell.date, scenario: cell.key }, "element")
                       : {})}
                   >

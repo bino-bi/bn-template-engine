@@ -36,6 +36,12 @@ function indexOfGroup(id: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+/** Ordinal a mark without a group of its own carries itself. */
+function ownIndex(el: Element): number | undefined {
+  const index = el.getAttribute("data-bn-index");
+  return index === null ? undefined : Number(index);
+}
+
 /** Index of the data-point group around an element: a marker shape has no id of its own. */
 function indexAround(el: Element, root: Element): number | undefined {
   for (let current: Element | null = el; current && current !== root; current = current.parentElement) {
@@ -127,7 +133,7 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
   svgRoot.querySelectorAll("[data-bn-part]").forEach((el, walkIndex) => {
     if (collected.has(el)) return;
     const point = readLayoutPoint(el)!;
-    const index = indexAround(el, svgRoot);
+    const index = ownIndex(el) ?? indexAround(el, svgRoot);
     if (point.part === "element") {
       const mark: PointElement = {
         kind: "point",
@@ -261,7 +267,7 @@ export function collectXYElements(svgRoot: Element, origins: Origins): LayoutEle
       kind: "bar",
       segment: "base",
       scenario: point?.scenario,
-      index,
+      index: ownIndex(mark) ?? index,
       rect: measure(mark, origins),
       point,
     };

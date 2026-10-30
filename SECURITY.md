@@ -29,13 +29,13 @@ If you cannot use GitHub, send the same information to <sven@bino.bi>.
 
 A report has two kinds of input, and the engine treats them differently.
 
-**Report content is code.** Everything a report author writes is trusted like a script: element attributes, element bodies, dataset SQL, `filter` expressions and `bn-text` templates. Dataset SQL and `filter` run in [AlaSQL](https://alasql.org/), which can call JavaScript, load URLs and read elements of the page. HTML written by the author in `bn-text`, `bn-message` and titles is rendered as markup. The engine does not sandbox report content.
+**Report content is code.** Everything a report author writes is trusted like a script: element attributes, element bodies, dataset SQL, `filter` expressions and `bn-text` templates. Dataset SQL and `filter` run in [AlaSQL](https://alasql.org/), which can call JavaScript, load URLs and read elements of the page. HTML written by the author in `bn-text`, `bn-message`, `bn-annotation-list` and titles is rendered as markup. The engine does not sandbox report content.
 
 **Row values are data.** Values that come out of a datasource or dataset never become markup or code:
 
 - In SQL built by the engine, row values are bound as query parameters and are never written into the SQL text.
 - In `bn-text` templates, every resolved `${data...}` and `${t(...)}` value is HTML-escaped before it is joined with the author's markup.
-- In tables and charts, row values are written as text nodes.
+- In tables and charts, row values are written as text nodes and as escaped `data-bn-*` attribute values.
 
 The engine also limits what report content can do by accident. These checks are guard rails, not a sandbox:
 

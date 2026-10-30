@@ -44,6 +44,33 @@ function isVisibleIn(box: Box, element: Element): boolean {
   return x >= area.left && x <= area.right && y >= area.top && y <= area.bottom;
 }
 
+/** Elements in a slot that show nothing, so they are not what a mark points at. */
+const CONFIG_ELEMENTS = new Set([
+  "bn-asset",
+  "bn-component-style",
+  "bn-dataset",
+  "bn-datasource",
+  "bn-internationalization",
+  "bn-ruleset",
+  "bn-scaling-group",
+]);
+
+/** The box has a size, and part of it lies inside an element. An element without a size has no layout to judge by. */
+function reachesInto(box: Box, element: Element): boolean {
+  const area = element.getBoundingClientRect();
+  if (area.width === 0 || area.height === 0) return true;
+  return box.x < area.right && box.x + box.width > area.left && box.y < area.bottom && box.y + box.height > area.top;
+}
+
+/** A whole component cannot be seen: it has no box, or it lies outside of a cell around it or of the layer. */
+function isHidden(box: Box, slot: Element, layer: Element): boolean {
+  if (box.width === 0 || box.height === 0 || !reachesInto(box, layer)) return true;
+  for (let cell: Element | null = slot; cell && cell.localName !== "bn-layout-page"; cell = cell.parentElement) {
+    if (!reachesInto(box, cell)) return true;
+  }
+  return false;
+}
+
 /** The slot of a target can grow with its content: what clips it is then a cell further out, in a fit-to-content card. */
 function isCutOff(box: Box, slot: Element): boolean {
   for (let cell: Element | null = slot; cell && cell.localName !== "bn-layout-page"; cell = cell.parentElement) {
@@ -128,6 +155,16 @@ export class AnnotationLayer {
     this.resizeObserver = new ResizeObserver(this.schedule);
     this.mutationObserver = new MutationObserver(this.schedule);
     this.observeSize(this.element);
+    // a target can be added or moved later, in a morphing preview for example
+    const page = this.element.closest("bn-layout-page");
+    if (page) {
+      this.mutationObserver.observe(page, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["slot", "data-bino-annotation-target"],
+      });
+    }
     document.fonts?.addEventListener("loadingdone", this.schedule);
   }
 
@@ -192,7 +229,9 @@ export class AnnotationLayer {
     const targets = new Map<string, TargetElement>();
     const slots = new Map<TargetElement, Element>();
     page?.querySelectorAll("[data-bino-annotation-target]").forEach((slot) => {
-      const visual = Array.from(slot.querySelectorAll<TargetElement>("*")).find((el) => el.localName.startsWith("bn-"));
+      const visual = Array.from(slot.querySelectorAll<TargetElement>("*")).find(
+        (el) => el.localName.startsWith("bn-") && !CONFIG_ELEMENTS.has(el.localName),
+      );
       const target = visual ?? (slot as TargetElement);
       targets.set(slot.getAttribute("data-bino-annotation-target")!, target);
       slots.set(target, slot);
@@ -219,7 +258,9 @@ export class AnnotationLayer {
       if (!visual) return { problem: `no target "${id}" on this page` };
       const host = visual.getBoundingClientRect();
       if (isWholeComponent(point)) {
-        return { box: { x: host.left, y: host.top, width: host.width, height: host.height }, whole: true };
+        const box = { x: host.left, y: host.top, width: host.width, height: host.height };
+        if (isHidden(box, slots.get(visual)!, this.element)) return { problem: `"${id}" cannot be seen` };
+        return { box, whole: true };
       }
       const state = states.get(visual);
       const found = state ? matchPoint(state, point!) : [];
@@ -238,13 +279,18 @@ export class AnnotationLayer {
         return { problem: `the point ${JSON.stringify(point)} in "${id}" is cut off` };
       }
       const content = found[0].content;
-      if (!content) return { box, whole: false };
+      if (!state!.table) return { box, whole: false };
       const cells = (state!.elements ?? []).flatMap((element) =>
         element.kind === "cell" && element.content
           ? [{ box: onScreen(element.content), sign: element.contentSign }]
           : [],
       );
-      return { box, whole: false, text: { box: onScreen(content), sign: found[0].contentSign }, obstacles: cells };
+      return {
+        box,
+        whole: false,
+        text: content && { box: onScreen(content), sign: found[0].contentSign },
+        obstacles: cells,
+      };
     };
 
     const toLocal = this.toLocalSpace();
@@ -343,7 +389,14 @@ export class AnnotationLayer {
       if (!root) return;
       if (!this.observed.has(root)) {
         this.observed.add(root);
-        this.mutationObserver?.observe(root, { childList: true, subtree: true, characterData: true });
+        // a table patches its cells in place: a bar gets a new width, its number a new x
+        this.mutationObserver?.observe(root, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+          attributes: true,
+          attributeFilter: ["x", "y", "width", "height", "transform", "style", "class"],
+        });
       }
       root.querySelectorAll("*").forEach((el) => walk(el.shadowRoot));
     };

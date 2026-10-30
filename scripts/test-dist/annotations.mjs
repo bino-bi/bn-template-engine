@@ -656,12 +656,210 @@ test("table: in a dense table the marker gets smaller and stays between the numb
   });
   const middle = centre(mark.circle);
   assert.ok(mark.circle.width < 14, JSON.stringify(mark.circle));
+  // SVG text boxes round: the whole circle stays clear of the numbers, with half a pixel to spare
+  const inset = (text) => ({ ...text, x: text.x + 0.5, width: text.width - 1 });
   assert.ok(
-    texts.every((text) => middle.x < text.x || middle.x > text.x + text.width),
-    JSON.stringify({ middle, texts }),
+    texts.every((text) => disjoint(mark.circle, inset(text))),
+    JSON.stringify({ circle: mark.circle, texts }),
   );
   const line = centre(texts[2]);
   assert.ok(Math.abs(middle.y - line.y) < 1, JSON.stringify({ middle, line }));
+});
+
+test("table: in a scaled dense table the marker scales with the numbers and stays clear of them", async () => {
+  const rows = [row("2024-01-01", "E", 1, "A", 1, { ac1: 1234, pl1: 1234, fc1: 1234 })];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+  const table = `<bn-table datasets="$t" level="category" scenarios="ac1,pl1,fc1" unit-scaling="auto" scale="0.5"></bn-table>`;
+  const items = [{ label: "1", target: "t", point: { category: "A", scenario: "fc1" } }];
+  const page = await openDeep(data + pageOf([slot(0, "t", table)], items));
+
+  const [mark] = await drawnMarks(page);
+  const texts = await page.evaluate(() => {
+    const host = document.querySelector('[data-bino-annotation-target="t"]');
+    return ["ac1", "pl1", "fc1"].map((scenario) => {
+      const range = document.createRange();
+      range.selectNodeContents(window.deep(host, `td[data-bn-category="A"][data-bn-scenario="${scenario}"]`)[0]);
+      const r = range.getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    });
+  });
+  assert.ok(mark.circle.width <= texts[2].height, JSON.stringify({ circle: mark.circle, text: texts[2] }));
+  const inset = (text) => ({ ...text, x: text.x + 0.5, width: text.width - 1 });
+  assert.ok(
+    texts.every((text) => disjoint(mark.circle, inset(text))),
+    JSON.stringify({ circle: mark.circle, texts }),
+  );
+});
+
+test("marks: a config element in the slot is not the target", async () => {
+  const group = `<bn-scaling-group name="s" value="100"></bn-scaling-group>`;
+  const items = [
+    { label: "1", target: "t" },
+    { label: "2", target: "t", point: { category: "Software", scenario: "ac1" } },
+  ];
+  const page = await openDeep(DATA + pageOf([slot(0, "t", group + STRUCTURE)], items));
+  assert.deepEqual(
+    (await drawnMarks(page)).map((mark) => mark.label),
+    ["1", "2"],
+  );
+});
+
+test("table: a marker on a row of a narrow, scaled table stays clear of the numbers", async () => {
+  const rows = [row("2024-01-01", "E", 1, "A", 1, { ac1: 1234, pl1: 1234, fc1: 1234, pp1: 1234 })];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+  const table = `<bn-table datasets="$t" level="category" scenarios="ac1,pl1,fc1,pp1" unit-scaling="auto" scale="0.5" category-width="w5"></bn-table>`;
+  const items = [{ label: "1", target: "t", point: { category: "A" } }];
+  const page = await openDeep(data + pageOf([slot(0, "t", table)], items));
+
+  const [mark] = await drawnMarks(page);
+  const { numbers, rowBox } = await page.evaluate(() => {
+    const host = document.querySelector('[data-bino-annotation-target="t"]');
+    const box = (r) => ({ x: r.left, y: r.top, width: r.width, height: r.height });
+    return {
+      rowBox: box(window.deep(host, 'tr[data-bn-category="A"]')[0].getBoundingClientRect()),
+      numbers: window.deep(host, 'td[data-bn-part]:not([data-bn-scenario="category"])').map((td) => {
+        const range = document.createRange();
+        range.selectNodeContents(td);
+        return box(range.getBoundingClientRect());
+      }),
+    };
+  });
+  assert.ok(mark.circle.height <= rowBox.height + 1, JSON.stringify({ circle: mark.circle, rowBox }));
+  const inset = (text) => ({ ...text, x: text.x + 0.5, width: text.width - 1 });
+  assert.ok(
+    numbers.every((n) => disjoint(mark.circle, inset(n))),
+    JSON.stringify({ circle: mark.circle, numbers }),
+  );
+});
+
+test("marks: a whole component that cannot be seen gets no mark, and its label counts as not placed", async () => {
+  // page-layout="full" has no slot-1, so the target is not rendered
+  const list = `<bn-annotation-list slot="slot-0" items="${esc(JSON.stringify([{ label: "1", title: "x" }]))}"></bn-annotation-list>`;
+  const target = `<div slot="slot-1" data-bino-annotation-target="t">${TIME}</div>`;
+  const body = `<bn-layout-page page-layout="full" page-format="xga" page-orientation="landscape">${list}${target}${layer([{ label: "1", target: "t" }])}</bn-layout-page>`;
+  const page = await openDeep(DATA + body);
+
+  assert.deepEqual(await drawnMarks(page), []);
+  const badges = await page.$eval("bn-annotation-list", (el) => el.shadowRoot.querySelectorAll(".badge").length);
+  assert.equal(badges, 0);
+});
+
+test("marks: they follow a table that patches its cells in place", async () => {
+  const rows = [row("2024-01-01", "E", 1, "A", 1, { ac1: 50, pl1: 20 })];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource><bn-scaling-group name="s" value="100"></bn-scaling-group>`;
+  const table = `<bn-table datasets="$t" level="category" scenarios="ac1,pl1" variances="dac1_pl1_pos" bar-columns="dac1_pl1_pos" bar-column-width="w15" unit-scaling="s"></bn-table>`;
+  const items = [{ mark: "frame", target: "t", point: { category: "A", scenario: "dac1_pl1_pos" } }];
+  const page = await openDeep(data + pageOf([slot(0, "t", table)], items));
+  const label = () =>
+    page.evaluate(() => {
+      const host = document.querySelector('[data-bino-annotation-target="t"]');
+      const r = window.deep(host, "svg.cell-bar-chart text")[0].getBoundingClientRect();
+      return { x: r.left, y: r.top, width: r.width, height: r.height };
+    });
+  const before = await label();
+
+  await page.$eval("bn-scaling-group", (el) => el.setAttribute("value", "400"));
+  await until(page, () => {
+    const host = document.querySelector('[data-bino-annotation-target="t"]');
+    const text = window.deep(host, "svg.cell-bar-chart text")[0].getBoundingClientRect();
+    const frame = document
+      .querySelector("bn-annotation-layer")
+      .shadowRoot.querySelector("rect")
+      .getBoundingClientRect();
+    return Math.abs(text.left + text.width / 2 - (frame.left + frame.width / 2)) < 1;
+  });
+  assert.notDeepEqual(await label(), before, "the number has moved");
+});
+
+test("marks: a target that is added later gets its mark", async () => {
+  const items = [{ label: "1", target: "late", point: { category: "Software", scenario: "ac1" } }];
+  const page = await openDeep(DATA + pageOf([slot(0, "time", TIME)], items));
+  assert.deepEqual(await drawnMarks(page), []);
+
+  await page.$eval(
+    "bn-layout-page",
+    (el, markup) => el.insertAdjacentHTML("afterbegin", markup),
+    slot(1, "late", STRUCTURE),
+  );
+  await until(
+    page,
+    () => document.querySelector("bn-annotation-layer").shadowRoot.querySelectorAll(".mark").length === 1,
+  );
+});
+
+test("table: a cell with an empty text has no key", async () => {
+  const rows = [{ ...row("2024-01-01", "E", 1, "A", 1, { ac1: 1 }), _lead: "" }];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+  const table = `<bn-table datasets="$t" level="category" scenarios="ac1" unit-scaling="auto" attributes='{"Lead":"first(_lead)"}'></bn-table>`;
+  const items = [{ label: "1", target: "t", point: { category: "A", scenario: "Lead" } }];
+  const page = await openDeep(data + pageOf([slot(0, "t", table)], items));
+  assert.deepEqual(await drawnMarks(page), []);
+});
+
+test("style: null in the style section costs the colour, not the marks", async () => {
+  for (const body of [{ "bn-annotation": null }, { "bn-annotation": { color: null, colors: null } }]) {
+    const style = `<bn-component-style name="_default">${esc(JSON.stringify(body))}</bn-component-style>`;
+    const items = [
+      { label: "1", target: "structure", point: { category: "Software", scenario: "ac1" } },
+      { label: "2", color: "negative", target: "structure", point: { category: "Hardware", scenario: "ac1" } },
+    ];
+    const page = await openDeep(style + DATA + pageOf([FIXTURE_SLOTS[1]], items));
+    assert.equal((await drawnMarks(page)).length, 2, JSON.stringify(body));
+  }
+});
+
+test("security: a row value in a data-bn attribute stays a value", async () => {
+  const evil = '"><img src=x onerror="window.__evil=1">';
+  const rows = [row("2024-01-01", "E", 1, evil, 1, { ac1: 10, ac2: 2, pl1: 5 })];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+  const structure = `<bn-chart-structure datasets="$t" level="category" scenarios="ac1" unit-scaling="auto"></bn-chart-structure>`;
+  const table = `<bn-table datasets="$t" level="category" scenarios="ac1" unit-scaling="auto"></bn-table>`;
+  const page = await openDeep(data + pageOf([slot(0, "c", structure), slot(1, "t", table)], []));
+  const result = await page.evaluate(() => ({
+    images: window.deep(document, "img").length,
+    evil: window.__evil ?? null,
+    values: window.deep(document, "[data-bn-part][data-bn-category]").map((el) => el.getAttribute("data-bn-category")),
+  }));
+  assert.equal(result.images, 0);
+  assert.equal(result.evil, null);
+  assert.ok(result.values.length > 1 && result.values.every((value) => value === evil), JSON.stringify(result.values));
+});
+
+test("layout state: a line marker and a bullet bar report the ordinal of their category", async () => {
+  const rows = [
+    row("2023-01-01", "E", 1, "A", 1, { ac1: 10, pl1: 5 }),
+    row("2024-01-01", "E", 1, "B", 2, { ac1: 20 }),
+    row("2025-01-01", "E", 1, "C", 3, { ac1: 30, pl1: 15 }),
+  ];
+  const data = `<bn-datasource name="t">${esc(JSON.stringify(rows))}</bn-datasource>`;
+  const line = `<bn-chart-time chart-mode="line" datasets="$t" date-interval="year" scenarios="ac1,pl1" unit-scaling="auto"></bn-chart-time>`;
+  const bullet = `<bn-chart-bullet datasets="$t" level="category" actual='{"measure":"ac1"}' target='{"measure":"pl1"}'></bn-chart-bullet>`;
+  const page = await openDeep(data + pageOf([slot(0, "l", line), slot(1, "b", bullet)], []));
+  const result = await page.evaluate(async () => {
+    const line = await document.querySelector("bn-chart-time").getLayoutState({ detail: "full" });
+    const bullet = await document.querySelector("bn-chart-bullet").getLayoutState({ detail: "full" });
+    return {
+      line: line.elements.filter((e) => e.kind === "point" && e.point?.scenario === "ac1").map((e) => e.index),
+      bullet: bullet.elements.filter((e) => e.kind === "bar").map((e) => [e.point.category, e.index]),
+    };
+  });
+  assert.deepEqual(result.line, [0, 1, 2]);
+  assert.deepEqual(result.bullet, [
+    ["A", 0],
+    ["C", 2],
+  ]);
+});
+
+test("style: a _default style that comes after the page reaches the marks", async () => {
+  const items = [{ label: "1", target: "structure", point: { category: "Software", scenario: "ac1" } }];
+  const style = `<bn-component-style name="_default">${esc(JSON.stringify({ "bn-annotation": { color: "#112233" } }))}</bn-component-style>`;
+  const page = await openDeep(DATA + pageOf([FIXTURE_SLOTS[1]], items) + style);
+  await until(
+    page,
+    () =>
+      getComputedStyle(document.querySelector("bn-annotation-layer").shadowRoot.querySelector("circle")).fill ===
+      "rgb(17, 34, 51)",
+  );
 });
 
 test("style: the colours come from the style section bn-annotation", async () => {

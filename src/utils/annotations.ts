@@ -1,4 +1,4 @@
-import { AnnotationStyle } from "../stores/componentStyles";
+import { AnnotationStyle, SYSTEM_STYLE_DEFAULTS } from "../stores/componentStyles";
 import { DataPointPart } from "./layoutState/types";
 
 /** What an annotation points at. Values are raw dataset values, a field left out is a wildcard. */
@@ -42,10 +42,13 @@ const COLOR_NAME = /^[a-z][a-z0-9-]*$/i;
  * (`--bn-annotation-color`, else `color` of the style). The name ends up in a
  * style, so only a plain name counts.
  */
-export function annotationColor(name: string | undefined, style: AnnotationStyle): string {
-  const base = `var(--bn-annotation-color, ${style.color})`;
+export function annotationColor(name: string | undefined, style: AnnotationStyle | null | undefined): string {
+  // a style can set the section or its keys to null, and that must not cost the page its marks
+  const main = style?.color ?? SYSTEM_STYLE_DEFAULTS["bn-annotation"].color;
+  const colors = style?.colors ?? {};
+  const base = `var(--bn-annotation-color, ${main})`;
   if (!name || !COLOR_NAME.test(name)) return base;
-  const own = Object.prototype.hasOwnProperty.call(style.colors, name) ? style.colors[name] : undefined;
+  const own = Object.prototype.hasOwnProperty.call(colors, name) ? colors[name] : undefined;
   return `var(--bn-annotation-color-${name}, ${own ?? base})`;
 }
 

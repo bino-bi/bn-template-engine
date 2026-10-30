@@ -63,7 +63,47 @@ describe("buildMark", () => {
         { x: 142, y: 102, width: 18, height: 16 },
       ];
       // gaps of 2 px on the left and 8 px on the right of the number
-      expect(at(both)).toMatchObject({ cx: 138, cy: 110, r: 5 });
+      expect(at(both)).toMatchObject({ cx: 138, cy: 110, r: 4 });
+    });
+
+    it("stays at its number when a side has no neighbour on the line", () => {
+      const left = { x: 90, y: 102, width: 18, height: 16 };
+      const nextRow = { x: 136, y: 118, width: 300, height: 16 };
+      const mark = buildMark(item, BOX, undefined, EM, {
+        text: TEXT,
+        obstacles: [left, { ...nextRow, y: 112 }],
+        area: { width: 1000, height: 500 },
+      }) as { badge: { cx: number } };
+      expect(mark.badge.cx).toBeLessThan(134 + 2 * (6.5 + 2.5));
+    });
+
+    it("scales with the font of a small table", () => {
+      const small = { x: 110, y: 102, width: 12, height: 6.5 };
+      const mark = buildMark(item, BOX, undefined, EM, { text: small }) as { badge: { r: number } };
+      expect(mark.badge.r).toBeCloseTo(0.65 * 5);
+    });
+  });
+
+  describe("marker on a table row", () => {
+    const row = { x: 0, y: 100, width: 200, height: 20 };
+
+    it("sits in the middle of the row when that is free", () => {
+      const mark = buildMark({ target: "t", label: "1" }, row, undefined, EM, {
+        obstacles: [{ x: 170, y: 102, width: 24, height: 16 }],
+      });
+      expect(mark).toMatchObject({ badge: { cx: 100, cy: 110, r: 7.5 } });
+    });
+
+    it("sits next to the number that is in the middle", () => {
+      const number = { x: 90, y: 102, width: 24, height: 16 };
+      const mark = buildMark({ target: "t", label: "1" }, row, undefined, EM, { obstacles: [number] });
+      expect(mark).toMatchObject({ badge: { cx: 90 - 2.5 - 7.5, cy: 110, r: 7.5 } });
+    });
+
+    it("takes its size from the height of the row", () => {
+      const small = { ...row, height: 9 };
+      const mark = buildMark({ target: "t", label: "1" }, small, undefined, EM, { obstacles: [] });
+      expect(mark).toMatchObject({ badge: { r: 4.5 } });
     });
   });
 
