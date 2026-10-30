@@ -46,7 +46,7 @@ const read = (element: Element, property: string, attribute: string): string | n
 
 /** Every visual bn-* component; non-visual producers (bn-dataset, ...) are excluded. */
 const VISUAL_SELECTOR =
-  "bn-body, bn-card, bn-chart-bubble, bn-chart-bullet, bn-chart-scatter, " +
+  "bn-annotation-layer, bn-annotation-list, bn-body, bn-card, bn-chart-bubble, bn-chart-bullet, bn-chart-scatter, " +
   "bn-chart-structure, bn-chart-time, bn-footer, bn-grid, bn-image, " +
   "bn-layout-card, bn-layout-page, bn-message, bn-page, bn-table, " +
   "bn-text, bn-title, bn-tree";

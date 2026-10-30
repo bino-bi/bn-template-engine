@@ -41,6 +41,8 @@ export class Cell {
   columnStats?: ColumnStats;
   waterfall?: WaterfallBarData;
   measureScale: number;
+  /** The first day of the bucket of an interval column. */
+  date?: string;
 
   constructor(
     scenario: string,

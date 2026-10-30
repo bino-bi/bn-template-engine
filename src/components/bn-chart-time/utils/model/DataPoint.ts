@@ -1,4 +1,5 @@
 import { Scenario } from "./index";
+import { DataPointKey } from "../../../../utils/layoutState/types";
 
 /**
  * A single renderable data point in a time-series chart.
@@ -19,6 +20,8 @@ export class DataPoint {
   public pixelPerUnit: number;
   /** Variance direction for IBCS color coding (POS=green, NEG=red, NEU=grey). */
   public variance: Scenario | string;
+  /** The data row this point shows. Written as `data-bn-*` attributes on what is drawn for it. */
+  public key?: DataPointKey;
 
   constructor(
     value: number | null | undefined,

@@ -3,6 +3,7 @@ import { TableRowType } from "../model";
 import { Cell, ColumnStats } from "./Cell";
 import { WaterfallBarData } from "../helper/WaterfallCalculator";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
+import { DataPointKey } from "../../../../utils/layoutState/types";
 
 /**
  * Represents a single row in an IBCS table, containing an ordered list of Cells.
@@ -26,6 +27,8 @@ export class TableRow {
   type: TableRowType;
   cssStyle: string;
   elements: Cell[];
+  /** The data this row shows. Header, group header and part-of rows have none: they cannot be addressed. */
+  key?: DataPointKey;
 
   constructor(index: number, groupIndex: number, type: TableRowType) {
     this.index = index;

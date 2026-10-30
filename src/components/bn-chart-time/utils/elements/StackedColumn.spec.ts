@@ -11,6 +11,9 @@ jest.mock("./Label", () => ({
     setSegmentFill() {
       return this;
     }
+    setPoint() {
+      return this;
+    }
     forceStringTypeDraw() {
       return this;
     }

@@ -9,6 +9,7 @@ A tool that prints, embeds or checks a report needs three things from the engine
 - `getLayoutState()`, versioned by `LAYOUT_STATE_VERSION`.
 - The `has-error` attribute: the item shape, the id rule and the ids on this page.
 - The entry points of the npm package (see [Installation](installation.md)) and the JSON Schemas in it.
+- The HTML contract of `bn-annotation-layer` and `bn-annotation-list`, see [Annotations](#annotations).
 
 Not stable: the `bn-*-renderer` elements, the markup and the CSS classes inside a shadow root, and the text of a message.
 
@@ -44,6 +45,46 @@ import { LAYOUT_STATE_VERSION, type LayoutState } from "@bino-bi/bn-template-eng
 ```
 
 A change that only adds fields keeps the version. A change that removes or renames a field, or changes its meaning, raises it. See [Layout State](layout-state.md) for the schema.
+
+## Annotations
+
+A tool that decides which annotations a page has emits two elements. The engine draws what it is told and never counts: numbers are given as `label`.
+
+```html
+<bn-layout-page>
+  <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time></bn-chart-time></div>
+  <div slot="slot-1"><bn-annotation-list items='[{"label":"1","title":"2024 Plan Software","html":"Up by 9.1 kEUR."}]'></bn-annotation-list></div>
+  <bn-annotation-layer slot="annotations" items='[
+    {"label":"1","mark":"marker","target":"t1","point":{"date":"2024-01-01","scenario":"pl1"}},
+    {"mark":"frame","target":"t1","point":{"date":"2024-01-01","part":"total"}},
+    {"mark":"arrow","color":"negative","target":"t1","point":{"date":"2023-01-01","part":"total"},"to":"t1","toPoint":{"date":"2024-01-01","part":"total"}}
+  ]'></bn-annotation-layer>
+</bn-layout-page>
+```
+
+`data-bino-annotation-target` goes on the slot element of a page or card that holds the component. Its value must be unique on the page. There is one `bn-annotation-layer` per page, as a child of `bn-layout-page` in the slot `annotations`.
+
+`items` of the layer, a JSON array:
+
+| Field | Meaning |
+|-------|---------|
+| `label` | Number on the mark. Absent when the annotation has none. |
+| `mark` | `marker` (default): a filled circle. `frame`: a rounded rect around the anchor. `arrow`: a straight line from the first anchor to the second. |
+| `color` | A name from `colors` of the style section `bn-annotation`, see [Theming](theming.md#annotations). Built in are `negative` and `positive`. Any other name is the main colour of the style. |
+| `target`, `point` | The component, and the data point in it. |
+| `to`, `toPoint` | The second end of an arrow. |
+
+`point` has the fields of `point` in the layout state (see [Layout State](layout-state.md#data-points-point)): raw data values, and `part`, which is `element` when it is left out. A field left out is a wildcard and every given field must be equal. A `point` without a field, or no `point`, means the component as a whole. On a table, a `point` without `scenario` means the whole row, and a `point` without `subCategory` means the row itself and not its thereof rows.
+
+A point must match exactly one element that is not cut off by its cell. With no match or several matches the layer draws nothing for that item, writes a `console.warn` that names it, and does not fail: this is a finding in the data, not a broken page. An entry of the list with the same `label` loses its circle and keeps its place, the other labels stay as they are.
+
+`items` of the list, a JSON array of `{ label?, title?, html? }`. `title` is text. `html` is inline markup and is sanitized. The circle has the main colour of the style, whatever the `color` of the mark. A number in `label` counts as text, on both elements. A field of another type is ignored.
+
+The layer counts as working until its marks are placed, so the readiness values above include them. It places them again when a component resizes or draws again.
+
+On a table cell, a marker sits next to the number and not on it: on the left, else on the right. A dense table has no room for that: there it is smaller and sits in the wider gap next to the number. On a whole table row, a marker sits in the middle of the row, or next to the number that is there. A frame goes around the number and not around the cell. A frame around a text is an oval.
+
+The marks are not part of a component. A screenshot of a single component does not show them.
 
 ## Diagnostics: the `has-error` attribute
 
@@ -89,6 +130,7 @@ The name is the attribute name in camelCase when the item is about one attribute
 | `ERR_overflow` | `bn-table`, `bn-chart-time`, `bn-chart-structure` | The content is larger than its cell and the author fixed the size (`scale`, `unit-scaling` or `percentage-scaling`). |
 | `ERR_xy_json_<prop>`, `ERR_xy_measure_<prop>` | `bn-chart-scatter`, `bn-chart-bubble` | The JSON attribute `<prop>` (`x`, `y`, `size`, `share`, `iso`, `facet`, `labels`, `legend`) cannot be read, or its measure is not valid. |
 | `ERR_xy_family`, `ERR_xy_level_order`, `ERR_xy_scale_group`, `ERR_xy_compare_variance`, `ERR_xy_compare_family` | `bn-chart-scatter`, `bn-chart-bubble` | The attributes do not fit together. |
+| `ERR_items` | `bn-annotation-layer`, `bn-annotation-list` | `items` is not a JSON array of objects. Nothing is drawn. |
 | `ERR_bullet_json_<prop>`, `ERR_bullet_measure_<prop>`, `ERR_bullet_measure_same` | `bn-chart-bullet` | The JSON attribute `<prop>` (`actual`, `target`, `ranges`, `labels`) cannot be read, or the measures are not valid. |
 
 ### Warnings about one attribute

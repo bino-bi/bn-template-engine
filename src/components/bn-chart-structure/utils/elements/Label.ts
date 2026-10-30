@@ -4,6 +4,8 @@ import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { Formatter } from "../../../../utils/formatter";
 import { getContrastTextColor } from "../../../../utils/stackColors";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
+import { DataPointKey, DataPointPart } from "../../../../utils/layoutState/types";
 
 // import {Formatter} from "../../../../utils";
 // import {StructureChartStyle} from "../model";
@@ -49,6 +51,8 @@ export class Label {
 
   private readonly verticalHookLocation: HookLocation;
   private readonly horizontalHookLocation: HookLocation;
+  private pointKey?: DataPointKey;
+  private pointPart: DataPointPart = "label";
 
   constructor(
     parent: G | null,
@@ -96,6 +100,13 @@ export class Label {
 
   public setMaxWidth(width: number): Label {
     this.maxWidth = width;
+    return this;
+  }
+
+  /** The data row this label belongs to. Written on the label group when the label is drawn. */
+  public setPoint(key: DataPointKey | undefined, part: DataPointPart = "label"): Label {
+    this.pointKey = key;
+    this.pointPart = part;
     return this;
   }
 
@@ -194,6 +205,10 @@ export class Label {
         .opacity(0.7)
         .move(text.x(), (text.y() as number) + boxHeight * 0.1)
         .insertBefore(text);
+    }
+
+    if (this.pointKey) {
+      label?.attr(dataPointAttributes(this.pointKey, this.pointPart));
     }
 
     return this;

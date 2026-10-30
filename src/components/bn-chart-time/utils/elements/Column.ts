@@ -11,6 +11,7 @@ import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { SVGStyle } from "../../../../utils/model";
 import { OverflowConfig } from "../model/OverflowConfig";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import { SiPrefix } from "../../../../utils/model/SiPrefix";
 
@@ -121,6 +122,9 @@ export class Column {
     const scenarioStyle: SVGStyle | undefined = this.getScenarioStyle();
     const strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
     const fillStyle = this.getFillStyle(scenarioStyle);
+
+    this.scenarioGroup.attr(dataPointAttributes(this.dataPoint.key));
+    this.columnGroup?.attr(dataPointAttributes(this.dataPoint.key, "element"));
 
     if (this.columnGroup != null) {
       if (this.isOverflowing && this.overflowConfig) {
@@ -294,7 +298,7 @@ export class Column {
       this.styles,
       labelHook,
       HookLocation.Center,
-    );
+    ).setPoint(dataPoint.key);
   }
 
   private getScenarioLabel(columnLabel: string | null) {

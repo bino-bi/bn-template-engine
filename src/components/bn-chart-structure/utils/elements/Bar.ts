@@ -7,6 +7,7 @@ import { SVGPolgonPattern, SVGStyle } from "../../../../utils/model";
 import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { SVGStyleGroup } from "../../../../utils/model/styles/SVGStyleGroup";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 // import {HookLocation} from "../../../bn-chart-time-renderer/utils/elements";
 // import {SVGPolgonPattern, SVGStyle} from "../../../../utils/model";
 // import {SVGStyleGroup} from "../../../../utils/model/styles/SVGStyleGroup";
@@ -98,7 +99,7 @@ export class Bar {
         this.styles,
         HookLocation.Center,
         textLabelHook,
-      );
+      ).setPoint(dataPoint.key);
       this.scenarioLabel = this.getScenarioLabel(barLabel);
     }
   }
@@ -152,6 +153,9 @@ export class Bar {
         fillStyle = polygonPattern.pattern;
       }
     }
+
+    this.scenarioGroup?.attr(dataPointAttributes(this.dataPoint.key));
+    this.barGroup?.attr(dataPointAttributes(this.dataPoint.key, "element"));
 
     if (this.barGroup != null) {
       if (this.isOverflowing && this.overflowConfig) {

@@ -8,6 +8,8 @@ import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { StackMode } from "../../../../utils/constants";
 import { Formatter } from "../../../../utils/formatter";
 import { StackLayout, StackSegment } from "../../../../utils/stackLayout";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
+import { DataPointKey } from "../../../../utils/layoutState/types";
 
 /**
  * Renders a single segment within a stacked bar column in a time chart.
@@ -93,6 +95,8 @@ export class StackedColumn {
     const fillStyle = { color: fillColor };
     const strokeStyle = { color: fillColor, width: 0.5 };
 
+    this.columnGroup.attr(dataPointAttributes(this.dataPoint.key, "element"));
+
     // Draw rectangle
     this.columnGroup
       .rect(columnWidth, Math.max(segmentHeight, 0.5))
@@ -126,11 +130,13 @@ export class StackedColumn {
           HookLocation.Center,
         )
           .setSegmentFill(fillColor)
+          .setPoint(this.dataPoint.key)
           .forceStringTypeDraw();
       } else {
         // Pass raw numeric value - Label.draw() formats with measureScale
         new Label(this.group, xPos, labelY, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
           .setSegmentFill(fillColor)
+          .setPoint(this.dataPoint.key)
           .draw(true, dataFormatDigits, measureScale);
       }
     }
@@ -142,6 +148,7 @@ export class StackedColumn {
   public drawTotalLabel(
     dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 },
     measureScale: SiPrefix = new SiPrefix(),
+    key?: DataPointKey,
   ): void {
     if (this.stackMode === StackMode.RELATIVE) {
       // Don't show total for 100% stacked (always 100%)
@@ -164,6 +171,6 @@ export class StackedColumn {
       isNegative ? HookLocation.Top : HookLocation.Bottom,
       HookLocation.Center,
     );
-    label.draw(true, dataFormatDigits, measureScale);
+    label.setPoint(key, "total").draw(true, dataFormatDigits, measureScale);
   }
 }

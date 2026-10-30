@@ -35,6 +35,7 @@ jest.mock("../../../context/context-protocol", () => {
   };
 });
 
+import { withoutDataPointAttributes } from "../../../utils/testing/dataPointAttributes";
 import { h } from "@stencil/core";
 import { newSpecPage } from "@stencil/core/testing";
 import { getStores } from "../../../context/context-protocol";
@@ -337,7 +338,7 @@ describe("IBCS Table Test", () => {
       ),
     });
 
-    expect(page.root)
+    expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" sum-title=\"Sample Table Title\">
       <mock:shadow-root>
     <table>
@@ -1188,7 +1189,7 @@ describe("IBCS Table Test", () => {
       ),
     });
 
-    expect(page.root)
+    expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
       <mock:shadow-root>
     <table>
@@ -1989,7 +1990,7 @@ describe("IBCS Table Test", () => {
       ),
     });
 
-    expect(page.root)
+    expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
          <mock:shadow-root>
        <table>
@@ -2434,7 +2435,7 @@ describe("IBCS Table Test", () => {
       ),
     });
 
-    expect(page.root)
+    expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
           <mock:shadow-root>
         <table>
@@ -3121,7 +3122,7 @@ describe("IBCS Table Test", () => {
         ),
       });
 
-      expect(page.root)
+      expect(withoutDataPointAttributes(page.root))
         .toEqualHtml(`<bn-table-renderer category-width=\"w100\" class=\"no-data\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
           <mock:shadow-root>
         <div class=\"empty-state\">
@@ -3195,7 +3196,7 @@ describe("IBCS Table Test", () => {
         ),
       });
 
-      expect(page.root)
+      expect(withoutDataPointAttributes(page.root))
         .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
             <mock:shadow-root>
           <table>

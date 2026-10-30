@@ -248,3 +248,16 @@ describe("ScatterChart", () => {
     expect(elapsed).toBeLessThan(5000);
   });
 });
+
+describe("ScatterChart data-point keys", () => {
+  it("keys each mark and its name label with the raw values of its levels", () => {
+    const chart = makeChart(
+      [row({ subCategory: "RX-1", subCategoryIndex: 1, ac1: 10, ac2: 20 })],
+      baseConfig({ labels: { points: "all", values: false, max: 10 } }),
+    );
+    const svg = chart.toString();
+
+    expect(svg).toMatch(/<circle[^>]*data-bn-sub-category="RX-1"[^>]*data-bn-part="element"/);
+    expect(svg).toMatch(/<text[^>]*data-bn-sub-category="RX-1"[^>]*data-bn-part="label"/);
+  });
+});

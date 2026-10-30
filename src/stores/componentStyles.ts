@@ -46,6 +46,15 @@ export interface Style {
   "bn-chart-bullet": BulletChartStyle;
   "bn-tree": TreeStyle;
   "bn-grid": GridStyle;
+  "bn-annotation": AnnotationStyle;
+}
+
+/** Colours of the marks of `bn-annotation-layer` and the circles of `bn-annotation-list`. */
+export interface AnnotationStyle {
+  /** The colour of a mark without a `color`, and of the circles of the list. */
+  color: string;
+  /** The colours a mark can name in its `color`. */
+  colors: Record<string, string>;
 }
 
 /** Baseline typography inherited by all components unless overridden. */
@@ -306,6 +315,10 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
     borderColor: "#A6A6A6",
     borderWidth: 1,
     cellPadding: 4,
+  },
+  "bn-annotation": {
+    color: "#0070c0",
+    colors: { negative: "#ff0000", positive: "#008f96" },
   },
 };
 

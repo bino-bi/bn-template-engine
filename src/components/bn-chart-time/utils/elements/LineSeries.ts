@@ -1,4 +1,4 @@
-import { G } from "@svgdotjs/svg.js";
+import { G, Shape } from "@svgdotjs/svg.js";
 import { DataPoint } from "../model";
 import { HookLocation, Label } from "./Label";
 import { ElementPositions, LabelCollisionManager } from "../helper";
@@ -6,6 +6,7 @@ import { LabelDirection } from "../helper/LabelCollisionManager";
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 
 /**
  * IBCS Color Schema for Line Chart:
@@ -137,9 +138,9 @@ export class LineSeries {
   /**
    * Draws a square marker (variant 1: ac1, pp1, fc1, pl1)
    */
-  private drawSquareMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
+  private drawSquareMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): Shape {
     const halfSize = this.MARKER_SIZE / 2;
-    group
+    return group
       .rect(this.MARKER_SIZE, this.MARKER_SIZE)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 })
@@ -149,8 +150,8 @@ export class LineSeries {
   /**
    * Draws a circle marker (variant 2: ac2, pp2, fc2, pl2)
    */
-  private drawCircleMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
-    group
+  private drawCircleMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): Shape {
+    return group
       .circle(this.MARKER_SIZE)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 })
@@ -160,9 +161,9 @@ export class LineSeries {
   /**
    * Draws a triangle marker pointing up (variant 3: ac3, pp3, fc3, pl3)
    */
-  private drawTriangleMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
+  private drawTriangleMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): Shape {
     const s = this.MARKER_SIZE / 2;
-    group
+    return group
       .polygon(`${cx},${cy - s} ${cx - s},${cy + s} ${cx + s},${cy + s}`)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 });
@@ -171,9 +172,9 @@ export class LineSeries {
   /**
    * Draws a diamond marker (variant 4: ac4, pp4, fc4, pl4)
    */
-  private drawDiamondMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): void {
+  private drawDiamondMarker(group: G, cx: number, cy: number, style: LineSeriesStyle): Shape {
     const s = this.MARKER_SIZE / 2;
-    group
+    return group
       .polygon(`${cx},${cy - s} ${cx + s},${cy} ${cx},${cy + s} ${cx - s},${cy}`)
       .fill(style.markerFill)
       .stroke({ color: style.markerStroke, width: 1 });
@@ -227,20 +228,22 @@ export class LineSeries {
       const centerY = this.position.getColumnPositionY() - point.dataPoint.getScaledUnit();
 
       // Draw marker shape based on scenario variant
+      let marker: Shape;
       switch (variant) {
         case 2:
-          this.drawCircleMarker(markerGroup, centerX, centerY, lineStyle);
+          marker = this.drawCircleMarker(markerGroup, centerX, centerY, lineStyle);
           break;
         case 3:
-          this.drawTriangleMarker(markerGroup, centerX, centerY, lineStyle);
+          marker = this.drawTriangleMarker(markerGroup, centerX, centerY, lineStyle);
           break;
         case 4:
-          this.drawDiamondMarker(markerGroup, centerX, centerY, lineStyle);
+          marker = this.drawDiamondMarker(markerGroup, centerX, centerY, lineStyle);
           break;
         default: // variant 1 or unknown
-          this.drawSquareMarker(markerGroup, centerX, centerY, lineStyle);
+          marker = this.drawSquareMarker(markerGroup, centerX, centerY, lineStyle);
           break;
       }
+      marker.attr(dataPointAttributes(point.dataPoint.key, "element")).attr("data-bn-index", String(point.index));
     }
   }
 
@@ -344,7 +347,7 @@ export class LineSeries {
         horizontalHook,
       );
 
-      label.draw(true, dataFormatDigits, measureScale);
+      label.setPoint(point.dataPoint.key).draw(true, dataFormatDigits, measureScale);
     }
   }
 

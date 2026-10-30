@@ -50,7 +50,8 @@ const withComponentStyle = (component: any) => {
     updateStyle();
 
     subscription = stores.componentStyles.on("set", (key) => {
-      if (key === selectedStyle) {
+      // `_default` is a layer of every style, and it can be registered after this component
+      if (key === selectedStyle || key === "_default") {
         selectedStyle = component.selectedStyle;
         updateStyle();
         forceUpdate(getElement(component));

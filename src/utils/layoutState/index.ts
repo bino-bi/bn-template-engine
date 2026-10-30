@@ -4,3 +4,4 @@ export * from "./identity";
 export * from "./diagnostics";
 export * from "./generic";
 export * from "./svgChartElements";
+export * from "./dataPoint";

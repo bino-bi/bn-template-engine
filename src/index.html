@@ -2029,6 +2029,130 @@
 
     </bn-layout-page>
 
+    <!-- ANNOTATIONS: one bn-annotation-layer per page draws the marks over bn-body, using the
+         data-bino-annotation-target attributes of the slots. The numbers are given, the engine
+         never counts. Mark 7 points at a date without data: it is not drawn and its list entry
+         has no circle, the other numbers stay. -->
+    <bn-datasource name='annotations_data'>[
+      {"date": "2023-01-01", "rowGroup": "Europe", "rowGroupIndex": 1, "category": "Hardware", "categoryIndex": 1,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 40, "ac2": 15, "pl1": 35, "pp1": 30},
+      {"date": "2023-01-01", "rowGroup": "Europe", "rowGroupIndex": 1, "category": "Software", "categoryIndex": 2,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 30, "ac2": 10, "pl1": 25, "pp1": 20},
+      {"date": "2024-01-01", "rowGroup": "Asia", "rowGroupIndex": 2, "category": "Hardware", "categoryIndex": 1,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 55, "ac2": 20, "pl1": 60, "pp1": 40},
+      {"date": "2024-01-01", "rowGroup": "Asia", "rowGroupIndex": 2, "category": "Services", "categoryIndex": 3,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 25, "ac2": 5, "pl1": 30, "pp1": 15},
+      {"date": "2025-01-01", "rowGroup": "Asia", "rowGroupIndex": 2, "category": "Hardware", "categoryIndex": 1,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 70, "ac2": 25, "pl1": 65, "pp1": 55}
+      ]</bn-datasource>
+
+    <bn-layout-page data-bino-page='demo_annotations' title-business-unit='Annotations: marker, frame, arrow and list' title-namespace='_system'
+      title-scenarios='ac1,pl1' page-layout='custom-template' page-custom-template='"a b c" "d e e"' page-format='xga'
+      page-orientation='landscape' footer-text='Annotations: marks over the charts and table, numbered texts in the list.'
+      footer-display-page-number='true'>
+      <div slot='slot-0' data-bino-annotation-target='time'>
+        <bn-chart-time datasets='$annotations_data' date-interval='year' scenarios='ac1,pl1'
+          unit-scaling='auto'></bn-chart-time>
+      </div>
+      <div slot='slot-1' data-bino-annotation-target='stack'>
+        <bn-chart-time datasets='$annotations_data' date-interval='year' scenarios='ac1,ac2' unit-scaling='auto'
+          stack='{&#34;by&#34;:&#34;scenarios&#34;,&#34;mode&#34;:&#34;absolute&#34;}'></bn-chart-time>
+      </div>
+      <div slot='slot-2' data-bino-annotation-target='structure'>
+        <bn-chart-structure datasets='$annotations_data' level='category' scenarios='ac1,pl1'
+          unit-scaling='auto'></bn-chart-structure>
+      </div>
+      <div slot='slot-3' data-bino-annotation-target='table'>
+        <bn-table datasets='$annotations_data' type='sum' grouped='true' level='category' scenarios='ac1,pl1'
+          unit-scaling='auto'></bn-table>
+      </div>
+      <div slot='slot-4'>
+        <bn-annotation-list items='[
+          {&#34;label&#34;:&#34;1&#34;,&#34;title&#34;:&#34;Bar&#34;,&#34;html&#34;:&#34;Marker on the 2024 AC bar.&#34;},
+          {&#34;label&#34;:&#34;2&#34;,&#34;title&#34;:&#34;Stack total&#34;,&#34;html&#34;:&#34;Frame around the 2025 total. The arrow has no text, so it has no number.&#34;},
+          {&#34;label&#34;:&#34;3&#34;,&#34;title&#34;:&#34;Structure&#34;,&#34;html&#34;:&#34;Marker on the Software bar.&#34;},
+          {&#34;label&#34;:&#34;4&#34;,&#34;title&#34;:&#34;Cell&#34;,&#34;html&#34;:&#34;Frame around one <b>table cell</b>.&#34;},
+          {&#34;label&#34;:&#34;5&#34;,&#34;title&#34;:&#34;Row&#34;,&#34;html&#34;:&#34;Marker on a whole table row.&#34;},
+          {&#34;label&#34;:&#34;6&#34;,&#34;title&#34;:&#34;Total&#34;,&#34;html&#34;:&#34;Marker on a cell of the total row.&#34;},
+          {&#34;label&#34;:&#34;7&#34;,&#34;title&#34;:&#34;Missing point&#34;,&#34;html&#34;:&#34;Its point has no data: no mark on the page, and no circle here.&#34;}
+        ]'></bn-annotation-list>
+      </div>
+      <bn-annotation-layer slot='annotations' items='[
+        {&#34;label&#34;:&#34;1&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;time&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;2024-01-01&#34;,&#34;scenario&#34;:&#34;ac1&#34;}},
+        {&#34;label&#34;:&#34;2&#34;,&#34;mark&#34;:&#34;frame&#34;,&#34;target&#34;:&#34;stack&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;2025-01-01&#34;,&#34;part&#34;:&#34;total&#34;}},
+        {&#34;mark&#34;:&#34;arrow&#34;,&#34;color&#34;:&#34;negative&#34;,&#34;target&#34;:&#34;stack&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;2023-01-01&#34;,&#34;part&#34;:&#34;total&#34;},&#34;to&#34;:&#34;stack&#34;,&#34;toPoint&#34;:{&#34;date&#34;:&#34;2025-01-01&#34;,&#34;part&#34;:&#34;total&#34;}},
+        {&#34;label&#34;:&#34;3&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;structure&#34;,&#34;point&#34;:{&#34;category&#34;:&#34;Software&#34;,&#34;scenario&#34;:&#34;ac1&#34;}},
+        {&#34;label&#34;:&#34;4&#34;,&#34;mark&#34;:&#34;frame&#34;,&#34;target&#34;:&#34;table&#34;,&#34;point&#34;:{&#34;category&#34;:&#34;Software&#34;,&#34;scenario&#34;:&#34;ac1&#34;}},
+        {&#34;label&#34;:&#34;5&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;table&#34;,&#34;point&#34;:{&#34;rowGroup&#34;:&#34;Europe&#34;,&#34;category&#34;:&#34;Hardware&#34;}},
+        {&#34;label&#34;:&#34;6&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;table&#34;,&#34;point&#34;:{&#34;row&#34;:&#34;total&#34;,&#34;scenario&#34;:&#34;pl1&#34;}},
+        {&#34;label&#34;:&#34;7&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;time&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;1999-01-01&#34;,&#34;scenario&#34;:&#34;ac1&#34;}}
+      ]'></bn-annotation-layer>
+    </bn-layout-page>
+
+
+  </bn-context>
+
+  <!-- ANNOTATIONS ON A ROTATED PAGE: this document prints in portrait, so the landscape page is
+       turned onto the sheet. The marks sit on the same elements as on the page demo_annotations,
+       here in the colours of the style of this context. -->
+  <bn-context locale='en' render-orientation='portrait'>
+    <!-- The colours of the marks and the list come from the style section bn-annotation. -->
+    <bn-component-style name='_default'>{&#34;bn-annotation&#34;:{&#34;color&#34;:&#34;#7b1fa2&#34;,&#34;colors&#34;:{&#34;negative&#34;:&#34;#e65100&#34;}}}</bn-component-style>
+    <bn-datasource name='annotations_data'>[
+      {"date": "2023-01-01", "rowGroup": "Europe", "rowGroupIndex": 1, "category": "Hardware", "categoryIndex": 1,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 40, "ac2": 15, "pl1": 35, "pp1": 30},
+      {"date": "2023-01-01", "rowGroup": "Europe", "rowGroupIndex": 1, "category": "Software", "categoryIndex": 2,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 30, "ac2": 10, "pl1": 25, "pp1": 20},
+      {"date": "2024-01-01", "rowGroup": "Asia", "rowGroupIndex": 2, "category": "Hardware", "categoryIndex": 1,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 55, "ac2": 20, "pl1": 60, "pp1": 40},
+      {"date": "2024-01-01", "rowGroup": "Asia", "rowGroupIndex": 2, "category": "Services", "categoryIndex": 3,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 25, "ac2": 5, "pl1": 30, "pp1": 15},
+      {"date": "2025-01-01", "rowGroup": "Asia", "rowGroupIndex": 2, "category": "Hardware", "categoryIndex": 1,
+      "subCategory": "", "subCategoryIndex": 1, "operation": "+", "setname": "de", "ac1": 70, "ac2": 25, "pl1": 65, "pp1": 55}
+      ]</bn-datasource>
+
+    <bn-layout-page data-bino-page='demo_annotations_rotated' title-business-unit='Annotations on a rotated page' title-namespace='_system'
+      title-scenarios='ac1,pl1' page-layout='custom-template' page-custom-template='"a b c" "d e e"' page-format='xga'
+      page-orientation='landscape' footer-text='Annotations: marks over the charts and table, numbered texts in the list.'
+      footer-display-page-number='true'>
+      <div slot='slot-0' data-bino-annotation-target='time'>
+        <bn-chart-time datasets='$annotations_data' date-interval='year' scenarios='ac1,pl1'
+          unit-scaling='auto'></bn-chart-time>
+      </div>
+      <div slot='slot-1' data-bino-annotation-target='stack'>
+        <bn-chart-time datasets='$annotations_data' date-interval='year' scenarios='ac1,ac2' unit-scaling='auto'
+          stack='{&#34;by&#34;:&#34;scenarios&#34;,&#34;mode&#34;:&#34;absolute&#34;}'></bn-chart-time>
+      </div>
+      <div slot='slot-2' data-bino-annotation-target='structure'>
+        <bn-chart-structure datasets='$annotations_data' level='category' scenarios='ac1,pl1'
+          unit-scaling='auto'></bn-chart-structure>
+      </div>
+      <div slot='slot-3' data-bino-annotation-target='table'>
+        <bn-table datasets='$annotations_data' type='sum' grouped='true' level='category' scenarios='ac1,pl1'
+          unit-scaling='auto'></bn-table>
+      </div>
+      <div slot='slot-4'>
+        <bn-annotation-list items='[
+          {&#34;label&#34;:&#34;1&#34;,&#34;title&#34;:&#34;Bar&#34;,&#34;html&#34;:&#34;Marker on the 2024 AC bar.&#34;},
+          {&#34;label&#34;:&#34;2&#34;,&#34;title&#34;:&#34;Stack total&#34;,&#34;html&#34;:&#34;Frame around the 2025 total. The arrow has no text, so it has no number.&#34;},
+          {&#34;label&#34;:&#34;3&#34;,&#34;title&#34;:&#34;Structure&#34;,&#34;html&#34;:&#34;Marker on the Software bar.&#34;},
+          {&#34;label&#34;:&#34;4&#34;,&#34;title&#34;:&#34;Cell&#34;,&#34;html&#34;:&#34;Frame around one <b>table cell</b>.&#34;},
+          {&#34;label&#34;:&#34;5&#34;,&#34;title&#34;:&#34;Row&#34;,&#34;html&#34;:&#34;Marker on a whole table row.&#34;},
+          {&#34;label&#34;:&#34;6&#34;,&#34;title&#34;:&#34;Total&#34;,&#34;html&#34;:&#34;Marker on a cell of the total row.&#34;},
+          {&#34;label&#34;:&#34;7&#34;,&#34;title&#34;:&#34;Missing point&#34;,&#34;html&#34;:&#34;Its point has no data: no mark on the page, and no circle here.&#34;}
+        ]'></bn-annotation-list>
+      </div>
+      <bn-annotation-layer slot='annotations' items='[
+        {&#34;label&#34;:&#34;1&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;time&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;2024-01-01&#34;,&#34;scenario&#34;:&#34;ac1&#34;}},
+        {&#34;label&#34;:&#34;2&#34;,&#34;mark&#34;:&#34;frame&#34;,&#34;target&#34;:&#34;stack&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;2025-01-01&#34;,&#34;part&#34;:&#34;total&#34;}},
+        {&#34;mark&#34;:&#34;arrow&#34;,&#34;color&#34;:&#34;negative&#34;,&#34;target&#34;:&#34;stack&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;2023-01-01&#34;,&#34;part&#34;:&#34;total&#34;},&#34;to&#34;:&#34;stack&#34;,&#34;toPoint&#34;:{&#34;date&#34;:&#34;2025-01-01&#34;,&#34;part&#34;:&#34;total&#34;}},
+        {&#34;label&#34;:&#34;3&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;structure&#34;,&#34;point&#34;:{&#34;category&#34;:&#34;Software&#34;,&#34;scenario&#34;:&#34;ac1&#34;}},
+        {&#34;label&#34;:&#34;4&#34;,&#34;mark&#34;:&#34;frame&#34;,&#34;target&#34;:&#34;table&#34;,&#34;point&#34;:{&#34;category&#34;:&#34;Software&#34;,&#34;scenario&#34;:&#34;ac1&#34;}},
+        {&#34;label&#34;:&#34;5&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;table&#34;,&#34;point&#34;:{&#34;rowGroup&#34;:&#34;Europe&#34;,&#34;category&#34;:&#34;Hardware&#34;}},
+        {&#34;label&#34;:&#34;6&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;table&#34;,&#34;point&#34;:{&#34;row&#34;:&#34;total&#34;,&#34;scenario&#34;:&#34;pl1&#34;}},
+        {&#34;label&#34;:&#34;7&#34;,&#34;mark&#34;:&#34;marker&#34;,&#34;target&#34;:&#34;time&#34;,&#34;point&#34;:{&#34;date&#34;:&#34;1999-01-01&#34;,&#34;scenario&#34;:&#34;ac1&#34;}}
+      ]'></bn-annotation-layer>
+    </bn-layout-page>
   </bn-context>
 
   <!-- ═══════════════════════════════════════════════════════════════

@@ -141,6 +141,8 @@ The `bn-*` elements listed below are the public API: their tags, attributes, pro
 | Component | Description |
 |-----------|-------------|
 | [`<bn-tree>`](src/components/bn-tree/readme.md) | Hierarchical tree diagram with SVG edges |
+| [`<bn-annotation-layer>`](src/components/bn-annotation-layer/readme.md) | Numbered markers, frames and arrows over the data points of a page |
+| [`<bn-annotation-list>`](src/components/bn-annotation-list/readme.md) | The numbered texts of the annotations of a page |
 
 ### Configuration
 

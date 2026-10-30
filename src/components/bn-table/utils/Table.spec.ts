@@ -51,6 +51,7 @@ describe("Table Class Test", () => {
     const table = makeTable(dataSet, new TableComponentConfig());
     expect(table.getBody()).toEqual([
       {
+        key: { category: "Category A" },
         cssStyle: "",
         elements: [
           {
@@ -80,6 +81,7 @@ describe("Table Class Test", () => {
     table.setI18n(new Map());
     expect(table.getBody()).toEqual([
       {
+        key: { category: "Category A" },
         cssStyle: "",
         elements: [
           {

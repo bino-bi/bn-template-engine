@@ -1,3 +1,4 @@
+import { readLayoutPoint } from "./dataPoint";
 import { readDiagnostics } from "./diagnostics";
 import { Origins, measure } from "./geometry";
 import { resolveStandaloneId } from "./identity";
@@ -14,6 +15,8 @@ import {
 } from "./types";
 
 const SCENARIO_GROUP_RE = /^Scenario([1-4])$/;
+const STACK_SEGMENT_RE = /^stacked_(?:col|bar)_(\d+)_seg_\d+$/;
+const STACK_SEGMENTS = 'g[id^="stacked_col_"], g[id^="stacked_bar_"]';
 
 /** Nearest `#Scenario1..4` ancestor of an element, as "scenario1".."scenario4". */
 function scenarioOf(el: Element, root: Element): string | undefined {
@@ -28,8 +31,24 @@ function scenarioOf(el: Element, root: Element): string | undefined {
 
 /** Data-point index encoded in a group id like "3_RECT" or "3_DATA_Label". */
 function indexOfGroup(id: string): number | undefined {
+  if (id === "") return undefined;
   const parsed = Number(id.split("_")[0]);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+/** Ordinal a mark without a group of its own carries itself. */
+function ownIndex(el: Element): number | undefined {
+  const index = el.getAttribute("data-bn-index");
+  return index === null ? undefined : Number(index);
+}
+
+/** Index of the data-point group around an element: a marker shape has no id of its own. */
+function indexAround(el: Element, root: Element): number | undefined {
+  for (let current: Element | null = el; current && current !== root; current = current.parentElement) {
+    const index = indexOfGroup(current.id ?? "");
+    if (index !== undefined) return index;
+  }
+  return undefined;
 }
 
 function hasClass(el: Element, name: string): boolean {
@@ -49,14 +68,18 @@ function insideLabelGroup(el: Element, root: Element): boolean {
 /**
  * Walks one time/structure chart segment SVG (`svg#drawCanvas`) and classifies
  * its rendered elements by the chart's stable group-id conventions:
- * `<index>_RECT` bar groups inside `#Scenario1..4`, `<index>_DATA_Label` /
- * `<index>_SCENARIO_Label` label groups, the `#axis` group's `.axis-*` line,
- * and the category/title texts of the axis-labels group.
+ * `<index>_RECT` bar groups inside `#Scenario1..4`, `stacked_col_<index>_seg_<n>`
+ * stack segments, `<index>_DATA_Label` / `<index>_SCENARIO_Label` label groups,
+ * the `#axis` group's `.axis-*` line, and the category/title texts of the
+ * axis-labels group. Every other element with a `data-bn-part` attribute is a
+ * data point too: a value label, a stack total, a line or scenario marker.
  */
 export function collectChartSegmentElements(svgRoot: Element, segment: string, origins: Origins): LayoutElement[] {
   const elements: LayoutElement[] = [];
+  const collected = new Set<Element>();
 
   svgRoot.querySelectorAll('g[id$="_RECT"]').forEach((group, walkIndex) => {
+    collected.add(group);
     const bar: BarElement = {
       kind: "bar",
       id: group.id,
@@ -64,6 +87,25 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
       scenario: scenarioOf(group, svgRoot),
       index: indexOfGroup(group.id) ?? walkIndex,
       rect: measure(group, origins),
+      point: readLayoutPoint(group),
+    };
+    elements.push(bar);
+  });
+
+  svgRoot.querySelectorAll(STACK_SEGMENTS).forEach((group) => {
+    const match = STACK_SEGMENT_RE.exec(group.id);
+    // a segment without a value keeps its place in the stack and draws nothing
+    if (!match || !group.querySelector("rect")) return;
+    collected.add(group);
+    const point = readLayoutPoint(group);
+    const bar: BarElement = {
+      kind: "bar",
+      id: group.id,
+      segment,
+      scenario: `stack:${point?.scenario ?? point?.subCategory ?? point?.category ?? ""}`,
+      index: Number(match[1]),
+      rect: measure(group, origins),
+      point,
     };
     elements.push(bar);
   });
@@ -73,6 +115,7 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
       if (hasClass(group, "hide")) return;
       const text = group.textContent?.trim() ?? "";
       if (!text) return;
+      collected.add(group);
       const label: LabelElement = {
         kind: "label",
         id: group.id,
@@ -81,9 +124,38 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
         segment,
         index: indexOfGroup(group.id) ?? walkIndex,
         rect: measure(group, origins),
+        point: readLayoutPoint(group),
       };
       elements.push(label);
     });
+  });
+
+  svgRoot.querySelectorAll("[data-bn-part]").forEach((el, walkIndex) => {
+    if (collected.has(el)) return;
+    const point = readLayoutPoint(el)!;
+    const index = ownIndex(el) ?? indexAround(el, svgRoot);
+    if (point.part === "element") {
+      const mark: PointElement = {
+        kind: "point",
+        series: point.scenario,
+        index: index ?? walkIndex,
+        rect: measure(el, origins),
+        point,
+      };
+      elements.push(mark);
+      return;
+    }
+    const label: LabelElement = {
+      kind: "label",
+      id: el.id || undefined,
+      role: "data",
+      text: el.textContent?.trim() ?? "",
+      segment,
+      index,
+      rect: measure(el, origins),
+      point,
+    };
+    elements.push(label);
   });
 
   svgRoot.querySelectorAll('g[id="axis"] line').forEach((line) => {
@@ -116,11 +188,18 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
   return elements;
 }
 
-/** Number of data-point groups in the primary scenario layer (= category/bar count). */
+/** Number of data-point groups in the primary scenario layer, or of stacks in a stacked chart (= category/bar count). */
 export function countPrimaryDataPoints(svgRoot: Element): number {
   const scenario1 = svgRoot.querySelector('g[id="Scenario1"]');
-  if (!scenario1) return 0;
-  return Array.from(scenario1.children).filter((child) => /^\d+$/.test(child.id ?? "")).length;
+  if (scenario1) {
+    return Array.from(scenario1.children).filter((child) => /^\d+$/.test(child.id ?? "")).length;
+  }
+  const stacks = new Set<string>();
+  svgRoot.querySelectorAll(STACK_SEGMENTS).forEach((group) => {
+    const match = STACK_SEGMENT_RE.exec(group.id);
+    if (match && group.querySelector("rect")) stacks.add(match[1]);
+  });
+  return stacks.size;
 }
 
 export interface ChartFacadeLayout {
@@ -172,19 +251,38 @@ export function collectChartFacadeLayout(
 
 /**
  * Walks an XY/bullet chart SVG. Its marks carry no ids or classes, so
- * classification is by tag: circles/ellipses become points, texts become
- * data labels. Gridlines and frame geometry are deliberately skipped.
+ * classification is by tag: circles/ellipses become points, keyed rects
+ * (the bullet bars) become bars, texts become data labels. Gridlines and
+ * frame geometry are deliberately skipped.
  */
 export function collectXYElements(svgRoot: Element, origins: Origins): LayoutElement[] {
   const elements: LayoutElement[] = [];
   svgRoot.querySelectorAll("circle, ellipse").forEach((mark, index) => {
-    const point: PointElement = { kind: "point", index, rect: measure(mark, origins) };
+    const point: PointElement = { kind: "point", index, rect: measure(mark, origins), point: readLayoutPoint(mark) };
     elements.push(point);
+  });
+  svgRoot.querySelectorAll('rect[data-bn-part="element"]').forEach((mark, index) => {
+    const point = readLayoutPoint(mark);
+    const bar: BarElement = {
+      kind: "bar",
+      segment: "base",
+      scenario: point?.scenario,
+      index: ownIndex(mark) ?? index,
+      rect: measure(mark, origins),
+      point,
+    };
+    elements.push(bar);
   });
   svgRoot.querySelectorAll("text").forEach((textEl) => {
     const text = textEl.textContent?.trim() ?? "";
     if (!text) return;
-    const label: LabelElement = { kind: "label", role: "data", text, rect: measure(textEl, origins) };
+    const label: LabelElement = {
+      kind: "label",
+      role: "data",
+      text,
+      rect: measure(textEl, origins),
+      point: readLayoutPoint(textEl),
+    };
     elements.push(label);
   });
   return elements;

@@ -64,6 +64,53 @@ export { TimePeriod } from "./components/bn-title/bn-title-renderer/utils/model/
 export { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 export { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
 export namespace Components {
+  /**
+   * Draws annotation marks over a page: a numbered circle on a data point, a
+   * rounded frame around a value, or a straight arrow between two data points.
+   * The marks are an overlay and not part of the charts, because a chart
+   * rewrites its SVG on every render. Positions come from `getLayoutState()` of
+   * the components, and they are measured again when a component resizes or
+   * draws again. A point with no match, or with more than one, draws nothing:
+   * that is a finding in the data and not a broken page, so the layer does not fail.
+   * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
+   * the layer never counts.
+   * @example <bn-layout-page>
+   *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
+   *   <bn-annotation-layer slot="annotations"
+   *     items='[{"label":"1","mark":"marker","target":"t1","point":{"date":"2024-01-01","scenario":"pl1"}}]'>
+   *   </bn-annotation-layer>
+   * </bn-layout-page>
+   */
+  interface BnAnnotationLayer {
+    /**
+     * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole.
+     */
+    "items"?: string;
+    /**
+     * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colours.
+     */
+    "selectedStyle"?: string;
+  }
+  /**
+   * Prints the numbered texts of the annotations of a page: the number in a
+   * circle like the ones on the page (always in the main colour of the style), the bold
+   * title, then the text.
+   * The numbers are given. An entry without a number has no circle, and neither
+   * has an entry whose mark `bn-annotation-layer` could not place on this page.
+   * The other entries keep their numbers: the list never counts again.
+   * @example <bn-annotation-list items='[{"label":"1","title":"2024 Plan Software","html":"Up by <b>9.1 kEUR</b>."}]'>
+   * </bn-annotation-list>
+   */
+  interface BnAnnotationList {
+    /**
+     * JSON array of the entries, each one `{ label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted.
+     */
+    "items"?: string;
+    /**
+     * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colour of the circles.
+     */
+    "selectedStyle"?: string;
+  }
   interface BnAsset {
     /**
       * Unique (template scope) name of the asset
@@ -2073,23 +2120,62 @@ export namespace Components {
   }
 }
 declare global {
+  /**
+   * Draws annotation marks over a page: a numbered circle on a data point, a
+   * rounded frame around a value, or a straight arrow between two data points.
+   * The marks are an overlay and not part of the charts, because a chart
+   * rewrites its SVG on every render. Positions come from `getLayoutState()` of
+   * the components, and they are measured again when a component resizes or
+   * draws again. A point with no match, or with more than one, draws nothing:
+   * that is a finding in the data and not a broken page, so the layer does not fail.
+   * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
+   * the layer never counts.
+   * @example <bn-layout-page>
+   *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
+   *   <bn-annotation-layer slot="annotations"
+   *     items='[{"label":"1","mark":"marker","target":"t1","point":{"date":"2024-01-01","scenario":"pl1"}}]'>
+   *   </bn-annotation-layer>
+   * </bn-layout-page>
+   */
+  interface HTMLBnAnnotationLayerElement extends Components.BnAnnotationLayer, HTMLStencilElement {
+  }
+  var HTMLBnAnnotationLayerElement: {
+    prototype: HTMLBnAnnotationLayerElement;
+    new (): HTMLBnAnnotationLayerElement;
+  };
+  /**
+   * Prints the numbered texts of the annotations of a page: the number in a
+   * circle like the ones on the page (always in the main colour of the style), the bold
+   * title, then the text.
+   * The numbers are given. An entry without a number has no circle, and neither
+   * has an entry whose mark `bn-annotation-layer` could not place on this page.
+   * The other entries keep their numbers: the list never counts again.
+   * @example <bn-annotation-list items='[{"label":"1","title":"2024 Plan Software","html":"Up by <b>9.1 kEUR</b>."}]'>
+   * </bn-annotation-list>
+   */
+  interface HTMLBnAnnotationListElement extends Components.BnAnnotationList, HTMLStencilElement {
+  }
+  var HTMLBnAnnotationListElement: {
+    prototype: HTMLBnAnnotationListElement;
+    new (): HTMLBnAnnotationListElement;
+  };
   interface HTMLBnAssetElement extends Components.BnAsset, HTMLStencilElement {
   }
   var HTMLBnAssetElement: {
     prototype: HTMLBnAssetElement;
-    new(): HTMLBnAssetElement;
+    new (): HTMLBnAssetElement;
   };
   interface HTMLBnBodyElement extends Components.BnBody, HTMLStencilElement {
   }
   var HTMLBnBodyElement: {
     prototype: HTMLBnBodyElement;
-    new(): HTMLBnBodyElement;
+    new (): HTMLBnBodyElement;
   };
   interface HTMLBnCardElement extends Components.BnCard, HTMLStencilElement {
   }
   var HTMLBnCardElement: {
     prototype: HTMLBnCardElement;
-    new(): HTMLBnCardElement;
+    new (): HTMLBnCardElement;
   };
   /**
    * SVG bubble chart following IBCS template C10.
@@ -2105,7 +2191,7 @@ declare global {
   }
   var HTMLBnChartBubbleElement: {
     prototype: HTMLBnChartBubbleElement;
-    new(): HTMLBnChartBubbleElement;
+    new (): HTMLBnChartBubbleElement;
   };
   /**
    * Inner presentational element of `bn-chart-bubble`: owns the
@@ -2116,7 +2202,7 @@ declare global {
   }
   var HTMLBnChartBubbleRendererElement: {
     prototype: HTMLBnChartBubbleRendererElement;
-    new(): HTMLBnChartBubbleRendererElement;
+    new (): HTMLBnChartBubbleRendererElement;
   };
   /**
    * IBCS bullet graph: one horizontal row per KPI with a solid actual bar and
@@ -2136,7 +2222,7 @@ declare global {
   }
   var HTMLBnChartBulletElement: {
     prototype: HTMLBnChartBulletElement;
-    new(): HTMLBnChartBulletElement;
+    new (): HTMLBnChartBulletElement;
   };
   /**
    * Inner presentational element of `bn-chart-bullet`: owns the
@@ -2147,7 +2233,7 @@ declare global {
   }
   var HTMLBnChartBulletRendererElement: {
     prototype: HTMLBnChartBulletRendererElement;
-    new(): HTMLBnChartBulletRendererElement;
+    new (): HTMLBnChartBulletRendererElement;
   };
   /**
    * SVG scattergram following IBCS template C09.
@@ -2161,7 +2247,7 @@ declare global {
   }
   var HTMLBnChartScatterElement: {
     prototype: HTMLBnChartScatterElement;
-    new(): HTMLBnChartScatterElement;
+    new (): HTMLBnChartScatterElement;
   };
   /**
    * Inner presentational element of `bn-chart-scatter`: owns the
@@ -2172,7 +2258,7 @@ declare global {
   }
   var HTMLBnChartScatterRendererElement: {
     prototype: HTMLBnChartScatterRendererElement;
-    new(): HTMLBnChartScatterRendererElement;
+    new (): HTMLBnChartScatterRendererElement;
   };
   /**
    * SVG structure (categorical) bar chart following IBCS standards.
@@ -2187,13 +2273,13 @@ declare global {
   }
   var HTMLBnChartStructureElement: {
     prototype: HTMLBnChartStructureElement;
-    new(): HTMLBnChartStructureElement;
+    new (): HTMLBnChartStructureElement;
   };
   interface HTMLBnChartStructureRendererElement extends Components.BnChartStructureRenderer, HTMLStencilElement {
   }
   var HTMLBnChartStructureRendererElement: {
     prototype: HTMLBnChartStructureRendererElement;
-    new(): HTMLBnChartStructureRendererElement;
+    new (): HTMLBnChartStructureRendererElement;
   };
   /**
    * SVG time-series chart following IBCS standards.
@@ -2208,25 +2294,25 @@ declare global {
   }
   var HTMLBnChartTimeElement: {
     prototype: HTMLBnChartTimeElement;
-    new(): HTMLBnChartTimeElement;
+    new (): HTMLBnChartTimeElement;
   };
   interface HTMLBnChartTimeRendererElement extends Components.BnChartTimeRenderer, HTMLStencilElement {
   }
   var HTMLBnChartTimeRendererElement: {
     prototype: HTMLBnChartTimeRendererElement;
-    new(): HTMLBnChartTimeRendererElement;
+    new (): HTMLBnChartTimeRendererElement;
   };
   interface HTMLBnComponentStyleElement extends Components.BnComponentStyle, HTMLStencilElement {
   }
   var HTMLBnComponentStyleElement: {
     prototype: HTMLBnComponentStyleElement;
-    new(): HTMLBnComponentStyleElement;
+    new (): HTMLBnComponentStyleElement;
   };
   interface HTMLBnContextElement extends Components.BnContext, HTMLStencilElement {
   }
   var HTMLBnContextElement: {
     prototype: HTMLBnContextElement;
-    new(): HTMLBnContextElement;
+    new (): HTMLBnContextElement;
   };
   /**
    * Queries data from one or more `bn-datasource` entries via AlaSQL and
@@ -2243,7 +2329,7 @@ declare global {
   }
   var HTMLBnDatasetElement: {
     prototype: HTMLBnDatasetElement;
-    new(): HTMLBnDatasetElement;
+    new (): HTMLBnDatasetElement;
   };
   /**
    * Ingests data and writes it to the scoped `datasources` store.
@@ -2261,13 +2347,13 @@ declare global {
   }
   var HTMLBnDatasourceElement: {
     prototype: HTMLBnDatasourceElement;
-    new(): HTMLBnDatasourceElement;
+    new (): HTMLBnDatasourceElement;
   };
   interface HTMLBnFooterElement extends Components.BnFooter, HTMLStencilElement {
   }
   var HTMLBnFooterElement: {
     prototype: HTMLBnFooterElement;
-    new(): HTMLBnFooterElement;
+    new (): HTMLBnFooterElement;
   };
   /**
    * CSS Grid layout container with optional row/column headers.
@@ -2278,49 +2364,49 @@ declare global {
   }
   var HTMLBnGridElement: {
     prototype: HTMLBnGridElement;
-    new(): HTMLBnGridElement;
+    new (): HTMLBnGridElement;
   };
   interface HTMLBnImageElement extends Components.BnImage, HTMLStencilElement {
   }
   var HTMLBnImageElement: {
     prototype: HTMLBnImageElement;
-    new(): HTMLBnImageElement;
+    new (): HTMLBnImageElement;
   };
   interface HTMLBnInternationalizationElement extends Components.BnInternationalization, HTMLStencilElement {
   }
   var HTMLBnInternationalizationElement: {
     prototype: HTMLBnInternationalizationElement;
-    new(): HTMLBnInternationalizationElement;
+    new (): HTMLBnInternationalizationElement;
   };
   interface HTMLBnLayoutCardElement extends Components.BnLayoutCard, HTMLStencilElement {
   }
   var HTMLBnLayoutCardElement: {
     prototype: HTMLBnLayoutCardElement;
-    new(): HTMLBnLayoutCardElement;
+    new (): HTMLBnLayoutCardElement;
   };
   interface HTMLBnLayoutPageElement extends Components.BnLayoutPage, HTMLStencilElement {
   }
   var HTMLBnLayoutPageElement: {
     prototype: HTMLBnLayoutPageElement;
-    new(): HTMLBnLayoutPageElement;
+    new (): HTMLBnLayoutPageElement;
   };
   interface HTMLBnMessageElement extends Components.BnMessage, HTMLStencilElement {
   }
   var HTMLBnMessageElement: {
     prototype: HTMLBnMessageElement;
-    new(): HTMLBnMessageElement;
+    new (): HTMLBnMessageElement;
   };
   interface HTMLBnPageElement extends Components.BnPage, HTMLStencilElement {
   }
   var HTMLBnPageElement: {
     prototype: HTMLBnPageElement;
-    new(): HTMLBnPageElement;
+    new (): HTMLBnPageElement;
   };
   interface HTMLBnRulesetElement extends Components.BnRuleset, HTMLStencilElement {
   }
   var HTMLBnRulesetElement: {
     prototype: HTMLBnRulesetElement;
-    new(): HTMLBnRulesetElement;
+    new (): HTMLBnRulesetElement;
   };
   /**
    * Defines a named scaling value that chart and table components can reference
@@ -2338,7 +2424,7 @@ declare global {
   }
   var HTMLBnScalingGroupElement: {
     prototype: HTMLBnScalingGroupElement;
-    new(): HTMLBnScalingGroupElement;
+    new (): HTMLBnScalingGroupElement;
   };
   /**
    * Public-facing wrapper for the IBCS table component.
@@ -2352,7 +2438,7 @@ declare global {
   }
   var HTMLBnTableElement: {
     prototype: HTMLBnTableElement;
-    new(): HTMLBnTableElement;
+    new (): HTMLBnTableElement;
   };
   /**
    * Internal rendering engine for `bn-table`.
@@ -2366,7 +2452,7 @@ declare global {
   }
   var HTMLBnTableRendererElement: {
     prototype: HTMLBnTableRendererElement;
-    new(): HTMLBnTableRendererElement;
+    new (): HTMLBnTableRendererElement;
   };
   /**
    * Renders a text block from a template with dataset and translation
@@ -2380,7 +2466,7 @@ declare global {
   }
   var HTMLBnTextElement: {
     prototype: HTMLBnTextElement;
-    new(): HTMLBnTextElement;
+    new (): HTMLBnTextElement;
   };
   /**
    * Composes an IBCS-compliant report title block.
@@ -2392,13 +2478,13 @@ declare global {
   }
   var HTMLBnTitleElement: {
     prototype: HTMLBnTitleElement;
-    new(): HTMLBnTitleElement;
+    new (): HTMLBnTitleElement;
   };
   interface HTMLBnTitleRendererElement extends Components.BnTitleRenderer, HTMLStencilElement {
   }
   var HTMLBnTitleRendererElement: {
     prototype: HTMLBnTitleRendererElement;
-    new(): HTMLBnTitleRendererElement;
+    new (): HTMLBnTitleRendererElement;
   };
   /**
    * Renders a hierarchical tree diagram with SVG edge connections.
@@ -2410,9 +2496,11 @@ declare global {
   }
   var HTMLBnTreeElement: {
     prototype: HTMLBnTreeElement;
-    new(): HTMLBnTreeElement;
+    new (): HTMLBnTreeElement;
   };
   interface HTMLElementTagNameMap {
+    "bn-annotation-layer": HTMLBnAnnotationLayerElement;
+    "bn-annotation-list": HTMLBnAnnotationListElement;
     "bn-asset": HTMLBnAssetElement;
     "bn-body": HTMLBnBodyElement;
     "bn-card": HTMLBnCardElement;
@@ -2451,6 +2539,53 @@ declare global {
 declare namespace LocalJSX {
   type OneOf<K extends string, PropT, AttrT = PropT> = { [P in K]: PropT } & { [P in `attr:${K}` | `prop:${K}`]?: never } | { [P in `attr:${K}`]: AttrT } & { [P in K | `prop:${K}`]?: never } | { [P in `prop:${K}`]: PropT } & { [P in K | `attr:${K}`]?: never };
 
+  /**
+   * Draws annotation marks over a page: a numbered circle on a data point, a
+   * rounded frame around a value, or a straight arrow between two data points.
+   * The marks are an overlay and not part of the charts, because a chart
+   * rewrites its SVG on every render. Positions come from `getLayoutState()` of
+   * the components, and they are measured again when a component resizes or
+   * draws again. A point with no match, or with more than one, draws nothing:
+   * that is a finding in the data and not a broken page, so the layer does not fail.
+   * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
+   * the layer never counts.
+   * @example <bn-layout-page>
+   *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
+   *   <bn-annotation-layer slot="annotations"
+   *     items='[{"label":"1","mark":"marker","target":"t1","point":{"date":"2024-01-01","scenario":"pl1"}}]'>
+   *   </bn-annotation-layer>
+   * </bn-layout-page>
+   */
+  interface BnAnnotationLayer {
+    /**
+     * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole.
+     */
+    "items"?: string;
+    /**
+     * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colours.
+     */
+    "selectedStyle"?: string;
+  }
+  /**
+   * Prints the numbered texts of the annotations of a page: the number in a
+   * circle like the ones on the page (always in the main colour of the style), the bold
+   * title, then the text.
+   * The numbers are given. An entry without a number has no circle, and neither
+   * has an entry whose mark `bn-annotation-layer` could not place on this page.
+   * The other entries keep their numbers: the list never counts again.
+   * @example <bn-annotation-list items='[{"label":"1","title":"2024 Plan Software","html":"Up by <b>9.1 kEUR</b>."}]'>
+   * </bn-annotation-list>
+   */
+  interface BnAnnotationList {
+    /**
+     * JSON array of the entries, each one `{ label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted.
+     */
+    "items"?: string;
+    /**
+     * Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colour of the circles.
+     */
+    "selectedStyle"?: string;
+  }
   interface BnAsset {
     /**
       * Unique (template scope) name of the asset
@@ -4410,6 +4545,14 @@ declare namespace LocalJSX {
     "showOperators"?: boolean;
   }
 
+  interface BnAnnotationLayerAttributes {
+    "items": string;
+    "selectedStyle": string;
+  }
+  interface BnAnnotationListAttributes {
+    "items": string;
+    "selectedStyle": string;
+  }
   interface BnAssetAttributes {
     "name": string;
   }
@@ -4832,6 +4975,8 @@ declare namespace LocalJSX {
   }
 
   interface IntrinsicElements {
+    "bn-annotation-layer": Omit<BnAnnotationLayer, keyof BnAnnotationLayerAttributes> & { [K in keyof BnAnnotationLayer & keyof BnAnnotationLayerAttributes]?: BnAnnotationLayer[K] } & { [K in keyof BnAnnotationLayer & keyof BnAnnotationLayerAttributes as `attr:${K}`]?: BnAnnotationLayerAttributes[K] } & { [K in keyof BnAnnotationLayer & keyof BnAnnotationLayerAttributes as `prop:${K}`]?: BnAnnotationLayer[K] };
+    "bn-annotation-list": Omit<BnAnnotationList, keyof BnAnnotationListAttributes> & { [K in keyof BnAnnotationList & keyof BnAnnotationListAttributes]?: BnAnnotationList[K] } & { [K in keyof BnAnnotationList & keyof BnAnnotationListAttributes as `attr:${K}`]?: BnAnnotationListAttributes[K] } & { [K in keyof BnAnnotationList & keyof BnAnnotationListAttributes as `prop:${K}`]?: BnAnnotationList[K] };
     "bn-asset": Omit<BnAsset, keyof BnAssetAttributes> & { [K in keyof BnAsset & keyof BnAssetAttributes]?: BnAsset[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `attr:${K}`]?: BnAssetAttributes[K] } & { [K in keyof BnAsset & keyof BnAssetAttributes as `prop:${K}`]?: BnAsset[K] } & OneOf<"name", BnAsset["name"], BnAssetAttributes["name"]>;
     "bn-body": Omit<BnBody, keyof BnBodyAttributes> & { [K in keyof BnBody & keyof BnBodyAttributes]?: BnBody[K] } & { [K in keyof BnBody & keyof BnBodyAttributes as `attr:${K}`]?: BnBodyAttributes[K] } & { [K in keyof BnBody & keyof BnBodyAttributes as `prop:${K}`]?: BnBody[K] };
     "bn-card": Omit<BnCard, keyof BnCardAttributes> & { [K in keyof BnCard & keyof BnCardAttributes]?: BnCard[K] } & { [K in keyof BnCard & keyof BnCardAttributes as `attr:${K}`]?: BnCardAttributes[K] } & { [K in keyof BnCard & keyof BnCardAttributes as `prop:${K}`]?: BnCard[K] };
@@ -4871,6 +5016,35 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
   export namespace JSX {
     interface IntrinsicElements {
+      /**
+       * Draws annotation marks over a page: a numbered circle on a data point, a
+       * rounded frame around a value, or a straight arrow between two data points.
+       * The marks are an overlay and not part of the charts, because a chart
+       * rewrites its SVG on every render. Positions come from `getLayoutState()` of
+       * the components, and they are measured again when a component resizes or
+       * draws again. A point with no match, or with more than one, draws nothing:
+       * that is a finding in the data and not a broken page, so the layer does not fail.
+       * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
+       * the layer never counts.
+       * @example <bn-layout-page>
+       *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
+       *   <bn-annotation-layer slot="annotations"
+       *     items='[{"label":"1","mark":"marker","target":"t1","point":{"date":"2024-01-01","scenario":"pl1"}}]'>
+       *   </bn-annotation-layer>
+       * </bn-layout-page>
+       */
+      "bn-annotation-layer": LocalJSX.IntrinsicElements["bn-annotation-layer"] & JSXBase.HTMLAttributes<HTMLBnAnnotationLayerElement>;
+      /**
+       * Prints the numbered texts of the annotations of a page: the number in a
+       * circle like the ones on the page (always in the main colour of the style), the bold
+       * title, then the text.
+       * The numbers are given. An entry without a number has no circle, and neither
+       * has an entry whose mark `bn-annotation-layer` could not place on this page.
+       * The other entries keep their numbers: the list never counts again.
+       * @example <bn-annotation-list items='[{"label":"1","title":"2024 Plan Software","html":"Up by <b>9.1 kEUR</b>."}]'>
+       * </bn-annotation-list>
+       */
+      "bn-annotation-list": LocalJSX.IntrinsicElements["bn-annotation-list"] & JSXBase.HTMLAttributes<HTMLBnAnnotationListElement>;
       "bn-asset": LocalJSX.IntrinsicElements["bn-asset"] & JSXBase.HTMLAttributes<HTMLBnAssetElement>;
       "bn-body": LocalJSX.IntrinsicElements["bn-body"] & JSXBase.HTMLAttributes<HTMLBnBodyElement>;
       "bn-card": LocalJSX.IntrinsicElements["bn-card"] & JSXBase.HTMLAttributes<HTMLBnCardElement>;

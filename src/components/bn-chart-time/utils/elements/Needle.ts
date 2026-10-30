@@ -7,6 +7,7 @@ import { ElementPositions } from "../helper";
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGVariancesStyleGroup } from "../../../../utils/model";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
+import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 // import {SVGVariancesStyleGroup} from "../../../../utils/model/styles/SVGVariancesStyleGroup";
 
 /**
@@ -84,7 +85,7 @@ export class Needle {
         HookLocation.Center,
         HookLocation.Center,
       );
-      this.dataLabel.setToRelativeVarianceLabel();
+      this.dataLabel.setToRelativeVarianceLabel().setPoint(dataPoint.key);
     }
   }
 
@@ -107,6 +108,9 @@ export class Needle {
     if (this.isEmpty()) {
       return this;
     }
+
+    this.scenarioGroup.attr(dataPointAttributes(this.dataPoint.key));
+    this.barGroup.attr(dataPointAttributes(this.dataPoint.key, "element"));
 
     const scenarioStyle = this.styles.varianceStyles[this.dataPoint.getVarianceStyle() as keyof SVGVariancesStyleGroup];
 

@@ -6,6 +6,7 @@ import {
   DataQuery,
   hasGroupingStructure,
   INTERVAL_NONE,
+  isDateInterval,
   WaterfallResult,
 } from "../helper";
 
@@ -20,6 +21,8 @@ import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 import { styleSlot } from "../../../../utils/ibcsRuleSet";
+import { pointDate } from "../../../../utils/layoutState/dataPoint";
+import { DataPointKey } from "../../../../utils/layoutState/types";
 
 /**
  * Transforms raw query results into structured TableRow collections for header and body.
@@ -37,6 +40,8 @@ export class TableDataSetFactory {
   private attributesByAlias: Map<string, TableAttribute> = new Map();
   /** Set by createBodyRows(): the grouped table has rows with a blank rowGroup. */
   public hasBlankRowGroup = false;
+  /** The interval columns stand for dates, so a cell of one has a date. */
+  private dateBuckets = false;
 
   constructor(private readonly ruleSet?: VisualisationRuleSet) {}
 
@@ -250,6 +255,7 @@ export class TableDataSetFactory {
 
     let iGroupIndex: number = -1; // index used in detailRow JSON to count the current group
     const dataQuery = new DataQuery(config, i18n);
+    this.dateBuckets = isDateInterval(config.interval);
     const queryData = dataQuery.execute(db, fromExpr); // collection of all query results
     this.hasBlankRowGroup = dataQuery.hasBlankRowGroup;
 
@@ -442,6 +448,7 @@ export class TableDataSetFactory {
       const isSecondElement = rawDataRow[QueryColumnNames.ROWNR] >= 2;
 
       const detailsRow: TableRow = this.createDetailRow(type, iRowIndex, iGroupIndex, groupData.length);
+      detailsRow.key = this.rowKey(rawDataRow);
       for (const scenario of this.normalizedHeader) {
         const value = this.getRawDataRowElement(rawDataRow, scenario);
         const isBarChart = barColumns?.includes(scenario.type) ?? false;
@@ -470,12 +477,33 @@ export class TableDataSetFactory {
           1,
           waterfall,
         );
+        if (this.dateBuckets && scenario.bucket !== undefined) {
+          detailsRow.elements[detailsRow.elements.length - 1].date = pointDate(scenario.bucket);
+        }
       }
 
       result.push(detailsRow);
     }
 
     return result;
+  }
+
+  /** The raw dimensions of a row. `rowGroup` of the ungrouped rows and of the total is the engine's own label. */
+  private rowKey(row: DataQueryResultRow): DataPointKey | undefined {
+    const rowGroup =
+      row.restRowGroup != null ? (row.restRowGroup as string) : row.rowGroup === "NO_GROUP" ? undefined : row.rowGroup;
+    switch (row.type) {
+      case TableRowType.ENTRY:
+        return { rowGroup, category: row.category, subCategory: row.subCategory };
+      case TableRowType.DRILLELEMENT:
+        return { rowGroup, category: row.category, subCategory: (row.rawSubCategory as string) ?? row.subCategory };
+      case TableRowType.GROUPSUM:
+        return { rowGroup, row: "subtotal" };
+      case TableRowType.SUM:
+        return { row: "total" };
+      default:
+        return undefined;
+    }
   }
 
   private getRawDataRowElement(rawDataRow: DataQueryResultRow, scenario: ScenarioHeaderColumn) {
