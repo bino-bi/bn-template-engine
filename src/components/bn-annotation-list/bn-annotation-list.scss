@@ -1,0 +1,47 @@
+:host {
+  display: block;
+  font-family: var(--bn-font-family, "Noto Sans", sans-serif);
+  font-size: var(--bn-font-size, 13.3333px);
+  color: var(--bn-font-color, #000000);
+}
+
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  display: flex;
+  gap: 0.5em;
+  margin-bottom: 0.6em;
+  align-items: flex-start;
+}
+
+.badge-space {
+  flex: none;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.badge {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // same size as a marker of the layer: its radius is 0.75em, its text 0.825em
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.badge span {
+  font-size: 0.825em;
+}
+
+.title {
+  font-weight: bold;
+}

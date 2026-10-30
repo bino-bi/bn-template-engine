@@ -271,21 +271,29 @@ describe("bn-layout-page grid template", () => {
 
     // a blank inside the first row used to add a fourth, empty column
     expect(grid(page.root).style.gridTemplateColumns).toBe("minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)");
-    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(4);
+    expect(grid(page.root).querySelectorAll("slot")).toHaveLength(4);
+  });
+
+  it("has a slot for the annotation layer in the body, next to the grid", async () => {
+    const page = await newSpecPage({ components: [LayoutPage], html: `<bn-layout-page></bn-layout-page>` });
+    const slot = page.root.shadowRoot.querySelector("bn-body > slot[name=annotations]");
+
+    expect(slot).not.toBeNull();
+    expect(grid(page.root).querySelector("slot[name=annotations]")).toBeNull();
   });
 
   it("keeps the default layout as one column that may grow", async () => {
     const page = await mount(``);
 
     expect(grid(page.root).style.gridTemplateColumns).toBe("1fr");
-    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(1);
+    expect(grid(page.root).querySelectorAll("slot")).toHaveLength(1);
   });
 
   it("lays out a custom template", async () => {
     const page = await mount(`page-layout="custom-template" page-custom-template='"a a" "b c"'`);
 
     expect(grid(page.root).style.gridTemplateAreas).toBe('"a a" "b c"');
-    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(3);
+    expect(grid(page.root).querySelectorAll("slot")).toHaveLength(3);
     expect(ids(page.root)).toEqual([]);
   });
 
@@ -294,7 +302,7 @@ describe("bn-layout-page grid template", () => {
     const page = await mount(`page-layout="custom-template" page-custom-template="${template}"`);
 
     expect(grid(page.root).style.gridTemplateAreas).toBe('"a"');
-    expect(page.root.shadowRoot.querySelectorAll("slot")).toHaveLength(1);
+    expect(grid(page.root).querySelectorAll("slot")).toHaveLength(1);
     expect(ids(page.root)).toEqual(["WARN_pageCustomTemplate"]);
   });
 

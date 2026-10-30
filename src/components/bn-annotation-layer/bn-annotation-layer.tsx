@@ -1,0 +1,389 @@
+import { Component, Element, h, Host, Prop, State, Watch } from "@stencil/core";
+import { getStores, ScopedStores } from "../../context/context-protocol";
+import {
+  annotationColor,
+  AnnotationLayerItem,
+  annotationPageKey,
+  AnnotationPoint,
+  parseLayerItems,
+} from "../../utils/annotations";
+import { ComponentRegister } from "../../utils/componentRegister";
+import { ComponentLayoutState } from "../../utils/layoutState/types";
+import withComponentStatus from "../../utils/withComponentStatus";
+import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
+import { Box, buildMark, DrawnMark } from "./utils/marks";
+import { isWholeComponent, matchPoint } from "./utils/matchPoint";
+
+/** A component with a layout state of its own. */
+interface TargetElement extends HTMLElement {
+  componentOnReady?: () => Promise<unknown>;
+  getLayoutState?: (options: { detail: "full" }) => Promise<ComponentLayoutState>;
+}
+
+/** The result of looking up one end of an item, in viewport coordinates. */
+type Anchor = { box: Box; whole: boolean } | { problem: string };
+
+/** A chart can draw its data late: a point without a match is reported when the page has been quiet for two checks. */
+const REPORT_CHECK_MS = 200;
+const REPORT_MAX_CHECKS = 50;
+
+/** The centre of a screen box lies inside an element. An element without a size has no layout to judge by. */
+function isVisibleIn(box: Box, element: Element): boolean {
+  const area = element.getBoundingClientRect();
+  if (area.width === 0 || area.height === 0) return true;
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  return x >= area.left && x <= area.right && y >= area.top && y <= area.bottom;
+}
+
+/** The slot of a target can grow with its content: what clips it is then a cell further out, in a fit-to-content card. */
+function isCutOff(box: Box, slot: Element): boolean {
+  for (let cell: Element | null = slot; cell && cell.localName !== "bn-layout-page"; cell = cell.parentElement) {
+    if (!isVisibleIn(box, cell)) return true;
+  }
+  return false;
+}
+
+/**
+ * Draws annotation marks over a page: a numbered circle on a data point, a
+ * rounded frame around a value, or a straight arrow between two data points.
+ *
+ * The marks are an overlay and not part of the charts, because a chart
+ * rewrites its SVG on every render. Positions come from `getLayoutState()` of
+ * the components, and they are measured again when a component resizes or
+ * draws again. A point with no match, or with more than one, draws nothing:
+ * that is a finding in the data and not a broken page, so the layer does not fail.
+ *
+ * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
+ * the layer never counts.
+ *
+ * @example
+ * <bn-layout-page>
+ *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
+ *   <bn-annotation-layer slot="annotations"
+ *     items='[{"label":"1","mark":"marker","target":"t1","point":{"date":"2024-01-01","scenario":"pl1"}}]'>
+ *   </bn-annotation-layer>
+ * </bn-layout-page>
+ */
+@Component({
+  tag: "bn-annotation-layer",
+  styleUrl: "bn-annotation-layer.scss",
+  shadow: true,
+})
+export class AnnotationLayer {
+  // @ts-ignore - Required by mixins (withComponentStatus, withHasError)
+  @Element() private element: HTMLElement;
+
+  /**
+   * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`.
+   * `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a
+   * `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw
+   * data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`)
+   * and a `part` (`element`, `label`, `total`). Without a field they mean the
+   * component as a whole.
+   */
+  @Prop() items?: string;
+
+  @State() private marks: DrawnMark[] = [];
+
+  // @ts-ignore - Initialized by withHasError mixin
+  private readonly errors: ErrorDispatcher;
+  private readonly holdStatus: (work: Promise<unknown>) => void;
+  private stores: ScopedStores;
+  private pageKey = "";
+  private parsedItems: AnnotationLayerItem[] = [];
+  private svg?: SVGSVGElement;
+  private scheduled = false;
+  private run = 0;
+  private resizeObserver?: ResizeObserver;
+  private mutationObserver?: MutationObserver;
+  private observed = new WeakSet<Node>();
+  private reported = new Set<string>();
+
+  constructor() {
+    this.holdStatus = withComponentStatus(this);
+    this.errors = withHasError(this);
+  }
+
+  connectedCallback() {
+    this.stores = getStores(this.element);
+    this.pageKey = annotationPageKey(this.element);
+    this.observed = new WeakSet();
+    this.resizeObserver = new ResizeObserver(this.schedule);
+    this.mutationObserver = new MutationObserver(this.schedule);
+    this.observeSize(this.element);
+    document.fonts?.addEventListener("loadingdone", this.schedule);
+  }
+
+  disconnectedCallback() {
+    this.resizeObserver?.disconnect();
+    this.mutationObserver?.disconnect();
+    document.fonts?.removeEventListener("loadingdone", this.schedule);
+    this.run++;
+    if (this.stores?.annotationsUnplaced.state[this.pageKey]) {
+      this.stores.annotationsUnplaced.set(this.pageKey, undefined);
+    }
+  }
+
+  componentWillLoad() {
+    this.parseItems();
+  }
+
+  componentDidLoad() {
+    this.schedule();
+  }
+
+  @Watch("items")
+  onItemsChange() {
+    this.parseItems();
+    this.schedule();
+  }
+
+  private parseItems() {
+    const items = parseLayerItems(this.items);
+    if (items) {
+      this.errors.remove("ERR_items");
+    } else {
+      this.errors.addOrReplace({ id: "ERR_items", type: "error", message: "items: not a JSON array of objects." });
+    }
+    this.parsedItems = items ?? [];
+  }
+
+  /**
+   * Places the marks after the next paint. The layer counts as working until
+   * then, so a printer does not print a page with marks of an older layout.
+   */
+  private readonly schedule = () => {
+    if (this.scheduled) return;
+    this.scheduled = true;
+    this.holdStatus(
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          this.scheduled = false;
+          this.place()
+            .catch((e) => console.error("bn-annotation-layer: placing the marks failed", e))
+            .finally(resolve);
+        });
+      }),
+    );
+  };
+
+  private async place(): Promise<void> {
+    const run = ++this.run;
+    if (!this.element.isConnected || !this.svg) return;
+
+    const page = this.element.closest("bn-layout-page");
+    const targets = new Map<string, TargetElement>();
+    const slots = new Map<TargetElement, Element>();
+    page?.querySelectorAll("[data-bino-annotation-target]").forEach((slot) => {
+      const visual = Array.from(slot.querySelectorAll<TargetElement>("*")).find((el) => el.localName.startsWith("bn-"));
+      const target = visual ?? (slot as TargetElement);
+      targets.set(slot.getAttribute("data-bino-annotation-target")!, target);
+      slots.set(target, slot);
+    });
+    // a cell that changes its size can move a target without resizing it, in a card too
+    page?.querySelectorAll("[slot]").forEach((cell) => this.observeSize(cell));
+
+    const needed = new Set(this.parsedItems.flatMap((item) => [item.target, item.to]));
+    const visuals = [...targets].filter(([id]) => needed.has(id)).map(([, visual]) => visual);
+    await Promise.all(visuals.map((visual) => visual.componentOnReady?.()));
+    if (run !== this.run) return;
+    visuals.forEach((visual) => this.observe(visual));
+
+    const states = new Map<TargetElement, ComponentLayoutState | undefined>();
+    await Promise.all(
+      visuals.map(async (visual) => {
+        states.set(visual, await visual.getLayoutState?.({ detail: "full" }).catch(() => undefined));
+      }),
+    );
+    if (run !== this.run) return;
+
+    const anchorOf = (id: string | undefined, point: AnnotationPoint | undefined): Anchor => {
+      const visual = id != null ? targets.get(id) : undefined;
+      if (!visual) return { problem: `no target "${id}" on this page` };
+      const host = visual.getBoundingClientRect();
+      if (isWholeComponent(point)) {
+        return { box: { x: host.left, y: host.top, width: host.width, height: host.height }, whole: true };
+      }
+      const state = states.get(visual);
+      const found = state ? matchPoint(state, point!) : [];
+      if (found.length !== 1) {
+        return { problem: `${found.length} elements match the point ${JSON.stringify(point)} in "${id}"` };
+      }
+      const { x, y, width, height } = found[0].component;
+      const box = { x: host.left + x, y: host.top + y, width, height };
+      // measuring ignores clipping: a row cut off by its cell would get its mark on the next component
+      if (isCutOff(box, slots.get(visual)!) || !isVisibleIn(box, this.element)) {
+        return { problem: `the point ${JSON.stringify(point)} in "${id}" is cut off` };
+      }
+      return { box, whole: false };
+    };
+
+    const toLocal = this.toLocalSpace();
+    const em = parseFloat(getComputedStyle(this.svg).fontSize) || 13.3333;
+    // the layout size: on a rotated page the screen box has the sides swapped
+    const area = { width: this.element.clientWidth, height: this.element.clientHeight };
+    const marks: DrawnMark[] = [];
+    const problems: { item: AnnotationLayerItem; problem: string }[] = [];
+
+    for (const item of this.parsedItems) {
+      const from = anchorOf(item.target, item.point);
+      const to = item.mark === "arrow" ? anchorOf(item.to, item.toPoint) : undefined;
+      const failed = "problem" in from ? from : to && "problem" in to ? to : undefined;
+      if (failed) {
+        problems.push({ item, problem: failed.problem });
+        continue;
+      }
+      const start = from as { box: Box; whole: boolean };
+      const end = to as { box: Box } | undefined;
+      const mark = buildMark(
+        item,
+        annotationColor(item.color),
+        toLocal(start.box),
+        end && toLocal(end.box),
+        em,
+        start.whole,
+        area,
+      );
+      if (mark) {
+        marks.push(mark);
+      } else {
+        problems.push({ item, problem: "an arrow needs two ends at different places" });
+      }
+    }
+
+    this.marks = marks;
+    this.storeUnplaced(problems.flatMap(({ item }) => (item.label != null ? [item.label] : [])));
+
+    if (problems.length > 0) void this.reportWhenQuiet(run, problems);
+  }
+
+  /**
+   * Not part of the placement: the register would wait for this layer, and this
+   * layer for the register. The checks end within the quiet period the register
+   * has before it publishes, so the warning is out before a page counts as ready.
+   */
+  private async reportWhenQuiet(run: number, problems: { item: AnnotationLayerItem; problem: string }[]) {
+    let quiet = 0;
+    for (let check = 0; check < REPORT_MAX_CHECKS && quiet < 2; check++) {
+      await new Promise((resolve) => window.setTimeout(resolve, REPORT_CHECK_MS));
+      if (run !== this.run) return;
+      quiet = ComponentRegister.componentRegisterStatus().running === 0 ? quiet + 1 : 0;
+    }
+    this.report(problems);
+  }
+
+  private report(problems: { item: AnnotationLayerItem; problem: string }[]) {
+    for (const { item, problem } of problems) {
+      const line = `bn-annotation-layer: ${item.mark ?? "marker"} ${item.label ?? "without a number"} is not drawn: ${problem}.`;
+      if (!this.reported.has(line)) {
+        this.reported.add(line);
+        console.warn(line);
+      }
+    }
+  }
+
+  /** The screen box of an element is axis-aligned on a rotated page too, so its corners map to a box here. */
+  private toLocalSpace(): (box: Box) => Box {
+    const matrix = this.svg!.getScreenCTM()?.inverse();
+    return (box) => {
+      if (!matrix) return box;
+      const corners = [
+        [box.x, box.y],
+        [box.x + box.width, box.y + box.height],
+      ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(matrix));
+      const x = Math.min(corners[0].x, corners[1].x);
+      const y = Math.min(corners[0].y, corners[1].y);
+      return { x, y, width: Math.abs(corners[1].x - corners[0].x), height: Math.abs(corners[1].y - corners[0].y) };
+    };
+  }
+
+  private storeUnplaced(labels: string[]) {
+    const store = this.stores?.annotationsUnplaced;
+    const current = store?.state[this.pageKey] ?? [];
+    if (store && JSON.stringify(current) !== JSON.stringify(labels)) {
+      store.set(this.pageKey, labels);
+    }
+  }
+
+  /** A chart redraws inside its shadow roots, where the host and a mutation observer on it see nothing. */
+  private observe(visual: TargetElement) {
+    this.observeSize(visual);
+    const walk = (root: ShadowRoot | null | undefined) => {
+      if (!root) return;
+      if (!this.observed.has(root)) {
+        this.observed.add(root);
+        this.mutationObserver?.observe(root, { childList: true, subtree: true, characterData: true });
+      }
+      root.querySelectorAll("*").forEach((el) => walk(el.shadowRoot));
+    };
+    walk(visual.shadowRoot);
+  }
+
+  private observeSize(element: Element) {
+    if (!this.observed.has(element)) {
+      this.observed.add(element);
+      this.resizeObserver?.observe(element);
+    }
+  }
+
+  private renderBadge(badge: { cx: number; cy: number; r: number; label?: string } | undefined, color: string) {
+    if (!badge) return null;
+    return (
+      <g>
+        <circle cx={badge.cx} cy={badge.cy} r={badge.r} style={{ fill: color }}></circle>
+        {badge.label != null ? (
+          <text class="badge-text" x={badge.cx} y={badge.cy} style={{ fontSize: `${badge.r * 1.1}px` }}>
+            {badge.label}
+          </text>
+        ) : null}
+      </g>
+    );
+  }
+
+  private renderMark(mark: DrawnMark) {
+    if (mark.kind === "marker") {
+      return (
+        <g class="mark marker" data-label={mark.badge.label}>
+          {this.renderBadge(mark.badge, mark.color)}
+        </g>
+      );
+    }
+    if (mark.kind === "frame") {
+      return (
+        <g class="mark frame" data-label={mark.badge?.label}>
+          <rect
+            x={mark.x}
+            y={mark.y}
+            width={mark.width}
+            height={mark.height}
+            rx={mark.rx}
+            style={{ fill: "none", stroke: mark.color, strokeWidth: "1.5" }}
+          ></rect>
+          {this.renderBadge(mark.badge, mark.color)}
+        </g>
+      );
+    }
+    return (
+      <g class="mark arrow" data-label={mark.badge?.label}>
+        <line
+          x1={mark.x1}
+          y1={mark.y1}
+          x2={mark.x2}
+          y2={mark.y2}
+          style={{ stroke: mark.color, strokeWidth: "1.5" }}
+        ></line>
+        <polygon points={mark.head} style={{ fill: mark.color }}></polygon>
+        {this.renderBadge(mark.badge, mark.color)}
+      </g>
+    );
+  }
+
+  render() {
+    return (
+      <Host>
+        <svg ref={(el) => (this.svg = el as SVGSVGElement)}>{this.marks.map((mark) => this.renderMark(mark))}</svg>
+      </Host>
+    );
+  }
+}

@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+#### Annotations: `bn-annotation-layer` and `bn-annotation-list`
+
+A page can point at a number: a numbered circle on a bar or table cell, a rounded frame around a value, a straight arrow between two data points, and a numbered list of the texts. The layer sits in the new `annotations` slot of `bn-layout-page` and draws over the page, so the charts stay as they are. The numbers are given by the caller, the engine never counts. A point with no match or several matches draws nothing and does not fail the page, and its list entry loses the circle. See [doc/integration-contract.md](doc/integration-contract.md#annotations).
+
+#### `getLayoutState()`: data points say which row they show
+
+With `detail: "full"`, bars, labels, marks, table cells and table rows have a `point`: `{ rowGroup?, category?, subCategory?, date?, scenario?, row?, part }` with the raw data values. The rendered elements carry the same values as `data-bn-*` attributes. Nothing changes in how a report looks. See [doc/layout-state.md](doc/layout-state.md#data-points-point).
+
+The result is also more complete: stack segments, stack totals, value labels of plain charts, line and scenario markers and bullet bars are now listed. They were missing before. `barCount` counts the stacks of a stacked chart, so `hasNoData` is no longer `true` for one.
+
 #### `getLayoutState()`: machine-readable report layout
 
 A public `@Method()` on `bn-context` - which aggregates every visual descendant - and on the rich components (`bn-table`, `bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet`, `bn-tree`, `bn-grid`). It returns a JSON-serializable snapshot of the rendered report, for debugging tools, embedding hosts that draw overlays, and agents that need to read a report technically.

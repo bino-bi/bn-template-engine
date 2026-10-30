@@ -270,7 +270,7 @@ test("layout: a custom template that is no template is one cell and a warning, n
   );
 
   const result = await page.$eval("bn-layout-page", (el) => ({
-    slots: el.shadowRoot.querySelectorAll("slot").length,
+    slots: el.shadowRoot.querySelectorAll("slot:not([name=annotations])").length,
     items: JSON.parse(el.getAttribute("has-error") ?? "[]").map((item) => [item.id, item.type]),
   }));
   assert.deepEqual(result, { slots: 1, items: [["WARN_pageCustomTemplate", "warning"]] });

@@ -40,6 +40,8 @@ export interface ScopedStores {
   context: StoreInstance<ContextStore>;
   scalingGroups: StoreInstance<Record<string, number>>;
   ruleSets: StoreInstance<Record<string, RuleSetConfig>>;
+  /** Per page: the labels of the annotation marks `bn-annotation-layer` could not place. */
+  annotationsUnplaced: StoreInstance<Record<string, string[] | undefined>>;
 }
 
 /**

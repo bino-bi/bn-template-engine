@@ -455,6 +455,7 @@ export class LayoutPage {
             >
               {this.getSlots(arrOfSlots)}
             </div>
+            <slot name="annotations"></slot>
           </bn-body>
           <bn-footer
             text={this.footerText}
