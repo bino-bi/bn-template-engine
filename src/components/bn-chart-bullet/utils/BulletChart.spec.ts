@@ -77,6 +77,11 @@ describe("BulletChart", () => {
     expect(svg).toContain('id="drawCanvas"');
   });
 
+  it("marks the zero line as the chart's baseline", () => {
+    const svg = makeChart([row()]).toString();
+    expect((svg.match(/<line[^>]*data-bn-baseline="axis"/g) || []).length).toBe(1);
+  });
+
   it("reports no data for an empty table", () => {
     const chart = makeChart([]);
     expect(chart.hasNoData()).toBe(true);

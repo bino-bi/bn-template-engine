@@ -1,3 +1,4 @@
+import { readSvgBaseline } from "./baseline";
 import { readLayoutPoint } from "./dataPoint";
 import { readDiagnostics } from "./diagnostics";
 import { Origins, measure } from "./geometry";
@@ -5,6 +6,7 @@ import { resolveStandaloneId } from "./identity";
 import {
   AxisElement,
   BarElement,
+  Baseline,
   ComponentLayoutState,
   EmContext,
   LabelElement,
@@ -207,6 +209,8 @@ export interface ChartFacadeLayout {
   elements?: LayoutElement[];
   /** Category/bar count of the base segment. */
   barCount: number;
+  /** Baseline of the base segment's axis line. */
+  baseline: Baseline;
 }
 
 /**
@@ -222,7 +226,7 @@ export function collectChartFacadeLayout(
   origins: Origins,
   detail: "summary" | "full",
 ): ChartFacadeLayout {
-  const layout: ChartFacadeLayout = { regions: [], barCount: 0 };
+  const layout: ChartFacadeLayout = { regions: [], barCount: 0, baseline: {} };
   const elements: LayoutElement[] = [];
   const inners = Array.from(host.shadowRoot?.querySelectorAll(innerTag) ?? []);
 
@@ -231,7 +235,10 @@ export function collectChartFacadeLayout(
     const svg = inner.shadowRoot?.querySelector("svg#drawCanvas");
     if (svg) {
       layout.regions.push({ id: `canvas:${segment}`, rect: measure(svg, origins) });
-      if (index === 0) layout.barCount = countPrimaryDataPoints(svg);
+      if (index === 0) {
+        layout.barCount = countPrimaryDataPoints(svg);
+        layout.baseline = readSvgBaseline(svg, host);
+      }
       if (detail === "full") {
         elements.push(...collectChartSegmentElements(svg, segment, origins));
       }
@@ -317,6 +324,7 @@ export function collectXYFacadeState(
   if (svg) {
     state.regions.push({ id: "canvas", rect: measure(svg, origins) });
     state.metadata.pointCount = svg.querySelectorAll("circle, ellipse").length;
+    state.baseline = readSvgBaseline(svg, host);
     if (detail === "full") {
       state.elements = collectXYElements(svg, origins);
     }

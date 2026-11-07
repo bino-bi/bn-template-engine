@@ -62,6 +62,7 @@ import { TableType } from "./utils/model";
 import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
 import { Table } from "./bn-table";
 import { BnTableRenderer, TableLayoutDetail } from "./bn-table-renderer/bn-table-renderer";
+import { place } from "../../utils/testing/place";
 
 const origins: Origins = { context: { x: 0, y: 0 }, component: { x: 0, y: 0 } };
 
@@ -291,5 +292,27 @@ describe("bn-table.getLayoutState", () => {
     // and reports back, so the resolved values are already known.
     expect(state.scaling.unitsPerEm).toBeGreaterThan(0);
     expect(state.scaling.percentagePointsPerEm).toBeGreaterThan(0);
+  });
+});
+
+describe("bn-table.getBaseline", () => {
+  // the inner stays unregistered: a hand-built table stands in for it
+  const TABLE = `<table>
+      <thead><tr><th colspan="2">2024</th></tr><tr><th>Region</th><th>AC</th></tr></thead>
+      <tbody><tr><td>North</td><td>10</td></tr></tbody>
+    </table>`;
+
+  it("reports the bottom of the header and the left edge of the first value column", async () => {
+    const page = await newSpecPage({ components: [Table], html: `<bn-table scale="none"></bn-table>` });
+    const inner = page.root.shadowRoot.querySelector("bn-table-renderer");
+    inner.attachShadow({ mode: "open" }).innerHTML = TABLE;
+    const table = inner.shadowRoot.querySelector("table");
+    place(page.root, { left: 10, top: 20, width: 300, height: 200 });
+    place(table.querySelector("thead"), { left: 10, top: 20, width: 300, height: 36 });
+    place(table.querySelectorAll("thead tr")[1].children[1], { left: 130, top: 40, width: 60, height: 16 });
+
+    const baseline = await page.rootInstance.getBaseline();
+    expect(baseline).toEqual({ x: 120, y: 36 });
+    expect((await page.rootInstance.getLayoutState()).baseline).toEqual(baseline);
   });
 });

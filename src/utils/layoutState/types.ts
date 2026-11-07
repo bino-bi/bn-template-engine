@@ -247,6 +247,15 @@ export interface ComponentMetadata {
   hasNoData?: boolean;
 }
 
+/**
+ * The line a component wants to be aligned on, in CSS px from the component
+ * host's top-left corner. A missing coordinate means no baseline on that axis.
+ */
+export interface Baseline {
+  x?: number;
+  y?: number;
+}
+
 export interface ComponentLayoutState {
   version: typeof LAYOUT_STATE_VERSION;
   tag: string;
@@ -261,6 +270,8 @@ export interface ComponentLayoutState {
   /** Parsed `has-error` items of the component. */
   diagnostics: LayoutDiagnosticItem[];
   scaling?: ScalingInfo;
+  /** Charts and bn-table: see their `getBaseline()`. */
+  baseline?: Baseline;
   /** Present only with `detail: "full"` on rich components. */
   elements?: LayoutElement[];
   /** Present only with `detail: "full"` on bn-table. */

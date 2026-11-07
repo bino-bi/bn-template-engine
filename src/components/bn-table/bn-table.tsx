@@ -61,7 +61,9 @@ import {
   measure,
   originsFor,
   readDiagnostics,
+  readTableBaseline,
   resolveStandaloneId,
+  Baseline,
 } from "../../utils/layoutState";
 import { TableLayoutDetail } from "./bn-table-renderer/bn-table-renderer";
 import { syncEmptyState } from "../../utils/emptyState";
@@ -1556,6 +1558,21 @@ export class Table {
   }
 
   /**
+   * The line this table wants to be aligned on, in CSS px from the host's
+   * top-left corner: `y` is the bottom of the header, `x` the left edge of
+   * the first value column. Empty before the table has drawn.
+   */
+  @Method()
+  async getBaseline(): Promise<Baseline> {
+    return this.readBaseline();
+  }
+
+  private readBaseline(): Baseline {
+    const table = this.element.shadowRoot?.querySelector("bn-table-renderer")?.shadowRoot?.querySelector("table");
+    return readTableBaseline(table, this.element);
+  }
+
+  /**
    * Lazily generates this table's layout state: host box (context- and
    * component-relative, CSS px), header/body regions, row/column/cell counts,
    * diagnostics and resolved scaling. With `detail: "full"` every cell is
@@ -1583,6 +1600,7 @@ export class Table {
       metadata: {},
       diagnostics: readDiagnostics(this.element),
       scaling: this.resolveScalingInfo(fontSizePx),
+      baseline: this.readBaseline(),
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

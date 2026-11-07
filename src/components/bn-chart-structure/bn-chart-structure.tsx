@@ -41,7 +41,9 @@ import {
   measure,
   originsFor,
   readDiagnostics,
+  readChartBaseline,
   resolveStandaloneId,
+  Baseline,
 } from "../../utils/layoutState";
 import { syncEmptyState } from "../../utils/emptyState";
 
@@ -1214,6 +1216,15 @@ export class Chart {
   }
 
   /**
+   * The line this chart wants to be aligned on, in CSS px from the host's
+   * top-left corner. The vertical value axis of the base segment gives `x` and its top end `y`. Empty before the chart has drawn.
+   */
+  @Method()
+  async getBaseline(): Promise<Baseline> {
+    return readChartBaseline(this.element, "bn-chart-structure-renderer");
+  }
+
+  /**
    * Lazily generates this chart's layout state: host box (context- and
    * component-relative, CSS px), one `canvas:<segment>` region per rendered
    * segment (base + variances), metadata (scenarios, bar count), diagnostics
@@ -1259,6 +1270,7 @@ export class Chart {
       },
       diagnostics: readDiagnostics(this.element),
       scaling: this.resolveScalingInfo(fontSizePx),
+      baseline: layout.baseline,
     };
     if (layout.elements) state.elements = layout.elements;
     return state;

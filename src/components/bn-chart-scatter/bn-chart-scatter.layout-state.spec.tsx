@@ -56,6 +56,7 @@ jest.mock("../../context/context-protocol", () => {
 
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { ChartScatter } from "./bn-chart-scatter";
+import { place } from "../../utils/testing/place";
 
 const renderChart = async (attrs: string): Promise<SpecPage> => {
   const page = await newSpecPage({
@@ -94,5 +95,26 @@ describe("bn-chart-scatter.getLayoutState", () => {
     expect(points.map((p: any) => p.index)).toEqual([0, 1, 2]);
     const labels = state.elements.filter((e) => e.kind === "label");
     expect(labels.map((l: any) => l.text)).toEqual(["Alpha", "Beta"]);
+  });
+});
+
+describe("bn-chart-scatter.getBaseline", () => {
+  it("reports the bottom and the left edge of the first plot frame", async () => {
+    const page = await renderChart("");
+    place(page.root, { left: 10, top: 20, width: 400, height: 300 });
+    const svg = page.root!.shadowRoot!.querySelector("bn-chart-scatter-renderer")!.shadowRoot!.querySelector("svg")!;
+    svg.insertAdjacentHTML("beforeend", '<rect data-bn-baseline="frame"></rect><rect data-bn-baseline="frame"></rect>');
+    const [first, second] = Array.from(svg.querySelectorAll("rect"));
+    place(first, { left: 60, top: 40, width: 150, height: 200 });
+    place(second, { left: 230, top: 40, width: 150, height: 200 });
+
+    const baseline = await page.rootInstance.getBaseline();
+    expect(baseline).toEqual({ x: 50, y: 220 });
+    expect((await page.rootInstance.getLayoutState()).baseline).toEqual(baseline);
+  });
+
+  it("is empty before the chart has drawn its frame", async () => {
+    const page = await renderChart("");
+    expect(await page.rootInstance.getBaseline()).toEqual({});
   });
 });

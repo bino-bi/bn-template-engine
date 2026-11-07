@@ -5,6 +5,7 @@ import { NumericScale } from "./NumericScale";
 import { HighlightRange } from "./model/AxisConfig";
 import { XYChartStyle } from "./model/XYChartStyle";
 import { strokeWidthPx } from "../scaling";
+import { BASELINE_ATTRIBUTE } from "../layoutState/baseline";
 
 /** Tick rendering configuration for one panel. */
 export interface TickRenderConfig {
@@ -114,7 +115,8 @@ export class XYFrame {
       .stroke({
         color: this.styles.axisStyles.ac.stroke,
         width: strokeWidthPx(this.styles.scaleFactors.gridLineWidth, this.em),
-      });
+      })
+      .attr(BASELINE_ATTRIBUTE, "frame");
   }
 
   /** Tick labels along the outer edges (no tick marks - template style). */

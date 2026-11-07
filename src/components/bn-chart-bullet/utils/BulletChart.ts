@@ -12,6 +12,7 @@ import { NumericScale } from "../../../utils/xy/NumericScale";
 import { XYWarningRecord } from "../../../utils/xy/model/XYChartDataRow";
 import { BulletChartStyle } from "./model/BulletChartStyle";
 import { strokeWidthPx } from "../../../utils/scaling";
+import { BASELINE_ATTRIBUTE } from "../../../utils/layoutState/baseline";
 import { BulletLabelConfig, BulletMeasureConfig } from "./model/BulletConfig";
 
 /** Prepared configuration handed to the bullet orchestrator by the inner element. */
@@ -423,7 +424,8 @@ export class BulletChart {
 
     root
       .line(plotX, rowsTop - 0.2 * em, plotX, rowsBottom + 0.2 * em)
-      .stroke({ color: this.styles.axisStyles.ac.stroke, width: strokeWidthPx(factors.axisLineWidth, this.em) });
+      .stroke({ color: this.styles.axisStyles.ac.stroke, width: strokeWidthPx(factors.axisLineWidth, this.em) })
+      .attr(BASELINE_ATTRIBUTE, "axis");
 
     // Stable, empty hook for a future annotation layer.
     container.group().addClass("annotations");
