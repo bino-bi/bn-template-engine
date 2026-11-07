@@ -51,6 +51,19 @@ const CONFIG_ELEMENTS = new Set([
   "bn-scaling-group",
 ]);
 
+/**
+ * Frames around a component: a cell aligns on what is inside them, and moves
+ * the content inside the frame, so the title of the frame stays in place.
+ */
+const FRAME_ELEMENTS = new Set(["bn-layout-card"]);
+
+/** The CSS properties a frame reads to move its content, by offset side. */
+const FRAME_OFFSET_PROPERTIES = {
+  top: "--bn-baseline-offset-top",
+  left: "--bn-baseline-offset-left",
+  right: "--bn-baseline-offset-right",
+} as const;
+
 /** A pass that keeps changing the offsets stops after this many: a component whose baseline follows its width could chase it. */
 const MAX_ADJUSTMENTS = 5;
 
@@ -79,6 +92,8 @@ export class Grid {
   @State() private captions: Record<string, string> = {};
   /** Per slot: how far the baseline pass moved the content. */
   @State() private offsets: Record<string, CellOffset> = {};
+  /** Per slot: the frame around its component, from the last baseline pass. */
+  private frames = new Map<string, HTMLElement>();
 
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
@@ -340,6 +355,7 @@ export class Grid {
       // drop a pass in flight, so it cannot write offsets of the old mode back
       this.run++;
       if (Object.keys(this.offsets).length > 0) this.offsets = {};
+      this.applyFrameOffsets();
       return;
     }
     if (this.scheduled) return;
@@ -356,13 +372,30 @@ export class Grid {
     );
   };
 
-  /** The first visual component in a slot, or the slotted element itself. */
-  private visualIn(slot: string): AlignableElement | undefined {
+  /** The first visual component in a slot, or the slotted element itself, and the frame around it. */
+  private contentIn(slot: string): { visual?: AlignableElement; frame?: HTMLElement } {
     const slotted = Array.from(this.element.children).find((child) => child.getAttribute("slot") === slot);
-    if (!slotted) return undefined;
-    const isVisual = (el: Element) => el.localName.startsWith("bn-") && !CONFIG_ELEMENTS.has(el.localName);
-    if (isVisual(slotted)) return slotted as AlignableElement;
-    return (Array.from(slotted.querySelectorAll("*")).find(isVisual) as AlignableElement) ?? undefined;
+    if (!slotted) return {};
+    const all = [slotted, ...Array.from(slotted.querySelectorAll("*"))];
+    const visual = all.find(
+      (el) => el.localName.startsWith("bn-") && !CONFIG_ELEMENTS.has(el.localName) && !FRAME_ELEMENTS.has(el.localName),
+    ) as AlignableElement | undefined;
+    const frame = visual
+      ? (all.find((el) => FRAME_ELEMENTS.has(el.localName) && el.contains(visual)) as HTMLElement | undefined)
+      : undefined;
+    return { visual, frame };
+  }
+
+  /** Writes the offsets of framed slots onto their frames, and removes them when a slot has none. */
+  private applyFrameOffsets() {
+    this.frames.forEach((frame, slot) => {
+      const offset = this.offsets[slot];
+      (Object.keys(FRAME_OFFSET_PROPERTIES) as (keyof typeof FRAME_OFFSET_PROPERTIES)[]).forEach((side) => {
+        const value = offset?.[side];
+        if (value) frame.style.setProperty(FRAME_OFFSET_PROPERTIES[side], `${value}px`);
+        else frame.style.removeProperty(FRAME_OFFSET_PROPERTIES[side]);
+      });
+    });
   }
 
   private async align(): Promise<void> {
@@ -373,7 +406,8 @@ export class Grid {
     const slots = rows.flatMap((row, rowIndex) =>
       columns.map((column, columnIndex) => ({ slot: getSlotName(row, column), row: rowIndex, column: columnIndex })),
     );
-    const visuals = slots.map(({ slot }) => this.visualIn(slot));
+    const contents = slots.map(({ slot }) => this.contentIn(slot));
+    const visuals = contents.map((content) => content.visual);
     await Promise.all(visuals.map((visual) => visual?.componentOnReady?.()));
     if (run !== this.run) return;
     visuals.forEach((visual) => visual && this.observe(visual));
@@ -391,13 +425,18 @@ export class Grid {
     this.element.shadowRoot?.querySelectorAll<HTMLElement>(".grid-slot").forEach((el) => {
       wrappers.set(el.getAttribute("data-slot") ?? "", el);
     });
+    this.frames = new Map();
+    contents.forEach(({ frame }, index) => frame && this.frames.set(slots[index].slot, frame));
     const cells: BaselineCell[] = slots.map(({ slot, row, column }, index) => {
       const visual = visuals[index];
       const baseline: Baseline = baselines[index];
       // what is drawn now, not what is in the state: a render can still be pending
-      const wrapper = wrappers.get(slot);
-      const applied = (property: string) => parseFloat(wrapper?.style.getPropertyValue(property) || "0") || 0;
-      const cell: BaselineCell = { slot, row, column, top: applied("padding-top"), left: applied("margin-left") };
+      const cardFrame = contents[index].frame;
+      const holder = cardFrame ?? wrappers.get(slot);
+      const applied = (property: string) => parseFloat(holder?.style.getPropertyValue(property) || "0") || 0;
+      const cell: BaselineCell = cardFrame
+        ? { slot, row, column, top: applied(FRAME_OFFSET_PROPERTIES.top), left: applied(FRAME_OFFSET_PROPERTIES.left) }
+        : { slot, row, column, top: applied("padding-top"), left: applied("margin-left") };
       if (visual) {
         const box = frame.toLocal(visual.getBoundingClientRect());
         if (baseline.y !== undefined) cell.y = box.y + baseline.y;
@@ -419,6 +458,7 @@ export class Grid {
     }
     this.adjustments++;
     this.offsets = next;
+    this.applyFrameOffsets();
     // check once more after the new offsets are drawn; the status stays held until then
     this.schedule();
   }
@@ -765,7 +805,8 @@ export class Grid {
     } else if (this.resolvedVertical === "bottom") {
       wrapper["margin-top"] = "auto";
     }
-    const offset = this.offsets[slotName];
+    // a frame moves its own content; the wrapper only moves a component without a frame
+    const offset = this.frames.has(slotName) ? { bottom: this.offsets[slotName]?.bottom } : this.offsets[slotName];
     if (offset?.bottom) wrapper["margin-top"] = "auto";
     if (offset?.top) wrapper["padding-top"] = `${offset.top}px`;
     // margins, not padding: a chart measures this box, and every box of a column keeps the same width

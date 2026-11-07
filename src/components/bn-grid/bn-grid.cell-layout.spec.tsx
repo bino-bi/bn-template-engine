@@ -251,6 +251,45 @@ describe("bn-grid baseline", () => {
     expect(padding(page, "0-1").left).toBe("");
   });
 
+  it("aligns on the chart inside a card and moves it inside the card", async () => {
+    const children = ["0-0", "0-1"]
+      .map(
+        (slot) => `<bn-layout-card slot="${slot}"><bn-chart-time slot="card-slot-0"></bn-chart-time></bn-layout-card>`,
+      )
+      .join("");
+    const page = await renderGrid(`cell-vertical-align="baseline" cell-horizontal-align="baseline"`, children);
+    place(page.root, { left: 0, top: 0, width: 800, height: 600 });
+    const card = (slot: string) =>
+      Array.from(page.root!.children).find((child) => child.getAttribute("slot") === slot) as HTMLElement;
+    // a chart that moves with the offset its card gets
+    const framed = (slot: string, box: { left: number; top: number; width: number; height: number }, y: number) => {
+      const el = card(slot).firstElementChild as any;
+      const pad = (name: string) => parseFloat(card(slot).style.getPropertyValue(name) || "0");
+      el.getBoundingClientRect = () => {
+        const left = box.left + pad("--bn-baseline-offset-left");
+        const top = box.top + pad("--bn-baseline-offset-top");
+        return { ...box, left, top, x: left, y: top, right: left + box.width, bottom: top + box.height };
+      };
+      el.getBaseline = async () => ({ y, x: 10 });
+    };
+    // the second card has a taller title, so its chart starts lower
+    framed("0-0", { left: 0, top: 20, width: 300, height: 150 }, 140);
+    framed("0-1", { left: 400, top: 50, width: 300, height: 150 }, 140);
+    (page.rootInstance as any).schedule();
+
+    await until(page, () => card("0-0").style.getPropertyValue("--bn-baseline-offset-top") === "30px");
+    expect(card("0-1").style.getPropertyValue("--bn-baseline-offset-top")).toBe("");
+    // the card itself stays where it is, so its title stays on the line of the other titles
+    expect(padding(page, "0-0").top).toBe("");
+    expect(padding(page, "0-0").left).toBe("");
+
+    // without baseline alignment the cards lose their offsets
+    page.root!.setAttribute("cell-vertical-align", "top");
+    page.root!.setAttribute("cell-horizontal-align", "left");
+    await page.waitForChanges();
+    expect(card("0-0").style.getPropertyValue("--bn-baseline-offset-top")).toBe("");
+  });
+
   it("sends a component without a baseline to the bottom", async () => {
     const children = `<div slot="0-0"><bn-chart-time></bn-chart-time></div><div slot="0-1"><bn-text></bn-text></div>`;
     const page = await renderGrid(`cell-vertical-align="baseline"`, children);

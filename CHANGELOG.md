@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
+- `bn-grid` with `baseline` alignment now aligns on the chart or table inside a `bn-layout-card` in a cell. Before, it took the card as the component, found no baseline and sent the cell to the bottom. The offset now moves the body of the card, so the card titles of a row stay on one line and a card with a taller title or a logo keeps its chart on the axis line. The card reads the offset from the CSS properties `--bn-baseline-offset-top`, `--bn-baseline-offset-left` and `--bn-baseline-offset-right`, which the grid sets.
 - `bn-grid` with `cell-width="equal"` is now as wide as its container, and the data columns share that width. Before, the columns were only as wide as their content, so charts in them measured a small width and drew small. Grids without `cell-width="equal"` do not change.
 - `bn-chart-time` and `bn-chart-structure` no longer report "Chart exceeds available width" when they are less than 300px wide. A hidden SVG that holds the fill patterns had no size and counted as 300px of chart content.
 

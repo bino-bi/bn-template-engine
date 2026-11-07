@@ -1,4 +1,10 @@
 :host {
+  // Set by a bn-grid that lines up the component in this card on its baseline:
+  // the body moves, the title stays. Declared here so a card does not take
+  // them from an outer card.
+  --bn-baseline-offset-top: 0px;
+  --bn-baseline-offset-left: 0px;
+  --bn-baseline-offset-right: 0px;
   background: var(--bn-font-background, white);
   color: var(--bn-font-color, black);
   font-family: var(--bn-font-family, "Noto Sans", sans-serif);
@@ -32,4 +38,9 @@
   height: 4em;
   width: auto;
   display: inline;
+}
+
+bn-body {
+  box-sizing: border-box;
+  padding: var(--bn-baseline-offset-top) var(--bn-baseline-offset-right) 0 var(--bn-baseline-offset-left);
 }
