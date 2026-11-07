@@ -90,3 +90,17 @@ describe("readTableBaseline", () => {
     expect(readTableBaseline(null, host)).toEqual({});
   });
 });
+
+describe("readTableBaseline with an operation column", () => {
+  it("takes the column after the category column, not the second one", () => {
+    const doc = new MockDocument();
+    const host = doc.createElement("div") as unknown as Element;
+    host.innerHTML = `<table><thead><tr><th class="operation base"></th><th class="category base">Region</th><th class="ac1">AC</th></tr></thead></table>`;
+    place(host, { left: 100, top: 50, width: 400, height: 300 });
+    const table = host.querySelector("table");
+    place(table!.querySelector("thead"), { left: 100, top: 50, width: 400, height: 20 });
+    place(table!.querySelectorAll("th")[2], { left: 300, top: 50, width: 60, height: 20 });
+
+    expect(readTableBaseline(table, host)).toEqual({ x: 200, y: 20 });
+  });
+});

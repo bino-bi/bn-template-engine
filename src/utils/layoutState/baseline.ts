@@ -61,7 +61,10 @@ export function readTableBaseline(table: Element | null | undefined, host: Eleme
     section ? Array.from(section.children).filter((child) => child.localName === "tr") : [];
   const headerRows = rows(thead);
   const row = headerRows[headerRows.length - 1] ?? rows(table.querySelector("tbody"))[0];
-  const valueCell = row?.children[1];
+  // an operation column can come before the category column (table type opt)
+  const cells = row ? Array.from(row.children) : [];
+  const category = cells.findIndex((cell) => cell.classList.contains("category"));
+  const valueCell = cells[category >= 0 ? category + 1 : 1];
   if (valueCell) {
     baseline.x = round2(frame.toLocal(valueCell.getBoundingClientRect()).x);
   }

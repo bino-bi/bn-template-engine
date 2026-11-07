@@ -287,15 +287,19 @@ export class Grid {
       attributes: true,
       attributeFilter: ["slot"],
     });
+    // a caption in a late web font changes its height
+    document.fonts?.addEventListener("loadingdone", this.schedule);
   }
 
   disconnectedCallback() {
     this.resizeObserver?.disconnect();
     this.mutationObserver?.disconnect();
+    document.fonts?.removeEventListener("loadingdone", this.schedule);
     this.run++;
   }
 
-  componentDidLoad() {
+  /** Captions, headers, gap or style can move a cell without resizing its component. */
+  componentDidRender() {
     this.schedule();
   }
 
@@ -331,11 +335,13 @@ export class Grid {
    * until then, so a printer does not print a half-aligned grid.
    */
   private readonly schedule = () => {
-    if (this.scheduled) return;
     if (!this.isBaselineMode()) {
+      // drop a pass in flight, so it cannot write offsets of the old mode back
+      this.run++;
       if (Object.keys(this.offsets).length > 0) this.offsets = {};
       return;
     }
+    if (this.scheduled) return;
     this.scheduled = true;
     this.holdStatus(
       new Promise<void>((resolve) => {
@@ -379,13 +385,18 @@ export class Grid {
     if (run !== this.run) return;
 
     const frame = localFrameOf(this.element);
+    // by value, not by selector: a header id can hold any character
+    const wrappers = new Map<string, HTMLElement>();
+    this.element.shadowRoot?.querySelectorAll<HTMLElement>(".grid-slot").forEach((el) => {
+      wrappers.set(el.getAttribute("data-slot") ?? "", el);
+    });
     const cells: BaselineCell[] = slots.map(({ slot, row, column }, index) => {
       const visual = visuals[index];
       const baseline: Baseline = baselines[index];
       // what is drawn now, not what is in the state: a render can still be pending
-      const wrapper = this.element.shadowRoot?.querySelector<HTMLElement>(`.grid-slot[data-slot="${slot}"]`);
-      const applied = (side: string) => parseFloat(wrapper?.style.getPropertyValue(`padding-${side}`) || "0") || 0;
-      const cell: BaselineCell = { slot, row, column, top: applied("top"), left: applied("left") };
+      const wrapper = wrappers.get(slot);
+      const applied = (property: string) => parseFloat(wrapper?.style.getPropertyValue(property) || "0") || 0;
+      const cell: BaselineCell = { slot, row, column, top: applied("padding-top"), left: applied("margin-left") };
       if (visual) {
         const box = frame.toLocal(visual.getBoundingClientRect());
         if (baseline.y !== undefined) cell.y = box.y + baseline.y;
@@ -401,6 +412,8 @@ export class Grid {
     }
     if (this.adjustments >= MAX_ADJUSTMENTS) {
       console.warn("bn-grid: the baselines did not settle; the cells keep their last alignment.");
+      // giving up changes nothing, so nothing runs again until the next outside change, which gets a fresh budget
+      this.adjustments = 0;
       return;
     }
     this.adjustments++;
@@ -711,9 +724,9 @@ export class Grid {
   }
 
   /**
-   * The caption, then the slot. With a caption or a baseline the slot gets a
-   * wrapper: auto margins move it below the caption (the caption stays at the
-   * top), and padding moves it onto the baseline.
+   * The caption, then the slot in a wrapper: auto margins move the wrapper
+   * below the caption (the caption stays at the top), and padding or a margin
+   * moves it onto the baseline. Without alignment the wrapper is a plain block.
    */
   private renderCellContent(slotName: string, style: GridStyle) {
     const text = this.captions[slotName];
@@ -733,12 +746,17 @@ export class Grid {
         </div>
       ) : null;
 
-    const baseline = this.isBaselineMode();
-    if (!baseline && (caption === null || this.resolvedVertical === "top")) {
-      return [caption, <slot name={slotName} />];
-    }
-
+    // the slot always has the same parent: a chart observes its parent's size and keeps that element
     const wrapper: { [key: string]: string } = {};
+    if (this.resolvedVertical !== "top" || this.resolvedHorizontal !== "left") {
+      // as wide as the cell, so a chart measures the cell; the horizontal alignment happens inside
+      wrapper["align-self"] = "stretch";
+      if (this.resolvedHorizontal === "center" || this.resolvedHorizontal === "right") {
+        wrapper.display = "flex";
+        wrapper["flex-direction"] = "column";
+        wrapper["align-items"] = ALIGN[this.resolvedHorizontal];
+      }
+    }
     if (this.resolvedVertical === "center") {
       wrapper["margin-top"] = "auto";
       wrapper["margin-bottom"] = "auto";
@@ -748,7 +766,11 @@ export class Grid {
     const offset = this.offsets[slotName];
     if (offset?.bottom) wrapper["margin-top"] = "auto";
     if (offset?.top) wrapper["padding-top"] = `${offset.top}px`;
-    if (offset?.left) wrapper["padding-left"] = `${offset.left}px`;
+    if (offset?.left) {
+      // shift without narrowing: padding would take width from the chart, which measures this box
+      wrapper["margin-left"] = `${offset.left}px`;
+      wrapper["margin-right"] = `-${offset.left}px`;
+    }
 
     return [
       caption,
