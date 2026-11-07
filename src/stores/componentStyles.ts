@@ -33,6 +33,12 @@ export interface GridStyle {
   borderColor: string;
   borderWidth: number;
   cellPadding: number;
+  /** Cell caption (`cell-captions`): font size in px. */
+  captionFontSize: number;
+  captionFontWeight: string;
+  captionColor: string;
+  /** Space below a cell caption, in px. */
+  captionGap: number;
 }
 
 /** Top-level style object grouping global defaults and per-component overrides. */
@@ -315,6 +321,10 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
     borderColor: "#A6A6A6",
     borderWidth: 1,
     cellPadding: 4,
+    captionFontSize: 12,
+    captionFontWeight: "bold",
+    captionColor: "#000000",
+    captionGap: 2,
   },
   "bn-annotation": {
     color: "#0070c0",

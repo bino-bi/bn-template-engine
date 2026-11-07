@@ -94,6 +94,17 @@ resolves auto-detected metadata, and computes styles.
 
 ## Methods
 
+### `getBaseline() => Promise<Baseline>`
+
+The line this chart wants to be aligned on, in CSS px from the host's
+top-left corner. `y` is the x axis (the bottom of the plot frame), `x` the y axis (its left edge), of the first panel when faceted. Empty before the chart has drawn.
+
+#### Returns
+
+Type: `Promise<Baseline>`
+
+
+
 ### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
 
 Lazily generates this chart's layout state: host box (context- and

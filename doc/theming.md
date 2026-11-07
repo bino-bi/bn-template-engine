@@ -52,7 +52,7 @@ All lengths are plain numbers. Which unit a number has depends on where it stand
 | `padding` | px, does not follow `scale` |
 | `bn-tree`: `edgeWidth`, `operatorCircleRadius` | px |
 | `bn-tree`: `operatorFontSizeScale` | multiple of the font size |
-| `bn-grid`: `borderWidth`, `cellPadding` | px |
+| `bn-grid`: `borderWidth`, `cellPadding`, `captionFontSize`, `captionGap` | px |
 
 `fillpattern` in `barStyles` and `varianceStyles` is `solid`, `hatched` or `outlined`. The old value `fc` still works and means `hatched`.
 
@@ -186,14 +186,18 @@ Customize `<bn-tree>` edge and operator styling:
 
 ### Grid
 
-Customize `<bn-grid>` borders and cell spacing:
+Customize `<bn-grid>` borders, cell spacing and the cell captions (`cell-captions`):
 
 ```json
 {
   "bn-grid": {
     "borderColor": "#A6A6A6",
     "borderWidth": 1,
-    "cellPadding": 4
+    "cellPadding": 4,
+    "captionFontSize": 12,
+    "captionFontWeight": "bold",
+    "captionColor": "#000000",
+    "captionGap": 2
   }
 }
 ```

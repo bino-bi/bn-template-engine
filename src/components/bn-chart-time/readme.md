@@ -200,6 +200,17 @@ validates props, resolves auto-detected metadata, and computes styles.
 
 ## Methods
 
+### `getBaseline() => Promise<Baseline>`
+
+The line this chart wants to be aligned on, in CSS px from the host's
+top-left corner. A horizontal axis line gives `y` and its left end `x`. The category axis of the base segment sits at zero, so negative bars hang below it. Empty before the chart has drawn.
+
+#### Returns
+
+Type: `Promise<Baseline>`
+
+
+
 ### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
 
 Lazily generates this chart's layout state: host box (context- and

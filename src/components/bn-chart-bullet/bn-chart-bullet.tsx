@@ -1,6 +1,13 @@
 import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, writeTask } from "@stencil/core";
 import { hasInlineJs } from "../../context/scopedDb";
-import { ComponentLayoutState, LayoutStateOptions, collectXYFacadeState, originsFor } from "../../utils/layoutState";
+import {
+  Baseline,
+  ComponentLayoutState,
+  LayoutStateOptions,
+  collectXYFacadeState,
+  originsFor,
+  readChartBaseline,
+} from "../../utils/layoutState";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { AggregationLevel } from "../../utils/constants";
@@ -744,6 +751,15 @@ export class ChartBullet {
         padding: $["bn-chart-bullet"]["padding"],
       } as unknown as BulletChartStyle;
     });
+  }
+
+  /**
+   * The line this chart wants to be aligned on, in CSS px from the host's
+   * top-left corner. The vertical zero line gives `x` and its top end `y`. Empty before the chart has drawn.
+   */
+  @Method()
+  async getBaseline(): Promise<Baseline> {
+    return readChartBaseline(this.element, "bn-chart-bullet-renderer");
   }
 
   /**

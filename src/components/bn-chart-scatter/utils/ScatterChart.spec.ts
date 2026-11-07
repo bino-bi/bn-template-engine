@@ -201,6 +201,15 @@ describe("ScatterChart", () => {
     expect(svg).toContain("RoW");
   });
 
+  it("marks every panel frame as a baseline, the first panel first", () => {
+    const chart = makeChart(
+      [row(), row({ rowGroup: "RoW", rowGroupIndex: 2, subCategory: "RX-9", subCategoryIndex: 9 })],
+      baseConfig({ facet: { level: "rowgroup" } }),
+    );
+    const svg = chart.toString();
+    expect((svg.match(/<rect[^>]*data-bn-baseline="frame"/g) || []).length).toBe(2);
+  });
+
   it("warns on explicit label names that match no point (xy-label-unknown)", () => {
     const chart = makeChart([row()], baseConfig({ labels: { points: ["RX-1", "Nope"], values: false, max: 12 } }));
     chart.toString();

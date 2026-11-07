@@ -1,6 +1,13 @@
 import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, writeTask } from "@stencil/core";
 import { hasInlineJs } from "../../context/scopedDb";
-import { ComponentLayoutState, LayoutStateOptions, collectXYFacadeState, originsFor } from "../../utils/layoutState";
+import {
+  Baseline,
+  ComponentLayoutState,
+  LayoutStateOptions,
+  collectXYFacadeState,
+  originsFor,
+  readChartBaseline,
+} from "../../utils/layoutState";
 import { globalLabelKeys } from "../../stores/internationalization";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import { getParentDimensions } from "../../utils/parentDimensions";
@@ -842,6 +849,15 @@ export class ChartBubble {
         padding: $["bn-chart-bubble"]["padding"],
       } as unknown as XYChartStyle;
     });
+  }
+
+  /**
+   * The line this chart wants to be aligned on, in CSS px from the host's
+   * top-left corner. `y` is the x axis (the bottom of the plot frame), `x` the y axis (its left edge), of the first panel when faceted. Empty before the chart has drawn.
+   */
+  @Method()
+  async getBaseline(): Promise<Baseline> {
+    return readChartBaseline(this.element, "bn-chart-bubble-renderer");
   }
 
   /**

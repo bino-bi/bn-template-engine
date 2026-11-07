@@ -60,6 +60,7 @@ import { BarElement } from "../../utils/layoutState";
 import { Chart } from "./bn-chart-structure";
 import { resolveHostFont } from "../../utils/testing/hostFont";
 import { join } from "path";
+import { place } from "../../utils/testing/place";
 
 const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
 
@@ -119,6 +120,17 @@ describe("bn-chart-structure.getLayoutState", () => {
     expect(state.scaling.unitMode).toBe("fixed");
     expect(state.scaling.unitsPerEm).toBe(1000000);
     expect(state.scaling.unitPxPerUnit).toBeCloseTo(BASE_FONT / 1000000, 12);
+  });
+
+  it("reports the vertical value axis as its baseline", async () => {
+    const page = await renderChart("");
+    place(page.root, { left: 10, top: 20, width: 200, height: 400 });
+    const inner = page.root!.shadowRoot!.querySelector("bn-chart-structure-renderer")!;
+    place(inner.shadowRoot!.querySelector('g[id="axis"] line'), { left: 89, top: 40, width: 2, height: 360 });
+
+    const baseline = await page.rootInstance.getBaseline();
+    expect(baseline).toEqual({ x: 80, y: 20 });
+    expect((await page.rootInstance.getLayoutState()).baseline).toEqual(baseline);
   });
 });
 

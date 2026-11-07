@@ -64,6 +64,7 @@ import { BnChartTimeRenderer } from "./bn-chart-time-renderer/bn-chart-time-rend
 import { getStores } from "../../context/context-protocol";
 import { resolveHostFont } from "../../utils/testing/hostFont";
 import { join } from "path";
+import { place } from "../../utils/testing/place";
 
 const BASE_FONT = SYSTEM_STYLE_DEFAULTS.global.fontSizePx;
 
@@ -181,6 +182,31 @@ describe("bn-chart-time.getLayoutState", () => {
     expect(inners).toHaveLength(2);
     expect(inners.every((inner) => inner.classList.contains("no-data"))).toBe(true);
     expect(page.root!.classList.contains("no-data")).toBe(true);
+  });
+
+  it("reports the base segment's axis line as its baseline", async () => {
+    const page = await renderChart("");
+    place(page.root, { left: 10, top: 20, width: 400, height: 300 });
+    const [base, variance] = Array.from(page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer"));
+    place(base.shadowRoot!.querySelector('g[id="axis"] line'), { left: 30, top: 219, width: 360, height: 2 });
+    place(variance.shadowRoot!.querySelector('g[id="axis"] line'), { left: 30, top: 59, width: 360, height: 2 });
+
+    const baseline = await page.rootInstance.getBaseline();
+    expect(baseline).toEqual({ x: 20, y: 200 });
+    expect((await page.rootInstance.getLayoutState()).baseline).toEqual(baseline);
+    expect((await page.rootInstance.getLayoutState({ detail: "full" })).baseline).toEqual(baseline);
+  });
+
+  it("keeps the baseline on the axis when values are negative", async () => {
+    const page = await renderChart("");
+    place(page.root, { left: 0, top: 0, width: 400, height: 300 });
+    const base = page.root!.shadowRoot!.querySelector("bn-chart-time-renderer")!;
+    // negative bars hang below the zero line, so the axis is not at the bottom
+    place(base.shadowRoot!.querySelector('g[id="axis"] line'), { left: 20, top: 149.5, width: 360, height: 1 });
+
+    const baseline = await page.rootInstance.getBaseline();
+    expect(baseline.y).toBe(150);
+    expect(baseline.y).toBeLessThan(300);
   });
 });
 
