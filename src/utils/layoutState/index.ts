@@ -6,3 +6,4 @@ export * from "./generic";
 export * from "./svgChartElements";
 export * from "./dataPoint";
 export * from "./baseline";
+export * from "./localFrame";
