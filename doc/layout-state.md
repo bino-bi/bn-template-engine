@@ -110,6 +110,7 @@ Exported TypeScript interfaces (from the package root): `LayoutState`,
 | `metadata` | Counts and semantics - see the matrix below. |
 | `diagnostics` | The component's current `has-error` items (warnings/errors, incl. `AUTO_*` auto-fit notices and `WARN_overflow` / `ERR_overflow`). |
 | `scaling?` | Resolved value scaling - see below. |
+| `baseline?` | Charts and `bn-table`: the line the component wants to be aligned on - see below. |
 | `elements?` | Per-element geometry, only with `detail: "full"`. |
 | `table?` | Row/column model, only with `detail: "full"` on `bn-table`. |
 | `error?` | Set when collecting this component's state threw; box and identity are still filled. |
@@ -128,7 +129,7 @@ rendered element carries one).
 | `cell` / `headerCell` | table | `row`, `column`, `key` (column identity), `colSpan`, `value` (model value), `text` (rendered), `type`, `bar?` (in-cell bar: `variant` `absolute`/`relative`/`waterfall` + rect), `point?`, `content?` (box of what the cell shows, without its free space, on cells with a `point`), `contentSign?` (width in layout px of the "+" of a variance in front of `content`) |
 | `node` | tree | `nodeId` (slot name) |
 | `edge` | tree | `from`, `to`, `operator?`, `path?` (SVG path data) |
-| `gridCell` / `gridHeader` / `gridTitle` | grid | `rowId?`, `columnId?`, `slot?`, `label?` |
+| `gridCell` / `gridHeader` / `gridTitle` / `gridCaption` | grid | `rowId?`, `columnId?`, `slot?`, `label?` (a caption has its cell's `slot` and its text) |
 
 ### Data points (`point`)
 
@@ -178,6 +179,24 @@ Reported by `bn-table`, `bn-chart-time` and `bn-chart-structure`:
 | `unitsPerEm` / `percentagePointsPerEm` | Attribute-form value (see [scaling.md](./scaling.md)); for `auto`, the last auto-fitted result - including silent explicit-`auto` fits. |
 | `unitPxPerUnit` / `percentagePxPerPoint` | The same value as effective px. |
 
+### Baseline (`baseline`)
+
+`{ x?, y? }` in CSS px from the component host's top-left corner, in the
+host's own layout px (so also right on a turned or scaled page). A missing
+coordinate means the component has no baseline on that axis. The same value
+comes from the component's `getBaseline()` method. `bn-grid` uses it for
+`cell-vertical-align="baseline"` and `cell-horizontal-align="baseline"`.
+
+| Component | `y` | `x` |
+| --- | --- | --- |
+| `bn-chart-time` | the category axis of the base segment (it sits at zero, so negative bars hang below it) | the axis' left end |
+| `bn-chart-structure` | the top end of the value axis | the value axis of the base segment |
+| `bn-chart-scatter` / `bubble` | the bottom of the plot frame (first panel when faceted) | the left edge of the plot frame |
+| `bn-chart-bullet` | the top end of the zero line | the zero line |
+| `bn-table` | the bottom of the header | the left edge of the first value column |
+
+Before a component has drawn, `baseline` is `{}`.
+
 ## Per-component detail matrix
 
 | Component | summary | full adds |
@@ -186,7 +205,7 @@ Reported by `bn-table`, `bn-chart-time` and `bn-chart-structure`:
 | `bn-chart-time` / `bn-chart-structure` | canvas region per segment, bar count (stacks in a stacked chart), scenarios/variances, scaling | every bar, stack segment, stack total, marker, data/scenario label, category label, axis, title, footer per segment |
 | `bn-chart-scatter` / `bubble` / `bullet` | canvas region, point count | tag-classified marks, bullet bars and text labels (xy SVGs carry no ids/classes, `point` names the data row) |
 | `bn-tree` | grid region, node/edge counts | node boxes (slotted content), edge paths, operators |
-| `bn-grid` | grid region, row/column counts | title, headers, data cells with slot names |
+| `bn-grid` | grid region, row/column counts | title, headers, data cells with slot names, cell captions |
 | all other visual components | box, identity, em, diagnostics | - |
 
 ## Caveats

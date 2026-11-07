@@ -106,6 +106,17 @@ auto-detected metadata, and computes styles.
 
 ## Methods
 
+### `getBaseline() => Promise<Baseline>`
+
+The line this chart wants to be aligned on, in CSS px from the host's
+top-left corner. The vertical zero line gives `x` and its top end `y`. Empty before the chart has drawn.
+
+#### Returns
+
+Type: `Promise<Baseline>`
+
+
+
 ### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
 
 Lazily generates this chart's layout state: host box (context- and

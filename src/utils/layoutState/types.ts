@@ -185,12 +185,12 @@ export interface EdgeElement extends LayoutElementBase {
 }
 
 export interface GridCellElement extends LayoutElementBase {
-  kind: "gridCell" | "gridHeader" | "gridTitle";
+  kind: "gridCell" | "gridHeader" | "gridTitle" | "gridCaption";
   rowId?: string;
   columnId?: string;
   /** Slot name for data cells. */
   slot?: string;
-  /** Header/title text. */
+  /** Header, title or caption text. */
   label?: string;
 }
 

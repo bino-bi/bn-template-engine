@@ -266,6 +266,18 @@ to the inner `bn-table-renderer` element.
 
 ## Methods
 
+### `getBaseline() => Promise<Baseline>`
+
+The line this table wants to be aligned on, in CSS px from the host's
+top-left corner: `y` is the bottom of the header, `x` the left edge of
+the first value column. Empty before the table has drawn.
+
+#### Returns
+
+Type: `Promise<Baseline>`
+
+
+
 ### `getLayoutState(options?: LayoutStateOptions) => Promise<ComponentLayoutState>`
 
 Lazily generates this table's layout state: host box (context- and

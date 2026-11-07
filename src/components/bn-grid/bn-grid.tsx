@@ -1,10 +1,12 @@
 import { Component, Element, h, Host, Method, Prop, State, Watch } from "@stencil/core";
 import {
+  Baseline,
   ComponentLayoutState,
   GridCellElement,
   LayoutElement,
   LayoutStateOptions,
   LAYOUT_STATE_VERSION,
+  localFrameOf,
   measure,
   originsFor,
   readDiagnostics,
@@ -16,12 +18,49 @@ import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style, GridStyle } from "../../stores/componentStyles";
 import { GridConfig, parseGridConfig, getSlotName, validateHeadersJson } from "./utils/GridConfig";
+import {
+  ALIGN,
+  baselineOffsets,
+  BaselineCell,
+  CELL_SIZES,
+  CellOffset,
+  CellSize,
+  HORIZONTAL_ALIGNS,
+  HorizontalAlign,
+  JUSTIFY,
+  parseCaptions,
+  sameOffsets,
+  VERTICAL_ALIGNS,
+  VerticalAlign,
+} from "./utils/cellLayout";
+
+/** A component that can say where it wants to be aligned. */
+interface AlignableElement extends HTMLElement {
+  componentOnReady?: () => Promise<unknown>;
+  getBaseline?: () => Promise<Baseline>;
+}
+
+/** Elements in a slot that show nothing, so they are not what a cell aligns on. */
+const CONFIG_ELEMENTS = new Set([
+  "bn-asset",
+  "bn-component-style",
+  "bn-dataset",
+  "bn-datasource",
+  "bn-internationalization",
+  "bn-ruleset",
+  "bn-scaling-group",
+]);
+
+/** A pass that keeps changing the offsets stops after this many: a component whose baseline follows its width could chase it. */
+const MAX_ADJUSTMENTS = 5;
 
 /**
  * CSS Grid layout container with optional row/column headers.
  *
  * Child components are placed into named slots (`row-col` convention).
- * Supports configurable borders, title, and header visibility.
+ * Supports configurable borders, title, and header visibility. Cells can
+ * have equal sizes, a caption, and aligned content; `baseline` lines up the
+ * axes of charts (and the header of tables) in a row or column.
  */
 @Component({
   tag: "bn-grid",
@@ -33,9 +72,23 @@ export class Grid {
   @Element() private element: HTMLElement;
 
   @State() private gridConfig: GridConfig = { rows: [], columns: [] };
+  @State() private resolvedHeight: CellSize = "auto";
+  @State() private resolvedWidth: CellSize = "auto";
+  @State() private resolvedVertical: VerticalAlign = "top";
+  @State() private resolvedHorizontal: HorizontalAlign = "left";
+  @State() private captions: Record<string, string> = {};
+  /** Per slot: how far the baseline pass moved the content. */
+  @State() private offsets: Record<string, CellOffset> = {};
 
   private readonly errors: ErrorDispatcher;
   private readonly componentStyle: <T>(q: (style: Style) => T) => T;
+  private readonly holdStatus: (work: Promise<unknown>) => void;
+  private resizeObserver?: ResizeObserver;
+  private mutationObserver?: MutationObserver;
+  private observed = new WeakSet<Node>();
+  private scheduled = false;
+  private run = 0;
+  private adjustments = 0;
 
   /**
    * Name of the component style to use (the `name` of a
@@ -132,18 +185,257 @@ export class Grid {
    */
   @Prop({ attribute: "cell-gap" }) cellGap: string = "0px";
 
+  /**
+   * Height of the data rows: `auto` (default) sizes each row to its content,
+   * `equal` gives every data row the height of the tallest one.
+   */
+  @Prop({ attribute: "cell-height" }) cellHeight: string = "auto";
+
+  @Watch("cellHeight")
+  validateCellHeight(newValue: string) {
+    this.resolvedHeight = this.validateChoice("cell-height", "ERR_cellHeight", newValue, CELL_SIZES, "auto");
+  }
+
+  /**
+   * Width of the data columns: `auto` (default) sizes each column to its
+   * content, `equal` gives every data column the width of the widest one.
+   */
+  @Prop({ attribute: "cell-width" }) cellWidth: string = "auto";
+
+  @Watch("cellWidth")
+  validateCellWidth(newValue: string) {
+    this.resolvedWidth = this.validateChoice("cell-width", "ERR_cellWidth", newValue, CELL_SIZES, "auto");
+  }
+
+  /**
+   * Vertical position of the content in a cell: `top` (default), `center`,
+   * `bottom`, or `baseline`. `baseline` lines up the components of a row on
+   * their baseline (the axis of a chart, the bottom of a table header); a
+   * component without one goes to the bottom.
+   */
+  @Prop({ attribute: "cell-vertical-align" }) cellVerticalAlign: string = "top";
+
+  @Watch("cellVerticalAlign")
+  validateCellVerticalAlign(newValue: string) {
+    this.resolvedVertical = this.validateChoice(
+      "cell-vertical-align",
+      "ERR_cellVerticalAlign",
+      newValue,
+      VERTICAL_ALIGNS,
+      "top",
+    );
+    this.schedule();
+  }
+
+  /**
+   * Horizontal position of the content in a cell: `left` (default),
+   * `center`, `right`, or `baseline`. `baseline` lines up the components of
+   * a column on their baseline (the vertical axis of a chart, the first value
+   * column of a table); a component without one stays left.
+   */
+  @Prop({ attribute: "cell-horizontal-align" }) cellHorizontalAlign: string = "left";
+
+  @Watch("cellHorizontalAlign")
+  validateCellHorizontalAlign(newValue: string) {
+    this.resolvedHorizontal = this.validateChoice(
+      "cell-horizontal-align",
+      "ERR_cellHorizontalAlign",
+      newValue,
+      HORIZONTAL_ALIGNS,
+      "left",
+    );
+    this.schedule();
+  }
+
+  /**
+   * JSON object from slot name to a caption, drawn top left in the cell above
+   * its content: '{"0-0": "Berlin", "0-1": "Cologne"}'. Alignment moves the
+   * content, never the caption. The style section `bn-grid` sets its font.
+   */
+  @Prop({ attribute: "cell-captions" }) cellCaptions: string = "";
+
+  @Watch("cellCaptions")
+  validateCellCaptions(newValue: string) {
+    const captions = parseCaptions(newValue);
+    if (captions) {
+      this.errors.remove("ERR_cellCaptions");
+    } else {
+      this.errors.addOrReplace({
+        id: "ERR_cellCaptions",
+        type: "error",
+        message: "cell-captions: not a JSON object from slot name to text.",
+      });
+    }
+    this.captions = captions ?? {};
+  }
+
   constructor() {
     withStyled(this);
-    withComponentStatus(this);
+    this.holdStatus = withComponentStatus(this);
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
+  }
+
+  connectedCallback() {
+    this.observed = new WeakSet();
+    this.resizeObserver = new ResizeObserver(this.schedule);
+    // a child can be added, moved to another slot or replaced, in a morphing preview for example
+    this.mutationObserver = new MutationObserver(this.schedule);
+    this.mutationObserver.observe(this.element, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["slot"],
+    });
+  }
+
+  disconnectedCallback() {
+    this.resizeObserver?.disconnect();
+    this.mutationObserver?.disconnect();
+    this.run++;
+  }
+
+  componentDidLoad() {
+    this.schedule();
+  }
+
+  private validateChoice<T extends string>(
+    attribute: string,
+    errId: `ERR_${string}`,
+    value: string,
+    allowed: readonly T[],
+    fallback: T,
+  ): T {
+    if (value === undefined || value === null || value === "") {
+      this.errors.remove(errId);
+      return fallback;
+    }
+    if ((allowed as readonly string[]).includes(value)) {
+      this.errors.remove(errId);
+      return value as T;
+    }
+    this.errors.addOrReplace({
+      id: errId,
+      type: "error",
+      message: `${attribute}: "${value}" is not one of ${allowed.join(", ")}.`,
+    });
+    return fallback;
+  }
+
+  private isBaselineMode(): boolean {
+    return this.resolvedVertical === "baseline" || this.resolvedHorizontal === "baseline";
+  }
+
+  /**
+   * Aligns the baselines after the next paint. The grid counts as working
+   * until then, so a printer does not print a half-aligned grid.
+   */
+  private readonly schedule = () => {
+    if (this.scheduled) return;
+    if (!this.isBaselineMode()) {
+      if (Object.keys(this.offsets).length > 0) this.offsets = {};
+      return;
+    }
+    this.scheduled = true;
+    this.holdStatus(
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          this.scheduled = false;
+          this.align()
+            .catch((e) => console.error("bn-grid: aligning the baselines failed", e))
+            .finally(resolve);
+        });
+      }),
+    );
+  };
+
+  /** The first visual component in a slot, or the slotted element itself. */
+  private visualIn(slot: string): AlignableElement | undefined {
+    const slotted = Array.from(this.element.children).find((child) => child.getAttribute("slot") === slot);
+    if (!slotted) return undefined;
+    const isVisual = (el: Element) => el.localName.startsWith("bn-") && !CONFIG_ELEMENTS.has(el.localName);
+    if (isVisual(slotted)) return slotted as AlignableElement;
+    return (Array.from(slotted.querySelectorAll("*")).find(isVisual) as AlignableElement) ?? undefined;
+  }
+
+  private async align(): Promise<void> {
+    const run = ++this.run;
+    if (!this.element.isConnected || !this.isBaselineMode()) return;
+
+    const { rows, columns } = this.gridConfig;
+    const slots = rows.flatMap((row, rowIndex) =>
+      columns.map((column, columnIndex) => ({ slot: getSlotName(row, column), row: rowIndex, column: columnIndex })),
+    );
+    const visuals = slots.map(({ slot }) => this.visualIn(slot));
+    await Promise.all(visuals.map((visual) => visual?.componentOnReady?.()));
+    if (run !== this.run) return;
+    visuals.forEach((visual) => visual && this.observe(visual));
+
+    const baselines = await Promise.all(
+      visuals.map((visual) =>
+        typeof visual?.getBaseline === "function" ? visual.getBaseline().catch(() => ({})) : Promise.resolve({}),
+      ),
+    );
+    if (run !== this.run) return;
+
+    const frame = localFrameOf(this.element);
+    const cells: BaselineCell[] = slots.map(({ slot, row, column }, index) => {
+      const visual = visuals[index];
+      const baseline: Baseline = baselines[index];
+      // what is drawn now, not what is in the state: a render can still be pending
+      const wrapper = this.element.shadowRoot?.querySelector<HTMLElement>(`.grid-slot[data-slot="${slot}"]`);
+      const applied = (side: string) => parseFloat(wrapper?.style.getPropertyValue(`padding-${side}`) || "0") || 0;
+      const cell: BaselineCell = { slot, row, column, top: applied("top"), left: applied("left") };
+      if (visual) {
+        const box = frame.toLocal(visual.getBoundingClientRect());
+        if (baseline.y !== undefined) cell.y = box.y + baseline.y;
+        if (baseline.x !== undefined) cell.x = box.x + baseline.x;
+      }
+      return cell;
+    });
+
+    const next = baselineOffsets(cells, this.resolvedVertical === "baseline", this.resolvedHorizontal === "baseline");
+    if (sameOffsets(next, this.offsets)) {
+      this.adjustments = 0;
+      return;
+    }
+    if (this.adjustments >= MAX_ADJUSTMENTS) {
+      console.warn("bn-grid: the baselines did not settle; the cells keep their last alignment.");
+      return;
+    }
+    this.adjustments++;
+    this.offsets = next;
+    // check once more after the new offsets are drawn; the status stays held until then
+    this.schedule();
+  }
+
+  /** A chart redraws inside its shadow roots, where the host and a mutation observer on it see nothing. */
+  private observe(visual: Element) {
+    if (!this.observed.has(visual)) {
+      this.observed.add(visual);
+      this.resizeObserver?.observe(visual);
+    }
+    const walk = (root: ShadowRoot | null | undefined) => {
+      if (!root) return;
+      if (!this.observed.has(root)) {
+        this.observed.add(root);
+        this.mutationObserver?.observe(root, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ["x1", "y1", "x2", "y2", "x", "y", "width", "height", "transform", "style", "class"],
+        });
+      }
+      root.querySelectorAll("*").forEach((el) => walk(el.shadowRoot));
+    };
+    walk(visual.shadowRoot);
   }
 
   /**
    * Lazily generates this grid's layout state: host box (context- and
    * component-relative, CSS px), the grid region and row/column counts. With
-   * `detail: "full"` the title, every header and every data cell (with its
-   * slot name) is listed with its geometry.
+   * `detail: "full"` the title, every header, every data cell and every
+   * caption (with its slot name) is listed with its geometry.
    *
    * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
    */
@@ -212,6 +504,14 @@ export class Grid {
         rect: measure(cell, origins),
       });
     });
+    container.querySelectorAll(".grid-caption").forEach((caption) => {
+      push({
+        kind: "gridCaption",
+        slot: caption.parentElement?.querySelector("slot")?.getAttribute("name") ?? undefined,
+        label: caption.textContent?.trim() || undefined,
+        rect: measure(caption, origins),
+      });
+    });
 
     state.elements = elements;
     return state;
@@ -227,6 +527,11 @@ export class Grid {
   componentWillLoad() {
     this.validateRowHeaders(this.rowHeaders);
     this.validateColumnHeaders(this.columnHeaders);
+    this.validateCellHeight(this.cellHeight);
+    this.validateCellWidth(this.cellWidth);
+    this.validateCellVerticalAlign(this.cellVerticalAlign);
+    this.validateCellHorizontalAlign(this.cellHorizontalAlign);
+    this.validateCellCaptions(this.cellCaptions);
   }
 
   private updateGridConfig() {
@@ -252,10 +557,10 @@ export class Grid {
       cols.push(this.rowHeaderWidth);
     }
 
-    // Add columns for each data column (auto-size to content)
+    // Add columns for each data column: auto-size to content, or all as wide as the widest
     const numCols = this.gridConfig.columns.length || 1;
     for (let i = 0; i < numCols; i++) {
-      cols.push("auto");
+      cols.push(this.resolvedWidth === "equal" ? "1fr" : "auto");
     }
 
     return cols.join(" ");
@@ -274,10 +579,10 @@ export class Grid {
       rows.push("auto");
     }
 
-    // Add rows for each data row (auto-size to content)
+    // Add rows for each data row: auto-size to content, or all as high as the highest
     const numRows = this.gridConfig.rows.length || 1;
     for (let i = 0; i < numRows; i++) {
-      rows.push("auto");
+      rows.push(this.resolvedHeight === "equal" ? "1fr" : "auto");
     }
 
     return rows.join(" ");
@@ -381,9 +686,10 @@ export class Grid {
                 "border-top": isNotFirstRow ? borderStyle : "none",
                 "padding-left": isNotFirstCol ? `${style.cellPadding + 4}px` : "0",
                 "padding-top": isNotFirstRow ? `${style.cellPadding + 4}px` : "0",
+                ...this.cellAlignStyle(),
               }}
             >
-              <slot name={slotName} />
+              {this.renderCellContent(slotName, style)}
             </div>,
           );
         });
@@ -391,6 +697,65 @@ export class Grid {
     }
 
     return cells;
+  }
+
+  /** Flex column only when the content is not at the default top left: a block cell stays a block. */
+  private cellAlignStyle(): { [key: string]: string } {
+    if (this.resolvedVertical === "top" && this.resolvedHorizontal === "left") return {};
+    return {
+      display: "flex",
+      "flex-direction": "column",
+      "justify-content": JUSTIFY[this.resolvedVertical],
+      "align-items": ALIGN[this.resolvedHorizontal],
+    };
+  }
+
+  /**
+   * The caption, then the slot. With a caption or a baseline the slot gets a
+   * wrapper: auto margins move it below the caption (the caption stays at the
+   * top), and padding moves it onto the baseline.
+   */
+  private renderCellContent(slotName: string, style: GridStyle) {
+    const text = this.captions[slotName];
+    const caption =
+      text !== undefined ? (
+        <div
+          class="grid-caption"
+          style={{
+            "font-size": `${style.captionFontSize}px`,
+            "font-weight": String(style.captionFontWeight),
+            color: style.captionColor,
+            "margin-bottom": `${style.captionGap}px`,
+            "align-self": "flex-start",
+          }}
+        >
+          {text}
+        </div>
+      ) : null;
+
+    const baseline = this.isBaselineMode();
+    if (!baseline && (caption === null || this.resolvedVertical === "top")) {
+      return [caption, <slot name={slotName} />];
+    }
+
+    const wrapper: { [key: string]: string } = {};
+    if (this.resolvedVertical === "center") {
+      wrapper["margin-top"] = "auto";
+      wrapper["margin-bottom"] = "auto";
+    } else if (this.resolvedVertical === "bottom") {
+      wrapper["margin-top"] = "auto";
+    }
+    const offset = this.offsets[slotName];
+    if (offset?.bottom) wrapper["margin-top"] = "auto";
+    if (offset?.top) wrapper["padding-top"] = `${offset.top}px`;
+    if (offset?.left) wrapper["padding-left"] = `${offset.left}px`;
+
+    return [
+      caption,
+      <div class="grid-slot" data-slot={slotName} style={wrapper}>
+        <slot name={slotName} />
+      </div>,
+    ];
   }
 
   private getFontStyles(): { [key: string]: string } {

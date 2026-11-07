@@ -5,7 +5,7 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
+import { Baseline, CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
 import { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
 import { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 import { XYChartStyle } from "./utils/xy/model/XYChartStyle";
@@ -34,7 +34,7 @@ import { MeasureEntry } from "./components/bn-title/bn-title-renderer/utils/mode
 import { TimePeriod } from "./components/bn-title/bn-title-renderer/utils/model/TimePeriod";
 import { LayoutDirection } from "./components/bn-tree/utils/TreeLayout";
 import { EdgeStyleType } from "./components/bn-tree/utils/EdgeRenderer";
-export { CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
+export { Baseline, CellElement, ComponentLayoutState, EdgeElement, GridCellElement, LabelElement, LayoutElement, LayoutState, LayoutStateOptions, NodeElement, Origins, TableRowInfo } from "./utils/layoutState";
 export { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig, ShareConfig, SizeConfig } from "./utils/xy/model/AxisConfig";
 export { GroupLevel, PointLevel } from "./utils/xy/model/XYChartDataRow";
 export { XYChartStyle } from "./utils/xy/model/XYChartStyle";
@@ -169,6 +169,10 @@ export namespace Components {
       * @default ""
      */
     "filter": string;
+    /**
+      * The line this chart wants to be aligned on, in CSS px from the host's top-left corner. `y` is the x axis (the bottom of the plot frame), `x` the y axis (its left edge), of the first panel when faceted. Empty before the chart has drawn.
+     */
+    "getBaseline": () => Promise<Baseline>;
     /**
       * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), the canvas region, point count and diagnostics. With `detail: "full"` the rendered marks and labels are listed with their geometry (tag-classified - XY marks carry no ids).
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
@@ -351,6 +355,10 @@ export namespace Components {
      */
     "filter": string;
     /**
+      * The line this chart wants to be aligned on, in CSS px from the host's top-left corner. The vertical zero line gives `x` and its top end `y`. Empty before the chart has drawn.
+     */
+    "getBaseline": () => Promise<Baseline>;
+    /**
       * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), the canvas region and diagnostics. With `detail: "full"` the rendered marks and labels are listed with their geometry (tag-classified - bullet marks carry no ids).
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
@@ -521,6 +529,10 @@ export namespace Components {
      */
     "filter": string;
     /**
+      * The line this chart wants to be aligned on, in CSS px from the host's top-left corner. `y` is the x axis (the bottom of the plot frame), `x` the y axis (its left edge), of the first panel when faceted. Empty before the chart has drawn.
+     */
+    "getBaseline": () => Promise<Baseline>;
+    /**
       * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), the canvas region, point count and diagnostics. With `detail: "full"` the rendered marks and labels are listed with their geometry (tag-classified - XY marks carry no ids).
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
@@ -678,6 +690,10 @@ export namespace Components {
       * @default ""
      */
     "filter": string;
+    /**
+      * The line this chart wants to be aligned on, in CSS px from the host's top-left corner. The vertical value axis of the base segment gives `x` and its top end `y`. Empty before the chart has drawn.
+     */
+    "getBaseline": () => Promise<Baseline>;
     /**
       * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), one `canvas:<segment>` region per rendered segment (base + variances), metadata (scenarios, bar count), diagnostics and resolved scaling. With `detail: "full"` every bar, label and axis of every segment is listed with its geometry.
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
@@ -904,6 +920,10 @@ export namespace Components {
       * @default ""
      */
     "filter": string;
+    /**
+      * The line this chart wants to be aligned on, in CSS px from the host's top-left corner. A horizontal axis line gives `y` and its left end `x`. The category axis of the base segment sits at zero, so negative bars hang below it. Empty before the chart has drawn.
+     */
+    "getBaseline": () => Promise<Baseline>;
     /**
       * Lazily generates this chart's layout state: host box (context- and component-relative, CSS px), one `canvas:<segment>` region per rendered segment (base + variances), metadata (scenarios, bar count), diagnostics and resolved scaling. With `detail: "full"` every bar, label and axis of every segment is listed with its geometry.
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
@@ -1233,14 +1253,41 @@ export namespace Components {
   /**
    * CSS Grid layout container with optional row/column headers.
    * Child components are placed into named slots (`row-col` convention).
-   * Supports configurable borders, title, and header visibility.
+   * Supports configurable borders, title, and header visibility. Cells can
+   * have equal sizes, a caption, and aligned content; `baseline` lines up the
+   * axes of charts (and the header of tables) in a row or column.
    */
   interface BnGrid {
+    /**
+      * JSON object from slot name to a caption, drawn top left in the cell above its content: '{"0-0": "Berlin", "0-1": "Cologne"}'. Alignment moves the content, never the caption. The style section `bn-grid` sets its font.
+      * @default ""
+     */
+    "cellCaptions": string;
     /**
       * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
       * @default "0px"
      */
     "cellGap": string;
+    /**
+      * Height of the data rows: `auto` (default) sizes each row to its content, `equal` gives every data row the height of the tallest one.
+      * @default "auto"
+     */
+    "cellHeight": string;
+    /**
+      * Horizontal position of the content in a cell: `left` (default), `center`, `right`, or `baseline`. `baseline` lines up the components of a column on their baseline (the vertical axis of a chart, the first value column of a table); a component without one stays left.
+      * @default "left"
+     */
+    "cellHorizontalAlign": string;
+    /**
+      * Vertical position of the content in a cell: `top` (default), `center`, `bottom`, or `baseline`. `baseline` lines up the components of a row on their baseline (the axis of a chart, the bottom of a table header); a component without one goes to the bottom.
+      * @default "top"
+     */
+    "cellVerticalAlign": string;
+    /**
+      * Width of the data columns: `auto` (default) sizes each column to its content, `equal` gives every data column the width of the widest one.
+      * @default "auto"
+     */
+    "cellWidth": string;
     /**
       * Title displayed at top-left of the grid.
       * @default ""
@@ -1252,7 +1299,7 @@ export namespace Components {
      */
     "columnHeaders": string;
     /**
-      * Lazily generates this grid's layout state: host box (context- and component-relative, CSS px), the grid region and row/column counts. With `detail: "full"` the title, every header and every data cell (with its slot name) is listed with its geometry.
+      * Lazily generates this grid's layout state: host box (context- and component-relative, CSS px), the grid region and row/column counts. With `detail: "full"` the title, every header, every data cell and every caption (with its slot name) is listed with its geometry.
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
      */
     "getLayoutState": (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
@@ -1668,6 +1715,10 @@ export namespace Components {
       * @default ""
      */
     "filter": string;
+    /**
+      * The line this table wants to be aligned on, in CSS px from the host's top-left corner: `y` is the bottom of the header, `x` the left edge of the first value column. Empty before the table has drawn.
+     */
+    "getBaseline": () => Promise<Baseline>;
     /**
       * Lazily generates this table's layout state: host box (context- and component-relative, CSS px), header/body regions, row/column/cell counts, diagnostics and resolved scaling. With `detail: "full"` every cell is listed with its geometry, model value, column key and in-cell bar chart.
       * @param options - `{ detail: "summary" | "full" }`, default `"summary"`
@@ -2358,7 +2409,9 @@ declare global {
   /**
    * CSS Grid layout container with optional row/column headers.
    * Child components are placed into named slots (`row-col` convention).
-   * Supports configurable borders, title, and header visibility.
+   * Supports configurable borders, title, and header visibility. Cells can
+   * have equal sizes, a caption, and aligned content; `baseline` lines up the
+   * axes of charts (and the header of tables) in a row or column.
    */
   interface HTMLBnGridElement extends Components.BnGrid, HTMLStencilElement {
   }
@@ -3678,14 +3731,41 @@ declare namespace LocalJSX {
   /**
    * CSS Grid layout container with optional row/column headers.
    * Child components are placed into named slots (`row-col` convention).
-   * Supports configurable borders, title, and header visibility.
+   * Supports configurable borders, title, and header visibility. Cells can
+   * have equal sizes, a caption, and aligned content; `baseline` lines up the
+   * axes of charts (and the header of tables) in a row or column.
    */
   interface BnGrid {
+    /**
+      * JSON object from slot name to a caption, drawn top left in the cell above its content: '{"0-0": "Berlin", "0-1": "Cologne"}'. Alignment moves the content, never the caption. The style section `bn-grid` sets its font.
+      * @default ""
+     */
+    "cellCaptions"?: string;
     /**
       * Gap between cells. Accepts CSS values (e.g., '0px', '8px').
       * @default "0px"
      */
     "cellGap"?: string;
+    /**
+      * Height of the data rows: `auto` (default) sizes each row to its content, `equal` gives every data row the height of the tallest one.
+      * @default "auto"
+     */
+    "cellHeight"?: string;
+    /**
+      * Horizontal position of the content in a cell: `left` (default), `center`, `right`, or `baseline`. `baseline` lines up the components of a column on their baseline (the vertical axis of a chart, the first value column of a table); a component without one stays left.
+      * @default "left"
+     */
+    "cellHorizontalAlign"?: string;
+    /**
+      * Vertical position of the content in a cell: `top` (default), `center`, `bottom`, or `baseline`. `baseline` lines up the components of a row on their baseline (the axis of a chart, the bottom of a table header); a component without one goes to the bottom.
+      * @default "top"
+     */
+    "cellVerticalAlign"?: string;
+    /**
+      * Width of the data columns: `auto` (default) sizes each column to its content, `equal` gives every data column the width of the widest one.
+      * @default "auto"
+     */
+    "cellWidth"?: string;
     /**
       * Title displayed at top-left of the grid.
       * @default ""
@@ -4780,6 +4860,11 @@ declare namespace LocalJSX {
     "showBorders": boolean;
     "rowHeaderWidth": string;
     "cellGap": string;
+    "cellHeight": string;
+    "cellWidth": string;
+    "cellVerticalAlign": string;
+    "cellHorizontalAlign": string;
+    "cellCaptions": string;
   }
   interface BnImageAttributes {
     "selectedStyle": string;
@@ -5154,7 +5239,9 @@ declare module "@stencil/core" {
       /**
        * CSS Grid layout container with optional row/column headers.
        * Child components are placed into named slots (`row-col` convention).
-       * Supports configurable borders, title, and header visibility.
+       * Supports configurable borders, title, and header visibility. Cells can
+       * have equal sizes, a caption, and aligned content; `baseline` lines up the
+       * axes of charts (and the header of tables) in a row or column.
        */
       "bn-grid": LocalJSX.IntrinsicElements["bn-grid"] & JSXBase.HTMLAttributes<HTMLBnGridElement>;
       "bn-image": LocalJSX.IntrinsicElements["bn-image"] & JSXBase.HTMLAttributes<HTMLBnImageElement>;

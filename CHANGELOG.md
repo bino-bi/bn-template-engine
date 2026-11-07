@@ -6,6 +6,20 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+#### `bn-grid`: equal cells, alignment, baselines and captions
+
+A grid of small charts can now line up. All new attributes are optional and the grid looks as before without them.
+
+- `cell-height="equal"` and `cell-width="equal"` give every data row the height of the highest one and every data column the width of the widest one. Title, header rows and the row-header column keep their size.
+- `cell-vertical-align` (`top`, `center`, `bottom`, `baseline`) and `cell-horizontal-align` (`left`, `center`, `right`, `baseline`) place the content in its cell. `baseline` lines up the axes of the charts in a row (and the vertical axes in a column), also when one chart is taller or has negative values. A table aligns on the bottom of its header and its first value column. A component without a baseline goes to the bottom, or stays left. The grid counts as rendering until the cells are aligned, so a PDF never shows a half-aligned grid.
+- `cell-captions` takes a JSON object from slot name to text, for example `{"0-0": "Berlin"}`, and draws the text top left in that cell. Alignment moves the content, never the caption. The style section `bn-grid` has new keys `captionFontSize`, `captionFontWeight`, `captionColor` and `captionGap`. See [doc/theming.md](doc/theming.md).
+
+An unknown value is an `ERR_` item in `has-error` and renders as the default.
+
+#### Charts and tables report a baseline
+
+`bn-chart-time`, `bn-chart-structure`, `bn-chart-scatter`, `bn-chart-bubble`, `bn-chart-bullet` and `bn-table` have a new method `getBaseline()`, and `getLayoutState()` has the same value as `baseline`: the line the component wants to be aligned on (the axis of a chart, the bottom of a table header), in px from the top-left corner of the component. See [doc/layout-state.md](doc/layout-state.md#baseline-baseline).
+
 #### Annotations: `bn-annotation-layer` and `bn-annotation-list`
 
 A page can point at a number: a numbered circle on a bar or table cell, a rounded frame around a value, a straight arrow between two data points, and a numbered list of the texts. The layer sits in the new `annotations` slot of `bn-layout-page` and draws over the page, so the charts stay as they are. The numbers are given by the caller, the engine never counts. A point with no match or several matches draws nothing and does not fail the page, and its list entry loses the circle. The colours come from the new style section `bn-annotation`. See [doc/integration-contract.md](doc/integration-contract.md#annotations) and [doc/theming.md](doc/theming.md#annotations).
