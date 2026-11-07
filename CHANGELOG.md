@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [Unreleased]
 
+### Fixed
+
+- `bn-grid` with `cell-width="equal"` is now as wide as its container, and the data columns share that width. Before, the columns were only as wide as their content, so charts in them measured a small width and drew small. Grids without `cell-width="equal"` do not change.
+- `bn-chart-time` and `bn-chart-structure` no longer report "Chart exceeds available width" when they are less than 300px wide. A hidden SVG that holds the fill patterns had no size and counted as 300px of chart content.
+
 ### Added
 
 #### `bn-grid`: equal cells, alignment, baselines and captions
