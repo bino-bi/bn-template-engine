@@ -1284,7 +1284,7 @@ export namespace Components {
      */
     "cellVerticalAlign": string;
     /**
-      * Width of the data columns: `auto` (default) sizes each column to its content, `equal` gives every data column the width of the widest one.
+      * Width of the data columns: `auto` (default) sizes each column to its content, `equal` makes the grid as wide as its container and gives every data column the same share of it.
       * @default "auto"
      */
     "cellWidth": string;
@@ -3762,7 +3762,7 @@ declare namespace LocalJSX {
      */
     "cellVerticalAlign"?: string;
     /**
-      * Width of the data columns: `auto` (default) sizes each column to its content, `equal` gives every data column the width of the widest one.
+      * Width of the data columns: `auto` (default) sizes each column to its content, `equal` makes the grid as wide as its container and gives every data column the same share of it.
       * @default "auto"
      */
     "cellWidth"?: string;

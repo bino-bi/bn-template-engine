@@ -174,7 +174,12 @@ export class BnChartStructureRenderer {
     return (
       <Host>
         {/*<div ref={(el) => this.patternElement = el} id="pattern" class="hidePatternContainer" /> */}
-        <div innerHTML={this.pattern?.toString()} class="hidePatternContainer" />
+        {/* overflow: an SVG without a size is 300px wide and would count as chart content */}
+        <div
+          innerHTML={this.pattern?.toString()}
+          class="hidePatternContainer"
+          style={{ width: "0", height: "0", overflow: "hidden" }}
+        />
 
         <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
         {/* <svg ref={(el) => this.drawElement = el} id="drawCanvas" width={this.chart.getAllocatedCanvasWidth()} height={this.chart.getAllocatedCanvasHeight()} />*/}

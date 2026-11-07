@@ -198,7 +198,8 @@ export class Grid {
 
   /**
    * Width of the data columns: `auto` (default) sizes each column to its
-   * content, `equal` gives every data column the width of the widest one.
+   * content, `equal` makes the grid as wide as its container and gives every
+   * data column the same share of it.
    */
   @Prop({ attribute: "cell-width" }) cellWidth: string = "auto";
 
@@ -573,7 +574,8 @@ export class Grid {
     // Add columns for each data column: auto-size to content, or all as wide as the widest
     const numCols = this.gridConfig.columns.length || 1;
     for (let i = 0; i < numCols; i++) {
-      cols.push(this.resolvedWidth === "equal" ? "1fr" : "auto");
+      // minmax(0, 1fr): an equal column must not grow past its share to fit wide content
+      cols.push(this.resolvedWidth === "equal" ? "minmax(0, 1fr)" : "auto");
     }
 
     return cols.join(" ");
@@ -788,15 +790,19 @@ export class Grid {
   }
 
   render() {
+    // Equal columns share the width of the grid's container. In an inline grid they
+    // would only be as wide as their content, and charts measure that width.
+    const fill = this.resolvedWidth === "equal";
     const gridContainerStyle: { [key: string]: string } = {
-      display: "inline-grid",
+      display: fill ? "grid" : "inline-grid",
+      ...(fill ? { width: "100%" } : {}),
       "grid-template-columns": this.getGridTemplateColumns(),
       "grid-template-rows": this.getGridTemplateRows(),
       gap: this.cellGap,
     };
 
     return (
-      <Host style={this.getFontStyles()}>
+      <Host style={fill ? { ...this.getFontStyles(), display: "block" } : this.getFontStyles()}>
         <div class="grid-container" style={gridContainerStyle}>
           {this.renderTitle()}
           {this.renderColumnHeaders()}

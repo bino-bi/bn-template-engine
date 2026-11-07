@@ -88,7 +88,19 @@ describe("bn-grid cell size and alignment", () => {
     const page = await renderGrid(`chart-title="KPIs" row-header-width="80px" cell-height="equal" cell-width="equal"`);
 
     expect(container(page).style.getPropertyValue("grid-template-rows")).toBe("auto auto 1fr 1fr");
-    expect(container(page).style.getPropertyValue("grid-template-columns")).toBe("80px 1fr 1fr");
+    expect(container(page).style.getPropertyValue("grid-template-columns")).toBe("80px minmax(0, 1fr) minmax(0, 1fr)");
+  });
+
+  it("fills the container with equal columns, and stays an inline grid otherwise", async () => {
+    const equal = await renderGrid(`cell-width="equal"`);
+    expect(container(equal).style.getPropertyValue("display")).toBe("grid");
+    expect(container(equal).style.getPropertyValue("width")).toBe("100%");
+    expect(equal.root!.style.getPropertyValue("display")).toBe("block");
+
+    const auto = await renderGrid(`cell-height="equal"`);
+    expect(container(auto).style.getPropertyValue("display")).toBe("inline-grid");
+    expect(container(auto).style.getPropertyValue("width")).toBe("");
+    expect(auto.root!.style.getPropertyValue("display")).toBe("");
   });
 
   it("maps bottom and right to a flex column", async () => {
