@@ -766,11 +766,9 @@ export class Grid {
     const offset = this.offsets[slotName];
     if (offset?.bottom) wrapper["margin-top"] = "auto";
     if (offset?.top) wrapper["padding-top"] = `${offset.top}px`;
-    if (offset?.left) {
-      // shift without narrowing: padding would take width from the chart, which measures this box
-      wrapper["margin-left"] = `${offset.left}px`;
-      wrapper["margin-right"] = `-${offset.left}px`;
-    }
+    // margins, not padding: a chart measures this box, and every box of a column keeps the same width
+    if (offset?.left) wrapper["margin-left"] = `${offset.left}px`;
+    if (offset?.right) wrapper["margin-right"] = `${offset.right}px`;
 
     return [
       caption,

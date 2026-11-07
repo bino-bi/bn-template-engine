@@ -40,7 +40,12 @@ describe("baselineOffsets", () => {
       false,
       true,
     );
-    expect(offsets).toEqual({ "0-0": { left: 45.5 }, "1-0": { left: 0 }, "2-0": {} });
+    // the free space on the right gives every cell of the column the same width
+    expect(offsets).toEqual({
+      "0-0": { left: 45.5 },
+      "1-0": { left: 0, right: 45.5 },
+      "2-0": { right: 45.5 },
+    });
   });
 });
 
@@ -50,6 +55,7 @@ describe("sameOffsets", () => {
     expect(sameOffsets({ a: { top: 10 } }, { a: { top: 10.6 } })).toBe(false);
     expect(sameOffsets({ a: {} }, { a: { bottom: true } })).toBe(false);
     expect(sameOffsets({}, { a: { top: 0 } })).toBe(true);
+    expect(sameOffsets({ a: { right: 10 } }, { a: {} })).toBe(false);
   });
 });
 

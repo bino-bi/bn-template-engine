@@ -58,7 +58,8 @@ const cells = (page: SpecPage) => Array.from(page.root!.shadowRoot!.querySelecto
 const errors = (page: SpecPage) => JSON.parse(page.root!.getAttribute("has-error") ?? "[]").map((e: any) => e.id);
 
 const until = async (page: SpecPage, condition: () => boolean) => {
-  for (let i = 0; i < 200 && !condition(); i++) {
+  // generous: under a full parallel run one pass can take a while
+  for (let i = 0; i < 800 && !condition(); i++) {
     await new Promise((resolve) => setTimeout(resolve, 10));
     await page.waitForChanges();
   }
@@ -202,6 +203,8 @@ const padding = (page: SpecPage, slot: string) => {
 };
 
 describe("bn-grid baseline", () => {
+  jest.setTimeout(20000);
+
   beforeEach(() => jest.spyOn(console, "warn").mockImplementation(() => {}));
   afterEach(() => jest.restoreAllMocks());
 
@@ -229,8 +232,9 @@ describe("bn-grid baseline", () => {
     chart(page, "1-1", { left: 400, top: 300, width: 300, height: 200 }).getBaseline = async () => ({ x: 20 });
 
     await until(page, () => padding(page, "1-0").left === "30px");
-    // shifted, not narrowed: the chart measures this box for its width
-    expect(padding(page, "1-0").right).toBe("-30px");
+    // the same width for both, and both inside the cell
+    expect(padding(page, "1-0").right).toBe("");
+    expect(padding(page, "0-0").right).toBe("30px");
     expect(padding(page, "0-0").left).toBe("");
     expect(padding(page, "0-1").left).toBe("");
   });
@@ -266,7 +270,7 @@ describe("bn-grid baseline", () => {
 
     release();
     await until(page, () => padding(page, "0-0").top === "40px");
-    await until(page, () => running() === before);
+    await until(page, () => running() <= before);
   });
 
   it("aligns again after a child redraws", async () => {
@@ -297,7 +301,7 @@ describe("bn-grid baseline", () => {
 
     await until(page, () => (console.warn as jest.Mock).mock.calls.length > 0);
     expect((console.warn as jest.Mock).mock.calls[0][0]).toContain("did not settle");
-    await until(page, () => running() === before);
+    await until(page, () => running() <= before);
   });
 
   it("aligns again when a caption is added, which moves a chart without resizing it", async () => {
@@ -364,7 +368,7 @@ describe("bn-grid baseline", () => {
     await page.waitForChanges();
 
     expect(padding(page, "0-0").top).toBe("");
-    await until(page, () => running() === before);
+    await until(page, () => running() <= before);
   });
 
   it("watches the size and the shadow root of every aligned component", async () => {

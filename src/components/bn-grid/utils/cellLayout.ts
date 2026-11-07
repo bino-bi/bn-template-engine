@@ -65,6 +65,8 @@ export interface BaselineCell {
 export interface CellOffset {
   top?: number;
   left?: number;
+  /** Space kept free on the right, so every component of a column has the same width and stays in its cell. */
+  right?: number;
   bottom?: boolean;
 }
 
@@ -87,7 +89,7 @@ export function baselineOffsets(
     key: "row" | "column",
     value: (cell: BaselineCell) => number | undefined,
     applied: (cell: BaselineCell) => number,
-    set: (offset: CellOffset, pad: number | undefined) => void,
+    set: (offset: CellOffset, pad: number | undefined, largest: number) => void,
   ) => {
     const groups = new Map<number, BaselineCell[]>();
     for (const cell of cells) groups.set(cell[key], [...(groups.get(cell[key]) ?? []), cell]);
@@ -99,10 +101,9 @@ export function baselineOffsets(
       });
       const known = natural.filter((v): v is number => v !== undefined);
       const target = known.length > 0 ? Math.max(...known) : 0;
-      group.forEach((cell, index) => {
-        const v = natural[index];
-        set(offsets[cell.slot], v === undefined ? undefined : round2(target - v));
-      });
+      const pads = natural.map((v) => (v === undefined ? undefined : round2(target - v)));
+      const largest = Math.max(0, ...pads.filter((pad): pad is number => pad !== undefined));
+      group.forEach((cell, index) => set(offsets[cell.slot], pads[index], largest));
     }
   };
 
@@ -122,8 +123,10 @@ export function baselineOffsets(
       "column",
       (cell) => cell.x,
       (cell) => cell.left,
-      (offset, pad) => {
+      (offset, pad, largest) => {
         if (pad !== undefined) offset.left = pad;
+        const right = round2(largest - (pad ?? 0));
+        if (right > 0) offset.right = right;
       },
     );
   }
@@ -139,6 +142,7 @@ export function sameOffsets(a: Record<string, CellOffset>, b: Record<string, Cel
     if (Boolean(x.bottom) !== Boolean(y.bottom)) return false;
     if (Math.abs((x.top ?? 0) - (y.top ?? 0)) >= 0.5) return false;
     if (Math.abs((x.left ?? 0) - (y.left ?? 0)) >= 0.5) return false;
+    if (Math.abs((x.right ?? 0) - (y.right ?? 0)) >= 0.5) return false;
   }
   return true;
 }
