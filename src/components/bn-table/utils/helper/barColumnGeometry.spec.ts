@@ -1,5 +1,6 @@
 import {
   absoluteBarGeometry,
+  cutPinCount,
   estimateLabelWidth,
   labelWidth,
   pinLabelsFit,
@@ -137,10 +138,17 @@ describe("barColumnGeometry", () => {
     afterEach(() => jest.restoreAllMocks());
 
     /** Loads a fresh module, so its cached canvas context comes from the stubbed document. */
-    const withCanvas = (measure: (text: string, font: string) => number) => {
+    const withCanvas = (measure: (text: string, font: string) => number, accepts = (_font: string) => true) => {
       const fonts: string[] = [];
+      let font = "10px sans-serif";
       const ctx = {
-        font: "",
+        // like a canvas, a font it cannot parse is ignored and the last one stays
+        get font() {
+          return font;
+        },
+        set font(value: string) {
+          if (accepts(value)) font = value;
+        },
         measureText(text: string) {
           fonts.push(this.font);
           return { width: measure(text, this.font) };
@@ -179,6 +187,17 @@ describe("barColumnGeometry", () => {
       const { labelWidth: measured } = withCanvas(arial);
 
       expect(measured("+36.21%", 10, "Arial", true)).toBeLessThan(estimateLabelWidth("+36.21%", 10) * 0.95);
+    });
+
+    it("falls back to the estimate when the canvas rejects the font", () => {
+      const { labelWidth: measured, fonts } = withCanvas(
+        (text, font) => text.length * parseFloat(font),
+        (font) => !font.includes("Source Sans 3"),
+      );
+      measured("+5%", 20, "Arial", true);
+      // unquoted, a family name cannot start with a digit
+      expect(measured("+36.21%", 20, "Source Sans 3, sans-serif", true)).toBe(estimateLabelWidth("+36.21%", 20));
+      expect(fonts).toEqual(["italic 20px Arial"]);
     });
 
     it("falls back to the estimate when the canvas measures nothing", () => {
@@ -223,6 +242,17 @@ describe("barColumnGeometry", () => {
       // 5 + 6 + 30 = 41 per side, the pins get the 8 px left
       expect(g.maxPinLength).toBeCloseTo(4, 6);
       expect(g.axisX - g.maxPinLength - HEAD / 2 - g.labelGap - 30).toBeCloseTo(0, 6);
+    });
+  });
+
+  describe("cutPinCount", () => {
+    // free room for the pins at w15 is 178 px, 89 per side when both are cut
+    it("counts the pins longer than the room of their side", () => {
+      expect(cutPinCount(15, EM, BOTH, HEAD, [0.3, 0.1, -0.2, -0.4, 0], 300)).toBe(2);
+    });
+
+    it("counts none when the reach of both sides fits", () => {
+      expect(cutPinCount(15, EM, BOTH, HEAD, [0.4, -0.1, 0], 300)).toBe(0);
     });
   });
 

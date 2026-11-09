@@ -72,6 +72,8 @@ export function estimateLabelWidth(text: string, fontSize: number): number {
 /** Safety pad on a measured label, in label font size: covers subpixel rounding only. */
 const MEASURE_PAD = 0.15;
 
+const FONT_SENTINEL = "1px __bn_font_sentinel__";
+
 let measureContext: CanvasRenderingContext2D | null | undefined;
 
 /** One shared 2D context; null where the document has no canvas (spec tests, mock-doc). */
@@ -94,7 +96,11 @@ function labelMeasureContext(): CanvasRenderingContext2D | null {
 export function labelWidth(text: string, fontSize: number, fontFamily: string, italic: boolean): number {
   const ctx = labelMeasureContext();
   if (ctx) {
+    // the canvas ignores a font it cannot parse and keeps the last one: the sentinel shows that
+    ctx.font = FONT_SENTINEL;
+    const sentinel = ctx.font;
     ctx.font = `${italic ? "italic " : ""}${fontSize}px ${fontFamily}`;
+    if (ctx.font === sentinel) return estimateLabelWidth(text, fontSize);
     const width = ctx.measureText(text).width;
     if (Number.isFinite(width) && (width > 0 || text === "")) return width + MEASURE_PAD * fontSize;
   }
@@ -248,6 +254,26 @@ export function relativePinGeometry(
     axisX: hasNeg ? axisX - extent + neg : 0,
     labelGap,
   };
+}
+
+/**
+ * Number of pins a fixed scale cuts to an arrow. `values` are the drawn fractions,
+ * `pinPx` the pin length in px of a fraction of 1.
+ */
+export function cutPinCount(
+  widthEm: number,
+  emPx: number,
+  labels: SideLabels,
+  headSize: number,
+  values: number[],
+  pinPx: number,
+): number {
+  const reach = {
+    neg: Math.max(0, ...values.map((value) => -value)) * pinPx,
+    pos: Math.max(0, ...values) * pinPx,
+  };
+  const { negPinLength, posPinLength } = relativePinGeometry(widthEm, emPx, labels, headSize, reach);
+  return values.filter((value) => Math.abs(value) * pinPx - (value > 0 ? posPinLength : negPinLength) > 1e-6).length;
 }
 
 export interface WaterfallGeometry {

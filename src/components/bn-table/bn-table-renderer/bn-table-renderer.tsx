@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Method, Prop } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Method, Prop } from "@stencil/core";
 
 import { OrderDirection, TableRowType, TableType } from "../utils/model";
 import {
@@ -49,6 +49,7 @@ import { ErrorDispatcher } from "../../../utils/withHasError";
 import {
   absoluteBarGeometry,
   BAR_LABEL_FONT_RATIO,
+  cutPinCount,
   labelWidth,
   PIN_HEAD_SIZE,
   pinLabelsFit,
@@ -274,6 +275,19 @@ export class BnTableRenderer {
   constructor() {
     withComponentStatus(this);
     this.componentStyle = withComponentStyle(this);
+  }
+
+  // labels measured in the fallback font are too narrow or too wide once the web font is there: lay out again
+  private readonly relayout = () => {
+    if (this.barColumnLayouts.size > 0) forceUpdate(this);
+  };
+
+  connectedCallback() {
+    document.fonts?.addEventListener("loadingdone", this.relayout);
+  }
+
+  disconnectedCallback() {
+    document.fonts?.removeEventListener("loadingdone", this.relayout);
   }
 
   /**
@@ -761,6 +775,15 @@ export class BnTableRenderer {
         if (percentDigits > 0) percentDigits--;
         else percentSign = false;
         labels = measure(percentDigits, percentSign);
+      }
+      // with a fixed scale a digit also costs pin room: keep it only if it cuts no more pins
+      const pinPx = 100 * this.percentageScaling * fs;
+      const cuts = (sides: SideLabels) => cutPinCount(this.barColumnMaxWidth, emPx, sides, headSize, values, pinPx);
+      while (isRelative && this.percentageScaling > 0 && percentDigits > 0) {
+        const fewer = measure(percentDigits - 1, percentSign);
+        if (cuts(fewer) >= cuts(labels)) break;
+        percentDigits--;
+        labels = fewer;
       }
 
       const absMax = Math.max(...values.map(Math.abs)) * (isRelative ? 100 : 1);

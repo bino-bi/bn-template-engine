@@ -53,6 +53,8 @@ const measured = (text: string): number => text.length * GLYPH_EM * LABEL_FONT +
  */
 describe("IBCS Table pin labels measured on a canvas", () => {
   const fonts: string[] = [];
+  /** Glyph width of the stubbed font; a web font that loads late can change it. */
+  let glyphEm = GLYPH_EM;
 
   // ΔPL% is +20% / -20% / 0%
   const rows: any[] = [
@@ -74,7 +76,7 @@ describe("IBCS Table pin labels measured on a canvas", () => {
       font: "",
       measureText(text: string) {
         fonts.push(this.font);
-        return { width: text.length * GLYPH_EM * parseFloat(this.font.replace("italic ", "")) };
+        return { width: text.length * glyphEm * parseFloat(this.font.replace("italic ", "")) };
       },
     };
     // newSpecPage makes a new document per page, so the stub goes on their prototype
@@ -86,6 +88,7 @@ describe("IBCS Table pin labels measured on a canvas", () => {
   });
 
   afterAll(() => jest.restoreAllMocks());
+  afterEach(() => (glyphEm = GLYPH_EM));
 
   const renderColumn = (column: string, extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
     newSpecPage({
@@ -149,6 +152,22 @@ describe("IBCS Table pin labels measured on a canvas", () => {
     for (const category of ["A Up", "B Down"]) expectInside(svgOf(page, category));
   });
 
+  // a 20% pin is 20.4 px at 0.09; the room per side is 16.95 px with 2 digits and 22.05 px with 1
+  it("drops a digit at a fixed scale when the digit cuts pins that fit without it", async () => {
+    const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0.09, barColumnMaxWidth: 10 });
+
+    expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20.0%");
+    expect(svgOf(page, "B Down").querySelector("text").textContent).toBe("-20.0%");
+    expect(page.root.shadowRoot.querySelectorAll("svg.relative-variance polygon").length).toBe(0);
+  });
+
+  it("keeps the digits at a fixed scale when the pins are cut without them too", async () => {
+    const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0.5, barColumnMaxWidth: 10 });
+
+    expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20.00%");
+    expect(svgOf(page, "B Down").querySelector("text").textContent).toBe("-20.00%");
+  });
+
   it("gives the room of the shorter negative pins to the positive ones", async () => {
     const page = await renderColumn("drac1_pl1_pos", {
       percentageScaling: 0,
@@ -175,5 +194,45 @@ describe("IBCS Table pin labels measured on a canvas", () => {
     const room = num(up, "width") - measured("+40.00%") - measured("-10.00%") - 2 * (HEAD / 2 + 0.3 * EM);
     expect(upPin).toBeCloseTo(room * 0.8, 3);
     expect(page.root.shadowRoot.querySelectorAll("svg.relative-variance polygon").length).toBe(0);
+  });
+
+  describe("and web fonts", () => {
+    // mock-doc has no document.fonts
+    const listeners = new Set<() => void>();
+    const fontSet = {
+      addEventListener: (type: string, listener: () => void) => type === "loadingdone" && listeners.add(listener),
+      removeEventListener: (type: string, listener: () => void) => type === "loadingdone" && listeners.delete(listener),
+    };
+
+    beforeEach(() => {
+      listeners.clear();
+      Object.defineProperty(document, "fonts", { value: fontSet, configurable: true });
+    });
+
+    afterEach(() => {
+      // @ts-ignore - only set for these tests
+      delete document.fonts;
+    });
+
+    it("measures the labels again when a web font has loaded", async () => {
+      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0, barColumnMaxWidth: 10 });
+      expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20.00%");
+      expect(listeners.size).toBe(1);
+
+      // the loaded font is wider than the fallback: the digits no longer fit
+      glyphEm = 0.7;
+      listeners.forEach((listener) => listener());
+      await page.waitForChanges();
+
+      expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20%");
+    });
+
+    it("stops listening when it leaves the document", async () => {
+      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0, barColumnMaxWidth: 10 });
+
+      page.root.remove();
+
+      expect(listeners.size).toBe(0);
+    });
   });
 });
