@@ -3,7 +3,15 @@ import { ColumnStats } from "./Cell";
 import { Formatter } from "../../../../utils";
 import { FillPattern } from "../../../../utils/model/styles/SVGStyle";
 import { VarianceScenario } from "../../../../utils/model/VarianceScenario";
-import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "../helper/barColumnGeometry";
+import {
+  absoluteBarGeometry,
+  BAR_LABEL_FONT_RATIO,
+  estimateLabelWidth,
+  PIN_HEAD_SIZE,
+  relativePinGeometry,
+  SideLabels,
+  VARIANCE_AXIS_EM,
+} from "../helper/barColumnGeometry";
 
 /** Matches SYSTEM_STYLE_DEFAULTS.global.fontSizePx; only used when `styles` is omitted. */
 const DEFAULT_EM_PX = 13.3333;
@@ -56,6 +64,8 @@ export interface CellBarChartProps {
   percentDigits?: number;
   /** Total column width in table em - see barColumnGeometry.ts. */
   columnWidthEm?: number;
+  /** Widest label per side over the drawn cells of the column; without it only this cell's label counts. */
+  labelWidths?: SideLabels;
   styles?: CellBarChartStyles;
 }
 
@@ -81,13 +91,8 @@ export const DEFAULT_STYLES: CellBarChartStyles = {
 
 export const AXIS_COLOR = "#666666";
 
-/** Width of the axis of a variance bar or pin, in em: near the 0.3em scenario marker in the header. */
-const VARIANCE_AXIS_EM = 0.25;
-/** Side of the square pin head and width of the pin line, in px before scaleFactor. */
-const PIN_HEAD_SIZE = 10;
+/** Width of the pin line, in px before scaleFactor. */
 const PIN_LINE_WIDTH = 3;
-/** Rough average glyph width, in label font sizes, to tell if an outlier label fits inside its pin. */
-const LABEL_CHAR_WIDTH = 0.6;
 
 /**
  * Creates a unique pattern ID for the SVG defs
@@ -125,7 +130,7 @@ export const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = 
   );
 };
 
-/** Characters that fit the pin label gutter (PIN_LABEL_EM), the cell cuts off the rest. */
+/** Longest relative label that keeps all percent digits; a longer one drops digits so its gutter does not eat the pins. */
 const PIN_LABEL_CHARS = 7;
 
 /**
@@ -138,11 +143,16 @@ export function formatValue(
   locale?: string,
   percentDigits: number = 0,
 ): string {
-  const prefix = value >= 0 ? "+" : "";
+  // IBCS prints a value that rounds to zero without a sign
+  const signed = (text: string, zero: string) => (value > 0 && text !== zero ? "+" : "") + text;
 
   if (isRelative) {
     // Relative variance is stored as decimal (e.g., -2.0 = -200%)
-    const format = (digits: number) => prefix + Formatter.number(value, "percent", digits, digits, 1, locale);
+    const format = (digits: number) =>
+      signed(
+        Formatter.number(value, "percent", digits, digits, 1, locale),
+        Formatter.number(0, "percent", digits, digits, 1, locale),
+      );
     // Intl throws on a digit count outside 0 to 20
     let digits = Math.min(20, Math.max(0, Math.trunc(percentDigits) || 0));
 
@@ -173,7 +183,12 @@ export function formatValue(
 
   const digits = absValue >= unit * 10 ? 0 : 1;
 
-  return prefix + Formatter.number(scaledValue / unit, "decimal", digits, 0, 1, locale) + suffix;
+  return (
+    signed(
+      Formatter.number(scaledValue / unit, "decimal", digits, 0, 1, locale),
+      Formatter.number(0, "decimal", digits, 0, 1, locale),
+    ) + suffix
+  );
 }
 
 /**
@@ -269,6 +284,19 @@ const VarianceAxis: FunctionalComponent<{
 
   return <g class={`variance-axis axis-${referenceSlot}`}>{lines}</g>;
 };
+
+/** A zero value is drawn on the positive side, unless the column only has negative values. */
+export function zeroOnPositiveSide(labels: SideLabels): boolean {
+  return labels.pos !== undefined || labels.neg === undefined;
+}
+
+/** Side coverage from the column statistics, with only this cell's label as the width. */
+function ownLabelWidths(columnStats: ColumnStats, width: number): SideLabels {
+  return {
+    neg: columnStats.min < 0 ? width : undefined,
+    pos: columnStats.max > 0 ? width : undefined,
+  };
+}
 
 /**
  * Gets the variance style based on value and sentiment direction.
@@ -386,19 +414,18 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     measureScale,
     locale,
     columnWidthEm = 10,
+    labelWidths,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
 
-  // Adaptive axis placement based on data range
-  const hasNeg = columnStats.min < 0;
-  const hasPos = columnStats.max > 0;
+  const displayValue = formattedValue || formatValue(value, false, measureScale, locale);
+  const sides = labelWidths ?? ownLabelWidths(columnStats, estimateLabelWidth(displayValue, fs));
   const { totalWidth, axisX, breakGap, overdriveZoneWidth, cutWidth, labelGap } = absoluteBarGeometry(
     columnWidthEm,
     styles.emPx,
-    hasNeg,
-    hasPos,
+    sides,
   );
 
   // Direct unit scaling via fontSize
@@ -415,7 +442,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const padding = 2 * s;
   const barHeight = height - padding * 2;
   const barY = padding;
-  const isPositive = value >= 0;
+  const isPositive = value > 0 || (value === 0 && zeroOnPositiveSide(sides));
 
   // Get style based on column type (scenario vs variance)
   const look = getVarianceLook(scenario, styles);
@@ -439,8 +466,6 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   // a hatched variance bar keeps an outline, the shared getBarStroke also serves the waterfall
   const { stroke: barStroke, strokeWidth: barStrokeWidth } =
     look && barStyle.fillpattern === "hatched" ? { stroke: barStyle.stroke, strokeWidth: 1 } : getBarStroke(barStyle);
-
-  const displayValue = formattedValue || formatValue(value, false, measureScale, locale);
 
   // bars start at the outer edge of the thick variance axis
   const axisOffset = look ? (VARIANCE_AXIS_EM * styles.emPx) / 2 : 0;
@@ -514,7 +539,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
  * Renders a relative variance pin chart (dr_ prefix).
  * Line from the axis in the sentiment colour, ending in a square head in the look of the
  * minuend, with the value label beside the head like an absolute bar label. A pin beyond
- * the pin area is cut and ends in an arrow, its label inside the pin before the arrow.
+ * the pin area is cut and ends in an arrow, its label after the arrow tip.
  *
  * Layout: [left label area][pin area with axis][right label area], summing to exactly
  * `columnWidthEm` em - see barColumnGeometry.ts.
@@ -532,26 +557,32 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     locale,
     percentDigits,
     columnWidthEm = 10,
+    labelWidths,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
+  const headSize = PIN_HEAD_SIZE * s;
 
-  // Adaptive axis placement based on data range
-  const hasNeg = columnStats.min < 0;
-  const hasPos = columnStats.max > 0;
-  const { totalWidth, maxPinLength, axisX, labelGap } = relativePinGeometry(columnWidthEm, styles.emPx, hasNeg, hasPos);
+  const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits);
+  const sides = labelWidths ?? ownLabelWidths(columnStats, estimateLabelWidth(displayValue, fs));
+  const { totalWidth, maxPinLength, axisX, labelGap } = relativePinGeometry(
+    columnWidthEm,
+    styles.emPx,
+    sides,
+    headSize,
+  );
 
   const centerY = height / 2;
 
   // Direct unit scaling via fontSize
   const percentValue = Math.abs(value) * 100;
   const scaledLength = percentValue * styles.percentageScaling * fs;
-  const isExtreme = scaledLength > maxPinLength;
+  // auto scaling puts the longest pin on the limit, float rounding must not cut it
+  const isExtreme = scaledLength - maxPinLength > 1e-6;
   const pinLength = Math.min(scaledLength, maxPinLength);
 
-  // a zero label goes to the side that has a label gutter
-  const isPositive = value > 0 || (value === 0 && (hasPos || !hasNeg));
+  const isPositive = value > 0 || (value === 0 && zeroOnPositiveSide(sides));
   const direction = isPositive ? 1 : -1;
   const pinEndX = axisX + direction * pinLength;
 
@@ -559,21 +590,11 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
   const look = getVarianceLook(scenario, styles);
   const headStyle = look?.minuend ?? styles.scenarios.ac;
-  const headSize = PIN_HEAD_SIZE * s;
 
-  const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits);
-
-  // the arrow tip lands on the outer edge of a full-length head
+  // the arrow tip lands on the outer edge of a full-length head, so the label after it stays in the cell
   const tipX = axisX + direction * (maxPinLength + headSize / 2);
   const arrowBaseX = tipX - direction * headSize;
-  const labelFitsInside = maxPinLength - headSize / 2 - labelGap >= displayValue.length * LABEL_CHAR_WIDTH * fs;
-  const labelInside = isExtreme && labelFitsInside;
-
-  let labelX = pinEndX + direction * (headSize / 2 + labelGap);
-  if (isExtreme) {
-    labelX = labelInside ? arrowBaseX - direction * labelGap : tipX + direction * labelGap;
-  }
-  const labelAtStart = isPositive !== labelInside;
+  const labelX = (isExtreme ? tipX : pinEndX + direction * (headSize / 2)) + direction * labelGap;
 
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart relative-variance" style={{ overflow: "visible" }}>
@@ -619,12 +640,11 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         x={labelX}
         y={height / 2}
         dy="0.35em"
-        text-anchor={labelAtStart ? "start" : "end"}
+        text-anchor={isPositive ? "start" : "end"}
         fill={styles.fontColor}
         font-size={fs}
         font-style="italic"
         font-family={styles.fontFamily}
-        {...(labelInside ? { stroke: "#ffffff", "stroke-width": 3 * s, "paint-order": "stroke" } : {})}
       >
         {displayValue}
       </text>

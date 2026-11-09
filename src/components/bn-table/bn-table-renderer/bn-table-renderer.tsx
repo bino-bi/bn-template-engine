@@ -30,7 +30,13 @@ import { IBCSRuleSet, stylesBySlot } from "../../../utils/ibcsRuleSet";
 import { RuleSetConfig } from "../../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
 import { Order, OrderAdapter } from "../../../utils/model/Order";
-import { CellBarChart, CellBarChartStyles, VarianceStyle } from "../utils/elements/CellBarChart";
+import {
+  CellBarChart,
+  CellBarChartStyles,
+  formatValue,
+  VarianceStyle,
+  zeroOnPositiveSide,
+} from "../utils/elements/CellBarChart";
 import { WaterfallBar } from "../utils/elements/WaterfallBar";
 import { Cell } from "../utils/elements/Cell";
 import withComponentStatus from "../../../utils/withComponentStatus";
@@ -40,15 +46,23 @@ import { AutoScalingReport } from "../../../utils/scaling";
 import { getStores, ScopedStores } from "../../../context/context-protocol";
 import { sourceExpr } from "../../../context/scopedDb";
 import { ErrorDispatcher } from "../../../utils/withHasError";
-import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "../utils/helper/barColumnGeometry";
+import {
+  absoluteBarGeometry,
+  BAR_LABEL_FONT_RATIO,
+  estimateLabelWidth,
+  PIN_HEAD_SIZE,
+  relativePinGeometry,
+  SideLabels,
+} from "../utils/helper/barColumnGeometry";
 import { NOT_AVAILABLE } from "../../../utils/relativeVariance";
 import { normalizeFillPattern } from "../../../utils/model/styles/SVGStyle";
 
-/** Aggregated column statistics driving the auto-fit of one scaling family. */
-interface BarColumnStats {
+/** What the cells of one bar or pin column draw, over all interval buckets. */
+interface BarColumnLayout {
+  isRelative: boolean;
+  /** Largest drawn value, in percent for a pin column. */
   absMax: number;
-  hasNeg: boolean;
-  hasPos: boolean;
+  labels: SideLabels;
 }
 
 /** Layout-state contribution of the inner table, merged by `bn-table.getLayoutState()`. */
@@ -248,6 +262,7 @@ export class BnTableRenderer {
   private table: Table | undefined;
   private componentDataFormatDigits: DataFormatDigits = new DataFormatDigits();
   private barChartStyles: CellBarChartStyles;
+  private barColumnLayouts = new Map<string, BarColumnLayout>();
   private stores: ScopedStores | undefined;
 
   constructor() {
@@ -447,11 +462,11 @@ export class BnTableRenderer {
                           height={18 * this.scaleFactor}
                           isRelative={cell.key.startsWith("dr")}
                           isPositiveGood={cell.direction === "pos"}
-                          // percentage points: the fraction times 100, no measure scale
-                          measureScale={cell.type === "percentpoint" ? 0.01 : cell.measureScale}
+                          measureScale={barLabelMeasureScale(cell)}
                           locale={locale}
                           percentDigits={this.componentDataFormatDigits.percent}
                           columnWidthEm={this.barColumnMaxWidth}
+                          labelWidths={this.barColumnLayouts.get(cell.key)?.labels}
                           styles={this.barChartStyles}
                         />
                       )
@@ -508,6 +523,7 @@ export class BnTableRenderer {
     } else {
       this.errors?.remove("WARN_orderBucket");
     }
+    this.barColumnLayouts = this.collectBarColumnLayouts();
     this.barChartStyles = this.prepareBarChartStyles();
   }
 
@@ -645,67 +661,87 @@ export class BnTableRenderer {
   /**
    * Auto-calculate unitScaling so the largest absolute variance bar
    * fills ~80% of its side of the bar area, without tripping the overdrive break.
+   * One scaling for all columns, so it is the smallest that fits every column.
    */
   private autoUnitScaling(): number {
     const emPx = this.emPx();
     const fs = emPx * BAR_LABEL_FONT_RATIO;
-    const { absMax, hasNeg, hasPos } = this.getAbsBarColumnStats();
-    if (absMax <= 0 || fs <= 0) {
-      return 0.01;
+    let scaling = Infinity;
+    for (const { isRelative, absMax, labels } of this.barColumnLayouts.values()) {
+      if (isRelative || absMax <= 0) continue;
+      const { maxBarWidth, cutWidth } = absoluteBarGeometry(this.barColumnMaxWidth, emPx, labels);
+      scaling = Math.min(scaling, Math.min(maxBarWidth * 0.8, cutWidth) / (absMax * fs));
     }
-
-    const { maxBarWidth, cutWidth } = absoluteBarGeometry(this.barColumnMaxWidth, emPx, hasNeg, hasPos);
-    const targetWidth = Math.min(maxBarWidth * 0.8, cutWidth);
-    return targetWidth / (absMax * fs);
+    return Number.isFinite(scaling) && fs > 0 ? scaling : 0.01;
   }
 
   /**
-   * Auto-calculate percentageScaling so the largest relative variance pin
-   * fills ~80% of the pin area.
+   * Auto-calculate percentageScaling so the longest relative variance pin, its head and
+   * its label exactly fill the column. One scaling for all columns, the smallest that fits.
    */
   private autoPercentageScaling(): number {
     const emPx = this.emPx();
     const fs = emPx * BAR_LABEL_FONT_RATIO;
-    const { absMax: maxPct, hasNeg, hasPos } = this.getRelativeBarColumnStats();
-    if (maxPct <= 0 || fs <= 0) {
-      return 0.5;
+    let scaling = Infinity;
+    for (const { isRelative, absMax, labels } of this.barColumnLayouts.values()) {
+      if (!isRelative || absMax <= 0) continue;
+      const headSize = PIN_HEAD_SIZE * this.scaleFactor;
+      const { maxPinLength } = relativePinGeometry(this.barColumnMaxWidth, emPx, labels, headSize);
+      scaling = Math.min(scaling, maxPinLength / (absMax * fs));
     }
-
-    const { maxPinLength } = relativePinGeometry(this.barColumnMaxWidth, emPx, hasNeg, hasPos);
-    return (maxPinLength * 0.8) / (maxPct * fs);
+    return Number.isFinite(scaling) && fs > 0 ? scaling : 0.5;
   }
 
   /**
-   * Maximum value and sign coverage across all absolute variance columns (d_*) in the table body.
-   * Sign coverage decides how much of the column the bar area gets (see barColumnGeometry.ts);
-   * OR-ing it across columns keeps the single shared scaling inside the narrowest bar area.
+   * Largest value and widest label per side of every bar and pin column, from the cells
+   * that draw one: total rows and n/a draw none. Interval buckets share the column key,
+   * so they share the layout and the axis.
    */
-  private getAbsBarColumnStats(): BarColumnStats {
-    // waterfall cells scale independently and must not skew variance auto-scaling
-    return this.collectBarColumnStats((cell) => !cell.key.startsWith("dr") && !cell.waterfall, 1);
-  }
+  private collectBarColumnLayouts(): Map<string, BarColumnLayout> {
+    const layouts = new Map<string, BarColumnLayout>();
+    if (!this.table || this.table.hasNoData()) return layouts;
 
-  /**
-   * Same for the relative variance columns (dr_*). Values are stored as decimals
-   * (e.g. 0.2 = 20%), returned as percentage (20).
-   */
-  private getRelativeBarColumnStats(): BarColumnStats {
-    return this.collectBarColumnStats((cell) => cell.key.startsWith("dr"), 100);
-  }
-
-  private collectBarColumnStats(accept: (cell: Cell) => boolean, valueFactor: number): BarColumnStats {
-    const stats: BarColumnStats = { absMax: 0, hasNeg: false, hasPos: false };
-    if (!this.table) return stats;
-
+    const cellsByKey = new Map<string, Cell[]>();
     for (const row of this.table.getBody()) {
       if (row.type === TableRowType.SUM) continue;
       for (const cell of row.getCells()) {
-        if (!cell.isBarChart || !cell.columnStats || !accept(cell)) continue;
-        stats.absMax = Math.max(stats.absMax, cell.columnStats.absMax * valueFactor);
-        stats.hasNeg = stats.hasNeg || cell.columnStats.min < 0;
-        stats.hasPos = stats.hasPos || cell.columnStats.max > 0;
+        // waterfall cells scale independently
+        if (!cell.isBarChart || !cell.columnStats || cell.waterfall !== undefined) continue;
+        if (typeof cell.value !== "number" || isNaN(cell.value)) continue;
+        cellsByKey.set(cell.key, [...(cellsByKey.get(cell.key) ?? []), cell]);
       }
     }
-    return stats;
+
+    const fs = this.emPx() * BAR_LABEL_FONT_RATIO;
+    const locale = this.stores?.context?.state?.locale;
+    for (const [key, cells] of cellsByKey) {
+      const isRelative = key.startsWith("dr");
+      const values = cells.map((cell) => cell.value as number);
+      const labels: SideLabels = {
+        neg: values.some((value) => value < 0) ? 0 : undefined,
+        pos: values.some((value) => value > 0) ? 0 : undefined,
+      };
+      const zeroPositive = zeroOnPositiveSide(labels);
+      for (const cell of cells) {
+        const value = cell.value as number;
+        const side = value > 0 || (value === 0 && zeroPositive) ? "pos" : "neg";
+        const text = formatValue(
+          value,
+          isRelative,
+          barLabelMeasureScale(cell),
+          locale,
+          this.componentDataFormatDigits.percent,
+        );
+        labels[side] = Math.max(labels[side] ?? 0, estimateLabelWidth(text, fs));
+      }
+      const absMax = Math.max(...values.map(Math.abs)) * (isRelative ? 100 : 1);
+      layouts.set(key, { isRelative, absMax, labels });
+    }
+    return layouts;
   }
+}
+
+/** Percentage points: the fraction times 100, no measure scale. */
+function barLabelMeasureScale(cell: Cell): number {
+  return cell.type === "percentpoint" ? 0.01 : cell.measureScale;
 }

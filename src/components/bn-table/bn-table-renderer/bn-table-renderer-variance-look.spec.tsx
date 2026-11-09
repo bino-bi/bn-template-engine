@@ -38,13 +38,14 @@ import { BnTableRenderer } from "./bn-table-renderer";
 import { OrderDirection, TableType } from "../utils/model";
 import { I18nMode } from "../../../utils/constants";
 import { Order, OrderColumn } from "../../../utils/model/Order";
-import { absoluteBarGeometry, relativePinGeometry } from "../utils/helper/barColumnGeometry";
+import { absoluteBarGeometry, estimateLabelWidth, relativePinGeometry } from "../utils/helper/barColumnGeometry";
 
 const EM = 13.3333; // SYSTEM_STYLE_DEFAULTS.global.fontSizePx, scaleFactor 1
 const LABEL_FONT = EM * 0.85;
 const BAR_COLUMN_WIDTH = 30; // default bar column width in em
 const HEAD = 10; // pin head side at scaleFactor 1
 const AXIS_WIDTH = 0.25 * EM;
+const labelWidth = (text: string): number => estimateLabelWidth(text, LABEL_FONT);
 
 /**
  * IBCS: the bar pattern and the pin head follow the minuend, the colour the sentiment,
@@ -98,10 +99,12 @@ describe("IBCS Table variance look", () => {
   const num = (el: Element, attr: string): number => parseFloat(el.getAttribute(attr));
 
   describe("relative variance pins", () => {
-    // 20% x 0.5 em per pp x the label font: about 113 px, inside the 146.7 px pin area
+    // 20% x 0.5 em per pp x the label font: about 113 px, inside the pin area
     const percentageScaling = 0.5;
     const pinLength = 20 * percentageScaling * LABEL_FONT;
-    const { axisX, maxPinLength, labelGap } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, true, true);
+    // the labels are +20.00%, -20.00% and 0.00%
+    const sides = { neg: labelWidth("-20.00%"), pos: labelWidth("+20.00%") };
+    const { axisX, maxPinLength, labelGap, totalWidth } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, sides, HEAD);
 
     it("ends in a square head on top of the line, in the AC look for an AC minuend", async () => {
       const svg = svgOf(await renderColumn("drac1_pl1_pos", { percentageScaling }), "A Up");
@@ -138,9 +141,14 @@ describe("IBCS Table variance look", () => {
       expect(num(head, "x") + HEAD / 2).toBeCloseTo(axisX, 3);
     });
 
+    it("prints a zero variance without a sign, as a pin and as a bar label", async () => {
+      expect(svgOf(await renderColumn("drac1_pl1_pos", { percentageScaling }), "C Flat").textContent).toBe("0.00%");
+      expect(svgOf(await renderColumn("dac1_pl1_pos", { unitScaling: 0.05 }), "C Flat").textContent).toBe("0");
+    });
+
     it("puts a zero label in the left gutter of a column without positive values", async () => {
       const page = await renderColumn("drac1_pl1_pos", { percentageScaling, tableName: "lookNegativeData" });
-      const negative = relativePinGeometry(BAR_COLUMN_WIDTH, EM, true, false);
+      const negative = relativePinGeometry(BAR_COLUMN_WIDTH, EM, { neg: labelWidth("-20.00%") }, HEAD);
 
       const label = svgOf(page, "B Flat").querySelector("text");
       expect(label.getAttribute("text-anchor")).toBe("end");
@@ -166,7 +174,7 @@ describe("IBCS Table variance look", () => {
       expect(svg.querySelector("pattern#pattern-fc-404040")).not.toBeNull();
     });
 
-    it("cuts an outlier with an arrow and puts the label inside the pin", async () => {
+    it("cuts an outlier with an arrow and puts the label after the tip, inside the cell", async () => {
       // 20% x 2 em per pp is far beyond the pin area
       const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 2 });
 
@@ -175,32 +183,58 @@ describe("IBCS Table variance look", () => {
       const tipX = Math.max(...up.querySelector("polygon").getAttribute("points").split(" ").map(parseFloat));
       expect(tipX).toBeCloseTo(axisX + maxPinLength + HEAD / 2, 3);
       const upLabel = up.querySelector("text");
-      expect(upLabel.getAttribute("text-anchor")).toBe("end");
-      expect(num(upLabel, "x")).toBeCloseTo(tipX - HEAD - labelGap, 3);
-      expect(upLabel.getAttribute("paint-order")).toBe("stroke");
+      expect(upLabel.textContent).toBe("+20.00%");
+      expect(upLabel.getAttribute("text-anchor")).toBe("start");
+      expect(num(upLabel, "x")).toBeCloseTo(tipX + labelGap, 3);
+      expect(num(upLabel, "x") + labelWidth("+20.00%")).toBeLessThanOrEqual(totalWidth + 1e-6);
+      expect(upLabel.getAttribute("paint-order")).toBeNull();
 
       const down = svgOf(page, "B Down");
       const downTipX = Math.min(...down.querySelector("polygon").getAttribute("points").split(" ").map(parseFloat));
       expect(downTipX).toBeCloseTo(axisX - maxPinLength - HEAD / 2, 3);
       const downLabel = down.querySelector("text");
-      expect(downLabel.getAttribute("text-anchor")).toBe("start");
-      expect(num(downLabel, "x")).toBeGreaterThan(downTipX + HEAD);
+      expect(downLabel.textContent).toBe("-20.00%");
+      expect(downLabel.getAttribute("text-anchor")).toBe("end");
+      expect(num(downLabel, "x")).toBeCloseTo(downTipX - labelGap, 3);
+      // the label starts inside the svg, so the minus sign is drawn
+      expect(num(downLabel, "x") - labelWidth("-20.00%")).toBeGreaterThanOrEqual(-1e-6);
     });
 
-    it("puts an outlier label after the arrow when the pin is too short for it", async () => {
-      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 2, barColumnMaxWidth: 5 });
-      const narrow = relativePinGeometry(5, EM, true, true);
+    it("keeps the labels of cut pins inside a narrow w12 column", async () => {
+      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 2, barColumnMaxWidth: 12 });
 
-      const label = svgOf(page, "A Up").querySelector("text");
-      expect(label.getAttribute("text-anchor")).toBe("start");
-      expect(num(label, "x")).toBeCloseTo(narrow.axisX + narrow.maxPinLength + HEAD / 2 + narrow.labelGap, 3);
-      expect(label.getAttribute("paint-order")).toBeNull();
+      const up = svgOf(page, "A Up");
+      const upLabel = up.querySelector("text");
+      expect(num(upLabel, "x") + labelWidth(upLabel.textContent)).toBeLessThanOrEqual(num(up, "width") + 1e-6);
+
+      const downLabel = svgOf(page, "B Down").querySelector("text");
+      expect(downLabel.textContent.startsWith("-")).toBe(true);
+      expect(num(downLabel, "x") - labelWidth(downLabel.textContent)).toBeGreaterThanOrEqual(-1e-6);
     });
 
     it("never cuts a pin with auto scaling", async () => {
       const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0 });
 
       expect(page.root.shadowRoot.querySelectorAll("svg.relative-variance polygon").length).toBe(0);
+    });
+
+    it("auto-scales the longest pin so that its head and its 2-decimal label exactly fill the cell", async () => {
+      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0 });
+
+      const up = svgOf(page, "A Up");
+      const upLabel = up.querySelector("text");
+      expect(upLabel.textContent).toBe("+20.00%");
+      expect(num(upLabel, "x") + labelWidth("+20.00%")).toBeCloseTo(totalWidth, 3);
+
+      const downLabel = svgOf(page, "B Down").querySelector("text");
+      expect(downLabel.textContent).toBe("-20.00%");
+      expect(num(downLabel, "x") - labelWidth("-20.00%")).toBeGreaterThanOrEqual(-1e-6);
+
+      // before, the 3.375em gutters left 146.7 px per side and auto scaling used 80% of it
+      const [head] = directChildren(up, "rect");
+      const pin = num(head, "x") + HEAD / 2 - axisX;
+      expect(pin).toBeCloseTo(maxPinLength, 3);
+      expect(pin).toBeGreaterThan(146.7 * 0.8 * 1.15);
     });
   });
 
@@ -244,9 +278,23 @@ describe("IBCS Table variance look", () => {
       expect(bar(svgOf(page, "A Up")).getAttribute("fill")).toBe("url(#pattern-pos-008f96)");
     });
 
+    it("keeps the labels of overdrive bars inside the cell", async () => {
+      // 20 x 1 em per unit is far beyond the bar area
+      const page = await renderColumn("dac1_pl1_pos", { unitScaling: 1, barColumnMaxWidth: 10 });
+
+      const up = svgOf(page, "A Up");
+      expect(up.querySelectorAll("path").length).toBe(2); // the zigzag break
+      const upLabel = up.querySelector("text");
+      expect(num(upLabel, "x") + labelWidth("+20")).toBeLessThanOrEqual(num(up, "width") + 1e-6);
+
+      const downLabel = svgOf(page, "B Down").querySelector("text");
+      expect(downLabel.textContent).toBe("-20");
+      expect(num(downLabel, "x") - labelWidth("-20")).toBeGreaterThanOrEqual(-1e-6);
+    });
+
     it("starts the bars at the outer edge of the axis without changing their length", async () => {
       const page = await renderColumn("dac1_pl1_pos", { unitScaling });
-      const { axisX } = absoluteBarGeometry(BAR_COLUMN_WIDTH, EM, true, true);
+      const { axisX } = absoluteBarGeometry(BAR_COLUMN_WIDTH, EM, { neg: labelWidth("-20"), pos: labelWidth("+20") });
       const width = 20 * unitScaling * LABEL_FONT;
 
       const up = bar(svgOf(page, "A Up"));
