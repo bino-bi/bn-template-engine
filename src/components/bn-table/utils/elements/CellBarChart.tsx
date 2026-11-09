@@ -2,6 +2,7 @@ import { h, FunctionalComponent } from "@stencil/core";
 import { ColumnStats } from "./Cell";
 import { Formatter } from "../../../../utils";
 import { FillPattern } from "../../../../utils/model/styles/SVGStyle";
+import { VarianceScenario } from "../../../../utils/model/VarianceScenario";
 import { absoluteBarGeometry, BAR_LABEL_FONT_RATIO, relativePinGeometry } from "../helper/barColumnGeometry";
 
 /** Matches SYSTEM_STYLE_DEFAULTS.global.fontSizePx; only used when `styles` is omitted. */
@@ -79,6 +80,14 @@ export const DEFAULT_STYLES: CellBarChartStyles = {
 };
 
 export const AXIS_COLOR = "#666666";
+
+/** Width of the axis of a variance bar or pin, in em: near the 0.3em scenario marker in the header. */
+const VARIANCE_AXIS_EM = 0.25;
+/** Side of the square pin head and width of the pin line, in px before scaleFactor. */
+const PIN_HEAD_SIZE = 10;
+const PIN_LINE_WIDTH = 3;
+/** Rough average glyph width, in label font sizes, to tell if an outlier label fits inside its pin. */
+const LABEL_CHAR_WIDTH = 0.6;
 
 /**
  * Creates a unique pattern ID for the SVG defs
@@ -193,6 +202,73 @@ function getScenarioStyle(scenario: string, styles: CellBarChartStyles): Varianc
   const type = getScenarioType(scenario);
   return styles.scenarios[type];
 }
+
+type ScenarioSlot = keyof ScenarioStyles;
+
+/**
+ * IBCS look of a variance: the bar pattern and the pin head come from the minuend,
+ * the axis from the reference (subtrahend). Null for scenario columns and unparsable names.
+ */
+interface VarianceLook {
+  minuend: VarianceStyle;
+  minuendSlot: ScenarioSlot;
+  reference: VarianceStyle;
+  referenceSlot: ScenarioSlot;
+}
+
+function getVarianceLook(scenario: string, styles: CellBarChartStyles): VarianceLook | null {
+  if (isScenarioColumn(scenario)) return null;
+  const variance = new VarianceScenario(scenario);
+  if (!variance.isValid) return null;
+  const minuendSlot = getScenarioType(variance.base);
+  const referenceSlot = getScenarioType(variance.delta);
+  return {
+    minuend: styles.scenarios[minuendSlot],
+    minuendSlot,
+    reference: styles.scenarios[referenceSlot],
+    referenceSlot,
+  };
+}
+
+/**
+ * Axis of a variance bar or pin in the look of the reference scenario: solid (AC, PY),
+ * a double line (PL, outlined) or dashed (FC, hatched). Lines only, so the bar stays the
+ * one direct-child rect of the svg.
+ */
+const VarianceAxis: FunctionalComponent<{
+  x: number;
+  height: number;
+  look: VarianceLook;
+  styles: CellBarChartStyles;
+}> = ({ x, height, look, styles }) => {
+  const s = styles.scaleFactor;
+  const width = VARIANCE_AXIS_EM * styles.emPx;
+  const { reference, referenceSlot } = look;
+
+  let lines: unknown;
+  if (reference.fillpattern === "outlined") {
+    const offset = width / 2 - 0.5 * s;
+    lines = [x - offset, x + offset].map((lineX) => (
+      <line x1={lineX} y1={0} x2={lineX} y2={height} stroke={reference.stroke} stroke-width={1 * s} />
+    ));
+  } else if (reference.fillpattern === "hatched") {
+    lines = (
+      <line
+        x1={x}
+        y1={0}
+        x2={x}
+        y2={height}
+        stroke={reference.stroke}
+        stroke-width={width}
+        stroke-dasharray={`${2 * s}`}
+      />
+    );
+  } else {
+    lines = <line x1={x} y1={0} x2={x} y2={height} stroke={reference.fill} stroke-width={width} />;
+  }
+
+  return <g class={`variance-axis axis-${referenceSlot}`}>{lines}</g>;
+};
 
 /**
  * Gets the variance style based on value and sentiment direction.
@@ -342,7 +418,14 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const isPositive = value >= 0;
 
   // Get style based on column type (scenario vs variance)
-  const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
+  const look = getVarianceLook(scenario, styles);
+  const sentimentStyle = getBarStyle(scenario, value, isPositiveGood, styles);
+  const minuendPattern = look?.minuend.fillpattern;
+  // the colour stays the sentiment, the pattern follows the minuend (AC solid, FC hatched, PL outlined)
+  const barStyle =
+    minuendPattern === "hatched" || minuendPattern === "outlined"
+      ? { ...sentimentStyle, fillpattern: minuendPattern }
+      : sentimentStyle;
   const patternPrefix = isScenarioColumn(scenario)
     ? getScenarioType(scenario)
     : isPositiveGood
@@ -353,16 +436,22 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
         ? "neg"
         : "pos";
   const fillValue = getBarFill(barStyle, patternPrefix);
-  const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
+  // a hatched variance bar keeps an outline, the shared getBarStroke also serves the waterfall
+  const { stroke: barStroke, strokeWidth: barStrokeWidth } =
+    look && barStyle.fillpattern === "hatched" ? { stroke: barStyle.stroke, strokeWidth: 1 } : getBarStroke(barStyle);
 
   const displayValue = formattedValue || formatValue(value, false, measureScale, locale);
+
+  // bars start at the outer edge of the thick variance axis
+  const axisOffset = look ? (VARIANCE_AXIS_EM * styles.emPx) / 2 : 0;
+  const rootX = isPositive ? axisX + axisOffset : axisX - axisOffset;
 
   // Normal bar width (clamped to cutWidth when extreme)
   const baseBarWidth = isExtreme ? cutWidth : scaledWidth;
 
   // Label position accounts for overdrive
   const totalVisualWidth = isExtreme ? cutWidth + breakGap + overdriveWidth : scaledWidth;
-  const labelX = isPositive ? axisX + totalVisualWidth + labelGap : axisX - totalVisualWidth - labelGap;
+  const labelX = isPositive ? rootX + totalVisualWidth + labelGap : rootX - totalVisualWidth - labelGap;
   const labelAnchor = isPositive ? "start" : "end";
 
   return (
@@ -370,12 +459,12 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
       <PatternDefs styles={styles} />
 
       {/* Center axis line */}
-      <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
+      {!look && <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />}
 
       {/* Base bar */}
       {baseBarWidth > 0 && (
         <rect
-          x={isPositive ? axisX : axisX - baseBarWidth}
+          x={isPositive ? rootX : rootX - baseBarWidth}
           y={barY}
           width={baseBarWidth}
           height={barHeight}
@@ -388,7 +477,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
       {/* Overdrive: break gap + stub bar (only when extreme) */}
       {isExtreme && overdriveWidth > 0 && (
         <rect
-          x={isPositive ? axisX + cutWidth + breakGap : axisX - cutWidth - breakGap - overdriveWidth}
+          x={isPositive ? rootX + cutWidth + breakGap : rootX - cutWidth - breakGap - overdriveWidth}
           y={barY}
           width={overdriveWidth}
           height={barHeight}
@@ -400,7 +489,10 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
 
       {/* Zigzag break indicator between base and overdrive */}
       {isExtreme &&
-        renderZigzagBreak(isPositive ? axisX + cutWidth : axisX - cutWidth - breakGap, breakGap, barY, barHeight, s)}
+        renderZigzagBreak(isPositive ? rootX + cutWidth : rootX - cutWidth - breakGap, breakGap, barY, barHeight, s)}
+
+      {/* Variance axis on top, so no bar outline covers it */}
+      {look && <VarianceAxis x={axisX} height={height} look={look} styles={styles} />}
 
       {/* Value label */}
       <text
@@ -420,9 +512,11 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
 
 /**
  * Renders a relative variance pin chart (dr_ prefix).
- * Thin horizontal line from axis with dot at end and value label.
+ * Line from the axis in the sentiment colour, ending in a square head in the look of the
+ * minuend, with the value label beside the head like an absolute bar label. A pin beyond
+ * the pin area is cut and ends in an arrow, its label inside the pin before the arrow.
  *
- * Layout: [pin area with axis][label area on right], summing to exactly
+ * Layout: [left label area][pin area with axis][right label area], summing to exactly
  * `columnWidthEm` em - see barColumnGeometry.ts.
  * Uses percentageScaling to determine pin length (pixels per percentage point).
  */
@@ -446,7 +540,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   // Adaptive axis placement based on data range
   const hasNeg = columnStats.min < 0;
   const hasPos = columnStats.max > 0;
-  const { totalWidth, maxPinLength, axisX, labelX } = relativePinGeometry(columnWidthEm, styles.emPx, hasNeg, hasPos);
+  const { totalWidth, maxPinLength, axisX, labelGap } = relativePinGeometry(columnWidthEm, styles.emPx, hasNeg, hasPos);
 
   const centerY = height / 2;
 
@@ -456,39 +550,67 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const isExtreme = scaledLength > maxPinLength;
   const pinLength = Math.min(scaledLength, maxPinLength);
 
-  const isPositive = value >= 0;
-  const pinEndX = isPositive ? axisX + pinLength : axisX - pinLength;
+  // a zero label goes to the side that has a label gutter
+  const isPositive = value > 0 || (value === 0 && (hasPos || !hasNeg));
+  const direction = isPositive ? 1 : -1;
+  const pinEndX = axisX + direction * pinLength;
 
   // Get style based on column type (scenario vs variance)
   const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
-  const dotRadius = 3 * s;
+  const look = getVarianceLook(scenario, styles);
+  const headStyle = look?.minuend ?? styles.scenarios.ac;
+  const headSize = PIN_HEAD_SIZE * s;
 
   const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits);
 
+  // the arrow tip lands on the outer edge of a full-length head
+  const tipX = axisX + direction * (maxPinLength + headSize / 2);
+  const arrowBaseX = tipX - direction * headSize;
+  const labelFitsInside = maxPinLength - headSize / 2 - labelGap >= displayValue.length * LABEL_CHAR_WIDTH * fs;
+  const labelInside = isExtreme && labelFitsInside;
+
+  let labelX = pinEndX + direction * (headSize / 2 + labelGap);
+  if (isExtreme) {
+    labelX = labelInside ? arrowBaseX - direction * labelGap : tipX + direction * labelGap;
+  }
+  const labelAtStart = isPositive !== labelInside;
+
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart relative-variance" style={{ overflow: "visible" }}>
+      <PatternDefs styles={styles} />
+
       {/* Center axis line */}
-      <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
-
-      {/* Dot at end - shown when NOT extreme, rendered first so line is on top */}
-      {!isExtreme && <circle cx={pinEndX} cy={centerY} r={dotRadius} fill={styles.fontColor} />}
-
-      {/* Pin line - colored based on column type, on top of dot */}
-      <line x1={axisX} y1={centerY} x2={pinEndX} y2={centerY} stroke={barStyle.fill} stroke-width={2 * s} />
-
-      {/* Arrow indicator for extreme positive values */}
-      {isExtreme && isPositive && (
-        <polygon
-          points={`${axisX + maxPinLength},${centerY} ${axisX + maxPinLength - 6 * s},${centerY - 3 * s} ${axisX + maxPinLength - 6 * s},${centerY + 3 * s}`}
-          fill={barStyle.fill}
-        />
+      {look ? (
+        <VarianceAxis x={axisX} height={height} look={look} styles={styles} />
+      ) : (
+        <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
       )}
 
-      {/* Arrow indicator for extreme negative values */}
-      {isExtreme && !isPositive && (
+      {/* Pin line - colored based on column type */}
+      <line
+        x1={axisX}
+        y1={centerY}
+        x2={isExtreme ? arrowBaseX : pinEndX}
+        y2={centerY}
+        stroke={barStyle.fill}
+        stroke-width={PIN_LINE_WIDTH * s}
+      />
+
+      {/* Square head on top of the line, or an arrow when the pin is cut */}
+      {isExtreme ? (
         <polygon
-          points={`${axisX - maxPinLength},${centerY} ${axisX - maxPinLength + 6 * s},${centerY - 3 * s} ${axisX - maxPinLength + 6 * s},${centerY + 3 * s}`}
+          points={`${tipX},${centerY} ${arrowBaseX},${centerY - headSize / 2} ${arrowBaseX},${centerY + headSize / 2}`}
           fill={barStyle.fill}
+        />
+      ) : (
+        <rect
+          x={pinEndX - headSize / 2}
+          y={centerY - headSize / 2}
+          width={headSize}
+          height={headSize}
+          fill={headStyle.fillpattern === "outlined" ? "#ffffff" : getBarFill(headStyle, look?.minuendSlot ?? "ac")}
+          stroke={headStyle.stroke}
+          stroke-width={1 * s}
         />
       )}
 
@@ -497,11 +619,12 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         x={labelX}
         y={height / 2}
         dy="0.35em"
-        text-anchor="start"
+        text-anchor={labelAtStart ? "start" : "end"}
         fill={styles.fontColor}
         font-size={fs}
         font-style="italic"
         font-family={styles.fontFamily}
+        {...(labelInside ? { stroke: "#ffffff", "stroke-width": 3 * s, "paint-order": "stroke" } : {})}
       >
         {displayValue}
       </text>
@@ -513,7 +636,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
  * CellBarChart - Renders IBCS-compliant variance bar charts.
  *
  * Absolute variance (d_ prefix): Horizontal bars with centered axis
- * Relative variance (dr_ prefix): Pin/dot charts with value indication
+ * Relative variance (dr_ prefix): Pin charts with a square head and value indication
  *
  * Uses componentStyle patterns from chart components for consistent styling.
  */

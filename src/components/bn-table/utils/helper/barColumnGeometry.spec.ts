@@ -92,15 +92,15 @@ describe("barColumnGeometry", () => {
   });
 
   describe("relativePinGeometry", () => {
-    it("reserves a single right-hand gutter and splits the rest per side", () => {
+    it("splits a two-sided w15 column into two gutters and two equal pin areas", () => {
       const g = relativePinGeometry(15, EM, true, true);
 
       expect(g.totalWidth).toBe(290);
       expect(g.labelAreaWidth).toBe(67.5); // 3.375em
       expect(g.pinPadding).toBe(7.5); // 0.375em
-      expect(g.maxPinLength).toBe(103.75); // (290 - 67.5) / 2 - 7.5
-      expect(g.axisX).toBe(111.25);
-      expect(g.labelX).toBe(228.5); // pin area + 0.3em
+      expect(g.maxPinLength).toBe(70); // (290 - 2 x 67.5) / 2 - 7.5
+      expect(g.axisX).toBe(145); // left gutter + left pin area
+      expect(g.labelGap).toBe(6); // 0.3em
     });
 
     it("gives a one-sided column the whole pin area", () => {
@@ -109,10 +109,16 @@ describe("barColumnGeometry", () => {
       expect(g.axisX).toBe(0);
     });
 
+    it("puts the gutter of a negative-only column on the left", () => {
+      const g = relativePinGeometry(15, EM, true, false);
+      expect(g.maxPinLength).toBe(215);
+      expect(g.axisX).toBe(290); // 67.5 + 222.5
+    });
+
     it("keeps a drawable pin at w5", () => {
       const g = relativePinGeometry(5, EM, true, true);
       expect(g.totalWidth).toBe(90);
-      expect(g.labelAreaWidth).toBe(45); // clamped down from 67.5
+      expect(g.labelAreaWidth).toBe(22.5); // clamped down from 67.5
       expect(g.maxPinLength).toBeGreaterThan(0);
     });
   });
