@@ -62,6 +62,8 @@ export interface CellBarChartProps {
   measureScale?: number;
   locale?: string;
   percentDigits?: number;
+  /** False drops the % of a relative label, for a column too narrow for it. */
+  percentSign?: boolean;
   /** Total column width in table em - see barColumnGeometry.ts. */
   columnWidthEm?: number;
   /** Widest label per side over the drawn cells of the column; without it only this cell's label counts. */
@@ -142,17 +144,18 @@ export function formatValue(
   measureScale: number = 1,
   locale?: string,
   percentDigits: number = 0,
+  percentSign: boolean = true,
 ): string {
   // IBCS prints a value that rounds to zero without a sign
   const signed = (text: string, zero: string) => (value > 0 && text !== zero ? "+" : "") + text;
 
   if (isRelative) {
     // Relative variance is stored as decimal (e.g., -2.0 = -200%)
-    const format = (digits: number) =>
-      signed(
-        Formatter.number(value, "percent", digits, digits, 1, locale),
-        Formatter.number(0, "percent", digits, digits, 1, locale),
-      );
+    const number = (v: number, digits: number) =>
+      percentSign
+        ? Formatter.number(v, "percent", digits, digits, 1, locale)
+        : Formatter.number(v * 100, "decimal", digits, digits, 1, locale);
+    const format = (digits: number) => signed(number(value, digits), number(0, digits));
     // Intl throws on a digit count outside 0 to 20
     let digits = Math.min(20, Math.max(0, Math.trunc(percentDigits) || 0));
 
@@ -556,6 +559,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     measureScale,
     locale,
     percentDigits,
+    percentSign,
     columnWidthEm = 10,
     labelWidths,
     styles = DEFAULT_STYLES,
@@ -564,7 +568,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const fs = styles.fontSize;
   const headSize = PIN_HEAD_SIZE * s;
 
-  const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits);
+  const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits, percentSign);
   const sides = labelWidths ?? ownLabelWidths(columnStats, estimateLabelWidth(displayValue, fs));
   const { totalWidth, maxPinLength, axisX, labelGap } = relativePinGeometry(
     columnWidthEm,

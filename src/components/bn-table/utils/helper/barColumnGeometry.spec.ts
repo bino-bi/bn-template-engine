@@ -1,4 +1,10 @@
-import { absoluteBarGeometry, estimateLabelWidth, relativePinGeometry, waterfallGeometry } from "./barColumnGeometry";
+import {
+  absoluteBarGeometry,
+  estimateLabelWidth,
+  pinLabelsFit,
+  relativePinGeometry,
+  waterfallGeometry,
+} from "./barColumnGeometry";
 
 /**
  * `bar-column-width="wN"` and `category-width="wN"` must render the same width.
@@ -35,10 +41,27 @@ describe("barColumnGeometry", () => {
   });
 
   describe("estimateLabelWidth", () => {
-    it("adds the glyph widths of the label font", () => {
+    it("adds the glyph widths of the label font and a 10% margin", () => {
       // 5 x 0.59 for the sign and the digits, 0.28 for the point, 0.89 for the percent sign
-      expect(estimateLabelWidth("+36.21%", 10)).toBeCloseTo(41.2, 6);
-      expect(estimateLabelWidth("-27.3%", 10)).toBeCloseTo(0.34 * 10 + 3 * 5.9 + 2.8 + 8.9, 6);
+      expect(estimateLabelWidth("+36.21%", 10)).toBeCloseTo(41.2 * 1.1, 6);
+      expect(estimateLabelWidth("-27.3%", 10)).toBeCloseTo((0.34 * 10 + 3 * 5.9 + 2.8 + 8.9) * 1.1, 6);
+    });
+
+    // advance widths in em from the font files
+    const ARIAL: Record<string, number> = { "+": 0.584, "-": 0.333, ".": 0.278, "%": 0.889, digit: 0.556 };
+    const DEJAVU_SANS: Record<string, number> = { "+": 0.838, "-": 0.361, ".": 0.318, "%": 0.95, digit: 0.636 };
+    const realWidth = (font: Record<string, number>, text: string) =>
+      [...text].reduce((em, char) => em + (font[char] ?? font.digit), 0);
+    const LABELS = ["+36.21%", "-27.3%", "+100%", "-0.5%", "+8"];
+    // the cell padding is 0.25 table em, i.e. 0.25 / 0.85 label em
+    const PADDING = 0.25 / 0.85;
+
+    it.each(LABELS)("is not narrower than %s in Arial", (text) => {
+      expect(estimateLabelWidth(text, 1)).toBeGreaterThanOrEqual(realWidth(ARIAL, text));
+    });
+
+    it.each(LABELS)("leaves %s in the DejaVu Sans fallback inside the cell padding", (text) => {
+      expect(estimateLabelWidth(text, 1) + PADDING).toBeGreaterThanOrEqual(realWidth(DEJAVU_SANS, text));
     });
 
     it("is wider for a longer label", () => {
@@ -82,18 +105,27 @@ describe("barColumnGeometry", () => {
       expect(absoluteBarGeometry(15, EM, {}).axisX).toBe(0);
     });
 
-    it("shrinks the reserves rather than the column when w5 cannot fit them", () => {
-      const g = absoluteBarGeometry(5, EM, { neg: 100, pos: 100 });
+    it("shortens the bars before the labels when w5 cannot fit both", () => {
+      const g = absoluteBarGeometry(5, EM, { neg: 30, pos: 30 });
 
       expect(g.totalWidth).toBe(90); // still exactly w5 minus padding
-      expect(g.maxBarWidth).toBe(20); // bars keep 1em per side
-      expect(g.breakGap).toBe(4); // clamped down from 6
-      expect(g.cutWidth).toBeCloseTo(13, 6);
+      // 2.5 + 6 + 30 = 38.5 per side, the bars get the 13 px left
+      expect(g.maxBarWidth).toBeCloseTo(6.5, 6);
+      expect(g.axisX).toBeCloseTo(45, 6);
+      expect(g.axisX - 2.5 - g.maxBarWidth - g.labelGap - 30).toBeCloseTo(0, 6);
+    });
+
+    it("shrinks the reserves only when the labels alone do not fit", () => {
+      const g = absoluteBarGeometry(5, EM, { neg: 100, pos: 100 });
+
+      expect(g.totalWidth).toBe(90);
+      expect(g.maxBarWidth).toBe(0);
+      expect(g.axisX).toBeCloseTo(45, 6);
     });
 
     it("keeps a drawable bar area at every preset", () => {
       for (const n of [5, 10, 15, 100]) {
-        const g = absoluteBarGeometry(n, EM, BOTH);
+        const g = absoluteBarGeometry(n, EM, { neg: 20, pos: 25 });
         expect(g.maxBarWidth).toBeGreaterThan(0);
         expect(g.cutWidth).toBeGreaterThan(0);
       }
@@ -130,10 +162,27 @@ describe("barColumnGeometry", () => {
       expect(g.axisX).toBe(290); // 61 + 229
     });
 
-    it("keeps a drawable pin at w5", () => {
-      const g = relativePinGeometry(5, EM, { neg: 100, pos: 100 }, HEAD);
+    it("shortens the pins before the labels at w5", () => {
+      const g = relativePinGeometry(5, EM, { neg: 30, pos: 30 }, HEAD);
       expect(g.totalWidth).toBe(90);
-      expect(g.maxPinLength).toBe(20); // shrunk reserves leave 1em per side
+      // 5 + 6 + 30 = 41 per side, the pins get the 8 px left
+      expect(g.maxPinLength).toBeCloseTo(4, 6);
+      expect(g.axisX - g.maxPinLength - HEAD / 2 - g.labelGap - 30).toBeCloseTo(0, 6);
+    });
+  });
+
+  describe("pinLabelsFit", () => {
+    it("is true while the labels leave 1em of pin per side", () => {
+      expect(pinLabelsFit(15, EM, BOTH, HEAD)).toBe(true);
+      // 51 + 61 + 2 x 20 = 152 of 190
+      expect(pinLabelsFit(10, EM, BOTH, HEAD)).toBe(true);
+    });
+
+    it("is false when the pins would get less than 1em", () => {
+      // 41 + 41 + 2 x 20 = 122 of 90
+      expect(pinLabelsFit(5, EM, { neg: 30, pos: 30 }, HEAD)).toBe(false);
+      // a one-sided column needs one pin only: 41 + 20 = 61 of 90
+      expect(pinLabelsFit(5, EM, { pos: 30 }, HEAD)).toBe(true);
     });
   });
 

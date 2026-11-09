@@ -51,6 +51,7 @@ import {
   BAR_LABEL_FONT_RATIO,
   estimateLabelWidth,
   PIN_HEAD_SIZE,
+  pinLabelsFit,
   relativePinGeometry,
   SideLabels,
 } from "../utils/helper/barColumnGeometry";
@@ -63,6 +64,9 @@ interface BarColumnLayout {
   /** Largest drawn value, in percent for a pin column. */
   absMax: number;
   labels: SideLabels;
+  /** Label format of a pin column, reduced until its labels fit the column. */
+  percentDigits: number;
+  percentSign: boolean;
 }
 
 /** Layout-state contribution of the inner table, merged by `bn-table.getLayoutState()`. */
@@ -464,7 +468,10 @@ export class BnTableRenderer {
                           isPositiveGood={cell.direction === "pos"}
                           measureScale={barLabelMeasureScale(cell)}
                           locale={locale}
-                          percentDigits={this.componentDataFormatDigits.percent}
+                          percentDigits={
+                            this.barColumnLayouts.get(cell.key)?.percentDigits ?? this.componentDataFormatDigits.percent
+                          }
+                          percentSign={this.barColumnLayouts.get(cell.key)?.percentSign}
                           columnWidthEm={this.barColumnMaxWidth}
                           labelWidths={this.barColumnLayouts.get(cell.key)?.labels}
                           styles={this.barChartStyles}
@@ -712,30 +719,41 @@ export class BnTableRenderer {
       }
     }
 
-    const fs = this.emPx() * BAR_LABEL_FONT_RATIO;
+    const emPx = this.emPx();
+    const fs = emPx * BAR_LABEL_FONT_RATIO;
+    const headSize = PIN_HEAD_SIZE * this.scaleFactor;
     const locale = this.stores?.context?.state?.locale;
     for (const [key, cells] of cellsByKey) {
       const isRelative = key.startsWith("dr");
       const values = cells.map((cell) => cell.value as number);
-      const labels: SideLabels = {
-        neg: values.some((value) => value < 0) ? 0 : undefined,
-        pos: values.some((value) => value > 0) ? 0 : undefined,
+      const measure = (percentDigits: number, percentSign: boolean): SideLabels => {
+        const labels: SideLabels = {
+          neg: values.some((value) => value < 0) ? 0 : undefined,
+          pos: values.some((value) => value > 0) ? 0 : undefined,
+        };
+        const zeroPositive = zeroOnPositiveSide(labels);
+        for (const cell of cells) {
+          const value = cell.value as number;
+          const side = value > 0 || (value === 0 && zeroPositive) ? "pos" : "neg";
+          const text = formatValue(value, isRelative, barLabelMeasureScale(cell), locale, percentDigits, percentSign);
+          labels[side] = Math.max(labels[side] ?? 0, estimateLabelWidth(text, fs));
+        }
+        return labels;
       };
-      const zeroPositive = zeroOnPositiveSide(labels);
-      for (const cell of cells) {
-        const value = cell.value as number;
-        const side = value > 0 || (value === 0 && zeroPositive) ? "pos" : "neg";
-        const text = formatValue(
-          value,
-          isRelative,
-          barLabelMeasureScale(cell),
-          locale,
-          this.componentDataFormatDigits.percent,
-        );
-        labels[side] = Math.max(labels[side] ?? 0, estimateLabelWidth(text, fs));
+
+      // a narrow pin column drops percent digits, then the %, so every label keeps its sign
+      let percentDigits = Math.min(20, Math.max(0, Math.trunc(this.componentDataFormatDigits.percent) || 0));
+      let percentSign = true;
+      let labels = measure(percentDigits, percentSign);
+      while (isRelative && (percentDigits > 0 || percentSign)) {
+        if (pinLabelsFit(this.barColumnMaxWidth, emPx, labels, headSize)) break;
+        if (percentDigits > 0) percentDigits--;
+        else percentSign = false;
+        labels = measure(percentDigits, percentSign);
       }
+
       const absMax = Math.max(...values.map(Math.abs)) * (isRelative ? 100 : 1);
-      layouts.set(key, { isRelative, absMax, labels });
+      layouts.set(key, { isRelative, absMax, labels, percentDigits, percentSign });
     }
     return layouts;
   }

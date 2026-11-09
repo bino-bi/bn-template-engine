@@ -31,7 +31,7 @@ const BAR_LABEL_EM = 2.85;
 const BREAK_GAP_EM = 0.3;
 /** Gap between a bar/pin end and its value label, in em (was 4 px). */
 const LABEL_GAP_EM = 0.3;
-/** Bar or pin extent per side a column too narrow for its labels still keeps, in em. */
+/** Pin extent per side kept before a pin column drops label digits, in em. */
 const MIN_EXTENT_EM = 1;
 /** Share of the per-side bar extent reserved for the overdrive stub. */
 const OVERDRIVE_FRACTION = 0.15;
@@ -41,8 +41,9 @@ export const VARIANCE_AXIS_EM = 0.25;
 export const PIN_HEAD_SIZE = 10;
 
 /**
- * Advance widths in em, the larger of Noto Sans and Arial so a fallback font still fits.
- * Digits and signs share one width in both; any other glyph counts as a wide letter.
+ * Advance widths in em, the larger of Noto Sans and Arial. The engine ships no font, so a
+ * wider fallback (DejaVu Sans, Verdana) is possible: LABEL_WIDTH_MARGIN and the cell
+ * padding cover it. Any glyph not listed counts as a wide letter.
  */
 const GLYPH_EM: Record<string, number> = {
   ".": 0.28,
@@ -56,14 +57,16 @@ const GLYPH_EM: Record<string, number> = {
 };
 const DIGIT_EM = 0.59;
 const OTHER_EM = 0.72;
+/** Labels fill the cell to the edge, so the estimate keeps room for a wider fallback font. */
+const LABEL_WIDTH_MARGIN = 1.1;
 
-/** Estimated rendered width of a value label in px. */
+/** Estimated rendered width of a value label in px, with a margin for wider fonts. */
 export function estimateLabelWidth(text: string, fontSize: number): number {
   let em = 0;
   for (const char of text) {
     em += GLYPH_EM[char] ?? (/[0-9+]/.test(char) ? DIGIT_EM : OTHER_EM);
   }
-  return em * fontSize;
+  return em * fontSize * LABEL_WIDTH_MARGIN;
 }
 
 /** Widest value label in px per side of the axis; a side without drawn values is undefined. */
@@ -83,31 +86,45 @@ interface SideSplit {
   axisX: number;
 }
 
-/**
- * Reserves per side only what its widest label needs (`outerReserve` covers what sticks
- * out beyond the bar or pin end, e.g. the half head) and gives the rest to the bars or pins.
- * A column too narrow for its labels shrinks the reserves rather than the total, so wN
- * stays wN, and the labels overflow.
- */
-function splitSides(
-  totalWidth: number,
-  emPx: number,
-  labels: SideLabels,
-  outerReserve: number,
-  labelGap: number,
-): SideSplit {
+interface SideNeeds {
+  sides: number;
+  /** What the label side of the axis needs beyond the bar or pin end; 0 for a side without values. */
+  neg: number;
+  pos: number;
+}
+
+/** `outerReserve` covers what sticks out beyond the bar or pin end, e.g. the half head. */
+function sideNeeds(labels: SideLabels, outerReserve: number, labelGap: number): SideNeeds {
   const hasNeg = labels.neg !== undefined;
   const hasPos = labels.pos !== undefined || !hasNeg;
-  const sides = (hasNeg ? 1 : 0) + (hasPos ? 1 : 0);
-  const need = (width: number | undefined) => outerReserve + labelGap + (width ?? 0);
-  const negNeed = hasNeg ? need(labels.neg) : 0;
-  const posNeed = hasPos ? need(labels.pos) : 0;
-  const available = Math.max(0, totalWidth - sides * Math.min(MIN_EXTENT_EM * emPx, totalWidth / (2 * sides)));
-  const shrink = Math.min(1, available / (negNeed + posNeed));
-  const negReserve = negNeed * shrink;
-  const extent = (totalWidth - negReserve - posNeed * shrink) / sides;
+  const need = (has: boolean, width: number | undefined) => (has ? outerReserve + labelGap + (width ?? 0) : 0);
+  return { sides: (hasNeg ? 1 : 0) + (hasPos ? 1 : 0), neg: need(hasNeg, labels.neg), pos: need(hasPos, labels.pos) };
+}
 
-  return { extent, axisX: hasNeg ? negReserve + extent : 0 };
+/** Bar or pin extent per side that a column keeps as long as its labels allow. */
+function minExtent(totalWidth: number, emPx: number, sides: number): number {
+  return Math.min(MIN_EXTENT_EM * emPx, totalWidth / (2 * sides));
+}
+
+/**
+ * Reserves per side only what its widest label needs and gives the rest to the bars or
+ * pins. A column too narrow for that shortens the bars or pins first, down to zero, so a
+ * label keeps its sign. Only a column narrower than its labels alone shrinks the
+ * reserves, and then the labels overflow. wN stays wN in every case.
+ */
+function splitSides(totalWidth: number, labels: SideLabels, outerReserve: number, labelGap: number): SideSplit {
+  const { sides, neg, pos } = sideNeeds(labels, outerReserve, labelGap);
+  const shrink = neg + pos > 0 ? Math.min(1, totalWidth / (neg + pos)) : 1;
+  const extent = Math.max(0, (totalWidth - (neg + pos) * shrink) / sides);
+
+  return { extent, axisX: labels.neg !== undefined ? neg * shrink + extent : 0 };
+}
+
+/** True when the labels fit beside pins of at least the minimum extent; else the caller drops digits. */
+export function pinLabelsFit(widthEm: number, emPx: number, labels: SideLabels, headSize: number): boolean {
+  const totalWidth = contentWidth(widthEm, emPx);
+  const { sides, neg, pos } = sideNeeds(labels, headSize / 2, LABEL_GAP_EM * emPx);
+  return neg + pos + sides * minExtent(totalWidth, emPx, sides) <= totalWidth + 1e-6;
 }
 
 export interface AbsoluteBarGeometry {
@@ -128,7 +145,7 @@ export function absoluteBarGeometry(widthEm: number, emPx: number, labels: SideL
   const totalWidth = contentWidth(widthEm, emPx);
   const labelGap = LABEL_GAP_EM * emPx;
   // a variance bar starts at the outer edge of the thick axis
-  const { extent: maxBarWidth, axisX } = splitSides(totalWidth, emPx, labels, (VARIANCE_AXIS_EM * emPx) / 2, labelGap);
+  const { extent: maxBarWidth, axisX } = splitSides(totalWidth, labels, (VARIANCE_AXIS_EM * emPx) / 2, labelGap);
   const breakGap = Math.min(BREAK_GAP_EM * emPx, maxBarWidth * 0.2);
   const overdriveZoneWidth = maxBarWidth * OVERDRIVE_FRACTION;
 
@@ -160,7 +177,7 @@ export function relativePinGeometry(
 ): RelativePinGeometry {
   const totalWidth = contentWidth(widthEm, emPx);
   const labelGap = LABEL_GAP_EM * emPx;
-  const { extent, axisX } = splitSides(totalWidth, emPx, labels, headSize / 2, labelGap);
+  const { extent, axisX } = splitSides(totalWidth, labels, headSize / 2, labelGap);
 
   return { totalWidth, maxPinLength: extent, axisX, labelGap };
 }

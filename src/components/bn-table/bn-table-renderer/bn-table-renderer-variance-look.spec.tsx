@@ -200,16 +200,31 @@ describe("IBCS Table variance look", () => {
       expect(num(downLabel, "x") - labelWidth("-20.00%")).toBeGreaterThanOrEqual(-1e-6);
     });
 
-    it("keeps the labels of cut pins inside a narrow w12 column", async () => {
-      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 2, barColumnMaxWidth: 12 });
+    // w12 fits 2 decimals, w10 only 0, w8 drops the %; at w5 the pins get shorter than 1em
+    it.each([
+      [12, "+20.00%", "-20.00%"],
+      [10, "+20%", "-20%"],
+      [8, "+20", "-20"],
+      [5, "+20", "-20"],
+    ])("keeps the whole labels of cut pins inside a w%i column", async (width, upText, downText) => {
+      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 2, barColumnMaxWidth: width });
 
       const up = svgOf(page, "A Up");
       const upLabel = up.querySelector("text");
-      expect(num(upLabel, "x") + labelWidth(upLabel.textContent)).toBeLessThanOrEqual(num(up, "width") + 1e-6);
+      expect(upLabel.textContent).toBe(upText);
+      expect(num(upLabel, "x") + labelWidth(upText)).toBeLessThanOrEqual(num(up, "width") + 1e-6);
 
       const downLabel = svgOf(page, "B Down").querySelector("text");
-      expect(downLabel.textContent.startsWith("-")).toBe(true);
-      expect(num(downLabel, "x") - labelWidth(downLabel.textContent)).toBeGreaterThanOrEqual(-1e-6);
+      expect(downLabel.textContent).toBe(downText);
+      expect(num(downLabel, "x") - labelWidth(downText)).toBeGreaterThanOrEqual(-1e-6);
+    });
+
+    it("drops the digits for the whole column, also for an auto-scaled one", async () => {
+      const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0, barColumnMaxWidth: 10 });
+
+      expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20%");
+      expect(svgOf(page, "B Down").querySelector("text").textContent).toBe("-20%");
+      expect(svgOf(page, "C Flat").querySelector("text").textContent).toBe("0%");
     });
 
     it("never cuts a pin with auto scaling", async () => {
