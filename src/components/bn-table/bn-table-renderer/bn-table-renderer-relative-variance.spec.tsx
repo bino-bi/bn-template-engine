@@ -38,7 +38,7 @@ import { BnTableRenderer } from "./bn-table-renderer";
 import { OrderDirection, TableType } from "../utils/model";
 import { I18nMode, TableCategoryWidth } from "../../../utils/constants";
 import { Order, OrderColumn } from "../../../utils/model/Order";
-import { relativePinGeometry } from "../utils/helper/barColumnGeometry";
+import { estimateLabelWidth, relativePinGeometry } from "../utils/helper/barColumnGeometry";
 
 const EM = 13.3333; // SYSTEM_STYLE_DEFAULTS.global.fontSizePx, scaleFactor 1
 const BAR_COLUMN_WIDTH = 30; // default bar column width in em
@@ -114,6 +114,13 @@ describe("IBCS Table relative variance", () => {
 
   const classesOf = (cell: Element): string[] => (cell.getAttribute("class") || "").split(" ");
 
+  // positive pins only, the widest label is +20.00%
+  const fullPinScaling = (): number => {
+    const labels = { pos: estimateLabelWidth("+20.00%", EM * 0.85) };
+    const { maxPinLength } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, labels, 10);
+    return maxPinLength / (20 * EM * 0.85);
+  };
+
   it("divides by the absolute reference and prints n/a for a zero reference", async () => {
     const page = await renderTable();
 
@@ -182,10 +189,9 @@ describe("IBCS Table relative variance", () => {
       expect(relativeText(page, category)).toBe("n/a");
     }
 
-    // the largest pin (20%) fills 80% of the pin area, 0.85 em is the label font
-    const { maxPinLength } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, false, true);
+    // the largest pin (20%) fills the pin area, 0.85 em is the label font
     const { percentage } = reportAutoScaling.mock.calls.pop()[0];
-    expect(percentage).toBeCloseTo((maxPinLength * 0.8) / (20 * EM * 0.85), 6);
+    expect(percentage).toBeCloseTo(fullPinScaling(), 6);
   });
 
   it("prints n/a for a reference that is 0 up to float rounding", async () => {
@@ -216,9 +222,8 @@ describe("IBCS Table relative variance", () => {
 
     const percentage = await scalingOf("relRounding");
 
-    // the same as without the B row: the 20% pin fills 80% of the pin area
-    const { maxPinLength } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, false, true);
-    expect(percentage).toBeCloseTo((maxPinLength * 0.8) / (20 * EM * 0.85), 6);
+    // the same as without the B row: the 20% pin fills the pin area
+    expect(percentage).toBeCloseTo(fullPinScaling(), 6);
     expect(percentage).toBeCloseTo(await scalingOf("relRoundingGuard"), 6);
   });
 });

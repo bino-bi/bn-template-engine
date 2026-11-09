@@ -31,6 +31,15 @@ describe("formatValue", () => {
     expect(formatValue(-0.04, false, 1, "de")).toBe("0");
   });
 
+  it("prints a zero without a sign, as IBCS does", () => {
+    expect(formatValue(0, false, 1, "de")).toBe("0");
+    expect(formatValue(0.04, false, 1, "de")).toBe("0");
+    expect(formatValue(0, true, 1, "en", 1)).toBe("0.0%");
+    expect(formatValue(0.00001, true, 1, "en", 1)).toBe("0.0%");
+    expect(formatValue(-0.00001, true, 1, "en", 1)).toBe("0.0%");
+    expect(formatValue(0.001, true, 1, "en", 1)).toBe("+0.1%");
+  });
+
   it("moves a value that rounds to 1000 to the next unit", () => {
     expect(formatValue(999.4, false, 1, "de")).toBe("+999");
     // not +1.000 and +1.000K

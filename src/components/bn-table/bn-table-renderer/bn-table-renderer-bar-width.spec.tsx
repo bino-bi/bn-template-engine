@@ -38,7 +38,7 @@ import { BnTableRenderer } from "./bn-table-renderer";
 import { OrderDirection, TableType } from "../utils/model";
 import { I18nMode } from "../../../utils/constants";
 import { Order, OrderColumn } from "../../../utils/model/Order";
-import { absoluteBarGeometry } from "../utils/helper/barColumnGeometry";
+import { absoluteBarGeometry, estimateLabelWidth } from "../utils/helper/barColumnGeometry";
 
 /**
  * `bar-column-width="wN"` must render exactly as wide as `category-width="wN"`.
@@ -191,8 +191,8 @@ describe("IBCS Table bar column width", () => {
       ),
     );
 
-    // the largest drawn bar (Beta, 20) gets 80% of the bar area: about 124.27 px
-    const { maxBarWidth, cutWidth } = absoluteBarGeometry(15, EM, false, true);
+    // the largest drawn bar (Beta, 20) gets 80% of the bar area beside the +20 label
+    const { maxBarWidth, cutWidth } = absoluteBarGeometry(15, EM, { pos: estimateLabelWidth("+20", LABEL_FONT) });
     const target = Math.min(maxBarWidth * 0.8, cutWidth);
     expect(widthOf(beta)).toBeCloseTo(target, 3);
     expect(widthOf(alpha)).toBeCloseTo(target / 2, 3); // 10 is half of 20
@@ -221,8 +221,9 @@ describe("IBCS Table bar column width", () => {
       return rects[0];
     });
 
-    // two-sided w10: 80% of the side is more than the cut, so the largest bar (Beta, 20) ends on the cut, about 22.92 px
-    const { cutWidth } = absoluteBarGeometry(10, EM, true, true);
+    // two-sided w10: 80% of the side is more than the cut, so the largest bar (Beta, 20) ends on the cut
+    const labels = { neg: estimateLabelWidth("-5", LABEL_FONT), pos: estimateLabelWidth("+20", LABEL_FONT) };
+    const { cutWidth } = absoluteBarGeometry(10, EM, labels);
     expect(widthOf(bars[1])).toBeCloseTo(cutWidth, 3);
     expect(widthOf(bars[0])).toBeCloseTo(cutWidth / 2, 3); // 10 is half of 20
   });

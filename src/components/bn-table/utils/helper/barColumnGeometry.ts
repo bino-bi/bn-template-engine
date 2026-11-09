@@ -25,34 +25,111 @@ export const BAR_LABEL_FONT_RATIO = 0.85;
  */
 const BAR_CELL_PADDING_EM = 0.5;
 
-/** Value-label gutter beside a bar, in em (was a hardcoded 38 px at the 13.3333 px em). */
+/** Value-label gutter beside a waterfall bar, in em (was a hardcoded 38 px at the 13.3333 px em). */
 const BAR_LABEL_EM = 2.85;
-/** Value-label gutter beside a pin, in em (was 45 px). */
-const PIN_LABEL_EM = 3.375;
-/** Gap between the axis and the start of a pin's reserved side, in em (was 5 px). */
-const PIN_PADDING_EM = 0.375;
 /** Zigzag break gap of an overdrive bar, in em (was 4 px). */
 const BREAK_GAP_EM = 0.3;
 /** Gap between a bar/pin end and its value label, in em (was 4 px). */
 const LABEL_GAP_EM = 0.3;
+/** Pin extent per side kept before a pin column drops label digits, in em. */
+const MIN_EXTENT_EM = 1;
 /** Share of the per-side bar extent reserved for the overdrive stub. */
 const OVERDRIVE_FRACTION = 0.15;
+/** Width of the axis of a variance bar or pin, in em: near the 0.3em scenario marker in the header. */
+export const VARIANCE_AXIS_EM = 0.25;
+/** Side of the square pin head, in px before scaleFactor. */
+export const PIN_HEAD_SIZE = 10;
+
+/**
+ * Advance widths in em, the larger of Noto Sans and Arial. The engine ships no font, so a
+ * wider fallback (DejaVu Sans, Verdana) is possible: LABEL_WIDTH_MARGIN and the cell
+ * padding cover it. Any glyph not listed counts as a wide letter.
+ */
+const GLYPH_EM: Record<string, number> = {
+  ".": 0.28,
+  ",": 0.28,
+  "-": 0.34,
+  "%": 0.89,
+  " ": 0.28,
+  "\u00a0": 0.28,
+  "\u202f": 0.28,
+  M: 0.9,
+};
+const DIGIT_EM = 0.59;
+const OTHER_EM = 0.72;
+/** Labels fill the cell to the edge, so the estimate keeps room for a wider fallback font. */
+const LABEL_WIDTH_MARGIN = 1.1;
+
+/** Estimated rendered width of a value label in px, with a margin for wider fonts. */
+export function estimateLabelWidth(text: string, fontSize: number): number {
+  let em = 0;
+  for (const char of text) {
+    em += GLYPH_EM[char] ?? (/[0-9+]/.test(char) ? DIGIT_EM : OTHER_EM);
+  }
+  return em * fontSize * LABEL_WIDTH_MARGIN;
+}
+
+/** Widest value label in px per side of the axis; a side without drawn values is undefined. */
+export interface SideLabels {
+  neg?: number;
+  pos?: number;
+}
 
 /** The SVG fills the cell's content box: the requested column width minus the cell padding. */
 function contentWidth(widthEm: number, emPx: number): number {
   return Math.max(0, (widthEm - BAR_CELL_PADDING_EM) * emPx);
 }
 
-/** Sides the axis serves. Clamped to 1 so a hypothetical all-zero column never divides by 0. */
-function sideCount(hasNeg: boolean, hasPos: boolean): number {
-  return Math.max(1, (hasNeg ? 1 : 0) + (hasPos ? 1 : 0));
+interface SideSplit {
+  /** Extent of the bars or pins on one side of the axis; equal on both sides. */
+  extent: number;
+  axisX: number;
+}
+
+interface SideNeeds {
+  sides: number;
+  /** What the label side of the axis needs beyond the bar or pin end; 0 for a side without values. */
+  neg: number;
+  pos: number;
+}
+
+/** `outerReserve` covers what sticks out beyond the bar or pin end, e.g. the half head. */
+function sideNeeds(labels: SideLabels, outerReserve: number, labelGap: number): SideNeeds {
+  const hasNeg = labels.neg !== undefined;
+  const hasPos = labels.pos !== undefined || !hasNeg;
+  const need = (has: boolean, width: number | undefined) => (has ? outerReserve + labelGap + (width ?? 0) : 0);
+  return { sides: (hasNeg ? 1 : 0) + (hasPos ? 1 : 0), neg: need(hasNeg, labels.neg), pos: need(hasPos, labels.pos) };
+}
+
+/** Bar or pin extent per side that a column keeps as long as its labels allow. */
+function minExtent(totalWidth: number, emPx: number, sides: number): number {
+  return Math.min(MIN_EXTENT_EM * emPx, totalWidth / (2 * sides));
+}
+
+/**
+ * Reserves per side only what its widest label needs and gives the rest to the bars or
+ * pins. A column too narrow for that shortens the bars or pins first, down to zero, so a
+ * label keeps its sign. Only a column narrower than its labels alone shrinks the
+ * reserves, and then the labels overflow. wN stays wN in every case.
+ */
+function splitSides(totalWidth: number, labels: SideLabels, outerReserve: number, labelGap: number): SideSplit {
+  const { sides, neg, pos } = sideNeeds(labels, outerReserve, labelGap);
+  const shrink = neg + pos > 0 ? Math.min(1, totalWidth / (neg + pos)) : 1;
+  const extent = Math.max(0, (totalWidth - (neg + pos) * shrink) / sides);
+
+  return { extent, axisX: labels.neg !== undefined ? neg * shrink + extent : 0 };
+}
+
+/** True when the labels fit beside pins of at least the minimum extent; else the caller drops digits. */
+export function pinLabelsFit(widthEm: number, emPx: number, labels: SideLabels, headSize: number): boolean {
+  const totalWidth = contentWidth(widthEm, emPx);
+  const { sides, neg, pos } = sideNeeds(labels, headSize / 2, LABEL_GAP_EM * emPx);
+  return neg + pos + sides * minExtent(totalWidth, emPx, sides) <= totalWidth + 1e-6;
 }
 
 export interface AbsoluteBarGeometry {
   /** SVG width - the cell's content box. */
   totalWidth: number;
-  /** Width of one value-label gutter; one is drawn per side in use. */
-  labelAreaWidth: number;
   /** Max bar extent on one side of the axis. */
   maxBarWidth: number;
   axisX: number;
@@ -64,39 +141,29 @@ export interface AbsoluteBarGeometry {
   labelGap: number;
 }
 
-export function absoluteBarGeometry(
-  widthEm: number,
-  emPx: number,
-  hasNeg: boolean,
-  hasPos: boolean,
-): AbsoluteBarGeometry {
+export function absoluteBarGeometry(widthEm: number, emPx: number, labels: SideLabels): AbsoluteBarGeometry {
   const totalWidth = contentWidth(widthEm, emPx);
-  const sides = sideCount(hasNeg, hasPos);
-  // Narrow columns shrink the gutters rather than the total, so wN stays wN.
-  const labelAreaWidth = Math.min(BAR_LABEL_EM * emPx, totalWidth / (2 * sides));
-  const maxBarWidth = (totalWidth - labelAreaWidth * sides) / sides;
+  const labelGap = LABEL_GAP_EM * emPx;
+  // a variance bar starts at the outer edge of the thick axis
+  const { extent: maxBarWidth, axisX } = splitSides(totalWidth, labels, (VARIANCE_AXIS_EM * emPx) / 2, labelGap);
   const breakGap = Math.min(BREAK_GAP_EM * emPx, maxBarWidth * 0.2);
   const overdriveZoneWidth = maxBarWidth * OVERDRIVE_FRACTION;
 
   return {
     totalWidth,
-    labelAreaWidth,
     maxBarWidth,
-    axisX: hasNeg ? labelAreaWidth + maxBarWidth : 0,
+    axisX,
     breakGap,
     overdriveZoneWidth,
     cutWidth: Math.max(0, maxBarWidth - breakGap - overdriveZoneWidth),
-    labelGap: LABEL_GAP_EM * emPx,
+    labelGap,
   };
 }
 
 export interface RelativePinGeometry {
   totalWidth: number;
-  /** Width of one value-label gutter; one is drawn per side in use. */
-  labelAreaWidth: number;
-  /** Max pin extent on one side of the axis. */
+  /** Max pin extent on one side of the axis, to the centre of the head or the base of the arrow tip. */
   maxPinLength: number;
-  pinPadding: number;
   axisX: number;
   /** Gap between the pin head and its value label. */
   labelGap: number;
@@ -105,24 +172,14 @@ export interface RelativePinGeometry {
 export function relativePinGeometry(
   widthEm: number,
   emPx: number,
-  hasNeg: boolean,
-  hasPos: boolean,
+  labels: SideLabels,
+  headSize: number,
 ): RelativePinGeometry {
   const totalWidth = contentWidth(widthEm, emPx);
-  const sides = sideCount(hasNeg, hasPos);
-  const labelAreaWidth = Math.min(PIN_LABEL_EM * emPx, totalWidth / (2 * sides));
-  const sideWidth = (totalWidth - labelAreaWidth * sides) / sides;
-  // also leaves room for the outer half of the pin head
-  const pinPadding = Math.min(PIN_PADDING_EM * emPx, sideWidth * 0.2);
+  const labelGap = LABEL_GAP_EM * emPx;
+  const { extent, axisX } = splitSides(totalWidth, labels, headSize / 2, labelGap);
 
-  return {
-    totalWidth,
-    labelAreaWidth,
-    maxPinLength: Math.max(0, sideWidth - pinPadding),
-    pinPadding,
-    axisX: hasNeg ? labelAreaWidth + sideWidth : 0,
-    labelGap: LABEL_GAP_EM * emPx,
-  };
+  return { totalWidth, maxPinLength: extent, axisX, labelGap };
 }
 
 export interface WaterfallGeometry {
