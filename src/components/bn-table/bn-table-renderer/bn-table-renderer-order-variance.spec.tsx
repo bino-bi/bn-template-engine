@@ -80,12 +80,30 @@ describe("IBCS Table order by variance", () => {
     { ...base, category: "R", categoryIndex: 3, operation: "+", ac1: 20, pp1: 0 },
   ];
 
-  // Alpha thereof: ac1 - pp1 s10 9, s5 2, s20 18
+  // Alpha thereof: ac1 - pp1 s10 9, s5 15, s20 18
+  // ac1 - pp1 Beta 48, Alpha 42, Gamma 5; ac1 Beta 50, Gamma 45, Alpha 35
   const drillRows: any[] = [
     { ...base, category: "Alpha", categoryIndex: 1, subCategory: "s10", subCategoryIndex: 1, ac1: 10, pp1: 1 },
-    { ...base, category: "Alpha", categoryIndex: 1, subCategory: "s5", subCategoryIndex: 2, ac1: 5, pp1: 3 },
+    { ...base, category: "Alpha", categoryIndex: 1, subCategory: "s5", subCategoryIndex: 2, ac1: 5, pp1: -10 },
     { ...base, category: "Alpha", categoryIndex: 1, subCategory: "s20", subCategoryIndex: 3, ac1: 20, pp1: 2 },
     { ...base, category: "Beta", categoryIndex: 2, subCategory: "b", subCategoryIndex: 1, ac1: 50, pp1: 2 },
+    { ...base, category: "Gamma", categoryIndex: 3, subCategory: "g", subCategoryIndex: 1, ac1: 45, pp1: 40 },
+  ];
+
+  // numeric setnames; 2025: ac1 N1 1, N2 9; both: N1 101, N2 10
+  const numericSetRows: any[] = [
+    { ...base, category: "N1", categoryIndex: 1, setname: 2024, ac1: 100, pp1: 0 },
+    { ...base, category: "N1", categoryIndex: 1, setname: 2025, ac1: 1, pp1: 0 },
+    { ...base, category: "N2", categoryIndex: 2, setname: 2024, ac1: 1, pp1: 0 },
+    { ...base, category: "N2", categoryIndex: 2, setname: 2025, ac1: 9, pp1: 0 },
+  ];
+
+  // ac1 over both months: M1 101, M2 10
+  const dateRows: any[] = [
+    { ...base, category: "M1", categoryIndex: 1, date: "2025-10-01", ac1: 100, pp1: 0 },
+    { ...base, category: "M1", categoryIndex: 1, date: "2025-11-01", ac1: 1, pp1: 0 },
+    { ...base, category: "M2", categoryIndex: 2, date: "2025-10-01", ac1: 1, pp1: 0 },
+    { ...base, category: "M2", categoryIndex: 2, date: "2025-11-01", ac1: 9, pp1: 0 },
   ];
 
   const errors = {
@@ -103,6 +121,8 @@ describe("IBCS Table order by variance", () => {
     tables["setOrderData"] = { data: setRows };
     tables["optOrderData"] = { data: optRows };
     tables["drillOrderData"] = { data: drillRows };
+    tables["numericSetOrderData"] = { data: numericSetRows };
+    tables["dateOrderData"] = { data: dateRows };
   });
 
   beforeEach(() => {
@@ -218,9 +238,21 @@ describe("IBCS Table order by variance", () => {
       return rows(page, "tbody tr.ofit").map((cells) => cells[2]);
     };
 
-    // asc inverts to desc: 18, 9, 2
-    expect(await thereofAc1(OrderDirection.ASC)).toEqual(["20", "10", "5"]);
-    expect(await thereofAc1(OrderDirection.DESC)).toEqual(["5", "10", "20"]);
+    // asc inverts to desc: 18, 15, 9; by ac1 it would be 20, 10, 5
+    expect(await thereofAc1(OrderDirection.ASC)).toEqual(["20", "5", "10"]);
+    expect(await thereofAc1(OrderDirection.DESC)).toEqual(["10", "5", "20"]);
+  });
+
+  it("keeps the partof rows under their category with a variance order", async () => {
+    const page = await renderTable(["dac1_pp1"], OrderDirection.DESC, {
+      tableName: "drillOrderData",
+      type: TableType.SUM,
+      partof: ["Alpha", "Beta", "Gamma"].map((category) => ({ rowGroup: "", category, subCategory: "", partOf: "" })),
+    });
+
+    // by ac1 it would be Beta, Gamma, Alpha; columns: category, pp1, ac1
+    expect(rows(page).map((cells) => cells[2])).toEqual(["50", "38.46%", "35", "26.92%", "45", "34.62%", "130"]);
+    expect(errors.addOrReplace).not.toHaveBeenCalledWith(expect.objectContaining({ id: "ERR_sql" }));
   });
 
   describe("with interval setname", () => {
@@ -266,6 +298,14 @@ describe("IBCS Table order by variance", () => {
       expect(rows(page)[1]).toEqual(["REST", "0", "100", "100", "4", "7", "3"]);
     });
 
+    it("matches a numeric setname", async () => {
+      const numeric = { ...interval, tableName: "numericSetOrderData" };
+
+      expect(categories(await renderTable(["ac1@2025"], OrderDirection.DESC, numeric))).toEqual(["N2", "N1"]);
+      expect(categories(await renderTable(["dac1_pp1@2025"], OrderDirection.DESC, numeric))).toEqual(["N2", "N1"]);
+      expect(errors.addOrReplace).not.toHaveBeenCalledWith(expect.objectContaining({ id: "ERR_sql" }));
+    });
+
     it("warns about a bucket that is not a setname", async () => {
       await renderTable(["dac1_pp1@Dec"], OrderDirection.DESC, interval);
 
@@ -286,5 +326,24 @@ describe("IBCS Table order by variance", () => {
       type: "warning",
       message: "order: '@_YTD' needs interval setname, the bucket is ignored.",
     });
+  });
+
+  it("warns and sorts a scenario by all rows without interval setname", async () => {
+    const page = await renderTable(["ac1@_YTD"], OrderDirection.DESC);
+
+    expect(categories(page)).toEqual(["F", "A", "E", "B", "C", "D"]);
+    expect(errors.addOrReplace).not.toHaveBeenCalledWith(expect.objectContaining({ id: "ERR_sql" }));
+    expect(errors.addOrReplace).toHaveBeenCalledWith(expect.objectContaining({ id: "WARN_orderBucket" }));
+  });
+
+  it("warns and sorts a scenario by all buckets with a date interval", async () => {
+    const page = await renderTable(["ac1@2025-11"], OrderDirection.DESC, {
+      tableName: "dateOrderData",
+      interval: "month",
+    });
+
+    expect(categories(page)).toEqual(["M1", "M2"]);
+    expect(errors.addOrReplace).not.toHaveBeenCalledWith(expect.objectContaining({ id: "ERR_sql" }));
+    expect(errors.addOrReplace).toHaveBeenCalledWith(expect.objectContaining({ id: "WARN_orderBucket" }));
   });
 });

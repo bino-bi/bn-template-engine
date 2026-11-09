@@ -89,9 +89,17 @@ export class DataQuery {
 
     const groups: QueryGroups = new QueryGroups(this.config);
 
+    // a bucket only applies under interval setname, else the token sorts like its bare column
+    const sortOrder: Order =
+      this.config.interval === INTERVAL_SETNAME
+        ? this.config.sortOrder
+        : {
+            hierarchy: this.config.sortOrder.hierarchy.map((column) => parseOrderToken(column)?.column ?? column),
+            direction: this.config.sortOrder.direction,
+          };
     let order: [string, string] = ["", ""];
-    if (this.config.sortOrder.hierarchy.length > 0) {
-      order = this.createOrderString(this.config.sortOrder);
+    if (sortOrder.hierarchy.length > 0) {
+      order = this.createOrderString(sortOrder);
     }
 
     this.hasPartOf = this.checkConfigForPartOf();
@@ -99,7 +107,7 @@ export class DataQuery {
     // meta defines groups and the number detail rows in each group
     // Bsp:  0: Object { totalrowcnt: 7, rowgroup: "Umsatz" }
     // groups follow the order entries that exist per group (rowGroup, rowGroupIndex, scenario sum), else rowGroupIndex
-    const { hierarchy, direction } = this.config.sortOrder;
+    const { hierarchy, direction } = sortOrder;
     const groupOrderColumns = hierarchy.filter(
       (column) =>
         column === QueryColumnNames.ROWGROUP ||
@@ -1070,7 +1078,7 @@ export class DataQuery {
     const sortKeys = new Map<number, string>();
     orderComponent.hierarchy.forEach((column, i) => {
       const token = parseOrderToken(column);
-      const bucket = this.config.interval === INTERVAL_SETNAME ? token?.bucket : undefined;
+      const bucket = token?.bucket;
       if (token?.kind === "variance" || (token?.kind === "scenario" && bucket !== undefined)) {
         sortKeys.set(i, this.translateSortKeySQL(token, bucket, i));
       }
@@ -1093,7 +1101,8 @@ export class DataQuery {
   private translateSortKeySQL(token: OrderToken, bucket: string | undefined, i: number): string {
     const isOpt = TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type;
     const sign = isOpt ? "" : " * transformOperator(operation)";
-    const inBucket = bucket === undefined ? "" : `TRIM(${intervalBucketSQL(INTERVAL_SETNAME)}) = ${this.bind(bucket)}`;
+    const inBucket =
+      bucket === undefined ? "" : `TRIM(CAST(${intervalBucketSQL(INTERVAL_SETNAME)} AS STRING)) = ${this.bind(bucket)}`;
     const value = (x: string) => `SUM(${inBucket ? `(CASE WHEN ${inBucket} THEN ${x} ELSE 0 END)` : x}${sign})`;
     const missing = (x: string) =>
       `SUM(CASE WHEN ${inBucket ? `${inBucket} AND ` : ""}${x} IS NOT NULL THEN 1 ELSE 0 END) = 0`;

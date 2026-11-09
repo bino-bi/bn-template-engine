@@ -658,8 +658,8 @@ export class Table {
    *  <br /><br />
    *  The scenario or variance does not have to be a shown column; the sort arrow appears only on a shown one.
    *  A plain scenario also sorts the row groups by their sum. A variance or a token with `@` sorts only the rows
-   *  inside each group, the groups keep their rowgroupindex order. Rows without data (and a relative variance
-   *  with a zero reference) sort last.
+   *  inside each group, the groups keep their rowgroupindex order. With a variance or `@`, rows without data
+   *  (and a relative variance with a zero reference) sort last.
    *  <br /><br />
    *  When set to ```auto```, order is detected from the dataset silently.
    */
