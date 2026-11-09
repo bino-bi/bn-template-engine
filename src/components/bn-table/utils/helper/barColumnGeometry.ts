@@ -69,6 +69,38 @@ export function estimateLabelWidth(text: string, fontSize: number): number {
   return em * fontSize * LABEL_WIDTH_MARGIN;
 }
 
+/** Safety pad on a measured label, in label font size: covers subpixel rounding only. */
+const MEASURE_PAD = 0.15;
+
+let measureContext: CanvasRenderingContext2D | null | undefined;
+
+/** One shared 2D context; null where the document has no canvas (spec tests, mock-doc). */
+function labelMeasureContext(): CanvasRenderingContext2D | null {
+  if (measureContext === undefined) {
+    try {
+      measureContext =
+        typeof document === "undefined" ? null : (document.createElement("canvas").getContext?.("2d") ?? null);
+    } catch {
+      measureContext = null;
+    }
+  }
+  return measureContext;
+}
+
+/**
+ * Rendered width of a value label in px, measured with the font the SVG text uses. Falls
+ * back to estimateLabelWidth where no canvas can measure.
+ */
+export function labelWidth(text: string, fontSize: number, fontFamily: string, italic: boolean): number {
+  const ctx = labelMeasureContext();
+  if (ctx) {
+    ctx.font = `${italic ? "italic " : ""}${fontSize}px ${fontFamily}`;
+    const width = ctx.measureText(text).width;
+    if (Number.isFinite(width) && (width > 0 || text === "")) return width + MEASURE_PAD * fontSize;
+  }
+  return estimateLabelWidth(text, fontSize);
+}
+
 /** Widest value label in px per side of the axis; a side without drawn values is undefined. */
 export interface SideLabels {
   neg?: number;
@@ -162,24 +194,60 @@ export function absoluteBarGeometry(widthEm: number, emPx: number, labels: SideL
 
 export interface RelativePinGeometry {
   totalWidth: number;
-  /** Max pin extent on one side of the axis, to the centre of the head or the base of the arrow tip. */
+  /** Max pin extent of the longer side, to the centre of the head or the base of the arrow tip. */
   maxPinLength: number;
+  /** Max pin extent per side; a longer pin is cut and ends in an arrow. */
+  negPinLength: number;
+  posPinLength: number;
   axisX: number;
   /** Gap between the pin head and its value label. */
   labelGap: number;
 }
 
+/**
+ * `reach` is the length in px the longest pin of each side wants at the column's scale.
+ * With it, the pin room is split by what each side needs, so a side with shorter pins
+ * gives its room to the other; room left after both is shared equally. Without it, both
+ * sides get the same extent.
+ */
 export function relativePinGeometry(
   widthEm: number,
   emPx: number,
   labels: SideLabels,
   headSize: number,
+  reach?: SideLabels,
 ): RelativePinGeometry {
   const totalWidth = contentWidth(widthEm, emPx);
   const labelGap = LABEL_GAP_EM * emPx;
   const { extent, axisX } = splitSides(totalWidth, labels, headSize / 2, labelGap);
+  const hasNeg = labels.neg !== undefined;
+  const hasPos = labels.pos !== undefined || !hasNeg;
+  let neg = hasNeg ? extent : 0;
+  let pos = hasPos ? extent : 0;
+  if (reach && hasNeg && hasPos) {
+    const room = 2 * extent;
+    const wantNeg = Math.max(0, reach.neg ?? 0);
+    const wantPos = Math.max(0, reach.pos ?? 0);
+    if (wantNeg + wantPos <= room + 1e-6) {
+      neg = wantNeg + (room - wantNeg - wantPos) / 2;
+      pos = room - neg;
+    } else if (wantNeg < extent) {
+      neg = wantNeg;
+      pos = room - neg;
+    } else if (wantPos < extent) {
+      pos = wantPos;
+      neg = room - pos;
+    }
+  }
 
-  return { totalWidth, maxPinLength: extent, axisX, labelGap };
+  return {
+    totalWidth,
+    maxPinLength: Math.max(neg, pos),
+    negPinLength: neg,
+    posPinLength: pos,
+    axisX: hasNeg ? axisX - extent + neg : 0,
+    labelGap,
+  };
 }
 
 export interface WaterfallGeometry {

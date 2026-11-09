@@ -1,6 +1,7 @@
 import {
   absoluteBarGeometry,
   estimateLabelWidth,
+  labelWidth,
   pinLabelsFit,
   relativePinGeometry,
   waterfallGeometry,
@@ -132,6 +133,60 @@ describe("barColumnGeometry", () => {
     });
   });
 
+  describe("labelWidth", () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    /** Loads a fresh module, so its cached canvas context comes from the stubbed document. */
+    const withCanvas = (measure: (text: string, font: string) => number) => {
+      const fonts: string[] = [];
+      const ctx = {
+        font: "",
+        measureText(text: string) {
+          fonts.push(this.font);
+          return { width: measure(text, this.font) };
+        },
+      };
+      const createElement = document.createElement.bind(document);
+      jest
+        .spyOn(document, "createElement")
+        .mockImplementation((tag: string) =>
+          tag === "canvas" ? ({ getContext: () => ctx } as unknown as HTMLElement) : createElement(tag),
+        );
+      let isolated: typeof import("./barColumnGeometry");
+      jest.isolateModules(() => {
+        isolated = require("./barColumnGeometry");
+      });
+      return { labelWidth: isolated.labelWidth, fonts };
+    };
+
+    it("falls back to the estimate where no canvas can measure", () => {
+      expect(labelWidth("+36.21%", 10, "'Noto Sans', sans-serif", true)).toBe(estimateLabelWidth("+36.21%", 10));
+    });
+
+    it("measures with the font of the label and adds a small pad", () => {
+      const { labelWidth: measured, fonts } = withCanvas((text) => text.length * 5);
+
+      expect(measured("+36.21%", 10, "'Noto Sans', sans-serif", true)).toBeCloseTo(35 + 1.5, 6);
+      expect(fonts).toEqual(["italic 10px 'Noto Sans', sans-serif"]);
+      measured("+147", 10, "Arial", false);
+      expect(fonts[1]).toBe("10px Arial");
+    });
+
+    it("is narrower than the estimate for a font as wide as Arial", () => {
+      const ARIAL_EM: Record<string, number> = { "+": 0.584, ".": 0.278, "%": 0.889 };
+      const arial = (text: string, font: string) =>
+        [...text].reduce((em, char) => em + (ARIAL_EM[char] ?? 0.556), 0) * parseFloat(font.replace("italic ", ""));
+      const { labelWidth: measured } = withCanvas(arial);
+
+      expect(measured("+36.21%", 10, "Arial", true)).toBeLessThan(estimateLabelWidth("+36.21%", 10) * 0.95);
+    });
+
+    it("falls back to the estimate when the canvas measures nothing", () => {
+      const { labelWidth: measured } = withCanvas(() => 0);
+      expect(measured("+5%", 10, "Arial", true)).toBe(estimateLabelWidth("+5%", 10));
+    });
+  });
+
   describe("relativePinGeometry", () => {
     it("reserves per side the half head, the gap and the widest label, the rest is pin", () => {
       const g = relativePinGeometry(15, EM, BOTH, HEAD);
@@ -168,6 +223,48 @@ describe("barColumnGeometry", () => {
       // 5 + 6 + 30 = 41 per side, the pins get the 8 px left
       expect(g.maxPinLength).toBeCloseTo(4, 6);
       expect(g.axisX - g.maxPinLength - HEAD / 2 - g.labelGap - 30).toBeCloseTo(0, 6);
+    });
+  });
+
+  describe("relativePinGeometry with the pin reach per side", () => {
+    // free room for the pins at w15: 290 - 51 - 61 = 178
+    it("splits the room by the reach of each side when both fit", () => {
+      const g = relativePinGeometry(15, EM, BOTH, HEAD, { neg: 40, pos: 120 });
+      // 18 px left over, 9 to each side
+      expect(g.negPinLength).toBeCloseTo(49, 6);
+      expect(g.posPinLength).toBeCloseTo(129, 6);
+      expect(g.maxPinLength).toBeCloseTo(129, 6);
+      expect(g.axisX).toBeCloseTo(51 + 49, 6);
+      expect(g.axisX + g.posPinLength + HEAD / 2 + g.labelGap + BOTH.pos).toBeCloseTo(g.totalWidth, 6);
+    });
+
+    it("lets the auto scale fill the room exactly", () => {
+      const g = relativePinGeometry(15, EM, BOTH, HEAD, { neg: 35.6, pos: 142.4 });
+      expect(g.negPinLength).toBeCloseTo(35.6, 6);
+      expect(g.posPinLength).toBeCloseTo(142.4, 6);
+    });
+
+    it("gives the room of a short side to a long one that is cut", () => {
+      const g = relativePinGeometry(15, EM, BOTH, HEAD, { neg: 30, pos: 400 });
+      expect(g.negPinLength).toBeCloseTo(30, 6);
+      expect(g.posPinLength).toBeCloseTo(148, 6);
+      const mirrored = relativePinGeometry(15, EM, BOTH, HEAD, { neg: 400, pos: 30 });
+      expect(mirrored.negPinLength).toBeCloseTo(148, 6);
+      expect(mirrored.posPinLength).toBeCloseTo(30, 6);
+    });
+
+    it("splits the room equally when both sides are cut", () => {
+      const g = relativePinGeometry(15, EM, BOTH, HEAD, { neg: 300, pos: 400 });
+      expect(g.negPinLength).toBeCloseTo(89, 6);
+      expect(g.posPinLength).toBeCloseTo(89, 6);
+      expect(g.axisX).toBeCloseTo(140, 6);
+    });
+
+    it("keeps a one-sided column as it is", () => {
+      const g = relativePinGeometry(15, EM, { pos: 50 }, HEAD, { pos: 10 });
+      expect(g.posPinLength).toBeCloseTo(229, 6);
+      expect(g.negPinLength).toBe(0);
+      expect(g.axisX).toBe(0);
     });
   });
 
