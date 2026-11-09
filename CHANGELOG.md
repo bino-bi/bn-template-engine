@@ -6,11 +6,16 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
+- `bn-table` with `type="opt"` or `"optnototal"`: the variances on group sum rows and the total row now use the operation sign of the rows below, like the scenario values on the same rows. Before, a sum row showed correct AC and PY values but a wrong difference, and a wrong relative variance. Example: an operating result of 467.4 against 302.1 showed +240.1 instead of +165.3. A group made only of `-` rows now shows a negative variance, matching its negative total. A partof row divides by these signed group values, so a partof variance in such a group now has the sign of the group, like its scenario values already had.
 - `bn-grid` with `baseline` alignment now aligns on the chart or table inside a `bn-layout-card` in a cell. Before, it took the card as the component, found no baseline and sent the cell to the bottom. The offset now moves the body of the card, so the card titles of a row stay on one line and a card with a taller title or a logo keeps its chart on the axis line. The card reads the offset from the CSS properties `--bn-baseline-offset-top`, `--bn-baseline-offset-left` and `--bn-baseline-offset-right`, which the grid sets.
 - `bn-grid` with `cell-width="equal"` is now as wide as its container, and the data columns share that width. Before, the columns were only as wide as their content, so charts in them measured a small width and drew small. Grids without `cell-width="equal"` do not change.
 - `bn-chart-time` and `bn-chart-structure` no longer report "Chart exceeds available width" when they are less than 300px wide. A hidden SVG that holds the fill patterns had no size and counted as 300px of chart content.
 
 ### Added
+
+#### Variance sentiments `op` and `opinv`
+
+Variances take two new sentiment suffixes next to `pos`, `neg` and `neu`, for example `dac1_pl1_op`. With `op` the colour follows the contribution to the result: in a `type="opt"` or `"optnototal"` table a `-` row acts like `neg` and a `+` row or a sum row like `pos`, so a rising cost is red. This applies to numbers, bars and pins. Thereof rows use the operation of their parent, a REST row counts as `-` when all its rows are `-`. `opinv` is the inverse. In other table types and in `bn-chart-time` and `bn-chart-structure` the values carry their sign already, so `op` acts like `pos` and `opinv` like `neg`. `bn-chart-scatter` and `bn-chart-bubble` accept both and ignore the sentiment, as before.
 
 #### `bn-grid`: equal cells, alignment, baselines and captions
 

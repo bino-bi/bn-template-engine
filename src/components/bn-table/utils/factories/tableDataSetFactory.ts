@@ -15,6 +15,7 @@ import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Formatter } from "../../../../utils";
 import { I18nMode, DataFormat, Scenarios, TableCategoryWidth } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
+import { resolveSentiment } from "../../../../utils/model/VarianceScenario";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { ColumnStats } from "../elements/Cell";
 import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
@@ -42,6 +43,8 @@ export class TableDataSetFactory {
   public hasBlankRowGroup = false;
   /** The interval columns stand for dates, so a cell of one has a date. */
   private dateBuckets = false;
+  /** opt/optnototal tables show entry values without their operation sign. */
+  private unsignedEntries = false;
 
   constructor(private readonly ruleSet?: VisualisationRuleSet) {}
 
@@ -256,6 +259,7 @@ export class TableDataSetFactory {
     let iGroupIndex: number = -1; // index used in detailRow JSON to count the current group
     const dataQuery = new DataQuery(config, i18n);
     this.dateBuckets = isDateInterval(config.interval);
+    this.unsignedEntries = TableType.OPT === config.type || TableType.OPTNOTOTAL === config.type;
     const queryData = dataQuery.execute(db, fromExpr); // collection of all query results
     this.hasBlankRowGroup = dataQuery.hasBlankRowGroup;
 
@@ -437,6 +441,8 @@ export class TableDataSetFactory {
     waterfallResult?: WaterfallResult,
   ): TableRow[] {
     const result: TableRow[] = [];
+    // thereof and partof rows have no operation, they take the one of the row above
+    let operation: string | null | undefined;
 
     for (const rawDataRow of groupData) {
       iRowIndex += 1;
@@ -446,6 +452,7 @@ export class TableDataSetFactory {
       const subCategory = rawDataRow[QueryColumnNames.SUBCATEGORY];
       const type = rawDataRow[QueryColumnNames.TYPE];
       const isSecondElement = rawDataRow[QueryColumnNames.ROWNR] >= 2;
+      operation = (rawDataRow.operation ?? rawDataRow.restOperation ?? operation) as string | null | undefined;
 
       const detailsRow: TableRow = this.createDetailRow(type, iRowIndex, iGroupIndex, groupData.length);
       detailsRow.key = this.rowKey(rawDataRow);
@@ -468,7 +475,7 @@ export class TableDataSetFactory {
           this.createColumnType(scenario),
           this.setCellType(scenario.type, scenariosUnitType),
           this.translateCellPrefix(i18n, type, scenario.type),
-          this.translateScenarioCSS(scenario.type, value as number),
+          this.translateScenarioCSS(scenario.type, value as number, operation),
           isSecondElement,
           categoryWidth,
           measureScale?.value,
@@ -477,8 +484,13 @@ export class TableDataSetFactory {
           1,
           waterfall,
         );
+        const cell = detailsRow.elements[detailsRow.elements.length - 1];
         if (this.dateBuckets && scenario.bucket !== undefined) {
-          detailsRow.elements[detailsRow.elements.length - 1].date = pointDate(scenario.bucket);
+          cell.date = pointDate(scenario.bucket);
+        }
+        const varianceScenario = new VarianceScenario(scenario.type);
+        if (varianceScenario.isValid) {
+          cell.direction = this.resolveDirection(varianceScenario, operation);
         }
       }
 
@@ -649,7 +661,7 @@ export class TableDataSetFactory {
    * @param scenario
    * @param value
    */
-  private translateScenarioCSS(scenario: string, value: number): string {
+  private translateScenarioCSS(scenario: string, value: number, operation: string | null | undefined): string {
     if (this.attributesByAlias.has(scenario)) {
       return "attribute";
     }
@@ -662,10 +674,16 @@ export class TableDataSetFactory {
     }
 
     if (scenarios.isValid) {
-      return prefix + "_" + scenarios.direction + (scenarios.type === "dr" ? " relative_variance" : "");
+      const direction = this.resolveDirection(scenarios, operation);
+      return prefix + "_" + direction + (scenarios.type === "dr" ? " relative_variance" : "");
     }
 
     return scenario;
+  }
+
+  /** Sentiment of a variance on a row with the given operation: `op`/`opinv` become pos or neg. */
+  private resolveDirection(scenarios: VarianceScenario, operation: string | null | undefined): string {
+    return resolveSentiment(scenarios.direction, operation, !this.unsignedEntries);
   }
 
   private setCellType(scenario: string, scenariosUnitType: DataFormat) {

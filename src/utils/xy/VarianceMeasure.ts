@@ -12,7 +12,7 @@ import { AxisConfig } from "./model/AxisConfig";
  * pos/neg coloring. The regex is anchored, so partial matches inside a
  * longer token are rejected.
  */
-const VARIANCE_MEASURE_REGEX = /^(dr|d)((?:ac|pp|fc|pl)[1-4])_((?:ac|pp|fc|pl)[1-4])(?:_(pos|neg|neu))?$/;
+const VARIANCE_MEASURE_REGEX = /^(dr|d)((?:ac|pp|fc|pl)[1-4])_((?:ac|pp|fc|pl)[1-4])(?:_(pos|neg|neu|op|opinv))?$/;
 
 export class VarianceMeasure {
   private constructor(

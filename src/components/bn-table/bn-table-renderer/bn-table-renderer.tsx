@@ -432,7 +432,7 @@ export class BnTableRenderer {
                           columnStats={cell.columnStats}
                           height={18 * this.scaleFactor}
                           isRelative={false}
-                          isPositiveGood={cell.key.endsWith("_pos")}
+                          isPositiveGood={cell.direction === "pos"}
                           measureScale={cell.measureScale}
                           locale={locale}
                           columnWidthEm={this.barColumnMaxWidth}
@@ -446,7 +446,7 @@ export class BnTableRenderer {
                           columnStats={cell.columnStats}
                           height={18 * this.scaleFactor}
                           isRelative={cell.key.startsWith("dr")}
-                          isPositiveGood={cell.key.endsWith("_pos")}
+                          isPositiveGood={cell.direction === "pos"}
                           // percentage points: the fraction times 100, no measure scale
                           measureScale={cell.type === "percentpoint" ? 0.01 : cell.measureScale}
                           locale={locale}

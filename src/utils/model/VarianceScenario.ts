@@ -13,13 +13,17 @@ export class VarianceScenario {
   readonly base: string = "";
   /** Subtrahend scenario (the value subtracted), e.g. `"pl1"` */
   readonly delta: string = "";
-  /** Sentiment direction: `"pos"` (favorable), `"neg"` (unfavorable), `"neu"` (neutral) */
+  /**
+   * Sentiment direction: `"pos"` (favorable), `"neg"` (unfavorable), `"neu"` (neutral),
+   * `"op"` (follows the row operation) or `"opinv"` (inverse of `"op"`). See {@link resolveSentiment}.
+   */
   readonly direction: string = "";
   readonly isValid: boolean = false;
 
   constructor(scenario: string) {
     /** Capture groups: [1]=type (d|dr), [2]=base scenario, [3]=delta scenario, [4]=sentiment */
-    const scenarioTestRegex = /(d|dr)(pl\d|ac\d|fc\d|pp\d)_(pl\d|ac\d|fc\d|pp\d)_(pos|neg|neu)/;
+    // not anchored on purpose, some callers pass a joined list; opinv must come before op
+    const scenarioTestRegex = /(d|dr)(pl\d|ac\d|fc\d|pp\d)_(pl\d|ac\d|fc\d|pp\d)_(pos|neg|neu|opinv|op)/;
     if (scenarioTestRegex.test(scenario)) {
       const tokens = scenarioTestRegex.exec(scenario);
       if (tokens != null) {
@@ -31,4 +35,24 @@ export class VarianceScenario {
       }
     }
   }
+}
+
+/**
+ * Resolves a variance sentiment to `"pos"`, `"neg"` or `"neu"` for one row.
+ *
+ * `"op"` colours by the contribution to the result: on a `"-"` row it acts like `"neg"`,
+ * on every other row (`"+"`, `"="`) like `"pos"`. `"opinv"` is the inverse.
+ * When the values are already signed by their operation (`signedValues`, e.g. sum/list
+ * tables and charts), `"op"` always acts like `"pos"` and `"opinv"` like `"neg"`.
+ */
+export function resolveSentiment(
+  direction: string,
+  operation: string | null | undefined,
+  signedValues: boolean,
+): string {
+  if (direction !== "op" && direction !== "opinv") {
+    return direction;
+  }
+  const subtracts = !signedValues && operation === "-";
+  return (direction === "op") !== subtracts ? "pos" : "neg";
 }
