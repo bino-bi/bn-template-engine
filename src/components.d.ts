@@ -1759,7 +1759,7 @@ export namespace Components {
      */
     "measureUnit": string;
     /**
-      * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently.
+      * Comma list of the columns the rows are sorted by, left to right. `orderDirection` applies to all of them. <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroupindex // subcategory // subcategoryindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /> or a variance, written like a scenario column, the sentiment is optional and ignored: ```dac1_pp1```, ```drfc1_pp1_pos``` <br /><br /> With `interval="setname"` a scenario or variance can name one bucket after `@`: ```dac1_pp1@_November``` sorts by that block only. Without a bucket the sum over all buckets is used. <br /><br /> The scenario or variance does not have to be a shown column; the sort arrow appears only on a shown one. A plain scenario also sorts the row groups by their sum. A variance or a token with `@` sorts only the rows inside each group, the groups keep their rowgroupindex order. Rows without data (and a relative variance with a zero reference) sort last. <br /><br /> When set to ```auto```, order is detected from the dataset silently.
       * @default "category"
      */
     "order": string;
@@ -4223,7 +4223,7 @@ declare namespace LocalJSX {
      */
     "measureUnit"?: string;
     /**
-      * List of the primary scenarios on which the order direction are applied  valid scenarios are If order is set to a scenario it has also exists in scenariolist <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroup // rowgroupindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /><br /> When set to ```auto```, order is detected from the dataset silently.
+      * Comma list of the columns the rows are sorted by, left to right. `orderDirection` applies to all of them. <br /><br /> values: <br /> ```category // categoryindex // rowgroup // rowgroupindex // subcategory // subcategoryindex // ac[1-4] // fc[1-4] // pp[1-4] // pl[1-4] // auto``` <br /> or a variance, written like a scenario column, the sentiment is optional and ignored: ```dac1_pp1```, ```drfc1_pp1_pos``` <br /><br /> With `interval="setname"` a scenario or variance can name one bucket after `@`: ```dac1_pp1@_November``` sorts by that block only. Without a bucket the sum over all buckets is used. <br /><br /> The scenario or variance does not have to be a shown column; the sort arrow appears only on a shown one. A plain scenario also sorts the row groups by their sum. A variance or a token with `@` sorts only the rows inside each group, the groups keep their rowgroupindex order. Rows without data (and a relative variance with a zero reference) sort last. <br /><br /> When set to ```auto```, order is detected from the dataset silently.
       * @default "category"
      */
     "order"?: string;

@@ -19,7 +19,7 @@ import {
 } from "./constants";
 import { isValidAttributeExpression } from "../components/bn-table/utils/model/TableAttribute";
 import { DateDistance, DateLink } from "./DateStringFactory";
-import { OrderColumn, OrderDirection } from "./model/Order";
+import { OrderColumn, OrderDirection, parseOrderToken } from "./model/Order";
 import { resolveMeasure } from "./xy/VarianceMeasure";
 
 /**
@@ -114,6 +114,19 @@ export function validateOrderList(value: string): string[] {
   const invalidScenarios: string[] = value.split(",").filter((element) => !(element.toUpperCase() in OrderColumn));
 
   return validateVariancesList(invalidScenarios.toString());
+}
+
+/** bn-table order: dims, scenarios and variances, the last two optionally with `@<setname>`. */
+export function validateTableOrderList(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  if (value.trim().toLowerCase() === "auto") {
+    return [];
+  }
+
+  return value.split(",").filter((element) => parseOrderToken(element) === undefined);
 }
 
 export function isValidInteger(value: number | string): boolean {

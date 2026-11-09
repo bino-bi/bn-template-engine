@@ -44,8 +44,71 @@ export class Order {
   ) {}
 }
 
+/** A parsed bn-table order token: a dimension, a scenario or a variance, the last two optionally with an `@bucket`. */
+export interface OrderToken {
+  kind: "dim" | "scenario" | "variance";
+  /** OrderColumn value for a dim, the scenario name, or the variance without sentiment (`dac1_pp1`). */
+  column: string;
+  type?: "d" | "dr";
+  base?: string;
+  delta?: string;
+  /** Interval setname bucket after `@`, trimmed. */
+  bucket?: string;
+}
+
+const DIM_COLUMNS: string[] = [
+  OrderColumn.ROWGROUP,
+  OrderColumn.ROWGROUPINDEX,
+  OrderColumn.CATEGORY,
+  OrderColumn.CATEGORYINDEX,
+  OrderColumn.SUBCATEGORY,
+  OrderColumn.SUBCATEGORYINDEX,
+];
+const ORDER_SCENARIO_REGEX = /^(?:ac|fc|pp|pl)[1-4]$/;
+const ORDER_VARIANCE_REGEX = /^(dr|d)((?:ac|fc|pp|pl)[1-4])_((?:ac|fc|pp|pl)[1-4])(?:_(?:pos|neg|neu|opinv|op))?$/;
+
+/** Parses one bn-table order token, case-insensitive except for the bucket. undefined: not a valid token. */
+export function parseOrderToken(token: string): OrderToken | undefined {
+  if (token == null) {
+    return undefined;
+  }
+  const at = token.indexOf("@");
+  const head = (at < 0 ? token : token.slice(0, at)).trim().toLowerCase();
+  const bucket = at < 0 ? undefined : token.slice(at + 1).trim();
+  if (bucket === "") {
+    return undefined;
+  }
+
+  const dim = OrderColumn[head.toUpperCase() as keyof typeof OrderColumn];
+  if (dim != null && DIM_COLUMNS.includes(dim)) {
+    return bucket === undefined ? { kind: "dim", column: dim } : undefined;
+  }
+  if (ORDER_SCENARIO_REGEX.test(head)) {
+    return { kind: "scenario", column: head, bucket };
+  }
+  const variance = ORDER_VARIANCE_REGEX.exec(head);
+  if (variance != null) {
+    const [, type, base, delta] = variance;
+    return { kind: "variance", column: `${type}${base}_${delta}`, type: type as "d" | "dr", base, delta, bucket };
+  }
+  return undefined;
+}
+
+/** Normalized form of a bn-table order token (`column[@bucket]`), undefined when it does not parse. */
+export function normalizeOrderToken(token: string): string | undefined {
+  const parsed = parseOrderToken(token);
+  if (parsed == null) {
+    return undefined;
+  }
+  return parsed.bucket === undefined ? parsed.column : `${parsed.column}@${parsed.bucket}`;
+}
+
 export class OrderAdapter implements IAdapter<Order> {
-  constructor(private stringAdapter: StringAdapter) {}
+  /** @param allowMeasures bn-table only: keep variance and `@bucket` tokens instead of mapping them to category. */
+  constructor(
+    private stringAdapter: StringAdapter,
+    private allowMeasures: boolean = false,
+  ) {}
 
   adapt(data: Record<string, unknown>): Order {
     const hierarchy: string[] = AdapterUtils.adaptArray(data.hierarchy, this.stringAdapter);
@@ -54,7 +117,12 @@ export class OrderAdapter implements IAdapter<Order> {
       OrderDirection[(data.direction as string)?.toUpperCase() as keyof typeof OrderDirection] || OrderDirection.ASC;
 
     return new Order(
-      hierarchy.map((str) => OrderColumn[str.toUpperCase() as keyof typeof OrderColumn] || OrderColumn.CATEGORY),
+      hierarchy.map(
+        (str) =>
+          (this.allowMeasures
+            ? normalizeOrderToken(str)
+            : OrderColumn[str.toUpperCase() as keyof typeof OrderColumn]) || OrderColumn.CATEGORY,
+      ),
       order,
     );
   }

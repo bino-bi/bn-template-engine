@@ -1,10 +1,17 @@
 import { OrderDirection, TableType } from "../model";
 import { BLANK_SAFE_ROWGROUP, QueryGroups } from "./QueryGroup";
-import { BLANK_BUCKET_LABEL, coerceBucketKey, INTERVAL_NONE, intervalBucketSQL } from "./IntervalColumns";
+import {
+  BLANK_BUCKET_LABEL,
+  coerceBucketKey,
+  INTERVAL_NONE,
+  INTERVAL_SETNAME,
+  intervalBucketSQL,
+} from "./IntervalColumns";
 import { FIELD_IDENTIFIER_REGEX, TableAttribute } from "../model/TableAttribute";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { TableDrillGroup } from "../model/TableDrillGroup";
 import { Order } from "../../../../components";
+import { OrderToken, parseOrderToken } from "../../../../utils/model/Order";
 import { Scenarios } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
@@ -27,6 +34,8 @@ export class DataQuery {
   private fromExpr!: string;
   /** Values bound as AlaSQL parameters ($0, $1, ...): row values and free-text config never become SQL text. */
   private readonly params: unknown[] = [];
+  /** Select fragment (leading comma) of the sort keys for variance and bucketed order tokens. */
+  private sortSelect: string = "";
   /** Set by execute: the grouped table has rows with a blank rowGroup (null, '' or missing). */
   public hasBlankRowGroup: boolean = false;
 
@@ -277,7 +286,7 @@ export class DataQuery {
           : "";
       querys.push(
         `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, ${this.bind(String(rowGroupEntry.rowGroup ?? ""))} as restRowGroup, 'REST' as ${QueryColumnNames.CATEGORY}${restOperation} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
-          ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP}, ${groups.select()} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
+          ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP}, ${groups.select()} ${scenarios.length > 0 ? ",".concat(scenarios) : ""}${this.sortSelect} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
           ` t WHERE t.rowNr > ${this.config.limit}`,
       );
     }
@@ -300,7 +309,7 @@ export class DataQuery {
                         'ENTRY'                                   as ${QueryColumnNames.TYPE},
                         ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP},
                         '${QueryColumnNames.CATEGORYINDEX}',
-                        ${groups.select()}                           ${scenarios.length > 0 ? ",".concat(scenarios) : ""} ${attributes.length > 0 ? ",".concat(attributes) : ""}
+                        ${groups.select()}                           ${scenarios.length > 0 ? ",".concat(scenarios) : ""} ${attributes.length > 0 ? ",".concat(attributes) : ""}${this.sortSelect}
                  FROM ${this.fromExpr} ${queryWhereSection}
                  GROUP BY ${groups}
                  ORDER BY ${order[0]} ${queryLimitSection}`);
@@ -526,7 +535,7 @@ export class DataQuery {
                                 ${QueryColumnNames.CATEGORY},
                                 ${QueryColumnNames.SUBCATEGORY},
                                 ${this.drillRowGroup} as ${QueryColumnNames.ROWGROUP},
-                                ${scenarios} ${attributes.length > 0 ? ",".concat(attributes) : ""}
+                                ${scenarios} ${attributes.length > 0 ? ",".concat(attributes) : ""}${this.sortSelect}
                          FROM ${this.fromExpr}
                          WHERE ${fromString}
                          GROUP BY ${this.drillRowGroup}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.SUBCATEGORY}
@@ -1058,9 +1067,52 @@ export class DataQuery {
    */
   private createOrderString(orderComponent: Order): [string, string] {
     const inverse = OrderDirection.ASC === orderComponent.direction ? OrderDirection.DESC : OrderDirection.ASC;
-    const base = orderComponent.hierarchy.map((column) => `${column} ${orderComponent.direction}`).toString();
-    const inverted = orderComponent.hierarchy.map((column) => `${column} ${inverse}`).toString();
+    const sortKeys = new Map<number, string>();
+    orderComponent.hierarchy.forEach((column, i) => {
+      const token = parseOrderToken(column);
+      const bucket = this.config.interval === INTERVAL_SETNAME ? token?.bucket : undefined;
+      if (token?.kind === "variance" || (token?.kind === "scenario" && bucket !== undefined)) {
+        sortKeys.set(i, this.translateSortKeySQL(token, bucket, i));
+      }
+    });
+    this.sortSelect = [...sortKeys.values()].map((key) => `, ${key}`).join("");
+
+    // rows without a value sort last in both directions
+    const orderBy = (column: string, i: number, direction: OrderDirection) =>
+      sortKeys.has(i) ? `__sortnull${i} asc, __sort${i} ${direction}` : `${column} ${direction}`;
+    const base = orderComponent.hierarchy.map((column, i) => orderBy(column, i, orderComponent.direction)).toString();
+    const inverted = orderComponent.hierarchy.map((column, i) => orderBy(column, i, inverse)).toString();
     return [base, inverted];
+  }
+
+  /**
+   * Sort key `__sort<i>` of a scenario or variance order token, as printed in an entry cell
+   * (OPT entry rows unsigned), restricted to one setname bucket when given.
+   * `__sortnull<i>` is 1 when the cell has no value: no data, or a relative variance with a zero reference.
+   */
+  private translateSortKeySQL(token: OrderToken, bucket: string | undefined, i: number): string {
+    const isOpt = TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type;
+    const sign = isOpt ? "" : " * transformOperator(operation)";
+    const inBucket = bucket === undefined ? "" : `TRIM(${intervalBucketSQL(INTERVAL_SETNAME)}) = ${this.bind(bucket)}`;
+    const value = (x: string) => `SUM(${inBucket ? `(CASE WHEN ${inBucket} THEN ${x} ELSE 0 END)` : x}${sign})`;
+    const missing = (x: string) =>
+      `SUM(CASE WHEN ${inBucket ? `${inBucket} AND ` : ""}${x} IS NOT NULL THEN 1 ELSE 0 END) = 0`;
+
+    if (token.kind === "scenario") {
+      return `${value(token.column)} as __sort${i}, CASE WHEN ${missing(token.column)} THEN 1 ELSE 0 END as __sortnull${i}`;
+    }
+
+    const difference = `(${value(token.base)} - ${value(token.delta)})`;
+    let key = difference;
+    let noValue = `${missing(token.base)} OR ${missing(token.delta)}`;
+    if (token.type === "dr") {
+      const reference = value(token.delta);
+      // same rule as relativeVariance(); a decimal literal, alasql reads 1e-9 as a column name
+      const zeroReference = `ABS(${reference}) <= ABS(${difference}) * 0.000000001`;
+      key = `CASE WHEN ${zeroReference} THEN 0 ELSE ${difference} / ABS(${reference}) END`;
+      noValue += ` OR ${zeroReference}`;
+    }
+    return `${key} as __sort${i}, CASE WHEN ${noValue} THEN 1 ELSE 0 END as __sortnull${i}`;
   }
 
   /** Returns a key/value pair mapping a relative variance column to its denominator, or null for non-relative scenarios. */
@@ -1126,7 +1178,7 @@ export class DataQuery {
                               'PARTELEMENT' as ${QueryColumnNames.TYPE},
                               ${QueryColumnNames.CATEGORY},
                               ${groupName},
-                              ${scenarios}
+                              ${scenarios}${this.sortSelect}
                        FROM ${this.fromExpr}
                        WHERE ${fromString}
                        GROUP BY ${this.drillRowGroup}, ${QueryColumnNames.CATEGORY}, ${QueryColumnNames.TYPE}

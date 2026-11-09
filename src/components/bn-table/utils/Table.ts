@@ -7,7 +7,14 @@ import { TableComponentConfig } from "./model/TableComponentConfig";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { Order } from "../../../components";
 import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
-import { INTERVAL_NONE, IntervalBucket, queryIntervalBuckets, resolveIntervalGranularity } from "./helper";
+import {
+  INTERVAL_NONE,
+  INTERVAL_SETNAME,
+  IntervalBucket,
+  queryIntervalBuckets,
+  resolveIntervalGranularity,
+} from "./helper";
+import { parseOrderToken } from "../../../utils/model/Order";
 
 /**
  * High-level controller for IBCS table generation.
@@ -237,6 +244,15 @@ export class Table {
     intervalBuckets: IntervalBucket[] = [],
   ): ScenarioHeaderColumn[] {
     const normalizedScenarios: ScenarioHeaderColumn[] = [];
+    // the arrow marks the first scenario or variance token; a bucket only counts under interval setname
+    const sortToken = order?.hierarchy?.map((entry) => parseOrderToken(entry)).find((token) => token?.kind !== "dim");
+    const sortBucket = this.config.interval === INTERVAL_SETNAME ? sortToken?.bucket : undefined;
+    const sortDirection = (scenario: string, bucket?: string) =>
+      sortToken != null &&
+      parseOrderToken(scenario)?.column === sortToken.column &&
+      (sortBucket === undefined || sortBucket === bucket)
+        ? order.direction
+        : undefined;
 
     if (intervalBuckets.length > 0) {
       for (const bucket of intervalBuckets) {
@@ -245,7 +261,7 @@ export class Table {
             name: scenario,
             group: scenario,
             type: scenario,
-            order: order?.hierarchy?.at(0) === scenario ? order.direction : undefined,
+            order: sortDirection(scenario, bucket.key),
             bucket: bucket.key,
             bucketLabel: bucket.label,
           });
@@ -276,18 +292,31 @@ export class Table {
         normalizedScenarios.push({ name: "REST", group: "REST", type: scenario, order: undefined });
       }
 
-      let orderDirection = undefined;
-      if (order?.hierarchy?.at(0) === scenario) {
-        orderDirection = order.direction;
-      }
-
-      normalizedScenarios.push({ name: scenario, group: scenario, type: scenario, order: orderDirection });
+      normalizedScenarios.push({ name: scenario, group: scenario, type: scenario, order: sortDirection(scenario) });
     }
     return normalizedScenarios;
   }
 
   hasNoData() {
     return this.rowCount === 0;
+  }
+
+  /** Warning for an order `@bucket` that cannot apply, once the body was built; undefined when all apply. */
+  public orderBucketWarning(): string | undefined {
+    if (this.hasNoData() || this.state !== FactoryState.UP_TO_DATE) {
+      return undefined;
+    }
+    const buckets = (this.config.sortOrder?.hierarchy ?? [])
+      .map((entry) => parseOrderToken(entry)?.bucket)
+      .filter((bucket) => bucket !== undefined);
+    if (buckets.length === 0) {
+      return undefined;
+    }
+    if (this.config.interval !== INTERVAL_SETNAME) {
+      return `order: '@${buckets[0]}' needs interval setname, the bucket is ignored.`;
+    }
+    const unknown = buckets.find((bucket) => !this.intervalBuckets.some((b) => b.key === bucket));
+    return unknown === undefined ? undefined : `order: setname '${unknown}' not found, the rows are not sorted by it.`;
   }
 
   /** True once the body was built and the grouped table has rows with a blank rowGroup. */

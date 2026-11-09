@@ -502,6 +502,12 @@ export class BnTableRenderer {
     } else {
       this.errors?.remove("WARN_blankRowGroup");
     }
+    const orderBucketWarning = this.table?.orderBucketWarning();
+    if (orderBucketWarning) {
+      this.errors?.addOrReplace({ id: "WARN_orderBucket", type: "warning", message: orderBucketWarning });
+    } else {
+      this.errors?.remove("WARN_orderBucket");
+    }
     this.barChartStyles = this.prepareBarChartStyles();
   }
 
@@ -510,7 +516,7 @@ export class BnTableRenderer {
     const config = new TableComponentConfigAdapter(
       new TableDrillGroupAdapter(),
       new StringAdapter(),
-      new OrderAdapter(new StringAdapter()),
+      new OrderAdapter(new StringAdapter(), true),
       db,
       fromExpr,
       // a failed measure-scale query ends in the ERR_sql of componentWillRender
