@@ -17,6 +17,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+#### `bn-table`: sort by a variance or by one interval block
+
+`order` now takes a variance, written like its column with or without the sentiment, for example `dac1_pp1` or `drfc1_pp1_pos`. Before, such a value sorted the rows by category name without a warning. With `interval="setname"`, a scenario or variance can name one block after `@`: `order="dac1_pp1_pos@_November"` sorts by the `_November` block only and draws the sort arrow on that block only. Without `@` the sum over all blocks is used, as before. A variance or a token with `@` sorts the rows inside each row group, and the groups keep their `rowGroupIndex` order. `limit` picks the top rows and the REST row by the same value. With a variance or `@`, rows without data and relative variances with a zero reference sort last in both directions. In an `opt` table a row sorts by the value printed in it. The sorted variance does not have to be a shown column; the arrow appears only when it is. `@` without `interval="setname"` gives a warning and is ignored, and so does a setname that is not in the data (a warning, and no sort by it). The order also accepts `subcategory` and `subcategoryindex` and spaces after the commas. Charts and `bn-title` do not take the new values.
+
 #### Variance sentiments `op` and `opinv`
 
 Variances take two new sentiment suffixes next to `pos`, `neg` and `neu`, for example `dac1_pl1_op`. With `op` the colour follows the contribution to the result: in a `type="opt"` or `"optnototal"` table a `-` row acts like `neg` and a `+` row or a sum row like `pos`, so a rising cost is red. This applies to numbers, bars and pins. Thereof rows use the operation of their parent, a REST row counts as `-` when all its rows are `-`. `opinv` is the inverse. In other table types and in `bn-chart-time` and `bn-chart-structure` the values carry their sign already, so `op` acts like `pos` and `opinv` like `neg`. `bn-chart-scatter` and `bn-chart-bubble` accept both and ignore the sentiment, as before.

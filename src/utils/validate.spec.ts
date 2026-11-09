@@ -6,6 +6,7 @@ import {
   isValidDirection,
   validateMeasureList,
   validateOrderList,
+  validateTableOrderList,
   isValidDataFormat,
   validateScenarioList,
   validateVariancesList,
@@ -160,6 +161,27 @@ describe("isValidOrderList", () => {
 
   it("returns  empty array for valid (dac1_pp1_pos) scenario string ", () => {
     expect(validateOrderList("dac1_pp1_pos")).toEqual([]);
+  });
+});
+
+describe("validateTableOrderList", () => {
+  it("returns empty list for blank and auto", () => {
+    expect(validateTableOrderList(undefined)).toEqual([]);
+    expect(validateTableOrderList("auto")).toEqual([]);
+  });
+
+  it("accepts dimensions, scenarios, variances and buckets", () => {
+    expect(validateTableOrderList("rowgroupindex, dac1_pp1,drac1_pl1_pos@_November,ac1@Nov,subcategory")).toEqual([]);
+  });
+
+  it("returns the tokens that do not parse", () => {
+    expect(validateTableOrderList("ac1,dac1_pp1_xx,dac5_pp1,ac1@,category@Nov,42")).toEqual([
+      "dac1_pp1_xx",
+      "dac5_pp1",
+      "ac1@",
+      "category@Nov",
+      "42",
+    ]);
   });
 });
 

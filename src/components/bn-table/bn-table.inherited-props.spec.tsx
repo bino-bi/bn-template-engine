@@ -377,3 +377,21 @@ describe("bn-table: an inherited keyword that cannot be resolved", () => {
     expect(page.rootInstance.prepareScenarios()).toEqual(["fc1"]);
   });
 });
+
+describe("bn-table: order tokens", () => {
+  it("keeps variance and bucket tokens, also when inherited from the page title", async () => {
+    const page = await mount(
+      `<bn-layout-page title-order="rowgroupindex, DAC1_PP1_POS@_November">${table(`order="inherited-page"`)}</bn-layout-page>`,
+    );
+
+    expect(page.rootInstance.prepareOrder().hierarchy).toEqual([OrderColumn.ROWGROUPINDEX, "dac1_pp1@_November"]);
+  });
+
+  it("warns about tokens that do not parse", async () => {
+    const page = await mount(table(`order="dac1_pp1_pos,dac5_pp1,ac1@"`));
+
+    expect(diagnostics(page).find((item) => item.id === "WARN_order")?.message).toEqual(
+      `order: invalid value(s) '["dac5_pp1","ac1@"]' are not supported.`,
+    );
+  });
+});
