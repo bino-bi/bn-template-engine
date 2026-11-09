@@ -260,6 +260,80 @@ describe("IBCS Table interval columns", () => {
     expect(barCells.length).toBe(2); // one ΔPL bar per year
   });
 
+  describe("one scale per unit across the buckets", () => {
+    // per category, the bar svgs of 2023 and 2024
+    const barSvgs = (page: SpecPage, category: string): Element[] =>
+      Array.from(findRowByFirstCell(page, category).querySelectorAll("svg"));
+
+    const directChild = (svg: Element, tag: string): Element =>
+      Array.from(svg.children).find((el) => el.tagName.toLowerCase() === tag);
+
+    // the PL axis is a double line around the axis
+    const axisXOf = (svg: Element): number => {
+      const lines = Array.from(svg.querySelectorAll("g.variance-axis line"));
+      return lines.reduce((sum, line) => sum + parseFloat(line.getAttribute("x1")), 0) / lines.length;
+    };
+
+    const num = (el: Element, attr: string): number => parseFloat(el.getAttribute(attr));
+
+    it("draws the bars of all buckets with one auto unit scale and one axis", async () => {
+      const page = await renderTable({
+        scenarios: ["ac1", "dac1_pl1_pos"],
+        barColumns: ["dac1_pl1_pos"],
+        unitScaling: 0,
+      });
+
+      // ΔPL: Hamburg +2 | -5, München 0 | +3; only 2024 has a negative value
+      const [hamburg2023, hamburg2024] = barSvgs(page, "Hamburg");
+      const [, muenchen2024] = barSvgs(page, "München");
+      const pxPerUnit = num(directChild(hamburg2024, "rect"), "width") / 5;
+
+      expect(num(directChild(hamburg2023, "rect"), "width") / 2).toBeCloseTo(pxPerUnit, 3);
+      expect(num(directChild(muenchen2024, "rect"), "width") / 3).toBeCloseTo(pxPerUnit, 3);
+      expect(axisXOf(hamburg2023)).toBeCloseTo(axisXOf(hamburg2024), 3);
+    });
+
+    it("draws the pins of all buckets with one auto percentage scale", async () => {
+      const page = await renderTable({
+        scenarios: ["ac1", "drac1_pl1_pos"],
+        barColumns: ["drac1_pl1_pos"],
+        percentageScaling: 0,
+      });
+
+      // ΔPL%: Hamburg +25% | -20%, München 0% | +75%
+      const headOffset = (svg: Element): number => {
+        const head = directChild(svg, "rect");
+        return Math.abs(num(head, "x") + num(head, "width") / 2 - axisXOf(svg));
+      };
+      const [hamburg2023, hamburg2024] = barSvgs(page, "Hamburg");
+      const [, muenchen2024] = barSvgs(page, "München");
+      const pxPerPoint = headOffset(muenchen2024) / 75;
+
+      expect(headOffset(hamburg2023) / 25).toBeCloseTo(pxPerPoint, 3);
+      expect(headOffset(hamburg2024) / 20).toBeCloseTo(pxPerPoint, 3);
+      expect(axisXOf(hamburg2023)).toBeCloseTo(axisXOf(hamburg2024), 3);
+    });
+
+    it("cuts the pins of all buckets at the same length with a fixed percentage scale", async () => {
+      const page = await renderTable({
+        scenarios: ["ac1", "drac1_pl1_pos"],
+        barColumns: ["drac1_pl1_pos"],
+        percentageScaling: 2,
+      });
+
+      // +25% in 2023 and +75% in 2024 are both beyond the pin area
+      const tipOffset = (svg: Element): number => {
+        const xs = directChild(svg, "polygon").getAttribute("points").split(" ").map(parseFloat);
+        return Math.max(...xs) - axisXOf(svg);
+      };
+      const [hamburg2023] = barSvgs(page, "Hamburg");
+      const [, muenchen2024] = barSvgs(page, "München");
+
+      expect(tipOffset(hamburg2023)).toBeGreaterThan(0);
+      expect(tipOffset(hamburg2023)).toBeCloseTo(tipOffset(muenchen2024), 3);
+    });
+  });
+
   it("resolves auto to a concrete granularity from the date span", async () => {
     const page = await renderTable({ interval: "auto" });
 
