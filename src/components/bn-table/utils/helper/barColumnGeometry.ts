@@ -256,26 +256,6 @@ export function relativePinGeometry(
   };
 }
 
-/**
- * Number of pins a fixed scale cuts to an arrow. `values` are the drawn fractions,
- * `pinPx` the pin length in px of a fraction of 1.
- */
-export function cutPinCount(
-  widthEm: number,
-  emPx: number,
-  labels: SideLabels,
-  headSize: number,
-  values: number[],
-  pinPx: number,
-): number {
-  const reach = {
-    neg: Math.max(0, ...values.map((value) => -value)) * pinPx,
-    pos: Math.max(0, ...values) * pinPx,
-  };
-  const { negPinLength, posPinLength } = relativePinGeometry(widthEm, emPx, labels, headSize, reach);
-  return values.filter((value) => Math.abs(value) * pinPx - (value > 0 ? posPinLength : negPinLength) > 1e-6).length;
-}
-
 export interface WaterfallGeometry {
   totalWidth: number;
   /** One gutter on each side; a waterfall always spans its full range. */

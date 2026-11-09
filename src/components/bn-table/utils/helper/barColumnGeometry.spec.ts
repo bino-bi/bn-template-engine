@@ -1,6 +1,5 @@
 import {
   absoluteBarGeometry,
-  cutPinCount,
   estimateLabelWidth,
   labelWidth,
   pinLabelsFit,
@@ -242,17 +241,6 @@ describe("barColumnGeometry", () => {
       // 5 + 6 + 30 = 41 per side, the pins get the 8 px left
       expect(g.maxPinLength).toBeCloseTo(4, 6);
       expect(g.axisX - g.maxPinLength - HEAD / 2 - g.labelGap - 30).toBeCloseTo(0, 6);
-    });
-  });
-
-  describe("cutPinCount", () => {
-    // free room for the pins at w15 is 178 px, 89 per side when both are cut
-    it("counts the pins longer than the room of their side", () => {
-      expect(cutPinCount(15, EM, BOTH, HEAD, [0.3, 0.1, -0.2, -0.4, 0], 300)).toBe(2);
-    });
-
-    it("counts none when the reach of both sides fits", () => {
-      expect(cutPinCount(15, EM, BOTH, HEAD, [0.4, -0.1, 0], 300)).toBe(0);
     });
   });
 

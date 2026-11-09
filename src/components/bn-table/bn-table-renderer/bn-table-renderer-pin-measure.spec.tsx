@@ -153,21 +153,6 @@ describe("IBCS Table pin labels measured on a canvas", () => {
   });
 
   // a 20% pin is 20.4 px at 0.09; the room per side is 16.95 px with 2 digits and 22.05 px with 1
-  it("drops a digit at a fixed scale when the digit cuts pins that fit without it", async () => {
-    const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0.09, barColumnMaxWidth: 10 });
-
-    expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20.0%");
-    expect(svgOf(page, "B Down").querySelector("text").textContent).toBe("-20.0%");
-    expect(page.root.shadowRoot.querySelectorAll("svg.relative-variance polygon").length).toBe(0);
-  });
-
-  it("keeps the digits at a fixed scale when the pins are cut without them too", async () => {
-    const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 0.5, barColumnMaxWidth: 10 });
-
-    expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20.00%");
-    expect(svgOf(page, "B Down").querySelector("text").textContent).toBe("-20.00%");
-  });
-
   it("gives the room of the shorter negative pins to the positive ones", async () => {
     const page = await renderColumn("drac1_pl1_pos", {
       percentageScaling: 0,
