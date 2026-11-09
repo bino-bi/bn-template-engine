@@ -40,6 +40,8 @@ export class Cell {
   isBarChart: boolean = false;
   columnStats?: ColumnStats;
   waterfall?: WaterfallBarData;
+  /** Resolved variance sentiment of this cell (`pos`, `neg` or `neu`), set for variance columns only. */
+  direction?: string;
   measureScale: number;
   /** The first day of the bucket of an interval column. */
   date?: string;

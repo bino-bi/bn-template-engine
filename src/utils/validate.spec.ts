@@ -87,6 +87,11 @@ describe("isBlankString", () => {
 });
 
 describe("validateVariancesList", () => {
+  it("accepts the op and opinv suffixes", () => {
+    expect(validateVariancesList("dac1_pl1_op,drac1_pp1_opinv")).toEqual([]);
+    expect(validateVariancesList("dac1_pl1_opx")).toEqual(["dac1_pl1_opx"]);
+  });
+
   it("returns empty list for undefined", () => {
     expect(validateVariancesList(undefined)).toEqual([]);
   });

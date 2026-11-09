@@ -41,11 +41,16 @@ export enum Scenarios {
  * - POS: favorable variance (green in IBCS)
  * - NEG: unfavorable variance (red in IBCS)
  * - NEU: neutral / no directional meaning
+ * - OP: follows the row operation, like POS on "+" and "=" rows, like NEG on "-" rows
+ *   (only in opt/optnototal tables, elsewhere the values are signed and OP equals POS)
+ * - OPINV: the inverse of OP
  */
 export enum Sentiments {
   POS = "pos",
   NEG = "neg",
   NEU = "neu",
+  OP = "op",
+  OPINV = "opinv",
 }
 
 /** Number display format: DECIMAL for absolute values, PERCENT for ratio columns. */

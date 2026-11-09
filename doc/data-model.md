@@ -52,7 +52,7 @@ Variance columns are computed from scenario pairs. They follow a naming pattern:
 | `type` | `d` or `dr` | `d` = absolute difference, `dr` = relative (percentage) |
 | `base` | `ac1`..`pl4` | The primary scenario |
 | `delta` | `ac1`..`pl4` | The comparison scenario |
-| `direction` | `pos`, `neg`, `neu` | Favorable, unfavorable, or neutral |
+| `direction` | `pos`, `neg`, `neu`, `op`, `opinv` | Favorable, unfavorable, neutral, or by row operation |
 
 **Examples:**
 
@@ -67,6 +67,8 @@ The `direction` determines the IBCS color coding in charts and tables:
 - `pos` - Green/teal when the value is favorable (positive difference is good)
 - `neg` - Red when the value is unfavorable (positive difference is bad)
 - `neu` - Gray, no direction judgment
+- `op` - By the row operation. In a `type="opt"` or `"optnototal"` table, entry values are shown without their sign. There a `-` row acts like `neg` and a `+` row or a sum row like `pos`, so a rising cost is red and rising revenue is green. Thereof rows use the operation of their parent. In other tables and in charts the values carry their sign already, so `op` acts like `pos`.
+- `opinv` - The inverse of `op`, for reports where the main measure is a cost.
 
 To display variances, pass them as a comma-separated list to the `variances` prop:
 

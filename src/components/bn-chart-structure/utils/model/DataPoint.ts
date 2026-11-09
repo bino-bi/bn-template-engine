@@ -1,4 +1,5 @@
 import { Scenario } from "./index";
+import { resolveSentiment } from "../../../../utils/model/VarianceScenario";
 import { DataPointKey } from "../../../../utils/layoutState/types";
 
 /**
@@ -33,9 +34,11 @@ export class DataPoint {
     this.scenario = scenario;
     this.pixelPerUnit = pixelPerUnit || 1;
 
-    if (variance === "neg" || variance === Scenario.NEG) {
+    // chart values are signed by their operation, so op acts like pos and opinv like neg
+    const direction = typeof variance === "string" ? resolveSentiment(variance, null, true) : variance;
+    if (direction === "neg" || direction === Scenario.NEG) {
       this.variance = Scenario.NEG;
-    } else if (variance === "pos" || variance === Scenario.POS) {
+    } else if (direction === "pos" || direction === Scenario.POS) {
       this.variance = Scenario.POS;
     } else {
       this.variance = Scenario.NEU;

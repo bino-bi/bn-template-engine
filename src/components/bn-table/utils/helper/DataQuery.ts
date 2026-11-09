@@ -270,8 +270,13 @@ export class DataQuery {
       const restScenarios = this.exctractScenarioNames(scenarios)
         .map((name) => `SUM(${name}) as ${name}`)
         .join(", ");
+      // a REST row of only "-" rows counts as "-" for the op sentiment; not named operation, so it stays hidden
+      const restOperation =
+        TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type
+          ? `, CASE WHEN MAX(transformOperator(operation)) = -1 THEN '-' ELSE '+' END as restOperation`
+          : "";
       querys.push(
-        `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, ${this.bind(String(rowGroupEntry.rowGroup ?? ""))} as restRowGroup, 'REST' as ${QueryColumnNames.CATEGORY} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
+        `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, ${this.bind(String(rowGroupEntry.rowGroup ?? ""))} as restRowGroup, 'REST' as ${QueryColumnNames.CATEGORY}${restOperation} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
           ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP}, ${groups.select()} ${scenarios.length > 0 ? ",".concat(scenarios) : ""} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
           ` t WHERE t.rowNr > ${this.config.limit}`,
       );
@@ -939,9 +944,9 @@ export class DataQuery {
   /**
    * Translates a scenario identifier into a SQL aggregation expression.
    *
-   * - **OPT/OPTNOTOTAL types**: Values are summed without `transformOperator` (the
-   *   operation sign is already baked into the data). Variance scenarios produce
-   *   `SUM(base - delta)`.
+   * - **OPT/OPTNOTOTAL types**: Entry rows are summed without `transformOperator`, they
+   *   show unsigned values. Sum rows (`isSumRow`) apply the operation sign to scenarios,
+   *   variances and the `dr_*` denominator alike.
    * - **Other types**: Each value is multiplied by `transformOperator(operation)` which
    *   converts the `"+"` / `"-"` operation field into +1 / -1, so rows with negative
    *   operation are subtracted from the aggregate.
@@ -954,10 +959,15 @@ export class DataQuery {
 
     if (TableType.OPT === type || TableType.OPTNOTOTAL === type) {
       if (scenarios.isValid) {
+        // sum rows show signed scenario values, so their variances must be signed too
+        const sign = isSumRow ? " * transformOperator(operation)" : "";
+        const variance = isSumRow
+          ? `SUM((${scenarios.base} - ${scenarios.delta})${sign}) as ${scenario}`
+          : `SUM(${scenarios.base} - ${scenarios.delta}) as ${scenario}`;
         if (scenarios.type === "dr") {
-          return `SUM(${scenarios.base} - ${scenarios.delta}) as ${scenario}, SUM(${scenarios.delta}) as dr_${scenarios.delta}`;
+          return `${variance}, SUM(${scenarios.delta}${sign}) as dr_${scenarios.delta}`;
         } else {
-          return `SUM(${scenarios.base} - ${scenarios.delta}) as ${scenario}`;
+          return variance;
         }
       }
 

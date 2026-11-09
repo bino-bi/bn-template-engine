@@ -125,7 +125,7 @@ export class Title {
    <br /> <br />
    each variance creates a chart
    <br /> <br />
-   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
    */
   @Prop() readonly variances: string;
 

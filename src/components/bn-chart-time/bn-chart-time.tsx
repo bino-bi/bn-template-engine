@@ -186,12 +186,15 @@ export class Chart {
    *   the variance is defiend as  (Scenario A -  ScenarioB)
    *   neu. neg and pos post fix defines which value is *good*
    *   a negative or a positive value.
+   *   op and opinv are accepted for pages that share variances with
+   *   tables. Chart values carry their operation sign, so op acts like pos
+   *   and opinv like neg.
    *<br /> <br />
    *   if empty variance charts are hidden
    *<br /> <br />
    *   each variance creates a chart
    *<br /> <br />
-   *   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   *   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
    *
    *    example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
    */

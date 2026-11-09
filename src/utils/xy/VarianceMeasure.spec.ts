@@ -17,6 +17,12 @@ describe("VarianceMeasure", () => {
       expect(vm!.delta).toBe("pl1");
     });
 
+    it("parses tokens with the op and opinv suffixes", () => {
+      expect(VarianceMeasure.parse("dac1_pl1_op")).not.toBeNull();
+      expect(VarianceMeasure.parse("drac1_pl1_opinv")).not.toBeNull();
+      expect(VarianceMeasure.parse("dac1_pl1_opx")).toBeNull();
+    });
+
     it("parses tokens without a sentiment suffix (axis form, spec §4.4)", () => {
       const vm = VarianceMeasure.parse("drpp1_ac1");
       expect(vm).not.toBeNull();

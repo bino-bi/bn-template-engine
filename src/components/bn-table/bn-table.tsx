@@ -325,12 +325,15 @@ export class Table {
    the variance is defiend as  (Scenario A -  ScenarioB)
    neu. neg and pos post fix defines which value is *good*
    a negative or a positive value.
+   op follows the row operation: in an opt/optnototal table a "-" row
+   acts like neg, "+" and sum rows act like pos (a rising cost is red).
+   opinv is the inverse of op. In other table types op acts like pos.
    <br /> <br />
    if empty variance charts are hidden
    <br /> <br />
    each variance creates a chart
    <br /> <br />
-   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
    */
   @Prop() readonly variances: string;
 

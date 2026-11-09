@@ -97,13 +97,14 @@ export class LayoutPage {
    * List of variances calculated from the given scenarios.
    * The scenarios used in the variances must also be defined in
    * the `titleScenarios` property. The variance is defined as
-   * (ScenarioA − ScenarioB). The pos/neg/neu postfix defines
-   * which direction is considered "good".
+   * (ScenarioA − ScenarioB). The pos/neg/neu/op/opinv postfix defines
+   * which direction is considered "good". op follows the row operation
+   * in opt tables, opinv is its inverse.
    * <br /><br />
    * If empty, variance indicators are hidden.
    * <br /><br />
    * pattern:<br />
-   * ```d<scenarioB>_<scenarioA>_[pos/neg/neu]```
+   * ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
    */
   @Prop() titleVariances?: string;
 

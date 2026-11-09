@@ -186,6 +186,7 @@ export class Chart {
    *
    * - `base` / `comparison`: scenario names that must also appear in `scenarios`.
    * - `sentiment`: `pos` (positive is good), `neg` (negative is good), `neu` (neutral).
+   *   `op` acts like `pos` and `opinv` like `neg`, because chart values carry their operation sign.
    *
    * When empty, no variance charts are shown.
    *
