@@ -361,7 +361,9 @@ export class Table {
    * List of column names to render as bar charts instead of numbers.
    * <br /><br />
    * Absolute variances (d_*) render as horizontal bar charts.
-   * Relative variances (dr_*) render as pin/dot charts.
+   * Relative variances (dr_*) render as pin charts with a square head.
+   * Bars and pin heads take the pattern of the minuend (FC hatched, PL outlined)
+   * and the colour of the sentiment; the axis takes the look of the reference scenario.
    * Scenario columns (ac1..pl4) render as horizontal bar charts; when the table
    * contains grouping structure (sum rows, thereof, or partof) they automatically
    * render as an IBCS waterfall - data rows cascade from the running total and

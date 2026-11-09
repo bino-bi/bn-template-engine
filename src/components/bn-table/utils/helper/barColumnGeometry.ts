@@ -92,13 +92,14 @@ export function absoluteBarGeometry(
 
 export interface RelativePinGeometry {
   totalWidth: number;
-  /** Single gutter, always on the right. */
+  /** Width of one value-label gutter; one is drawn per side in use. */
   labelAreaWidth: number;
   /** Max pin extent on one side of the axis. */
   maxPinLength: number;
   pinPadding: number;
   axisX: number;
-  labelX: number;
+  /** Gap between the pin head and its value label. */
+  labelGap: number;
 }
 
 export function relativePinGeometry(
@@ -109,9 +110,9 @@ export function relativePinGeometry(
 ): RelativePinGeometry {
   const totalWidth = contentWidth(widthEm, emPx);
   const sides = sideCount(hasNeg, hasPos);
-  const labelAreaWidth = Math.min(PIN_LABEL_EM * emPx, totalWidth / 2);
-  const pinAreaWidth = totalWidth - labelAreaWidth;
-  const sideWidth = pinAreaWidth / sides;
+  const labelAreaWidth = Math.min(PIN_LABEL_EM * emPx, totalWidth / (2 * sides));
+  const sideWidth = (totalWidth - labelAreaWidth * sides) / sides;
+  // also leaves room for the outer half of the pin head
   const pinPadding = Math.min(PIN_PADDING_EM * emPx, sideWidth * 0.2);
 
   return {
@@ -119,8 +120,8 @@ export function relativePinGeometry(
     labelAreaWidth,
     maxPinLength: Math.max(0, sideWidth - pinPadding),
     pinPadding,
-    axisX: hasNeg ? sideWidth : 0,
-    labelX: pinAreaWidth + LABEL_GAP_EM * emPx,
+    axisX: hasNeg ? labelAreaWidth + sideWidth : 0,
+    labelGap: LABEL_GAP_EM * emPx,
   };
 }
 
