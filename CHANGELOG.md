@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [Unreleased]
 
+### Changed
+
+- Variance columns are now grouped by their reference, as IBCS shows them: ΔPY, ΔPY%, ΔPL, ΔPL% instead of ΔPY, ΔPL, ΔPY%, ΔPL%. Each relative variance comes right after the absolute variance against the same scenario. This holds in every interval block of `bn-table` and also in `bn-title`, `bn-chart-time` and `bn-chart-structure`, which use the same rule set. The built-in `sortIndex` of `drpp`/`drpy`, `drpl`/`drbu`, `drfc` and `drac` is now 1105, 1205, 1305 and 1405 (was 2100 to 2400). A table that mixes references can change order too: `drac1_pp1` now comes before `dpp1_ac1`. To keep the old order, set the old values in a `bn-ruleset`. A rule set that moves only `dpl` should now move `drpl` as well.
+
 ### Fixed
 
 - `bn-table` with `type="opt"` or `"optnototal"`: the variances on group sum rows and the total row now use the operation sign of the rows below, like the scenario values on the same rows. Before, a sum row showed correct AC and PY values but a wrong difference, and a wrong relative variance. Example: an operating result of 467.4 against 302.1 showed +240.1 instead of +165.3. A group made only of `-` rows now shows a negative variance, matching its negative total. A partof row divides by these signed group values, so a partof variance in such a group now has the sign of the group, like its scenario values already had.

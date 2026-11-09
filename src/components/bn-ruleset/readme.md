@@ -25,6 +25,8 @@ Changes how the scenarios are ordered, drawn and named. The content is JSON. It 
 
 The number of `colorIndex` picks a style slot, the theme decides how the slot looks: `10` uses the `ac` entry of `barStyles`, `20` the `pp` entry, `30` the `fc` entry, `50` the `pl` entry (see [Theming](../../../doc/theming.md)). The hatch pattern always takes its colours from the `fc` entry.
 
+Variances have their own entries. The absolute ones (`dpp`, `dpl`, `dfc`, `dac`) sort at 1100, 1200, 1300 and 1400, the relative ones (`drpp`, `drpl`, `drfc`, `drac`) at 1105, 1205, 1305 and 1405. A variance sorts by its reference, so `dac1_pp1` and `drac1_pp1` come first, then `dac1_pl1` and `drac1_pl1`. If you move `dpl`, move `drpl` too.
+
 `fallback` (`name`, `group`, `colorIndex`, `sortIndex`) is used for a series that is not a scenario, for example the default series of a scatter chart.
 
 <!-- Auto Generated Below -->

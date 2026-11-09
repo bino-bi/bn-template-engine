@@ -138,4 +138,76 @@ describe("IBCS Table ruleset column ordering", () => {
     // ac now sorts before pp and pl
     expect(cellTexts(berlinRow).slice(0, 4)).toEqual(["Berlin", "50.0", "40.0", "45.0"]);
   });
+
+  describe("variance columns", () => {
+    const setRows: any[] = [
+      { ...baseRow, setname: "de", category: "Berlin", categoryIndex: 1, ac1: 50, pp1: 40, pl1: 45 },
+      { ...baseRow, setname: "at", category: "Berlin", categoryIndex: 1, ac1: 30, pp1: 20, pl1: 25 },
+    ];
+
+    beforeAll(() => {
+      getStores(null).db.db.tables["rulesetSetData"] = { data: setRows };
+    });
+
+    // manifest order is shuffled on purpose: the sort indices alone must group them
+    const renderVariances = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
+      newSpecPage({
+        components: [BnTableRenderer],
+        template: () => (
+          <bn-table-renderer
+            scenarios={["ac1", "pp1", "pl1", "drac1_pl1_pos", "dac1_pp1_pos", "dac1_pl1_pos", "drac1_pp1_pos"]}
+            measure-scale="_"
+            order={
+              {
+                hierarchy: [OrderColumn.AC1],
+                direction: OrderDirection.DESC,
+              } as Order
+            }
+            type={TableType.SUM}
+            i18n={new Map([["SUM_TOTAL", "Summe"]])}
+            i18n-mode={I18nMode.META}
+            tableName="rulesetData"
+            {...extraProps}
+          ></bn-table-renderer>
+        ),
+      });
+
+    it("groups absolute and relative variances by reference (PY, PY%, PL, PL%)", async () => {
+      const page = await renderVariances();
+
+      // pp1 pl1 ac1 | dac1_pp1 drac1_pp1 | dac1_pl1 drac1_pl1
+      expect(cellTexts(findRowByFirstCell(page, "Berlin"))).toEqual([
+        "Berlin",
+        "40.0",
+        "45.0",
+        "50.0",
+        "10.0",
+        "25.00%",
+        "5.0",
+        "11.11%",
+      ]);
+    });
+
+    it("repeats the grouped variance order in every interval bucket", async () => {
+      const page = await renderVariances({ tableName: "rulesetSetData", interval: "setname" });
+
+      expect(cellTexts(findRowByFirstCell(page, "Berlin"))).toEqual([
+        "Berlin",
+        "40.0",
+        "45.0",
+        "50.0",
+        "10.0",
+        "25.00%",
+        "5.0",
+        "11.11%",
+        "20.0",
+        "25.0",
+        "30.0",
+        "10.0",
+        "50.00%",
+        "5.0",
+        "20.00%",
+      ]);
+    });
+  });
 });

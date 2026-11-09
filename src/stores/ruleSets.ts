@@ -50,7 +50,8 @@ export interface RuleSetConfig {
 /**
  * Built-in IBCS rule-set defaults per IBCS notation standard v1.2.
  * Sort order: PP(100s) < PL(200s) < FC(300s) < AC(400s); variance prefixes
- * add +1000 (absolute) or +2000 (relative).
+ * add +1000 (absolute) or +1005 (relative), so a relative variance sorts
+ * directly after the absolute variance with the same reference.
  */
 export const SYSTEM_RULESET_DEFAULTS: RuleSetConfig = {
   scenarios: {
@@ -68,12 +69,12 @@ export const SYSTEM_RULESET_DEFAULTS: RuleSetConfig = {
     dpp: { name: "dPP", colorIndex: 20, sortIndex: 1100 },
     dpy: { name: "dPY", colorIndex: 20, sortIndex: 1100 },
 
-    drac: { name: "drAC", colorIndex: 10, sortIndex: 2400 },
-    drfc: { name: "drFC", colorIndex: 30, sortIndex: 2300 },
-    drpl: { name: "drPL", colorIndex: 50, sortIndex: 2200 },
-    drbu: { name: "drBU", colorIndex: 50, sortIndex: 2200 },
-    drpp: { name: "drPP", colorIndex: 20, sortIndex: 2100 },
-    drpy: { name: "drPY", colorIndex: 20, sortIndex: 2100 },
+    drac: { name: "drAC", colorIndex: 10, sortIndex: 1405 },
+    drfc: { name: "drFC", colorIndex: 30, sortIndex: 1305 },
+    drpl: { name: "drPL", colorIndex: 50, sortIndex: 1205 },
+    drbu: { name: "drBU", colorIndex: 50, sortIndex: 1205 },
+    drpp: { name: "drPP", colorIndex: 20, sortIndex: 1105 },
+    drpy: { name: "drPY", colorIndex: 20, sortIndex: 1105 },
   },
   fallback: {
     name: "Series",
