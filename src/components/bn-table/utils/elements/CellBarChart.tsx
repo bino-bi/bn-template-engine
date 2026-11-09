@@ -550,7 +550,8 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const isExtreme = scaledLength > maxPinLength;
   const pinLength = Math.min(scaledLength, maxPinLength);
 
-  const isPositive = value >= 0;
+  // a zero label goes to the side that has a label gutter
+  const isPositive = value > 0 || (value === 0 && (hasPos || !hasNeg));
   const direction = isPositive ? 1 : -1;
   const pinEndX = axisX + direction * pinLength;
 
@@ -607,7 +608,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
           y={centerY - headSize / 2}
           width={headSize}
           height={headSize}
-          fill={getBarFill(headStyle, look?.minuendSlot ?? "ac")}
+          fill={headStyle.fillpattern === "outlined" ? "#ffffff" : getBarFill(headStyle, look?.minuendSlot ?? "ac")}
           stroke={headStyle.stroke}
           stroke-width={1 * s}
         />

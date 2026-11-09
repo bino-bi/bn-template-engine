@@ -58,8 +58,15 @@ describe("IBCS Table variance look", () => {
     { operation: "+", category: "C Flat", categoryIndex: 3, ac1: 100, fc1: 100, pl1: 100, pp1: 100 },
   ];
 
+  // ΔPL of ac1 is -20 / 0, so a pin column has no positive side
+  const negativeRows: any[] = [
+    { operation: "+", category: "A Down", categoryIndex: 1, ac1: 80, pl1: 100 },
+    { operation: "+", category: "B Flat", categoryIndex: 2, ac1: 100, pl1: 100 },
+  ];
+
   beforeAll(() => {
     getStores(null).db.db.tables["lookData"] = { data: rows };
+    getStores(null).db.db.tables["lookNegativeData"] = { data: negativeRows };
   });
 
   const renderColumn = (column: string, extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
@@ -129,6 +136,24 @@ describe("IBCS Table variance look", () => {
 
       const [head] = directChildren(svg, "rect");
       expect(num(head, "x") + HEAD / 2).toBeCloseTo(axisX, 3);
+    });
+
+    it("puts a zero label in the left gutter of a column without positive values", async () => {
+      const page = await renderColumn("drac1_pl1_pos", { percentageScaling, tableName: "lookNegativeData" });
+      const negative = relativePinGeometry(BAR_COLUMN_WIDTH, EM, true, false);
+
+      const label = svgOf(page, "B Flat").querySelector("text");
+      expect(label.getAttribute("text-anchor")).toBe("end");
+      expect(num(label, "x")).toBeCloseTo(negative.axisX - HEAD / 2 - negative.labelGap, 3);
+      expect(num(label, "x")).toBeLessThanOrEqual(negative.totalWidth);
+    });
+
+    it("fills the outlined head of a PL minuend white so the pin line does not show through", async () => {
+      const svg = svgOf(await renderColumn("drpl1_pp1_pos", { percentageScaling }), "A Up");
+
+      const [head] = directChildren(svg, "rect");
+      expect(head.getAttribute("fill")).toBe("#ffffff");
+      expect(head.getAttribute("stroke")).toBe("#404040");
     });
 
     it("hatches the head of an FC minuend, with an outline and the pattern in its own svg", async () => {
