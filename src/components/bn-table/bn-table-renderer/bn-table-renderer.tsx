@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Method, Prop } from "@stencil/core";
+import { Component, Element, forceUpdate, h, Host, Method, Prop } from "@stencil/core";
 
 import { OrderDirection, TableRowType, TableType } from "../utils/model";
 import {
@@ -49,7 +49,7 @@ import { ErrorDispatcher } from "../../../utils/withHasError";
 import {
   absoluteBarGeometry,
   BAR_LABEL_FONT_RATIO,
-  estimateLabelWidth,
+  labelWidth,
   PIN_HEAD_SIZE,
   pinLabelsFit,
   relativePinGeometry,
@@ -64,6 +64,8 @@ interface BarColumnLayout {
   /** Largest drawn value, in percent for a pin column. */
   absMax: number;
   labels: SideLabels;
+  /** Largest absolute drawn value per side of the axis; a side without values is undefined. */
+  sideMax: SideLabels;
   /** Label format of a pin column, reduced until its labels fit the column. */
   percentDigits: number;
   percentSign: boolean;
@@ -274,6 +276,19 @@ export class BnTableRenderer {
     this.componentStyle = withComponentStyle(this);
   }
 
+  // labels measured in the fallback font are too narrow or too wide once the web font is there: lay out again
+  private readonly relayout = () => {
+    if (this.barColumnLayouts.size > 0) forceUpdate(this);
+  };
+
+  connectedCallback() {
+    document.fonts?.addEventListener("loadingdone", this.relayout);
+  }
+
+  disconnectedCallback() {
+    document.fonts?.removeEventListener("loadingdone", this.relayout);
+  }
+
   /**
    * Collects the table's layout-state contribution: header/body regions,
    * counts, and - with `detail: "full"` - per-cell geometry paired with the
@@ -474,6 +489,7 @@ export class BnTableRenderer {
                           percentSign={this.barColumnLayouts.get(cell.key)?.percentSign}
                           columnWidthEm={this.barColumnMaxWidth}
                           labelWidths={this.barColumnLayouts.get(cell.key)?.labels}
+                          sideMax={this.barColumnLayouts.get(cell.key)?.sideMax}
                           styles={this.barChartStyles}
                         />
                       )
@@ -652,12 +668,17 @@ export class BnTableRenderer {
         fontColor: $["global"]?.["fontColor"] || "#000000",
         fontSize: ($["global"]?.["fontSizePx"] || 13.3333) * BAR_LABEL_FONT_RATIO * this.scaleFactor,
         emPx: ($["global"]?.["fontSizePx"] || 13.3333) * this.scaleFactor,
-        fontFamily: $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
+        fontFamily: this.labelFontFamily(),
         unitScaling: resolvedUnit,
         percentageScaling: resolvedPercent,
         scaleFactor: this.scaleFactor,
       };
     });
+  }
+
+  /** Font family of the bar and pin labels, also used to measure them. */
+  private labelFontFamily(): string {
+    return this.componentStyle(($) => $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif");
   }
 
   /** The table's true em in px - the unit `.category-wN` and the bar columns share. */
@@ -690,11 +711,13 @@ export class BnTableRenderer {
     const emPx = this.emPx();
     const fs = emPx * BAR_LABEL_FONT_RATIO;
     let scaling = Infinity;
-    for (const { isRelative, absMax, labels } of this.barColumnLayouts.values()) {
+    for (const { isRelative, absMax, labels, sideMax } of this.barColumnLayouts.values()) {
       if (!isRelative || absMax <= 0) continue;
       const headSize = PIN_HEAD_SIZE * this.scaleFactor;
-      const { maxPinLength } = relativePinGeometry(this.barColumnMaxWidth, emPx, labels, headSize);
-      scaling = Math.min(scaling, maxPinLength / (absMax * fs));
+      // the longest pins of both sides share the room, each side takes what its pins need
+      const { negPinLength, posPinLength } = relativePinGeometry(this.barColumnMaxWidth, emPx, labels, headSize);
+      const percent = ((sideMax.neg ?? 0) + (sideMax.pos ?? 0)) * 100;
+      scaling = Math.min(scaling, (negPinLength + posPinLength) / (percent * fs));
     }
     return Number.isFinite(scaling) && fs > 0 ? scaling : 0.5;
   }
@@ -723,6 +746,7 @@ export class BnTableRenderer {
     const fs = emPx * BAR_LABEL_FONT_RATIO;
     const headSize = PIN_HEAD_SIZE * this.scaleFactor;
     const locale = this.stores?.context?.state?.locale;
+    const fontFamily = this.labelFontFamily();
     for (const [key, cells] of cellsByKey) {
       const isRelative = key.startsWith("dr");
       const values = cells.map((cell) => cell.value as number);
@@ -736,7 +760,7 @@ export class BnTableRenderer {
           const value = cell.value as number;
           const side = value > 0 || (value === 0 && zeroPositive) ? "pos" : "neg";
           const text = formatValue(value, isRelative, barLabelMeasureScale(cell), locale, percentDigits, percentSign);
-          labels[side] = Math.max(labels[side] ?? 0, estimateLabelWidth(text, fs));
+          labels[side] = Math.max(labels[side] ?? 0, labelWidth(text, fs, fontFamily, isRelative));
         }
         return labels;
       };
@@ -753,7 +777,11 @@ export class BnTableRenderer {
       }
 
       const absMax = Math.max(...values.map(Math.abs)) * (isRelative ? 100 : 1);
-      layouts.set(key, { isRelative, absMax, labels, percentDigits, percentSign });
+      const sideMax: SideLabels = {
+        neg: labels.neg === undefined ? undefined : Math.max(0, ...values.map((value) => -value)),
+        pos: labels.pos === undefined ? undefined : Math.max(0, ...values),
+      };
+      layouts.set(key, { isRelative, absMax, labels, sideMax, percentDigits, percentSign });
     }
     return layouts;
   }

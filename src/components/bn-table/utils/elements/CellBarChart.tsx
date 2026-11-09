@@ -6,7 +6,7 @@ import { VarianceScenario } from "../../../../utils/model/VarianceScenario";
 import {
   absoluteBarGeometry,
   BAR_LABEL_FONT_RATIO,
-  estimateLabelWidth,
+  labelWidth,
   PIN_HEAD_SIZE,
   relativePinGeometry,
   SideLabels,
@@ -68,6 +68,8 @@ export interface CellBarChartProps {
   columnWidthEm?: number;
   /** Widest label per side over the drawn cells of the column; without it only this cell's label counts. */
   labelWidths?: SideLabels;
+  /** Largest absolute drawn value per side over the column; without it the column statistics count. */
+  sideMax?: SideLabels;
   styles?: CellBarChartStyles;
 }
 
@@ -424,7 +426,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const fs = styles.fontSize;
 
   const displayValue = formattedValue || formatValue(value, false, measureScale, locale);
-  const sides = labelWidths ?? ownLabelWidths(columnStats, estimateLabelWidth(displayValue, fs));
+  const sides = labelWidths ?? ownLabelWidths(columnStats, labelWidth(displayValue, fs, styles.fontFamily, false));
   const { totalWidth, axisX, breakGap, overdriveZoneWidth, cutWidth, labelGap } = absoluteBarGeometry(
     columnWidthEm,
     styles.emPx,
@@ -562,31 +564,35 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     percentSign,
     columnWidthEm = 10,
     labelWidths,
+    sideMax,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
   const headSize = PIN_HEAD_SIZE * s;
+  const pinPx = 100 * styles.percentageScaling * fs;
 
   const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits, percentSign);
-  const sides = labelWidths ?? ownLabelWidths(columnStats, estimateLabelWidth(displayValue, fs));
-  const { totalWidth, maxPinLength, axisX, labelGap } = relativePinGeometry(
+  const sides = labelWidths ?? ownLabelWidths(columnStats, labelWidth(displayValue, fs, styles.fontFamily, true));
+  const { neg = Math.max(0, -columnStats.min), pos = Math.max(0, columnStats.max) } = sideMax ?? {};
+  const { totalWidth, negPinLength, posPinLength, axisX, labelGap } = relativePinGeometry(
     columnWidthEm,
     styles.emPx,
     sides,
     headSize,
+    { neg: neg * pinPx, pos: pos * pinPx },
   );
 
   const centerY = height / 2;
 
   // Direct unit scaling via fontSize
-  const percentValue = Math.abs(value) * 100;
-  const scaledLength = percentValue * styles.percentageScaling * fs;
+  const scaledLength = Math.abs(value) * pinPx;
+  const isPositive = value > 0 || (value === 0 && zeroOnPositiveSide(sides));
+  const maxPinLength = isPositive ? posPinLength : negPinLength;
   // auto scaling puts the longest pin on the limit, float rounding must not cut it
   const isExtreme = scaledLength - maxPinLength > 1e-6;
   const pinLength = Math.min(scaledLength, maxPinLength);
 
-  const isPositive = value > 0 || (value === 0 && zeroOnPositiveSide(sides));
   const direction = isPositive ? 1 : -1;
   const pinEndX = axisX + direction * pinLength;
 
