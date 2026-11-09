@@ -135,8 +135,9 @@ describe("IBCS Table limit REST row", () => {
 
     const restRow = findRowByFirstCell(page, "REST");
 
-    // dpp1_ac1_pos = (16+12) - (20+10) = -2; drac1_pp1_pos = ((20+10) - (16+12)) / (16+12) = 7.14%
-    expect(cellTexts(restRow).slice(5, 7)).toEqual(["-2.0", "7.14%"]);
+    // drac1_pp1_pos = ((20+10) - (16+12)) / (16+12) = 7.14%; dpp1_ac1_pos = (16+12) - (20+10) = -2
+    // drac1_pp1 (reference PP) sorts before dpp1_ac1 (reference AC)
+    expect(cellTexts(restRow).slice(5, 7)).toEqual(["7.14%", "-2.0"]);
   });
 
   it("renders no-data for a scenario that is null in every row beyond the limit", async () => {

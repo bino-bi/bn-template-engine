@@ -88,7 +88,7 @@ describe("IBCSRuleSet", () => {
       expect(ruleSet.getScenarioSorIndex("pl1")).toBe(210);
       expect(ruleSet.getScenarioSorIndex("pp3")).toBe(130);
       expect(ruleSet.getScenarioSorIndex("dpl2")).toBe(1220);
-      expect(ruleSet.getScenarioSorIndex("drac4")).toBe(2440);
+      expect(ruleSet.getScenarioSorIndex("drac4")).toBe(1445);
     });
 
     it("keeps the built-in color indices and groups", () => {
@@ -109,7 +109,15 @@ describe("IBCSRuleSet", () => {
 
     it("normalizes variance column names for sort lookup", () => {
       expect(ruleSet.getScenarioSorIndex("dac1_pl1_pos")).toBe(1210);
-      expect(ruleSet.getScenarioSorIndex("drac1_pp1_neg")).toBe(2110);
+      expect(ruleSet.getScenarioSorIndex("drac1_pp1_neg")).toBe(1115);
+    });
+
+    it("sorts each relative variance directly after the absolute variance with the same reference", () => {
+      const ordered = ["dpp1", "drpp1", "dpp2", "drpp2", "dpp4", "drpp4", "dpl1", "drpl1"];
+      const indices = ordered.map((scenario) => ruleSet.getScenarioSorIndex(scenario));
+
+      expect([...indices].sort((a, b) => a - b)).toEqual(indices);
+      expect(new Set(indices).size).toBe(indices.length);
     });
   });
 
@@ -122,6 +130,14 @@ describe("IBCSRuleSet", () => {
       expect(ruleSet.getScenario("pl1").colorIndex).toBe(50);
       expect(ruleSet.getScenarioSorIndex("ac1")).toBe(410);
       expect(ruleSet.getScenarioSorIndex("pp1")).toBe(110);
+    });
+
+    it("keeps a relative variance override over the new default", () => {
+      const ruleSet = new IBCSRuleSet({ scenarios: { drpl: { sortIndex: 2200 } } });
+
+      expect(ruleSet.getScenarioSorIndex("drac1_pl1_pos")).toBe(2210);
+      expect(ruleSet.getScenarioSorIndex("drac1_pp1_pos")).toBe(1115);
+      expect(ruleSet.getScenarioSorIndex("dac1_pl1_pos")).toBe(1210);
     });
 
     it("overrides the fallback", () => {

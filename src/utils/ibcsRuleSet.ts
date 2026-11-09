@@ -59,7 +59,8 @@ export function ruleSetLabels(config: RuleSetConfig | undefined): Map<string, st
  * - 50 = PL: outlined (no fill)
  *
  * Sort indices determine column display order: PP(100s) < PL(200s) < FC(300s) < AC(400s).
- * Variance columns add +1000 (absolute) or +2000 (relative) to the base sort index.
+ * Variance columns add +1000 (absolute) or +1005 (relative) to the base sort index,
+ * so a relative variance sorts directly after the absolute variance with the same reference.
  * Within each group, variant number (1-4) adds multiples of 10.
  *
  * The built-in rules live in `SYSTEM_RULESET_DEFAULTS` (stores/ruleSets); an
