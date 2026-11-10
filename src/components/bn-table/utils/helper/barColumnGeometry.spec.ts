@@ -38,6 +38,8 @@ describe("barColumnGeometry", () => {
 
     it.each(presets)("waterfalls fill exactly w%i minus the cell padding", (n) => {
       expect(waterfallGeometry(n, EM).totalWidth).toBeCloseTo(contentWidth(n), 6);
+      const column = { min: 0, max: 100, labels: [{ end: 100, pointsLeft: false, width: 40 }] };
+      expect(waterfallGeometry(n, EM, column).totalWidth).toBeCloseTo(contentWidth(n), 6);
     });
   });
 
@@ -215,6 +217,14 @@ describe("barColumnGeometry", () => {
       expect(fonts[1]).toBe("10px Arial");
     });
 
+    it("measures a bold label in bold and widens its estimate", () => {
+      const { labelWidth: measured, fonts } = withCanvas((text) => text.length * 5);
+
+      measured("321.8", 10, "Arial", false, true);
+      expect(fonts).toEqual(["bold 10px Arial"]);
+      expect(labelWidth("321.8", 10, "Arial", false, true)).toBeGreaterThan(estimateLabelWidth("321.8", 10));
+    });
+
     it("is narrower than the estimate for a font as wide as Arial", () => {
       const ARIAL_EM: Record<string, number> = { "+": 0.584, ".": 0.278, "%": 0.889 };
       const arial = (text: string, font: string) =>
@@ -342,7 +352,8 @@ describe("barColumnGeometry", () => {
       const g = waterfallGeometry(15, EM);
 
       expect(g.totalWidth).toBe(290);
-      expect(g.labelAreaWidth).toBe(57);
+      expect(g.labelAreaLeft).toBe(57);
+      expect(g.labelAreaRight).toBe(57);
       expect(g.barAreaWidth).toBe(176); // 290 - 2 x 57
       expect(g.labelGap).toBe(6);
     });
@@ -350,8 +361,87 @@ describe("barColumnGeometry", () => {
     it("shrinks the gutters rather than the column at w5", () => {
       const g = waterfallGeometry(5, EM);
       expect(g.totalWidth).toBe(90);
-      expect(g.labelAreaWidth).toBe(22.5);
+      expect(g.labelAreaLeft).toBe(22.5);
+      expect(g.labelAreaRight).toBe(22.5);
       expect(g.barAreaWidth).toBe(45);
+    });
+
+    it("sizes each gutter by the labels of its side", () => {
+      // both labels sit at the edge of the extent: label + 6 gap
+      const g = waterfallGeometry(15, EM, {
+        min: -20,
+        max: 100,
+        labels: [
+          { end: 100, pointsLeft: false, width: 40 },
+          { end: -20, pointsLeft: true, width: 30 },
+        ],
+      });
+
+      expect(g.totalWidth).toBe(290);
+      expect(g.labelAreaLeft).toBe(36);
+      expect(g.labelAreaRight).toBe(46);
+      expect(g.barAreaWidth).toBe(208);
+    });
+
+    it("gives a side without labels no gutter", () => {
+      const g = waterfallGeometry(15, EM, { min: 0, max: 100, labels: [{ end: 100, pointsLeft: false, width: 40 }] });
+
+      expect(g.labelAreaLeft).toBe(0);
+      expect(g.labelAreaRight).toBe(46);
+      expect(g.barAreaWidth).toBe(244);
+    });
+
+    it("drops the room of a label whose bar ends far from the edge", () => {
+      const g = waterfallGeometry(15, EM, {
+        min: 0,
+        max: 100,
+        labels: [
+          { end: 100, pointsLeft: false, width: 40 },
+          { end: 50, pointsLeft: true, width: 30 },
+        ],
+      });
+
+      expect(g.labelAreaLeft).toBe(0);
+      expect(g.labelAreaRight).toBe(46);
+    });
+
+    it("keeps the part of a label that still sticks out of the bar area", () => {
+      const g = waterfallGeometry(15, EM, {
+        min: 0,
+        max: 100,
+        labels: [
+          { end: 100, pointsLeft: false, width: 40 },
+          { end: 10, pointsLeft: true, width: 30 },
+        ],
+      });
+
+      // first pass: 208 px of bars, 2.08 px per unit, the bar end is 20.8 px inside
+      expect(g.labelAreaLeft).toBeCloseTo(36 - 20.8, 6);
+      expect(g.labelAreaRight).toBe(46);
+      // the label still fits at the final, wider scale
+      expect(g.labelAreaLeft + (10 * g.barAreaWidth) / 100).toBeGreaterThanOrEqual(36);
+    });
+
+    it("keeps half the width for the bars at w5", () => {
+      const g = waterfallGeometry(5, EM, {
+        min: -20,
+        max: 100,
+        labels: [
+          { end: 100, pointsLeft: false, width: 50 },
+          { end: -20, pointsLeft: true, width: 40 },
+        ],
+      });
+
+      expect(g.totalWidth).toBe(90);
+      expect(g.barAreaWidth).toBeCloseTo(45, 6);
+      expect(g.labelAreaLeft / g.labelAreaRight).toBeCloseTo(46 / 56, 6);
+    });
+
+    it("keeps the fixed gutters for a column without extent", () => {
+      const g = waterfallGeometry(15, EM, { min: 0, max: 0, labels: [] });
+
+      expect(g.labelAreaLeft).toBe(57);
+      expect(g.labelAreaRight).toBe(57);
     });
   });
 
@@ -363,7 +453,7 @@ describe("barColumnGeometry", () => {
       const bar = absoluteBarGeometry(30, BASE, BOTH);
       expect(bar.pos.breakGap).toBeCloseTo(4, 3);
       expect(bar.labelGap).toBeCloseTo(4, 3);
-      expect(waterfallGeometry(30, BASE).labelAreaWidth).toBeCloseTo(38, 3);
+      expect(waterfallGeometry(30, BASE).labelAreaLeft).toBeCloseTo(38, 3);
     });
   });
 });

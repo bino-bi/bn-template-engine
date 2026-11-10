@@ -89,22 +89,26 @@ function labelMeasureContext(): CanvasRenderingContext2D | null {
   return measureContext;
 }
 
+/** Bold digits of a font can be wider than the regular ones the glyph table lists. */
+const BOLD_WIDTH_MARGIN = 1.08;
+
 /**
  * Rendered width of a value label in px, measured with the font the SVG text uses. Falls
  * back to estimateLabelWidth where no canvas can measure.
  */
-export function labelWidth(text: string, fontSize: number, fontFamily: string, italic: boolean): number {
+export function labelWidth(text: string, fontSize: number, fontFamily: string, italic: boolean, bold = false): number {
+  const estimate = () => estimateLabelWidth(text, fontSize) * (bold ? BOLD_WIDTH_MARGIN : 1);
   const ctx = labelMeasureContext();
   if (ctx) {
     // the canvas ignores a font it cannot parse and keeps the last one: the sentinel shows that
     ctx.font = FONT_SENTINEL;
     const sentinel = ctx.font;
-    ctx.font = `${italic ? "italic " : ""}${fontSize}px ${fontFamily}`;
-    if (ctx.font === sentinel) return estimateLabelWidth(text, fontSize);
+    ctx.font = `${italic ? "italic " : ""}${bold ? "bold " : ""}${fontSize}px ${fontFamily}`;
+    if (ctx.font === sentinel) return estimate();
     const width = ctx.measureText(text).width;
     if (Number.isFinite(width) && (width > 0 || text === "")) return width + MEASURE_PAD * fontSize;
   }
-  return estimateLabelWidth(text, fontSize);
+  return estimate();
 }
 
 /** Widest value label in px per side of the axis; a side without drawn values is undefined. */
@@ -291,20 +295,67 @@ export function relativePinGeometry(
 
 export interface WaterfallGeometry {
   totalWidth: number;
-  /** One gutter on each side; a waterfall always spans its full range. */
-  labelAreaWidth: number;
+  /** Label room left of the bar area. */
+  labelAreaLeft: number;
+  /** Label room right of the bar area. */
+  labelAreaRight: number;
   barAreaWidth: number;
   labelGap: number;
 }
 
-export function waterfallGeometry(widthEm: number, emPx: number): WaterfallGeometry {
+/** One drawn waterfall label: the bar end it sits at (value units), its side and its width in px. */
+export interface WaterfallLabel {
+  end: number;
+  pointsLeft: boolean;
+  width: number;
+}
+
+/** The labels of a waterfall column and the value extent all its rows share. */
+export interface WaterfallColumnLabels {
+  min: number;
+  max: number;
+  labels: WaterfallLabel[];
+}
+
+/**
+ * Without `column` both sides get the fixed gutter. With it each side gets the room its
+ * labels need beyond the bar area; the bar area keeps at least half the width.
+ */
+export function waterfallGeometry(widthEm: number, emPx: number, column?: WaterfallColumnLabels): WaterfallGeometry {
   const totalWidth = contentWidth(widthEm, emPx);
-  const labelAreaWidth = Math.min(BAR_LABEL_EM * emPx, totalWidth / 4);
+  const labelGap = LABEL_GAP_EM * emPx;
+  let left = Math.min(BAR_LABEL_EM * emPx, totalWidth / 4);
+  let right = left;
+
+  const range = column ? column.max - column.min : 0;
+  if (column && range > 0) {
+    // what the labels of one side stick out of the bar area at the given scale
+    const room = (pointsLeft: boolean, pxPerUnit: number) =>
+      Math.max(
+        0,
+        ...column.labels
+          .filter((label) => label.pointsLeft === pointsLeft)
+          .map(
+            (label) =>
+              label.width + labelGap - (pointsLeft ? label.end - column.min : column.max - label.end) * pxPerUnit,
+          ),
+      );
+    left = room(true, 0);
+    right = room(false, 0);
+    const shrink = Math.min(1, totalWidth / 2 / (left + right || 1));
+    left *= shrink;
+    right *= shrink;
+    // a label needs less room the further its bar ends from the edge; a smaller gutter only widens the scale
+    const pxPerUnit = (totalWidth - left - right) / range;
+    left = Math.min(left, room(true, pxPerUnit));
+    right = Math.min(right, room(false, pxPerUnit));
+  }
 
   return {
     totalWidth,
-    labelAreaWidth,
-    barAreaWidth: totalWidth - labelAreaWidth * 2,
-    labelGap: LABEL_GAP_EM * emPx,
+    labelAreaLeft: left,
+    labelAreaRight: right,
+    barAreaWidth: totalWidth - left - right,
+    labelGap,
   };
 }

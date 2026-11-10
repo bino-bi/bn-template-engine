@@ -210,6 +210,13 @@ with an ellipsis.
 width minus the value-label gutters, split across both sides of the axis when the column
 contains positive and negative values.
 
+A waterfall column measures its value labels, total rows included, and keeps on each side
+only the room the labels need there; the bars get the rest. A column whose bars all point
+right has no label room on the left. In a thereof or partof row, the dashed guide at the
+end of the parent bar is left out where it would run through the value label. The guide
+at the start of the parent bar is always drawn. The zero axis line is left out in a row
+the same way.
+
 ## Row Limit
 
 Limit the number of rows per group, aggregating the rest into a "REST" row:

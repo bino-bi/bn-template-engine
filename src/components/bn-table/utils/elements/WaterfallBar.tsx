@@ -10,11 +10,26 @@ import {
   getScenarioType,
   PatternDefs,
 } from "./CellBarChart";
-import { WaterfallBarData } from "../helper/WaterfallCalculator";
-import { waterfallGeometry } from "../helper/barColumnGeometry";
+import { WaterfallBarData, WaterfallRowKind } from "../helper/WaterfallCalculator";
+import { labelWidth, waterfallGeometry, WaterfallGeometry } from "../helper/barColumnGeometry";
 
 export interface WaterfallBarProps extends CellBarChartProps {
   waterfall: WaterfallBarData;
+  /** Column geometry from the measured labels of all rows; without it the fixed gutters count. */
+  geometry?: WaterfallGeometry;
+  /** The row prints bold, so the label is measured bold. */
+  bold?: boolean;
+}
+
+/** Label text of a waterfall bar. Scenario values carry no variance sentiment: unsigned per IBCS. */
+export function waterfallLabelText(
+  value: number,
+  kind: WaterfallRowKind,
+  measureScale: number | undefined,
+  locale: string | undefined,
+  decimalDigits: number | undefined,
+): string {
+  return formatValue(value, kind === "partof", measureScale, locale, 0, true, decimalDigits).replace(/^\+/, "");
 }
 
 /**
@@ -29,7 +44,8 @@ export interface WaterfallBarProps extends CellBarChartProps {
  * Layout: [left label area][bar area][right label area]
  * The value label sits at the bar's free end (right of rightward bars,
  * left of leftward bars). thereof/partof rows additionally get dashed
- * guides marking their parent bar's extent.
+ * guides marking their parent bar's extent. A guide or axis line that would
+ * run through the label is left out in that row.
  */
 export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const {
@@ -42,6 +58,8 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
     columnWidthEm = 10,
     styles = DEFAULT_STYLES,
     waterfall,
+    geometry,
+    bold,
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
@@ -56,9 +74,10 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
     );
   }
 
-  const { totalWidth, labelAreaWidth, barAreaWidth, labelGap } = waterfallGeometry(columnWidthEm, styles.emPx);
+  const { totalWidth, labelAreaLeft, barAreaWidth, labelGap } =
+    geometry ?? waterfallGeometry(columnWidthEm, styles.emPx);
   const pxPerUnit = barAreaWidth / range;
-  const xOf = (coordinate: number) => labelAreaWidth + (coordinate - waterfall.min) * pxPerUnit;
+  const xOf = (coordinate: number) => labelAreaLeft + (coordinate - waterfall.min) * pxPerUnit;
 
   const padding = 2 * s;
   const barHeight = height - padding * 2;
@@ -74,27 +93,26 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const fillValue = getBarFill(barStyle, getScenarioType(scenario));
   const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
 
-  // Scenario values carry no variance sentiment - labels are unsigned per IBCS
-  const displayValue = formatValue(
-    value,
-    waterfall.kind === "partof",
-    measureScale,
-    locale,
-    0,
-    true,
-    decimalDigits,
-  ).replace(/^\+/, "");
+  const displayValue = waterfallLabelText(value, waterfall.kind, measureScale, locale, decimalDigits);
 
   const pointsLeft = endX < startX;
   const labelX = pointsLeft ? barX - labelGap : barX + barWidth + labelGap;
   const labelAnchor = pointsLeft ? "end" : "start";
 
+  // a line through the label makes it unreadable, so the row drops it
+  const labelSize = labelWidth(displayValue, fs, styles.fontFamily, false, bold);
+  const labelPad = labelGap / 2;
+  const labelFrom = (pointsLeft ? labelX - labelSize : labelX) - labelPad;
+  const labelTo = (pointsLeft ? labelX : labelX + labelSize) + labelPad;
+  const meetsLabel = (x: number) => x > labelFrom && x < labelTo;
+  const parentEndX = waterfall.parentEnd !== undefined ? xOf(waterfall.parentEnd) : undefined;
+
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart waterfall-bar" style={{ overflow: "visible" }}>
       <PatternDefs styles={styles} />
 
-      {/* Zero axis line, drawn in every row so the column reads as one chart */}
-      <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
+      {/* Zero axis line, drawn in the rows so the column reads as one chart */}
+      {!meetsLabel(axisX) && <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />}
 
       {/* Dashed guides marking the parent bar extent of a sub-cascade */}
       {waterfall.parentStart !== undefined && waterfall.parentEnd !== undefined && (
@@ -108,11 +126,11 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
           stroke-dasharray={`${2 * s},${2 * s}`}
         />
       )}
-      {waterfall.parentStart !== undefined && waterfall.parentEnd !== undefined && (
+      {waterfall.parentStart !== undefined && parentEndX !== undefined && !meetsLabel(parentEndX) && (
         <line
-          x1={xOf(waterfall.parentEnd)}
+          x1={parentEndX}
           y1={0}
-          x2={xOf(waterfall.parentEnd)}
+          x2={parentEndX}
           y2={height}
           stroke={AXIS_COLOR}
           stroke-width={1 * s}
