@@ -38,6 +38,7 @@ import { BnTableRenderer } from "./bn-table-renderer";
 import { OrderDirection, TableType, ThereofPosition } from "../utils/model";
 import { I18nMode } from "../../../utils/constants";
 import { Order, OrderColumn } from "../../../utils/model/Order";
+import { estimateLabelWidth } from "../utils/helper/barColumnGeometry";
 
 describe("IBCS Table variance waterfall", () => {
   const VARIANCE = "dac1_pl1_op";
@@ -77,6 +78,19 @@ describe("IBCS Table variance waterfall", () => {
   ];
   const mixedRestRows: any[] = [...restRows, { operation: "+", category: "Other", categoryIndex: 5, ac1: 9, pl1: 5 }];
 
+  // variances +50, -45: the second bar ends close to the axis, its label stands on it
+  const returnRows: any[] = [
+    { operation: "+", category: "Up", categoryIndex: 1, ac1: 150, pl1: 100 },
+    { operation: "+", category: "Down", categoryIndex: 2, ac1: 55, pl1: 100 },
+  ];
+
+  // Products +150 with Software +140 as its only listed part, Services -20
+  const partRows: any[] = [
+    { operation: "+", category: "Products", categoryIndex: 1, subCategory: "Software", ac1: 240, pl1: 100 },
+    { operation: "+", category: "Products", categoryIndex: 1, subCategory: "Hardware", ac1: 10, pl1: 0 },
+    { operation: "+", category: "Services", categoryIndex: 2, subCategory: "S", ac1: 80, pl1: 100 },
+  ];
+
   // no row differs from its plan
   const zeroRows: any[] = [
     { operation: "+", category: "Alpha", categoryIndex: 1, ac1: 10, pl1: 10 },
@@ -97,6 +111,8 @@ describe("IBCS Table variance waterfall", () => {
     tables["varianceWalkRest"] = { data: restRows };
     tables["varianceWalkMixedRest"] = { data: mixedRestRows };
     tables["varianceWalkZero"] = { data: zeroRows };
+    tables["varianceWalkReturn"] = { data: returnRows };
+    tables["varianceWalkPart"] = { data: partRows };
   });
 
   const renderTable = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
@@ -280,6 +296,66 @@ describe("IBCS Table variance waterfall", () => {
     expect(from(total)).toBeCloseTo(from(alpha), 3);
     expect(to(total)).toBeCloseTo(to(gamma), 3);
     expect(barRect(beta).getAttribute("fill")).not.toBe(barRect(alpha).getAttribute("fill"));
+  });
+
+  describe("a line that meets a label", () => {
+    const LABEL_FONT = 13.3333 * 0.85;
+    /** The label as [from, to] in x, by the estimate the spec tests measure with. */
+    const labelSpan = (svg: Element): number[] => {
+      const text = label(svg);
+      const width = estimateLabelWidth(text.textContent, LABEL_FONT);
+      const x = num(text, "x");
+      return text.getAttribute("text-anchor") === "end" ? [x - width, x] : [x, x + width];
+    };
+    /** Vertical lines of the svg as [x, y1, y2], with the offset of their group. */
+    const lines = (svg: Element, selector: string): number[][] =>
+      Array.from(svg.querySelectorAll(selector)).map((line) => {
+        const shift = /translate\(0,\s*(-?[\d.]+)\)/.exec(
+          (line.parentNode as Element).parentElement?.getAttribute("transform") ?? "",
+        );
+        const dy = shift ? parseFloat(shift[1]) : 0;
+        return [num(line, "x1"), num(line, "y1") + dy, num(line, "y2") + dy];
+      });
+    const crossesMiddle = ([, y1, y2]: number[]): boolean => y1 < HEIGHT / 2 && y2 > HEIGHT / 2;
+    const glyphs = [HEIGHT / 2 - LABEL_FONT / 2, HEIGHT / 2 + LABEL_FONT / 2];
+
+    it("interrupts the variance axis over the label and keeps it above and below", async () => {
+      const page = await renderTable({ tableName: "varianceWalkReturn", barColumnMaxWidth: 15 });
+      const [up, down] = ["Up", "Down"].map((name) => svgOf(rowOf(page, name)));
+      const [labelFrom, labelTo] = labelSpan(down);
+
+      // Down goes from 50 back to 5, its label stands left of the bar end, on the axis
+      expect(axisX(down)).toBeGreaterThan(labelFrom);
+      expect(axisX(down)).toBeLessThan(labelTo);
+      const axis = lines(down, ".variance-axis line");
+      expect(axis.some(crossesMiddle)).toBe(false);
+      expect(axis.some(([, y1, y2]) => y1 < 0 && y2 <= glyphs[0])).toBe(true);
+      expect(axis.some(([, y1, y2]) => y1 >= glyphs[1] && y2 >= HEIGHT)).toBe(true);
+      // a row whose label is clear of the axis keeps the whole line
+      expect(lines(up, ".variance-axis line").every(crossesMiddle)).toBe(true);
+    });
+
+    it("interrupts a passing connector over the label of a thereof row", async () => {
+      const page = await renderTable({
+        tableName: "varianceWalkPart",
+        barColumnMaxWidth: 10,
+        thereof: [{ rowGroup: "", category: "Products", subCategory: "Software", partOf: "" }],
+      });
+      const products = svgOf(rowOf(page, "Products"));
+      const software = svgOf(rowOf(page, "davon Software"));
+      const [labelFrom, labelTo] = labelSpan(software);
+
+      // the line from the end of Products to Services passes the thereof row inside its label
+      expect(to(products)).toBeGreaterThan(labelFrom);
+      expect(to(products)).toBeLessThan(labelTo);
+      const passing = lines(software, "line.waterfall-connector").filter(([x]) => Math.abs(x - to(products)) < 0.01);
+      expect(passing.length).toBe(2);
+      expect(passing.some(crossesMiddle)).toBe(false);
+      expect(passing[0][1]).toBeLessThan(0);
+      expect(passing[0][2]).toBeLessThanOrEqual(glyphs[0]);
+      expect(passing[1][1]).toBeGreaterThanOrEqual(glyphs[1]);
+      expect(passing[1][2]).toBeGreaterThanOrEqual(HEIGHT);
+    });
   });
 
   describe("REST row of an opt table", () => {
