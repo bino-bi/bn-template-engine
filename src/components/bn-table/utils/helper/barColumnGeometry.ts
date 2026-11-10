@@ -165,35 +165,68 @@ export function pinLabelsFit(widthEm: number, emPx: number, labels: SideLabels, 
   return neg + pos + sides * minExtent(totalWidth, emPx, sides) <= totalWidth + 1e-6;
 }
 
-export interface AbsoluteBarGeometry {
-  /** SVG width - the cell's content box. */
-  totalWidth: number;
-  /** Max bar extent on one side of the axis. */
+export interface BarSide {
+  /** Max bar extent on this side of the axis. */
   maxBarWidth: number;
-  axisX: number;
   breakGap: number;
   overdriveZoneWidth: number;
   /** Bar length above which the overdrive break kicks in. */
   cutWidth: number;
+}
+
+export interface AbsoluteBarGeometry {
+  /** SVG width - the cell's content box. */
+  totalWidth: number;
+  neg: BarSide;
+  pos: BarSide;
+  axisX: number;
   /** Gap between the bar end and its value label. */
   labelGap: number;
 }
 
-export function absoluteBarGeometry(widthEm: number, emPx: number, labels: SideLabels): AbsoluteBarGeometry {
-  const totalWidth = contentWidth(widthEm, emPx);
-  const labelGap = LABEL_GAP_EM * emPx;
-  // a variance bar starts at the outer edge of the thick axis
-  const { extent: maxBarWidth, axisX } = splitSides(totalWidth, labels, (VARIANCE_AXIS_EM * emPx) / 2, labelGap);
-  const breakGap = Math.min(BREAK_GAP_EM * emPx, maxBarWidth * 0.2);
+function barSide(maxBarWidth: number, breakGap: number): BarSide {
   const overdriveZoneWidth = maxBarWidth * OVERDRIVE_FRACTION;
-
   return {
-    totalWidth,
     maxBarWidth,
-    axisX,
     breakGap,
     overdriveZoneWidth,
     cutWidth: Math.max(0, maxBarWidth - breakGap - overdriveZoneWidth),
+  };
+}
+
+/**
+ * `sideMax` is the largest absolute value per side of the axis. With it, the bar room is
+ * split so the uncut bar length of each side is in that ratio: the axis sits where the
+ * values need it, at any scale. Without it, both sides get the same extent.
+ */
+export function absoluteBarGeometry(
+  widthEm: number,
+  emPx: number,
+  labels: SideLabels,
+  sideMax?: SideLabels,
+): AbsoluteBarGeometry {
+  const totalWidth = contentWidth(widthEm, emPx);
+  const labelGap = LABEL_GAP_EM * emPx;
+  // a variance bar starts at the outer edge of the thick axis
+  const { extent, axisX } = splitSides(totalWidth, labels, (VARIANCE_AXIS_EM * emPx) / 2, labelGap);
+  const breakGap = Math.min(BREAK_GAP_EM * emPx, extent * 0.2);
+  const hasNeg = labels.neg !== undefined;
+  const hasPos = labels.pos !== undefined || !hasNeg;
+  let neg = hasNeg ? extent : 0;
+  const maxNeg = Math.max(0, sideMax?.neg ?? 0);
+  const maxPos = Math.max(0, sideMax?.pos ?? 0);
+  if (hasNeg && hasPos && maxNeg + maxPos > 0) {
+    // every side keeps its break gap and overdrive stub, only the uncut length follows the values
+    const uncut = 2 * extent * (1 - OVERDRIVE_FRACTION) - 2 * breakGap;
+    neg = (breakGap + (uncut * maxNeg) / (maxNeg + maxPos)) / (1 - OVERDRIVE_FRACTION);
+  }
+  const pos = hasPos ? (hasNeg ? 2 * extent - neg : extent) : 0;
+
+  return {
+    totalWidth,
+    neg: barSide(neg, breakGap),
+    pos: barSide(pos, breakGap),
+    axisX: hasNeg ? axisX - extent + neg : 0,
     labelGap,
   };
 }

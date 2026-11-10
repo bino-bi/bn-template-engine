@@ -192,7 +192,9 @@ describe("IBCS Table bar column width", () => {
     );
 
     // the largest drawn bar (Beta, 20) gets 80% of the bar area beside the +20.0 label
-    const { maxBarWidth, cutWidth } = absoluteBarGeometry(15, EM, { pos: estimateLabelWidth("+20.0", LABEL_FONT) });
+    const { maxBarWidth, cutWidth } = absoluteBarGeometry(15, EM, {
+      pos: estimateLabelWidth("+20.0", LABEL_FONT),
+    }).pos;
     const target = Math.min(maxBarWidth * 0.8, cutWidth);
     expect(widthOf(beta)).toBeCloseTo(target, 3);
     expect(widthOf(alpha)).toBeCloseTo(target / 2, 3); // 10 is half of 20
@@ -223,8 +225,38 @@ describe("IBCS Table bar column width", () => {
 
     // two-sided w10: 80% of the side is more than the cut, so the largest bar (Beta, 20) ends on the cut
     const labels = { neg: estimateLabelWidth("-5.0", LABEL_FONT), pos: estimateLabelWidth("+20.0", LABEL_FONT) };
-    const { cutWidth } = absoluteBarGeometry(10, EM, labels);
+    const { cutWidth } = absoluteBarGeometry(10, EM, labels, { neg: 5, pos: 20 }).pos;
     expect(widthOf(bars[1])).toBeCloseTo(cutWidth, 3);
     expect(widthOf(bars[0])).toBeCloseTo(cutWidth / 2, 3); // 10 is half of 20
+  });
+
+  it("puts the axis of absolute bars where the largest value of each side needs it", async () => {
+    const page = await renderTable({
+      tableName: "cutData",
+      type: TableType.SUM,
+      scenarios: ["ac1", "dac1_pp1_pos"],
+      barColumns: ["dac1_pp1_pos"],
+      barColumnMaxWidth: 15,
+      unitScaling: 0,
+    });
+
+    const bars = svgsOf(page, "absolute-variance").map((svg) =>
+      Array.from(svg.querySelectorAll("rect")).find(
+        (rect) => (rect.parentNode as Element).tagName?.toLowerCase() === "svg",
+      ),
+    );
+    const labels = { neg: estimateLabelWidth("-5.0", LABEL_FONT), pos: estimateLabelWidth("+20.0", LABEL_FONT) };
+    const { axisX, neg, pos, totalWidth } = absoluteBarGeometry(15, EM, labels, { neg: 5, pos: 20 });
+    const halfAxis = (0.25 * EM) / 2;
+    const xOf = (el: Element) => parseFloat(el.getAttribute("x"));
+
+    // -5 against +20: a fifth of the uncut bar length is left of the axis, the same in every row
+    expect(neg.cutWidth * 4).toBeCloseTo(pos.cutWidth, 6);
+    expect(axisX).toBeLessThan(totalWidth / 3);
+    expect(xOf(bars[0])).toBeCloseTo(axisX + halfAxis, 3);
+    expect(xOf(bars[1])).toBeCloseTo(axisX + halfAxis, 3);
+    expect(xOf(bars[2]) + widthOf(bars[2])).toBeCloseTo(axisX - halfAxis, 3);
+    // one scale on both sides of the axis
+    expect(widthOf(bars[1])).toBeCloseTo(widthOf(bars[2]) * 4, 3);
   });
 });

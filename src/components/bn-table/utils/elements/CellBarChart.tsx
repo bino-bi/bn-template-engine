@@ -431,6 +431,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     decimalDigits,
     columnWidthEm = 10,
     labelWidths,
+    sideMax,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
@@ -438,11 +439,11 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
 
   const displayValue = formattedValue || formatValue(value, false, measureScale, locale, 0, true, decimalDigits);
   const sides = labelWidths ?? ownLabelWidths(columnStats, labelWidth(displayValue, fs, styles.fontFamily, false));
-  const { totalWidth, axisX, breakGap, overdriveZoneWidth, cutWidth, labelGap } = absoluteBarGeometry(
-    columnWidthEm,
-    styles.emPx,
-    sides,
-  );
+  const isPositive = value > 0 || (value === 0 && zeroOnPositiveSide(sides));
+  const { neg = Math.max(0, -columnStats.min), pos = Math.max(0, columnStats.max) } = sideMax ?? {};
+  const geometry = absoluteBarGeometry(columnWidthEm, styles.emPx, sides, { neg, pos });
+  const { totalWidth, axisX, labelGap } = geometry;
+  const { breakGap, overdriveZoneWidth, cutWidth } = isPositive ? geometry.pos : geometry.neg;
 
   // Direct unit scaling via fontSize
   const scaledWidth = Math.abs(value) * styles.unitScaling * fs;
@@ -450,7 +451,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const isExtreme = scaledWidth - cutWidth > 1e-6;
 
   // Compute proportional overdrive width across the column
-  const maxScaledWidth = columnStats.absMax * styles.unitScaling * fs;
+  const maxScaledWidth = (isPositive ? pos : neg) * styles.unitScaling * fs;
   const maxOverflow = Math.max(0, maxScaledWidth - cutWidth);
   const overflowAmount = Math.max(0, scaledWidth - cutWidth);
   const overdriveWidth = maxOverflow > 0 ? (overflowAmount / maxOverflow) * overdriveZoneWidth : 0;
@@ -458,7 +459,6 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const padding = 2 * s;
   const barHeight = height - padding * 2;
   const barY = padding;
-  const isPositive = value > 0 || (value === 0 && zeroOnPositiveSide(sides));
 
   // Get style based on column type (scenario vs variance)
   const look = getVarianceLook(scenario, styles);
