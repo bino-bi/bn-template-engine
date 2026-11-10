@@ -519,6 +519,7 @@ export class BnTableRenderer {
                           columnWidthEm={this.barColumnMaxWidth}
                           labelWidths={this.barColumnLayouts.get(cell.key)?.labels}
                           sideMax={this.barColumnLayouts.get(cell.key)?.sideMax}
+                          bold={isBoldRow(row)}
                           styles={this.barChartStyles}
                         />
                       )
@@ -787,14 +788,15 @@ export class BnTableRenderer {
     const layouts = new Map<string, BarColumnLayout>();
     if (!this.table || this.table.hasNoData()) return layouts;
 
-    const cellsByKey = new Map<string, Cell[]>();
+    // a cell with the weight its row prints in
+    const cellsByKey = new Map<string, { cell: Cell; bold: boolean }[]>();
     for (const row of this.table.getBody()) {
       if (row.type === TableRowType.SUM) continue;
       for (const cell of row.getCells()) {
         // waterfall cells scale independently
         if (!cell.isBarChart || !cell.columnStats || cell.waterfall !== undefined) continue;
         if (typeof cell.value !== "number" || isNaN(cell.value)) continue;
-        cellsByKey.set(cell.key, [...(cellsByKey.get(cell.key) ?? []), cell]);
+        cellsByKey.set(cell.key, [...(cellsByKey.get(cell.key) ?? []), { cell, bold: isBoldRow(row) }]);
       }
     }
 
@@ -805,14 +807,14 @@ export class BnTableRenderer {
     const fontFamily = this.labelFontFamily();
     for (const [key, cells] of cellsByKey) {
       const isRelative = key.startsWith("dr");
-      const values = cells.map((cell) => cell.value as number);
+      const values = cells.map(({ cell }) => cell.value as number);
       const measure = (percentDigits: number, percentSign: boolean): SideLabels => {
         const labels: SideLabels = {
           neg: values.some((value) => value < 0) ? 0 : undefined,
           pos: values.some((value) => value > 0) ? 0 : undefined,
         };
         const zeroPositive = zeroOnPositiveSide(labels);
-        for (const cell of cells) {
+        for (const { cell, bold } of cells) {
           const value = cell.value as number;
           const side = value > 0 || (value === 0 && zeroPositive) ? "pos" : "neg";
           const text = formatValue(
@@ -824,7 +826,7 @@ export class BnTableRenderer {
             percentSign,
             barLabelDigits(cell, this.componentDataFormatDigits),
           );
-          labels[side] = Math.max(labels[side] ?? 0, labelWidth(text, fs, fontFamily, isRelative));
+          labels[side] = Math.max(labels[side] ?? 0, labelWidth(text, fs, fontFamily, isRelative, bold));
         }
         return labels;
       };

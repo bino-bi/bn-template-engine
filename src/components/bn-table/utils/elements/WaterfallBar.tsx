@@ -19,8 +19,6 @@ export interface WaterfallBarProps extends CellBarChartProps {
   waterfall: WaterfallBarData;
   /** Column geometry from the measured labels of all rows; without it the fixed gutters count. */
   geometry?: WaterfallGeometry;
-  /** The row prints bold, so the label is measured bold. */
-  bold?: boolean;
   /** How far the connectors and the variance axis run out of the svg to meet the row above and below, in px. */
   connectorReach?: { top: number; bottom: number };
 }
