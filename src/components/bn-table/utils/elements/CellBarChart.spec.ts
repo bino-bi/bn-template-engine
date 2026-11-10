@@ -60,4 +60,12 @@ describe("formatValue", () => {
     expect(formatValue(0.6, true, 1, "en", -1)).toBe("+60%");
     expect(formatValue(0.6, true, 1, "en", 101)).toBe("+60.00%");
   });
+
+  it("prints an absolute value like a number cell when it gets decimal digits", () => {
+    expect(formatValue(12, false, 1, "en", 0, true, 1)).toBe("+12.0");
+    expect(formatValue(-1234.56, false, 1, "en", 0, true, 1)).toBe("-1,234.6");
+    expect(formatValue(1234500, false, 1000, "de", 0, true, 2)).toBe("+1.234,50");
+    expect(formatValue(12.4, false, 1, "en", 0, true, 0)).toBe("+12");
+    expect(formatValue(-0.04, false, 1, "en", 0, true, 1)).toBe("0.0");
+  });
 });

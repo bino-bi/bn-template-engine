@@ -95,13 +95,13 @@ describe("IBCS Table bar labels", () => {
     const page = await renderTable();
 
     // 1734.5 - 500 = 1234.5
-    expect(labelOf(page, "Alpha")).toBe("+1,2K");
+    expect(labelOf(page, "Alpha")).toBe("+1.234,5");
   });
 
   it("keeps the English format for en", async () => {
     const page = await renderTable();
 
-    expect(labelOf(page, "Alpha")).toBe("+1.2K");
+    expect(labelOf(page, "Alpha")).toBe("+1,234.5");
   });
 
   it("prints a relative variance with the percent digits", async () => {
@@ -132,7 +132,13 @@ describe("IBCS Table bar labels", () => {
     const page = await renderTable();
 
     // 99.96 - 100 = -0.04
-    expect(labelOf(page, "Beta")).toBe("0");
+    expect(labelOf(page, "Beta")).toBe("0.0");
+  });
+
+  it("prints an absolute label with the decimal digits of the number cells", async () => {
+    // 112.5 - 100 = 12.5
+    expect(labelOf(await renderTable({ dataFormatDigits: { percent: 1, decimal: 0 } }), "Gamma")).toBe("+13");
+    expect(labelOf(await renderTable({ dataFormatDigits: { percent: 1, decimal: 2 } }), "Gamma")).toBe("+12.50");
   });
 
   it("prints waterfall labels in the locale", async () => {
@@ -144,7 +150,7 @@ describe("IBCS Table bar labels", () => {
     );
 
     expect(alpha.querySelector("svg").getAttribute("class")).toContain("waterfall-bar");
-    expect(labelOf(page, "Alpha")).toBe("1,7K");
+    expect(labelOf(page, "Alpha")).toBe("1.734,5");
   });
 
   it("labels a percent table variance in percentage points", async () => {

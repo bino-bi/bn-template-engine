@@ -143,7 +143,7 @@ describe("IBCS Table variance look", () => {
 
     it("prints a zero variance without a sign, as a pin and as a bar label", async () => {
       expect(svgOf(await renderColumn("drac1_pl1_pos", { percentageScaling }), "C Flat").textContent).toBe("0.00%");
-      expect(svgOf(await renderColumn("dac1_pl1_pos", { unitScaling: 0.05 }), "C Flat").textContent).toBe("0");
+      expect(svgOf(await renderColumn("dac1_pl1_pos", { unitScaling: 0.05 }), "C Flat").textContent).toBe("0.0");
     });
 
     it("puts a zero label in the left gutter of a column without positive values", async () => {
@@ -300,11 +300,11 @@ describe("IBCS Table variance look", () => {
       const up = svgOf(page, "A Up");
       expect(up.querySelectorAll("path").length).toBe(2); // the zigzag break
       const upLabel = up.querySelector("text");
-      expect(num(upLabel, "x") + labelWidth("+20")).toBeLessThanOrEqual(num(up, "width") + 1e-6);
+      expect(num(upLabel, "x") + labelWidth("+20.0")).toBeLessThanOrEqual(num(up, "width") + 1e-6);
 
       const downLabel = svgOf(page, "B Down").querySelector("text");
-      expect(downLabel.textContent).toBe("-20");
-      expect(num(downLabel, "x") - labelWidth("-20")).toBeGreaterThanOrEqual(-1e-6);
+      expect(downLabel.textContent).toBe("-20.0");
+      expect(num(downLabel, "x") - labelWidth("-20.0")).toBeGreaterThanOrEqual(-1e-6);
     });
 
     it("starts the bars at the outer edge of the axis without changing their length", async () => {

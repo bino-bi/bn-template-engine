@@ -471,6 +471,7 @@ export class BnTableRenderer {
                           isPositiveGood={cell.direction === "pos"}
                           measureScale={cell.measureScale}
                           locale={locale}
+                          decimalDigits={barLabelDigits(cell, this.componentDataFormatDigits)}
                           columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                           waterfall={cell.waterfall}
@@ -485,6 +486,7 @@ export class BnTableRenderer {
                           isPositiveGood={cell.direction === "pos"}
                           measureScale={barLabelMeasureScale(cell)}
                           locale={locale}
+                          decimalDigits={barLabelDigits(cell, this.componentDataFormatDigits)}
                           percentDigits={
                             this.barColumnLayouts.get(cell.key)?.percentDigits ?? this.componentDataFormatDigits.percent
                           }
@@ -761,7 +763,15 @@ export class BnTableRenderer {
         for (const cell of cells) {
           const value = cell.value as number;
           const side = value > 0 || (value === 0 && zeroPositive) ? "pos" : "neg";
-          const text = formatValue(value, isRelative, barLabelMeasureScale(cell), locale, percentDigits, percentSign);
+          const text = formatValue(
+            value,
+            isRelative,
+            barLabelMeasureScale(cell),
+            locale,
+            percentDigits,
+            percentSign,
+            barLabelDigits(cell, this.componentDataFormatDigits),
+          );
           labels[side] = Math.max(labels[side] ?? 0, labelWidth(text, fs, fontFamily, isRelative));
         }
         return labels;
@@ -792,4 +802,10 @@ export class BnTableRenderer {
 /** Percentage points: the fraction times 100, no measure scale. */
 function barLabelMeasureScale(cell: Cell): number {
   return cell.type === "percentpoint" ? 0.01 : cell.measureScale;
+}
+
+/** Fraction digits of the number cells of the column, so an absolute bar label prints like them. */
+function barLabelDigits(cell: Cell, digits: DataFormatDigits): number | undefined {
+  if (cell.type === "percentpoint") return digits.percent;
+  return cell.type === "decimal" ? digits.decimal : undefined;
 }

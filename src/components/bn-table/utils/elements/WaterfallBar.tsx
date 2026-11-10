@@ -38,6 +38,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
     height,
     measureScale,
     locale,
+    decimalDigits,
     columnWidthEm = 10,
     styles = DEFAULT_STYLES,
     waterfall,
@@ -74,7 +75,15 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
 
   // Scenario values carry no variance sentiment - labels are unsigned per IBCS
-  const displayValue = formatValue(value, waterfall.kind === "partof", measureScale, locale).replace(/^\+/, "");
+  const displayValue = formatValue(
+    value,
+    waterfall.kind === "partof",
+    measureScale,
+    locale,
+    0,
+    true,
+    decimalDigits,
+  ).replace(/^\+/, "");
 
   const pointsLeft = endX < startX;
   const labelX = pointsLeft ? barX - labelGap : barX + barWidth + labelGap;

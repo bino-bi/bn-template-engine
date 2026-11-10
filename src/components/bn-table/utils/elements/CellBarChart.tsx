@@ -62,6 +62,8 @@ export interface CellBarChartProps {
   measureScale?: number;
   locale?: string;
   percentDigits?: number;
+  /** Fraction digits of an absolute label, as in the number cells; without it the label takes an SI suffix. */
+  decimalDigits?: number;
   /** False drops the % of a relative label, for a column too narrow for it. */
   percentSign?: boolean;
   /** Total column width in table em - see barColumnGeometry.ts. */
@@ -138,7 +140,8 @@ export const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = 
 const PIN_LABEL_CHARS = 7;
 
 /**
- * Formats a number for display with appropriate SI prefix.
+ * Formats a bar or pin label. An absolute value with `decimalDigits` prints like a number
+ * cell, without them it takes an SI suffix.
  */
 export function formatValue(
   value: number,
@@ -147,6 +150,7 @@ export function formatValue(
   locale?: string,
   percentDigits: number = 0,
   percentSign: boolean = true,
+  decimalDigits?: number,
 ): string {
   // IBCS prints a value that rounds to zero without a sign
   const signed = (text: string, zero: string) => (value > 0 && text !== zero ? "+" : "") + text;
@@ -170,6 +174,12 @@ export function formatValue(
 
   // Absolute variance - apply measure scale and use SI prefixes
   const scaledValue = value / measureScale;
+
+  if (decimalDigits !== undefined) {
+    const number = (v: number) => Formatter.number(v, "decimal", decimalDigits, decimalDigits, 1, locale);
+    return signed(number(scaledValue), number(0));
+  }
+
   const absValue = Math.abs(scaledValue);
 
   let unit = 1;
@@ -418,6 +428,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     formattedValue,
     measureScale,
     locale,
+    decimalDigits,
     columnWidthEm = 10,
     labelWidths,
     styles = DEFAULT_STYLES,
@@ -425,7 +436,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
 
-  const displayValue = formattedValue || formatValue(value, false, measureScale, locale);
+  const displayValue = formattedValue || formatValue(value, false, measureScale, locale, 0, true, decimalDigits);
   const sides = labelWidths ?? ownLabelWidths(columnStats, labelWidth(displayValue, fs, styles.fontFamily, false));
   const { totalWidth, axisX, breakGap, overdriveZoneWidth, cutWidth, labelGap } = absoluteBarGeometry(
     columnWidthEm,
