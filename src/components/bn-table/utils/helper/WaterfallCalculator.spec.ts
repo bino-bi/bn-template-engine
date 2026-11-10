@@ -49,13 +49,34 @@ describe("computeWaterfall", () => {
     expect(bar(result, rows[3])).toMatchObject({ start: 12, end: 15 });
   });
 
-  it("continues the cascade across group boundaries after a GROUP_SUM anchor", () => {
-    const groupA = [entry(10), entry(5), sum(15, "GROUP_SUM")];
-    const groupB = [entry(-4)];
-    const result = computeWaterfall([groupA, groupB], ["ac1"], TableType.SUM);
+  it("restarts the cascade at zero for every row group", () => {
+    const groupA = [{ type: "GROUPHEAD" }, entry(10), entry(5), sum(15, "GROUP_SUM")];
+    const groupB = [{ type: "GROUPHEAD" }, entry(4, "-"), entry(2, "-"), sum(-6, "GROUP_SUM")];
+    const total = [sum(9)];
+    const result = computeWaterfall([groupA, groupB, total], ["ac1"], TableType.OPT);
 
-    expect(bar(result, groupA[2])).toMatchObject({ start: 0, end: 15, kind: "anchor" });
-    expect(bar(result, groupB[0])).toMatchObject({ start: 15, end: 11 });
+    expect(bar(result, groupA[3])).toMatchObject({ start: 0, end: 15, kind: "anchor" });
+    expect(bar(result, groupB[1])).toMatchObject({ start: 0, end: -4, kind: "cascade" });
+    expect(bar(result, groupB[2])).toMatchObject({ start: -4, end: -6, kind: "cascade" });
+    expect(bar(result, groupB[3])).toMatchObject({ start: 0, end: -6, kind: "anchor" });
+    expect(bar(result, total[0])).toMatchObject({ start: 0, end: 9, kind: "anchor" });
+  });
+
+  it("restarts the cascade for a row group without a sum row", () => {
+    const groupA = [{ type: "GROUPHEAD" }, entry(10), drill(4)];
+    const groupB = [{ type: "GROUPHEAD" }, entry(7)];
+    const result = computeWaterfall([groupA, groupB], ["ac1"], TableType.LIST);
+
+    expect(bar(result, groupB[1])).toMatchObject({ start: 0, end: 7 });
+  });
+
+  it("continues the running total after a subtotal row inside one group", () => {
+    const rows = [entry(10), entry(4, "-"), sum(6), entry(3), entry(1, "-"), sum(8)];
+    const result = computeWaterfall([rows], ["ac1"], TableType.OPT);
+
+    expect(bar(result, rows[3])).toMatchObject({ start: 6, end: 9 });
+    expect(bar(result, rows[4])).toMatchObject({ start: 9, end: 8 });
+    expect(bar(result, rows[5])).toMatchObject({ start: 0, end: 8, kind: "anchor" });
   });
 
   it("re-anchors consecutive sum rows independently", () => {
