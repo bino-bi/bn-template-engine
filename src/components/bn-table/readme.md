@@ -151,7 +151,7 @@ Notes:
 </bn-table>
 ```
 
-- A row starts where the row above ended. On `opt` and `optnototal` tables the step is the operation sign times the printed variance, so a `-` row with a positive variance moves to the left. The REST row of a `limit` walks by the signed sum of the rows it holds, so the walk still ends at the sum. On the other table types the values are already signed and are used as they are.
+- A row starts where the row above ended. On `opt` and `optnototal` tables the step is the operation sign times the printed variance, so a `-` row with a positive variance moves to the left. The REST row of a `limit` walks by the signed sum of the rows it holds, so the walk still ends at the sum. When that REST row mixes `+` and `-` rows, its number and its label are still the plain sum, so they do not match the length of its bar. On the other table types the values are already signed and are used as they are.
 - The label keeps the printed sign and stands at the free end of the bar. The color is the sentiment of the cell, the pattern follows the minuend scenario (FC hatched) and the axis has the look of the reference scenario, as in plain variance bars. The axis is drawn at zero in every row.
 - Sum rows and the total are bars from the axis with bold labels. Each row group starts at the axis again. With `running-sum` the walk goes on from the sum row.
 - Thereof rows walk from the start of their parent bar, each by its own signed value, so they can go both ways and leave the parent bar. They have no dashed guides. With `thereof-position="above"` the geometry is the same. A partof row has no bar and prints its number.
