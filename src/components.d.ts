@@ -1843,7 +1843,7 @@ export namespace Components {
          */
         "type": string;
         /**
-          * Data units displayed per 1 em of bar length for absolute variance bar charts (ΔPY) - map-scale semantics: a larger value means smaller bars. Bars exceeding barColumnWidth are shown with an arrow indicator.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest bar to the bar column width               | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`         | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_unitScaling` warning                         |  Default: `"100"` (1 em of bar represents 100 units)
+          * Data units displayed per 1 em of bar length for absolute variance bar charts (ΔPY) - map-scale semantics: a larger value means smaller bars. Bars exceeding barColumnWidth are cut with a zigzag break.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest bar to the bar column width               | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`         | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_unitScaling` warning                         |  Default: `"100"` (1 em of bar represents 100 units)
           * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
           * @default "100"
@@ -4334,7 +4334,7 @@ declare namespace LocalJSX {
          */
         "type"?: string;
         /**
-          * Data units displayed per 1 em of bar length for absolute variance bar charts (ΔPY) - map-scale semantics: a larger value means smaller bars. Bars exceeding barColumnWidth are shown with an arrow indicator.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest bar to the bar column width               | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`         | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_unitScaling` warning                         |  Default: `"100"` (1 em of bar represents 100 units)
+          * Data units displayed per 1 em of bar length for absolute variance bar charts (ΔPY) - map-scale semantics: a larger value means smaller bars. Bars exceeding barColumnWidth are cut with a zigzag break.  | Value            | Behavior                                                       | |------------------|----------------------------------------------------------------| | `"auto"`         | Auto-fit the largest bar to the bar column width               | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`         | | group name       | References a `<bn-scaling-group>` for synchronized scaling     | | invalid / unknown | Auto-fit + `AUTO_unitScaling` warning                         |  Default: `"100"` (1 em of bar represents 100 units)
           * @example unit-scaling="1M"
           * @example unit-scaling="revenue-scale"
           * @default "100"

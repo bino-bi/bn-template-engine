@@ -37,6 +37,11 @@ percentage points per 1 em of pin length**.
 <bn-table percentage-scaling="10" ...></bn-table>
 ```
 
+In `bn-table`, a pin that is longer than its pin area at a fixed
+`percentage-scaling` is cut and ends in an arrow. Its label stands on the pin
+line behind the arrow head, on a light band. When the line is too short for
+the label, the label goes after the arrow tip.
+
 ### Value grammar
 
 Both attributes (and `bn-scaling-group`'s `value`) share one grammar:
