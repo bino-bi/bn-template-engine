@@ -128,7 +128,7 @@ Used by `<bn-chart-time>` for time series visualization. The `dateInterval` prop
 | `setnameIndex` | `number` | Optional. Sort order of the `setname` groups of a `<bn-table>` with `interval="setname"` |
 | `operation` | `string` | `"+"` (default) or `"-"` - determines sign in aggregations |
 
-With `interval="setname"` a `<bn-table>` shows one column block per `setname`. Without `setnameIndex` the blocks are in order of first appearance in the data. With `setnameIndex` they are sorted ascending by it, for example three months first and a year-to-date block last. If a `setname` has different indexes, the smallest one counts. Blocks without a numeric index come last. `setnameIndex` needs `setname`: a row with an index and a blank `setname` gives the warning `WARN_intervalSetnameIndex`. Date intervals ignore the field.
+With `interval="setname"` a `<bn-table>` shows one column block per `setname`. Without `setnameIndex` the blocks are in order of first appearance in the data. With `setnameIndex` they are sorted ascending by it, for example three months first and a year-to-date block last. If a `setname` has different indexes, the smallest one counts. Blocks without a numeric index come last. `setnameIndex` needs `setname`: a row with an index and a blank `setname` gives the warning `WARN_intervalSetnameIndex`. The check runs only with `interval="setname"`, other tables do not read the field. Date intervals ignore the field.
 
 ### Custom Fields
 
