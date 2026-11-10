@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 #### `bn-table`: order of the setname blocks and position of the category column
 
-With `interval="setname"` the blocks were always in order of first appearance in the data. The new optional dataset column `setnameIndex` (a number) sets the order: the blocks are sorted ascending by it. If a setname has different indexes, the smallest one counts. Blocks without an index come last. Without the column nothing changes. A row with a `setnameIndex` and a blank `setname` gives the warning `WARN_intervalSetnameIndex`.
+With `interval="setname"` the blocks were always in order of first appearance in the data. The new optional dataset column `setnameIndex` (a number) sets the order: the blocks are sorted ascending by it. If a setname has different indexes, the smallest one counts. Blocks without an index come last. Without the column nothing changes. A row with a `setnameIndex` and a blank `setname` gives the warning `WARN_intervalSetnameIndex`. The check runs only with `interval="setname"`, other tables do not read the field.
 
 The new attribute `category-interval-position` (property `categoryIntervalPosition`, default `0`) is the number of interval blocks that stand left of the category column. `0` keeps the category column first, `1` puts one block left of it, the number of blocks puts it last. The operation column and the `attributes` columns move with it. It works with `setname` and with date intervals.
 
