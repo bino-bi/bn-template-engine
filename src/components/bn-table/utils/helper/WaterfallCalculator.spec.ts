@@ -62,6 +62,15 @@ describe("computeWaterfall", () => {
     expect(bar(result, total[0])).toMatchObject({ start: 0, end: 9, kind: "anchor" });
   });
 
+  it("restarts the cascade after a group sum when the groups have no head row", () => {
+    const groupA = [entry(10), entry(5), sum(15, "GROUP_SUM")];
+    const groupB = [entry(4, "-"), sum(-4, "GROUP_SUM")];
+    const result = computeWaterfall([groupA, groupB], ["ac1"], TableType.OPT);
+
+    expect(bar(result, groupB[0])).toMatchObject({ start: 0, end: -4, kind: "cascade" });
+    expect(bar(result, groupB[1])).toMatchObject({ start: 0, end: -4, kind: "anchor" });
+  });
+
   it("restarts the cascade for a row group without a sum row", () => {
     const groupA = [{ type: "GROUPHEAD" }, entry(10), drill(4)];
     const groupB = [{ type: "GROUPHEAD" }, entry(7)];
