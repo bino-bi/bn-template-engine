@@ -63,6 +63,12 @@ export enum TableType {
   OPTNOTOTAL = "optnototal",
 }
 
+/** Where thereof rows stand: below their parent row, or above it like the components of a subtotal. */
+export enum ThereofPosition {
+  BELOW = "below",
+  ABOVE = "above",
+}
+
 export enum OrderDirection {
   ASC = "asc",
   DESC = "desc",

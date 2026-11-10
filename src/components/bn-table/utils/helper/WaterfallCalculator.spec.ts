@@ -71,6 +71,22 @@ describe("computeWaterfall", () => {
     expect(bar(result, groupB[1])).toMatchObject({ start: 0, end: -4, kind: "anchor" });
   });
 
+  it("walks on from a running group sum, with and without head rows", () => {
+    for (const head of [[], [{ type: "GROUPHEAD" }]]) {
+      const groupA = [...head, entry(10), entry(5), sum(15, "GROUP_SUM")];
+      const groupB = [...head, entry(4, "-"), drill(3), sum(11, "GROUP_SUM")];
+      const groupC = [...head, entry(2)];
+      const result = computeWaterfall([groupA, groupB, groupC], ["ac1"], TableType.OPT, true);
+      const [expense, part, running] = groupB.slice(head.length);
+
+      expect(bar(result, groupA[head.length + 2])).toMatchObject({ start: 0, end: 15, kind: "anchor" });
+      expect(bar(result, expense)).toMatchObject({ start: 15, end: 11, kind: "cascade" });
+      expect(bar(result, part)).toMatchObject({ start: 15, end: 12, kind: "thereof", parentStart: 15, parentEnd: 11 });
+      expect(bar(result, running)).toMatchObject({ start: 0, end: 11, kind: "anchor" });
+      expect(bar(result, groupC[head.length])).toMatchObject({ start: 11, end: 13, kind: "cascade" });
+    }
+  });
+
   it("restarts the cascade for a row group without a sum row", () => {
     const groupA = [{ type: "GROUPHEAD" }, entry(10), drill(4)];
     const groupB = [{ type: "GROUPHEAD" }, entry(7)];

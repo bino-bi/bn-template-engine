@@ -1,5 +1,5 @@
 import { QueryGroups } from "./QueryGroup";
-import { TableType } from "../model";
+import { TableType, ThereofPosition } from "../model";
 import { TableComponentConfig } from "../model/TableComponentConfig";
 import { Order } from "../../../../utils/model/Order";
 import { DataFormat, I18nMode, TableCategoryWidth, MeasureType } from "../../../../utils/constants";
@@ -12,7 +12,9 @@ describe("DQueryGroup Test", () => {
     scenariosUnitType: DataFormat.DECIMAL,
     grouped: true, // Array<string | GroupSelection>| null;
     showGroupTitle: false,
+    runningSum: false,
     thereOf: [],
+    thereOfPosition: ThereofPosition.BELOW,
     categoryThereOf: new Map(),
     partOf: [],
     attributes: [],

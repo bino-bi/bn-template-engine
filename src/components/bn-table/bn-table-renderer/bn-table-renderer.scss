@@ -276,6 +276,16 @@ tr.sum td {
   padding-bottom: 0.5em;
 }
 
+/* thereof rows printed above their parent: normal rows with an indented label, the parent closes them like a subtotal */
+tr.ofit-above td[class^="category"] {
+  padding-left: 1em;
+}
+
+tr.ofit-sum td {
+  border-top: 0.1em solid black;
+  font-weight: bold;
+}
+
 tr.groupheader td {
   border-top: 0em dotted #ddd;
   padding-top: 0.5em;

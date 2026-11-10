@@ -11,6 +11,7 @@ import {
   isValidMeasureScale,
   isValidMeasureType,
   isValidTableType,
+  isValidThereofPosition,
   validateAttributesJsonStr,
   validateBarColumnsList,
   validateColumnThereOfJsonStr,
@@ -47,7 +48,7 @@ import {
   TableBarColumnWidth,
   TableCategoryWidth,
 } from "../../utils/constants";
-import { TableType } from "./utils/model";
+import { TableType, ThereofPosition } from "./utils/model";
 import { coerceSetnameIndex, INTERVAL_NONE, INTERVAL_SETNAME } from "./utils/helper/IntervalColumns";
 import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { parseTableAttributeExpression, TableAttribute } from "./utils/model/TableAttribute";
@@ -556,6 +557,23 @@ export class Table {
   @Prop() showGroupTitle: boolean = true;
 
   /**
+   *  Turns the sum row of each (row-)group into a running result: the sum of all
+   *  rows from the first group down to its own group, with the matching absolute
+   *  and relative variances. Use it for a calculation scheme such as an income
+   *  statement, where each `rowGroup` ends in a result.
+   *  <br /><br />
+   *  Needs `grouped` and a type with group sums (```sum // opt // sumnototal // optnototal```).
+   *  The total row of ```sum``` and ```opt``` stays and repeats the last running
+   *  result, so ```sumnototal``` or ```optnototal``` is the usual choice.
+   *  `partof` shares still refer to the sum of their own group.
+   *  Not supported together with `columnthereof`: there it has no effect.
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
+   */
+  @Prop() runningSum: boolean = false;
+
+  /**
    *  Set the table type
    *  <br /><br />
    *  values: <br />
@@ -628,6 +646,35 @@ export class Table {
       });
     } else {
       this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * Position of the `thereof` rows relative to their parent row.
+   * <br /><br />
+   * ```below``` (default) prints them below the parent, small and italic, with
+   * the thereof label. ```above``` prints them before the parent in normal
+   * size with an indented label, and the parent row looks like a subtotal
+   * (bold, with a line above it). The parent keeps its operation sign and its
+   * value, so a parent of `-` rows reads like "- Operating expenses".
+   * <br /><br />
+   * values: <br />
+   * ```below // above```
+   */
+  @Prop() thereofPosition: string = "below";
+
+  @Watch("thereofPosition")
+  validateThereofPosition(newValue: string) {
+    const errId = "WARN_thereofPosition";
+
+    if (isBlankInput(newValue) || isValidThereofPosition(newValue)) {
+      this.errors.remove(errId);
+    } else {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "thereofPosition: invalid value '" + newValue + "' is not supported.",
+      });
     }
   }
 
@@ -1000,6 +1047,7 @@ export class Table {
     this.validateType(this.type);
     this.validateLimit(this.limit);
     this.validateThereOf(this.thereof);
+    this.validateThereofPosition(this.thereofPosition);
     this.validatePartOf(this.partof);
     this.validateOrderDirection(this.orderDirection);
     this.validateOrderList(this.order);
@@ -1167,6 +1215,12 @@ export class Table {
 
   private prepareShowGroupTitle(): boolean {
     return this.showGroupTitle;
+  }
+
+  private prepareThereofPosition(): ThereofPosition {
+    return this.thereofPosition?.toLowerCase() === ThereofPosition.ABOVE
+      ? ThereofPosition.ABOVE
+      : ThereofPosition.BELOW;
   }
 
   private prepareTableType(): TableType {
@@ -1776,7 +1830,9 @@ export class Table {
             grouped={this.prepareGrouped()}
             limit={this.prepareLimit()}
             showGroupTitle={this.prepareShowGroupTitle()}
+            runningSum={this.runningSum}
             thereof={this.prepareThereOf()}
+            thereofPosition={this.prepareThereofPosition()}
             partof={this.preparePartOf()}
             order={this.prepareOrder()}
             categorythereof={this.prepareColumnThereOf()}

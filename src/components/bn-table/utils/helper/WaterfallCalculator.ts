@@ -109,16 +109,20 @@ function signedValue(row: DataQueryResultRow, column: string, tableType: TableTy
  *   `createPartOfDrillRows`, not literally the parent row's value.
  * - GROUPHEAD rows get no bar and restart the running total at zero: every row group
  *   is its own cascade that ends at its GROUP_SUM.
+ * - With `runningSum` a GROUP_SUM row holds the result of all groups so far, so the
+ *   cascade goes on from its value and no GROUPHEAD restarts it.
  * - NaN rows get no bar; a NaN parent orphans its drill children.
  *
  * @param queryData - Segmented result rows from DataQuery.execute().
  * @param columns - Plain scenario column keys (ac1..pl4); no `##` composite keys.
  * @param tableType - Table aggregation mode, needed for OPT sign handling.
+ * @param runningSum - True when the GROUP_SUM rows are running results.
  */
 export function computeWaterfall(
   queryData: DataQueryResultRow[][],
   columns: string[],
   tableType: TableType,
+  runningSum: boolean = false,
 ): WaterfallResult {
   const result = new WaterfallResult();
 
@@ -139,7 +143,9 @@ export function computeWaterfall(
 
         if (type === TableRowType.GROUPHEAD) {
           // a group sum only totals its own rows, so the cascade must not carry over
-          running = 0;
+          if (!runningSum) {
+            running = 0;
+          }
           lastParent = undefined;
           continue;
         }
@@ -164,7 +170,7 @@ export function computeWaterfall(
           lastParent = { start: 0, end: value };
           subCursor = 0;
           // a group sum closes its group (there may be no GROUPHEAD row when the title is hidden)
-          running = type === TableRowType.GROUPSUM ? 0 : value;
+          running = type === TableRowType.GROUPSUM && !runningSum ? 0 : value;
         } else if (type === TableRowType.DRILLELEMENT) {
           if (value === null || lastParent === undefined) {
             continue;

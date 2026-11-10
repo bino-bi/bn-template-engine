@@ -17,6 +17,7 @@ import {
   TableCategoryWidth,
   TableType,
 } from "./constants";
+import { ThereofPosition } from "../components/bn-table/utils/model";
 import { isValidAttributeExpression } from "../components/bn-table/utils/model/TableAttribute";
 import { DateDistance, DateLink } from "./DateStringFactory";
 import { OrderColumn, OrderDirection, parseOrderToken } from "./model/Order";
@@ -261,6 +262,10 @@ export function isValidTableType(value: string): boolean {
   }
 
   return value?.toUpperCase() in TableType;
+}
+
+export function isValidThereofPosition(value: string): boolean {
+  return value?.toUpperCase() in ThereofPosition;
 }
 
 export function validateThereOfJsonStr(value: string): string[] {

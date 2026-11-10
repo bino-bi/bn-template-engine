@@ -1,6 +1,6 @@
 import { Component, Element, forceUpdate, h, Host, Method, Prop } from "@stencil/core";
 
-import { OrderDirection, TableRowType, TableType } from "../utils/model";
+import { OrderDirection, TableRowType, TableType, ThereofPosition } from "../utils/model";
 import {
   CellElement,
   ComponentMetadata,
@@ -155,7 +155,15 @@ export class BnTableRenderer {
 
   /** @internal */
   @Prop()
+  runningSum: boolean = false;
+
+  /** @internal */
+  @Prop()
   thereof: TableDrillGroup[] = [];
+
+  /** @internal */
+  @Prop()
+  thereofPosition: ThereofPosition = ThereofPosition.BELOW;
 
   /** @internal */
   @Prop()
@@ -584,7 +592,9 @@ export class BnTableRenderer {
       scenariosUnitType: this.scenariosDataFormat,
       grouped: this.grouped,
       showGroupTitle: this.showGroupTitle,
+      runningSum: this.runningSum,
       thereOf: this.thereof,
+      thereOfPosition: this.thereofPosition,
       partOf: this.partof,
       categoryThereOf: this.categorythereof,
       attributes: this.attributeColumns,
