@@ -194,7 +194,7 @@ comes from the component's `getBaseline()` method. `bn-grid` uses it for
 | `bn-chart-structure` | the top end of the value axis | the value axis of the base segment |
 | `bn-chart-scatter` / `bubble` | the bottom of the plot frame (first panel when faceted) | the left edge of the plot frame |
 | `bn-chart-bullet` | the top end of the zero line | the zero line |
-| `bn-table` | the bottom of the header | the left edge of the first value column |
+| `bn-table` | the bottom of the header | the left edge of the first value column. With `categoryIntervalPosition` greater than 0 this is the first column of the table |
 
 Before a component has drawn, `baseline` is `{}`.
 
