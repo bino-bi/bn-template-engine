@@ -158,6 +158,36 @@ describe("IBCS Table blank row group", () => {
     ]);
   });
 
+  it("renders no group head row when the group title is hidden", async () => {
+    const page = await renderTable({ showGroupTitle: false });
+
+    expect(page.root.shadowRoot.querySelectorAll("tbody tr.groupheader").length).toBe(0);
+    expect(rows(page)).toEqual([
+      ["Laptops", "90", "100"],
+      ["Phones", "40", "50"],
+      ["Hardware", "130", "150"],
+      ["Discounts", "10", "20"],
+      ["Freight", "20", "30"],
+      ["Other", "5", "10"],
+      ["-", "35", "60"],
+      ["Summe", "165", "210"],
+    ]);
+  });
+
+  it("keeps the empty group head row as gap in a list without group title", async () => {
+    const page = await renderTable({ showGroupTitle: false, type: TableType.LIST });
+
+    expect(rows(page)).toEqual([
+      ["", "", ""],
+      ["Laptops", "90", "100"],
+      ["Phones", "40", "50"],
+      ["", "", ""],
+      ["Discounts", "10", "20"],
+      ["Freight", "20", "30"],
+      ["Other", "5", "10"],
+    ]);
+  });
+
   it("group sums add up to the total", async () => {
     const page = await renderTable();
 

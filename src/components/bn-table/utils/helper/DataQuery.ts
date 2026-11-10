@@ -326,7 +326,8 @@ export class DataQuery {
   /** Generates a GROUPHEAD row used as a visual header when row grouping is active. */
   private createGroupHeaderRow(rowGroupEntry: DataQueryMetaRow, querys: string[]) {
     // Generates GroupHeader Row
-    if (true === this.config.grouped) {
+    // Without a title the group sum row alone closes the group; only a list has no sum row and keeps the head as gap
+    if (true === this.config.grouped && (this.config.showGroupTitle || !this.hasGroupSum())) {
       const rowGroup = this.bind(String(rowGroupEntry.rowGroup));
       const title = rowGroupEntry.rowGroup === "" ? this.bind(BLANK_BUCKET_LABEL) : rowGroup;
       const groupTitle: string = this.config.showGroupTitle ? `,${title} as ${QueryColumnNames.CATEGORY}` : "";
@@ -339,6 +340,15 @@ export class DataQuery {
     }
   }
 
+  private hasGroupSum(): boolean {
+    return (
+      TableType.SUM === this.config.type ||
+      TableType.SUMNOTOTAL === this.config.type ||
+      TableType.OPT === this.config.type ||
+      TableType.OPTNOTOTAL === this.config.type
+    );
+  }
+
   /** Generates a GROUP_SUM row that aggregates all entries within a single row group. */
   private createGroupSumRow(
     querys: string[],
@@ -349,13 +359,7 @@ export class DataQuery {
     order: [string, string],
   ) {
     // Generates SUM Row; sumsup all rows of group
-    if (
-      true === this.config.grouped &&
-      (TableType.SUM === this.config.type ||
-        TableType.SUMNOTOTAL === this.config.type ||
-        TableType.OPT === this.config.type ||
-        TableType.OPTNOTOTAL === this.config.type)
-    ) {
+    if (true === this.config.grouped && this.hasGroupSum()) {
       const rowGroup = this.bind(String(rowGroupEntry.rowGroup));
       querys.push(`SELECT ${querys.length}            as ${QueryColumnNames.ROWGROUPINDEX},
                           '='                         as ${QueryColumnNames.OPERATION},
