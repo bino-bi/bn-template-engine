@@ -13,7 +13,7 @@ import {
   VarianceAxis,
 } from "./CellBarChart";
 import { WaterfallBarData, WaterfallRowKind } from "../helper/WaterfallCalculator";
-import { labelWidth, waterfallGeometry, WaterfallGeometry } from "../helper/barColumnGeometry";
+import { labelWidth, VARIANCE_AXIS_EM, waterfallGeometry, WaterfallGeometry } from "../helper/barColumnGeometry";
 
 export interface WaterfallBarProps extends CellBarChartProps {
   waterfall: WaterfallBarData;
@@ -59,7 +59,8 @@ export function waterfallLabelText(
  * An absolute variance column is drawn as a variance waterfall: the bar in the color of
  * the sentiment and the pattern of the minuend, the axis in the look of the reference
  * scenario in every row, a signed label, and thin connectors to the rows above and below
- * in place of the dashed guides.
+ * in place of the dashed guides. The axis and the connectors join the rows, so where one
+ * meets the label it is only interrupted over the height of the text.
  */
 export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const {
@@ -131,6 +132,17 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const labelTo = (pointsLeft ? labelX : labelX + labelSize) + labelPad;
   const meetsLabel = (x: number) => x > labelFrom && x < labelTo;
   const parentEndX = waterfall.parentEnd !== undefined ? xOf(waterfall.parentEnd) : undefined;
+  // the parts of a vertical line of a variance waterfall that stay clear of the label text
+  const labelTop = height / 2 - fs / 2;
+  const labelBottom = height / 2 + fs / 2;
+  const clearOfLabel = (x: number, y1: number, y2: number, halfWidth = 0): [number, number][] =>
+    x + halfWidth > labelFrom && x - halfWidth < labelTo
+      ? [[y1, Math.min(y2, labelTop)] as [number, number], [Math.max(y1, labelBottom), y2] as [number, number]].filter(
+          ([from, to]) => to > from,
+        )
+      : [[y1, y2]];
+  const axisTop = -connectorReach.top;
+  const axisBottom = height + connectorReach.bottom;
 
   return (
     <svg
@@ -171,17 +183,21 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
       )}
 
       {/* Connectors under the bar, out of the svg so they meet over the row borders */}
-      {waterfall.connectors?.map(({ at, part }) => (
-        <line
-          class="waterfall-connector"
-          x1={xOf(at)}
-          y1={part === "bottom" ? barY + barHeight : -connectorReach.top}
-          x2={xOf(at)}
-          y2={part === "top" ? barY : height + connectorReach.bottom}
-          stroke={AXIS_COLOR}
-          stroke-width={1 * s}
-        />
-      ))}
+      {waterfall.connectors?.map(({ at, part }) =>
+        clearOfLabel(xOf(at), part === "bottom" ? barY + barHeight : axisTop, part === "top" ? barY : axisBottom).map(
+          ([y1, y2]) => (
+            <line
+              class="waterfall-connector"
+              x1={xOf(at)}
+              y1={y1}
+              x2={xOf(at)}
+              y2={y2}
+              stroke={AXIS_COLOR}
+              stroke-width={1 * s}
+            />
+          ),
+        ),
+      )}
 
       {/* Waterfall segment */}
       {barWidth > 0 && (
@@ -197,16 +213,12 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
       )}
 
       {/* Variance axis on top, so no bar outline covers it; it runs out of the svg like the connectors */}
-      {look && (
-        <g transform={`translate(0,${-connectorReach.top})`}>
-          <VarianceAxis
-            x={axisX}
-            height={connectorReach.top + height + connectorReach.bottom}
-            look={look}
-            styles={styles}
-          />
-        </g>
-      )}
+      {look &&
+        clearOfLabel(axisX, axisTop, axisBottom, (VARIANCE_AXIS_EM * styles.emPx) / 2).map(([y1, y2]) => (
+          <g transform={`translate(0,${y1})`}>
+            <VarianceAxis x={axisX} height={y2 - y1} look={look} styles={styles} />
+          </g>
+        ))}
 
       {/* Value label at the bar's free end */}
       <text
