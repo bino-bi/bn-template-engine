@@ -72,6 +72,8 @@ export interface CellBarChartProps {
   labelWidths?: SideLabels;
   /** Largest absolute drawn value per side over the column; without it the column statistics count. */
   sideMax?: SideLabels;
+  /** The row prints bold, so the label is measured bold. */
+  bold?: boolean;
   styles?: CellBarChartStyles;
 }
 
@@ -436,13 +438,15 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     columnWidthEm = 10,
     labelWidths,
     sideMax,
+    bold,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
 
   const displayValue = formattedValue || formatValue(value, false, measureScale, locale, 0, true, decimalDigits);
-  const sides = labelWidths ?? ownLabelWidths(columnStats, labelWidth(displayValue, fs, styles.fontFamily, false));
+  const sides =
+    labelWidths ?? ownLabelWidths(columnStats, labelWidth(displayValue, fs, styles.fontFamily, false, bold));
   const isPositive = value > 0 || (value === 0 && zeroOnPositiveSide(sides));
   const { neg = Math.max(0, -columnStats.min), pos = Math.max(0, columnStats.max) } = sideMax ?? {};
   const geometry = absoluteBarGeometry(columnWidthEm, styles.emPx, sides, { neg, pos });
@@ -581,6 +585,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     columnWidthEm = 10,
     labelWidths,
     sideMax,
+    bold,
     styles = DEFAULT_STYLES,
   } = props;
   const s = styles.scaleFactor;
@@ -589,7 +594,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const pinPx = 100 * styles.percentageScaling * fs;
 
   const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits, percentSign);
-  const ownWidth = labelWidth(displayValue, fs, styles.fontFamily, true);
+  const ownWidth = labelWidth(displayValue, fs, styles.fontFamily, true, bold);
   const sides = labelWidths ?? ownLabelWidths(columnStats, ownWidth);
   const { neg = Math.max(0, -columnStats.min), pos = Math.max(0, columnStats.max) } = sideMax ?? {};
   const { totalWidth, negPinLength, posPinLength, axisX, labelGap } = relativePinGeometry(

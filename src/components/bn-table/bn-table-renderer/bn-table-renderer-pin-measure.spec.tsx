@@ -35,7 +35,7 @@ import { h } from "@stencil/core";
 import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { getStores } from "../../../context/context-protocol";
 import { BnTableRenderer } from "./bn-table-renderer";
-import { OrderDirection, TableType } from "../utils/model";
+import { OrderDirection, TableType, ThereofPosition } from "../utils/model";
 import { I18nMode } from "../../../utils/constants";
 import { Order, OrderColumn } from "../../../utils/model/Order";
 import { estimateLabelWidth } from "../utils/helper/barColumnGeometry";
@@ -54,6 +54,8 @@ const measured = (text: string): number => text.length * GLYPH_EM * LABEL_FONT +
  */
 describe("IBCS Table pin labels measured on a canvas", () => {
   const fonts: string[] = [];
+  /** Every measured label as [font, text]. */
+  const measurements: string[][] = [];
   /** Glyph width of the stubbed font; a web font that loads late can change it. */
   let glyphEm = GLYPH_EM;
 
@@ -70,13 +72,22 @@ describe("IBCS Table pin labels measured on a canvas", () => {
     { operation: "+", category: "B Down", categoryIndex: 2, ac1: 90, pl1: 100 },
   ];
 
+  // ΔPL of the parent is +651, of its parts +500 and +151
+  const thereofRows: any[] = [
+    { operation: "+", category: "Parent", categoryIndex: 1, subCategory: "P1", ac1: 600, pl1: 100 },
+    { operation: "+", category: "Parent", categoryIndex: 1, subCategory: "P2", ac1: 251, pl1: 100 },
+    { operation: "+", category: "Other", categoryIndex: 2, subCategory: "O", ac1: 90, pl1: 100 },
+  ];
+
   beforeAll(() => {
+    getStores(null).db.db.tables["measureThereofData"] = { data: thereofRows };
     getStores(null).db.db.tables["measureData"] = { data: rows };
     getStores(null).db.db.tables["measureSkewedData"] = { data: skewedRows };
     const ctx = {
       font: "",
       measureText(text: string) {
         fonts.push(this.font);
+        measurements.push([this.font, text]);
         return { width: text.length * glyphEm * parseFloat(this.font.replace(/italic |bold /g, "")) };
       },
     };
@@ -144,6 +155,29 @@ describe("IBCS Table pin labels measured on a canvas", () => {
     const total = page.root.shadowRoot.querySelector("tbody tr.sum svg.waterfall-bar");
     expect(num(svgOf(page, "A Up").querySelector("rect:not(pattern rect)"), "x")).toBeCloseTo(0, 6);
     expect(num(total.querySelector("text"), "x") + measured("300.0")).toBeCloseTo(num(total, "width"), 3);
+  });
+
+  it("measures the labels of the bold parent of thereof rows above it in bold", async () => {
+    const font = `${LABEL_FONT}px 'Noto Sans', sans-serif`;
+    const props = {
+      tableName: "measureThereofData",
+      thereof: [{ rowGroup: "", category: "Parent", subCategory: "", partOf: "" }],
+      thereofPosition: ThereofPosition.ABOVE,
+      barColumnMaxWidth: 15,
+    };
+    const fontsOf = (text: string) => new Set(measurements.filter((m) => m[1] === text).map((m) => m[0]));
+
+    measurements.length = 0;
+    const bars = await renderColumn("dac1_pl1_pos", { ...props, unitScaling: 0 });
+    expect(bars.root.shadowRoot.querySelector("tr.ofit-sum svg text").textContent).toBe("+651.0");
+    expect(fontsOf("+651.0")).toEqual(new Set([`bold ${font}`]));
+    expect(fontsOf("+500.0")).toEqual(new Set([font]));
+
+    measurements.length = 0;
+    const pins = await renderColumn("drac1_pl1_pos", { ...props, percentageScaling: 0 });
+    const pinLabel = pins.root.shadowRoot.querySelector("tr.ofit-sum svg text").textContent;
+    expect(pinLabel).toMatch(/^\+325/);
+    expect(fontsOf(pinLabel)).toEqual(new Set([`italic bold ${font}`]));
   });
 
   // the estimate drops the digits at w10, the measured labels fit: 2 x (5 + 4 + 37.4) + 2 x 1em <= 126.7
