@@ -1833,7 +1833,7 @@ export namespace Components {
          */
         "thereof": string;
         /**
-          * Position of the `thereof` rows relative to their parent row. <br /><br /> ```below``` (default) prints them below the parent, small and italic, with the thereof label. ```above``` prints them before the parent in normal size with an indented label, and the parent row looks like a subtotal (bold, with a line above it). The parent keeps its operation sign and its value, so a parent of `-` rows reads like "- Operating expenses". <br /><br /> values: <br /> ```below // above```
+          * Position of the `thereof` rows relative to their parent row. <br /><br /> ```below``` (default) prints them below the parent, small and italic, with the thereof label. ```above``` prints them before the parent in normal size with an indented label, and the parent row looks like a subtotal (bold, with a line above it). The parent keeps its operation sign and its value, so a parent of `-` rows reads like "- Operating expenses". With ```above``` list all subcategories of the parent (`"subCategory": ""`): with only some of them the parent looks like a subtotal that does not add up. <br /><br /> values: <br /> ```below // above```
           * @default "below"
          */
         "thereofPosition": string;
@@ -4333,7 +4333,7 @@ declare namespace LocalJSX {
          */
         "thereof"?: string;
         /**
-          * Position of the `thereof` rows relative to their parent row. <br /><br /> ```below``` (default) prints them below the parent, small and italic, with the thereof label. ```above``` prints them before the parent in normal size with an indented label, and the parent row looks like a subtotal (bold, with a line above it). The parent keeps its operation sign and its value, so a parent of `-` rows reads like "- Operating expenses". <br /><br /> values: <br /> ```below // above```
+          * Position of the `thereof` rows relative to their parent row. <br /><br /> ```below``` (default) prints them below the parent, small and italic, with the thereof label. ```above``` prints them before the parent in normal size with an indented label, and the parent row looks like a subtotal (bold, with a line above it). The parent keeps its operation sign and its value, so a parent of `-` rows reads like "- Operating expenses". With ```above``` list all subcategories of the parent (`"subCategory": ""`): with only some of them the parent looks like a subtotal that does not add up. <br /><br /> values: <br /> ```below // above```
           * @default "below"
          */
         "thereofPosition"?: string;
