@@ -319,13 +319,16 @@ export interface WaterfallColumnLabels {
 
 /**
  * Without `column` both sides get the fixed gutter. With it each side gets the room its
- * labels need beyond the bar area; the bar area keeps at least half the width.
+ * labels need beyond the bar area at the scale of the bars. The bar area keeps at least
+ * half the width: only gutters that need more shrink, and a side that fits the fixed
+ * gutter keeps its room then.
  */
 export function waterfallGeometry(widthEm: number, emPx: number, column?: WaterfallColumnLabels): WaterfallGeometry {
   const totalWidth = contentWidth(widthEm, emPx);
   const labelGap = LABEL_GAP_EM * emPx;
-  let left = Math.min(BAR_LABEL_EM * emPx, totalWidth / 4);
-  let right = left;
+  const fixed = Math.min(BAR_LABEL_EM * emPx, totalWidth / 4);
+  let left = fixed;
+  let right = fixed;
 
   const range = column ? column.max - column.min : 0;
   if (column && range > 0) {
@@ -342,13 +345,29 @@ export function waterfallGeometry(widthEm: number, emPx: number, column?: Waterf
       );
     left = room(true, 0);
     right = room(false, 0);
-    const shrink = Math.min(1, totalWidth / 2 / (left + right || 1));
-    left *= shrink;
-    right *= shrink;
-    // a label needs less room the further its bar ends from the edge; a smaller gutter only widens the scale
-    const pxPerUnit = (totalWidth - left - right) / range;
-    left = Math.min(left, room(true, pxPerUnit));
-    right = Math.min(right, room(false, pxPerUnit));
+    const budget = totalWidth / 2;
+    // a label needs less room the further its bar ends from the edge; a smaller gutter only widens the scale.
+    // One pass is enough for gutters that fit; more passes only while they take more than half the width.
+    for (let pass = 0; pass < 8; pass++) {
+      const pxPerUnit = Math.max(0, totalWidth - left - right) / range;
+      const nextLeft = Math.min(left, room(true, pxPerUnit));
+      const nextRight = Math.min(right, room(false, pxPerUnit));
+      const settled = nextLeft + nextRight <= budget || (nextLeft === left && nextRight === right);
+      left = nextLeft;
+      right = nextRight;
+      if (settled) break;
+    }
+    if (left + right > budget) {
+      if (Math.min(left, right) > fixed) {
+        const shrink = budget / (left + right);
+        left *= shrink;
+        right *= shrink;
+      } else if (left <= right) {
+        right = budget - left;
+      } else {
+        left = budget - right;
+      }
+    }
   }
 
   return {
