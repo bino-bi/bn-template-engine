@@ -39,6 +39,8 @@ Add computed variance columns. See the [Data Model](../../../doc/data-model.md) 
 <bn-table scenarios="ac1,pl1" variances="dac1_pl1_pos,drac1_pl1_pos"></bn-table>
 ```
 
+A variance that prints as zero at the displayed digits (for example `0.04` at one decimal digit) has no sign and no direction color. Its cell has the class `zero`.
+
 ## Table Types
 
 | Type | Description |

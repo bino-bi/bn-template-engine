@@ -44,4 +44,41 @@ describe("Cell Class Test", () => {
     expect(cell.draw(dataFormatDigits, "eu")).toEqual("\u22122,10");
     expect(cell.draw(dataFormatDigits, "fa")).not.toMatch(/[%\u066a]/);
   });
+
+  describe("roundsToZero", () => {
+    const digits: DataFormatDigits = { percent: 1, decimal: 1 };
+    const cell = (value: number | string | null, type: string | null, measureScale: number | null = null) =>
+      new Cell("dac1_pp1_pos", 0, value, null, type, null, null, null, measureScale);
+
+    it("is true for a decimal value that prints as zero", async () => {
+      for (const value of [0, 0.04, -0.04]) {
+        expect(cell(value, "decimal").roundsToZero(digits)).toBe(true);
+      }
+      expect(cell(0.06, "decimal").roundsToZero(digits)).toBe(false);
+      expect(cell(-0.06, "decimal").roundsToZero(digits)).toBe(false);
+    });
+
+    it("is true for a percent or percentpoint value that prints as zero", async () => {
+      for (const type of ["percent", "percentpoint"]) {
+        for (const value of [0, 0.0004, -0.0004]) {
+          expect(cell(value, type).roundsToZero(digits, "en")).toBe(true);
+        }
+        expect(cell(0.0006, type).roundsToZero(digits, "en")).toBe(false);
+        expect(cell(-0.0006, type).roundsToZero(digits, "en")).toBe(false);
+      }
+    });
+
+    it("follows the digits and the measure scale", async () => {
+      expect(cell(0.04, "decimal").roundsToZero({ percent: 1, decimal: 2 })).toBe(false);
+      expect(cell(40, "decimal", 1000).roundsToZero(digits)).toBe(true);
+      expect(cell(60, "decimal", 1000).roundsToZero(digits)).toBe(false);
+    });
+
+    it("is false for a cell that prints no number", async () => {
+      expect(cell(null, "decimal").roundsToZero(digits)).toBe(false);
+      expect(cell("n/a", "percent").roundsToZero(digits)).toBe(false);
+      expect(cell("-", "decimal").roundsToZero(digits)).toBe(false);
+      expect(cell(0, null).roundsToZero(digits)).toBe(false);
+    });
+  });
 });

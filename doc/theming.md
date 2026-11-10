@@ -244,6 +244,7 @@ The built-in system defaults follow IBCS standards:
 | Positive variance | Teal | `#008f96` |
 | Negative variance | Red | `#ff0000` |
 | Neutral variance | Gray | `#808080` |
+| Variance that prints as zero | Default font color, no sign | `#000000` |
 | Default font | Noto Sans 13.3px | `#000000` |
 
 ## Full Example
