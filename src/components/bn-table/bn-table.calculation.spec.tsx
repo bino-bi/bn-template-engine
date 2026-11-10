@@ -83,6 +83,12 @@ describe("bn-table: runningSum and thereofPosition", () => {
         cost("Rent", 2, 20),
       ],
     };
+    getStores(null).db.db.tables["calcVarianceDs"] = {
+      data: [
+        { ...row("Result", 1, "Sales", "+", 120), pp1: 100 },
+        { ...row("Result", 1, "Costs", "-", 50), categoryIndex: 2, pp1: 40 },
+      ],
+    };
   });
 
   const renderTable = async (props: Record<string, unknown> = {}): Promise<SpecPage> => {
@@ -152,11 +158,46 @@ describe("bn-table: runningSum and thereofPosition", () => {
     expect(warnings(page)).toEqual(["WARN_thereofPosition"]);
   });
 
+  describe("variance-waterfall", () => {
+    const props = {
+      datasets: "calcVarianceDs",
+      thereof: "[]",
+      variances: "dac1_pp1_op",
+      "bar-columns": "dac1_pp1_op",
+    };
+    const svgClasses = (page: SpecPage): string[] =>
+      Array.from(page.root.shadowRoot.querySelector("bn-table-renderer").shadowRoot.querySelectorAll("tbody svg")).map(
+        (svg) => svg.getAttribute("class"),
+      );
+
+    it("keeps plain variance bars without the attribute", async () => {
+      const page = await renderTable(props);
+
+      expect(svgClasses(page)).toEqual(["cell-bar-chart absolute-variance", "cell-bar-chart absolute-variance"]);
+    });
+
+    it("reads the attribute variance-waterfall", async () => {
+      const page = await renderTable({ ...props, "variance-waterfall": "true" });
+
+      expect(svgClasses(page)).toEqual(Array(3).fill("cell-bar-chart waterfall-bar variance-waterfall"));
+      expect(warnings(page)).toEqual([]);
+    });
+
+    it("has no effect with columnthereof", async () => {
+      const columnthereof = '[{"scenario": "ac1", "name": "DE", "subGroups": []}]';
+      const page = await renderTable({ ...props, "variance-waterfall": "true", columnthereof });
+
+      expect(svgClasses(page)).toEqual(["cell-bar-chart absolute-variance", "cell-bar-chart absolute-variance"]);
+    });
+  });
+
   it("ignores runningSum with columnthereof", async () => {
     const columnthereof = '[{"scenario": "ac1", "name": "DE", "subGroups": []}]';
-    const off = await renderTable({ columnthereof });
-    const on = await renderTable({ columnthereof, "running-sum": "true" });
+    // a new page replaces the one before it, so each one is read before the next is made
+    const off = bodyRows(await renderTable({ columnthereof }));
+    const on = bodyRows(await renderTable({ columnthereof, "running-sum": "true" }));
 
-    expect(bodyRows(on)).toEqual(bodyRows(off));
+    expect(off.length).toBe(7);
+    expect(on).toEqual(off);
   });
 });

@@ -238,18 +238,20 @@ describe("IBCS Table running sums and thereof rows above their parent", () => {
         ?.getAttribute("class");
 
     it("has no effect on an ungrouped table", async () => {
-      const off = await renderTable({ grouped: false, type: TableType.OPT, runningSum: false });
-      const on = await renderTable({ grouped: false, type: TableType.OPT });
+      // a new page replaces the one before it, so each one is read before the next is made
+      const off = rowTexts(await renderTable({ grouped: false, type: TableType.OPT, runningSum: false }));
+      const on = rowTexts(await renderTable({ grouped: false, type: TableType.OPT }));
 
-      expect(rowTexts(on)).toEqual(rowTexts(off));
-      expect(rowTexts(on).length).toBe(11);
+      expect(on).toEqual(off);
+      expect(on.length).toBe(11);
     });
 
     it("has no effect on a list table", async () => {
-      const off = await renderTable({ type: TableType.LIST, runningSum: false });
-      const on = await renderTable({ type: TableType.LIST });
+      const off = rowTexts(await renderTable({ type: TableType.LIST, runningSum: false }));
+      const on = rowTexts(await renderTable({ type: TableType.LIST }));
 
-      expect(rowTexts(on)).toEqual(rowTexts(off));
+      expect(off.length).toBe(15);
+      expect(on).toEqual(off);
     });
 
     it("runs on from a blank rowGroup", async () => {
@@ -287,13 +289,13 @@ describe("IBCS Table running sums and thereof rows above their parent", () => {
 
     it("keeps partof shares on the own group sum", async () => {
       const partof = [{ rowGroup: "Result before tax", category: "Investment income" }];
-      const off = await renderTable({ partof, scenarios: ["ac1"], runningSum: false });
-      const on = await renderTable({ partof, scenarios: ["ac1"] });
       const share = (page: SpecPage) => rows(page).find((tr) => tr.getAttribute("class") === "partof").textContent;
+      const off = share(await renderTable({ partof, scenarios: ["ac1"], runningSum: false }));
+      const on = share(await renderTable({ partof, scenarios: ["ac1"] }));
 
       // 53.0 of 122.6, not of the running 590.0
-      expect(share(on)).toContain("43");
-      expect(share(on)).toEqual(share(off));
+      expect(on).toContain("43");
+      expect(on).toEqual(off);
     });
 
     it("accumulates the interval buckets too", async () => {
@@ -482,16 +484,25 @@ describe("IBCS Table running sums and thereof rows above their parent", () => {
 
     it("keeps the thereof geometry of a waterfall on the parent bar", async () => {
       const props = { thereof: expenses, scenarios: ["ac1"], barColumns: ["ac1"] };
-      const svgOf = (page: SpecPage, label: string) =>
-        rows(page)
-          .find((tr) => tr.querySelectorAll("td")[1]?.textContent.trim().replace("thereof ", "") === label)
-          .querySelector("svg").outerHTML;
-      const below = await renderTable(props);
-      const above = await renderTable({ ...props, thereofPosition: ThereofPosition.ABOVE });
+      const labels = ["Operating result", "Purchases", "Other op. expenses", "Operating expenses"];
+      // bars as [start, length] in lengths of the Operating result bar, which starts at the axis:
+      // the bold parent label takes a little more room above, so only the scale may differ
+      const bars = (page: SpecPage): number[][] => {
+        const rects = labels.map((label) =>
+          Array.from(
+            rows(page)
+              .find((tr) => tr.querySelectorAll("td")[1]?.textContent.trim().replace("thereof ", "") === label)
+              .querySelectorAll("svg.waterfall-bar rect"),
+          ).find((rect) => (rect.parentNode as Element).tagName?.toLowerCase() === "svg"),
+        );
+        const [x, width] = ["x", "width"].map((name) => rects.map((rect) => parseFloat(rect.getAttribute(name))));
+        return rects.map((_, index) => [(x[index] - x[0]) / width[0], width[index] / width[0]]);
+      };
+      const below = bars(await renderTable(props));
+      const above = bars(await renderTable({ ...props, thereofPosition: ThereofPosition.ABOVE }));
 
-      for (const label of ["Purchases", "Other op. expenses", "Operating expenses", "Operating result"]) {
-        expect(svgOf(above, label)).toEqual(svgOf(below, label));
-      }
+      expect(below[1][1]).toBeGreaterThan(0);
+      above.flat().forEach((value, index) => expect(value).toBeCloseTo(below.flat()[index], 6));
     });
   });
 });
