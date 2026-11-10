@@ -28,7 +28,7 @@ import { DataPointKey } from "../../../../utils/layoutState/types";
 /**
  * Transforms raw query results into structured TableRow collections for header and body.
  *
- * Header normalization: prepends fixed columns (operation, category) to the configured
+ * Header normalization: adds the fixed columns (operation, category) to the configured
  * scenarios, then translates labels via i18n and adds separator rows for IBCS-style borders.
  *
  * Body row creation: iterates DataQuery results grouped by rowGroup, creates detail rows
@@ -56,7 +56,7 @@ export class TableDataSetFactory {
     return styleSlot(this.ruleSet.getScenarioColorIndex(type)) + type.slice(2);
   }
 
-  /** Effective column list (category/operation + attributes + scenarios × buckets), set by createHeader(). */
+  /** Effective column list (category/operation + attributes + scenarios × buckets) in render order, set by createHeader(). */
   public getNormalizedHeader(): ScenarioHeaderColumn[] {
     return this.normalizedHeader;
   }
@@ -77,11 +77,12 @@ export class TableDataSetFactory {
     measureUnit: string,
     showMeasureScale: boolean,
     attributes: TableAttribute[] = [],
+    leadingScenarioColumns: number = 0,
   ): TableRow[] {
     const header: TableRow[] = [];
 
     this.attributesByAlias = new Map(attributes.map((attribute) => [attribute.alias, attribute]));
-    this.normalizedHeader = this.normalizeHeader(type, scenarios, attributes);
+    this.normalizedHeader = this.normalizeHeader(type, scenarios, attributes, leadingScenarioColumns);
     const hasIntervalColumns = this.normalizedHeader.some((column) => column.bucket !== undefined);
 
     if (hasIntervalColumns) {
@@ -127,7 +128,7 @@ export class TableDataSetFactory {
 
   /**
    * Creates the spanning interval band row (e.g. `2023 | 2024 | 2025`) rendered
-   * above the scenario label row. Leading non-interval columns (category,
+   * above the scenario label row. Non-interval columns (category,
    * operation, attributes) receive borderless filler cells; each run of
    * consecutive columns of the same bucket is spanned by one label cell.
    */
@@ -199,11 +200,15 @@ export class TableDataSetFactory {
    * configured scenarios.
    * depending of table type operation column is used (OPT) or not (SUM | LIST)
    * in addition the headers are sorted based on the ruleset and duplicates are removed
+   *
+   * operation, category and the attribute columns are the row header block. It moves
+   * as one unit: `leadingScenarioColumns` scenario columns stand left of it.
    */
   private normalizeHeader(
     type: TableType,
     scenarios: readonly ScenarioHeaderColumn[],
     attributes: TableAttribute[],
+    leadingScenarioColumns: number = 0,
   ): ScenarioHeaderColumn[] {
     let header: ScenarioHeaderColumn[] = [
       {
@@ -240,7 +245,12 @@ export class TableDataSetFactory {
     }));
 
     // NOTE: scenarios are already sorted in setConfig
-    return [...header, ...attributeColumns, ...scenarios];
+    return [
+      ...scenarios.slice(0, leadingScenarioColumns),
+      ...header,
+      ...attributeColumns,
+      ...scenarios.slice(leadingScenarioColumns),
+    ];
   }
 
   /**

@@ -28,6 +28,7 @@ describe("DQueryGroup Test", () => {
     filter: "",
     barColumns: [],
     interval: "none",
+    categoryIntervalPosition: 0,
     locale: "de",
   };
 

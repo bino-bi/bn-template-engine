@@ -48,7 +48,7 @@ import {
   TableCategoryWidth,
 } from "../../utils/constants";
 import { TableType } from "./utils/model";
-import { INTERVAL_NONE, INTERVAL_SETNAME } from "./utils/helper/IntervalColumns";
+import { coerceSetnameIndex, INTERVAL_NONE, INTERVAL_SETNAME } from "./utils/helper/IntervalColumns";
 import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { parseTableAttributeExpression, TableAttribute } from "./utils/model/TableAttribute";
 import { normalizeOrderToken, Order, OrderDirection } from "../../utils/model/Order";
@@ -101,6 +101,8 @@ export class Table {
   @State() private appliedScaleFactor: number = 1;
   /** True when the active dataset contains rows with a blank `setname` (relevant for `interval='setname'`). */
   @State() private hasBlankSetnames: boolean = false;
+  /** True when the active dataset contains rows with a `setnameIndex` but a blank `setname`. */
+  @State() private hasSetnameIndexWithoutSetname: boolean = false;
 
   /**
    * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name
@@ -217,6 +219,13 @@ export class Table {
         this.dataVersion = this.dataVersion + 1;
         this.hasBlankSetnames =
           Array.isArray(data) && data.some((row) => isBlankInput((row?.setname ?? row?.setName) as string));
+        this.hasSetnameIndexWithoutSetname =
+          Array.isArray(data) &&
+          data.some(
+            (row) =>
+              coerceSetnameIndex(row?.setnameIndex ?? row?.setNameIndex) !== undefined &&
+              isBlankInput((row?.setname ?? row?.setName) as string),
+          );
       },
       (_name, meta) => {
         this.datasetMeta = meta;
@@ -901,6 +910,12 @@ export class Table {
    * raise a warning and are grouped under `-`. Date values bucket rows by the
    * `date` column; ```auto``` detects the granularity from the date span.
    * Cannot be combined with `columnthereof`.
+   * <br /><br />
+   * Date groups are shown in chronological order. Setname groups are shown in
+   * order of first appearance in the dataset. When the rows carry the optional
+   * numeric column `setnameIndex`, the setname groups are sorted ascending by
+   * it: the smallest index of a setname counts, groups without an index come
+   * last.
    */
   @Prop() interval: string = "none";
 
@@ -916,6 +931,35 @@ export class Table {
         id: errId,
         type: "warning",
         message: "interval: invalid value '" + newValue + "' is not supported.",
+      });
+    }
+  }
+
+  /**
+   * Number of interval groups that stand left of the category column. Needs
+   * an active `interval`.
+   * <br /><br />
+   * ```0``` (default) keeps the category column first. ```1``` puts one
+   * interval group left of it and the rest right. The number of interval
+   * groups puts the category column last. A greater value raises a warning
+   * and is used as the number of groups.
+   * <br /><br />
+   * The operation column and the `attributes` columns move with the category
+   * column.
+   */
+  @Prop() categoryIntervalPosition: number = 0;
+
+  @Watch("categoryIntervalPosition")
+  validateCategoryIntervalPosition(newValue: number) {
+    const errId = "WARN_categoryIntervalPosition";
+
+    if (isBlankInput(newValue) || (isValidInteger(newValue) && Number(newValue) >= 0)) {
+      this.errors.remove(errId);
+    } else {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "categoryIntervalPosition: invalid value '" + newValue + "' is not supported.",
       });
     }
   }
@@ -966,6 +1010,7 @@ export class Table {
     this.validateMeasureScale(this.measureScale);
     this.validateColumnThereOf(this.columnthereof);
     this.validateInterval(this.interval);
+    this.validateCategoryIntervalPosition(this.categoryIntervalPosition);
     this.validateTableAttributes(this.tableAttributes);
     this.validateBarColumns(this.barColumns);
     this.validateBarColumnWidth(this.barColumnWidth);
@@ -1329,6 +1374,7 @@ export class Table {
     const conflictErrId = "WARN_intervalConflict";
     const noDateErrId = "WARN_intervalNoDate";
     const setnameErrId = "WARN_intervalSetname";
+    const setnameIndexErrId = "WARN_intervalSetnameIndex";
 
     const interval = isBlankInput(this.interval) ? INTERVAL_NONE : this.interval.trim().toLowerCase();
     const isValid = interval === INTERVAL_NONE || interval === INTERVAL_SETNAME || isValidDateFormat(interval);
@@ -1338,6 +1384,7 @@ export class Table {
       this.errors.remove(conflictErrId);
       this.errors.remove(noDateErrId);
       this.errors.remove(setnameErrId);
+      this.errors.remove(setnameIndexErrId);
       return INTERVAL_NONE;
     }
 
@@ -1349,6 +1396,7 @@ export class Table {
       });
       this.errors.remove(noDateErrId);
       this.errors.remove(setnameErrId);
+      this.errors.remove(setnameIndexErrId);
       return INTERVAL_NONE;
     }
     this.errors.remove(conflictErrId);
@@ -1363,10 +1411,20 @@ export class Table {
       } else {
         this.errors.remove(setnameErrId);
       }
+      if (this.hasSetnameIndexWithoutSetname) {
+        this.errors.addOrReplace({
+          id: setnameIndexErrId,
+          type: "warning",
+          message: "interval: rows with setnameIndex but blank setname found, setnameIndex needs setname.",
+        });
+      } else {
+        this.errors.remove(setnameIndexErrId);
+      }
       this.errors.remove(noDateErrId);
       return INTERVAL_SETNAME;
     }
     this.errors.remove(setnameErrId);
+    this.errors.remove(setnameIndexErrId);
 
     if (this.datasetMeta && !this.datasetMeta.dateRange?.hasData) {
       this.errors.addOrReplace({
@@ -1379,6 +1437,11 @@ export class Table {
     this.errors.remove(noDateErrId);
 
     return interval;
+  }
+
+  private prepareCategoryIntervalPosition(): number {
+    const position = Number(this.categoryIntervalPosition);
+    return Number.isInteger(position) && position > 0 ? position : 0;
   }
 
   private prepareAttributes(): TableAttribute[] {
@@ -1542,6 +1605,7 @@ export class Table {
     const dataSetStructure: Record<string, unknown> = {
       ITableDataRow: {
         setName: { type: "string", isOptional: false, description: "" },
+        setNameIndex: { type: "number", isOptional: true, description: "" },
         date: { type: "string", isOptional: false, description: "" },
         operation: { type: "string", isOptional: false, description: "" },
         rowGroup: { type: "string", isOptional: false, description: "" },
@@ -1729,6 +1793,7 @@ export class Table {
             filter={this.prepareFilter()}
             barColumns={this.prepareBarColumns()}
             interval={this.prepareInterval()}
+            categoryIntervalPosition={this.prepareCategoryIntervalPosition()}
             barColumnMaxWidth={this.prepareBarColumnWidth()}
             unitScaling={this.prepareUnitScaling()}
             percentageScaling={this.preparePercentageScaling()}

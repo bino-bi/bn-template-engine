@@ -228,6 +228,10 @@ export class BnTableRenderer {
   @Prop()
   interval: string = "none";
 
+  /** @internal */
+  @Prop()
+  categoryIntervalPosition: number = 0;
+
   /**
    * Total width of a bar chart column, in em of the table font - the same unit
    * `categoryWidth` uses, so the two render at the same width for the same value.
@@ -550,6 +554,14 @@ export class BnTableRenderer {
     } else {
       this.errors?.remove("WARN_orderBucket");
     }
+    const positionWarning = this.table?.categoryIntervalPositionWarning();
+    for (const id of ["WARN_categoryIntervalPositionNoInterval", "WARN_categoryIntervalPositionRange"] as const) {
+      if (positionWarning?.id === id) {
+        this.errors?.addOrReplace({ id, type: "warning", message: positionWarning.message });
+      } else {
+        this.errors?.remove(id);
+      }
+    }
     this.barColumnLayouts = this.collectBarColumnLayouts();
     this.barChartStyles = this.prepareBarChartStyles();
   }
@@ -588,6 +600,7 @@ export class BnTableRenderer {
       filter: this.filter,
       barColumns: this.barColumns,
       interval: this.interval,
+      categoryIntervalPosition: this.categoryIntervalPosition,
       locale: this.stores?.context?.state?.locale || "de",
     });
 

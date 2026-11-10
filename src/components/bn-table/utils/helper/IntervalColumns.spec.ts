@@ -3,6 +3,7 @@ import { createScopedDb } from "../../../../context/scopedDb";
 import { DateDistance } from "../../../../utils/DateStringFactory";
 import {
   coerceBucketKey,
+  coerceSetnameIndex,
   intervalBucketSQL,
   isDateInterval,
   queryIntervalBuckets,
@@ -68,6 +69,93 @@ describe("IntervalColumns helpers", () => {
 
     expect(buckets.map((bucket) => bucket.key)).toEqual(["de", "at", ""]);
     expect(buckets.map((bucket) => bucket.label)).toEqual(["de", "at", "-"]);
+  });
+
+  describe("setname buckets with setnameIndex", () => {
+    const keys = (name: string, rows: Record<string, unknown>[]): string[] => {
+      db.tables[name] = { data: rows };
+      return queryIntervalBuckets(db, "`" + name + "`", "setname", "en").map((bucket) => bucket.key);
+    };
+
+    it("sorts by the index when every row has one", () => {
+      const rows = [
+        { setname: "YTD", setnameIndex: 3 },
+        { setname: "Feb", setnameIndex: 1 },
+        { setname: "Jan", setnameIndex: 0 },
+        { setname: "Mar", setnameIndex: 2 },
+        { setname: "Jan", setnameIndex: 0 },
+      ];
+
+      expect(keys("setIndexFull", rows)).toEqual(["Jan", "Feb", "Mar", "YTD"]);
+    });
+
+    it("puts buckets without an index last, in order of first appearance", () => {
+      const rows = [
+        { setname: "x" },
+        { setname: "b", setnameIndex: 2 },
+        { setname: "y", setnameIndex: null },
+        { setname: "a", setnameIndex: 1 },
+        { setname: "z", setnameIndex: "n/a" },
+      ];
+
+      expect(keys("setIndexPartial", rows)).toEqual(["a", "b", "x", "y", "z"]);
+    });
+
+    it("takes the smallest index of a setname with different indexes", () => {
+      const rows = [
+        { setname: "a", setnameIndex: 5 },
+        { setname: "b", setnameIndex: 3 },
+        { setname: "a", setnameIndex: 1 },
+        { setname: "b", setnameIndex: 4 },
+      ];
+
+      expect(keys("setIndexConflict", rows)).toEqual(["a", "b"]);
+    });
+
+    it("keeps the order of first appearance for equal indexes", () => {
+      const rows = [
+        { setname: "c", setnameIndex: 1 },
+        { setname: "a", setnameIndex: 1 },
+        { setname: "b", setnameIndex: 0 },
+        { setname: "d", setnameIndex: 1 },
+      ];
+
+      expect(keys("setIndexTies", rows)).toEqual(["b", "c", "a", "d"]);
+    });
+
+    it("reads setNameIndex and numeric strings, and sorts the blank bucket like the others", () => {
+      const rows = [
+        { setName: "b", setNameIndex: "2" },
+        { setName: "", setNameIndex: 1 },
+        { setName: "a", setNameIndex: -1 },
+      ];
+
+      expect(keys("setIndexCasing", rows)).toEqual(["a", "", "b"]);
+    });
+
+    it("leaves date buckets in chronological order", () => {
+      db.tables["setIndexDates"] = {
+        data: [
+          { date: "2023-03-10", setname: "a", setnameIndex: 2 },
+          { date: "2024-05-20", setname: "b", setnameIndex: 1 },
+        ],
+      };
+
+      const buckets = queryIntervalBuckets(db, "`setIndexDates`", "year", "en");
+      expect(buckets.map((bucket) => bucket.label)).toEqual(["2023", "2024"]);
+    });
+  });
+
+  it("reads a setnameIndex as a number", () => {
+    expect(coerceSetnameIndex(2)).toBe(2);
+    expect(coerceSetnameIndex("2")).toBe(2);
+    expect(coerceSetnameIndex(0)).toBe(0);
+    expect(coerceSetnameIndex(" ")).toBeUndefined();
+    expect(coerceSetnameIndex("x")).toBeUndefined();
+    expect(coerceSetnameIndex(null)).toBeUndefined();
+    expect(coerceSetnameIndex(undefined)).toBeUndefined();
+    expect(coerceSetnameIndex(NaN)).toBeUndefined();
+    expect(coerceSetnameIndex(true)).toBeUndefined();
   });
 
   it("passes concrete granularities through and resolves auto from the date span", () => {
