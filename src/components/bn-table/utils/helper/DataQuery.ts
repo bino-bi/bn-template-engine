@@ -170,6 +170,10 @@ export class DataQuery {
     // executes main queries
     queries.forEach((query) => res.push(this.exec(query)));
 
+    if (this.hasRunningSum()) {
+      this.accumulateGroupSums(res, [...new Set(this.exctractScenarioNames(scenariosSUMQuery))]);
+    }
+
     this.detectNaNCells(this.config.scenarios, res);
     this.createThereOfDrillRows(scenarios, attributesSQL, order, res);
     this.createPartOfDrillRows(scenarios, order, sumGroupQueries, res);
@@ -347,6 +351,31 @@ export class DataQuery {
       TableType.OPT === this.config.type ||
       TableType.OPTNOTOTAL === this.config.type
     );
+  }
+
+  /** Column drill values of the group sum rows are not accumulated, so `runningSum` is off with columnthereof. */
+  private hasRunningSum(): boolean {
+    return this.config.runningSum && this.config.grouped && this.config.categoryThereOf.size === 0;
+  }
+
+  /**
+   * Turns the GROUP_SUM rows into running results: each one gets the raw aliases of all
+   * group sums before it added (scenarios, `_cnt`, variances and `dr_*` denominators).
+   * Runs before the NaN step and the relative variance division, where all of them are sums.
+   */
+  private accumulateGroupSums(res: DataQueryResultRow[][], aliases: string[]) {
+    const running: Record<string, number> = {};
+    for (const segment of res) {
+      for (const row of segment) {
+        if (row[QueryColumnNames.TYPE] !== "GROUP_SUM") {
+          continue;
+        }
+        for (const alias of aliases) {
+          running[alias] = (running[alias] ?? 0) + ((row[alias] as number) ?? 0);
+          row[alias] = running[alias];
+        }
+      }
+    }
   }
 
   /** Generates a GROUP_SUM row that aggregates all entries within a single row group. */
@@ -795,7 +824,26 @@ export class DataQuery {
       groupTotalsByKey.set(`${row.rowGroup}${separator}${coerceBucketKey(row.__interval)}`, row),
     );
 
-    if (isSumTypeGrouped) {
+    if (isSumTypeGrouped && this.hasRunningSum()) {
+      // per bucket, each group sum row gets the totals of all groups up to its own
+      const sumAliases = [...new Set(this.exctractScenarioNames(scenariosSUMQuery))];
+      const groupSumRows = res.flat().filter((row) => row.type === "GROUP_SUM");
+      for (const bucketKey of new Set(groupTotalRowsRaw.map((row) => coerceBucketKey(row.__interval)))) {
+        let running: DataQueryResultRow | undefined;
+        for (const row of groupSumRows) {
+          const totalRow = groupTotalsByKey.get(`${row.rowGroup}${separator}${bucketKey}`);
+          if (totalRow) {
+            running ??= {};
+            for (const alias of sumAliases) {
+              running[alias] = ((running[alias] as number) ?? 0) + ((totalRow[alias] as number) ?? 0);
+            }
+          }
+          if (running) {
+            writeBucketValues(row, finalizeBucketRow({ ...running }), bucketKey);
+          }
+        }
+      }
+    } else if (isSumTypeGrouped) {
       for (const totalRow of groupTotalRowsRaw) {
         const bucketKey = coerceBucketKey(totalRow.__interval);
         const finalized = finalizeBucketRow({ ...totalRow });

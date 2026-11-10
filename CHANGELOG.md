@@ -19,6 +19,27 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+#### `bn-table`: running results and thereof rows above their parent
+
+Two new attributes build a calculation scheme such as an IBCS income statement. Both are off by default, so existing tables do not change.
+
+`running-sum` (property `runningSum`, default `false`) turns the sum row of each row group into a running result: the sum of all rows from the first group down to its own group. The scenarios, the absolute variances and the relative variances of the row all follow, so a result of 467.4 against 302.1 shows +165.3 and +55%. It needs `grouped` and works with the types `sum`, `sumnototal`, `opt` and `optnototal`. The results add up in the order the groups are printed. The total row of `sum` and `opt` stays and repeats the last result, so `sumnototal` or `optnototal` is the usual choice. Interval columns add up per block. `partof` shares still refer to the sum of their own group. In a scenario bar column the result is a bar from zero and the next rows walk on from its end, also across a group title. Not supported with `columnthereof`: there `running-sum` has no effect.
+
+`thereof-position` (property `thereofPosition`, default `below`) takes `below` or `above`. With `above` the thereof rows stand before their parent row, in normal size and upright, with an indented label, without the thereof label and with an empty operation cell. The parent row looks like a subtotal (bold, a line above it) and keeps its operation sign and its value: a parent of `-` rows prints `-` and for example 602.6. The thereof rows keep the operation of the parent for the `op` sentiment and for the waterfall bars, and they keep the order they have below the parent. Another value gives the warning `WARN_thereofPosition` and counts as `below`.
+
+```html
+<!-- = Sales revenue, + Other op. income, five expense rows, - Operating expenses, = Operating result, ... -->
+<bn-table
+  type="optnototal"
+  grouped="true"
+  show-group-title="false"
+  running-sum="true"
+  thereof='[{"rowGroup": "Operating result", "category": "Operating expenses", "subCategory": ""}]'
+  thereof-position="above"
+  scenarios="pp1,ac1"
+></bn-table>
+```
+
 #### `bn-table`: order of the setname blocks and position of the category column
 
 With `interval="setname"` the blocks were always in order of first appearance in the data. The new optional dataset column `setnameIndex` (a number) sets the order: the blocks are sorted ascending by it. If a setname has different indexes, the smallest one counts. Blocks without an index come last. Without the column nothing changes. A row with a `setnameIndex` and a blank `setname` gives the warning `WARN_intervalSetnameIndex`. The check runs only with `interval="setname"`, other tables do not read the field.

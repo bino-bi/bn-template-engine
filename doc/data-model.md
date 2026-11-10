@@ -173,9 +173,9 @@ When `<bn-table>` processes data, it generates additional rows:
 |------|-------------|
 | `ENTRY` | Normal data row |
 | `GROUPHEAD` | Row group header |
-| `GROUP_SUM` | Subtotal for a row group |
+| `GROUP_SUM` | Subtotal for a row group. With `running-sum` it is the result of all groups up to this one |
 | `SUM` | Grand total |
-| `DRILLELEMENT` | Thereof drill-down detail row |
+| `DRILLELEMENT` | Thereof drill-down detail row, below its parent row or above it (`thereof-position`) |
 | `PARTELEMENT` | Part-of percentage row |
 | `REST` | Aggregated remaining rows (when a `limit` is applied) |
 

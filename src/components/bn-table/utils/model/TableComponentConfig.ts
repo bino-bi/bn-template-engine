@@ -7,7 +7,7 @@ import { IAdapter } from "../../../../utils/helper/IAdapter";
 import { StringAdapter } from "../../../../utils/helper/StringAdapter";
 import { OrderAdapter } from "../../../../utils/model/Order";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
-import { TableType } from "./index";
+import { TableType, ThereofPosition } from "./index";
 import { TableAttribute } from "./TableAttribute";
 import { TableDrillGroup, TableDrillGroupAdapter } from "./TableDrillGroup";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
@@ -35,8 +35,12 @@ export class TableComponentConfig {
   /** When true, rows are visually grouped by rowGroup. */
   public grouped: boolean = false;
   public showGroupTitle: boolean = true;
+  /** When true, each group sum row holds the running result of all groups up to its own (see bn-table `runningSum` prop). */
+  public runningSum: boolean = false;
   /** Drill-down sub-row definitions -- "thereof" breakdowns within a category. */
   public thereOf: TableDrillGroup[] = [];
+  /** Thereof rows below or above their parent row (see bn-table `thereofPosition` prop). */
+  public thereOfPosition: ThereofPosition = ThereofPosition.BELOW;
   /** Column-level drill-down using `##` separator in category names. */
   public categoryThereOf: Map<string, Record<string, unknown>[]> = new Map();
   /** Percentage-of-total sub-row definitions. */
@@ -106,6 +110,14 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isBoolean(data.showGroupTitle)) {
       config.showGroupTitle = data.showGroupTitle;
+    }
+
+    if (CompareUtil.isBoolean(data.runningSum)) {
+      config.runningSum = data.runningSum;
+    }
+
+    if (data.thereOfPosition === ThereofPosition.ABOVE) {
+      config.thereOfPosition = ThereofPosition.ABOVE;
     }
 
     if (CompareUtil.isBoolean(data.showMeasureScale)) {

@@ -25,8 +25,8 @@ import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 import { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
+import { TableType, ThereofPosition } from "./components/bn-table/utils/model";
 import { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
-import { TableType } from "./components/bn-table/utils/model";
 import { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableRow } from "./components/bn-table/utils/elements";
 import { Element } from "@stencil/core";
@@ -54,8 +54,8 @@ export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 export { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
+export { TableType, ThereofPosition } from "./components/bn-table/utils/model";
 export { TableAttribute } from "./components/bn-table/utils/model/TableAttribute";
-export { TableType } from "./components/bn-table/utils/model";
 export { TableLayoutDetail as TableLayoutDetail1 } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableRow } from "./components/bn-table/utils/elements";
 export { Element } from "@stencil/core";
@@ -1790,6 +1790,11 @@ export namespace Components {
          */
         "ruleset"?: string;
         /**
+          * Turns the sum row of each (row-)group into a running result: the sum of all rows from the first group down to its own group, with the matching absolute and relative variances. Use it for a calculation scheme such as an income statement, where each `rowGroup` ends in a result. <br /><br /> Needs `grouped` and a type with group sums (```sum // opt // sumnototal // optnototal```). The total row of ```sum``` and ```opt``` stays and repeats the last running result, so ```sumnototal``` or ```optnototal``` is the usual choice. `partof` shares still refer to the sum of their own group. Not supported together with `columnthereof`: there it has no effect. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "runningSum": boolean;
+        /**
           * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `bn-table-renderer` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `WARN_scale` warning.  **Only the width is fitted.** A table that renders taller than its constrained parent is clipped by the layout cell - bottom rows and the grand total simply disappear - so every render reports the measured overflow in `has-error`: as the error `ERR_overflow` when the size is pinned by `scale` (`"none"` or a factor), as the warning `WARN_overflow` in auto mode. The same item reports a width overflow, which only a fixed `scale` can produce. Setting `scale="auto"` does not fix a height overflow: give the component more space, reduce rows (`limit`), or set a smaller fixed `scale`.
           * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling - always render at base font size <bn-table scale="none" ...></bn-table>
          */
@@ -1827,6 +1832,11 @@ export namespace Components {
           * @default "[]"
          */
         "thereof": string;
+        /**
+          * Position of the `thereof` rows relative to their parent row. <br /><br /> ```below``` (default) prints them below the parent, small and italic, with the thereof label. ```above``` prints them before the parent in normal size with an indented label, and the parent row looks like a subtotal (bold, with a line above it). The parent keeps its operation sign and its value, so a parent of `-` rows reads like "- Operating expenses". <br /><br /> values: <br /> ```below // above```
+          * @default "below"
+         */
+        "thereofPosition": string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
           * @default "list"
@@ -1949,6 +1959,10 @@ export namespace Components {
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
+          * @default false
+         */
+        "runningSum": boolean;
+        /**
           * @default 1
          */
         "scaleFactor": number;
@@ -1986,6 +2000,10 @@ export namespace Components {
           * @default []
          */
         "thereof": TableDrillGroup[];
+        /**
+          * @default ThereofPosition.BELOW
+         */
+        "thereofPosition": ThereofPosition;
         /**
           * @default TableType.LIST
          */
@@ -4263,6 +4281,11 @@ declare namespace LocalJSX {
          */
         "ruleset"?: string;
         /**
+          * Turns the sum row of each (row-)group into a running result: the sum of all rows from the first group down to its own group, with the matching absolute and relative variances. Use it for a calculation scheme such as an income statement, where each `rowGroup` ends in a result. <br /><br /> Needs `grouped` and a type with group sums (```sum // opt // sumnototal // optnototal```). The total row of ```sum``` and ```opt``` stays and repeats the last running result, so ```sumnototal``` or ```optnototal``` is the usual choice. `partof` shares still refer to the sum of their own group. Not supported together with `columnthereof`: there it has no effect. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "runningSum"?: boolean;
+        /**
           * Controls proportional scaling of the entire table relative to the available parent width. All visual dimensions scale together: font size, em-based spacing/padding, SVG bar-chart widths, pin lengths, dot radii, pattern fills, axis strokes, and label offsets.  Scaling is driven by a single factor applied to the base font size (`global.fontSizePx` from the component-style store, default 13.3333 px). Because the table's SCSS uses `em` units for padding, borders, and column widths, changing the font size cascades to all layout dimensions. SVG elements (bars, pins, patterns) receive the factor via the `scaleFactor` prop on `bn-table-renderer` and multiply every pixel constant by it, so they stay proportional to the surrounding text.  | Value               | Behavior                                                                         | |---------------------|----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)               | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                     |  **Auto-scale algorithm** (modes `""` and `"auto"`): 1. After each render, the current `scrollWidth` of the host element is    divided by the current `appliedScaleFactor` to derive the unscaled    content width. This avoids resetting `--bn-font-size` to base (which    would only affect em-based widths but not SVG pixel attributes). 2. This unscaled width is compared against the parent's content-box    width (via `getParentDimensions`). 3. If the table overflows, `factor = parentWidth / unscaledWidth`    is computed and applied to both the CSS variable and the    `appliedScaleFactor` state (which re-renders the SVG charts). 4. A guard flag (`_autoScaleGuard`) prevents the subsequent    state-triggered re-render from re-measuring, avoiding an infinite    measure → scale → fits → reset → overflow loop.  Invalid values (negative numbers, non-numeric strings that are not `"none"` or `"auto"`) fall back to the default behaviour (auto + warning) and emit an `WARN_scale` warning.  **Only the width is fitted.** A table that renders taller than its constrained parent is clipped by the layout cell - bottom rows and the grand total simply disappear - so every render reports the measured overflow in `has-error`: as the error `ERR_overflow` when the size is pinned by `scale` (`"none"` or a factor), as the warning `WARN_overflow` in auto mode. The same item reports a width overflow, which only a fixed `scale` can produce. Setting `scale="auto"` does not fix a height overflow: give the component more space, reduce rows (`limit`), or set a smaller fixed `scale`.
           * @example // Auto-scale to parent (silent) <bn-table scale="auto" ...></bn-table>  // Fixed 50 % reduction <bn-table scale="0.5" ...></bn-table>  // Double size <bn-table scale="2" ...></bn-table>  // No scaling - always render at base font size <bn-table scale="none" ...></bn-table>
          */
@@ -4300,6 +4323,11 @@ declare namespace LocalJSX {
           * @default "[]"
          */
         "thereof"?: string;
+        /**
+          * Position of the `thereof` rows relative to their parent row. <br /><br /> ```below``` (default) prints them below the parent, small and italic, with the thereof label. ```above``` prints them before the parent in normal size with an indented label, and the parent row looks like a subtotal (bold, with a line above it). The parent keeps its operation sign and its value, so a parent of `-` rows reads like "- Operating expenses". <br /><br /> values: <br /> ```below // above```
+          * @default "below"
+         */
+        "thereofPosition"?: string;
         /**
           * Set the table type <br /><br /> values: <br /> ```list // sum // opt // sumnototal // optnototal```
           * @default "list"
@@ -4418,6 +4446,10 @@ declare namespace LocalJSX {
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
+          * @default false
+         */
+        "runningSum"?: boolean;
+        /**
           * @default 1
          */
         "scaleFactor"?: number;
@@ -4455,6 +4487,10 @@ declare namespace LocalJSX {
           * @default []
          */
         "thereof"?: TableDrillGroup[];
+        /**
+          * @default ThereofPosition.BELOW
+         */
+        "thereofPosition"?: ThereofPosition;
         /**
           * @default TableType.LIST
          */
@@ -5000,9 +5036,11 @@ declare namespace LocalJSX {
         "grouped": boolean;
         "showMeasureScale": boolean;
         "showGroupTitle": boolean;
+        "runningSum": boolean;
         "type": string;
         "limit": number;
         "thereof": string;
+        "thereofPosition": string;
         "partof": string;
         "order": string;
         "orderDirection": string;
@@ -5025,6 +5063,8 @@ declare namespace LocalJSX {
         "grouped": boolean;
         "limit": number;
         "showGroupTitle": boolean;
+        "runningSum": boolean;
+        "thereofPosition": ThereofPosition;
         "type": TableType;
         "categoryWidth": TableCategoryWidth;
         "i18nMode": I18nMode;

@@ -12,6 +12,7 @@ import {
   validateVariancesList,
   isValidMeasureScale,
   isValidTableType,
+  isValidThereofPosition,
   isValidInteger,
   validateThereOfJsonStr,
   isValidi18nMode,
@@ -333,6 +334,16 @@ describe("isValidDataFormat", () => {
 
   it('returns false for "42" ', () => {
     expect(isValidDataFormat("42")).toEqual(false);
+  });
+});
+
+describe("isValidThereofPosition", () => {
+  it.each(["below", "above", "Above"])("returns true for %s", (value) => {
+    expect(isValidThereofPosition(value)).toEqual(true);
+  });
+
+  it.each(["top", "", "true", undefined])("returns false for %s", (value) => {
+    expect(isValidThereofPosition(value)).toEqual(false);
   });
 });
 
