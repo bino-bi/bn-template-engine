@@ -191,8 +191,8 @@ describe("IBCS Table bar column width", () => {
       ),
     );
 
-    // the largest drawn bar (Beta, 20) gets 80% of the bar area beside the +20 label
-    const { maxBarWidth, cutWidth } = absoluteBarGeometry(15, EM, { pos: estimateLabelWidth("+20", LABEL_FONT) });
+    // the largest drawn bar (Beta, 20) gets 80% of the bar area beside the +20.0 label
+    const { maxBarWidth, cutWidth } = absoluteBarGeometry(15, EM, { pos: estimateLabelWidth("+20.0", LABEL_FONT) });
     const target = Math.min(maxBarWidth * 0.8, cutWidth);
     expect(widthOf(beta)).toBeCloseTo(target, 3);
     expect(widthOf(alpha)).toBeCloseTo(target / 2, 3); // 10 is half of 20
@@ -222,7 +222,7 @@ describe("IBCS Table bar column width", () => {
     });
 
     // two-sided w10: 80% of the side is more than the cut, so the largest bar (Beta, 20) ends on the cut
-    const labels = { neg: estimateLabelWidth("-5", LABEL_FONT), pos: estimateLabelWidth("+20", LABEL_FONT) };
+    const labels = { neg: estimateLabelWidth("-5.0", LABEL_FONT), pos: estimateLabelWidth("+20.0", LABEL_FONT) };
     const { cutWidth } = absoluteBarGeometry(10, EM, labels);
     expect(widthOf(bars[1])).toBeCloseTo(cutWidth, 3);
     expect(widthOf(bars[0])).toBeCloseTo(cutWidth / 2, 3); // 10 is half of 20
