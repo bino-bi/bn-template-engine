@@ -458,6 +458,8 @@ export class BnTableRenderer {
                     {cell.isBarChart &&
                     cell.columnStats &&
                     cell.value !== NOT_AVAILABLE &&
+                    // an untitled group head is only a gap between list groups, a bar cell would print "-" in it
+                    (this.showGroupTitle || row.type !== TableRowType.HEADER) &&
                     (cell.waterfall !== undefined || row.type !== TableRowType.SUM) ? (
                       cell.waterfall !== undefined ? (
                         <WaterfallBar
