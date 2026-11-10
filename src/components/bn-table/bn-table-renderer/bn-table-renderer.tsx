@@ -480,7 +480,9 @@ export class BnTableRenderer {
                     cell.value !== NOT_AVAILABLE &&
                     // an untitled group head is only a gap between list groups, a bar cell would print "-" in it
                     (this.showGroupTitle || row.type !== TableRowType.HEADER) &&
-                    (cell.waterfall !== undefined || row.type !== TableRowType.SUM) ? (
+                    (cell.waterfall !== undefined || row.type !== TableRowType.SUM) &&
+                    // a variance walk where every step is zero has no extent: the rows print their zero
+                    !(cell.direction !== undefined && cell.waterfall && cell.waterfall.max === cell.waterfall.min) ? (
                       cell.waterfall !== undefined ? (
                         <WaterfallBar
                           value={cell.value as number}

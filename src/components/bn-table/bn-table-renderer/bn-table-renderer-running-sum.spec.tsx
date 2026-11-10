@@ -93,6 +93,31 @@ describe("IBCS Table running sums and thereof rows above their parent", () => {
             ],
       ),
     };
+    // group A has no previous year at all
+    const leading = [
+      { rowGroup: "A", rowGroupIndex: 1, category: "a1", categoryIndex: 1, operation: "+", ac1: 10 },
+      { rowGroup: "B", rowGroupIndex: 2, category: "b1", categoryIndex: 2, operation: "+", ac1: 5, pp1: 4 },
+    ];
+    // a category named like its rowGroup: its thereof rows do not all follow their parent
+    const sameName = (category: string, categoryIndex: number, ac1: number, subCategory?: string) => ({
+      rowGroup: "Revenue",
+      rowGroupIndex: 1,
+      category,
+      categoryIndex,
+      subCategory,
+      operation: "+",
+      ac1,
+    });
+    tables["calcSameName"] = {
+      data: [
+        sameName("Revenue", 1, 700, "Cloud"),
+        sameName("Revenue", 1, 100, "OnPrem"),
+        sameName("Consulting", 2, 50),
+        sameName("Maintenance", 3, 30),
+      ],
+    };
+    tables["calcNoReference"] = { data: leading };
+    tables["calcNoReferenceMonths"] = { data: leading.map((r) => ({ ...r, setname: "Jan" })) };
   });
 
   const renderTable = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
@@ -282,6 +307,75 @@ describe("IBCS Table running sums and thereof rows above their parent", () => {
       expect(row(page, "=", "Group result").slice(2)).toEqual(["266.7", "155.6"]);
     });
 
+    it("accumulates the variances of the interval buckets, relative to the running reference", async () => {
+      const page = await renderTable({
+        tableName: "calcMonths",
+        interval: "setname",
+        scenarios: ["pp1", "ac1", "dac1_pp1_op", "drac1_pp1_op"],
+      });
+
+      // per bucket: PY, AC, dPY, dPY%; the income tax of February is 132.1 and 111.1, 16% of its own group
+      expect(row(page, "=", "Operating result").slice(2)).toEqual([
+        ...["151.0", "233.7", "82.7", "55%"],
+        ...["151.0", "233.7", "82.7", "55%"],
+      ]);
+      expect(row(page, "=", "Result after tax").slice(2)).toEqual([
+        ...["209.0", "295.0", "86.0", "41%"],
+        ...["76.9", "183.9", "107.0", "139%"],
+      ]);
+      expect(row(page, "=", "Group result").slice(2)).toEqual([
+        ...["184.0", "266.7", "82.6", "45%"],
+        ...["51.9", "155.6", "103.6", "199%"],
+      ]);
+    });
+
+    it("follows the printed order of groups sorted by a value", async () => {
+      const page = await renderTable({
+        scenarios: ["ac1"],
+        order: { hierarchy: ["ac1"], direction: OrderDirection.DESC } as Order,
+      });
+      const sums = rowTexts(page).filter((cells) => cells[0] === "=");
+
+      // own sums: 1,031.2, 122.6, -56.7, -111.1, -563.8
+      expect(sums).toEqual([
+        ["=", "Sales revenue", "1,031.2"],
+        ["=", "Result before tax", "1,153.8"],
+        ["=", "Group result", "1,097.1"],
+        ["=", "Result after tax", "986.0"],
+        ["=", "Operating result", "422.2"],
+      ]);
+    });
+
+    describe("a leading group without the reference of a variance", () => {
+      const scenarios = ["ac1", "dac1_pp1_pos", "drac1_pp1_pos"];
+      const props = { tableName: "calcNoReference", type: TableType.SUMNOTOTAL, scenarios };
+
+      it("keeps the variance of its sum row empty, as without runningSum", async () => {
+        const sums = async (runningSum: boolean) =>
+          rowTexts(await renderTable({ ...props, runningSum })).filter((cells) => ["A", "B"].includes(cells[0]));
+
+        expect(await sums(false)).toEqual([
+          ["A", "10.0", "-", "-"],
+          ["B", "5.0", "1.0", "25%"],
+        ]);
+        expect(await sums(true)).toEqual([
+          ["A", "10.0", "-", "-"],
+          ["B", "15.0", "1.0", "25%"],
+        ]);
+      });
+
+      it("keeps it empty in an interval bucket too", async () => {
+        const sums = async (runningSum: boolean) =>
+          rowTexts(
+            await renderTable({ ...props, tableName: "calcNoReferenceMonths", interval: "setname", runningSum }),
+          ).filter((cells) => ["A", "B"].includes(cells[0]));
+
+        const off = await sums(false);
+        expect(off[0].slice(1)).toEqual(["10.0", "-", "-"]);
+        expect(await sums(true)).toEqual([off[0], ["B", "15.0", "1.0", "25%"]]);
+      });
+    });
+
     it("draws the result as an anchor bar and walks on from it", async () => {
       const page = await renderTable({ scenarios: ["ac1"], barColumns: ["ac1"] });
       const barOf = (label: string) => {
@@ -365,6 +459,25 @@ describe("IBCS Table running sums and thereof rows above their parent", () => {
           ...below.slice(parent + 6),
         ]);
       }
+    });
+
+    it("moves a thereof row only above its own parent", async () => {
+      const props = {
+        tableName: "calcSameName",
+        scenarios: ["ac1"],
+        showGroupTitle: true,
+        thereof: [{ rowGroup: "Revenue", category: "Revenue", subCategory: "", partOf: "" }],
+      };
+      const printed = async (thereofPosition: ThereofPosition) => {
+        const page = await renderTable({ ...props, thereofPosition });
+        return rows(page).map((tr, index) => [tr.getAttribute("class") ?? "", ...rowTexts(page)[index]].join("|"));
+      };
+      const below = await printed(ThereofPosition.BELOW);
+      const above = await printed(ThereofPosition.ABOVE);
+
+      // no row here follows its parent, so none is moved, none loses its label and no row turns into a subtotal
+      expect(below.filter((line) => line.includes("thereof")).length).toBe(4);
+      expect(above).toEqual(below);
     });
 
     it("keeps the thereof geometry of a waterfall on the parent bar", async () => {

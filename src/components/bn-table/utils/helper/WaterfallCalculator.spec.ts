@@ -1,4 +1,4 @@
-import { computeWaterfall, hasGroupingStructure, WaterfallBarData } from "./WaterfallCalculator";
+import { computeWaterfall, hasGroupingStructure, restSignedAlias, WaterfallBarData } from "./WaterfallCalculator";
 import { TableType } from "../model";
 import { DataQueryResultRow } from "../../../../utils/model/DataQueryResultRow";
 
@@ -157,6 +157,14 @@ describe("computeWaterfall", () => {
     const result = computeWaterfall([rows], ["ac1"], TableType.SUM);
 
     expect(bar(result, rows[1])).toMatchObject({ start: 10, end: 14, kind: "cascade" });
+  });
+
+  it("walks a REST row of only '-' rows of an OPT table to the left", () => {
+    const rest = { type: "ENTRY", category: "REST", restOperation: "-", ac1: 4 };
+    const rows = [entry(10), rest, sum(6)];
+    const result = computeWaterfall([rows], ["ac1"], TableType.OPT);
+
+    expect(bar(result, rest)).toMatchObject({ start: 10, end: 6, kind: "cascade" });
   });
 
   it("applies the operation sign to OPT entries but not to OPT sum rows", () => {
@@ -340,6 +348,60 @@ describe("computeWaterfall on an absolute variance column", () => {
     expect(bar(rows[1])).toBeUndefined();
     expect(bar(rows[0])!.connectors).toBeUndefined();
     expect(bar(rows[2])).toMatchObject({ start: 5, end: 7 });
+  });
+
+  it("breaks only the line on the side where a partof row is printed", () => {
+    const rows = [row("ENTRY", 4), row("ENTRY", 3), row("PARTELEMENT", 0.5, null), row("ENTRY", 1), row("SUM", 8, "=")];
+    const bar = walk([rows], TableType.OPT);
+
+    expect(bar(rows[0])!.connectors).toEqual([{ at: 4, part: "bottom" }]);
+    expect(bar(rows[1])!.connectors).toEqual([{ at: 4, part: "top" }]);
+    expect(bar(rows[3])!.connectors).toEqual([{ at: 8, part: "bottom" }]);
+  });
+
+  it("breaks the line below a parent whose thereof row below it has no value", () => {
+    const rows = [row("ENTRY", 4), row("ENTRY", 3), row("DRILLELEMENT", null, null), row("ENTRY", 1)];
+    const bar = walk([rows]);
+
+    expect(bar(rows[0])!.connectors).toEqual([{ at: 4, part: "bottom" }]);
+    expect(bar(rows[1])!.connectors).toEqual([{ at: 4, part: "top" }]);
+    expect(bar(rows[3])!.connectors).toBeUndefined();
+  });
+
+  it("breaks the line above a parent whose thereof row above it has no value", () => {
+    const rows = [row("ENTRY", 4), row("ENTRY", 3), row("DRILLELEMENT", null, null), row("ENTRY", 1)];
+    const bar = walk([rows], TableType.OPTNOTOTAL, false, true);
+
+    expect(bar(rows[0])!.connectors).toBeUndefined();
+    expect(bar(rows[1])!.connectors).toEqual([{ at: 7, part: "bottom" }]);
+    expect(bar(rows[3])!.connectors).toEqual([{ at: 7, part: "top" }]);
+  });
+
+  it("keeps the line above a parent with a partof row when its thereof rows are printed above", () => {
+    const rows = [row("ENTRY", 4), row("ENTRY", 3), row("PARTELEMENT", 0.5, null), row("ENTRY", 1)];
+    const bar = walk([rows], TableType.OPTNOTOTAL, false, true);
+
+    expect(bar(rows[0])!.connectors).toEqual([{ at: 4, part: "bottom" }]);
+    expect(bar(rows[1])!.connectors).toEqual([{ at: 4, part: "top" }]);
+    expect(bar(rows[3])!.connectors).toBeUndefined();
+  });
+
+  it("walks a REST row of only '-' rows to the left on an opt table, so the walk ends at the sum", () => {
+    const rest = { type: "ENTRY", category: "REST", restOperation: "-", [column]: 3 };
+    const rows = [row("ENTRY", 10), row("ENTRY", 3, "-"), rest, row("SUM", 4, "=")];
+    const bar = walk([rows], TableType.OPT);
+
+    expect(bar(rest)).toMatchObject({ start: 7, end: 4 });
+    expect(bar(rows[3])!.connectors).toEqual([{ at: 4, part: "top" }]);
+  });
+
+  it("walks a REST row of mixed operations by its signed sum", () => {
+    // REST folds +2 and -5: it prints 7, the walk moves by -3
+    const rest = { type: "ENTRY", category: "REST", restOperation: "+", [column]: 7, [restSignedAlias(column)]: -3 };
+    const rows = [row("ENTRY", 10), rest, row("SUM", 7, "=")];
+    const bar = walk([rows], TableType.OPT);
+
+    expect(bar(rest)).toMatchObject({ start: 10, end: 7 });
   });
 
   it("keeps the running total over a NaN entry and joins no line across it", () => {

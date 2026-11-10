@@ -1,5 +1,6 @@
 import { OrderDirection, TableType } from "../model";
 import { BLANK_SAFE_ROWGROUP, QueryGroups } from "./QueryGroup";
+import { restSignedAlias } from "./WaterfallCalculator";
 import {
   BLANK_BUCKET_LABEL,
   coerceBucketKey,
@@ -17,6 +18,13 @@ import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
 import { DataQueryResultRow, DataQueryMetaRow } from "../../../../utils/model/DataQueryResultRow";
 import { AlaSQLDatabase } from "../../../../context/scopedDb";
 import { NOT_AVAILABLE, relativeVariance } from "../../../../utils/relativeVariance";
+
+type MissingOrNumber = number | null | undefined;
+
+/** Adds a group sum to a running result; it stays missing as long as no group had a value. */
+function addGroupSum(running: MissingOrNumber, value: MissingOrNumber): MissingOrNumber {
+  return running == null && value == null ? value : (running ?? 0) + (value ?? 0);
+}
 
 /**
  * AlaSQL-based query builder that produces the complete table result set for bn-table.
@@ -292,9 +300,14 @@ export class DataQuery {
         .map((name) => `SUM(${name}) as ${name}`)
         .join(", ");
       // a REST row of only "-" rows counts as "-" for the op sentiment; not named operation, so it stays hidden
+      // the row prints the unsigned sum; the walk of a waterfall needs the signed sum of its bar columns
+      const restSigned = this.exctractScenarioNames(scenarios)
+        .filter((name) => this.config.barColumns?.includes(name))
+        .map((name) => `, SUM(${name} * transformOperator(operation)) as ${restSignedAlias(name)}`)
+        .join("");
       const restOperation =
         TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type
-          ? `, CASE WHEN MAX(transformOperator(operation)) = -1 THEN '-' ELSE '+' END as restOperation`
+          ? `, CASE WHEN MAX(transformOperator(operation)) = -1 THEN '-' ELSE '+' END as restOperation${restSigned}`
           : "";
       querys.push(
         `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, ${this.bind(String(rowGroupEntry.rowGroup ?? ""))} as restRowGroup, 'REST' as ${QueryColumnNames.CATEGORY}${restOperation} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
@@ -353,25 +366,32 @@ export class DataQuery {
     );
   }
 
-  /** Column drill values of the group sum rows are not accumulated, so `runningSum` is off with columnthereof. */
-  private hasRunningSum(): boolean {
-    return this.config.runningSum && this.config.grouped && this.config.categoryThereOf.size === 0;
+  /**
+   * True when the group sum rows are running results: only a grouped table with group sum
+   * rows has them. Column drill values of the group sum rows are not accumulated, so
+   * `runningSum` is off with columnthereof.
+   */
+  public hasRunningSum(): boolean {
+    return (
+      this.config.runningSum && this.config.grouped && this.hasGroupSum() && this.config.categoryThereOf.size === 0
+    );
   }
 
   /**
    * Turns the GROUP_SUM rows into running results: each one gets the raw aliases of all
    * group sums before it added (scenarios, `_cnt`, variances and `dr_*` denominators).
    * Runs before the NaN step and the relative variance division, where all of them are sums.
+   * A missing value stays missing until a group brings a real one.
    */
   private accumulateGroupSums(res: DataQueryResultRow[][], aliases: string[]) {
-    const running: Record<string, number> = {};
+    const running: Record<string, MissingOrNumber> = {};
     for (const segment of res) {
       for (const row of segment) {
         if (row[QueryColumnNames.TYPE] !== "GROUP_SUM") {
           continue;
         }
         for (const alias of aliases) {
-          running[alias] = (running[alias] ?? 0) + ((row[alias] as number) ?? 0);
+          running[alias] = addGroupSum(running[alias], row[alias] as MissingOrNumber);
           row[alias] = running[alias];
         }
       }
@@ -835,7 +855,7 @@ export class DataQuery {
           if (totalRow) {
             running ??= {};
             for (const alias of sumAliases) {
-              running[alias] = ((running[alias] as number) ?? 0) + ((totalRow[alias] as number) ?? 0);
+              running[alias] = addGroupSum(running[alias] as MissingOrNumber, totalRow[alias] as MissingOrNumber);
             }
           }
           if (running) {

@@ -68,6 +68,21 @@ describe("IBCS Table variance waterfall", () => {
     { operation: "-", rowGroup: "G2", rowGroupIndex: 2, category: "Beta", categoryIndex: 2, ac1: 8, pl1: 5 },
   ];
 
+  // variances: Sales +10, CostA +3, CostB +2, CostC +1, Other +4
+  const restRows: any[] = [
+    { operation: "+", category: "Sales", categoryIndex: 1, ac1: 20, pl1: 10 },
+    { operation: "-", category: "CostA", categoryIndex: 2, ac1: 8, pl1: 5 },
+    { operation: "-", category: "CostB", categoryIndex: 3, ac1: 6, pl1: 4 },
+    { operation: "-", category: "CostC", categoryIndex: 4, ac1: 5, pl1: 4 },
+  ];
+  const mixedRestRows: any[] = [...restRows, { operation: "+", category: "Other", categoryIndex: 5, ac1: 9, pl1: 5 }];
+
+  // no row differs from its plan
+  const zeroRows: any[] = [
+    { operation: "+", category: "Alpha", categoryIndex: 1, ac1: 10, pl1: 10 },
+    { operation: "+", category: "Beta", categoryIndex: 2, ac1: 5, pl1: 5 },
+  ];
+
   const i18n = new Map([
     ["SUM_TOTAL", "Summe"],
     ["thereof", "davon"],
@@ -79,6 +94,9 @@ describe("IBCS Table variance waterfall", () => {
     tables["varianceWalk"] = { data: rows };
     tables["varianceWalkThereof"] = { data: thereofRows };
     tables["varianceWalkGroups"] = { data: groupRows };
+    tables["varianceWalkRest"] = { data: restRows };
+    tables["varianceWalkMixedRest"] = { data: mixedRestRows };
+    tables["varianceWalkZero"] = { data: zeroRows };
   });
 
   const renderTable = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
@@ -264,6 +282,43 @@ describe("IBCS Table variance waterfall", () => {
     expect(barRect(beta).getAttribute("fill")).not.toBe(barRect(alpha).getAttribute("fill"));
   });
 
+  describe("REST row of an opt table", () => {
+    it("walks a REST row of only '-' rows to the left, so the walk ends at the sum", async () => {
+      const page = await renderTable({ tableName: "varianceWalkRest", limit: 2 });
+      const [sales, costA, rest, total] = ["Sales", "CostA", "REST", "Summe"].map((name) => svgOf(rowOf(page, name)));
+
+      // Sales [0,10], CostA [10,7], REST [7,4], sum [0,4]
+      const unit = (to(sales) - from(sales)) / 10;
+      expect(to(rest)).toBeCloseTo(from(costA), 3);
+      expect(from(rest)).toBeCloseTo(from(sales) + 4 * unit, 3);
+      expect(to(total)).toBeCloseTo(from(rest), 3);
+      expect(connectors(total).length).toBe(1);
+      expect(label(rest).textContent).toMatch(/^\+3/);
+    });
+
+    it("walks a REST row of '+' and '-' rows by its signed sum", async () => {
+      const page = await renderTable({ tableName: "varianceWalkMixedRest", limit: 2 });
+      const [sales, costA, rest, total] = ["Sales", "CostA", "REST", "Summe"].map((name) => svgOf(rowOf(page, name)));
+
+      // Sales [0,10], CostA [10,7], REST -2 -1 +4 = [7,8], sum [0,8]
+      const unit = (to(sales) - from(sales)) / 10;
+      expect(from(rest)).toBeCloseTo(from(costA), 3);
+      expect(to(rest)).toBeCloseTo(from(sales) + 8 * unit, 3);
+      expect(to(total)).toBeCloseTo(to(rest), 3);
+      expect(connectors(total).length).toBe(1);
+    });
+  });
+
+  it("prints the zero of a column without any variance", async () => {
+    const cells = async (varianceWaterfall: boolean) =>
+      bodyRows(await renderTable({ tableName: "varianceWalkZero", varianceWaterfall })).map((row) =>
+        row.querySelector("td:last-child").textContent.trim(),
+      );
+
+    expect(await cells(false)).toEqual(["-", "-", "0.0"]);
+    expect(await cells(true)).toEqual(["0.0", "0.0", "0.0"]);
+  });
+
   describe("groups", () => {
     const renderGroups = (runningSum: boolean) =>
       renderTable({
@@ -285,6 +340,26 @@ describe("IBCS Table variance waterfall", () => {
       // no line from the sum row of the first group to the second group
       expect(connectors(sumA).length).toBe(1);
       expect(connectors(beta).length).toBe(1);
+    });
+
+    it("starts every group of a list table at the axis, also with runningSum", async () => {
+      const renderList = (runningSum: boolean) =>
+        renderTable({
+          tableName: "varianceWalkGroups",
+          type: TableType.LIST,
+          grouped: true,
+          showGroupTitle: true,
+          runningSum,
+        });
+      const bars = async (runningSum: boolean) => {
+        const page = await renderList(runningSum);
+        return ["Alpha", "Beta"].map((name) => svgOf(rowOf(page, name))).map((svg) => [from(svg), to(svg), axisX(svg)]);
+      };
+      const off = await bars(false);
+
+      // the walk of a list table has no sum row to go on from
+      expect(await bars(true)).toEqual(off);
+      expect(off[1][1]).toBeCloseTo(off[1][2], 3);
     });
 
     it("walks on from the sum row with runningSum and joins it over the gap", async () => {

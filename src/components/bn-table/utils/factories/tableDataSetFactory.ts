@@ -292,7 +292,7 @@ export class TableDataSetFactory {
     ];
     const waterfallResult =
       waterfallColumns.length > 0 && config.interval === INTERVAL_NONE && config.categoryThereOf.size === 0
-        ? computeWaterfall(queryData, waterfallColumns, config.type, config.runningSum, thereOfAbove)
+        ? computeWaterfall(queryData, waterfallColumns, config.type, dataQuery.hasRunningSum(), thereOfAbove)
         : undefined;
 
     for (const groupData of queryData) {
@@ -457,8 +457,9 @@ export class TableDataSetFactory {
     thereOfAbove: boolean = false,
   ): TableRow[] {
     const result: TableRow[] = [];
-    // index in result of the last entry row, the parent of the thereof rows that follow it
+    // the last entry row and its index in result: the parent of the thereof rows that follow it
     let parentIndex = -1;
+    let parent: DataQueryResultRow | undefined;
     // thereof and partof rows have no operation, they take the one of the row above
     let operation: string | null | undefined;
 
@@ -471,6 +472,13 @@ export class TableDataSetFactory {
       const type = rawDataRow[QueryColumnNames.TYPE];
       const isSecondElement = rawDataRow[QueryColumnNames.ROWNR] >= 2;
       operation = (rawDataRow.operation ?? rawDataRow.restOperation ?? operation) as string | null | undefined;
+      // a thereof row moves above the entry row before it only when that row is its parent
+      const moved =
+        thereOfAbove &&
+        type === TableRowType.DRILLELEMENT &&
+        parent !== undefined &&
+        parent[QueryColumnNames.CATEGORY] === rawDataRow[QueryColumnNames.CATEGORY] &&
+        (parent[QueryColumnNames.ROWGROUP] === "NO_GROUP" || parent[QueryColumnNames.ROWGROUP] === rowGroup);
 
       const detailsRow: TableRow = this.createDetailRow(type, iRowIndex, iGroupIndex, groupData.length);
       detailsRow.key = this.rowKey(rawDataRow);
@@ -500,9 +508,7 @@ export class TableDataSetFactory {
           scenario.type,
           this.createColumnType(scenario),
           this.setCellType(scenario.type, scenariosUnitType),
-          thereOfAbove && type === TableRowType.DRILLELEMENT
-            ? null
-            : this.translateCellPrefix(i18n, type, scenario.type),
+          moved ? null : this.translateCellPrefix(i18n, type, scenario.type),
           this.translateScenarioCSS(scenario.type, value as number, operation),
           isSecondElement,
           categoryWidth,
@@ -523,7 +529,7 @@ export class TableDataSetFactory {
       }
 
       // moved only here: the operation above and the waterfall geometry both rely on the parent coming first
-      if (thereOfAbove && type === TableRowType.DRILLELEMENT && parentIndex >= 0) {
+      if (moved) {
         detailsRow.cssStyle = "ofit-above";
         result[parentIndex].cssStyle = "ofit-sum";
         result.splice(parentIndex, 0, detailsRow);
@@ -532,6 +538,7 @@ export class TableDataSetFactory {
       }
       if (type === TableRowType.ENTRY) {
         parentIndex = result.length;
+        parent = rawDataRow;
       }
       result.push(detailsRow);
     }

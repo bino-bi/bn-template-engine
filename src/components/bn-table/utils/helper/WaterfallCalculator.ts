@@ -44,8 +44,10 @@ export interface WaterfallBarData {
 interface WalkUnit {
   main: WaterfallBarData;
   children: WaterfallBarData[];
-  /** A thereof or partof row without a bar is printed beside the row, so no line can pass. */
-  broken: boolean;
+  /** A thereof row without a bar is printed above the row, so no line can come in from above. */
+  gapAbove: boolean;
+  /** A thereof or partof row without a bar is printed below the row, so no line can go on below. */
+  gapBelow: boolean;
 }
 
 function sameCoordinate(a: number, b: number): boolean {
@@ -69,28 +71,30 @@ function connectWalk(units: (WalkUnit | null)[], thereofAbove: boolean): void {
 
   let previous: WalkUnit | null = null;
   for (const unit of units) {
-    if (unit === null || unit.broken) {
+    if (unit === null) {
       previous = null;
       continue;
     }
     const { main, children } = unit;
     const entry = main.kind === "anchor" ? main.end : main.start;
-    if (previous && sameCoordinate(previous.main.end, entry)) {
+    if (previous && !unit.gapAbove && sameCoordinate(previous.main.end, entry)) {
       // the line runs beside the thereof rows printed between the two rows
       link(previous.main, thereofAbove ? children : previous.children, main, entry);
     }
-    children.forEach((child, index) => {
-      if (index > 0) link(children[index - 1], [], child, child.start);
-    });
-    if (children.length > 0) {
-      const last = children[children.length - 1];
-      if (!thereofAbove) {
-        link(main, [], children[0], main.start);
-      } else if (sameCoordinate(last.end, main.end)) {
-        link(last, [], main, main.end);
+    if (!unit.gapAbove && !unit.gapBelow) {
+      children.forEach((child, index) => {
+        if (index > 0) link(children[index - 1], [], child, child.start);
+      });
+      if (children.length > 0) {
+        const last = children[children.length - 1];
+        if (!thereofAbove) {
+          link(main, [], children[0], main.start);
+        } else if (sameCoordinate(last.end, main.end)) {
+          link(last, [], main, main.end);
+        }
       }
     }
-    previous = unit;
+    previous = unit.gapBelow ? null : unit;
   }
 }
 
@@ -142,11 +146,25 @@ export function hasGroupingStructure(queryData: DataQueryResultRow[][]): boolean
 }
 
 /**
+ * Alias of the signed sum of a bar column on the generated REST row of an OPT table. The
+ * row prints the unsigned sum of the rows it folds, the walk needs the signed one.
+ */
+export function restSignedAlias(column: string): string {
+  return `${column}__signed`;
+}
+
+/** Sign of an OPT entry row; the generated REST row has `restOperation` in place of `operation`. */
+function operationSign(row: DataQueryResultRow): number {
+  return (row[QueryColumnNames.OPERATION] ?? row.restOperation) === "-" ? -1 : 1;
+}
+
+/**
  * Signed waterfall contribution of a row for one column.
  *
  * Non-OPT table types aggregate `SUM(scn * transformOperator(operation))`, so ENTRY
  * values arrive already signed. OPT types aggregate plain `SUM(scn)` with the sign
- * carried in the visible operation column, so the sign is applied here. Sum rows are
+ * carried in the visible operation column, so the sign is applied here. A REST row that
+ * folds "+" and "-" rows has no single sign, it brings its signed sum. Sum rows are
  * fully signed in both modes.
  */
 function signedValue(row: DataQueryResultRow, column: string, tableType: TableType): number | null {
@@ -161,8 +179,9 @@ function signedValue(row: DataQueryResultRow, column: string, tableType: TableTy
   }
 
   const isOpt = tableType === TableType.OPT || tableType === TableType.OPTNOTOTAL;
-  if (isOpt && row[QueryColumnNames.TYPE] === TableRowType.ENTRY && row[QueryColumnNames.OPERATION] === "-") {
-    return -value;
+  if (isOpt && row[QueryColumnNames.TYPE] === TableRowType.ENTRY) {
+    const signed = row[restSignedAlias(column)];
+    return typeof signed === "number" ? signed : operationSign(row) * value;
   }
 
   return value;
@@ -173,6 +192,7 @@ function signedValue(row: DataQueryResultRow, column: string, tableType: TableTy
  * segmented query result once per column in display order.
  *
  * - ENTRY rows (incl. REST) cascade from the running total by their signed value.
+ *   The REST row of an OPT table takes the sign of `restOperation`, or its signed sum.
  * - SUM / GROUP_SUM rows anchor at zero. A SUM row resets the running total to its
  *   value, a GROUP_SUM row resets it to zero.
  * - DRILLELEMENT (thereof) rows form a sub-cascade from their parent bar's start in
@@ -222,7 +242,7 @@ export function computeWaterfall(
       return data;
     };
     const startUnit = (main: WaterfallBarData | null) => {
-      unit = main && { main, children: [], broken: false };
+      unit = main && { main, children: [], gapAbove: false, gapBelow: false };
       units.push(unit);
     };
 
@@ -250,7 +270,7 @@ export function computeWaterfall(
           }
           startUnit(emit(row, { start: running, end: running + value, min: 0, max: 0, kind: "cascade" }));
           // thereof values of an OPT table are unsigned like the entries, so they take the sign of the parent
-          const sign = isOpt && row[QueryColumnNames.OPERATION] === "-" ? -1 : 1;
+          const sign = isOpt ? operationSign(row) : 1;
           lastParent = { start: running, end: running + value, sign };
           subCursor = lastParent.start;
           running += value;
@@ -271,7 +291,9 @@ export function computeWaterfall(
             unit.children.push(emit(row, { start: subCursor, end, min: 0, max: 0, kind: "thereof" }));
             subCursor = end;
           } else if (unit) {
-            unit.broken = true;
+            // only thereof rows move above the parent
+            if (thereofAbove && type === TableRowType.DRILLELEMENT) unit.gapAbove = true;
+            else unit.gapBelow = true;
           }
         } else if (type === TableRowType.DRILLELEMENT) {
           if (value === null || lastParent === undefined) {
