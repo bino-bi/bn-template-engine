@@ -13,6 +13,7 @@ describe("DQueryGroup Test", () => {
     grouped: true, // Array<string | GroupSelection>| null;
     showGroupTitle: false,
     runningSum: false,
+    varianceWaterfall: false,
     thereOf: [],
     thereOfPosition: ThereofPosition.BELOW,
     categoryThereOf: new Map(),

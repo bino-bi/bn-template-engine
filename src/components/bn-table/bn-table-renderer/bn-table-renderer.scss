@@ -331,9 +331,19 @@ td {
   color: #999;
 }
 
+/* the connectors of a variance waterfall run over the row border into the row above */
+td:has(.variance-waterfall) {
+  overflow: visible;
+}
+
 td:has(.cell-bar-chart) {
   padding: 0 0.25em;
   vertical-align: middle;
+}
+
+/* a thereof row has a smaller em and its own left padding: both would move the walk off the rows around it */
+tr.ofit td:has(.variance-waterfall) {
+  padding: 0 calc(0.25em / 0.6);
 }
 
 // Remove the +/- prefix and % suffix for bar chart columns

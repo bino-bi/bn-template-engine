@@ -162,6 +162,10 @@ export class BnTableRenderer {
 
   /** @internal */
   @Prop()
+  varianceWaterfall: boolean = false;
+
+  /** @internal */
+  @Prop()
   thereof: TableDrillGroup[] = [];
 
   /** @internal */
@@ -485,14 +489,15 @@ export class BnTableRenderer {
                           height={18 * this.scaleFactor}
                           isRelative={false}
                           isPositiveGood={cell.direction === "pos"}
-                          measureScale={cell.measureScale}
+                          measureScale={barLabelMeasureScale(cell)}
                           locale={locale}
                           decimalDigits={barLabelDigits(cell, this.componentDataFormatDigits)}
                           columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                           waterfall={cell.waterfall}
                           geometry={this.waterfallGeometries.get(cell.key)}
-                          bold={row.type === TableRowType.SUM}
+                          bold={isBoldRow(row)}
+                          connectorReach={this.connectorReach(row)}
                         />
                       ) : (
                         <CellBarChart
@@ -609,6 +614,7 @@ export class BnTableRenderer {
       grouped: this.grouped,
       showGroupTitle: this.showGroupTitle,
       runningSum: this.runningSum,
+      varianceWaterfall: this.varianceWaterfall,
       thereOf: this.thereof,
       thereOfPosition: this.thereofPosition,
       partOf: this.partof,
@@ -843,6 +849,15 @@ export class BnTableRenderer {
   }
 
   /**
+   * What a variance waterfall connector crosses outside the bar svg: the border of its own
+   * row above, the padding of a sum row below.
+   */
+  private connectorReach(row: TableRow): { top: number; bottom: number } {
+    const emPx = this.emPx();
+    return { top: 0.1 * emPx, bottom: row.type === TableRowType.SUM ? 0.5 * emPx : 0 };
+  }
+
+  /**
    * Geometry of every waterfall column from the measured labels of all cells that draw a
    * bar, sum rows included: each side gets the room its labels need.
    */
@@ -863,15 +878,16 @@ export class BnTableRenderer {
         const text = waterfallLabelText(
           cell.value,
           kind,
-          cell.measureScale,
+          barLabelMeasureScale(cell),
           locale,
           barLabelDigits(cell, this.componentDataFormatDigits),
+          cell.direction !== undefined,
         );
         const column = columns.get(cell.key) ?? { min, max, labels: [] };
         column.labels.push({
           end,
           pointsLeft: end < start,
-          width: labelWidth(text, fs, fontFamily, false, row.type === TableRowType.SUM),
+          width: labelWidth(text, fs, fontFamily, false, isBoldRow(row)),
         });
         columns.set(cell.key, column);
       }
@@ -881,6 +897,11 @@ export class BnTableRenderer {
     }
     return geometries;
   }
+}
+
+/** Sum rows and the parent of thereof rows printed above it are bold. */
+function isBoldRow(row: TableRow): boolean {
+  return row.type === TableRowType.SUM || row.cssStyle === "ofit-sum";
 }
 
 /** Percentage points: the fraction times 100, no measure scale. */

@@ -574,6 +574,22 @@ export class Table {
   @Prop() runningSum: boolean = false;
 
   /**
+   *  Draws every absolute variance column (d_*) listed in ```barColumns``` as a
+   *  variance waterfall down the rows instead of single bars from the axis.
+   *  A row starts where the row above ended; on ```opt``` and ```optnototal```
+   *  tables a "-" row with a positive variance moves to the left. Sum rows are
+   *  bars from the axis. Thin lines join the bars. Each row group starts at the
+   *  axis again, with ```runningSum``` the walk goes on from the sum row.
+   *  The column scales to fit the whole walk (unit-scaling does not apply).
+   *  Relative variance columns (dr_*) stay pins.
+   *  Has no effect together with ```interval``` or ```columnthereof```.
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
+   */
+  @Prop() varianceWaterfall: boolean = false;
+
+  /**
    *  Set the table type
    *  <br /><br />
    *  values: <br />
@@ -1831,6 +1847,7 @@ export class Table {
             limit={this.prepareLimit()}
             showGroupTitle={this.prepareShowGroupTitle()}
             runningSum={this.runningSum}
+            varianceWaterfall={this.varianceWaterfall}
             thereof={this.prepareThereOf()}
             thereofPosition={this.prepareThereofPosition()}
             partof={this.preparePartOf()}

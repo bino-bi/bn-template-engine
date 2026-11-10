@@ -280,15 +280,19 @@ export class TableDataSetFactory {
       config.interval !== INTERVAL_NONE,
     );
 
-    // Scenario bar columns render as a waterfall when grouping structure is present;
+    // Scenario bar columns render as a waterfall when grouping structure is present,
+    // absolute variance bar columns when varianceWaterfall is set;
     // interval/columnthereof composite columns are excluded and render as today
-    const waterfallColumns = (config.barColumns ?? []).filter((column) => column.toUpperCase().trim() in Scenarios);
+    const thereOfAbove = config.thereOfPosition === ThereofPosition.ABOVE;
+    const barColumns = config.barColumns ?? [];
+    const scenarioColumns = barColumns.filter((column) => column.toUpperCase().trim() in Scenarios);
+    const waterfallColumns = [
+      ...(scenarioColumns.length > 0 && hasGroupingStructure(queryData) ? scenarioColumns : []),
+      ...(config.varianceWaterfall ? barColumns.filter((column) => new VarianceScenario(column).type === "d") : []),
+    ];
     const waterfallResult =
-      waterfallColumns.length > 0 &&
-      config.interval === INTERVAL_NONE &&
-      config.categoryThereOf.size === 0 &&
-      hasGroupingStructure(queryData)
-        ? computeWaterfall(queryData, waterfallColumns, config.type, config.runningSum)
+      waterfallColumns.length > 0 && config.interval === INTERVAL_NONE && config.categoryThereOf.size === 0
+        ? computeWaterfall(queryData, waterfallColumns, config.type, config.runningSum, thereOfAbove)
         : undefined;
 
     for (const groupData of queryData) {
@@ -308,7 +312,7 @@ export class TableDataSetFactory {
           config.barColumns,
           columnStatsMap,
           waterfallResult,
-          config.thereOfPosition === ThereofPosition.ABOVE,
+          thereOfAbove,
         ),
       );
     }
@@ -472,16 +476,24 @@ export class TableDataSetFactory {
       detailsRow.key = this.rowKey(rawDataRow);
       for (const scenario of this.normalizedHeader) {
         const value = this.getRawDataRowElement(rawDataRow, scenario);
-        const isBarChart = barColumns?.includes(scenario.type) ?? false;
-        const columnStats = isBarChart ? columnStatsMap?.get(scenario.type) : undefined;
+        const isBarColumn = barColumns?.includes(scenario.type) ?? false;
         // waterfall geometry only exists for plain scenario columns (no ## composites)
         const waterfall =
-          isBarChart &&
+          isBarColumn &&
           scenario.bucket === undefined &&
           scenario.name === scenario.group &&
           scenario.name === scenario.type
             ? waterfallResult?.get(rawDataRow, scenario.type)
             : undefined;
+        // a share of a variance has no place in the walk of a variance waterfall: the row prints the number
+        const isBarChart =
+          isBarColumn &&
+          !(
+            type === TableRowType.PARTELEMENT &&
+            new VarianceScenario(scenario.type).isValid &&
+            waterfallResult?.has(scenario.type)
+          );
+        const columnStats = isBarChart ? columnStatsMap?.get(scenario.type) : undefined;
 
         detailsRow.createElement(
           this.translateSumCellLabel(i18nMode, i18n, value, groupName, subCategory, type, scenario.type),
