@@ -437,6 +437,40 @@ describe("barColumnGeometry", () => {
       expect(g.labelAreaLeft / g.labelAreaRight).toBeCloseTo(46 / 56, 6);
     });
 
+    it("gives a label its full room when the labels of the other side end far from the edge", () => {
+      // at w10 both needs at the edges are 46 + 76, more than half of 190, but the left labels end inside the bars
+      const g = waterfallGeometry(10, EM, {
+        min: 0,
+        max: 1500,
+        labels: [
+          { end: 1500, pointsLeft: false, width: 70 },
+          { end: 1100, pointsLeft: true, width: 40 },
+          { end: 800, pointsLeft: true, width: 40 },
+        ],
+      });
+
+      expect(g.totalWidth).toBe(190);
+      expect(g.labelAreaRight).toBe(76);
+      expect(g.labelAreaLeft + (800 * g.barAreaWidth) / 1500).toBeGreaterThanOrEqual(46);
+      expect(g.barAreaWidth).toBeGreaterThanOrEqual(95);
+    });
+
+    it("keeps a label that fits the old fixed gutter when the other side has to shrink", () => {
+      // needs 36 and 66 are more than half of 190; the fixed gutter was 47.5 per side
+      const g = waterfallGeometry(10, EM, {
+        min: -100,
+        max: 100,
+        labels: [
+          { end: 100, pointsLeft: false, width: 60 },
+          { end: -100, pointsLeft: true, width: 30 },
+        ],
+      });
+
+      expect(g.labelAreaLeft).toBe(36);
+      expect(g.labelAreaRight).toBe(59);
+      expect(g.barAreaWidth).toBe(95);
+    });
+
     it("keeps the fixed gutters for a column without extent", () => {
       const g = waterfallGeometry(15, EM, { min: 0, max: 0, labels: [] });
 
