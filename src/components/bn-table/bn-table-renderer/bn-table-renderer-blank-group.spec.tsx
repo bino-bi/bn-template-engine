@@ -188,6 +188,20 @@ describe("IBCS Table blank row group", () => {
     ]);
   });
 
+  it("prints no bar placeholder in the empty group head row of a list", async () => {
+    const page = await renderTable({ showGroupTitle: false, type: TableType.LIST, barColumns: ["ac1"] });
+
+    expect(page.root.shadowRoot.querySelectorAll("tbody tr.groupheader").length).toBe(2);
+    expect(page.root.shadowRoot.querySelectorAll("tbody tr.groupheader .bar-chart-empty").length).toBe(0);
+    expect(page.root.shadowRoot.querySelectorAll("tbody tr:not(.groupheader) svg").length).toBe(5);
+  });
+
+  it("keeps the bar placeholder in the group head row when the group title is shown", async () => {
+    const page = await renderTable({ type: TableType.LIST, barColumns: ["ac1"] });
+
+    expect(page.root.shadowRoot.querySelectorAll("tbody tr.groupheader .bar-chart-empty").length).toBe(2);
+  });
+
   it("group sums add up to the total", async () => {
     const page = await renderTable();
 
