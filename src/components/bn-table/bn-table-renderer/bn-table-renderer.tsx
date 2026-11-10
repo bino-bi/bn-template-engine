@@ -37,7 +37,7 @@ import {
   VarianceStyle,
   zeroOnPositiveSide,
 } from "../utils/elements/CellBarChart";
-import { WaterfallBar } from "../utils/elements/WaterfallBar";
+import { WaterfallBar, waterfallLabelText } from "../utils/elements/WaterfallBar";
 import { Cell } from "../utils/elements/Cell";
 import withComponentStatus from "../../../utils/withComponentStatus";
 import withComponentStyle from "../../../utils/withComponentStyle";
@@ -54,6 +54,9 @@ import {
   pinLabelsFit,
   relativePinGeometry,
   SideLabels,
+  WaterfallColumnLabels,
+  waterfallGeometry,
+  WaterfallGeometry,
 } from "../utils/helper/barColumnGeometry";
 import { NOT_AVAILABLE } from "../../../utils/relativeVariance";
 import { normalizeFillPattern } from "../../../utils/model/styles/SVGStyle";
@@ -281,6 +284,7 @@ export class BnTableRenderer {
   private componentDataFormatDigits: DataFormatDigits = new DataFormatDigits();
   private barChartStyles: CellBarChartStyles;
   private barColumnLayouts = new Map<string, BarColumnLayout>();
+  private waterfallGeometries = new Map<string, WaterfallGeometry>();
   private stores: ScopedStores | undefined;
 
   constructor() {
@@ -290,7 +294,7 @@ export class BnTableRenderer {
 
   // labels measured in the fallback font are too narrow or too wide once the web font is there: lay out again
   private readonly relayout = () => {
-    if (this.barColumnLayouts.size > 0) forceUpdate(this);
+    if (this.barColumnLayouts.size > 0 || this.waterfallGeometries.size > 0) forceUpdate(this);
   };
 
   connectedCallback() {
@@ -487,6 +491,8 @@ export class BnTableRenderer {
                           columnWidthEm={this.barColumnMaxWidth}
                           styles={this.barChartStyles}
                           waterfall={cell.waterfall}
+                          geometry={this.waterfallGeometries.get(cell.key)}
+                          bold={row.type === TableRowType.SUM}
                         />
                       ) : (
                         <CellBarChart
@@ -571,6 +577,7 @@ export class BnTableRenderer {
       }
     }
     this.barColumnLayouts = this.collectBarColumnLayouts();
+    this.waterfallGeometries = this.collectWaterfallGeometries();
     this.barChartStyles = this.prepareBarChartStyles();
   }
 
@@ -824,6 +831,46 @@ export class BnTableRenderer {
       layouts.set(key, { isRelative, absMax, labels, sideMax, percentDigits, percentSign });
     }
     return layouts;
+  }
+
+  /**
+   * Geometry of every waterfall column from the measured labels of all cells that draw a
+   * bar, sum rows included: each side gets the room its labels need.
+   */
+  private collectWaterfallGeometries(): Map<string, WaterfallGeometry> {
+    const geometries = new Map<string, WaterfallGeometry>();
+    if (!this.table || this.table.hasNoData()) return geometries;
+
+    const emPx = this.emPx();
+    const fs = emPx * BAR_LABEL_FONT_RATIO;
+    const locale = this.stores?.context?.state?.locale;
+    const fontFamily = this.labelFontFamily();
+    const columns = new Map<string, WaterfallColumnLabels>();
+    for (const row of this.table.getBody()) {
+      for (const cell of row.getCells()) {
+        if (!cell.isBarChart || !cell.columnStats || cell.waterfall === undefined) continue;
+        if (typeof cell.value !== "number" || isNaN(cell.value)) continue;
+        const { start, end, min, max, kind } = cell.waterfall;
+        const text = waterfallLabelText(
+          cell.value,
+          kind,
+          cell.measureScale,
+          locale,
+          barLabelDigits(cell, this.componentDataFormatDigits),
+        );
+        const column = columns.get(cell.key) ?? { min, max, labels: [] };
+        column.labels.push({
+          end,
+          pointsLeft: end < start,
+          width: labelWidth(text, fs, fontFamily, false, row.type === TableRowType.SUM),
+        });
+        columns.set(cell.key, column);
+      }
+    }
+    for (const [key, column] of columns) {
+      geometries.set(key, waterfallGeometry(this.barColumnMaxWidth, emPx, column));
+    }
+    return geometries;
   }
 }
 

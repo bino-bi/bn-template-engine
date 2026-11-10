@@ -76,7 +76,7 @@ describe("IBCS Table pin labels measured on a canvas", () => {
       font: "",
       measureText(text: string) {
         fonts.push(this.font);
-        return { width: text.length * glyphEm * parseFloat(this.font.replace("italic ", "")) };
+        return { width: text.length * glyphEm * parseFloat(this.font.replace(/italic |bold /g, "")) };
       },
     };
     // newSpecPage makes a new document per page, so the stub goes on their prototype
@@ -131,6 +131,18 @@ describe("IBCS Table pin labels measured on a canvas", () => {
     fonts.length = 0;
     await renderColumn("dac1_pl1_pos", { unitScaling: 0, barColumnMaxWidth: 10 });
     expect(new Set(fonts)).toEqual(new Set([`${LABEL_FONT}px 'Noto Sans', sans-serif`]));
+  });
+
+  it("measures waterfall labels upright, the sum row in bold, and fits the column to them", async () => {
+    fonts.length = 0;
+    const page = await renderColumn("ac1", { scenarios: ["ac1"], type: TableType.SUM, barColumnMaxWidth: 15 });
+
+    const font = `${LABEL_FONT}px 'Noto Sans', sans-serif`;
+    expect(new Set(fonts)).toEqual(new Set([font, `bold ${font}`]));
+    // all bars point right: no room on the left, the label of the total ends at the right edge
+    const total = page.root.shadowRoot.querySelector("tbody tr.sum svg.waterfall-bar");
+    expect(num(svgOf(page, "A Up").querySelector("rect:not(pattern rect)"), "x")).toBeCloseTo(0, 6);
+    expect(num(total.querySelector("text"), "x") + measured("300.0")).toBeCloseTo(num(total, "width"), 3);
   });
 
   // the estimate drops the digits at w10, the measured labels fit: 2 x (5 + 4 + 37.4) + 2 x 1em <= 126.7
@@ -210,6 +222,21 @@ describe("IBCS Table pin labels measured on a canvas", () => {
       await page.waitForChanges();
 
       expect(svgOf(page, "A Up").querySelector("text").textContent).toBe("+20%");
+    });
+
+    it("lays out a waterfall column again when a web font has loaded", async () => {
+      const page = await renderColumn("ac1", { scenarios: ["ac1"], type: TableType.SUM, barColumnMaxWidth: 15 });
+      const total = () => page.root.shadowRoot.querySelector("tbody tr.sum svg.waterfall-bar text");
+      const before = num(total(), "x");
+
+      // the loaded font is wider: the labels need more room, the bars get shorter
+      glyphEm = 0.7;
+      listeners.forEach((listener) => listener());
+      await page.waitForChanges();
+
+      expect(num(total(), "x")).toBeLessThan(before - 1);
+      const width = (5 * 0.7 + 0.15) * LABEL_FONT;
+      expect(num(total(), "x") + width).toBeCloseTo(num(total().closest("svg"), "width"), 3);
     });
 
     it("stops listening when it leaves the document", async () => {

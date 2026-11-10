@@ -38,6 +38,7 @@ import { BnTableRenderer } from "./bn-table-renderer";
 import { OrderDirection, TableType } from "../utils/model";
 import { I18nMode } from "../../../utils/constants";
 import { Order, OrderColumn } from "../../../utils/model/Order";
+import { estimateLabelWidth } from "../utils/helper/barColumnGeometry";
 
 describe("IBCS Table waterfall bar columns", () => {
   const cascadeRows: any[] = [
@@ -61,6 +62,21 @@ describe("IBCS Table waterfall bar columns", () => {
     { operation: "-", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, ac1: 5 },
   ];
 
+  // Beta subtracts 5 of Alpha's 10 and ends close to zero in the near-zero table
+  const optThereofRows: any[] = [
+    // prettier-ignore
+    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Alpha", categoryIndex: 1, subCategory: "A1", ac1: 10 },
+    // prettier-ignore
+    { operation: "-", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, subCategory: "B1", ac1: 3 },
+    // prettier-ignore
+    { operation: "-", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, subCategory: "B2", ac1: 2 },
+  ];
+
+  const nearZeroRows: any[] = [
+    { operation: "+", rowGroup: "G", rowGroupIndex: 0, category: "Alpha", categoryIndex: 1, ac1: 1000 },
+    { operation: "-", rowGroup: "G", rowGroupIndex: 0, category: "Beta", categoryIndex: 2, ac1: 990 },
+  ];
+
   const i18n = new Map([
     ["SUM_TOTAL", "Summe"],
     ["thereof", "davon"],
@@ -72,6 +88,8 @@ describe("IBCS Table waterfall bar columns", () => {
     tables["cascadeData"] = { data: cascadeRows };
     tables["thereofData"] = { data: thereofRows };
     tables["optData"] = { data: optRows };
+    tables["optThereofData"] = { data: optThereofRows };
+    tables["nearZeroData"] = { data: nearZeroRows };
   });
 
   const renderTable = (extraProps: Record<string, unknown> = {}): Promise<SpecPage> =>
@@ -102,6 +120,10 @@ describe("IBCS Table waterfall bar columns", () => {
   const findRowByFirstCell = (page: SpecPage, text: string): Element =>
     bodyRows(page).find((row) => row.querySelector("td")?.textContent.trim() === text);
 
+  // an opt table has the operation in the first cell
+  const findRowByCell = (page: SpecPage, text: string): Element =>
+    bodyRows(page).find((row) => Array.from(row.querySelectorAll("td")).some((td) => td.textContent.trim() === text));
+
   const waterfallSvg = (row: Element): Element | undefined =>
     Array.from(row.querySelectorAll("svg")).find((svg) => (svg.getAttribute("class") || "").includes("waterfall-bar"));
 
@@ -110,6 +132,21 @@ describe("IBCS Table waterfall bar columns", () => {
     Array.from(svg.querySelectorAll("rect")).find(
       (rect) => (rect.parentNode as Element).tagName?.toLowerCase() === "svg",
     );
+
+  const linesOf = (svg: Element, dashed: boolean): number[] =>
+    Array.from(svg.children)
+      .filter((el) => el.tagName.toLowerCase() === "line" && (el.getAttribute("stroke-dasharray") !== null) === dashed)
+      .map((line) => parseFloat(line.getAttribute("x1")));
+
+  const LABEL_FONT = 13.3333 * 0.85;
+  /** From and to of the value label in svg px; the spec has no canvas, so the width is the estimate. */
+  const labelSpan = (svg: Element): [number, number] => {
+    const label = svg.querySelector("text");
+    const x = parseFloat(label.getAttribute("x"));
+    const bold = (svg.closest("tr").getAttribute("class") || "").includes("sum");
+    const width = estimateLabelWidth(label.textContent, LABEL_FONT) * (bold ? 1.08 : 1);
+    return label.getAttribute("text-anchor") === "end" ? [x - width, x] : [x, x + width];
+  };
 
   const xOf = (el: Element): number => parseFloat(el.getAttribute("x"));
   const widthOf = (el: Element): number => parseFloat(el.getAttribute("width"));
@@ -154,10 +191,109 @@ describe("IBCS Table waterfall bar columns", () => {
     expect(xOf(drill)).toBeCloseTo(xOf(alpha), 3);
     expect(widthOf(drill)).toBeCloseTo(widthOf(alpha) * 0.6, 3);
 
-    const guides = Array.from(drillSvg.querySelectorAll("line")).filter((line) =>
-      line.getAttribute("stroke-dasharray"),
-    );
-    expect(guides.length).toBe(2);
+    // at the default width the label of A1 ends before the end of Alpha: both guides stay
+    const [start, end] = linesOf(drillSvg, true);
+    expect(linesOf(drillSvg, true).length).toBe(2);
+    expect(start).toBeCloseTo(xOf(alpha), 3);
+    expect(end).toBeCloseTo(xOf(alpha) + widthOf(alpha), 3);
+    expect(end).toBeGreaterThan(labelSpan(drillSvg)[1]);
+  });
+
+  const drillSvgs = (page: SpecPage): Element[] =>
+    bodyRows(page)
+      .filter((row) => (row.getAttribute("class") || "").includes("ofit"))
+      .map((row) => waterfallSvg(row));
+
+  it("leaves out the parent-end guide in a row where it would meet the label", async () => {
+    const page = await renderTable({
+      tableName: "thereofData",
+      thereof: [
+        { rowGroup: "", category: "Alpha", subCategory: "A1", partOf: "" },
+        { rowGroup: "", category: "Alpha", subCategory: "A2", partOf: "" },
+      ],
+      barColumnMaxWidth: 5,
+    });
+
+    // A1 [0,6] of Alpha [0,10]: the label of A1 reaches over 10, only the start guide is left
+    const [a1, a2] = drillSvgs(page);
+    const alpha = barRect(waterfallSvg(findRowByFirstCell(page, "Alpha")));
+    const parentEnd = xOf(alpha) + widthOf(alpha);
+    expect(labelSpan(a1)[1]).toBeGreaterThan(parentEnd);
+    expect(linesOf(a1, true).length).toBe(1);
+    expect(linesOf(a1, true)[0]).toBeCloseTo(xOf(alpha), 3);
+
+    // A2 [6,10] is the last child: it ends on the guide and its label starts after it
+    expect(linesOf(a2, true).length).toBe(2);
+    expect(linesOf(a2, true)[1]).toBeCloseTo(parentEnd, 3);
+  });
+
+  it("leaves out the parent-end guide left of a subtracting thereof bar", async () => {
+    const page = await renderTable({
+      tableName: "optThereofData",
+      type: TableType.OPT,
+      thereof: [
+        { rowGroup: "", category: "Beta", subCategory: "B1", partOf: "" },
+        { rowGroup: "", category: "Beta", subCategory: "B2", partOf: "" },
+      ],
+      barColumnMaxWidth: 5,
+    });
+
+    // Beta [10,5], B1 [10,7], B2 [7,5]: the label of B1 sits left of its bar, over the end of Beta
+    const beta = barRect(waterfallSvg(findRowByCell(page, "Beta")));
+    const [b1, b2] = drillSvgs(page);
+    const [from, to] = labelSpan(b1);
+    expect(from).toBeLessThan(xOf(beta));
+    expect(to).toBeGreaterThan(xOf(beta));
+    expect(linesOf(b1, true).length).toBe(1);
+    expect(linesOf(b1, true)[0]).toBeCloseTo(xOf(beta) + widthOf(beta), 3);
+    for (const svg of [b1, b2]) {
+      const [labelFrom, labelTo] = labelSpan(svg);
+      for (const x of linesOf(svg, true)) expect(x <= labelFrom || x >= labelTo).toBe(true);
+    }
+    expect(linesOf(b2, true).length).toBe(2);
+  });
+
+  it("leaves out the zero axis in a row where it would meet the label", async () => {
+    const page = await renderTable({ tableName: "nearZeroData", type: TableType.OPT });
+
+    // Beta [1000,10] ends just right of zero, its label sits over the axis
+    const alpha = waterfallSvg(findRowByCell(page, "Alpha"));
+    const beta = waterfallSvg(findRowByCell(page, "Beta"));
+    expect(linesOf(alpha, false).length).toBe(1);
+    expect(linesOf(alpha, false)[0]).toBeCloseTo(xOf(barRect(alpha)), 3);
+    expect(linesOf(beta, false).length).toBe(0);
+  });
+
+  it.each([15, 20, 30])("keeps every label inside the column at w%i", async (n) => {
+    for (const props of [
+      { tableName: "optData", type: TableType.OPT },
+      { tableName: "nearZeroData", type: TableType.OPT },
+      { tableName: "thereofData", thereof: [{ rowGroup: "", category: "Alpha", subCategory: "A1", partOf: "" }] },
+    ]) {
+      const page = await renderTable({ ...props, barColumnMaxWidth: n });
+      const svgs = bodyRows(page)
+        .map((row) => waterfallSvg(row))
+        .filter(Boolean);
+      expect(svgs.length).toBeGreaterThan(0);
+      for (const svg of svgs) {
+        const [from, to] = labelSpan(svg);
+        expect(from).toBeGreaterThanOrEqual(-1e-6);
+        expect(to).toBeLessThanOrEqual(widthOf(svg) + 1e-6);
+      }
+    }
+  });
+
+  it("gives the bars the room no label needs", async () => {
+    const page = await renderTable({ barColumnMaxWidth: 15 });
+
+    // all bars point right: no gutter on the left, the longest label ends at the right edge
+    const alpha = waterfallSvg(findRowByFirstCell(page, "Alpha"));
+    expect(xOf(barRect(alpha))).toBeCloseTo(0, 6);
+    const ends = bodyRows(page)
+      .map((row) => waterfallSvg(row))
+      .filter(Boolean)
+      .map((svg) => labelSpan(svg)[1]);
+    expect(Math.max(...ends)).toBeCloseTo(parseFloat(alpha.getAttribute("width")), 3);
   });
 
   it("scales partof segments by their share of the parent bar and keeps the percent label", async () => {
