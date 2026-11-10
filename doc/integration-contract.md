@@ -137,7 +137,7 @@ The name is the attribute name in camelCase when the item is about one attribute
 
 `WARN_<attribute>`: the attribute has a value the component cannot use. The component ignores it and uses its default.
 
-`WARN_aspect`, `WARN_attributes`, `WARN_axisLabelsMode`, `WARN_barColumns`, `WARN_barColumnWidth`, `WARN_cardCustomTemplate`, `WARN_categoryWidth`, `WARN_chartMode`, `WARN_columnthereof`, `WARN_compareWith`, `WARN_dataFormat`, `WARN_dataFormatDigitsDecimal`, `WARN_dataFormatDigitsPercent`, `WARN_dateEnd`, `WARN_dateFormat`, `WARN_dateInterval`, `WARN_dateLink`, `WARN_dateStart`, `WARN_direction`, `WARN_edgeStyle`, `WARN_format`, `WARN_interval`, `WARN_level`, `WARN_levelSpacing`, `WARN_limit`, `WARN_maxBars`, `WARN_measures`, `WARN_measureScale`, `WARN_measureType`, `WARN_nodeSpacing`, `WARN_normalize`, `WARN_order`, `WARN_orderDirection`, `WARN_orientation`, `WARN_pageCustomTemplate`, `WARN_partof`, `WARN_percentageScaling`, `WARN_scale`, `WARN_scenarios`, `WARN_seriesLevel`, `WARN_stack`, `WARN_syncSpaceLeft`, `WARN_thereof`, `WARN_type`, `WARN_unitScaling`, `WARN_variances`.
+`WARN_aspect`, `WARN_attributes`, `WARN_axisLabelsMode`, `WARN_barColumns`, `WARN_barColumnWidth`, `WARN_cardCustomTemplate`, `WARN_categoryIntervalPosition`, `WARN_categoryWidth`, `WARN_chartMode`, `WARN_columnthereof`, `WARN_compareWith`, `WARN_dataFormat`, `WARN_dataFormatDigitsDecimal`, `WARN_dataFormatDigitsPercent`, `WARN_dateEnd`, `WARN_dateFormat`, `WARN_dateInterval`, `WARN_dateLink`, `WARN_dateStart`, `WARN_direction`, `WARN_edgeStyle`, `WARN_format`, `WARN_interval`, `WARN_level`, `WARN_levelSpacing`, `WARN_limit`, `WARN_maxBars`, `WARN_measures`, `WARN_measureScale`, `WARN_measureType`, `WARN_nodeSpacing`, `WARN_normalize`, `WARN_order`, `WARN_orderDirection`, `WARN_orientation`, `WARN_pageCustomTemplate`, `WARN_partof`, `WARN_percentageScaling`, `WARN_scale`, `WARN_scenarios`, `WARN_seriesLevel`, `WARN_stack`, `WARN_syncSpaceLeft`, `WARN_thereof`, `WARN_type`, `WARN_unitScaling`, `WARN_variances`.
 
 ### Other warnings
 
@@ -147,7 +147,8 @@ The name is the attribute name in camelCase when the item is about one attribute
 | `WARN_datasets` | table, charts, `bn-text` | `datasets` names a datasource (`$name`) and not a dataset. |
 | `WARN_inherited_<prop>` | `bn-table`, `bn-chart-time`, `bn-chart-structure` | The keyword `inherited-closest` or `inherited-page` found no value. `<prop>` is `scenarios` or `variances`, on the table and the structure chart also `order` or `orderDirection`. |
 | `WARN_value`, `WARN_value_path` | `bn-text` | `value` is empty, or a placeholder in it does not resolve. |
-| `WARN_blankRowGroup`, `WARN_intervalConflict`, `WARN_intervalNoDate`, `WARN_intervalSetname` | `bn-table` | Rows without a row group, or `interval` does not fit the other attributes or the data. |
+| `WARN_blankRowGroup`, `WARN_intervalConflict`, `WARN_intervalNoDate`, `WARN_intervalSetname`, `WARN_intervalSetnameIndex` | `bn-table` | Rows without a row group, or `interval` does not fit the other attributes or the data. |
+| `WARN_categoryIntervalPositionNoInterval`, `WARN_categoryIntervalPositionRange` | `bn-table` | `categoryIntervalPosition` is set without an active `interval`, or it is greater than the number of interval groups. |
 | `WARN_variances_scenario` | `bn-chart-time` | A variance uses a scenario that is not drawn. |
 | `WARN_stack_dimensions_scenarios` | `bn-chart-time`, `bn-chart-structure` | `stack` by dimensions with more than one scenario. |
 | `WARN_xy_fields_<prop>`, `WARN_xy_domain_<prop>` | `bn-chart-scatter`, `bn-chart-bubble` | Fields of a JSON attribute were ignored, or its `min` is not smaller than its `max`. |

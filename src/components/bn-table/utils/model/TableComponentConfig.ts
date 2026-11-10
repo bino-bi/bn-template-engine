@@ -64,6 +64,8 @@ export class TableComponentConfig {
   public barColumns: string[] = [];
   /** Interval column grouping: "none", "setname" or a DateDistance value (see bn-table `interval` prop). */
   public interval: string = "none";
+  /** Number of interval groups left of the row header block (see bn-table `categoryIntervalPosition` prop). */
+  public categoryIntervalPosition: number = 0;
   /** Locale used for interval bucket labels. */
   public locale: string = "de";
   constructor() {}
@@ -174,6 +176,10 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isString(data.interval)) {
       config.interval = data.interval;
+    }
+
+    if (CompareUtil.isNumber(data.categoryIntervalPosition)) {
+      config.categoryIntervalPosition = data.categoryIntervalPosition;
     }
 
     if (CompareUtil.isString(data.locale)) {

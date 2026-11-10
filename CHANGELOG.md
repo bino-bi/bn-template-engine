@@ -19,6 +19,19 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+#### `bn-table`: order of the setname blocks and position of the category column
+
+With `interval="setname"` the blocks were always in order of first appearance in the data. The new optional dataset column `setnameIndex` (a number) sets the order: the blocks are sorted ascending by it. If a setname has different indexes, the smallest one counts. Blocks without an index come last. Without the column nothing changes. A row with a `setnameIndex` and a blank `setname` gives the warning `WARN_intervalSetnameIndex`.
+
+The new attribute `category-interval-position` (property `categoryIntervalPosition`, default `0`) is the number of interval blocks that stand left of the category column. `0` keeps the category column first, `1` puts one block left of it, the number of blocks puts it last. The operation column and the `attributes` columns move with it. It works with `setname` and with date intervals.
+
+```html
+<!-- Jan | Feb | Mar | category | YTD -->
+<bn-table interval="setname" category-interval-position="3" scenarios="ac1,pl1"></bn-table>
+```
+
+A value greater than the number of blocks is used as the number of blocks, with the warning `WARN_categoryIntervalPositionRange`. A value without an active interval is ignored, with the warning `WARN_categoryIntervalPositionNoInterval`. A negative value or a value that is not a whole number counts as `0`, with the warning `WARN_categoryIntervalPosition`.
+
 #### `bn-table`: sort by a variance or by one interval block
 
 `order` now takes a variance, written like its column with or without the sentiment, for example `dac1_pp1` or `drfc1_pp1_pos`. Before, such a value sorted the rows by category name without a warning. With `interval="setname"`, a scenario or variance can name one block after `@`: `order="dac1_pp1_pos@_November"` sorts by the `_November` block only and draws the sort arrow on that block only. Without `@` the sum over all blocks is used, as before. A variance or a token with `@` sorts the rows inside each row group, and the groups keep their `rowGroupIndex` order. `limit` picks the top rows and the REST row by the same value. With a variance or `@`, rows without data and relative variances with a zero reference sort last in both directions. In an `opt` table a row sorts by the value printed in it. The sorted variance does not have to be a shown column; the arrow appears only when it is. `@` without `interval="setname"` gives a warning and is ignored, and so does a setname that is not in the data (a warning, and no sort by it). The order also accepts `subcategory` and `subcategoryindex` and spaces after the commas. Charts and `bn-title` do not take the new values.

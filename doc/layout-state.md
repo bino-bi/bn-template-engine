@@ -166,7 +166,8 @@ The same values are on the elements as `data-bn-row-group`, `data-bn-category`, 
   `DRILLELEMENT`, `PARTELEMENT`, …).
 - `columns`: `{ index, key, group?, type?, bucket? }` - the effective column
   definitions (category/operation + attributes + scenarios × interval
-  buckets), in render order. `CellElement.column` is the ordinal into a row's
+  buckets), in render order. With `categoryIntervalPosition` the first
+  interval buckets come before the category column. `CellElement.column` is the ordinal into a row's
   cells; on body rows it aligns with this list.
 
 ### Scaling (`ScalingInfo`)

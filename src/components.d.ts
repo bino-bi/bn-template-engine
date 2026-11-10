@@ -1682,6 +1682,11 @@ export namespace Components {
          */
         "barColumns": string;
         /**
+          * Number of interval groups that stand left of the category column. Needs an active `interval`. <br /><br /> ```0``` (default) keeps the category column first. ```1``` puts one interval group left of it and the rest right. The number of interval groups puts the category column last. A greater value raises a warning and is used as the number of groups. <br /><br /> The operation column and the `attributes` columns move with the category column.
+          * @default 0
+         */
+        "categoryIntervalPosition": number;
+        /**
           * Set width of category column, in em of the table font. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> The column is fixed at this width; a category label too long to fit is truncated with an ellipsis. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
           * @default "w15"
          */
@@ -1734,7 +1739,7 @@ export namespace Components {
          */
         "i18nNamespace"?: string;
         /**
-          * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `-`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`.
+          * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `-`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`. <br /><br /> Date groups are shown in chronological order. Setname groups are shown in order of first appearance in the dataset. When the rows carry the optional numeric column `setnameIndex`, the setname groups are sorted ascending by it: the smallest index of a setname counts, groups without an index come last.
           * @default "none"
          */
         "interval": string;
@@ -1861,6 +1866,10 @@ export namespace Components {
           * @default []
          */
         "barColumns": string[];
+        /**
+          * @default 0
+         */
+        "categoryIntervalPosition": number;
         /**
           * @default TableCategoryWidth.INF
          */
@@ -4155,6 +4164,11 @@ declare namespace LocalJSX {
          */
         "barColumns"?: string;
         /**
+          * Number of interval groups that stand left of the category column. Needs an active `interval`. <br /><br /> ```0``` (default) keeps the category column first. ```1``` puts one interval group left of it and the rest right. The number of interval groups puts the category column last. A greater value raises a warning and is used as the number of groups. <br /><br /> The operation column and the `attributes` columns move with the category column.
+          * @default 0
+         */
+        "categoryIntervalPosition"?: number;
+        /**
           * Set width of category column, in em of the table font. <br /> If INF is selected the columns scaling to the min space they need seperatly. <br /><br /> The column is fixed at this width; a category label too long to fit is truncated with an ellipsis. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w50 // inf ```
           * @default "w15"
          */
@@ -4198,7 +4212,7 @@ declare namespace LocalJSX {
          */
         "i18nNamespace"?: string;
         /**
-          * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `-`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`.
+          * Repeats the entire scenario/variance column block once per interval group, rendered under a spanning header band (e.g. `2023 | 2024 | 2025`, each with the configured columns). <br /><br /> values:<br /> ```none // setname // year // quarter // month // week // day // hour // minute // second // millisecond // auto``` <br /><br /> ```none``` (default) deactivates the feature. ```setname``` groups by the dataset's `setname` column (non-date comparison); rows with a blank setname raise a warning and are grouped under `-`. Date values bucket rows by the `date` column; ```auto``` detects the granularity from the date span. Cannot be combined with `columnthereof`. <br /><br /> Date groups are shown in chronological order. Setname groups are shown in order of first appearance in the dataset. When the rows carry the optional numeric column `setnameIndex`, the setname groups are sorted ascending by it: the smallest index of a setname counts, groups without an index come last.
           * @default "none"
          */
         "interval"?: string;
@@ -4325,6 +4339,10 @@ declare namespace LocalJSX {
           * @default []
          */
         "barColumns"?: string[];
+        /**
+          * @default 0
+         */
+        "categoryIntervalPosition"?: number;
         /**
           * @default TableCategoryWidth.INF
          */
@@ -4995,6 +5013,7 @@ declare namespace LocalJSX {
         "categoryWidth": string;
         "columnthereof": string | null;
         "interval": string;
+        "categoryIntervalPosition": number;
         "tableAttributes": string;
     }
     interface BnTableRendererAttributes {
@@ -5015,6 +5034,7 @@ declare namespace LocalJSX {
         "measureType": MeasureType;
         "filter": string;
         "interval": string;
+        "categoryIntervalPosition": number;
         "barColumnMaxWidth": number;
         "unitScaling": number;
         "percentageScaling": number;

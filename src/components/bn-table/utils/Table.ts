@@ -182,6 +182,8 @@ export class Table {
       this.config.measureUnit,
       this.config.showMeasureScale,
       this.config.attributes,
+      // every interval group has one column per scenario
+      Math.min(this.config.categoryIntervalPosition, this.intervalBuckets.length) * this.config.scenarios.length,
     );
     this.bodyRows =
       this.rowCount === 0 || !this.fromExpr
@@ -206,7 +208,10 @@ export class Table {
     return this.bodyRows;
   }
 
-  /** Effective column definitions: category/operation + attributes + scenarios × interval buckets. */
+  /**
+   * Effective column definitions in render order: category/operation + attributes + scenarios × interval buckets.
+   * With `categoryIntervalPosition` the first interval buckets come before the category/operation column.
+   */
   public getColumns(): ScenarioHeaderColumn[] {
     if (this.state === FactoryState.DIRTY) {
       this.update();
@@ -317,6 +322,28 @@ export class Table {
     }
     const unknown = buckets.find((bucket) => !this.intervalBuckets.some((b) => b.key === bucket));
     return unknown === undefined ? undefined : `order: setname '${unknown}' not found, the rows are not sorted by it.`;
+  }
+
+  /** Warning for a `categoryIntervalPosition` that cannot apply, once the body was built; undefined when it applies. */
+  public categoryIntervalPositionWarning(): { id: `WARN_${string}`; message: string } | undefined {
+    const position = this.config.categoryIntervalPosition;
+    if (position <= 0 || this.hasNoData() || this.state !== FactoryState.UP_TO_DATE) {
+      return undefined;
+    }
+    const groups = this.intervalBuckets.length;
+    if (groups === 0) {
+      return {
+        id: "WARN_categoryIntervalPositionNoInterval",
+        message: "categoryIntervalPosition: needs an active interval, the value is ignored.",
+      };
+    }
+    if (position > groups) {
+      return {
+        id: "WARN_categoryIntervalPositionRange",
+        message: `categoryIntervalPosition: '${position}' is greater than the number of interval groups, ${groups} is used.`,
+      };
+    }
+    return undefined;
   }
 
   /** True once the body was built and the grouped table has rows with a blank rowGroup. */
