@@ -76,11 +76,11 @@ describe("barColumnGeometry", () => {
 
       expect(g.totalWidth).toBe(290);
       // left 2.5 + 6 + 40 = 48.5, right 2.5 + 6 + 50 = 58.5
-      expect(g.maxBarWidth).toBeCloseTo(91.5, 6); // (290 - 48.5 - 58.5) / 2
+      expect(g.pos.maxBarWidth).toBeCloseTo(91.5, 6); // (290 - 48.5 - 58.5) / 2
       expect(g.axisX).toBeCloseTo(140, 6); // 48.5 + 91.5
-      expect(g.breakGap).toBe(6); // 0.3em
-      expect(g.overdriveZoneWidth).toBeCloseTo(13.725, 6); // 15% of the bar extent
-      expect(g.cutWidth).toBeCloseTo(71.775, 6);
+      expect(g.pos.breakGap).toBe(6); // 0.3em
+      expect(g.pos.overdriveZoneWidth).toBeCloseTo(13.725, 6); // 15% of the bar extent
+      expect(g.pos.cutWidth).toBeCloseTo(71.775, 6);
       expect(g.labelGap).toBe(6);
     });
 
@@ -88,17 +88,17 @@ describe("barColumnGeometry", () => {
       const g = absoluteBarGeometry(15, EM, BOTH);
       const halfAxis = 2.5;
 
-      expect(g.axisX + halfAxis + g.maxBarWidth + g.labelGap + BOTH.pos).toBeCloseTo(g.totalWidth, 6);
-      expect(g.axisX - halfAxis - g.maxBarWidth - g.labelGap - BOTH.neg).toBeCloseTo(0, 6);
+      expect(g.axisX + halfAxis + g.pos.maxBarWidth + g.labelGap + BOTH.pos).toBeCloseTo(g.totalWidth, 6);
+      expect(g.axisX - halfAxis - g.neg.maxBarWidth - g.labelGap - BOTH.neg).toBeCloseTo(0, 6);
     });
 
     it("gives a one-sided column the whole bar area and pins the axis to the edge", () => {
       const pos = absoluteBarGeometry(15, EM, { pos: 50 });
-      expect(pos.maxBarWidth).toBeCloseTo(231.5, 6); // 290 - 58.5
+      expect(pos.pos.maxBarWidth).toBeCloseTo(231.5, 6); // 290 - 58.5
       expect(pos.axisX).toBe(0);
 
       const neg = absoluteBarGeometry(15, EM, { neg: 50 });
-      expect(neg.maxBarWidth).toBeCloseTo(231.5, 6);
+      expect(neg.neg.maxBarWidth).toBeCloseTo(231.5, 6);
       expect(neg.axisX).toBe(neg.totalWidth);
     });
 
@@ -111,25 +111,61 @@ describe("barColumnGeometry", () => {
 
       expect(g.totalWidth).toBe(90); // still exactly w5 minus padding
       // 2.5 + 6 + 30 = 38.5 per side, the bars get the 13 px left
-      expect(g.maxBarWidth).toBeCloseTo(6.5, 6);
+      expect(g.pos.maxBarWidth).toBeCloseTo(6.5, 6);
       expect(g.axisX).toBeCloseTo(45, 6);
-      expect(g.axisX - 2.5 - g.maxBarWidth - g.labelGap - 30).toBeCloseTo(0, 6);
+      expect(g.axisX - 2.5 - g.pos.maxBarWidth - g.labelGap - 30).toBeCloseTo(0, 6);
     });
 
     it("shrinks the reserves only when the labels alone do not fit", () => {
       const g = absoluteBarGeometry(5, EM, { neg: 100, pos: 100 });
 
       expect(g.totalWidth).toBe(90);
-      expect(g.maxBarWidth).toBe(0);
+      expect(g.pos.maxBarWidth).toBe(0);
       expect(g.axisX).toBeCloseTo(45, 6);
     });
 
     it("keeps a drawable bar area at every preset", () => {
       for (const n of [5, 10, 15, 100]) {
         const g = absoluteBarGeometry(n, EM, { neg: 20, pos: 25 });
-        expect(g.maxBarWidth).toBeGreaterThan(0);
-        expect(g.cutWidth).toBeGreaterThan(0);
+        expect(g.pos.maxBarWidth).toBeGreaterThan(0);
+        expect(g.pos.cutWidth).toBeGreaterThan(0);
       }
+    });
+  });
+
+  describe("absoluteBarGeometry with the largest value per side", () => {
+    it("splits the bar room so the uncut length follows the largest values, and moves the axis", () => {
+      const g = absoluteBarGeometry(15, EM, BOTH, { neg: 10, pos: 30 });
+
+      // 183 px of bar room: 143.55 px uncut, a quarter of it left of the axis
+      expect(g.neg.cutWidth).toBeCloseTo(35.8875, 6);
+      expect(g.pos.cutWidth).toBeCloseTo(107.6625, 6);
+      expect(g.neg.maxBarWidth).toBeCloseTo(49.279412, 5); // (6 + 35.8875) / 0.85
+      expect(g.neg.maxBarWidth + g.pos.maxBarWidth).toBeCloseTo(183, 6);
+      expect(g.axisX).toBeCloseTo(48.5 + g.neg.maxBarWidth, 6);
+      expect(g.axisX + 2.5 + g.pos.maxBarWidth + g.labelGap + BOTH.pos).toBeCloseTo(g.totalWidth, 6);
+      expect(g.axisX - 2.5 - g.neg.maxBarWidth - g.labelGap - BOTH.neg).toBeCloseTo(0, 6);
+    });
+
+    it("lets the largest values of both sides reach their cut at the same scale", () => {
+      const g = absoluteBarGeometry(15, EM, BOTH, { neg: 2, pos: 147 });
+
+      expect(g.neg.cutWidth / 2).toBeCloseTo(g.pos.cutWidth / 147, 6);
+      expect(g.neg.breakGap).toBe(6);
+      expect(g.pos.breakGap).toBe(6);
+    });
+
+    it("splits equally for equal values and without values", () => {
+      const equal = absoluteBarGeometry(15, EM, BOTH);
+      expect(absoluteBarGeometry(15, EM, BOTH, { neg: 20, pos: 20 }).axisX).toBeCloseTo(equal.axisX, 6);
+      expect(absoluteBarGeometry(15, EM, BOTH, { neg: 0, pos: 0 }).axisX).toBeCloseTo(equal.axisX, 6);
+    });
+
+    it("keeps a one-sided column on the edge", () => {
+      const g = absoluteBarGeometry(15, EM, { pos: 50 }, { pos: 10 });
+
+      expect(g.axisX).toBe(0);
+      expect(g.pos.maxBarWidth).toBeCloseTo(231.5, 6);
     });
   });
 
@@ -325,7 +361,7 @@ describe("barColumnGeometry", () => {
 
     it("reproduces the historic gaps", () => {
       const bar = absoluteBarGeometry(30, BASE, BOTH);
-      expect(bar.breakGap).toBeCloseTo(4, 3);
+      expect(bar.pos.breakGap).toBeCloseTo(4, 3);
       expect(bar.labelGap).toBeCloseTo(4, 3);
       expect(waterfallGeometry(30, BASE).labelAreaWidth).toBeCloseTo(38, 3);
     });

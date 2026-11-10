@@ -699,10 +699,15 @@ export class BnTableRenderer {
     const emPx = this.emPx();
     const fs = emPx * BAR_LABEL_FONT_RATIO;
     let scaling = Infinity;
-    for (const { isRelative, absMax, labels } of this.barColumnLayouts.values()) {
+    for (const { isRelative, absMax, labels, sideMax } of this.barColumnLayouts.values()) {
       if (isRelative || absMax <= 0) continue;
-      const { maxBarWidth, cutWidth } = absoluteBarGeometry(this.barColumnMaxWidth, emPx, labels);
-      scaling = Math.min(scaling, Math.min(maxBarWidth * 0.8, cutWidth) / (absMax * fs));
+      const geometry = absoluteBarGeometry(this.barColumnMaxWidth, emPx, labels, sideMax);
+      for (const side of ["neg", "pos"] as const) {
+        const max = sideMax[side] ?? 0;
+        if (max <= 0) continue;
+        const { maxBarWidth, cutWidth } = geometry[side];
+        scaling = Math.min(scaling, Math.min(maxBarWidth * 0.8, cutWidth) / (max * fs));
+      }
     }
     return Number.isFinite(scaling) && fs > 0 ? scaling : 0.01;
   }
