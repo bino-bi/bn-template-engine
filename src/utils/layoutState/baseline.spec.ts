@@ -104,3 +104,26 @@ describe("readTableBaseline with an operation column", () => {
     expect(readTableBaseline(table, host)).toEqual({ x: 200, y: 20 });
   });
 });
+
+describe("readTableBaseline with a moved category column", () => {
+  const baselineOf = (headerCells: string, valueCell: number) => {
+    const doc = new MockDocument();
+    const host = doc.createElement("div") as unknown as Element;
+    host.innerHTML = `<table><thead><tr>${headerCells}</tr></thead></table>`;
+    place(host, { left: 100, top: 50, width: 400, height: 300 });
+    const table = host.querySelector("table");
+    place(table!.querySelector("thead"), { left: 100, top: 50, width: 400, height: 20 });
+    place(table!.querySelectorAll("th")[valueCell], { left: 120, top: 50, width: 60, height: 20 });
+    return readTableBaseline(table, host);
+  };
+
+  it("takes the first value column when interval groups stand left of the category column", () => {
+    const cells = `<th class="ac1">AC</th><th class="operation base"></th><th class="category base">Region</th><th class="ac1">AC</th>`;
+    expect(baselineOf(cells, 0)).toEqual({ x: 20, y: 20 });
+  });
+
+  it("takes the first value column when the category column is last", () => {
+    const cells = `<th class="ac1">AC</th><th class="ac1">AC</th><th class="category base">Region</th>`;
+    expect(baselineOf(cells, 0)).toEqual({ x: 20, y: 20 });
+  });
+});

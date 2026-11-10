@@ -45,8 +45,10 @@ export function readChartBaseline(host: HTMLElement, innerTag: string): Baseline
 
 /**
  * Baseline of a rendered `<table>`, in the layout px of `host`: y is the
- * bottom of the header, x the left edge of the first value column (the cell
- * after the category column of the last header row, else of the first body row).
+ * bottom of the header, x the left edge of the first value column of the last
+ * header row, else of the first body row. That is the first cell that is not
+ * the operation or the category column. Interval groups can stand left of the
+ * category column, then it is the first cell of the row.
  */
 export function readTableBaseline(table: Element | null | undefined, host: Element): Baseline {
   if (!table) return {};
@@ -61,10 +63,9 @@ export function readTableBaseline(table: Element | null | undefined, host: Eleme
     section ? Array.from(section.children).filter((child) => child.localName === "tr") : [];
   const headerRows = rows(thead);
   const row = headerRows[headerRows.length - 1] ?? rows(table.querySelector("tbody"))[0];
-  // an operation column can come before the category column (table type opt)
   const cells = row ? Array.from(row.children) : [];
-  const category = cells.findIndex((cell) => cell.classList.contains("category"));
-  const valueCell = cells[category >= 0 ? category + 1 : 1];
+  const isRowHeader = (cell: Element) => cell.classList.contains("category") || cell.classList.contains("operation");
+  const valueCell = cells.some(isRowHeader) ? cells.find((cell) => !isRowHeader(cell)) : cells[1];
   if (valueCell) {
     baseline.x = round2(frame.toLocal(valueCell.getBoundingClientRect()).x);
   }
