@@ -106,6 +106,26 @@ describe("IBCS Table order by variance", () => {
     { ...base, category: "M2", categoryIndex: 2, date: "2025-11-01", ac1: 9, pp1: 0 },
   ];
 
+  // the data row REST has the largest value and the largest variance of each group
+  const restRows: any[] = [
+    { ...base, rowGroup: "G1", rowGroupIndex: 1, category: "REST", categoryIndex: 1, ac1: 90, pp1: 10 },
+    { ...base, rowGroup: "G1", rowGroupIndex: 1, category: "K", categoryIndex: 2, ac1: 20, pp1: 15 },
+    { ...base, rowGroup: "G1", rowGroupIndex: 1, category: "L", categoryIndex: 3, ac1: 30, pp1: 10 },
+    { ...base, rowGroup: "G2", rowGroupIndex: 2, category: "REST", categoryIndex: 4, ac1: 80, pp1: 10 },
+    { ...base, rowGroup: "G2", rowGroupIndex: 2, category: "M", categoryIndex: 5, ac1: 40, pp1: 30 },
+    { ...base, rowGroup: "G2", rowGroupIndex: 2, category: "N", categoryIndex: 6, ac1: 50, pp1: 20 },
+  ];
+
+  // _YTD: ac1 REST 9, Ulm 7, Bonn 4
+  const restSetRows: any[] = [
+    { ...base, category: "REST", categoryIndex: 1, setname: "Nov", ac1: 1, pp1: 0 },
+    { ...base, category: "REST", categoryIndex: 1, setname: "_YTD", ac1: 9, pp1: 0 },
+    { ...base, category: "Bonn", categoryIndex: 2, setname: "Nov", ac1: 2, pp1: 0 },
+    { ...base, category: "Bonn", categoryIndex: 2, setname: "_YTD", ac1: 4, pp1: 0 },
+    { ...base, category: "Ulm", categoryIndex: 3, setname: "Nov", ac1: 3, pp1: 0 },
+    { ...base, category: "Ulm", categoryIndex: 3, setname: "_YTD", ac1: 7, pp1: 0 },
+  ];
+
   const errors = {
     clear: jest.fn(),
     replace: jest.fn(),
@@ -123,6 +143,8 @@ describe("IBCS Table order by variance", () => {
     tables["drillOrderData"] = { data: drillRows };
     tables["numericSetOrderData"] = { data: numericSetRows };
     tables["dateOrderData"] = { data: dateRows };
+    tables["restOrderData"] = { data: restRows };
+    tables["restSetOrderData"] = { data: restSetRows };
   });
 
   beforeEach(() => {
@@ -218,6 +240,21 @@ describe("IBCS Table order by variance", () => {
     expect(categories(asc, "tbody tr:not(.groupheader):not(.sum)")).toEqual(["Z", "W", "Y", "X"]);
   });
 
+  it("keeps a data row with the category REST last in its group when sorting by value", async () => {
+    const grouped = { tableName: "restOrderData", type: TableType.SUM, grouped: true };
+    const entries = async (hierarchy: string[], direction: OrderDirection): Promise<string[]> =>
+      categories(await renderTable(hierarchy, direction, grouped), "tbody tr:not(.groupheader):not(.sum)");
+
+    expect(await entries(["dac1_pp1"], OrderDirection.DESC)).toEqual(["L", "K", "REST", "N", "M", "REST"]);
+    expect(await entries(["dac1_pp1"], OrderDirection.ASC)).toEqual(["K", "L", "REST", "M", "N", "REST"]);
+    // a plain scenario also sorts the groups by their sum: G2 170, G1 140
+    expect(await entries(["ac1"], OrderDirection.DESC)).toEqual(["N", "M", "REST", "L", "K", "REST"]);
+    expect(await entries(["ac1"], OrderDirection.ASC)).toEqual(["K", "L", "REST", "M", "N", "REST"]);
+    // a dimension order does not move the row
+    expect(await entries(["categoryIndex"], OrderDirection.ASC)).toEqual(["REST", "K", "L", "REST", "M", "N"]);
+    expect(await entries(["category"], OrderDirection.DESC)).toEqual(["REST", "L", "K", "REST", "N", "M"]);
+  });
+
   it("sorts an opt table by the unsigned value printed in the entry rows", async () => {
     const page = await renderTable(["dac1_pp1"], OrderDirection.DESC, {
       tableName: "optOrderData",
@@ -275,6 +312,20 @@ describe("IBCS Table order by variance", () => {
 
       expect(categories(page)).toEqual(["Bremen", "Kiel", "Hamburg"]);
       expect(arrows(page)).toEqual(["ac1@_YTD"]);
+    });
+
+    it("keeps a data row with the category REST last and fills its buckets", async () => {
+      const page = await renderTable(["ac1@_YTD"], OrderDirection.DESC, {
+        tableName: "restSetOrderData",
+        interval: "setname",
+      });
+
+      // columns: category, then pp1 and ac1 of Nov and of _YTD
+      expect(rows(page)).toEqual([
+        ["Ulm", "0", "3", "0", "7"],
+        ["Bonn", "0", "2", "0", "4"],
+        ["REST", "0", "1", "0", "9"],
+      ]);
     });
 
     it("sorts by the sum of all buckets without a bucket, arrow on every block", async () => {

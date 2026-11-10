@@ -712,10 +712,13 @@ export class DataQuery {
        GROUP BY ${groups}, __interval`,
     );
 
+    // only the generated REST row has restRowGroup; a data row with the category REST keeps its own values
+    const isGeneratedRest = (row: DataQueryResultRow) => row.type === "ENTRY" && row.restRowGroup != null;
+
     // REST rows first: the math needs the raw (not yet finalized) entry aliases
     if (this.config.limit > 0) {
       for (let segmentIndex = 0; segmentIndex < res.length; segmentIndex++) {
-        const restRow = res[segmentIndex].find((row) => row.type === "ENTRY" && row.category === "REST");
+        const restRow = res[segmentIndex].find(isGeneratedRest);
         if (!restRow) {
           continue;
         }
@@ -723,7 +726,7 @@ export class DataQuery {
         // nearest preceding segment holding the displayed ENTRY rows
         let entrySegment: DataQueryResultRow[] | undefined;
         for (let i = segmentIndex - 1; i >= 0 && !entrySegment; i--) {
-          const candidate = res[i].filter((row) => row.type === "ENTRY" && row.category !== "REST");
+          const candidate = res[i].filter((row) => row.type === "ENTRY" && !isGeneratedRest(row));
           if (candidate.length > 0) {
             entrySegment = candidate;
           }
@@ -765,7 +768,7 @@ export class DataQuery {
       finalizeBucketRow(entryRow);
       for (const segment of res) {
         for (const row of segment) {
-          if (row.type !== "ENTRY" || row.category === "REST" || row.category !== entryRow.category) {
+          if (row.type !== "ENTRY" || isGeneratedRest(row) || row.category !== entryRow.category) {
             continue;
           }
           if (this.config.grouped && row.rowGroup !== entryRow.rowGroup) {
@@ -1088,13 +1091,21 @@ export class DataQuery {
       }
     });
     this.sortSelect = [...sortKeys.values()].map((key) => `, ${key}`).join("");
+    // a data row with the reserved category REST stays last in its group when the rows are sorted by value
+    const sortsByValue = orderComponent.hierarchy.some((column) => {
+      const kind = parseOrderToken(column)?.kind;
+      return kind === "scenario" || kind === "variance";
+    });
+    if (sortsByValue) {
+      this.sortSelect += `, CASE WHEN ${QueryColumnNames.CATEGORY} = 'REST' THEN 1 ELSE 0 END as __sortrest`;
+    }
 
     // rows without a value sort last in both directions
     const orderBy = (column: string, i: number, direction: OrderDirection) =>
       sortKeys.has(i) ? `__sortnull${i} asc, __sort${i} ${direction}` : `${column} ${direction}`;
     const base = orderComponent.hierarchy.map((column, i) => orderBy(column, i, orderComponent.direction)).toString();
     const inverted = orderComponent.hierarchy.map((column, i) => orderBy(column, i, inverse)).toString();
-    return [base, inverted];
+    return sortsByValue ? [`__sortrest asc, ${base}`, `__sortrest desc, ${inverted}`] : [base, inverted];
   }
 
   /**
