@@ -106,7 +106,9 @@ function signedValue(row: DataQueryResultRow, column: string, tableType: TableTy
  * - PARTELEMENT (partof) rows cascade a `share * parent width` segment the same way.
  *   Note: the share denominator is the group sum (or SUM_TOTAL when ungrouped) per
  *   `createPartOfDrillRows`, not literally the parent row's value.
- * - GROUPHEAD and NaN rows get no bar; a NaN parent orphans its drill children.
+ * - GROUPHEAD rows get no bar and restart the running total at zero: every row group
+ *   is its own cascade that ends at its GROUP_SUM.
+ * - NaN rows get no bar; a NaN parent orphans its drill children.
  *
  * @param queryData - Segmented result rows from DataQuery.execute().
  * @param columns - Plain scenario column keys (ac1..pl4); no `##` composite keys.
@@ -135,6 +137,8 @@ export function computeWaterfall(
         const type = row[QueryColumnNames.TYPE];
 
         if (type === TableRowType.GROUPHEAD) {
+          // a group sum only totals its own rows, so the cascade must not carry over
+          running = 0;
           lastParent = undefined;
           continue;
         }
