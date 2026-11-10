@@ -250,7 +250,7 @@ interface VarianceLook {
   referenceSlot: ScenarioSlot;
 }
 
-function getVarianceLook(scenario: string, styles: CellBarChartStyles): VarianceLook | null {
+export function getVarianceLook(scenario: string, styles: CellBarChartStyles): VarianceLook | null {
   if (isScenarioColumn(scenario)) return null;
   const variance = new VarianceScenario(scenario);
   if (!variance.isValid) return null;
@@ -269,7 +269,7 @@ function getVarianceLook(scenario: string, styles: CellBarChartStyles): Variance
  * a double line (PL, outlined) or dashed (FC, hatched). Lines only, so the bar stays the
  * one direct-child rect of the svg.
  */
-const VarianceAxis: FunctionalComponent<{
+export const VarianceAxis: FunctionalComponent<{
   x: number;
   height: number;
   look: VarianceLook;

@@ -1850,6 +1850,11 @@ export namespace Components {
          */
         "unitScaling": string | number;
         /**
+          * Draws every absolute variance column (d_*) listed in ```barColumns``` as a variance waterfall down the rows instead of single bars from the axis. A row starts where the row above ended; on ```opt``` and ```optnototal``` tables a "-" row with a positive variance moves to the left. Sum rows are bars from the axis. Thin lines join the bars. Each row group starts at the axis again, with ```runningSum``` the walk goes on from the sum row. The column scales to fit the whole walk (unit-scaling does not apply). Relative variance columns (dr_*) stay pins. Has no effect together with ```interval``` or ```columnthereof```. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "varianceWaterfall": boolean;
+        /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. op follows the row operation: in an opt/optnototal table a "-" row acts like neg, "+" and sum rows act like pos (a rising cost is red). opinv is the inverse of op. In other table types op acts like pos. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances": string;
@@ -2012,6 +2017,10 @@ export namespace Components {
           * @default 0.01
          */
         "unitScaling": number;
+        /**
+          * @default false
+         */
+        "varianceWaterfall": boolean;
     }
     /**
      * Renders a text block from a template with dataset and translation
@@ -4341,6 +4350,11 @@ declare namespace LocalJSX {
          */
         "unitScaling"?: string | number;
         /**
+          * Draws every absolute variance column (d_*) listed in ```barColumns``` as a variance waterfall down the rows instead of single bars from the axis. A row starts where the row above ended; on ```opt``` and ```optnototal``` tables a "-" row with a positive variance moves to the left. Sum rows are bars from the axis. Thin lines join the bars. Each row group starts at the axis again, with ```runningSum``` the walk goes on from the sum row. The column scales to fit the whole walk (unit-scaling does not apply). Relative variance columns (dr_*) stay pins. Has no effect together with ```interval``` or ```columnthereof```. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "varianceWaterfall"?: boolean;
+        /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. op follows the row operation: in an opt/optnototal table a "-" row acts like neg, "+" and sum rows act like pos (a rising cost is red). opinv is the inverse of op. In other table types op acts like pos. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances"?: string;
@@ -4499,6 +4513,10 @@ declare namespace LocalJSX {
           * @default 0.01
          */
         "unitScaling"?: number;
+        /**
+          * @default false
+         */
+        "varianceWaterfall"?: boolean;
     }
     /**
      * Renders a text block from a template with dataset and translation
@@ -5037,6 +5055,7 @@ declare namespace LocalJSX {
         "showMeasureScale": boolean;
         "showGroupTitle": boolean;
         "runningSum": boolean;
+        "varianceWaterfall": boolean;
         "type": string;
         "limit": number;
         "thereof": string;
@@ -5064,6 +5083,7 @@ declare namespace LocalJSX {
         "limit": number;
         "showGroupTitle": boolean;
         "runningSum": boolean;
+        "varianceWaterfall": boolean;
         "thereofPosition": ThereofPosition;
         "type": TableType;
         "categoryWidth": TableCategoryWidth;

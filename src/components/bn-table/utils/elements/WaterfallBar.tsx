@@ -8,7 +8,9 @@ import {
   getBarStroke,
   getBarStyle,
   getScenarioType,
+  getVarianceLook,
   PatternDefs,
+  VarianceAxis,
 } from "./CellBarChart";
 import { WaterfallBarData, WaterfallRowKind } from "../helper/WaterfallCalculator";
 import { labelWidth, waterfallGeometry, WaterfallGeometry } from "../helper/barColumnGeometry";
@@ -19,17 +21,24 @@ export interface WaterfallBarProps extends CellBarChartProps {
   geometry?: WaterfallGeometry;
   /** The row prints bold, so the label is measured bold. */
   bold?: boolean;
+  /** How far the connectors and the variance axis run out of the svg to meet the row above and below, in px. */
+  connectorReach?: { top: number; bottom: number };
 }
 
-/** Label text of a waterfall bar. Scenario values carry no variance sentiment: unsigned per IBCS. */
+/**
+ * Label text of a waterfall bar. Scenario values carry no variance sentiment: unsigned per
+ * IBCS. A variance keeps its sign (`signed`).
+ */
 export function waterfallLabelText(
   value: number,
   kind: WaterfallRowKind,
   measureScale: number | undefined,
   locale: string | undefined,
   decimalDigits: number | undefined,
+  signed: boolean = false,
 ): string {
-  return formatValue(value, kind === "partof", measureScale, locale, 0, true, decimalDigits).replace(/^\+/, "");
+  const text = formatValue(value, kind === "partof", measureScale, locale, 0, true, decimalDigits);
+  return signed ? text : text.replace(/^\+/, "");
 }
 
 /**
@@ -46,12 +55,18 @@ export function waterfallLabelText(
  * left of leftward bars). thereof/partof rows additionally get dashed
  * guides marking their parent bar's extent. A guide or axis line that would
  * run through the label is left out in that row.
+ *
+ * An absolute variance column is drawn as a variance waterfall: the bar in the color of
+ * the sentiment and the pattern of the minuend, the axis in the look of the reference
+ * scenario in every row, a signed label, and thin connectors to the rows above and below
+ * in place of the dashed guides.
  */
 export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const {
     value,
     scenario,
     height,
+    isPositiveGood,
     measureScale,
     locale,
     decimalDigits,
@@ -60,6 +75,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
     waterfall,
     geometry,
     bold,
+    connectorReach = { top: 0, bottom: 0 },
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
@@ -89,11 +105,20 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const barX = Math.min(startX, endX);
   const barWidth = Math.abs(endX - startX);
 
-  const barStyle = getBarStyle(scenario, value, false, styles);
-  const fillValue = getBarFill(barStyle, getScenarioType(scenario));
-  const { stroke: barStroke, strokeWidth: barStrokeWidth } = getBarStroke(barStyle);
+  // null for a scenario column, which ignores the sentiment
+  const look = getVarianceLook(scenario, styles);
+  const sentimentStyle = getBarStyle(scenario, value, isPositiveGood, styles);
+  const minuendPattern = look?.minuend.fillpattern;
+  const barStyle =
+    minuendPattern === "hatched" || minuendPattern === "outlined"
+      ? { ...sentimentStyle, fillpattern: minuendPattern }
+      : sentimentStyle;
+  const patternPrefix = look ? (sentimentStyle === styles.positive ? "pos" : "neg") : getScenarioType(scenario);
+  const fillValue = getBarFill(barStyle, patternPrefix);
+  const { stroke: barStroke, strokeWidth: barStrokeWidth } =
+    look && barStyle.fillpattern === "hatched" ? { stroke: barStyle.stroke, strokeWidth: 1 } : getBarStroke(barStyle);
 
-  const displayValue = waterfallLabelText(value, waterfall.kind, measureScale, locale, decimalDigits);
+  const displayValue = waterfallLabelText(value, waterfall.kind, measureScale, locale, decimalDigits, look !== null);
 
   const pointsLeft = endX < startX;
   const labelX = pointsLeft ? barX - labelGap : barX + barWidth + labelGap;
@@ -108,11 +133,18 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const parentEndX = waterfall.parentEnd !== undefined ? xOf(waterfall.parentEnd) : undefined;
 
   return (
-    <svg width={totalWidth} height={height} class="cell-bar-chart waterfall-bar" style={{ overflow: "visible" }}>
+    <svg
+      width={totalWidth}
+      height={height}
+      class={`cell-bar-chart waterfall-bar${look ? " variance-waterfall" : ""}`}
+      style={{ overflow: "visible" }}
+    >
       <PatternDefs styles={styles} />
 
       {/* Zero axis line, drawn in the rows so the column reads as one chart */}
-      {!meetsLabel(axisX) && <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />}
+      {!look && !meetsLabel(axisX) && (
+        <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
+      )}
 
       {/* Dashed guides marking the parent bar extent of a sub-cascade */}
       {waterfall.parentStart !== undefined && waterfall.parentEnd !== undefined && (
@@ -138,6 +170,19 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
         />
       )}
 
+      {/* Connectors under the bar, out of the svg so they meet over the row borders */}
+      {waterfall.connectors?.map(({ at, part }) => (
+        <line
+          class="waterfall-connector"
+          x1={xOf(at)}
+          y1={part === "bottom" ? barY + barHeight : -connectorReach.top}
+          x2={xOf(at)}
+          y2={part === "top" ? barY : height + connectorReach.bottom}
+          stroke={AXIS_COLOR}
+          stroke-width={1 * s}
+        />
+      ))}
+
       {/* Waterfall segment */}
       {barWidth > 0 && (
         <rect
@@ -149,6 +194,18 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
           stroke={barStroke}
           stroke-width={barStrokeWidth * s}
         />
+      )}
+
+      {/* Variance axis on top, so no bar outline covers it; it runs out of the svg like the connectors */}
+      {look && (
+        <g transform={`translate(0,${-connectorReach.top})`}>
+          <VarianceAxis
+            x={axisX}
+            height={connectorReach.top + height + connectorReach.bottom}
+            look={look}
+            styles={styles}
+          />
+        </g>
       )}
 
       {/* Value label at the bar's free end */}

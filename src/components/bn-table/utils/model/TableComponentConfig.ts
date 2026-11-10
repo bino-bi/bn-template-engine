@@ -37,6 +37,8 @@ export class TableComponentConfig {
   public showGroupTitle: boolean = true;
   /** When true, each group sum row holds the running result of all groups up to its own (see bn-table `runningSum` prop). */
   public runningSum: boolean = false;
+  /** When true, absolute variance bar columns are drawn as a waterfall (see bn-table `varianceWaterfall` prop). */
+  public varianceWaterfall: boolean = false;
   /** Drill-down sub-row definitions -- "thereof" breakdowns within a category. */
   public thereOf: TableDrillGroup[] = [];
   /** Thereof rows below or above their parent row (see bn-table `thereofPosition` prop). */
@@ -114,6 +116,10 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isBoolean(data.runningSum)) {
       config.runningSum = data.runningSum;
+    }
+
+    if (CompareUtil.isBoolean(data.varianceWaterfall)) {
+      config.varianceWaterfall = data.varianceWaterfall;
     }
 
     if (data.thereOfPosition === ThereofPosition.ABOVE) {

@@ -195,3 +195,174 @@ describe("computeWaterfall", () => {
     expect(result.get(rows[1], "pl1")).toMatchObject({ start: 20, end: 21, max: 21 });
   });
 });
+
+describe("computeWaterfall on an absolute variance column", () => {
+  const column = "dac1_pl1_op";
+  const row = (type: string, value: number | null, operation: string | null = "+"): DataQueryResultRow => ({
+    type,
+    operation,
+    [column]: value,
+  });
+  const walk = (groups: DataQueryResultRow[][], type = TableType.OPTNOTOTAL, runningSum = false, above = false) => {
+    const result = computeWaterfall(groups, [column], type, runningSum, above);
+    return (r: DataQueryResultRow) => result.get(r, column);
+  };
+
+  it("moves a '-' row with a positive variance to the left on an opt table", () => {
+    const rows = [row("ENTRY", 9), row("ENTRY", 7, "-"), row("ENTRY", -2, "-")];
+    const bar = walk([rows]);
+
+    expect(bar(rows[0])).toMatchObject({ start: 0, end: 9, kind: "cascade" });
+    expect(bar(rows[1])).toMatchObject({ start: 9, end: 2 });
+    expect(bar(rows[2])).toMatchObject({ start: 2, end: 4 });
+  });
+
+  it("takes the values of a sum table as they are", () => {
+    const rows = [row("ENTRY", 9), row("ENTRY", -7, "-"), row("SUM", 2, "=")];
+    const bar = walk([rows], TableType.SUM);
+
+    expect(bar(rows[1])).toMatchObject({ start: 9, end: 2 });
+    expect(bar(rows[2])).toMatchObject({ start: 0, end: 2, kind: "anchor" });
+  });
+
+  it("restarts every group at zero and joins only the rows of one walk", () => {
+    const groupA = [row("ENTRY", 4), row("ENTRY", -1), row("GROUP_SUM", 3, "=")];
+    const groupB = [row("ENTRY", 5, "-"), row("GROUP_SUM", -5, "=")];
+    const total = [row("SUM", -2, "=")];
+    const bar = walk([groupA, groupB, total], TableType.OPT);
+
+    expect(bar(groupA[0])!.connectors).toEqual([{ at: 4, part: "bottom" }]);
+    expect(bar(groupA[1])!.connectors).toEqual([
+      { at: 4, part: "top" },
+      { at: 3, part: "bottom" },
+    ]);
+    expect(bar(groupA[2])).toMatchObject({ start: 0, end: 3, connectors: [{ at: 3, part: "top" }] });
+    expect(bar(groupB[0])).toMatchObject({ start: 0, end: -5, connectors: [{ at: -5, part: "bottom" }] });
+    expect(bar(groupB[1])!.connectors).toEqual([{ at: -5, part: "top" }]);
+    expect(bar(total[0])).toMatchObject({ start: 0, end: -2, kind: "anchor" });
+    expect(bar(total[0])!.connectors).toBeUndefined();
+  });
+
+  it("walks on from a running group sum and joins it to the next row", () => {
+    const groupA = [row("ENTRY", 4), row("GROUP_SUM", 4, "=")];
+    const groupB = [row("ENTRY", 1, "-"), row("GROUP_SUM", 3, "=")];
+    const bar = walk([groupA, groupB], TableType.OPTNOTOTAL, true);
+
+    expect(bar(groupA[1])!.connectors).toEqual([
+      { at: 4, part: "top" },
+      { at: 4, part: "bottom" },
+    ]);
+    expect(bar(groupB[0])).toMatchObject({ start: 4, end: 3 });
+    expect(bar(groupB[0])!.connectors).toEqual([
+      { at: 4, part: "top" },
+      { at: 3, part: "bottom" },
+    ]);
+    expect(bar(groupB[1])).toMatchObject({ start: 0, end: 3, kind: "anchor" });
+  });
+
+  it("does not join rows across a group head row", () => {
+    const groupA = [row("GROUPHEAD", null, null), row("ENTRY", 4), row("GROUP_SUM", 4, "=")];
+    const groupB = [row("GROUPHEAD", null, null), row("ENTRY", 1), row("GROUP_SUM", 5, "=")];
+    const bar = walk([groupA, groupB], TableType.OPTNOTOTAL, true);
+
+    expect(bar(groupA[2])!.connectors).toEqual([{ at: 4, part: "top" }]);
+    expect(bar(groupB[1])).toMatchObject({ start: 4, end: 5, connectors: [{ at: 5, part: "bottom" }] });
+  });
+
+  // expense children with mixed signs: 6 worse, 2 better, so the expense row is 4 worse
+  const expenses = () => [
+    row("ENTRY", 10),
+    row("ENTRY", 4, "-"),
+    row("DRILLELEMENT", 6, null),
+    row("DRILLELEMENT", -2, null),
+    row("ENTRY", 1),
+  ];
+
+  it("walks thereof rows from the parent start by their signed value", () => {
+    const rows = expenses();
+    const bar = walk([rows]);
+
+    expect(bar(rows[1])).toMatchObject({ start: 10, end: 6 });
+    expect(bar(rows[2])).toMatchObject({ start: 10, end: 4, kind: "thereof" });
+    expect(bar(rows[3])).toMatchObject({ start: 4, end: 6, kind: "thereof" });
+    expect(bar(rows[2])!.parentStart).toBeUndefined();
+    // the first child leaves the parent bar, the running total is the parent end
+    expect(bar(rows[4])).toMatchObject({ start: 6, end: 7, min: 0, max: 10 });
+  });
+
+  it("joins thereof rows below the parent and passes the parent end beside them", () => {
+    const rows = expenses();
+    const bar = walk([rows]);
+
+    expect(bar(rows[1])!.connectors).toEqual([
+      { at: 10, part: "top" },
+      { at: 10, part: "bottom" },
+      { at: 6, part: "bottom" },
+    ]);
+    expect(bar(rows[2])!.connectors).toEqual([
+      { at: 4, part: "bottom" },
+      { at: 10, part: "top" },
+      { at: 6, part: "through" },
+    ]);
+    expect(bar(rows[3])!.connectors).toEqual([
+      { at: 4, part: "top" },
+      { at: 6, part: "through" },
+    ]);
+    expect(bar(rows[4])!.connectors).toEqual([{ at: 6, part: "top" }]);
+  });
+
+  it("passes the line to the parent beside thereof rows printed above it", () => {
+    const rows = expenses();
+    const bar = walk([rows], TableType.OPTNOTOTAL, false, true);
+
+    expect(bar(rows[0])!.connectors).toEqual([{ at: 10, part: "bottom" }]);
+    expect(bar(rows[2])!.connectors).toEqual([
+      { at: 10, part: "through" },
+      { at: 4, part: "bottom" },
+    ]);
+    expect(bar(rows[3])!.connectors).toEqual([
+      { at: 10, part: "through" },
+      { at: 4, part: "top" },
+      { at: 6, part: "bottom" },
+    ]);
+    expect(bar(rows[1])!.connectors).toEqual([
+      { at: 10, part: "top" },
+      { at: 6, part: "top" },
+      { at: 6, part: "bottom" },
+    ]);
+    expect(bar(rows[4])!.connectors).toEqual([{ at: 6, part: "top" }]);
+  });
+
+  it("gives a partof row no bar and no line beside it", () => {
+    const rows = [row("ENTRY", 5), row("PARTELEMENT", 0.5, null), row("ENTRY", 2)];
+    const bar = walk([rows]);
+
+    expect(bar(rows[1])).toBeUndefined();
+    expect(bar(rows[0])!.connectors).toBeUndefined();
+    expect(bar(rows[2])).toMatchObject({ start: 5, end: 7 });
+  });
+
+  it("keeps the running total over a NaN entry and joins no line across it", () => {
+    const rows = [row("ENTRY", 5), row("ENTRY", NaN), row("ENTRY", 2), row("SUM", 7, "=")];
+    const bar = walk([rows]);
+
+    expect(bar(rows[1])).toBeUndefined();
+    expect(bar(rows[0])!.connectors).toBeUndefined();
+    expect(bar(rows[2])).toMatchObject({ start: 5, end: 7, connectors: [{ at: 7, part: "bottom" }] });
+  });
+
+  it("leaves a scenario column in the same call without connectors", () => {
+    const rows = [
+      { type: "ENTRY", operation: "+", ac1: 10, [column]: 1 },
+      { type: "ENTRY", operation: "-", ac1: 4, [column]: 2 },
+      { type: "DRILLELEMENT", operation: null, ac1: 3, [column]: -1 },
+    ];
+    const result = computeWaterfall([rows], ["ac1", column], TableType.OPT);
+
+    expect(result.get(rows[1], "ac1")!.connectors).toBeUndefined();
+    expect(result.get(rows[2], "ac1")).toMatchObject({ start: 10, end: 7, parentStart: 10, parentEnd: 6 });
+    expect(result.get(rows[2], column)).toMatchObject({ start: 1, end: 2 });
+    expect(result.has("ac1") && result.has(column)).toBe(true);
+    expect(result.has("pl1")).toBe(false);
+  });
+});
