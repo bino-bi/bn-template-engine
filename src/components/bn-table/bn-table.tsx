@@ -665,6 +665,9 @@ export class Table {
    *  inside each group, the groups keep their rowgroupindex order. With a variance or `@`, rows without data
    *  (and a relative variance with a zero reference) sort last.
    *  <br /><br />
+   *  A data row with the category `REST` is the rest row of its group: sorted by a scenario or variance it stays
+   *  the last row of the group. Its label comes from the `REST` translation.
+   *  <br /><br />
    *  When set to ```auto```, order is detected from the dataset silently.
    */
   @Prop() order: string = "category";
