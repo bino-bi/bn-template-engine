@@ -100,7 +100,8 @@ function signedValue(row: DataQueryResultRow, column: string, tableType: TableTy
  * segmented query result once per column in display order.
  *
  * - ENTRY rows (incl. REST) cascade from the running total by their signed value.
- * - SUM / GROUP_SUM rows anchor at zero and reset the running total to their value.
+ * - SUM / GROUP_SUM rows anchor at zero. A SUM row resets the running total to its
+ *   value, a GROUP_SUM row resets it to zero.
  * - DRILLELEMENT (thereof) rows form a sub-cascade from their parent bar's start in
  *   the parent's direction; the running total is untouched.
  * - PARTELEMENT (partof) rows cascade a `share * parent width` segment the same way.
@@ -162,7 +163,8 @@ export function computeWaterfall(
           emit(row, { start: 0, end: value, min: 0, max: 0, kind: "anchor" });
           lastParent = { start: 0, end: value };
           subCursor = 0;
-          running = value;
+          // a group sum closes its group (there may be no GROUPHEAD row when the title is hidden)
+          running = type === TableRowType.GROUPSUM ? 0 : value;
         } else if (type === TableRowType.DRILLELEMENT) {
           if (value === null || lastParent === undefined) {
             continue;
