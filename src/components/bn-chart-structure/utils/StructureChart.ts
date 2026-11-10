@@ -998,7 +998,11 @@ export class StructureChart {
   private calculatePercentageTextBoxWidth(value: number): number {
     let signWidth = 0;
 
-    if (value >= 0) {
+    // like the label: no sign for a value that rounds to zero
+    const digits = this.dataFormatDigits.percent;
+    const percent = (v: number) => Formatter.number(v, "percent", digits, digits, 1, this.styles.locale);
+
+    if (value > 0 && percent(value) !== percent(0)) {
       signWidth += CalculateSize("+", {
         font: this.styles.fontStyles.font,
         fontSize: this.styles.fontStyles.size + "px",

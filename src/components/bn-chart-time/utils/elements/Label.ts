@@ -135,7 +135,9 @@ export class Label {
 
       valueStr = Formatter.number(Number(value), type, digits, digitsMin, scale, this.styles.locale);
 
-      if (this.isVarianceLabel && Number(this.value) >= 0) {
+      // a value that rounds to zero prints without a sign
+      const zeroStr = Formatter.number(0, type, digits, digitsMin, scale, this.styles.locale);
+      if (this.isVarianceLabel && Number(this.value) > 0 && valueStr !== zeroStr) {
         prefix = "+";
       }
     } else {

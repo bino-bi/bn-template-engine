@@ -70,6 +70,8 @@ The `direction` determines the IBCS color coding in charts and tables:
 - `op` - By the row operation. In a `type="opt"` or `"optnototal"` table, entry values are shown without their sign. There a `-` row acts like `neg` and a `+` row or a sum row like `pos`, so a rising cost is red and rising revenue is green. Thereof rows use the operation of their parent. In other tables and in charts the values carry their sign already, so `op` acts like `pos`.
 - `opinv` - The inverse of `op`, for reports where the main measure is a cost.
 
+A variance that prints as zero at the displayed digits has no sign and no direction color, as IBCS shows it. With one decimal digit this holds for `0`, `0.04` and `-0.04`. It applies to absolute, relative and percentage point variances in table cells (entry, sum and total rows), to the bar and pin labels of a table, and to the variance labels of `bn-chart-time` and `bn-chart-structure`.
+
 To display variances, pass them as a comma-separated list to the `variances` prop:
 
 ```html

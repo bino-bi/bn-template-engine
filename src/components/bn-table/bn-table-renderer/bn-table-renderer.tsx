@@ -461,13 +461,13 @@ export class BnTableRenderer {
                 {row?.getCells().map((cell: Cell) => (
                   <td
                     colSpan={cell.colSpan}
-                    class={cell.type ? `${cell.cssStyle} ${cell.type}` : cell.cssStyle}
+                    class={cell.type ? `${this.cellClass(cell, locale)} ${cell.type}` : cell.cssStyle}
                     {...(row.key && cell.value != null && cell.value !== "" && cell.value !== "-"
                       ? dataPointAttributes({ ...row.key, date: cell.date, scenario: cell.key }, "element")
                       : {})}
                   >
                     {cell.prefix != null ? (
-                      <span class={cell.cssStyle + " " + cell.prefixStyle}>{cell.drawPrefix()}</span>
+                      <span class={this.cellClass(cell, locale) + " " + cell.prefixStyle}>{cell.drawPrefix()}</span>
                     ) : (
                       ""
                     )}
@@ -579,6 +579,15 @@ export class BnTableRenderer {
     this.barColumnLayouts = this.collectBarColumnLayouts();
     this.waterfallGeometries = this.collectWaterfallGeometries();
     this.barChartStyles = this.prepareBarChartStyles();
+  }
+
+  /** The classes of a number cell. A variance that prints as zero loses its sign and its sentiment color. */
+  private cellClass(cell: Cell, locale?: string): string {
+    if (cell.direction === undefined || !cell.roundsToZero(this.componentDataFormatDigits, locale)) {
+      return cell.cssStyle;
+    }
+
+    return cell.cssStyle.replace(/^(pos|neg)_\w+/, "zero");
   }
 
   private prepareConfig(db: import("../../../context/scopedDb").AlaSQLDatabase): TableComponentConfig {

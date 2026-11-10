@@ -84,7 +84,20 @@ export class Cell {
   }
 
   public draw(dataFormatDigits: DataFormatDigits, locale?: string) {
-    let cellValue = this.value;
+    return this.format(this.value, dataFormatDigits, locale);
+  }
+
+  /** True when the cell prints a number that is zero at the displayed digits. */
+  public roundsToZero(dataFormatDigits: DataFormatDigits, locale?: string): boolean {
+    return (
+      typeof this.value === "number" &&
+      !!this.type &&
+      this.draw(dataFormatDigits, locale) === this.format(0, dataFormatDigits, locale)
+    );
+  }
+
+  private format(value: number | string | null, dataFormatDigits: DataFormatDigits, locale?: string) {
+    let cellValue = value;
 
     if (cellValue === "undefined" || cellValue === undefined || cellValue == null) {
       return "";
