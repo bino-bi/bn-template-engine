@@ -489,44 +489,6 @@ describe("IBCS Table Test", () => {
         </tr>
       </thead>
       <tbody>
-        <tr class=\"groupheader\">
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnSubGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnSubGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnSubGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnSubGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percentpoint\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-        </tr>
         <tr>
           <td class=\"base operation percent\" colspan=\"1\">
             <span class=\"base operation prefix-first\"></span>
@@ -826,44 +788,6 @@ describe("IBCS Table Test", () => {
           <td class=\"base neg_pos percent relative_variance\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first relative_variance\"></span>
             -70,00%
-          </td>
-        </tr>
-        <tr class=\"groupheader\">
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnSubGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnSubGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnSubGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnSubGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"columnGroup headerlabel percent\" colspan=\"1\">
-            <span class=\"columnGroup headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percentpoint\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
-          </td>
-          <td class=\"base headerlabel percent\" colspan=\"1\">
-            <span class=\"base headerlabel prefix-first\"></span>
           </td>
         </tr>
         <tr>
