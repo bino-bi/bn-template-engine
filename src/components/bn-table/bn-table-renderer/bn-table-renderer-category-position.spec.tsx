@@ -180,6 +180,14 @@ describe("IBCS Table categoryIntervalPosition", () => {
     });
   });
 
+  it.each([-1, 1.5])("treats the position %s as 0", async (position) => {
+    const page = await renderTable({ categoryIntervalPosition: position });
+
+    expect(texts(headerRows(page)[0])).toEqual(["", "Jan", "Feb", "Mar", "YTD"]);
+    expect(texts(findRow(page, "Hamburg"))).toEqual(["Hamburg", "10.0", "20.0", "30.0", "60.0"]);
+    expect(warningIds()).toEqual([]);
+  });
+
   it("warns and ignores the position without an interval", async () => {
     const page = await renderTable({ categoryIntervalPosition: 1, interval: "none" });
 

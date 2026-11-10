@@ -183,7 +183,7 @@ export class Table {
       this.config.showMeasureScale,
       this.config.attributes,
       // every interval group has one column per scenario
-      Math.min(this.config.categoryIntervalPosition, this.intervalBuckets.length) * this.config.scenarios.length,
+      Math.min(this.categoryIntervalPosition(), this.intervalBuckets.length) * this.config.scenarios.length,
     );
     this.bodyRows =
       this.rowCount === 0 || !this.fromExpr
@@ -324,9 +324,15 @@ export class Table {
     return unknown === undefined ? undefined : `order: setname '${unknown}' not found, the rows are not sorted by it.`;
   }
 
+  /** The configured `categoryIntervalPosition`; anything but a positive integer counts as 0. */
+  private categoryIntervalPosition(): number {
+    const position = this.config.categoryIntervalPosition;
+    return Number.isInteger(position) && position > 0 ? position : 0;
+  }
+
   /** Warning for a `categoryIntervalPosition` that cannot apply, once the body was built; undefined when it applies. */
   public categoryIntervalPositionWarning(): { id: `WARN_${string}`; message: string } | undefined {
-    const position = this.config.categoryIntervalPosition;
+    const position = this.categoryIntervalPosition();
     if (position <= 0 || this.hasNoData() || this.state !== FactoryState.UP_TO_DATE) {
       return undefined;
     }
