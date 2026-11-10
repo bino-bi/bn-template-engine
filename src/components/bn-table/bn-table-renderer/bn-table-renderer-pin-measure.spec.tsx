@@ -38,6 +38,7 @@ import { BnTableRenderer } from "./bn-table-renderer";
 import { OrderDirection, TableType } from "../utils/model";
 import { I18nMode } from "../../../utils/constants";
 import { Order, OrderColumn } from "../../../utils/model/Order";
+import { estimateLabelWidth } from "../utils/helper/barColumnGeometry";
 
 const EM = 13.3333; // SYSTEM_STYLE_DEFAULTS.global.fontSizePx, scaleFactor 1
 const LABEL_FONT = EM * 0.85;
@@ -191,6 +192,34 @@ describe("IBCS Table pin labels measured on a canvas", () => {
     const room = num(up, "width") - measured("+40.00%") - measured("-10.00%") - 2 * (HEAD / 2 + 0.3 * EM);
     expect(upPin).toBeCloseTo(room * 0.8, 3);
     expect(page.root.shadowRoot.querySelectorAll("svg.relative-variance polygon").length).toBe(0);
+  });
+
+  // a fixed scale of 2 em per pp cuts both pins; at w16 the line holds the measured label, not the estimated one
+  it("puts the label of a cut pin on the line when its measured width fits", async () => {
+    const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 2, barColumnMaxWidth: 16 });
+
+    const up = svgOf(page, "A Up");
+    const baseX = Math.min(...up.querySelector("polygon").getAttribute("points").split(" ").map(parseFloat));
+    const lineLength = baseX - num(up, "width") / 2 - (0.25 * EM) / 2;
+    const pad = 0.2 * LABEL_FONT;
+    expect(lineLength).toBeGreaterThanOrEqual(measured("+20.00%") + 4 * pad);
+    expect(lineLength).toBeLessThan(estimateLabelWidth("+20.00%", LABEL_FONT) + 4 * pad);
+
+    const band = up.querySelector(".pin-label-band");
+    expect(num(band, "width")).toBeCloseTo(measured("+20.00%") + 2 * pad, 3);
+    expect(num(band, "x") + num(band, "width")).toBeCloseTo(baseX - pad, 3);
+    expect(up.querySelector("text").getAttribute("text-anchor")).toBe("middle");
+  });
+
+  it("keeps the label of a cut pin after the tip when its measured width does not fit the line", async () => {
+    const page = await renderColumn("drac1_pl1_pos", { percentageScaling: 2, barColumnMaxWidth: 15 });
+
+    for (const category of ["A Up", "B Down"]) {
+      const svg = svgOf(page, category);
+      expect(svg.querySelector("polygon")).not.toBeNull();
+      expect(svg.querySelector(".pin-label-band")).toBeNull();
+      expectInside(svg);
+    }
   });
 
   describe("and web fonts", () => {

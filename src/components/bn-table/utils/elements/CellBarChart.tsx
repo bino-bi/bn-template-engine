@@ -99,6 +99,10 @@ export const AXIS_COLOR = "#666666";
 
 /** Width of the pin line, in px before scaleFactor. */
 const PIN_LINE_WIDTH = 3;
+/** Arrow head of a cut pin, in sides of the square pin head: IBCS draws it a bit larger. */
+const PIN_ARROW_RATIO = 1.2;
+/** Padding of the light band under the label on a cut pin, in label font sizes. */
+const PIN_BAND_PAD = 0.2;
 
 /**
  * Creates a unique pattern ID for the SVG defs
@@ -555,7 +559,8 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
  * Renders a relative variance pin chart (dr_ prefix).
  * Line from the axis in the sentiment colour, ending in a square head in the look of the
  * minuend, with the value label beside the head like an absolute bar label. A pin beyond
- * the pin area is cut and ends in an arrow, its label after the arrow tip.
+ * the pin area is cut and ends in an arrow. Its label stands on the line behind the arrow
+ * head, on a light band, or after the arrow tip when the line is too short for it.
  *
  * Layout: [left label area][pin area with axis][right label area], summing to exactly
  * `columnWidthEm` em - see barColumnGeometry.ts.
@@ -584,7 +589,8 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const pinPx = 100 * styles.percentageScaling * fs;
 
   const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits, percentSign);
-  const sides = labelWidths ?? ownLabelWidths(columnStats, labelWidth(displayValue, fs, styles.fontFamily, true));
+  const ownWidth = labelWidth(displayValue, fs, styles.fontFamily, true);
+  const sides = labelWidths ?? ownLabelWidths(columnStats, ownWidth);
   const { neg = Math.max(0, -columnStats.min), pos = Math.max(0, columnStats.max) } = sideMax ?? {};
   const { totalWidth, negPinLength, posPinLength, axisX, labelGap } = relativePinGeometry(
     columnWidthEm,
@@ -614,8 +620,17 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
 
   // the arrow tip lands on the outer edge of a full-length head, so the label after it stays in the cell
   const tipX = axisX + direction * (maxPinLength + headSize / 2);
-  const arrowBaseX = tipX - direction * headSize;
-  const labelX = (isExtreme ? tipX : pinEndX + direction * (headSize / 2)) + direction * labelGap;
+  const arrowSize = PIN_ARROW_RATIO * headSize;
+  const arrowBaseX = tipX - direction * arrowSize;
+  // the band keeps a pad of full line to the arrow head and to the axis, else the label goes after the tip
+  const bandPad = PIN_BAND_PAD * fs;
+  const bandWidth = ownWidth + 2 * bandPad;
+  const shaftLength = Math.abs(arrowBaseX - axisX) - (VARIANCE_AXIS_EM * styles.emPx) / 2;
+  const labelOnShaft = isExtreme && shaftLength >= bandWidth + 2 * bandPad;
+  const bandX = arrowBaseX - direction * (bandPad + bandWidth / 2) - bandWidth / 2;
+  const labelX = labelOnShaft
+    ? bandX + bandWidth / 2
+    : (isExtreme ? tipX : pinEndX + direction * (headSize / 2)) + direction * labelGap;
 
   return (
     <svg width={totalWidth} height={height} class="cell-bar-chart relative-variance" style={{ overflow: "visible" }}>
@@ -641,7 +656,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
       {/* Square head on top of the line, or an arrow when the pin is cut */}
       {isExtreme ? (
         <polygon
-          points={`${tipX},${centerY} ${arrowBaseX},${centerY - headSize / 2} ${arrowBaseX},${centerY + headSize / 2}`}
+          points={`${tipX},${centerY} ${arrowBaseX},${centerY - arrowSize / 2} ${arrowBaseX},${centerY + arrowSize / 2}`}
           fill={barStyle.fill}
         />
       ) : (
@@ -656,12 +671,25 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         />
       )}
 
+      {/* Light band over the line, so the label on it stays readable */}
+      {labelOnShaft && (
+        <rect
+          class="pin-label-band"
+          x={bandX}
+          y={centerY - (PIN_LINE_WIDTH * s) / 2}
+          width={bandWidth}
+          height={PIN_LINE_WIDTH * s}
+          fill="#ffffff"
+          fill-opacity="0.5"
+        />
+      )}
+
       {/* Value label - uses fontColor from styles, italics per IBCS for relative variance */}
       <text
         x={labelX}
         y={height / 2}
         dy="0.35em"
-        text-anchor={isPositive ? "start" : "end"}
+        text-anchor={labelOnShaft ? "middle" : isPositive ? "start" : "end"}
         fill={styles.fontColor}
         font-size={fs}
         font-style="italic"

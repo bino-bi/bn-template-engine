@@ -436,7 +436,7 @@ export class Table {
   /**
    * Data units displayed per 1 em of bar length for absolute variance bar
    * charts (ΔPY) - map-scale semantics: a larger value means smaller bars.
-   * Bars exceeding barColumnWidth are shown with an arrow indicator.
+   * Bars exceeding barColumnWidth are cut with a zigzag break.
    *
    * | Value            | Behavior                                                       |
    * |------------------|----------------------------------------------------------------|
