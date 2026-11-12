@@ -341,8 +341,11 @@ td:has(.cell-bar-chart) {
   vertical-align: middle;
 }
 
-/* a thereof row has a smaller em and its own left padding: both would move the walk off the rows around it */
-tr.ofit td:has(.variance-waterfall) {
+/* a thereof, partof or share row has a smaller em and its own left padding: both would move
+   its bars, axis and waterfall off the rows around it */
+tr.ofit td:has(.cell-bar-chart),
+tr.partof td:has(.cell-bar-chart),
+tr.share td:has(.cell-bar-chart) {
   padding: 0 calc(0.25em / 0.6);
 }
 
