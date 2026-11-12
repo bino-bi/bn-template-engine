@@ -641,24 +641,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     <svg width={totalWidth} height={height} class="cell-bar-chart relative-variance" style={{ overflow: "visible" }}>
       <PatternDefs styles={styles} />
 
-      {/* Center axis line */}
-      {look ? (
-        <VarianceAxis x={axisX} height={height} look={look} styles={styles} />
-      ) : (
-        <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
-      )}
-
-      {/* Pin line - colored based on column type */}
-      <line
-        x1={axisX}
-        y1={centerY}
-        x2={isExtreme ? arrowBaseX : pinEndX}
-        y2={centerY}
-        stroke={barStyle.fill}
-        stroke-width={PIN_LINE_WIDTH * s}
-      />
-
-      {/* Square head on top of the line, or an arrow when the pin is cut */}
+      {/* Square head, or an arrow when the pin is cut */}
       {isExtreme ? (
         <polygon
           points={`${tipX},${centerY} ${arrowBaseX},${centerY - arrowSize / 2} ${arrowBaseX},${centerY + arrowSize / 2}`}
@@ -676,6 +659,16 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         />
       )}
 
+      {/* Pin line over the head, so it visibly ends in its centre as in the charts */}
+      <line
+        x1={axisX}
+        y1={centerY}
+        x2={isExtreme ? arrowBaseX : pinEndX}
+        y2={centerY}
+        stroke={barStyle.fill}
+        stroke-width={PIN_LINE_WIDTH * s}
+      />
+
       {/* Light band over the line, so the label on it stays readable */}
       {labelOnShaft && (
         <rect
@@ -687,6 +680,13 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
           fill="#ffffff"
           fill-opacity="0.5"
         />
+      )}
+
+      {/* Axis on top, so a head near zero does not cover it */}
+      {look ? (
+        <VarianceAxis x={axisX} height={height} look={look} styles={styles} />
+      ) : (
+        <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
       )}
 
       {/* Value label - uses fontColor from styles, italics per IBCS for relative variance */}

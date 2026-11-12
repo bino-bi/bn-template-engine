@@ -106,7 +106,7 @@ describe("IBCS Table variance look", () => {
     const sides = { neg: labelWidth("-20.00%"), pos: labelWidth("+20.00%") };
     const { axisX, maxPinLength, labelGap, totalWidth } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, sides, HEAD);
 
-    it("ends in a square head on top of the line, in the AC look for an AC minuend", async () => {
+    it("ends in a square head under the line and the axis, in the AC look for an AC minuend", async () => {
       const svg = svgOf(await renderColumn("drac1_pl1_pos", { percentageScaling }), "A Up");
 
       expect(svg.querySelector("circle")).toBeNull();
@@ -119,7 +119,11 @@ describe("IBCS Table variance look", () => {
 
       const pinLine = directChildren(svg, "line").find((line) => line.getAttribute("y1") !== "0");
       expect(pinLine.getAttribute("stroke")).toBe("#008f96");
-      expect(children(svg).indexOf(head)).toBeGreaterThan(children(svg).indexOf(pinLine));
+      // the line ends visibly in the centre of the head, and a head near zero does not cover the axis
+      expect(num(pinLine, "x2")).toBeCloseTo(num(head, "x") + HEAD / 2, 3);
+      expect(children(svg).indexOf(pinLine)).toBeGreaterThan(children(svg).indexOf(head));
+      const axis = svg.querySelector("g.variance-axis");
+      expect(children(svg).indexOf(axis)).toBeGreaterThan(children(svg).indexOf(pinLine));
     });
 
     it("puts the label beside the head like an absolute bar label", async () => {
