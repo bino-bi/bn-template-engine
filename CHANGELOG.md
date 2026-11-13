@@ -10,6 +10,18 @@ All notable changes to this project will be documented in this file. See [standa
 
 - `bn-table`: a cut relative variance pin now shows its label as IBCS does. The label stands on the pin line, directly behind the arrow head on the axis side, on a light band (white at half opacity) that keeps it readable. This holds when the line is long enough for the measured label, the band padding and a short piece of full line on each side. On a shorter line the label stays after the arrow tip, as before, so it never leaves the cell. The arrow head is now 1.2 times the square pin head in length and height. The tip stays where it was, and the space the column reserves for labels does not change.
 
+- `bn-table` looks more like the IBCS tables. This changes every table a little, and a table gets a bit wider.
+  - Column blocks stand further apart. The row header, the scenarios of one interval block and each pair of variances (ΔPY with ΔPY%, ΔPL with ΔPL%) are blocks. The first column of a block has 0.6 em more room on its left, and no row line or header line is drawn in that gap. Such a cell has the class `block-start`. The baseline that `bn-grid` aligns on still is the visible start of the first value column.
+  - In a grouped table that is no calculation scheme (`type` other than `opt` and `optnototal`), the room after a group sum row is 1 em instead of 0.5 em.
+  - The row lines are solid, not dashed.
+  - The labels of the interval blocks (for example the month and the year to date) are in regular weight, not bold.
+  - The header of a bar or pin column is centered over the column.
+  - The variances on sum rows print in the text color, not in teal or red. The rows above keep their color.
+  - Bars take 60% of the row height (before about 78%). This holds for variance bars, scenario bars and waterfalls.
+  - Hatching is finer: a line every 3 px instead of every 6 px at the default size.
+  - The square pin head is 8 px instead of 10 px, and the arrow of a cut pin shrinks with it. The head of an FC variance is dark with thin light lines, before it was white with dark lines.
+  - The axis of a variance against PL is two lines with a gap of the same width. Before, the two lines were thin and far apart.
+
 ### Fixed
 
 - `bn-table` relative variance pins: the pin line now lies over the square head and ends visibly in its centre, and the axis lies over both, as in `bn-chart-time` and `bn-chart-structure`. Before, the head covered the end of the line, and a head near zero covered the axis. This also holds for the white PL head, which no longer hides the line.

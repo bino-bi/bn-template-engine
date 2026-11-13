@@ -640,7 +640,7 @@ export class BnTableRenderer {
   }
 
   private isBarColumn(key: string): boolean {
-    return this.barColumns.some((column) => column.toLowerCase() === key.toLowerCase());
+    return this.barColumns.includes(key);
   }
 
   /** The classes of a number cell. A variance that prints as zero loses its sign and its sentiment color. */
