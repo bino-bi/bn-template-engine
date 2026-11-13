@@ -287,4 +287,58 @@ describe("IBCS Table opt variances", () => {
     expect(restOf(0)).toContain("pos_pos");
     expect(restOf(1)).toContain("neg_neg");
   });
+
+  describe("partof row", () => {
+    const partof = [{ rowGroup: "Operating result", category: "Purchases", subCategory: "", partOf: "" }];
+    const partRow = (page: SpecPage) => page.root.shadowRoot.querySelector("tbody tr.partof");
+    const texts = (page: SpecPage) =>
+      Array.from(partRow(page).querySelectorAll("td")).map((cell) => cell.textContent.trim());
+
+    it("prints the change of the share, not the share of the variance", async () => {
+      const page = await renderTable({ partof });
+
+      // 344.2 / 302.1 = 113.9 %, 379.2 / 467.4 = 81.1 %: -32.8 points, -28.8 % of 113.9 %
+      expect(texts(page).slice(2)).toEqual(["113.94%", "81.13%", "-32.81", "-28.79%"]);
+    });
+
+    it("marks the change as percentage points without a sentiment", async () => {
+      const page = await renderTable({ partof });
+      const classes = (index: number) => partRow(page).querySelectorAll("td")[index].getAttribute("class").split(" ");
+
+      expect(classes(4)).toEqual(expect.arrayContaining(["percentpoint", "neg_neu"]));
+      expect(classes(5)).toEqual(expect.arrayContaining(["percent", "neg_neu", "relative_variance"]));
+    });
+
+    it("works when the scenarios of the variance are not shown", async () => {
+      const page = await renderTable({ partof, scenarios: ["dac1_pp1_pos"] });
+
+      expect(texts(page).slice(2)).toEqual(["-32.81"]);
+    });
+
+    it("divides the reference of two relative variances once", async () => {
+      const page = await renderTable({ partof, scenarios: ["drac1_pp1_pos", "drac1_pp1_neg"] });
+
+      expect(texts(page).slice(2)).toEqual(["-28.79%", "-28.79%"]);
+    });
+
+    it("prints - when the total of one side is zero", async () => {
+      const tables = getStores(null).db.db.tables;
+      // pp1 of the group: 100 - 100 = 0
+      tables["optZeroTotal"] = {
+        data: statement()
+          .filter((r) => r.category === "Purchases" || r.category === "Licences")
+          .map((r) => ({ ...r, pp1: 100 })),
+      };
+      const page = await renderTable({ partof, tableName: "optZeroTotal" });
+
+      expect(texts(page).slice(4)).toEqual(["-", "-"]);
+    });
+
+    it("draws no bar for the change", async () => {
+      const page = await renderTable({ partof, barColumns: ["dac1_pp1_pos"] });
+
+      expect(partRow(page).querySelector("svg")).toBeNull();
+      expect(texts(page)[4]).toBe("-32.81");
+    });
+  });
 });
