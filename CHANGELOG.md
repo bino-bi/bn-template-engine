@@ -46,6 +46,14 @@ The child of a cell can carry `row-span` and `column-span` (whole numbers, defau
 
 `cell-background` on the child of a cell is the background colour of that cell. The new style key `bn-grid.cellBackground` (default `transparent`) sets it for every cell, and the attribute wins.
 
+#### `bn-layout-card`: font size of the title
+
+The new style section `bn-layout-card` has one key, `titleFontSize` in px. Without it the title keeps the font size of `global.fontSizePx`. `bn-title` has the matching attribute `title-font-size`.
+
+#### `bn-layout-page`: an id at the top right of the title
+
+The new attribute `title-id` (property `titleId`) of `bn-layout-page` and `bn-title` shows a short text, a template number like `13A`, right-aligned on the level of the first title line, in the font of the title and not bold.
+
 #### `bn-table`: variance waterfall
 
 The new attribute `variance-waterfall` (property `varianceWaterfall`, default `false`) draws every absolute variance column listed in `bar-columns` as a waterfall down the rows, as IBCS shows the variances of a calculation scheme. Without it nothing changes: the column keeps single bars from the axis and no bar on sum rows. Relative variance columns stay pins.

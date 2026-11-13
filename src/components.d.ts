@@ -1415,7 +1415,7 @@ export namespace Components {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
          */
         "selectedStyle"?: string;
         /**
@@ -1587,6 +1587,11 @@ export namespace Components {
           * Start date displayed in the title date row. Accepts `yyyy-MM-dd` (e.g. `2024-01-01`) or ISO 8601 datetime (e.g. `2024-01-01T14:30:00Z`).
          */
         "titleDateStart"?: string;
+        /**
+          * Short id of the page, a template number like `13A`. Shown at the top right of the title, on the level of its first line, in the font of the title and not bold. If empty, nothing is shown.
+          * @example <bn-layout-page title-id="13A"></bn-layout-page>
+         */
+        "titleId"?: string;
         /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
@@ -2123,6 +2128,14 @@ export namespace Components {
          */
         "selectedStyle"?: string;
         /**
+          * Font size of the title in px. Without it the title has the font size of the style (`global.fontSizePx`).
+         */
+        "titleFontSize"?: number;
+        /**
+          * Short id of the report, a template number like `13A`. Shown at the top right, on the level of the first title line. Without it nothing is shown.
+         */
+        "titleId"?: string;
+        /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances": string;
@@ -2163,6 +2176,7 @@ export namespace Components {
          */
         "scenarios": string[];
         "timeperiod"?: TimePeriod;
+        "titleId"?: string;
     }
     /**
      * Renders a hierarchical tree diagram with SVG edge connections.
@@ -3942,7 +3956,7 @@ declare namespace LocalJSX {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
          */
         "selectedStyle"?: string;
         /**
@@ -4114,6 +4128,11 @@ declare namespace LocalJSX {
           * Start date displayed in the title date row. Accepts `yyyy-MM-dd` (e.g. `2024-01-01`) or ISO 8601 datetime (e.g. `2024-01-01T14:30:00Z`).
          */
         "titleDateStart"?: string;
+        /**
+          * Short id of the page, a template number like `13A`. Shown at the top right of the title, on the level of its first line, in the font of the title and not bold. If empty, nothing is shown.
+          * @example <bn-layout-page title-id="13A"></bn-layout-page>
+         */
+        "titleId"?: string;
         /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
@@ -4637,6 +4656,14 @@ declare namespace LocalJSX {
          */
         "selectedStyle"?: string;
         /**
+          * Font size of the title in px. Without it the title has the font size of the style (`global.fontSizePx`).
+         */
+        "titleFontSize"?: number;
+        /**
+          * Short id of the report, a template number like `13A`. Shown at the top right, on the level of the first title line. Without it nothing is shown.
+         */
+        "titleId"?: string;
+        /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances"?: string;
@@ -4677,6 +4704,7 @@ declare namespace LocalJSX {
          */
         "scenarios"?: string[];
         "timeperiod"?: TimePeriod;
+        "titleId"?: string;
     }
     /**
      * Renders a hierarchical tree diagram with SVG edge connections.
@@ -5013,6 +5041,7 @@ declare namespace LocalJSX {
         "ruleset": string;
         "messageText": string;
         "messageImage": string;
+        "titleId": string;
         "titleBusinessUnit": string;
         "titleScenarios": string;
         "titleVariances": string;
@@ -5138,6 +5167,8 @@ declare namespace LocalJSX {
         "selectedStyle": string;
         "i18nNamespace": string;
         "ruleset": string;
+        "titleFontSize": number;
+        "titleId": string;
         "businessUnit": string;
         "scenarios": string;
         "variances": string;
@@ -5154,6 +5185,7 @@ declare namespace LocalJSX {
         "intervalSpanLimit": number;
         "i18nMode": I18nMode;
         "locale": string;
+        "titleId": string;
     }
     interface BnTreeAttributes {
         "selectedStyle": string;

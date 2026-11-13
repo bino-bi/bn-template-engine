@@ -79,6 +79,18 @@ export class Title {
    */
   @Prop({ reflect: true }) readonly ruleset?: string;
 
+  /**
+   * Font size of the title in px. Without it the title has the font size of
+   * the style (`global.fontSizePx`).
+   */
+  @Prop() readonly titleFontSize?: number;
+
+  /**
+   * Short id of the report, a template number like `13A`. Shown at the top
+   * right, on the level of the first title line. Without it nothing is shown.
+   */
+  @Prop() readonly titleId?: string;
+
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
    *  <br /><br />
    *  Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
@@ -429,7 +441,7 @@ export class Title {
   private getFontStyles(): { [key: string]: string } {
     return this.componentStyle(($) => ({
       "--bn-font-family": $["global"]?.["fontFamily"] || "'Noto Sans', sans-serif",
-      "--bn-font-size": `${$["global"]?.["fontSizePx"] || 13.3333}px`,
+      "--bn-font-size": `${this.titleFontSize > 0 ? this.titleFontSize : $["global"]?.["fontSizePx"] || 13.3333}px`,
       "--bn-font-color": $["global"]?.["fontColor"] || "#000000",
       "--bn-font-background": $["global"]?.["fontBackgroundColor"] || "#ffffff",
     }));
@@ -450,6 +462,7 @@ export class Title {
           i18n-mode={this.prepareI18nMode()}
           locale={this.prepareLocale()}
           ruleSetConfig={this.ruleSetConfig()}
+          titleId={this.titleId || undefined}
         ></bn-title-renderer>
       </Host>
     );

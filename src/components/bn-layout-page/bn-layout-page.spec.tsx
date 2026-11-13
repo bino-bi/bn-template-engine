@@ -36,6 +36,21 @@ describe("bn-layout-page selected-style forwarding", () => {
   });
 });
 
+describe("bn-layout-page title id", () => {
+  const title = (attrs: string) =>
+    newSpecPage({ components: [LayoutPage], html: `<bn-layout-page ${attrs}></bn-layout-page>` }).then((page) =>
+      page.root.shadowRoot.querySelector("bn-title"),
+    );
+
+  it("forwards title-id to the inner bn-title", async () => {
+    expect((await title(`title-id="13A"`)).getAttribute("title-id")).toBe("13A");
+  });
+
+  it("omits title-id on the inner bn-title when not set", async () => {
+    expect((await title("")).hasAttribute("title-id")).toBe(false);
+  });
+});
+
 describe("bn-layout-page ruleset forwarding", () => {
   it("forwards ruleset to the inner bn-title", async () => {
     const page = await newSpecPage({

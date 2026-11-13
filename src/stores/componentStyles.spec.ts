@@ -7,11 +7,12 @@ describe("unknownStyleKeys", () => {
     expect(unknownStyleKeys(SYSTEM_STYLE_DEFAULTS)).toEqual([]);
   });
 
-  it("accepts a partial style and the optional bn-text keys", () => {
+  it("accepts a partial style and the optional keys of bn-text and bn-layout-card", () => {
     expect(
       unknownStyleKeys({
         global: { fontSizePx: 12 },
         "bn-text": { leading: 1.2, fontColor: "#333333" },
+        "bn-layout-card": { titleFontSize: 16 },
         "bn-grid": { cellBackground: "#f2f2f2" },
         "bn-chart-time": { scaleFactors: { labelToColumn: 0.5 }, padding: { top: 0 } },
       }),
@@ -24,12 +25,14 @@ describe("unknownStyleKeys", () => {
         "bn-table": { fontSizePx: 10 },
         global: { fontSize: 12 },
         "bn-text": { color: "#000000" },
+        "bn-layout-card": { titleSize: 16 },
         "bn-chart-time": { scaleFactors: { labelToColum: 0.5 }, padding: { up: 1 } },
       }),
     ).toEqual([
       "bn-table",
       "global.fontSize",
       "bn-text.color",
+      "bn-layout-card.titleSize",
       "bn-chart-time.scaleFactors.labelToColum",
       "bn-chart-time.padding.up",
     ]);
