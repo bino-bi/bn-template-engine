@@ -180,6 +180,14 @@ export class BnChartTimeRenderer {
   private stores: ScopedStores | undefined;
   private measureScaleError: string | undefined;
   private queryError: string | undefined;
+  private overlapErrId: `WARN_${string}` | undefined;
+
+  disconnectedCallback() {
+    if (this.overlapErrId) {
+      this.errors?.remove(this.overlapErrId);
+      this.overlapErrId = undefined;
+    }
+  }
 
   constructor() {
     withComponentStatus(this);
@@ -228,6 +236,11 @@ export class BnChartTimeRenderer {
 
     const errId = `WARN_variances_overlap_${this.variances.join("_")}` as const;
     const overlaps = this.chart?.getVarianceOverlaps() ?? 0;
+    // the row can get other variances: the warning of the old list has to go
+    if (this.overlapErrId && this.overlapErrId !== errId) {
+      this.errors?.remove(this.overlapErrId);
+    }
+    this.overlapErrId = overlaps > 0 ? errId : undefined;
     if (overlaps > 0) {
       this.errors?.addOrReplace({
         id: errId,

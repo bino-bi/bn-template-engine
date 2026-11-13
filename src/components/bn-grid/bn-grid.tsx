@@ -321,6 +321,7 @@ export class Grid {
     // a child can be added, moved to another slot or replaced, in a morphing preview for example
     this.mutationObserver = new MutationObserver(() => {
       this.readCellAttributes();
+      this.checkCoveredSlots();
       this.schedule();
     });
     this.mutationObserver.observe(this.element, {
@@ -331,6 +332,8 @@ export class Grid {
     });
     // a caption in a late web font changes its height
     document.fonts?.addEventListener("loadingdone", this.schedule);
+    // a change made while the grid was detached reached no observer
+    this.readCellAttributes();
   }
 
   disconnectedCallback() {
@@ -397,16 +400,28 @@ export class Grid {
     if (JSON.stringify(next) !== JSON.stringify(this.cellAttributes)) this.cellAttributes = next;
   }
 
-  /** Places the data cells, and warns about a child in a position that a span covers: it is not shown. */
+  /** Places the data cells. */
   private placeDataCells() {
     const { rows, columns } = this.gridConfig;
     const slotAt = (row: number, column: number) => getSlotName(rows[row], columns[column]);
-    const { cells, covered } = placeCells(
+    const { cells } = placeCells(
       rows.length,
       columns.length,
       (row, column) => this.cellAttributes[slotAt(row, column)],
     );
     this.placed = cells.map((cell) => ({ ...cell, slot: slotAt(cell.row, cell.column) }));
+    this.checkCoveredSlots();
+  }
+
+  /** Warns about a child in a position that a span covers. A new child changes no state, so the observer calls this too. */
+  private checkCoveredSlots() {
+    const { rows, columns } = this.gridConfig ?? { rows: [], columns: [] };
+    const slotAt = (row: number, column: number) => getSlotName(rows[row], columns[column]);
+    const { covered } = placeCells(
+      rows.length,
+      columns.length,
+      (row, column) => this.cellAttributes[slotAt(row, column)],
+    );
 
     const slotted = new Set(Array.from(this.element.children).map((child) => child.getAttribute("slot")));
     const hidden = covered.filter(({ row, column }) => slotted.has(slotAt(row, column)));

@@ -13,7 +13,7 @@ import {
   validateVariancesList,
 } from "../../utils/validate";
 
-import { VarianceScenario } from "../../utils/model/VarianceScenario";
+import { variancesScenarios } from "../../utils/model/VarianceScenario";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
@@ -505,7 +505,7 @@ export class Chart {
 
   private validateDigits(name: string, value: number) {
     const errId = `WARN_${name}` as const;
-    if (!isValidInteger(value) || Number(value) < 0) {
+    if (!isValidInteger(value) || Number(value) < 0 || Number(value) > 100) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -879,23 +879,6 @@ export class Chart {
     return !scenarios.inherited && isNoScenarios(scenarios.value);
   }
 
-  /** The scenarios the data is read for. A chart without drawn scenarios still needs those of its variances. */
-  private prepareDataScenarios(): string[] {
-    if (!this.hidesScenarios()) {
-      return this.prepareScenarios();
-    }
-    const scenarios: string[] = [];
-    for (const variance of this.prepareVariances()) {
-      const parsed = new VarianceScenario(variance);
-      for (const scenario of parsed.isValid ? [parsed.base, parsed.delta] : []) {
-        if (!scenarios.includes(scenario)) {
-          scenarios.push(scenario);
-        }
-      }
-    }
-    return scenarios;
-  }
-
   /** The segments side by side: `""` is the base chart, else one variance. */
   private prepareSegments(): string[] {
     return this.hidesScenarios() ? this.prepareVariances() : ["", ...this.prepareVariances()];
@@ -1254,9 +1237,10 @@ export class Chart {
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
     const stackConfig = this.prepareStackConfig();
-    const scenarios = this.prepareDataScenarios();
-    // Dimension stacking uses only the first scenario
-    const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
+    const isBase = localScenarioString === "";
+    const scenarios = this.hidesScenarios() ? variancesScenarios([localScenarioString]) : this.prepareScenarios();
+    // Dimension stacking uses only the first scenario. Only the base chart draws a stack, a variance needs both of its scenarios
+    const effectiveScenarios = isBase && stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
       <bn-chart-structure-renderer

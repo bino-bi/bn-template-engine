@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [Unreleased]
 
+### Added
+
+- `bn-chart-time` and `bn-chart-structure`: `data-format-digits-decimal` and `data-format-digits-percent` set the digits of the value and percent labels, like on `bn-table`. Defaults stay 1 and 2.
+- `bn-chart-time` and `bn-chart-structure`: `scenarios="none"` draws no scenario. The chart shows only its variances, and the first variance carries the category labels. `bn-grid` then aligns such a chart on its variance axis.
+- `bn-chart-time`: `scenario-switch` is for a series that changes its scenario along the time axis, for example AC up to this year and PL after it. A scenario that only has values where the first scenario has none is drawn in its place, as a full column with value labels. A vertical line marks the change, and the scenario names stand under the axis. Variances of one type over the same reference share one row, and plan variances are outlined.
+- `bn-chart-time`: `axis-labels-step` prints only every n-th category label. In smart mode a label that carries the year or month is always printed.
+- `bn-chart-time`: `axis-title-position` (`left`, `right`, `none`) moves or hides the axis title.
+- `bn-chart-time`: the translation key `date-format-short-year` sets the pattern of the short year label, for example `’yy`.
+
 ### Changed
+
+- `bn-chart-time`: a relative variance above 145 % is no longer always cut. With a fixed `percentage-scaling` the pin is drawn in full length when it fits into the available height. It is still cut when it does not fit, and always with an automatic percentage scale. A chart with a fixed scale, long pins and enough room gets higher by this.
 
 - `bn-table`: the variance cells of a `partof` row ("in % of") now show how the share changed. Before, they showed the variance divided by the variance of the sum, which is no useful number. An absolute variance prints the difference of the two shares in percentage points with a `%p` behind it (for example 129% against 187% gives `-58%p`). A relative variance prints the change of the share in percent, before it was always `-`. These cells have no sentiment color and never a bar or pin. In a table with percent values (`scenariosDataFormat: percent`) the cells print `-`, like the scenario cells of the row.
 

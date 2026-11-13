@@ -13,11 +13,15 @@ export class DataFormatDigitsAdapter implements IAdapter<DataFormatDigits> {
   adapt(data: Record<string, unknown>): DataFormatDigits {
     const prefix = new DataFormatDigits();
 
-    if (CompareUtil.isNumber(data.percent)) {
+    // Intl.NumberFormat throws outside 0 to 100
+    const valid = (value: unknown): value is number =>
+      CompareUtil.isNumber(value) && Number.isInteger(value) && value >= 0 && value <= 100;
+
+    if (valid(data.percent)) {
       prefix.percent = data.percent;
     }
 
-    if (CompareUtil.isNumber(data.decimal)) {
+    if (valid(data.decimal)) {
       prefix.decimal = data.decimal;
     }
 

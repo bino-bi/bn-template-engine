@@ -56,3 +56,17 @@ export function resolveSentiment(
   const subtracts = !signedValues && operation === "-";
   return (direction === "op") !== subtracts ? "pos" : "neg";
 }
+
+/** The scenarios a list of variances is calculated from, each once, in order. */
+export function variancesScenarios(variances: string[]): string[] {
+  const scenarios: string[] = [];
+  for (const variance of variances) {
+    const parsed = new VarianceScenario(variance);
+    for (const scenario of parsed.isValid ? [parsed.base, parsed.delta] : []) {
+      if (!scenarios.includes(scenario)) {
+        scenarios.push(scenario);
+      }
+    }
+  }
+  return scenarios;
+}

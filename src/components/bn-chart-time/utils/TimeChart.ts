@@ -254,7 +254,8 @@ export class TimeChart {
       this.position.padding.top +
       this.position.padding.bottom +
       this.position.spacings.labelToAxis +
-      fontSize; // axis labels approximate height
+      fontSize + // axis labels approximate height
+      this.switchNamesHeight();
 
     const overdriveZoneHeight = fontSize * 1.5;
     const breakGap = fontSize * 0.3;
@@ -1368,7 +1369,11 @@ export class TimeChart {
         if (elements["type"] === VarianceType.RELATIVE) {
           isRelative = true;
         }
-        if (index % this.axisLabelsStep !== 0) {
+        // in smart mode a period that starts a year or month carries that part alone, so it is never skipped
+        const carriesBoundary =
+          this.axisLabelsMode === AxisLabelsMode.SMART &&
+          dateStringFactory.isSmartBoundary(elements.date, this.dateInterval);
+        if (index % this.axisLabelsStep !== 0 && !carriesBoundary) {
           return;
         }
 

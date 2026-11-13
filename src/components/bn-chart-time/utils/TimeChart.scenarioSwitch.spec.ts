@@ -185,4 +185,15 @@ describe("time chart category labels", () => {
     expect(left).toContain("Sales");
     expect(none).not.toContain("Sales");
   });
+
+  it("keeps the label that carries the year in smart mode", () => {
+    const rows = Array.from({ length: 6 }, (_, month) => ({
+      date: `202${month < 4 ? 4 : 5}-${String(((month + 8) % 12) + 1).padStart(2, "0")}-01`,
+      operation: "+",
+      pp1: 10,
+    }));
+    // Sep 2024 to Feb 2025: January has index 4, February index 5
+    const svg = buildChart({ scenarios: ["pp1"], dateInterval: "month", axisLabelsStep: 5 }, rows).toString();
+    expect(svg).toContain("2025");
+  });
 });

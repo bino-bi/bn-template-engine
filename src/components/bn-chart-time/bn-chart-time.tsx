@@ -29,7 +29,7 @@ import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensi
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
-import { VarianceScenario } from "../../utils/model/VarianceScenario";
+import { VarianceScenario, variancesScenarios } from "../../utils/model/VarianceScenario";
 import { TimeChartStyle } from "./utils/model";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
@@ -619,7 +619,7 @@ export class Chart {
 
   private validateDigits(name: string, value: number) {
     const errId = `WARN_${name}` as const;
-    if (!isValidInteger(value) || Number(value) < 0) {
+    if (!isValidInteger(value) || Number(value) < 0 || Number(value) > 100) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -1022,23 +1022,6 @@ export class Chart {
   private hidesScenarios(): boolean {
     const scenarios = this.resolveInherited("scenarios", this.scenarios);
     return !scenarios.inherited && isNoScenarios(scenarios.value);
-  }
-
-  /** The scenarios the data is read for. A chart without drawn scenarios still needs those of its variances. */
-  private prepareDataScenarios(): string[] {
-    if (!this.hidesScenarios()) {
-      return this.prepareScenarios();
-    }
-    const scenarios: string[] = [];
-    for (const variance of this.prepareVariances()) {
-      const parsed = new VarianceScenario(variance);
-      for (const scenario of parsed.isValid ? [parsed.base, parsed.delta] : []) {
-        if (!scenarios.includes(scenario)) {
-          scenarios.push(scenario);
-        }
-      }
-    }
-    return scenarios;
   }
 
   /**
@@ -1485,8 +1468,10 @@ export class Chart {
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
     const stackConfig = this.prepareStackConfig();
-    const scenarios = this.prepareDataScenarios();
-    const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
+    const isBase = segmentVariances.length === 0;
+    const scenarios = this.hidesScenarios() ? variancesScenarios(segmentVariances) : this.prepareScenarios();
+    // only the base chart draws a stack, a variance needs both of its scenarios
+    const effectiveScenarios = isBase && stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
       <bn-chart-time-renderer
