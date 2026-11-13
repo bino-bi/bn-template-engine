@@ -20,15 +20,17 @@ export class Axis {
   private readonly ID_AXIS: string = "axis";
   private readonly CSS_AXIS_TITLE: string = "categories";
   private readonly isRelative: boolean;
+  private readonly titlePosition: string;
 
   constructor(
-    axis: { scenarioType: Scenario; labelText?: string; isRelative?: boolean },
+    axis: { scenarioType: Scenario; labelText?: string; isRelative?: boolean; titlePosition?: string },
     position: ElementPositions,
     svgParentGroup: G | Svg,
   ) {
     this.scenarioType = axis.scenarioType;
     this.labelText = axis.labelText || null;
     this.isRelative = axis.isRelative || false;
+    this.titlePosition = axis.titlePosition || "left";
     this.position = position;
 
     this.svgGroup = svgParentGroup.group().id(this.ID_AXIS);
@@ -39,6 +41,17 @@ export class Axis {
       text = "";
     }
 
+    if (this.titlePosition === "right") {
+      group
+        .text(text)
+        .addClass(this.CSS_AXIS_TITLE)
+        .move(
+          this.position.getAxisEndPositionX() + this.position.spacings.labelToColumn,
+          this.position.getAxisTitlePositionY(true, this.isRelative),
+        );
+      return;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const title: any = group.text(text).addClass(this.CSS_AXIS_TITLE).attr("text-anchor", "middle");
 
@@ -46,7 +59,7 @@ export class Axis {
   }
 
   public draw(): Axis {
-    if (this.labelText) {
+    if (this.labelText && this.titlePosition !== "none") {
       this.drawAxisTitle(this.svgGroup, this.labelText);
     }
 

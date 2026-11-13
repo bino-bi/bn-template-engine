@@ -33,12 +33,20 @@ export interface GridStyle {
   borderColor: string;
   borderWidth: number;
   cellPadding: number;
+  /** Background colour of every data cell. `cell-background` on the child of a cell wins. */
+  cellBackground: string;
   /** Cell caption (`cell-captions`): font size in px. */
   captionFontSize: number;
   captionFontWeight: string;
   captionColor: string;
   /** Space below a cell caption, in px. */
   captionGap: number;
+}
+
+/** Optional overrides for `bn-layout-card`. */
+export interface LayoutCardStyle {
+  /** Font size of the card title in px. Without it the title has the font size of `global.fontSizePx`. */
+  titleFontSize?: number;
 }
 
 /** Top-level style object grouping global defaults and per-component overrides. */
@@ -52,6 +60,7 @@ export interface Style {
   "bn-chart-bullet": BulletChartStyle;
   "bn-tree": TreeStyle;
   "bn-grid": GridStyle;
+  "bn-layout-card": LayoutCardStyle;
   "bn-annotation": AnnotationStyle;
 }
 
@@ -321,19 +330,24 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
     borderColor: "#A6A6A6",
     borderWidth: 1,
     cellPadding: 4,
+    cellBackground: "transparent",
     captionFontSize: 12,
     captionFontWeight: "bold",
     captionColor: "#000000",
     captionGap: 2,
   },
+  "bn-layout-card": {} as LayoutCardStyle,
   "bn-annotation": {
     color: "#0070c0",
     colors: { negative: "#ff0000", positive: "#008f96" },
   },
 };
 
-/** `bn-text` keys. All are optional, so the defaults do not list them. */
-const TEXT_STYLE_KEYS = ["fontFamily", "fontSizePx", "fontColor", "fontBackgroundColor", "leading"];
+/** Keys that are optional, so the defaults do not list them. */
+const OPTIONAL_KEYS: Record<string, string[]> = {
+  "bn-text": ["fontFamily", "fontSizePx", "fontColor", "fontBackgroundColor", "leading"],
+  "bn-layout-card": ["titleFontSize"],
+};
 // The keys of these groups are checked too. The style groups (`axisStyles.ac`, ...) are not: their keys differ per scenario.
 const CHECKED_GROUPS = ["scaleFactors", "padding"];
 
@@ -360,7 +374,7 @@ export function unknownStyleKeys(style: unknown): string[] {
     if (!isPlainObject(value)) {
       continue;
     }
-    const sectionKeys = section === "bn-text" ? TEXT_STYLE_KEYS : Object.keys(defaults[section]);
+    const sectionKeys = [...Object.keys(defaults[section]), ...(OPTIONAL_KEYS[section] ?? [])];
     for (const [key, group] of Object.entries(value)) {
       if (!sectionKeys.includes(key)) {
         unknown.push(`${section}.${key}`);

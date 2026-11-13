@@ -1,6 +1,6 @@
 /**
- * Cell size and alignment for bn-grid: the accepted values, their CSS, and
- * the offsets that line up the baselines of the components in a row or column.
+ * Cell size, span and alignment for bn-grid: the accepted values, their CSS,
+ * and the offsets that line up the baselines of the components in a row or column.
  */
 
 export const CELL_SIZES = ["auto", "equal"] as const;
@@ -48,11 +48,72 @@ export function parseCaptions(json: string | undefined): Record<string, string> 
   return captions;
 }
 
+/** What the slotted child of a cell says about its cell. */
+export interface CellAttributes {
+  rowSpan: number;
+  columnSpan: number;
+  background?: string;
+}
+
+/** The value of `row-span` or `column-span`: a whole number from 1. `undefined` when invalid. */
+export function parseSpan(value: string | null): number | undefined {
+  if (value === null || value.trim() === "") return 1;
+  const span = Number(value);
+  return Number.isInteger(span) && span >= 1 ? span : undefined;
+}
+
+/** One data cell: its first row and column, and how many of them it covers. */
+export interface PlacedCell {
+  row: number;
+  column: number;
+  rowSpan: number;
+  columnSpan: number;
+}
+
+/**
+ * The data cells of a grid, row by row. A cell with a span also takes the
+ * positions right of it and below it, and those get no cell of their own. A
+ * span ends at the edge of the grid, and before a position that is taken.
+ */
+export function placeCells(
+  rowCount: number,
+  columnCount: number,
+  spanOf: (row: number, column: number) => { rowSpan: number; columnSpan: number } | undefined,
+): { cells: PlacedCell[]; covered: { row: number; column: number; by: PlacedCell }[] } {
+  const owner: (PlacedCell | undefined)[][] = Array.from({ length: rowCount }, () => Array(columnCount));
+  const cells: PlacedCell[] = [];
+  const covered: { row: number; column: number; by: PlacedCell }[] = [];
+  for (let row = 0; row < rowCount; row++) {
+    for (let column = 0; column < columnCount; column++) {
+      const by = owner[row][column];
+      if (by) {
+        covered.push({ row, column, by });
+        continue;
+      }
+      const span = spanOf(row, column);
+      const rowSpan = Math.min(span?.rowSpan ?? 1, rowCount - row);
+      let columnSpan = 1;
+      const wanted = Math.min(span?.columnSpan ?? 1, columnCount - column);
+      // a taken position in this row is taken by a cell from above, so the rows below need no check
+      while (columnSpan < wanted && !owner[row][column + columnSpan]) columnSpan++;
+      const cell = { row, column, rowSpan, columnSpan };
+      for (let r = row; r < row + rowSpan; r++) {
+        for (let c = column; c < column + columnSpan; c++) owner[r][c] = cell;
+      }
+      cells.push(cell);
+    }
+  }
+  return { cells, covered };
+}
+
 /** One cell as the baseline pass sees it, in the grid's layout px. */
 export interface BaselineCell {
   slot: string;
   row: number;
   column: number;
+  /** More than 1: the cell is in no single row (or column), so that axis is not aligned. */
+  rowSpan?: number;
+  columnSpan?: number;
   /** Baseline of the component in the cell, with the current offsets applied. */
   y?: number;
   x?: number;
@@ -75,7 +136,9 @@ const round2 = (value: number): number => Math.round(value * 100) / 100;
 /**
  * Offsets that put every baseline of a row on the lowest one, and every
  * baseline of a column on the rightmost one. A cell without a baseline on an
- * axis goes to the bottom (vertical) or stays left (horizontal).
+ * axis goes to the bottom (vertical) or stays left (horizontal). A cell over
+ * several rows is left out of the rows and stays at the top; a cell over
+ * several columns is left out of the columns and stays left.
  */
 export function baselineOffsets(
   cells: BaselineCell[],
@@ -87,12 +150,16 @@ export function baselineOffsets(
 
   const line = (
     key: "row" | "column",
+    span: "rowSpan" | "columnSpan",
     value: (cell: BaselineCell) => number | undefined,
     applied: (cell: BaselineCell) => number,
     set: (offset: CellOffset, pad: number | undefined, largest: number) => void,
   ) => {
     const groups = new Map<number, BaselineCell[]>();
-    for (const cell of cells) groups.set(cell[key], [...(groups.get(cell[key]) ?? []), cell]);
+    for (const cell of cells) {
+      if ((cell[span] ?? 1) > 1) continue;
+      groups.set(cell[key], [...(groups.get(cell[key]) ?? []), cell]);
+    }
     for (const group of groups.values()) {
       // where each baseline would be without an offset
       const natural = group.map((cell) => {
@@ -110,6 +177,7 @@ export function baselineOffsets(
   if (vertical) {
     line(
       "row",
+      "rowSpan",
       (cell) => cell.y,
       (cell) => cell.top,
       (offset, pad) => {
@@ -121,6 +189,7 @@ export function baselineOffsets(
   if (horizontal) {
     line(
       "column",
+      "columnSpan",
       (cell) => cell.x,
       (cell) => cell.left,
       (offset, pad, largest) => {

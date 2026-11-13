@@ -129,7 +129,7 @@ rendered element carries one).
 | `cell` / `headerCell` | table | `row`, `column`, `key` (column identity), `colSpan`, `value` (model value), `text` (rendered), `type`, `bar?` (in-cell bar: `variant` `absolute`/`relative`/`waterfall` + rect), `point?`, `content?` (box of what the cell shows, without its free space, on cells with a `point`), `contentSign?` (width in layout px of the "+" of a variance in front of `content`) |
 | `node` | tree | `nodeId` (slot name) |
 | `edge` | tree | `from`, `to`, `operator?`, `path?` (SVG path data) |
-| `gridCell` / `gridHeader` / `gridTitle` / `gridCaption` | grid | `rowId?`, `columnId?`, `slot?`, `label?` (a caption has its cell's `slot` and its text) |
+| `gridCell` / `gridHeader` / `gridTitle` / `gridCaption` | grid | `rowId?`, `columnId?`, `slot?`, `label?` (a caption has its cell's `slot` and its text), `rowSpan?`, `columnSpan?` (a data cell over more than one row or column) |
 
 ### Data points (`point`)
 

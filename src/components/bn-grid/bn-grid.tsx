@@ -23,12 +23,16 @@ import {
   baselineOffsets,
   BaselineCell,
   CELL_SIZES,
+  CellAttributes,
   CellOffset,
   CellSize,
   HORIZONTAL_ALIGNS,
   HorizontalAlign,
   JUSTIFY,
   parseCaptions,
+  parseSpan,
+  placeCells,
+  PlacedCell,
   sameOffsets,
   VERTICAL_ALIGNS,
   VerticalAlign,
@@ -64,6 +68,9 @@ const FRAME_OFFSET_PROPERTIES = {
   right: "--bn-baseline-offset-right",
 } as const;
 
+/** Attributes of a slotted child that shape its cell. */
+const CELL_ATTRIBUTES = ["row-span", "column-span", "cell-background"];
+
 /** A pass that keeps changing the offsets stops after this many: a component whose baseline follows its width could chase it. */
 const MAX_ADJUSTMENTS = 5;
 
@@ -74,6 +81,18 @@ const MAX_ADJUSTMENTS = 5;
  * Supports configurable borders, title, and header visibility. Cells can
  * have equal sizes, a caption, and aligned content; `baseline` lines up the
  * axes of charts (and the header of tables) in a row or column.
+ *
+ * The slotted child of a cell can carry `row-span` and `column-span` (whole
+ * numbers, default 1): its cell then also takes the positions right of it and
+ * below it, and those positions get no cell. `cell-background` on the child
+ * is the background colour of its cell.
+ *
+ * @example
+ * <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+ *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+ *   <div slot="0-1">...</div>
+ *   <div slot="1-1">...</div>
+ * </bn-grid>
  */
 @Component({
   tag: "bn-grid",
@@ -92,6 +111,10 @@ export class Grid {
   @State() private captions: Record<string, string> = {};
   /** Per slot: how far the baseline pass moved the content. */
   @State() private offsets: Record<string, CellOffset> = {};
+  /** Per slot: span and background from the slotted child. Only cells that set one of them. */
+  @State() private cellAttributes: Record<string, CellAttributes> = {};
+  /** The data cells of the last render, row by row. */
+  private placed: (PlacedCell & { slot: string })[] = [];
   /** Per slot: the frame around its component, from the last baseline pass. */
   private frames = new Map<string, HTMLElement>();
 
@@ -296,15 +319,21 @@ export class Grid {
     this.observed = new WeakSet();
     this.resizeObserver = new ResizeObserver(this.schedule);
     // a child can be added, moved to another slot or replaced, in a morphing preview for example
-    this.mutationObserver = new MutationObserver(this.schedule);
+    this.mutationObserver = new MutationObserver(() => {
+      this.readCellAttributes();
+      this.checkCoveredSlots();
+      this.schedule();
+    });
     this.mutationObserver.observe(this.element, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["slot"],
+      attributeFilter: ["slot", ...CELL_ATTRIBUTES],
     });
     // a caption in a late web font changes its height
     document.fonts?.addEventListener("loadingdone", this.schedule);
+    // a change made while the grid was detached reached no observer
+    this.readCellAttributes();
   }
 
   disconnectedCallback() {
@@ -340,6 +369,74 @@ export class Grid {
       message: `${attribute}: "${value}" is not one of ${allowed.join(", ")}.`,
     });
     return fallback;
+  }
+
+  /** Reads the span and the background of every cell from its slotted child. */
+  private readCellAttributes() {
+    const next: Record<string, CellAttributes> = {};
+    const invalid: string[] = [];
+    for (const child of Array.from(this.element.children)) {
+      const slot = child.getAttribute("slot");
+      if (slot === null) continue;
+      const span = (attribute: string): number => {
+        const value = parseSpan(child.getAttribute(attribute));
+        if (value === undefined) invalid.push(`${attribute} of slot "${slot}"`);
+        return value ?? 1;
+      };
+      const cell: CellAttributes = { rowSpan: span("row-span"), columnSpan: span("column-span") };
+      const background = child.getAttribute("cell-background");
+      if (background) cell.background = background;
+      if (cell.rowSpan > 1 || cell.columnSpan > 1 || cell.background) next[slot] = cell;
+    }
+    if (invalid.length > 0) {
+      this.errors.addOrReplace({
+        id: "ERR_cellSpan",
+        type: "error",
+        message: `${invalid.join(", ")}: not a whole number from 1.`,
+      });
+    } else {
+      this.errors.remove("ERR_cellSpan");
+    }
+    if (JSON.stringify(next) !== JSON.stringify(this.cellAttributes)) this.cellAttributes = next;
+  }
+
+  /** Places the data cells. */
+  private placeDataCells() {
+    const { rows, columns } = this.gridConfig;
+    const slotAt = (row: number, column: number) => getSlotName(rows[row], columns[column]);
+    const { cells } = placeCells(
+      rows.length,
+      columns.length,
+      (row, column) => this.cellAttributes[slotAt(row, column)],
+    );
+    this.placed = cells.map((cell) => ({ ...cell, slot: slotAt(cell.row, cell.column) }));
+    this.checkCoveredSlots();
+  }
+
+  /** Warns about a child in a position that a span covers. A new child changes no state, so the observer calls this too. */
+  private checkCoveredSlots() {
+    const { rows, columns } = this.gridConfig ?? { rows: [], columns: [] };
+    const slotAt = (row: number, column: number) => getSlotName(rows[row], columns[column]);
+    const { covered } = placeCells(
+      rows.length,
+      columns.length,
+      (row, column) => this.cellAttributes[slotAt(row, column)],
+    );
+
+    const slotted = new Set(Array.from(this.element.children).map((child) => child.getAttribute("slot")));
+    const hidden = covered.filter(({ row, column }) => slotted.has(slotAt(row, column)));
+    if (hidden.length > 0) {
+      const list = hidden.map(
+        ({ row, column, by }) => `"${slotAt(row, column)}" (covered by "${slotAt(by.row, by.column)}")`,
+      );
+      this.errors.addOrReplace({
+        id: "WARN_cellSpan",
+        type: "warning",
+        message: `a span covers the slot ${list.join(", ")}: its content is not shown.`,
+      });
+    } else {
+      this.errors.remove("WARN_cellSpan");
+    }
   }
 
   private isBaselineMode(): boolean {
@@ -402,10 +499,7 @@ export class Grid {
     const run = ++this.run;
     if (!this.element.isConnected || !this.isBaselineMode()) return;
 
-    const { rows, columns } = this.gridConfig;
-    const slots = rows.flatMap((row, rowIndex) =>
-      columns.map((column, columnIndex) => ({ slot: getSlotName(row, column), row: rowIndex, column: columnIndex })),
-    );
+    const slots = this.placed;
     const contents = slots.map(({ slot }) => this.contentIn(slot));
     const visuals = contents.map((content) => content.visual);
     await Promise.all(visuals.map((visual) => visual?.componentOnReady?.()));
@@ -427,16 +521,22 @@ export class Grid {
     });
     this.frames = new Map();
     contents.forEach(({ frame }, index) => frame && this.frames.set(slots[index].slot, frame));
-    const cells: BaselineCell[] = slots.map(({ slot, row, column }, index) => {
+    const cells: BaselineCell[] = slots.map(({ slot, row, column, rowSpan, columnSpan }, index) => {
       const visual = visuals[index];
       const baseline: Baseline = baselines[index];
       // what is drawn now, not what is in the state: a render can still be pending
       const cardFrame = contents[index].frame;
       const holder = cardFrame ?? wrappers.get(slot);
       const applied = (property: string) => parseFloat(holder?.style.getPropertyValue(property) || "0") || 0;
-      const cell: BaselineCell = cardFrame
-        ? { slot, row, column, top: applied(FRAME_OFFSET_PROPERTIES.top), left: applied(FRAME_OFFSET_PROPERTIES.left) }
-        : { slot, row, column, top: applied("padding-top"), left: applied("margin-left") };
+      const cell: BaselineCell = {
+        slot,
+        row,
+        column,
+        rowSpan,
+        columnSpan,
+        top: applied(cardFrame ? FRAME_OFFSET_PROPERTIES.top : "padding-top"),
+        left: applied(cardFrame ? FRAME_OFFSET_PROPERTIES.left : "margin-left"),
+      };
       if (visual) {
         const box = frame.toLocal(visual.getBoundingClientRect());
         if (baseline.y !== undefined) cell.y = box.y + baseline.y;
@@ -512,7 +612,7 @@ export class Grid {
         title: this.chartTitle || undefined,
         rowCount: rows.length,
         columnCount: columns.length,
-        cellCount: rows.length * columns.length,
+        cellCount: this.placed.length,
       },
       diagnostics: readDiagnostics(this.element),
     };
@@ -547,14 +647,16 @@ export class Grid {
         rect: measure(header, origins),
       });
     });
-    // Data cells render row-major (see renderDataCells), so index i maps to
-    // row i / columns.length, column i % columns.length.
+    // Data cells render in the order of this.placed (see renderDataCells).
     container.querySelectorAll(".grid-cell").forEach((cell, index) => {
+      const placed = this.placed[index];
       push({
         kind: "gridCell",
-        rowId: columns.length > 0 ? rows[Math.floor(index / columns.length)]?.id : undefined,
-        columnId: columns.length > 0 ? columns[index % columns.length]?.id : undefined,
+        rowId: placed ? rows[placed.row]?.id : undefined,
+        columnId: placed ? columns[placed.column]?.id : undefined,
         slot: cell.querySelector("slot")?.getAttribute("name") ?? undefined,
+        ...(placed?.rowSpan > 1 ? { rowSpan: placed.rowSpan } : {}),
+        ...(placed?.columnSpan > 1 ? { columnSpan: placed.columnSpan } : {}),
         rect: measure(cell, origins),
       });
     });
@@ -586,6 +688,11 @@ export class Grid {
     this.validateCellVerticalAlign(this.cellVerticalAlign);
     this.validateCellHorizontalAlign(this.cellHorizontalAlign);
     this.validateCellCaptions(this.cellCaptions);
+    this.readCellAttributes();
+  }
+
+  componentWillRender() {
+    this.placeDataCells();
   }
 
   private updateGridConfig() {
@@ -701,6 +808,7 @@ export class Grid {
     const startRow = (this.chartTitle ? 1 : 0) + (this.shouldShowColumnHeaders() ? 1 : 0) + 1;
 
     const cells: HTMLElement[] = [];
+    const track = (start: number, span: number) => (span > 1 ? `${start} / span ${span}` : String(start));
 
     if (this.gridConfig.rows.length > 0 && this.gridConfig.columns.length > 0) {
       this.gridConfig.rows.forEach((row, rowIndex) => {
@@ -725,10 +833,14 @@ export class Grid {
         }
 
         // Render data cells for this row
-        this.gridConfig.columns.forEach((col, colIndex) => {
-          const slotName = getSlotName(row, col);
+        const placed = this.placed.filter((cell) => cell.row === rowIndex);
+        placed.forEach(({ slot: slotName, column: colIndex, rowSpan, columnSpan }) => {
           const isNotFirstCol = colIndex > 0;
           const isNotFirstRow = rowIndex > 0;
+          // the cell of the child wins over the style
+          const background =
+            this.cellAttributes[slotName]?.background ??
+            (style.cellBackground && style.cellBackground !== "transparent" ? style.cellBackground : undefined);
 
           cells.push(
             <div
@@ -738,13 +850,14 @@ export class Grid {
               // (see findConstrainedHeight in utils/parentDimensions)
               data-bn-fit-content=""
               style={{
-                "grid-column": String(startCol + colIndex),
-                "grid-row": String(startRow + rowIndex),
+                "grid-column": track(startCol + colIndex, columnSpan),
+                "grid-row": track(startRow + rowIndex, rowSpan),
                 "border-left": isNotFirstCol ? borderStyle : "none",
                 "border-top": isNotFirstRow ? borderStyle : "none",
                 "padding-left": isNotFirstCol ? `${style.cellPadding + 4}px` : "0",
                 "padding-top": isNotFirstRow ? `${style.cellPadding + 4}px` : "0",
                 ...this.cellAlignStyle(),
+                ...(background ? { "background-color": background } : {}),
               }}
             >
               {this.renderCellContent(slotName, style)}

@@ -38,6 +38,11 @@ export function isBlankInput(value: unknown): boolean {
  * the Scenarios enum; remaining invalid entries are passed to `validateVariancesList`
  * for variance format checking (e.g. `d_ac1_pl1_pos`).
  */
+/** `none` as the scenario list of a chart: draw no scenario, only the variances. */
+export function isNoScenarios(value: string | null | undefined): boolean {
+  return typeof value === "string" && value.trim().toLowerCase() === "none";
+}
+
 export function validateScenarioList(value: string): string[] {
   if (isBlankInput(value)) {
     return [];

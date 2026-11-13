@@ -74,6 +74,9 @@ export namespace Components {
      * that is a finding in the data and not a broken page, so the layer does not fail.
      * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
      * the layer never counts.
+     * A target can sit anywhere in the page, also on the child of one `bn-grid`
+     * cell or of a card in it. The mark then points at the first component in
+     * that element.
      * @example <bn-layout-page>
      *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
      *   <bn-annotation-layer slot="annotations"
@@ -681,6 +684,16 @@ export namespace Components {
          */
         "chartTitle": string;
         /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal": number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances, shares of a 100 % stack)
+          * @default 2
+         */
+        "dataFormatDigitsPercent": number;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -752,7 +765,7 @@ export namespace Components {
          */
         "scale"?: string;
         /**
-          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) |
+          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) | | `"none"`      | Draw no scenario: the chart shows only its variances, the first one carries the categories |
           * @example scenarios="ac1,pp1,pl1"
          */
         "scenarios": string;
@@ -898,6 +911,16 @@ export namespace Components {
          */
         "axisLabelsMode": string;
         /**
+          * Prints only every n-th category label, starting with the first period. 2 labels every second period. Bar mode only.
+          * @default 1
+         */
+        "axisLabelsStep": number;
+        /**
+          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // none```
+          * @default "left"
+         */
+        "axisTitlePosition": string;
+        /**
           * Chart Mode - controls how the chart is rendered <br /><br /> values:<br /> ```bar // line // auto``` <br /><br /> When set to 'auto', the chart will switch to line mode when the number of data points exceeds maxBars.
           * @default "bar"
          */
@@ -907,6 +930,16 @@ export namespace Components {
           * @default ""
          */
         "chartTitle": string;
+        /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal": number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances)
+          * @default 2
+         */
+        "dataFormatDigitsPercent": number;
         /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
@@ -973,7 +1006,12 @@ export namespace Components {
          */
         "scale"?: string;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
+          * For a series that changes its scenario along the time axis, for example AC up to this year and PL after it. In a period where the first scenario has no value, the next scenario with a value is drawn in its place with its value label. A vertical line marks the change, and the scenario names stand under the axis. Variances with the same reference and type share one row. Bar mode without stack only.
+          * @default false
+         */
+        "scenarioSwitch": boolean;
+        /**
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.  When set to ```none```, no scenario is drawn: the chart shows only its variances,  and the lowest variance carries the category labels.
          */
         "scenarios": string;
         /**
@@ -1025,6 +1063,14 @@ export namespace Components {
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode": AxisLabelsMode;
+        /**
+          * @default 1
+         */
+        "axisLabelsStep": number;
+        /**
+          * @default "left"
+         */
+        "axisTitlePosition": string;
         /**
           * @default ChartMode.BAR
          */
@@ -1104,6 +1150,10 @@ export namespace Components {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default false
+         */
+        "scenarioSwitch": boolean;
         /**
           * @default []
          */
@@ -1256,6 +1306,15 @@ export namespace Components {
      * Supports configurable borders, title, and header visibility. Cells can
      * have equal sizes, a caption, and aligned content; `baseline` lines up the
      * axes of charts (and the header of tables) in a row or column.
+     * The slotted child of a cell can carry `row-span` and `column-span` (whole
+     * numbers, default 1): its cell then also takes the positions right of it and
+     * below it, and those positions get no cell. `cell-background` on the child
+     * is the background colour of its cell.
+     * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+     *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+     *   <div slot="0-1">...</div>
+     *   <div slot="1-1">...</div>
+     * </bn-grid>
      */
     interface BnGrid {
         /**
@@ -1406,7 +1465,7 @@ export namespace Components {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
          */
         "selectedStyle"?: string;
         /**
@@ -1578,6 +1637,11 @@ export namespace Components {
           * Start date displayed in the title date row. Accepts `yyyy-MM-dd` (e.g. `2024-01-01`) or ISO 8601 datetime (e.g. `2024-01-01T14:30:00Z`).
          */
         "titleDateStart"?: string;
+        /**
+          * Short id of the page, a template number like `13A`. Shown at the top right of the title, on the level of its first line, in the font of the title and not bold. If empty, nothing is shown.
+          * @example <bn-layout-page title-id="13A"></bn-layout-page>
+         */
+        "titleId"?: string;
         /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
@@ -2114,6 +2178,14 @@ export namespace Components {
          */
         "selectedStyle"?: string;
         /**
+          * Font size of the title in px. Without it the title has the font size of the style (`global.fontSizePx`).
+         */
+        "titleFontSize"?: number;
+        /**
+          * Short id of the report, a template number like `13A`. Shown at the top right, on the level of the first title line. Without it nothing is shown.
+         */
+        "titleId"?: string;
+        /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances": string;
@@ -2154,6 +2226,7 @@ export namespace Components {
          */
         "scenarios": string[];
         "timeperiod"?: TimePeriod;
+        "titleId"?: string;
     }
     /**
      * Renders a hierarchical tree diagram with SVG edge connections.
@@ -2217,6 +2290,9 @@ declare global {
      * that is a finding in the data and not a broken page, so the layer does not fail.
      * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
      * the layer never counts.
+     * A target can sit anywhere in the page, also on the child of one `bn-grid`
+     * cell or of a card in it. The mark then points at the first component in
+     * that element.
      * @example <bn-layout-page>
      *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
      *   <bn-annotation-layer slot="annotations"
@@ -2448,6 +2524,15 @@ declare global {
      * Supports configurable borders, title, and header visibility. Cells can
      * have equal sizes, a caption, and aligned content; `baseline` lines up the
      * axes of charts (and the header of tables) in a row or column.
+     * The slotted child of a cell can carry `row-span` and `column-span` (whole
+     * numbers, default 1): its cell then also takes the positions right of it and
+     * below it, and those positions get no cell. `cell-background` on the child
+     * is the background colour of its cell.
+     * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+     *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+     *   <div slot="0-1">...</div>
+     *   <div slot="1-1">...</div>
+     * </bn-grid>
      */
     interface HTMLBnGridElement extends Components.BnGrid, HTMLStencilElement {
     }
@@ -2638,6 +2723,9 @@ declare namespace LocalJSX {
      * that is a finding in the data and not a broken page, so the layer does not fail.
      * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
      * the layer never counts.
+     * A target can sit anywhere in the page, also on the child of one `bn-grid`
+     * cell or of a card in it. The mark then points at the first component in
+     * that element.
      * @example <bn-layout-page>
      *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
      *   <bn-annotation-layer slot="annotations"
@@ -3218,6 +3306,16 @@ declare namespace LocalJSX {
          */
         "chartTitle"?: string;
         /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal"?: number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances, shares of a 100 % stack)
+          * @default 2
+         */
+        "dataFormatDigitsPercent"?: number;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -3280,7 +3378,7 @@ declare namespace LocalJSX {
          */
         "scale"?: string;
         /**
-          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) |
+          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) | | `"none"`      | Draw no scenario: the chart shows only its variances, the first one carries the categories |
           * @example scenarios="ac1,pp1,pl1"
          */
         "scenarios": string;
@@ -3426,6 +3524,16 @@ declare namespace LocalJSX {
          */
         "axisLabelsMode": string;
         /**
+          * Prints only every n-th category label, starting with the first period. 2 labels every second period. Bar mode only.
+          * @default 1
+         */
+        "axisLabelsStep"?: number;
+        /**
+          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // none```
+          * @default "left"
+         */
+        "axisTitlePosition"?: string;
+        /**
           * Chart Mode - controls how the chart is rendered <br /><br /> values:<br /> ```bar // line // auto``` <br /><br /> When set to 'auto', the chart will switch to line mode when the number of data points exceeds maxBars.
           * @default "bar"
          */
@@ -3435,6 +3543,16 @@ declare namespace LocalJSX {
           * @default ""
          */
         "chartTitle"?: string;
+        /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal"?: number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances)
+          * @default 2
+         */
+        "dataFormatDigitsPercent"?: number;
         /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
@@ -3492,7 +3610,12 @@ declare namespace LocalJSX {
          */
         "scale"?: string;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
+          * For a series that changes its scenario along the time axis, for example AC up to this year and PL after it. In a period where the first scenario has no value, the next scenario with a value is drawn in its place with its value label. A vertical line marks the change, and the scenario names stand under the axis. Variances with the same reference and type share one row. Bar mode without stack only.
+          * @default false
+         */
+        "scenarioSwitch"?: boolean;
+        /**
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.  When set to ```none```, no scenario is drawn: the chart shows only its variances,  and the lowest variance carries the category labels.
          */
         "scenarios": string;
         /**
@@ -3544,6 +3667,14 @@ declare namespace LocalJSX {
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode"?: AxisLabelsMode;
+        /**
+          * @default 1
+         */
+        "axisLabelsStep"?: number;
+        /**
+          * @default "left"
+         */
+        "axisTitlePosition"?: string;
         /**
           * @default ChartMode.BAR
          */
@@ -3623,6 +3754,10 @@ declare namespace LocalJSX {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default false
+         */
+        "scenarioSwitch"?: boolean;
         /**
           * @default []
          */
@@ -3770,6 +3905,15 @@ declare namespace LocalJSX {
      * Supports configurable borders, title, and header visibility. Cells can
      * have equal sizes, a caption, and aligned content; `baseline` lines up the
      * axes of charts (and the header of tables) in a row or column.
+     * The slotted child of a cell can carry `row-span` and `column-span` (whole
+     * numbers, default 1): its cell then also takes the positions right of it and
+     * below it, and those positions get no cell. `cell-background` on the child
+     * is the background colour of its cell.
+     * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+     *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+     *   <div slot="0-1">...</div>
+     *   <div slot="1-1">...</div>
+     * </bn-grid>
      */
     interface BnGrid {
         /**
@@ -3915,7 +4059,7 @@ declare namespace LocalJSX {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute.
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
          */
         "selectedStyle"?: string;
         /**
@@ -4087,6 +4231,11 @@ declare namespace LocalJSX {
           * Start date displayed in the title date row. Accepts `yyyy-MM-dd` (e.g. `2024-01-01`) or ISO 8601 datetime (e.g. `2024-01-01T14:30:00Z`).
          */
         "titleDateStart"?: string;
+        /**
+          * Short id of the page, a template number like `13A`. Shown at the top right of the title, on the level of its first line, in the font of the title and not bold. If empty, nothing is shown.
+          * @example <bn-layout-page title-id="13A"></bn-layout-page>
+         */
+        "titleId"?: string;
         /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
@@ -4610,6 +4759,14 @@ declare namespace LocalJSX {
          */
         "selectedStyle"?: string;
         /**
+          * Font size of the title in px. Without it the title has the font size of the style (`global.fontSizePx`).
+         */
+        "titleFontSize"?: number;
+        /**
+          * Short id of the report, a template number like `13A`. Shown at the top right, on the level of the first title line. Without it nothing is shown.
+         */
+        "titleId"?: string;
+        /**
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances"?: string;
@@ -4650,6 +4807,7 @@ declare namespace LocalJSX {
          */
         "scenarios"?: string[];
         "timeperiod"?: TimePeriod;
+        "titleId"?: string;
     }
     /**
      * Renders a hierarchical tree diagram with SVG edge connections.
@@ -4827,6 +4985,8 @@ declare namespace LocalJSX {
         "measureScale": string;
         "showMeasureScale": boolean;
         "measureUnit": string;
+        "dataFormatDigitsDecimal": number;
+        "dataFormatDigitsPercent": number;
         "stack": string;
         "scale": string;
     }
@@ -4870,6 +5030,11 @@ declare namespace LocalJSX {
         "showOverlayAvg": boolean;
         "showOverlayMedian": boolean;
         "measureUnit": string;
+        "dataFormatDigitsDecimal": number;
+        "dataFormatDigitsPercent": number;
+        "axisLabelsStep": number;
+        "scenarioSwitch": boolean;
+        "axisTitlePosition": string;
     }
     interface BnChartTimeRendererAttributes {
         "tableName": string;
@@ -4892,6 +5057,9 @@ declare namespace LocalJSX {
         "maxBars": number;
         "lineFullWidth": boolean;
         "containerWidth": number;
+        "axisLabelsStep": number;
+        "scenarioSwitch": boolean;
+        "axisTitlePosition": string;
     }
     interface BnComponentStyleAttributes {
         "name": string;
@@ -4986,6 +5154,7 @@ declare namespace LocalJSX {
         "ruleset": string;
         "messageText": string;
         "messageImage": string;
+        "titleId": string;
         "titleBusinessUnit": string;
         "titleScenarios": string;
         "titleVariances": string;
@@ -5111,6 +5280,8 @@ declare namespace LocalJSX {
         "selectedStyle": string;
         "i18nNamespace": string;
         "ruleset": string;
+        "titleFontSize": number;
+        "titleId": string;
         "businessUnit": string;
         "scenarios": string;
         "variances": string;
@@ -5127,6 +5298,7 @@ declare namespace LocalJSX {
         "intervalSpanLimit": number;
         "i18nMode": I18nMode;
         "locale": string;
+        "titleId": string;
     }
     interface BnTreeAttributes {
         "selectedStyle": string;
@@ -5191,6 +5363,9 @@ declare module "@stencil/core" {
              * that is a finding in the data and not a broken page, so the layer does not fail.
              * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
              * the layer never counts.
+             * A target can sit anywhere in the page, also on the child of one `bn-grid`
+             * cell or of a card in it. The mark then points at the first component in
+             * that element.
              * @example <bn-layout-page>
              *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
              *   <bn-annotation-layer slot="annotations"
@@ -5322,6 +5497,15 @@ declare module "@stencil/core" {
              * Supports configurable borders, title, and header visibility. Cells can
              * have equal sizes, a caption, and aligned content; `baseline` lines up the
              * axes of charts (and the header of tables) in a row or column.
+             * The slotted child of a cell can carry `row-span` and `column-span` (whole
+             * numbers, default 1): its cell then also takes the positions right of it and
+             * below it, and those positions get no cell. `cell-background` on the child
+             * is the background colour of its cell.
+             * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+             *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+             *   <div slot="0-1">...</div>
+             *   <div slot="1-1">...</div>
+             * </bn-grid>
              */
             "bn-grid": LocalJSX.IntrinsicElements["bn-grid"] & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-image": LocalJSX.IntrinsicElements["bn-image"] & JSXBase.HTMLAttributes<HTMLBnImageElement>;

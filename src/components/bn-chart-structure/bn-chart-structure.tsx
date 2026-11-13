@@ -2,6 +2,7 @@ import { Component, Element, forceUpdate, h, Host, Method, Prop, State, Watch, w
 import { hasInlineJs } from "../../context/scopedDb";
 import {
   isBlankInput,
+  isNoScenarios,
   isValidDirection,
   isValidInteger,
   isValidLevel,
@@ -12,6 +13,7 @@ import {
   validateVariancesList,
 } from "../../utils/validate";
 
+import { variancesScenarios } from "../../utils/model/VarianceScenario";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
@@ -154,6 +156,7 @@ export class Chart {
    * | `"ac1,fc1"`   | Show the listed scenarios                                   |
    * | `"auto"`      | Auto-detect from dataset metadata (no warning)              |
    * | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) |
+   * | `"none"`      | Draw no scenario: the chart shows only its variances, the first one carries the categories |
    *
    * @example scenarios="ac1,pp1,pl1"
    */
@@ -161,7 +164,7 @@ export class Chart {
   @Watch("scenarios")
   validateScenario(newValue: string) {
     const errId = "WARN_scenarios";
-    if (isInheritedValue(newValue)) {
+    if (isInheritedValue(newValue) || isNoScenarios(newValue)) {
       this.errors.remove(errId);
       return;
     }
@@ -481,6 +484,39 @@ export class Chart {
   @Prop() measureUnit: string = "";
 
   /**
+   * Number of decimal digits of the value labels
+   */
+  @Prop() dataFormatDigitsDecimal: number = 1;
+
+  @Watch("dataFormatDigitsDecimal")
+  validateDataFormatDigitsDecimal(newValue: number) {
+    this.validateDigits("dataFormatDigitsDecimal", newValue);
+  }
+
+  /**
+   * Number of decimal digits of the percent labels (relative variances, shares of a 100 % stack)
+   */
+  @Prop() dataFormatDigitsPercent: number = 2;
+
+  @Watch("dataFormatDigitsPercent")
+  validateDataFormatDigitsPercent(newValue: number) {
+    this.validateDigits("dataFormatDigitsPercent", newValue);
+  }
+
+  private validateDigits(name: string, value: number) {
+    const errId = `WARN_${name}` as const;
+    if (!isValidInteger(value) || Number(value) < 0 || Number(value) > 100) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: name + ": invalid value '" + value + "' is not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
    * Stacking configuration as a JSON string. When set, bars are drawn as
    * stacked segments instead of side-by-side.
    *
@@ -590,6 +626,8 @@ export class Chart {
   componentWillLoad() {
     this.validateFilter(this.filter);
     this.validateScenario(this.scenarios);
+    this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
+    this.validateDataFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateVariances(this.variances);
     this.validateUnitScaling(this.unitScaling);
     //this.validateSelectedStyle(this.selectedStyle);
@@ -791,8 +829,7 @@ export class Chart {
 
   prepareDimension(): ParentDimensions {
     const parent = getParentDimensions(this.element);
-    const variancesList = this.prepareVariances();
-    const segmentCount = 1 + variancesList.length;
+    const segmentCount = Math.max(1, this.prepareSegments().length);
     this.canvasWidthSegmented = parent.width / segmentCount;
     return { width: this.canvasWidthSegmented, height: parent.height };
   }
@@ -802,6 +839,10 @@ export class Chart {
     if (scenarios.inherited) {
       this.errors.remove("AUTO_scenarios");
       return scenarios.value.split(",").map((entry) => entry.trim());
+    }
+    if (isNoScenarios(scenarios.value)) {
+      this.errors.remove("AUTO_scenarios");
+      return [];
     }
     const isAuto = scenarios.value?.trim().toLowerCase() === "auto";
     if (isBlankInput(scenarios.value) || isAuto) {
@@ -830,6 +871,17 @@ export class Chart {
       return [];
     }
     return variances?.split(",").map((entry) => entry.trim());
+  }
+
+  /** `scenarios="none"`: the chart draws its variances only. */
+  private hidesScenarios(): boolean {
+    const scenarios = this.resolveInherited("scenarios", this.scenarios);
+    return !scenarios.inherited && isNoScenarios(scenarios.value);
+  }
+
+  /** The segments side by side: `""` is the base chart, else one variance. */
+  private prepareSegments(): string[] {
+    return this.hidesScenarios() ? this.prepareVariances() : ["", ...this.prepareVariances()];
   }
 
   private prepareHideCategories(idx: number): boolean {
@@ -1058,7 +1110,8 @@ export class Chart {
   }
 
   private prepareChartTitle(idx: number): string {
-    if (idx >= 1) {
+    // a variance keeps its own name as title
+    if (idx >= 1 || this.hidesScenarios()) {
       return "";
     }
 
@@ -1184,9 +1237,10 @@ export class Chart {
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
     const stackConfig = this.prepareStackConfig();
-    const scenarios = this.prepareScenarios();
-    // Dimension stacking uses only the first scenario
-    const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
+    const isBase = localScenarioString === "";
+    const scenarios = this.hidesScenarios() ? variancesScenarios([localScenarioString]) : this.prepareScenarios();
+    // Dimension stacking uses only the first scenario. Only the base chart draws a stack, a variance needs both of its scenarios
+    const effectiveScenarios = isBase && stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
       <bn-chart-structure-renderer
@@ -1210,6 +1264,7 @@ export class Chart {
         measure-unit={this.prepareMeasureUnit()}
         showMeasureScale={this.prepareShowMeasureScale(idx)}
         stackConfig={stackConfig}
+        dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}
       ></bn-chart-structure-renderer>
@@ -1247,7 +1302,7 @@ export class Chart {
     const layout = collectChartFacadeLayout(
       this.element,
       "bn-chart-structure-renderer",
-      ["base", ...variances],
+      this.prepareSegments().map((segment) => segment || "base"),
       origins,
       detail,
     );
@@ -1340,11 +1395,15 @@ export class Chart {
   }
 
   render() {
-    let scenariosArray = [""];
-    const variancesArray = this.prepareVariances();
-
-    if (variancesArray.length > 0) {
-      scenariosArray = [...scenariosArray, ...variancesArray];
+    const scenariosArray = this.prepareSegments();
+    if (scenariosArray.length === 0) {
+      this.errors.addOrReplace({
+        id: "WARN_scenarios_none",
+        type: "warning",
+        message: "scenarios: none needs at least one variance, the chart is empty.",
+      });
+    } else {
+      this.errors.remove("WARN_scenarios_none");
     }
 
     const fontStyles = this.getFontStyles();

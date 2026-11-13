@@ -64,6 +64,11 @@ Supports configurable borders, title, and header visibility. Cells can
 have equal sizes, a caption, and aligned content; `baseline` lines up the
 axes of charts (and the header of tables) in a row or column.
 
+The slotted child of a cell can carry `row-span` and `column-span` (whole
+numbers, default 1): its cell then also takes the positions right of it and
+below it, and those positions get no cell. `cell-background` on the child
+is the background colour of its cell.
+
 ## Properties
 
 | Property              | Attribute               | Description                                                                                                                                                                                                                                                                                                                       | Type      | Default     |

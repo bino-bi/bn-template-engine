@@ -53,6 +53,7 @@ All lengths are plain numbers. Which unit a number has depends on where it stand
 | `bn-tree`: `edgeWidth`, `operatorCircleRadius` | px |
 | `bn-tree`: `operatorFontSizeScale` | multiple of the font size |
 | `bn-grid`: `borderWidth`, `cellPadding`, `captionFontSize`, `captionGap` | px |
+| `bn-layout-card`: `titleFontSize` | px |
 
 `fillpattern` in `barStyles` and `varianceStyles` is `solid`, `hatched` or `outlined`. The old value `fc` still works and means `hatched`.
 
@@ -186,7 +187,7 @@ Customize `<bn-tree>` edge and operator styling:
 
 ### Grid
 
-Customize `<bn-grid>` borders, cell spacing and the cell captions (`cell-captions`):
+Customize `<bn-grid>` borders, cell spacing, the cell background and the cell captions (`cell-captions`). `cellBackground` is a CSS colour for every data cell; `cell-background` on the child of one cell wins:
 
 ```json
 {
@@ -194,10 +195,23 @@ Customize `<bn-grid>` borders, cell spacing and the cell captions (`cell-caption
     "borderColor": "#A6A6A6",
     "borderWidth": 1,
     "cellPadding": 4,
+    "cellBackground": "transparent",
     "captionFontSize": 12,
     "captionFontWeight": "bold",
     "captionColor": "#000000",
     "captionGap": 2
+  }
+}
+```
+
+### Card
+
+Set the font size of the title of `<bn-layout-card>`. Without `titleFontSize` the title has the font size of `global.fontSizePx`:
+
+```json
+{
+  "bn-layout-card": {
+    "titleFontSize": 16
   }
 }
 ```

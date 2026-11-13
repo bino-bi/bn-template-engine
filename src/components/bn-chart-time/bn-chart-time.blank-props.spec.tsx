@@ -200,3 +200,54 @@ describe("bn-chart-time: scale factors of the theme", () => {
     expect(scaleFactors(page)).not.toHaveProperty("labelToColum");
   });
 });
+
+describe("bn-chart-time: scenarios none", () => {
+  const render = (attrs: string): Promise<SpecPage> =>
+    newSpecPage({ components: [Chart], html: `<bn-chart-time scale="none" ${attrs}></bn-chart-time>` });
+  // the unregistered inner element gets array props as properties
+  const segments = (page: SpecPage): { scenarios: string[]; variances: string[] }[] =>
+    Array.from(page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer")) as unknown as {
+      scenarios: string[];
+      variances: string[];
+    }[];
+
+  it("draws the base chart and one segment per variance by default", async () => {
+    const page = await render(`scenarios="ac1,pp1" variances="dac1_pp1_pos,drac1_pp1_pos"`);
+
+    expect(segments(page).map((segment) => segment.variances)).toEqual([[""], ["dac1_pp1_pos"], ["drac1_pp1_pos"]]);
+  });
+
+  it("draws only the variances with scenarios none, and still reads their scenarios", async () => {
+    const page = await render(`scenarios="none" variances="dac1_pp1_pos,drac1_pp1_pos"`);
+
+    expect(segments(page).map((segment) => segment.variances)).toEqual([["dac1_pp1_pos"], ["drac1_pp1_pos"]]);
+    expect(segments(page)[0].scenarios).toEqual(["ac1", "pp1"]);
+    expect(errorIds(page)).not.toContain("WARN_scenarios");
+    expect(errorIds(page)).not.toContain("AUTO_scenarios");
+  });
+
+  it("warns when scenarios none has no variance", async () => {
+    const page = await render(`scenarios="none"`);
+
+    expect(segments(page)).toHaveLength(0);
+    expect(errorIds(page)).toContain("WARN_scenarios_none");
+  });
+
+  it("warns about digits that are no whole number", async () => {
+    const page = await render(`scenarios="ac1" data-format-digits-decimal="x"`);
+
+    expect(errorIds(page)).toContain("WARN_dataFormatDigitsDecimal");
+  });
+
+  it("puts variances over one reference in one segment with scenario-switch", async () => {
+    const page = await render(
+      `scenarios="ac1,pl1,pp1" variances="dac1_pp1_pos,dpl1_pp1_pos,drac1_pp1_pos" scenario-switch`,
+    );
+
+    expect(segments(page).map((segment) => segment.variances)).toEqual([
+      [""],
+      ["dac1_pp1_pos", "dpl1_pp1_pos"],
+      ["drac1_pp1_pos"],
+    ]);
+  });
+});

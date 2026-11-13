@@ -75,3 +75,28 @@ describe("bn-title measures", () => {
     expect(ids(page.root)).toContain("WARN_measures");
   });
 });
+
+describe("bn-title font size and id", () => {
+  const mount = (attrs: string) =>
+    newSpecPage({ components: [Title, BnTitleRenderer], html: `<bn-title ${attrs}></bn-title>` });
+
+  it("has the font size of the style by default, and shows no id", async () => {
+    const page = await mount("");
+
+    expect(page.root.style.getPropertyValue("--bn-font-size")).toBe("13.3333px");
+    expect(page.root.shadowRoot.querySelector("bn-title-renderer").shadowRoot.querySelector(".title-id")).toBeNull();
+  });
+
+  it("takes title-font-size in px, and ignores a value that is no size", async () => {
+    expect((await mount(`title-font-size="16"`)).root.style.getPropertyValue("--bn-font-size")).toBe("16px");
+    expect((await mount(`title-font-size="big"`)).root.style.getPropertyValue("--bn-font-size")).toBe("13.3333px");
+    expect((await mount(`title-font-size="0"`)).root.style.getPropertyValue("--bn-font-size")).toBe("13.3333px");
+  });
+
+  it("hands title-id to the inner title", async () => {
+    const page = await mount(`title-id="13A" business-unit="Sales"`);
+    const inner = page.root.shadowRoot.querySelector("bn-title-renderer");
+
+    expect(inner.shadowRoot.querySelector(".title-id").textContent).toBe("13A");
+  });
+});

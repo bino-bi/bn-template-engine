@@ -10,9 +10,14 @@ installMutationObserverFake();
 // Mock scoped stores so the component doesn't walk mock-doc DOM
 jest.mock("../../context/context-protocol", () => {
   const { createStore } = require("@stencil/store");
+  const { SYSTEM_STYLE_DEFAULTS } = require("../../stores/componentStyles");
 
   const mockStores = {
     assets: createStore({}),
+    componentStyles: createStore({
+      _system: SYSTEM_STYLE_DEFAULTS,
+      "big-title": { "bn-layout-card": { titleFontSize: 16 } },
+    }),
   };
 
   return {
@@ -251,5 +256,20 @@ describe("bn-layout-card grid template", () => {
     const page = await mount(`card-layout="custom-template" card-custom-template='"a b" "c"'`);
 
     expect(ids(page.root)).toEqual(["WARN_cardCustomTemplate"]);
+  });
+});
+
+describe("bn-layout-card title font size", () => {
+  const title = (attrs: string) =>
+    newSpecPage({ components: [LayoutCard], html: `<bn-layout-card ${attrs}></bn-layout-card>` }).then((page) =>
+      page.root.shadowRoot.querySelector("bn-title"),
+    );
+
+  it("leaves the title alone without titleFontSize in the style", async () => {
+    expect((await title("")).hasAttribute("title-font-size")).toBe(false);
+  });
+
+  it("hands titleFontSize of the selected style to the title", async () => {
+    expect((await title(`selected-style="big-title"`)).getAttribute("title-font-size")).toBe("16");
   });
 });

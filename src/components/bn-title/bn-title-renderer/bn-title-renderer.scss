@@ -9,6 +9,17 @@
   font-weight: bold;
 }
 
+// A float: the id sits at the top right whichever line is the first one, and a long line wraps around it.
+.with-id {
+  display: flow-root;
+}
+
+.title-id {
+  float: right;
+  margin-left: 1em;
+  font-weight: normal;
+}
+
 div {
   background-color: var(--bn-font-background, white);
   color: var(--bn-font-color, black);

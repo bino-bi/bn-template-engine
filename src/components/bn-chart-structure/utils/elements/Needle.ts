@@ -6,6 +6,7 @@ import { ElementPositions } from "../helper";
 import { SVGStyle } from "../../../../utils/model";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
+import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import {SVGStyle} from "../../../../utils/model/styles/SVGStyle";
 
 /**
@@ -95,10 +96,10 @@ export class Needle {
     return this;
   }
 
-  public draw() {
+  public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }) {
     if (this.dataPoint?.value === undefined) {
       // reference 0: the label says "n/a", there is no pin
-      this.label?.draw();
+      this.label?.draw(dataFormatDigits);
       return this;
     }
 
@@ -138,7 +139,7 @@ export class Needle {
       .cy(this.dimensions.yPos)
       .x(this.dimensions.xPos);
 
-    this.label?.draw();
+    this.label?.draw(dataFormatDigits);
   }
 
   private createDimensions(position: ElementPositions, dataPoint: DataPoint, index: number): StructureChartDimension {

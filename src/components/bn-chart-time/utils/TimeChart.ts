@@ -174,6 +174,11 @@ export class TimeChart {
   private availableWidth: number = 0;
   private overflowConfig: OverflowConfig | null = null;
   private lastScenarios: string[] = [];
+  private axisLabelsStep: number = 1;
+  private scenarioSwitch: boolean = false;
+  private axisTitlePosition: string = "left";
+  /** Periods in which more than one variance of a shared row has a value. */
+  private varianceOverlaps: number = 0;
 
   constructor(
     ruleSet: VisualisationRuleSet,
@@ -249,7 +254,8 @@ export class TimeChart {
       this.position.padding.top +
       this.position.padding.bottom +
       this.position.spacings.labelToAxis +
-      fontSize; // axis labels approximate height
+      fontSize + // axis labels approximate height
+      this.switchNamesHeight();
 
     const overdriveZoneHeight = fontSize * 1.5;
     const breakGap = fontSize * 0.3;
@@ -293,6 +299,9 @@ export class TimeChart {
     this.pixelPerPercentage = config.pixelPerPercentage;
     this.axisLabelsMode = config.axisLabelsMode;
     this.intervalSpanLimit = config.intervalSpanLimit;
+    this.axisLabelsStep = config.axisLabelsStep ?? 1;
+    this.scenarioSwitch = config.scenarioSwitch ?? false;
+    this.axisTitlePosition = config.axisTitlePosition ?? "left";
     this.dateInterval = this.findDateInterval(config.dateInterval);
 
     this.dataModel = this.populateModel(scenarios, this.dateInterval);
@@ -377,7 +386,9 @@ export class TimeChart {
 
   /** Derives the variance title from the stored config and the current i18n map. */
   private updateTitle() {
-    this.title = this.configTitle || Formatter.translateScenarioLabel(this.configVariances?.toString(), this.i18n);
+    // variances that share a row have the same reference: the first one names the row
+    const variance = this.scenarioSwitch ? this.configVariances?.[0] : this.configVariances?.toString();
+    this.title = this.configTitle || Formatter.translateScenarioLabel(variance, this.i18n);
   }
 
   /**
@@ -421,7 +432,16 @@ export class TimeChart {
     const bboxWidth = Math.max(this.axisCategoryArea.width, this.scenariosArea.width);
     const bboxTotal = bboxWidth > 0 ? bboxWidth + this.position.leftSideLabelLength : 0;
 
-    return Math.max(axisEnd + labelBuffer, bboxTotal);
+    let titleEnd = 0;
+    if (this.axisTitlePosition === "right" && this.title) {
+      const titleWidth = CalculateSize(this.title, {
+        font: this.styles.fontStyles.font,
+        fontSize: this.styles.fontStyles.size + "px",
+      }).width;
+      titleEnd = axisEnd + this.position.spacings.labelToColumn + titleWidth + this.styles.padding.right;
+    }
+
+    return Math.max(axisEnd + labelBuffer, bboxTotal, titleEnd);
   }
 
   public getAllocatedCanvasHeight(): number {
@@ -459,7 +479,96 @@ export class TimeChart {
       ? this.axisCategoryArea.height + this.scenariosArea.height
       : this.scenariosArea.height;
 
-    return Math.max(analyticalHeight, bboxHeight);
+    return Math.max(analyticalHeight, bboxHeight) + this.switchNamesHeight();
+  }
+
+  /** Room for the scenario names under the category labels of a series that changes its scenario. */
+  private switchNamesHeight(): number {
+    return !this.hideAxisLabels && this.switchRuns().length > 1 ? this.position.dataLabelHeight : 0;
+  }
+
+  /** True for a scenario slot that has a value in this period. */
+  private static hasValue(dataPoint: DataPoint | undefined): boolean {
+    return dataPoint != null && !dataPoint.isEmpty() && dataPoint.value != null && !Number.isNaN(dataPoint.value);
+  }
+
+  /**
+   * The slots that continue the first scenario: they have values, and only in
+   * periods where the first scenario has none. Empty without `scenarioSwitch`.
+   */
+  private followerSlots(): string[] {
+    if (!this.scenarioSwitch || this.stackConfig != null || this.determineEffectiveChartMode() !== ChartMode.BAR) {
+      return [];
+    }
+    return ["scenario2", "scenario3", "scenario4"].filter((slot) => {
+      let values = 0;
+      for (const row of this.dataModel) {
+        if (TimeChart.hasValue(row[slot])) {
+          if (TimeChart.hasValue(row.scenario1)) {
+            return false;
+          }
+          values++;
+        }
+      }
+      return values > 0;
+    });
+  }
+
+  /** The slot drawn as the column of a period: the first scenario, else the first follower with a value. */
+  private visibleSlot(row: TimeChartDataModelEntry, followers: string[]): string | null {
+    if (TimeChart.hasValue(row.scenario1)) {
+      return "scenario1";
+    }
+    return followers.find((slot) => TimeChart.hasValue(row[slot])) ?? null;
+  }
+
+  /** Runs of periods with the same visible scenario. A period without a value belongs to the run before it. */
+  private switchRuns(): { scenario: string; from: number; to: number }[] {
+    const followers = this.followerSlots();
+    if (followers.length === 0) {
+      return [];
+    }
+    const runs: { scenario: string; from: number; to: number }[] = [];
+    this.dataModel.forEach((row, index) => {
+      const slot = this.visibleSlot(row, followers);
+      const scenario = slot ? (row[slot].scenario as string) : null;
+      const last = runs[runs.length - 1];
+      if (scenario == null || last?.scenario === scenario) {
+        if (last) last.to = index;
+        return;
+      }
+      runs.push({ scenario, from: index, to: index });
+    });
+    return runs;
+  }
+
+  /** Number of periods where variances of one row overlap. The component warns about it. */
+  public getVarianceOverlaps(): number {
+    return this.varianceOverlaps;
+  }
+
+  /**
+   * Lifts the 145 % cut of relative variances when the uncut pins fit into
+   * `availableHeight`. Only for a fixed percentage scale: the author chose it,
+   * so a long pin is cut for lack of room only.
+   */
+  public fitRelativeVariances(availableHeight: number): void {
+    const points = this.variancesDataModel
+      .filter((entry) => entry.type === VarianceType.RELATIVE)
+      .map((entry) => entry.scenario1);
+    if (points.length === 0 || !points.some((point) => point.isClipped())) {
+      return;
+    }
+    const setClamp = (clamp: number) => {
+      points.forEach((point) => (point.percentClamp = clamp));
+      this.updatePosition(this.lastScenarios);
+    };
+    setClamp(Number.POSITIVE_INFINITY);
+    this.layout();
+    // an unknown height on either side keeps the cut
+    if (!(availableHeight > 0) || !(this.getAllocatedCanvasHeight() <= availableHeight)) {
+      setClamp(DataPoint.PERCENT_CLAMP);
+    }
   }
 
   /**
@@ -1053,6 +1162,12 @@ export class TimeChart {
       firstRow = dataModel[0];
     }
 
+    this.varianceOverlaps = 0;
+    const parsed = variancesConfig.map((variance) => new VarianceScenario(variance));
+    if (this.scenarioSwitch && parsed.filter((variance) => variance.isValid).length > 1) {
+      return this.populateSharedVarianceRow(variancesConfig, parsed, dataModel, firstRow);
+    }
+
     for (const varianceScenario in variancesConfig) {
       const scenarios: VarianceScenario = new VarianceScenario(variancesConfig[varianceScenario]);
 
@@ -1088,6 +1203,55 @@ export class TimeChart {
         }
       }
     }
+    return varianceModel;
+  }
+
+  /**
+   * One row for several variances over the same reference: each period shows
+   * the first variance that has a value there, in the notation of its scenario.
+   */
+  private populateSharedVarianceRow(
+    variancesConfig: string[],
+    parsed: VarianceScenario[],
+    dataModel: TimeChartDataModelEntry[],
+    firstRow: TimeChartDataModelEntry | null,
+  ): TimeChartDataModelEntry[] {
+    const varianceModel: TimeChartDataModelEntry[] = [];
+    const valid = parsed.map((variance, index) => ({ variance, name: variancesConfig[index] }));
+    const candidates = valid.filter((entry) => entry.variance.isValid);
+    const isRelative = candidates[0].variance.type === "dr";
+    const pixelPerUnit = isRelative ? this.pixelPerPercentage : this.pixelPerUnit;
+
+    dataModel.forEach((row, index) => {
+      let point: DataPoint | null = null;
+      let values = 0;
+      for (const { variance, name } of candidates) {
+        const value = this.calculateVariance(variance, row, this.mapScenarios(variance, firstRow));
+        if (value === null || Number.isNaN(value)) {
+          continue;
+        }
+        values++;
+        if (point == null) {
+          point = new DataPoint(value, variance.delta, pixelPerUnit, variance.direction);
+          point.notation = variance.base.slice(0, 2);
+          point.key = { date: TimeChart.pointDate(row.date), scenario: name };
+        }
+      }
+      if (values > 1) {
+        this.varianceOverlaps++;
+      }
+      varianceModel.push({
+        id: index,
+        category: row.category,
+        type: isRelative ? VarianceType.RELATIVE : VarianceType.ABSOLUTE,
+        date: row.date,
+        scenario1:
+          point ?? new DataPoint(null, candidates[0].variance.delta, pixelPerUnit, candidates[0].variance.direction),
+        scenario2: new DataPoint(null, null, null, null),
+        scenario3: new DataPoint(null, null, null, null),
+        scenario4: new DataPoint(null, null, null, null),
+      });
+    });
     return varianceModel;
   }
 
@@ -1146,6 +1310,11 @@ export class TimeChart {
   private createDateFactory(): DateStringFactory {
     const factory: DateStringFactory = new DateStringFactory();
     factory.setLocale(this.locale);
+    // a Luxon pattern from the translations, for example ’yy
+    const shortYear = this.i18n.get("date-format-short-year");
+    if (typeof shortYear === "string" && /y/.test(shortYear) && !shortYear.includes("date-format")) {
+      factory.patchDateFormatShort({ year: shortYear });
+    }
     return factory;
   }
 
@@ -1200,6 +1369,13 @@ export class TimeChart {
         if (elements["type"] === VarianceType.RELATIVE) {
           isRelative = true;
         }
+        // in smart mode a period that starts a year or month carries that part alone, so it is never skipped
+        const carriesBoundary =
+          this.axisLabelsMode === AxisLabelsMode.SMART &&
+          dateStringFactory.isSmartBoundary(elements.date, this.dateInterval);
+        if (index % this.axisLabelsStep !== 0 && !carriesBoundary) {
+          return;
+        }
 
         let datelabel = dateStringFactory.getDateString(elements.date, this.dateInterval);
 
@@ -1236,6 +1412,7 @@ export class TimeChart {
         scenarioType: this.axisScenario,
         labelText: this.title,
         isRelative: isRelative,
+        titlePosition: this.axisTitlePosition,
       },
       this.position,
       axisLabelGroup,
@@ -1247,6 +1424,52 @@ export class TimeChart {
       height: axisBox.height,
       width: axisBox.width,
     };
+
+    this.drawScenarioSwitch(svgContainer);
+  }
+
+  /**
+   * A vertical line where the visible scenario of the series changes, and the
+   * scenario names under the category labels. Drawn after the axis is
+   * measured, so it does not change the allocated size by itself.
+   */
+  private drawScenarioSwitch(svgContainer: Svg) {
+    const runs = this.switchRuns();
+    if (runs.length < 2) {
+      return;
+    }
+    const group: G = svgContainer.group().id("ScenarioSwitch");
+    const namesHeight = this.switchNamesHeight();
+    const height = this.getAllocatedCanvasHeight();
+    const bottom = namesHeight > 0 ? height - this.styles.padding.bottom : height;
+    const lineWidth = Math.max(1, this.position.spacings.auxiliaryLineWidth);
+
+    runs.slice(1).forEach((run) => {
+      const x =
+        (this.position.getColumnCenterPositionX(run.from - 1) + this.position.getColumnCenterPositionX(run.from)) / 2;
+      group
+        .line(x, 0, x, bottom)
+        .stroke({ color: this.styles.fontStyles.color || "#000000", width: lineWidth })
+        .addClass("scenario-switch");
+    });
+
+    if (namesHeight === 0) {
+      return;
+    }
+    runs.forEach((run) => {
+      const center =
+        (this.position.getColumnCenterPositionX(run.from) + this.position.getColumnCenterPositionX(run.to)) / 2;
+      new Label(
+        group,
+        center,
+        bottom - namesHeight,
+        "SWITCH_" + run.scenario,
+        Formatter.translateScenarioLabel(run.scenario, this.i18n),
+        this.styles,
+        HookLocation.Top,
+        HookLocation.Center,
+      ).forceStringTypeDraw();
+    });
   }
 
   private drawScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
@@ -1262,12 +1485,28 @@ export class TimeChart {
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     let hasValidPrim: boolean = false;
+    const followers = this.followerSlots();
 
     dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
-      scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
-      scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
-      scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
-      scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
+      // a follower takes the place of the first scenario: full column with value label, named under the axis
+      const visible = followers.length > 0 ? this.visibleSlot(elements, followers) : "scenario1";
+      if (visible != null && visible !== "scenario1") {
+        scenarioFactory
+          .createPrimaryBar(elements[visible], index, false)
+          .draw(this.dataFormatDigits, this.measureScale);
+        hasValidPrim = true;
+      } else {
+        scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
+      }
+      if (visible !== "scenario2") {
+        scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
+      }
+      if (visible !== "scenario3") {
+        scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
+      }
+      if (visible !== "scenario4") {
+        scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
+      }
 
       if (elements["scenario1"].isEmpty() === false) {
         hasValidPrim = true;
@@ -1519,7 +1758,7 @@ export class TimeChart {
 
     dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
       if (elements["type"] === VarianceType.RELATIVE) {
-        scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw();
+        scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits);
       } else {
         scenarioFactory.createVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
       }

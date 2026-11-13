@@ -123,6 +123,11 @@ export class DateStringFactory {
     this.dateFormatShortPinned = true;
   }
 
+  /** Replaces single short patterns and keeps the rest. Call it after `setLocale`. */
+  public patchDateFormatShort(patterns: Partial<DateFormat>) {
+    this.dateFormatShort = { ...this.dateFormatShort, ...patterns } as DateFormat;
+  }
+
   /**
    * Selects the locale used for Luxon's localized tokens and swaps in the
    * locale's pattern overrides. An explicit `setDateFormat` /
@@ -460,6 +465,22 @@ export class DateStringFactory {
     }
 
     return date.setLocale(this.locale).toFormat(format);
+  }
+
+  /** True when the smart label of this period also names the month or the year that starts with it. */
+  public isSmartBoundary(date: DateTime, type: DateDistance): boolean {
+    switch (type) {
+      case DateDistance.DAY:
+        return this.isFirstInMonth(date);
+      case DateDistance.WEEK:
+        return this.isFirstWeek(date);
+      case DateDistance.MONTH:
+        return this.isJanuary(date);
+      case DateDistance.QUARTER:
+        return this.isFirstQuarter(date);
+      default:
+        return false;
+    }
   }
 
   private isFirstInMonth(date: DateTime) {

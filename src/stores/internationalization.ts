@@ -115,7 +115,7 @@ const de = flattenObject({
     CONNECTOR_WS: " und ",
     in: "in",
   },
-  "bn-chart-time": { "no-data": "Keine Daten" },
+  "bn-chart-time": { "no-data": "Keine Daten", "date-format-short-year": "yy" },
   "bn-chart-structure": { "no-data": "Keine Daten", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysDe,
@@ -190,7 +190,7 @@ const en = flattenObject({
     CONNECTOR_WS: " and ",
     in: "in",
   },
-  "bn-chart-time": { "no-data": "No Data" },
+  "bn-chart-time": { "no-data": "No Data", "date-format-short-year": "yy" },
   "bn-chart-structure": { "no-data": "No Data", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysEn,

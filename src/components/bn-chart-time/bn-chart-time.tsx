@@ -6,6 +6,7 @@ import {
   isValidDateFormat,
   isValidInteger,
   isValidMeasureScale,
+  isNoScenarios,
   isValidNumber,
   validateScenarioList,
   validateStackConfig,
@@ -28,7 +29,7 @@ import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensi
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
-import { VarianceScenario } from "../../utils/model/VarianceScenario";
+import { VarianceScenario, variancesScenarios } from "../../utils/model/VarianceScenario";
 import { TimeChartStyle } from "./utils/model";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
@@ -150,13 +151,15 @@ export class Chart {
    *<br /> <br />
    *  When set to ```auto```, scenarios are detected from the dataset silently.
    *  When left blank, scenarios are detected from the dataset with a warning.
+   *  When set to ```none```, no scenario is drawn: the chart shows only its variances,
+   *  and the lowest variance carries the category labels.
    *
    */
   @Prop() scenarios!: string;
   @Watch("scenarios")
   validateScenario(newValue: string) {
     const errId = "WARN_scenarios";
-    if (isInheritedValue(newValue)) {
+    if (isInheritedValue(newValue) || isNoScenarios(newValue)) {
       this.errors.remove(errId);
       return;
     }
@@ -593,6 +596,92 @@ export class Chart {
    * measureUnit displayed in table.
    */
   @Prop() measureUnit: string = "";
+
+  /**
+   * Number of decimal digits of the value labels
+   */
+  @Prop() dataFormatDigitsDecimal: number = 1;
+
+  @Watch("dataFormatDigitsDecimal")
+  validateDataFormatDigitsDecimal(newValue: number) {
+    this.validateDigits("dataFormatDigitsDecimal", newValue);
+  }
+
+  /**
+   * Number of decimal digits of the percent labels (relative variances)
+   */
+  @Prop() dataFormatDigitsPercent: number = 2;
+
+  @Watch("dataFormatDigitsPercent")
+  validateDataFormatDigitsPercent(newValue: number) {
+    this.validateDigits("dataFormatDigitsPercent", newValue);
+  }
+
+  private validateDigits(name: string, value: number) {
+    const errId = `WARN_${name}` as const;
+    if (!isValidInteger(value) || Number(value) < 0 || Number(value) > 100) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: name + ": invalid value '" + value + "' is not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * Prints only every n-th category label, starting with the first period.
+   * 2 labels every second period. Bar mode only.
+   */
+  @Prop() axisLabelsStep: number = 1;
+
+  @Watch("axisLabelsStep")
+  validateAxisLabelsStep(newValue: number) {
+    const errId = "WARN_axisLabelsStep";
+    if (!isValidInteger(newValue) || Number(newValue) < 1) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "axisLabelsStep: invalid value '" + newValue + "' is not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * For a series that changes its scenario along the time axis, for example
+   * AC up to this year and PL after it. In a period where the first scenario
+   * has no value, the next scenario with a value is drawn in its place with
+   * its value label. A vertical line marks the change, and the scenario names
+   * stand under the axis. Variances with the same reference and type share
+   * one row. Bar mode without stack only.
+   */
+  @Prop() scenarioSwitch: boolean = false;
+
+  /**
+   * Where the axis title stands (the chart title, or the name of a variance).
+   * <br /><br />
+   * values:<br />
+   * ```left // right // none```
+   */
+  @Prop() axisTitlePosition: string = "left";
+
+  @Watch("axisTitlePosition")
+  validateAxisTitlePosition(newValue: string) {
+    const errId = "WARN_axisTitlePosition";
+    if (!isBlankInput(newValue) && !["left", "right", "none"].includes(newValue.trim().toLowerCase())) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "axisTitlePosition: invalid value '" + newValue + "' is not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
   private canvasWidthSegmented: number;
   private pixelPerUnitGroupMap: Map<string, number> = new Map<string, number>();
 
@@ -639,6 +728,10 @@ export class Chart {
     this.validateMaxBars(this.maxBars);
     this.validateStack(this.stack);
     this.validateScaling(this.scale);
+    this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
+    this.validateDataFormatDigitsPercent(this.dataFormatDigitsPercent);
+    this.validateAxisLabelsStep(this.axisLabelsStep);
+    this.validateAxisTitlePosition(this.axisTitlePosition);
   }
 
   private _autoScaleGuard = false;
@@ -882,14 +975,14 @@ export class Chart {
   prepareDimension(): ParentDimensions {
     const parent = getParentDimensions(this.element);
     const scenariosList = this.prepareScenarios();
-    const variancesList = this.prepareVariances();
-    this.canvasWidthSegmented = parent.width / (scenariosList.length + variancesList.length || 1);
+    const segments = this.prepareSegments();
+    this.canvasWidthSegmented = parent.width / (scenariosList.length + this.prepareVariances().length || 1);
     this._lastAppliedHeight = parent.height;
     // The base chart and each variance render as vertically stacked segments
     // (see render()), so each one may only claim its share of the height.
     // The measure-scale footer (first segment only) renders below its SVG:
     // reserve roughly one em for it so the fitted charts leave it room.
-    const segmentCount = 1 + variancesList.length;
+    const segmentCount = Math.max(1, segments.length);
     const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
     return { width: this.canvasWidthSegmented, height: Math.max(0, parent.height - footerAllowance) / segmentCount };
   }
@@ -899,6 +992,10 @@ export class Chart {
     if (scenarios.inherited) {
       this.errors.remove("AUTO_scenarios");
       return scenarios.value.split(",").map((entry) => entry.trim());
+    }
+    if (isNoScenarios(scenarios.value)) {
+      this.errors.remove("AUTO_scenarios");
+      return [];
     }
     const isAuto = scenarios.value?.trim().toLowerCase() === "auto";
     if (isBlankInput(scenarios.value) || isAuto) {
@@ -919,6 +1016,42 @@ export class Chart {
     }
     this.errors.remove("AUTO_scenarios");
     return scenarios.value?.split(",").map((entry) => entry.trim());
+  }
+
+  /** `scenarios="none"`: the chart draws its variances only. */
+  private hidesScenarios(): boolean {
+    const scenarios = this.resolveInherited("scenarios", this.scenarios);
+    return !scenarios.inherited && isNoScenarios(scenarios.value);
+  }
+
+  /**
+   * The stacked segments, bottom to top: `[]` is the base chart, else the
+   * variances of one row. With `scenarioSwitch`, variances of one type over
+   * the same reference share a row.
+   */
+  private prepareSegments(): string[][] {
+    const rows: string[][] = this.hidesScenarios() ? [] : [[]];
+    const rowByKey = new Map<string, string[]>();
+    for (const variance of this.prepareVariances()) {
+      const parsed = new VarianceScenario(variance);
+      const key = `${parsed.type}:${parsed.delta}`;
+      const row = this.scenarioSwitch && parsed.isValid ? rowByKey.get(key) : undefined;
+      if (row) {
+        row.push(variance);
+        continue;
+      }
+      const created = [variance];
+      rows.push(created);
+      if (parsed.isValid) {
+        rowByKey.set(key, created);
+      }
+    }
+    return rows;
+  }
+
+  private prepareAxisTitlePosition(): string {
+    const position = this.axisTitlePosition?.trim().toLowerCase();
+    return position === "right" || position === "none" ? position : "left";
   }
 
   private prepareAvg(): boolean {
@@ -956,7 +1089,7 @@ export class Chart {
       }
     }
 
-    if (scenarios.length > 0 && missing.length > 0) {
+    if (!this.hidesScenarios() && scenarios.length > 0 && missing.length > 0) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -972,7 +1105,7 @@ export class Chart {
   }
 
   private prepareI18n(): Map<string, string> {
-    const i18nMetaLabelsLocal = ["no-data"];
+    const i18nMetaLabelsLocal = ["no-data", "date-format-short-year"];
     const i18nMetaLabelsGlobal = globalLabelKeys;
 
     const i18nMapLocal = new Map(i18nMetaLabelsLocal.map((key) => [key, this.t(".".concat(key))]));
@@ -1142,8 +1275,10 @@ export class Chart {
       return this.syncSpaceLeft;
     }
 
+    // without a title on the left only the scenario names stand there
+    const titles = this.prepareAxisTitlePosition() === "left" ? [...this.prepareVariances(), this.chartTitle] : [];
     const leftSideOffset: number = Formatter.getMaxWidthOfArrayItems(
-      [...this.prepareVariances(), ...this.prepareScenarios(), this.chartTitle],
+      [...titles, ...this.prepareScenarios()],
       preparedI18n,
       preparedStyle,
     );
@@ -1156,7 +1291,8 @@ export class Chart {
   }
 
   private prepareChartTitle(idx: number): string {
-    if (idx >= 1) {
+    // a variance keeps its own name as title
+    if (idx >= 1 || this.hidesScenarios()) {
       return "";
     }
 
@@ -1325,15 +1461,17 @@ export class Chart {
     return Math.floor(Number(this.maxBars) || 28);
   }
 
-  chartTemplate(localScenarioString: string, idx: number) {
+  chartTemplate(segmentVariances: string[], idx: number) {
     const preparedI18n: Map<string, string> = this.prepareI18n();
     const preparedStyle: TimeChartStyle = this.prepareStyle();
     const fullParentWidth = getParentDimensions(this.element).width;
     const ppu = this.preparePixelPerUnit();
     const ppp = this.preparePixelPerPercentage();
     const stackConfig = this.prepareStackConfig();
-    const scenarios = this.prepareScenarios();
-    const effectiveScenarios = stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
+    const isBase = segmentVariances.length === 0;
+    const scenarios = this.hidesScenarios() ? variancesScenarios(segmentVariances) : this.prepareScenarios();
+    // only the base chart draws a stack, a variance needs both of its scenarios
+    const effectiveScenarios = isBase && stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
 
     return (
       <bn-chart-time-renderer
@@ -1341,7 +1479,7 @@ export class Chart {
         dataVersion={this.dataVersion}
         chartTitle={this.prepareChartTitle(idx)}
         scenarios={effectiveScenarios}
-        variances={[localScenarioString]}
+        variances={segmentVariances.length > 0 ? segmentVariances : [""]}
         hideAxisLabels={this.prepareHideAxisLabels(idx)}
         pixelPerUnit={ppu}
         pixelPerPercentage={ppp}
@@ -1363,6 +1501,10 @@ export class Chart {
         maxBars={this.prepareMaxBars()}
         stackConfig={stackConfig}
         lineFullWidth={this.prepareLineFullWidth()}
+        dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}
+        axisLabelsStep={Math.max(1, Math.floor(Number(this.axisLabelsStep) || 1))}
+        scenarioSwitch={this.scenarioSwitch}
+        axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}
@@ -1401,7 +1543,7 @@ export class Chart {
     const layout = collectChartFacadeLayout(
       this.element,
       "bn-chart-time-renderer",
-      ["base", ...variances],
+      this.prepareSegments().map((segment) => (segment.length > 0 ? segment.join(",") : "base")),
       origins,
       detail,
     );
@@ -1495,18 +1637,23 @@ export class Chart {
   }
 
   render() {
-    let scenariosArray = [""];
-    const variancesArray = this.prepareVariances();
-    this.checkVarianceScenarios(variancesArray);
-    if (variancesArray.length > 0) {
-      scenariosArray = [...scenariosArray, ...variancesArray];
+    this.checkVarianceScenarios(this.prepareVariances());
+    const segments = this.prepareSegments();
+    if (segments.length === 0) {
+      this.errors.addOrReplace({
+        id: "WARN_scenarios_none",
+        type: "warning",
+        message: "scenarios: none needs at least one variance, the chart is empty.",
+      });
+    } else {
+      this.errors.remove("WARN_scenarios_none");
     }
 
     const fontStyles = this.getFontStyles();
 
     return (
       <Host style={fontStyles}>
-        <div class="container">{scenariosArray.map(this.chartTemplate)}</div>
+        <div class="container">{segments.map(this.chartTemplate)}</div>
       </Host>
     );
   }

@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [Unreleased]
 
+### Added
+
+- `bn-chart-time` and `bn-chart-structure`: `data-format-digits-decimal` and `data-format-digits-percent` set the digits of the value and percent labels, like on `bn-table`. Defaults stay 1 and 2.
+- `bn-chart-time` and `bn-chart-structure`: `scenarios="none"` draws no scenario. The chart shows only its variances, and the first variance carries the category labels. `bn-grid` then aligns such a chart on its variance axis.
+- `bn-chart-time`: `scenario-switch` is for a series that changes its scenario along the time axis, for example AC up to this year and PL after it. A scenario that only has values where the first scenario has none is drawn in its place, as a full column with value labels. A vertical line marks the change, and the scenario names stand under the axis. Variances of one type over the same reference share one row, and plan variances are outlined.
+- `bn-chart-time`: `axis-labels-step` prints only every n-th category label. In smart mode a label that carries the year or month is always printed.
+- `bn-chart-time`: `axis-title-position` (`left`, `right`, `none`) moves or hides the axis title.
+- `bn-chart-time`: the translation key `date-format-short-year` sets the pattern of the short year label, for example `’yy`.
+
 ### Changed
+
+- `bn-chart-time`: a relative variance above 145 % is no longer always cut. With a fixed `percentage-scaling` the pin is drawn in full length when it fits into the available height. It is still cut when it does not fit, and always with an automatic percentage scale. A chart with a fixed scale, long pins and enough room gets higher by this.
 
 - `bn-table`: the variance cells of a `partof` row ("in % of") now show how the share changed. Before, they showed the variance divided by the variance of the sum, which is no useful number. An absolute variance prints the difference of the two shares in percentage points with a `%p` behind it (for example 129% against 187% gives `-58%p`). A relative variance prints the change of the share in percent, before it was always `-`. These cells have no sentiment color and never a bar or pin. In a table with percent values (`scenariosDataFormat: percent`) the cells print `-`, like the scenario cells of the row.
 
@@ -39,6 +50,24 @@ All notable changes to this project will be documented in this file. See [standa
 - `bn-chart-time` and `bn-chart-structure` no longer report "Chart exceeds available width" when they are less than 300px wide. A hidden SVG that holds the fill patterns had no size and counted as 300px of chart content.
 
 ### Added
+
+#### `bn-grid`: a cell over several rows or columns, and a cell background
+
+The child of a cell can carry `row-span` and `column-span` (whole numbers, default 1): `<div slot="0-0" row-span="2">`. Its cell then also takes the positions right of it and below it, and those positions get no cell. The other cells keep the place of their slot name. Captions, the lines of `show-borders`, alignment and `cell-height="equal"` work as before. With `baseline` alignment a cell over several rows is left out of the rows and stays at the top, and a cell over several columns is left out of the columns. A span that is no whole number from 1 is `ERR_cellSpan`, a child in a covered position is `WARN_cellSpan`.
+
+`cell-background` on the child of a cell is the background colour of that cell. The new style key `bn-grid.cellBackground` (default `transparent`) sets it for every cell, and the attribute wins.
+
+#### `bn-layout-card`: font size of the title
+
+The new style section `bn-layout-card` has one key, `titleFontSize` in px. Without it the title keeps the font size of `global.fontSizePx`. `bn-title` has the matching attribute `title-font-size`.
+
+#### `bn-layout-page`: an id at the top right of the title
+
+The new attribute `title-id` (property `titleId`) of `bn-layout-page` and `bn-title` shows a short text, a template number like `13A`, right-aligned on the level of the first title line, in the font of the title and not bold.
+
+#### `bn-annotation-layer`: a target in one cell of a grid
+
+A `data-bino-annotation-target` on the child of one `bn-grid` cell, or of a card in that cell, was already found. But the mark could stay where the chart was before the grid moved it onto the baseline. The layer now follows that move.
 
 #### `bn-table`: variance waterfall
 

@@ -17,8 +17,11 @@ jest.mock("../../context/context-protocol", () => {
   observe() {}
   disconnect() {}
 };
+const watched: { target: Node; options: MutationObserverInit }[] = [];
 (global as any).MutationObserver = class {
-  observe() {}
+  observe(target: Node, options: MutationObserverInit) {
+    watched.push({ target, options });
+  }
   disconnect() {}
 };
 
@@ -129,6 +132,42 @@ describe("bn-annotation-layer", () => {
     await page.waitForChanges();
 
     expect(getStores(page.body).annotationsUnplaced.state[key]).toBeUndefined();
+  });
+
+  it("places a mark on the chart in one cell of a grid, and watches what can move that chart", async () => {
+    const page = await newSpecPage({
+      components: [AnnotationLayer],
+      html: `<bn-layout-page>
+        <div slot="slot-0"><bn-grid>
+          <div slot="0-0"><bn-chart-time></bn-chart-time></div>
+          <div slot="0-1" data-bino-annotation-target="panel"><bn-chart-time id="second"></bn-chart-time></div>
+        </bn-grid></div>
+        <bn-annotation-layer slot="annotations"></bn-annotation-layer>
+      </bn-layout-page>`,
+    });
+    const layer = page.body.querySelector("bn-annotation-layer") as HTMLElement;
+    const grid = page.body.querySelector("bn-grid") as HTMLElement;
+    const root = grid.attachShadow({ mode: "open" });
+    const asked: string[] = [];
+    page.body.querySelectorAll("bn-chart-time").forEach((chart: any) => {
+      chart.getLayoutState = async () => {
+        asked.push(chart.id);
+        return { elements: [BAR] };
+      };
+    });
+    (layer.shadowRoot!.querySelector("svg") as any).getScreenCTM = () => null;
+    watched.length = 0;
+    (layer as any).items = JSON.stringify([{ label: "1", target: "panel", point: BAR.point }]);
+
+    await until(page, () => marks(layer).length === 1);
+    expect(asked).toEqual(["second"]);
+    const styleOf = (target: Node) =>
+      watched.some((entry) => entry.target === target && entry.options.attributeFilter?.includes("style"));
+    // the grid moves a cell in its shadow root, or through the style of a card in the cell
+    expect(styleOf(root)).toBe(true);
+    expect(styleOf(grid)).toBe(true);
+    expect(styleOf(page.body.querySelector("[data-bino-annotation-target]")!)).toBe(true);
+    expect(styleOf(page.body.querySelector("bn-layout-page")!)).toBe(false);
   });
 
   it("reports items that are not a JSON array", async () => {
