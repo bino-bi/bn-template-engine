@@ -58,6 +58,37 @@ it("should render my component empty null values ", async () => {
   `);
 });
 
+it("should render the title id as the first element, as text", async () => {
+  const page = await newSpecPage({
+    components: [BnTitleRenderer],
+    template: () => <bn-title-renderer businessUnit="Sales" titleId="13<b>A</b>"></bn-title-renderer>,
+  });
+
+  expect(page.root.shadowRoot).toEqualHtml(`
+    <div class="with-id">
+      <div class="title-id">13&lt;b&gt;A&lt;/b&gt;</div>
+      <div>Sales</div>
+      <div></div>
+      <div></div>
+    </div>
+  `);
+});
+
+it("should render no title id for an empty value", async () => {
+  const page = await newSpecPage({
+    components: [BnTitleRenderer],
+    template: () => <bn-title-renderer businessUnit="Sales" titleId=""></bn-title-renderer>,
+  });
+
+  expect(page.root.shadowRoot).toEqualHtml(`
+    <div>
+      <div>Sales</div>
+      <div></div>
+      <div></div>
+    </div>
+  `);
+});
+
 it("should render my component empty ", async () => {
   const page = await newSpecPage({
     components: [BnTitleRenderer],

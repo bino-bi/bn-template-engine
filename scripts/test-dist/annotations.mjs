@@ -377,6 +377,46 @@ test("marks: they follow a target that moves when its cell changes", async () =>
   assert.notDeepEqual(await boxOf(page, "time", BAR), before);
 });
 
+// what a small multiple is: a grid with baseline alignment, one chart per cell, here one of them in a card
+const PANELS =
+  `<bn-grid row-headers='["r0"]' column-headers='["c0","c1","c2"]' show-row-headers="false" show-column-headers="false"` +
+  ` cell-height="equal" cell-width="equal" cell-vertical-align="baseline">` +
+  `<div slot="0-0">${TIME_VARIANCE}</div>` +
+  `<div slot="0-1" data-bino-annotation-target="panel">${TIME}</div>` +
+  `<div slot="0-2"><bn-layout-card card-show-border="false" title-business-unit="Asia">` +
+  `<div slot="card-slot-0" data-bino-annotation-target="card-panel">${TIME}</div></bn-layout-card></div>` +
+  `</bn-grid>`;
+
+test("marks: a chart in one cell of a grid is a target, also after the grid moved it onto the baseline", async () => {
+  const items = [
+    { label: "1", target: "panel", point: POINT_BAR },
+    { label: "2", target: "card-panel", point: POINT_BAR },
+    { label: "3", target: "panel" },
+  ];
+  const body = DATA + `<bn-layout-page page-format="xga" page-orientation="landscape">`;
+  const page = await openDeep(`${body}<div slot="slot-0">${PANELS}</div>${layer(items)}</bn-layout-page>`);
+
+  // the chart with the variances has its axis lower, so the grid moves the other two down
+  const moved = await page.$eval("bn-grid", (grid) =>
+    [...grid.shadowRoot.querySelectorAll(".grid-slot")].map((el) => parseFloat(el.style.paddingTop || "0")),
+  );
+  assert.ok(moved[1] > 1, `the plain chart is moved down: ${JSON.stringify(moved)}`);
+
+  const marks = await drawnMarks(page);
+  assert.deepEqual(
+    marks.map((mark) => mark.label),
+    ["1", "2", "3"],
+  );
+  assertSameCentre(marks[0].circle, await boxOf(page, "panel", BAR), "marker on a bar in a grid cell");
+  assertSameCentre(marks[1].circle, await boxOf(page, "card-panel", BAR), "marker on a bar in a card in a grid cell");
+  const host = await page.$eval("[data-bino-annotation-target=panel] > *", (el) => {
+    const r = el.getBoundingClientRect();
+    return { right: r.right, top: r.top };
+  });
+  assert.ok(Math.abs(marks[2].circle.x + marks[2].circle.width - host.right) < 1, JSON.stringify({ marks, host }));
+  assert.ok(Math.abs(marks[2].circle.y - host.top) < 1, JSON.stringify({ marks, host }));
+});
+
 for (const [name, point] of [
   ["no match", { date: "1999-01-01", scenario: "ac1" }],
   ["two matches", { date: "2024-01-01" }],

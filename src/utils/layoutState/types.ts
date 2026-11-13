@@ -190,6 +190,9 @@ export interface GridCellElement extends LayoutElementBase {
   columnId?: string;
   /** Slot name for data cells. */
   slot?: string;
+  /** Rows and columns a data cell covers, when more than one. */
+  rowSpan?: number;
+  columnSpan?: number;
   /** Header, title or caption text. */
   label?: string;
 }

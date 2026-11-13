@@ -1,6 +1,8 @@
 import { Component, h, Element, Prop, Fragment } from "@stencil/core";
 import { getStores, ScopedStores } from "../../context/context-protocol";
 import withComponentStatus from "../../utils/withComponentStatus";
+import withComponentStyle from "../../utils/withComponentStyle";
+import { Style } from "../../stores/componentStyles";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver } from "../../utils/withInheritedProps";
 import {
@@ -24,12 +26,14 @@ export class LayoutCard {
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
   private readonly resolveInherited: InheritedResolver;
+  private readonly componentStyle: <T>(q: (style: Style) => T) => T;
 
   private stores: ScopedStores;
 
   constructor() {
     withComponentStatus(this);
     this.errors = withHasError(this);
+    this.componentStyle = withComponentStyle(this);
     this.resolveInherited = withInheritedProps(this, [
       { propName: "titleScenarios", ancestorAttr: "title-scenarios" },
       { propName: "titleVariances", ancestorAttr: "title-variances" },
@@ -53,7 +57,8 @@ export class LayoutCard {
   /**
    * Name of a registered component style (see `bn-component-style`) passed
    * through to the inner `<bn-card>` element as its `selected-style`
-   * attribute.
+   * attribute. Its section `bn-layout-card` sets the font size of the title
+   * (`titleFontSize`, in px).
    */
   @Prop() selectedStyle?: string;
 
@@ -399,6 +404,7 @@ export class LayoutCard {
           <bn-title // @ts-ignore
             i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
             ruleset={this.titleProp("ruleset")}
+            title-font-size={this.componentStyle(($) => $?.["bn-layout-card"]?.titleFontSize)}
             business-unit={this.titleBusinessUnit}
             scenarios={this.titleProp("titleScenarios")}
             variances={this.titleProp("titleVariances")}

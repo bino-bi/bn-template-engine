@@ -92,6 +92,10 @@ function isCutOff(box: Box, slot: Element): boolean {
  * Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
  * the layer never counts.
  *
+ * A target can sit anywhere in the page, also on the child of one `bn-grid`
+ * cell or of a card in it. The mark then points at the first component in
+ * that element.
+ *
  * @example
  * <bn-layout-page>
  *   <div slot="slot-0" data-bino-annotation-target="t1"><bn-chart-time ...></bn-chart-time></div>
@@ -140,6 +144,7 @@ export class AnnotationLayer {
   private resizeObserver?: ResizeObserver;
   private mutationObserver?: MutationObserver;
   private observed = new WeakSet<Node>();
+  private observedAround = new WeakSet<Node>();
   private reported = new Set<string>();
 
   constructor() {
@@ -152,6 +157,7 @@ export class AnnotationLayer {
     this.stores = getStores(this.element);
     this.pageKey = annotationPageKey(this.element);
     this.observed = new WeakSet();
+    this.observedAround = new WeakSet();
     this.resizeObserver = new ResizeObserver(this.schedule);
     this.mutationObserver = new MutationObserver(this.schedule);
     this.observeSize(this.element);
@@ -243,7 +249,10 @@ export class AnnotationLayer {
     const visuals = [...targets].filter(([id]) => needed.has(id)).map(([, visual]) => visual);
     await Promise.all(visuals.map((visual) => visual.componentOnReady?.()));
     if (run !== this.run) return;
-    visuals.forEach((visual) => this.observe(visual));
+    visuals.forEach((visual) => {
+      this.observe(visual);
+      this.observeAround(visual, page);
+    });
 
     const states = new Map<TargetElement, ComponentLayoutState | undefined>();
     await Promise.all(
@@ -401,6 +410,27 @@ export class AnnotationLayer {
       root.querySelectorAll("*").forEach((el) => walk(el.shadowRoot));
     };
     walk(visual.shadowRoot);
+  }
+
+  /**
+   * A component around a target can move it without resizing anything: a
+   * grid pads a cell down to line up a baseline, and writes that into its own
+   * shadow root, or into the style of a card in the cell.
+   */
+  private observeAround(visual: Element, page: Element | null) {
+    for (let el = visual.parentElement; el && el !== page; el = el.parentElement) {
+      if (this.observedAround.has(el)) continue;
+      this.observedAround.add(el);
+      this.mutationObserver?.observe(el, { attributes: true, attributeFilter: ["style"] });
+      if (el.shadowRoot) {
+        this.mutationObserver?.observe(el.shadowRoot, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ["style", "class"],
+        });
+      }
+    }
   }
 
   private observeSize(element: Element) {
