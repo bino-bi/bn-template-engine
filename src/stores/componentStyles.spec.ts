@@ -12,6 +12,7 @@ describe("unknownStyleKeys", () => {
       unknownStyleKeys({
         global: { fontSizePx: 12 },
         "bn-text": { leading: 1.2, fontColor: "#333333" },
+        "bn-grid": { cellBackground: "#f2f2f2" },
         "bn-chart-time": { scaleFactors: { labelToColumn: 0.5 }, padding: { top: 0 } },
       }),
     ).toEqual([]);

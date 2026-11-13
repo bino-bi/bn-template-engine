@@ -1256,6 +1256,15 @@ export namespace Components {
      * Supports configurable borders, title, and header visibility. Cells can
      * have equal sizes, a caption, and aligned content; `baseline` lines up the
      * axes of charts (and the header of tables) in a row or column.
+     * The slotted child of a cell can carry `row-span` and `column-span` (whole
+     * numbers, default 1): its cell then also takes the positions right of it and
+     * below it, and those positions get no cell. `cell-background` on the child
+     * is the background colour of its cell.
+     * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+     *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+     *   <div slot="0-1">...</div>
+     *   <div slot="1-1">...</div>
+     * </bn-grid>
      */
     interface BnGrid {
         /**
@@ -2448,6 +2457,15 @@ declare global {
      * Supports configurable borders, title, and header visibility. Cells can
      * have equal sizes, a caption, and aligned content; `baseline` lines up the
      * axes of charts (and the header of tables) in a row or column.
+     * The slotted child of a cell can carry `row-span` and `column-span` (whole
+     * numbers, default 1): its cell then also takes the positions right of it and
+     * below it, and those positions get no cell. `cell-background` on the child
+     * is the background colour of its cell.
+     * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+     *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+     *   <div slot="0-1">...</div>
+     *   <div slot="1-1">...</div>
+     * </bn-grid>
      */
     interface HTMLBnGridElement extends Components.BnGrid, HTMLStencilElement {
     }
@@ -3770,6 +3788,15 @@ declare namespace LocalJSX {
      * Supports configurable borders, title, and header visibility. Cells can
      * have equal sizes, a caption, and aligned content; `baseline` lines up the
      * axes of charts (and the header of tables) in a row or column.
+     * The slotted child of a cell can carry `row-span` and `column-span` (whole
+     * numbers, default 1): its cell then also takes the positions right of it and
+     * below it, and those positions get no cell. `cell-background` on the child
+     * is the background colour of its cell.
+     * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+     *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+     *   <div slot="0-1">...</div>
+     *   <div slot="1-1">...</div>
+     * </bn-grid>
      */
     interface BnGrid {
         /**
@@ -5322,6 +5349,15 @@ declare module "@stencil/core" {
              * Supports configurable borders, title, and header visibility. Cells can
              * have equal sizes, a caption, and aligned content; `baseline` lines up the
              * axes of charts (and the header of tables) in a row or column.
+             * The slotted child of a cell can carry `row-span` and `column-span` (whole
+             * numbers, default 1): its cell then also takes the positions right of it and
+             * below it, and those positions get no cell. `cell-background` on the child
+             * is the background colour of its cell.
+             * @example <bn-grid row-headers='["a","b"]' column-headers='["x","y"]'>
+             *   <div slot="0-0" row-span="2" cell-background="#f2f2f2">...</div>
+             *   <div slot="0-1">...</div>
+             *   <div slot="1-1">...</div>
+             * </bn-grid>
              */
             "bn-grid": LocalJSX.IntrinsicElements["bn-grid"] & JSXBase.HTMLAttributes<HTMLBnGridElement>;
             "bn-image": LocalJSX.IntrinsicElements["bn-image"] & JSXBase.HTMLAttributes<HTMLBnImageElement>;

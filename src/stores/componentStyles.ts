@@ -33,6 +33,8 @@ export interface GridStyle {
   borderColor: string;
   borderWidth: number;
   cellPadding: number;
+  /** Background colour of every data cell. `cell-background` on the child of a cell wins. */
+  cellBackground: string;
   /** Cell caption (`cell-captions`): font size in px. */
   captionFontSize: number;
   captionFontWeight: string;
@@ -328,6 +330,7 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
   },
   "bn-annotation": {
     color: "#0070c0",
+    cellBackground: "transparent",
     colors: { negative: "#ff0000", positive: "#008f96" },
   },
 };

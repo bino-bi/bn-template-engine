@@ -186,7 +186,7 @@ Customize `<bn-tree>` edge and operator styling:
 
 ### Grid
 
-Customize `<bn-grid>` borders, cell spacing and the cell captions (`cell-captions`):
+Customize `<bn-grid>` borders, cell spacing, the cell background and the cell captions (`cell-captions`). `cellBackground` is a CSS colour for every data cell; `cell-background` on the child of one cell wins:
 
 ```json
 {
@@ -195,6 +195,7 @@ Customize `<bn-grid>` borders, cell spacing and the cell captions (`cell-caption
     "borderWidth": 1,
     "cellPadding": 4,
     "captionFontSize": 12,
+    "cellBackground": "transparent",
     "captionFontWeight": "bold",
     "captionColor": "#000000",
     "captionGap": 2
