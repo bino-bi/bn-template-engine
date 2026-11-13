@@ -155,6 +155,25 @@ td.share {
   font-style: italic;
 }
 
+/* the header of a bar or pin column stands over the middle of the column */
+th.barColumn {
+  text-align: center;
+}
+
+/* the first column of a block: a wider gap, in which no row line and no header line is drawn */
+td.block-start,
+th.block-start {
+  border-left: var(--bn-block-gap, 0) solid transparent;
+  clip-path: inset(-100em -100em -100em var(--bn-block-gap, 0));
+}
+
+@each $width in 100, 50, 25, 20, 15, 10, 5 {
+  .category-w#{$width}.block-start {
+    min-width: calc(#{$width}em + var(--bn-block-gap, 0px));
+    max-width: calc(#{$width}em + var(--bn-block-gap, 0px));
+  }
+}
+
 th.filler {
   border-bottom: 0em solid black;
   text-align: right;
@@ -181,7 +200,6 @@ th.headerlabel {
 th.intervalGroup {
   border-bottom: 0.1em solid black;
   text-align: center;
-  font-weight: bold;
 }
 
 td.variance:after {
@@ -277,6 +295,11 @@ tr.sum td {
   padding-bottom: 0.5em;
 }
 
+/* the groups of a grouped list stand further apart than the results of a calculation scheme */
+table.grouped-list tr.sum td {
+  padding-bottom: 1em;
+}
+
 /* thereof rows printed above their parent: normal rows with an indented label, the parent closes them like a subtotal */
 tr.ofit-above td[class^="category"] {
   padding-left: 1em;
@@ -285,6 +308,18 @@ tr.ofit-above td[class^="category"] {
 tr.ofit-sum td {
   border-top: 0.1em solid black;
   font-weight: bold;
+}
+
+/* IBCS prints the variances of a result row in black */
+tr.sum td.pos_pos,
+tr.sum td.pos_neg,
+tr.sum td.neg_pos,
+tr.sum td.neg_neg,
+tr.ofit-sum td.pos_pos,
+tr.ofit-sum td.pos_neg,
+tr.ofit-sum td.neg_pos,
+tr.ofit-sum td.neg_neg {
+  color: inherit;
 }
 
 tr.groupheader td {
@@ -310,7 +345,7 @@ th.end-group {
 td {
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  border-top: 0.1em dashed #ddd;
+  border-top: 0.1em solid #ddd;
   padding-left: 0.5em;
   white-space: nowrap;
   overflow: hidden;

@@ -117,7 +117,7 @@ describe("IBCS Table relative variance", () => {
   // positive pins only, the widest label is +20.00%
   const fullPinScaling = (): number => {
     const labels = { pos: estimateLabelWidth("+20.00%", EM * 0.85) };
-    const { maxPinLength } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, labels, 10);
+    const { maxPinLength } = relativePinGeometry(BAR_COLUMN_WIDTH, EM, labels, 8);
     return maxPinLength / (20 * EM * 0.85);
   };
 

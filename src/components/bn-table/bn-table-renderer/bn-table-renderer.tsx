@@ -60,6 +60,10 @@ import {
 } from "../utils/helper/barColumnGeometry";
 import { NOT_AVAILABLE } from "../../../utils/relativeVariance";
 import { normalizeFillPattern } from "../../../utils/model/styles/SVGStyle";
+import { VarianceScenario } from "../../../utils/model/VarianceScenario";
+
+/** Extra gap before the first column of a block, in table em. */
+const BLOCK_GAP_EM = 0.6;
 
 /** What the cells of one bar or pin column draw, over all interval buckets. */
 interface BarColumnLayout {
@@ -287,6 +291,7 @@ export class BnTableRenderer {
   private table: Table | undefined;
   private componentDataFormatDigits: DataFormatDigits = new DataFormatDigits();
   private barChartStyles: CellBarChartStyles;
+  private blockStarts = new Set<number>();
   private barColumnLayouts = new Map<string, BarColumnLayout>();
   private waterfallGeometries = new Map<string, WaterfallGeometry>();
   private stores: ScopedStores | undefined;
@@ -432,12 +437,18 @@ export class BnTableRenderer {
       const locale = this.stores?.context?.state?.locale;
 
       return (
-        <table>
+        <table
+          class={{ "grouped-list": this.groupedList() }}
+          style={{ "--bn-block-gap": `${BLOCK_GAP_EM * this.emPx()}px` }}
+        >
           <thead>
             {this.table.getHeader().map((row: TableRow) => (
               <tr class={row.cssStyle}>
-                {row.getCells().map((cell) => (
-                  <th colSpan={cell.colSpan} class={cell.cssStyle}>
+                {row.getCells().map((cell, i, cells) => (
+                  <th
+                    colSpan={cell.colSpan}
+                    class={`${cell.cssStyle}${this.isBarColumn(cell.key) ? " barColumn" : ""}${this.blockStartClass(cells, i)}`}
+                  >
                     {cell.getAsHeaderList().map((line, i, arr) => (
                       <span>
                         {i === arr.length - 1 ? (
@@ -462,10 +473,13 @@ export class BnTableRenderer {
           <tbody>
             {this.table.getBody().map((row: TableRow) => (
               <tr class={row.cssStyle} {...dataPointAttributes(row.key, "element")}>
-                {row?.getCells().map((cell: Cell) => (
+                {row?.getCells().map((cell: Cell, i, cells) => (
                   <td
                     colSpan={cell.colSpan}
-                    class={cell.type ? `${this.cellClass(cell, locale)} ${cell.type}` : cell.cssStyle}
+                    class={
+                      (cell.type ? `${this.cellClass(cell, locale)} ${cell.type}` : cell.cssStyle) +
+                      this.blockStartClass(cells, i)
+                    }
                     {...(row.key && cell.value != null && cell.value !== "" && cell.value !== "-"
                       ? dataPointAttributes({ ...row.key, date: cell.date, scenario: cell.key }, "element")
                       : {})}
@@ -584,9 +598,49 @@ export class BnTableRenderer {
         this.errors?.remove(id);
       }
     }
+    this.blockStarts = this.collectBlockStarts();
     this.barColumnLayouts = this.collectBarColumnLayouts();
     this.waterfallGeometries = this.collectWaterfallGeometries();
     this.barChartStyles = this.prepareBarChartStyles();
+  }
+
+  /**
+   * The columns that start a block: the row header, the scenarios of one interval bucket
+   * and each pair of variances are blocks. IBCS sets them apart by a wider gap.
+   */
+  private collectBlockStarts(): Set<number> {
+    const starts = new Set<number>();
+    if (!this.table || this.table.hasNoData()) return starts;
+    const blockOf = (column: { type: string; bucket?: string }) => {
+      const variance = new VarianceScenario(column.type);
+      const kind = variance.isValid
+        ? `${variance.base}_${variance.delta}`
+        : /^(ac|pp|fc|pl)\d/i.test(column.type)
+          ? "scenario"
+          : "rowheader";
+      return `${column.bucket ?? ""}|${kind}`;
+    };
+    const blocks = this.table.getColumns().map(blockOf);
+    blocks.forEach((block, i) => {
+      if (i > 0 && block !== blocks[i - 1]) starts.add(i);
+    });
+    return starts;
+  }
+
+  /** " block-start" for the cell whose first column starts a block. A cell can span columns. */
+  private blockStartClass(cells: Cell[], index: number): string {
+    let column = 0;
+    for (let i = 0; i < index; i++) column += cells[i].colSpan;
+    return this.blockStarts.has(column) ? " block-start" : "";
+  }
+
+  /** A grouped table that is no calculation scheme: its groups stand further apart. */
+  private groupedList(): boolean {
+    return this.grouped === true && this.type !== TableType.OPT && this.type !== TableType.OPTNOTOTAL;
+  }
+
+  private isBarColumn(key: string): boolean {
+    return this.barColumns.some((column) => column.toLowerCase() === key.toLowerCase());
   }
 
   /** The classes of a number cell. A variance that prints as zero loses its sign and its sentiment color. */
@@ -858,7 +912,9 @@ export class BnTableRenderer {
    */
   private connectorReach(row: TableRow): { top: number; bottom: number } {
     const emPx = this.emPx();
-    return { top: 0.1 * emPx, bottom: row.type === TableRowType.SUM ? 0.5 * emPx : 0 };
+    // tr.sum td { padding-bottom }, larger in a grouped list
+    const sumPadding = this.groupedList() ? 1 : 0.5;
+    return { top: 0.1 * emPx, bottom: row.type === TableRowType.SUM ? sumPadding * emPx : 0 };
   }
 
   /**

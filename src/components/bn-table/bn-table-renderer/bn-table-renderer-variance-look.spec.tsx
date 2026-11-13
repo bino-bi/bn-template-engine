@@ -43,7 +43,7 @@ import { absoluteBarGeometry, estimateLabelWidth, relativePinGeometry } from "..
 const EM = 13.3333; // SYSTEM_STYLE_DEFAULTS.global.fontSizePx, scaleFactor 1
 const LABEL_FONT = EM * 0.85;
 const BAR_COLUMN_WIDTH = 30; // default bar column width in em
-const HEAD = 10; // pin head side at scaleFactor 1
+const HEAD = 8; // pin head side at scaleFactor 1
 const AXIS_WIDTH = 0.25 * EM;
 const labelWidth = (text: string): number => estimateLabelWidth(text, LABEL_FONT);
 
@@ -172,10 +172,13 @@ describe("IBCS Table variance look", () => {
       const svg = svgOf(await renderColumn("drfc1_pl1_pos", { percentageScaling }), "A Up");
 
       const [head] = directChildren(svg, "rect");
-      expect(head.getAttribute("fill")).toBe("url(#pattern-fc-404040)");
+      expect(head.getAttribute("fill")).toBe("url(#pattern-head-fc-404040)");
       expect(head.getAttribute("stroke")).toBe("#404040");
       expect(num(head, "stroke-width")).toBeGreaterThan(0);
-      expect(svg.querySelector("pattern#pattern-fc-404040")).not.toBeNull();
+      // light lines on the dark colour of the scenario
+      const pattern = svg.querySelector("pattern#pattern-head-fc-404040")!;
+      expect(pattern.querySelector("rect")!.getAttribute("fill")).toBe("#404040");
+      expect(pattern.querySelector("line")!.getAttribute("stroke")).toBe("#ffffff");
     });
 
     const ARROW = 1.2 * HEAD;
@@ -431,7 +434,9 @@ describe("IBCS Table variance look", () => {
 
       expect(lines.length).toBe(2);
       expect(lines.map((line) => line.getAttribute("stroke"))).toEqual(["#404040", "#404040"]);
-      expect(num(lines[1], "x1") - num(lines[0], "x1")).toBeCloseTo(AXIS_WIDTH - 1, 3);
+      // two lines and the gap between them, each a third of the axis width
+      expect(num(lines[0], "stroke-width")).toBeCloseTo(AXIS_WIDTH / 3, 3);
+      expect(num(lines[1], "x1") - num(lines[0], "x1")).toBeCloseTo((2 * AXIS_WIDTH) / 3, 3);
     });
 
     it("is a dashed dark line for FC", async () => {
@@ -453,6 +458,50 @@ describe("IBCS Table variance look", () => {
 
       expect(svg.querySelector("g.variance-axis")).toBeNull();
       expect(directChildren(svg, "line")[0].getAttribute("stroke")).toBe("#666666");
+    });
+  });
+
+  describe("the IBCS layout of the columns", () => {
+    const table = (page: SpecPage): Element => page.root.shadowRoot.querySelector("table");
+    const headers = (page: SpecPage): Element[] => Array.from(table(page).querySelectorAll("thead tr:first-child th"));
+    const blockStarts = (cells: Element[]): string[] =>
+      cells.filter((cell) => cell.classList.contains("block-start")).map((cell) => cell.textContent.trim());
+
+    it("starts a block at the scenarios and at each pair of variances", async () => {
+      const scenarios = ["ac1", "pl1", "dac1_pl1_pos", "drac1_pl1_pos", "dac1_pp1_pos", "drac1_pp1_pos"];
+      const page = await renderColumn("pl1", { scenarios, barColumns: [] });
+
+      // category | AC PL | ΔPL ΔPL% | ΔPY ΔPY%
+      const starts = headers(page).map((th) => th.classList.contains("block-start"));
+      expect(starts).toEqual([false, true, false, true, false, true, false]);
+      // the body cells carry the same class, so the row lines stop at the gap
+      const firstRow = Array.from(table(page).querySelectorAll("tbody tr:first-child td"));
+      expect(firstRow.map((td) => td.classList.contains("block-start"))).toEqual(starts);
+      expect(blockStarts(headers(page)).length).toBe(3);
+      expect(table(page).getAttribute("style")).toContain("--bn-block-gap");
+    });
+
+    it("centres the header of a bar column only", async () => {
+      const page = await renderColumn("dac1_pl1_pos");
+
+      expect(headers(page).map((th) => th.classList.contains("barColumn"))).toEqual([false, false, true]);
+    });
+
+    it("draws a bar on 60% of the row, in the middle", async () => {
+      const svg = svgOf(await renderColumn("dac1_pl1_pos"), "A Up");
+      const [bar] = directChildren(svg, "rect");
+      const height = num(svg, "height");
+
+      expect(num(bar, "height")).toBeCloseTo(0.6 * height, 3);
+      expect(num(bar, "y")).toBeCloseTo(0.2 * height, 3);
+    });
+
+    it("marks a grouped list, but not a grouped calculation scheme", async () => {
+      const list = await renderColumn("pl1", { grouped: true, type: TableType.SUM });
+      expect(table(list).classList.contains("grouped-list")).toBe(true);
+
+      const scheme = await renderColumn("pl1", { grouped: true, type: TableType.OPT });
+      expect(table(scheme).classList.contains("grouped-list")).toBe(false);
     });
   });
 });
