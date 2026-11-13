@@ -6,6 +6,7 @@ import { VarianceScenario } from "../../../../utils/model/VarianceScenario";
 import {
   absoluteBarGeometry,
   BAR_LABEL_FONT_RATIO,
+  barBox,
   labelWidth,
   PIN_HEAD_SIZE,
   relativePinGeometry,
@@ -113,29 +114,66 @@ function getPatternId(prefix: string, color: string): string {
   return `pattern-${prefix}-${color.replace("#", "")}`;
 }
 
+/** The hatching of a pin head: light lines on the dark colour of the scenario, as IBCS draws it. */
+function getHeadPatternId(slot: string, color: string): string {
+  return getPatternId(`head-${slot}`, color);
+}
+
 /**
  * Renders SVG pattern definitions for hatched fills
  */
 export const PatternDefs: FunctionalComponent<{ styles: CellBarChartStyles }> = ({ styles }) => {
   const s = styles.scaleFactor;
-  const patternSize = 6 * s;
-  const patterns: { id: string; stroke: string; fill: string }[] = [
-    { id: getPatternId("pos", styles.positive.stroke), stroke: styles.positive.stroke, fill: styles.positive.fill },
-    { id: getPatternId("neg", styles.negative.stroke), stroke: styles.negative.stroke, fill: styles.negative.fill },
-    { id: getPatternId("neu", styles.neutral.stroke), stroke: styles.neutral.stroke, fill: styles.neutral.fill },
-    ...(["ac", "pp", "fc", "pl"] as const).map((type) => ({
-      id: getPatternId(type, styles.scenarios[type].stroke),
-      stroke: styles.scenarios[type].stroke,
-      fill: styles.scenarios[type].fill,
-    })),
+  const size = 3 * s;
+  const patterns: { id: string; line: string; background: string; lineWidth: number }[] = [
+    {
+      id: getPatternId("pos", styles.positive.stroke),
+      line: styles.positive.stroke,
+      background: "#ffffff",
+      lineWidth: 1,
+    },
+    {
+      id: getPatternId("neg", styles.negative.stroke),
+      line: styles.negative.stroke,
+      background: "#ffffff",
+      lineWidth: 1,
+    },
+    {
+      id: getPatternId("neu", styles.neutral.stroke),
+      line: styles.neutral.stroke,
+      background: "#ffffff",
+      lineWidth: 1,
+    },
+    ...(["ac", "pp", "fc", "pl"] as const).flatMap((type) => [
+      {
+        id: getPatternId(type, styles.scenarios[type].stroke),
+        line: styles.scenarios[type].stroke,
+        background: "#ffffff",
+        lineWidth: 1,
+      },
+      {
+        id: getHeadPatternId(type, styles.scenarios[type].stroke),
+        line: "#ffffff",
+        background: styles.scenarios[type].stroke,
+        lineWidth: 0.6,
+      },
+    ]),
+  ];
+  // the diagonal of the tile and its two ends in the next tiles, so the lines join without notches
+  const diagonals = [
+    [0, size, size, 0],
+    [-s, s, s, -s],
+    [size - s, size + s, size + s, size - s],
   ];
 
   return (
     <defs>
       {patterns.map((p) => (
-        <pattern id={p.id} patternUnits="userSpaceOnUse" width={patternSize} height={patternSize}>
-          <rect width={patternSize} height={patternSize} fill="#ffffff" />
-          <line x1="0" y1={patternSize} x2={patternSize} y2="0" stroke={p.stroke} stroke-width={1.5 * s} />
+        <pattern id={p.id} patternUnits="userSpaceOnUse" width={size} height={size}>
+          <rect width={size} height={size} fill={p.background} />
+          {diagonals.map(([x1, y1, x2, y2]) => (
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={p.line} stroke-width={p.lineWidth * s} />
+          ))}
         </pattern>
       ))}
     </defs>
@@ -283,9 +321,11 @@ export const VarianceAxis: FunctionalComponent<{
 
   let lines: unknown;
   if (reference.fillpattern === "outlined") {
-    const offset = width / 2 - 0.5 * s;
+    // two lines with a gap of their width, together as wide as a solid axis
+    const lineWidth = width / 3;
+    const offset = (width - lineWidth) / 2;
     lines = [x - offset, x + offset].map((lineX) => (
-      <line x1={lineX} y1={0} x2={lineX} y2={height} stroke={reference.stroke} stroke-width={1 * s} />
+      <line x1={lineX} y1={0} x2={lineX} y2={height} stroke={reference.stroke} stroke-width={lineWidth} />
     ));
   } else if (reference.fillpattern === "hatched") {
     lines = (
@@ -464,9 +504,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
   const overflowAmount = Math.max(0, scaledWidth - cutWidth);
   const overdriveWidth = maxOverflow > 0 ? (overflowAmount / maxOverflow) * overdriveZoneWidth : 0;
 
-  const padding = 2 * s;
-  const barHeight = height - padding * 2;
-  const barY = padding;
+  const { barY, barHeight } = barBox(height);
 
   // Get style based on column type (scenario vs variance)
   const look = getVarianceLook(scenario, styles);
@@ -653,7 +691,13 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
           y={centerY - headSize / 2}
           width={headSize}
           height={headSize}
-          fill={headStyle.fillpattern === "outlined" ? "#ffffff" : getBarFill(headStyle, look?.minuendSlot ?? "ac")}
+          fill={
+            headStyle.fillpattern === "outlined"
+              ? "#ffffff"
+              : headStyle.fillpattern === "hatched"
+                ? `url(#${getHeadPatternId(look?.minuendSlot ?? "ac", headStyle.stroke)})`
+                : headStyle.fill
+          }
           stroke={headStyle.stroke}
           stroke-width={1 * s}
         />

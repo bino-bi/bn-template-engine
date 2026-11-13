@@ -341,7 +341,7 @@ describe("IBCS Table Test", () => {
     expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"meta\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"percent\" show-measure-scale=\"\" sum-title=\"Sample Table Title\">
       <mock:shadow-root>
-    <table>
+    <table style=\"--bn-block-gap: 7.999979999999999px;\">
       <thead>
         <tr class=\"groupheader\">
           <th class=\"base headerlabel\" colspan=\"1\">
@@ -354,7 +354,7 @@ describe("IBCS Table Test", () => {
               <span class=\"table-footer\"></span>
             </span>
           </th>
-          <th class=\"columnGroup headerlabel\" colspan=\"1\">
+          <th class=\"block-start columnGroup headerlabel\" colspan=\"1\">
             <span>
               <span>
                 DE
@@ -410,7 +410,7 @@ describe("IBCS Table Test", () => {
               </span>
             </span>
           </th>
-          <th class=\"base headerlabel\" colspan=\"1\">
+          <th class=\"base block-start headerlabel\" colspan=\"1\">
             <span>
               <span>
                 ΔPY
@@ -436,7 +436,7 @@ describe("IBCS Table Test", () => {
               <span></span>
             </span>
           </th>
-          <th class=\"columnGroup pp1\" colspan=\"1\">
+          <th class=\"block-start columnGroup pp1\" colspan=\"1\">
             <span>
               <span></span>
             </span>
@@ -476,7 +476,7 @@ describe("IBCS Table Test", () => {
               <span></span>
             </span>
           </th>
-          <th class=\"base dac1_pp1_pos\" colspan=\"1\">
+          <th class=\"base block-start dac1_pp1_pos\" colspan=\"1\">
             <span>
               <span></span>
             </span>
@@ -498,7 +498,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Category C
           </td>
-          <td class=\"columnGroup percent\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent\" colspan=\"1\">
             <span class=\"columnGroup prefix-first\"></span>
             -
           </td>
@@ -530,7 +530,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             400,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -600,00
           </td>
@@ -548,7 +548,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-second\"></span>
             Category B
           </td>
-          <td class=\"columnGroup percent pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-second\"></span>
             1.000,00%
           </td>
@@ -580,7 +580,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-second\"></span>
             700,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-second\"></span>
             -1.300,00
           </td>
@@ -599,7 +599,7 @@ describe("IBCS Table Test", () => {
             </span>
             Category - SUB 1
           </td>
-          <td class=\"columnGroup percent pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             1.000,00%
           </td>
@@ -631,7 +631,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             300,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -700,00
           </td>
@@ -650,7 +650,7 @@ describe("IBCS Table Test", () => {
             </span>
             Category - SUB 2
           </td>
-          <td class=\"columnGroup percent\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent\" colspan=\"1\">
             <span class=\"columnGroup prefix-second\"></span>
             -
           </td>
@@ -682,7 +682,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-second\"></span>
             400,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-second\"></span>
             -600,00
           </td>
@@ -699,7 +699,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             REST
           </td>
-          <td class=\"columnGroup percent\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent\" colspan=\"1\">
             <span class=\"columnGroup prefix-first\"></span>
             -
           </td>
@@ -731,7 +731,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             100,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -900,00
           </td>
@@ -749,7 +749,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Services
           </td>
-          <td class=\"columnGroup percent pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             2.000,00%
           </td>
@@ -781,7 +781,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             1.200,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -2.800,00
           </td>
@@ -799,7 +799,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Category A
           </td>
-          <td class=\"columnGroup percent pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             2.000,00%
           </td>
@@ -831,7 +831,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             400,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -2.600,00
           </td>
@@ -851,7 +851,7 @@ describe("IBCS Table Test", () => {
             </span>
             Product
           </td>
-          <td class=\"columnGroup percent\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent\" colspan=\"1\">
             <span class=\"columnGroup prefix-first\"></span>
             -
           </td>
@@ -883,7 +883,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base prefix-first\"></span>
             -
           </td>
-          <td class=\"base percent\" colspan=\"1\">
+          <td class=\"base block-start percent\" colspan=\"1\">
             <span class=\"base prefix-first\"></span>
             100,00%
           </td>
@@ -902,7 +902,7 @@ describe("IBCS Table Test", () => {
             </span>
             Category - SUB 2
           </td>
-          <td class=\"columnGroup percent\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent\" colspan=\"1\">
             <span class=\"columnGroup prefix-first\"></span>
             -
           </td>
@@ -934,7 +934,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             200,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -800,00
           </td>
@@ -952,7 +952,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Product
           </td>
-          <td class=\"columnGroup percent pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             2.000,00%
           </td>
@@ -984,7 +984,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             400,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -2.600,00
           </td>
@@ -1002,7 +1002,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Sample Table Title
           </td>
-          <td class=\"columnGroup percent pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup percent pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             4.000,00%
           </td>
@@ -1034,7 +1034,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             1.600,00%
           </td>
-          <td class=\"base neg_pos percentpoint\" colspan=\"1\">
+          <td class=\"base block-start neg_pos percentpoint\" colspan=\"1\">
             <span class=\"base neg_pos prefix-first\"></span>
             -5.400,00
           </td>
@@ -1116,7 +1116,7 @@ describe("IBCS Table Test", () => {
     expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
       <mock:shadow-root>
-    <table>
+    <table style=\"--bn-block-gap: 7.999979999999999px;\">
       <thead>
         <tr class=\"groupheader\">
           <th class=\"base headerlabel\" colspan=\"1\">
@@ -1129,7 +1129,7 @@ describe("IBCS Table Test", () => {
               <span class=\"table-footer\"></span>
             </span>
           </th>
-          <th class=\"columnGroup headerlabel\" colspan=\"1\">
+          <th class=\"block-start columnGroup headerlabel\" colspan=\"1\">
             <span>
               <span>
                 DE
@@ -1185,7 +1185,7 @@ describe("IBCS Table Test", () => {
               </span>
             </span>
           </th>
-          <th class=\"base headerlabel\" colspan=\"1\">
+          <th class=\"base block-start headerlabel\" colspan=\"1\">
             <span>
               <span>
                 Δ(PY - AC)
@@ -1211,7 +1211,7 @@ describe("IBCS Table Test", () => {
               <span></span>
             </span>
           </th>
-          <th class=\"columnGroup pp1\" colspan=\"1\">
+          <th class=\"block-start columnGroup pp1\" colspan=\"1\">
             <span>
               <span></span>
             </span>
@@ -1251,7 +1251,7 @@ describe("IBCS Table Test", () => {
               <span></span>
             </span>
           </th>
-          <th class=\"base dpp1_ac1_pos\" colspan=\"1\">
+          <th class=\"base block-start dpp1_ac1_pos\" colspan=\"1\">
             <span>
               <span></span>
             </span>
@@ -1272,7 +1272,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base headerlabel prefix-first\"></span>
             Services
           </td>
-          <td class=\"columnGroup decimal headerlabel\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal headerlabel\" colspan=\"1\">
             <span class=\"columnGroup headerlabel prefix-first\"></span>
           </td>
           <td class=\"columnSubGroup decimal headerlabel\" colspan=\"1\">
@@ -1296,7 +1296,7 @@ describe("IBCS Table Test", () => {
           <td class=\"base decimal headerlabel\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
-          <td class=\"base decimal headerlabel\" colspan=\"1\">
+          <td class=\"base block-start decimal headerlabel\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
           <td class=\"base headerlabel percent\" colspan=\"1\">
@@ -1312,7 +1312,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Category C
           </td>
-          <td class=\"columnGroup decimal\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal\" colspan=\"1\">
             <span class=\"columnGroup prefix-first\"></span>
             -
           </td>
@@ -1344,7 +1344,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             4,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             6,0
           </td>
@@ -1362,7 +1362,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-second\"></span>
             Category B
           </td>
-          <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-second\"></span>
             10,0
           </td>
@@ -1394,7 +1394,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-second\"></span>
             7,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-second\"></span>
             13,0
           </td>
@@ -1413,7 +1413,7 @@ describe("IBCS Table Test", () => {
             </span>
             Category - SUB 1
           </td>
-          <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             10,0
           </td>
@@ -1445,7 +1445,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             3,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             7,0
           </td>
@@ -1464,7 +1464,7 @@ describe("IBCS Table Test", () => {
             </span>
             Category - SUB 2
           </td>
-          <td class=\"columnGroup decimal\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal\" colspan=\"1\">
             <span class=\"columnGroup prefix-second\"></span>
             -
           </td>
@@ -1496,7 +1496,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-second\"></span>
             4,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-second\"></span>
             6,0
           </td>
@@ -1513,7 +1513,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             REST
           </td>
-          <td class=\"columnGroup decimal\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal\" colspan=\"1\">
             <span class=\"columnGroup prefix-first\"></span>
             -
           </td>
@@ -1545,7 +1545,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             1,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             9,0
           </td>
@@ -1563,7 +1563,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Services
           </td>
-          <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             20,0
           </td>
@@ -1595,7 +1595,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             12,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             28,0
           </td>
@@ -1612,7 +1612,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base headerlabel prefix-first\"></span>
             Product
           </td>
-          <td class=\"columnGroup decimal headerlabel\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal headerlabel\" colspan=\"1\">
             <span class=\"columnGroup headerlabel prefix-first\"></span>
           </td>
           <td class=\"columnSubGroup decimal headerlabel\" colspan=\"1\">
@@ -1636,7 +1636,7 @@ describe("IBCS Table Test", () => {
           <td class=\"base decimal headerlabel\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
-          <td class=\"base decimal headerlabel\" colspan=\"1\">
+          <td class=\"base block-start decimal headerlabel\" colspan=\"1\">
             <span class=\"base headerlabel prefix-first\"></span>
           </td>
           <td class=\"base headerlabel percent\" colspan=\"1\">
@@ -1652,7 +1652,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Category A
           </td>
-          <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             20,0
           </td>
@@ -1684,7 +1684,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             4,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             26,0
           </td>
@@ -1703,7 +1703,7 @@ describe("IBCS Table Test", () => {
             </span>
             Category - SUB 2
           </td>
-          <td class=\"columnGroup decimal\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal\" colspan=\"1\">
             <span class=\"columnGroup prefix-first\"></span>
             -
           </td>
@@ -1735,7 +1735,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             2,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             8,0
           </td>
@@ -1753,7 +1753,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Product
           </td>
-          <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             20,0
           </td>
@@ -1785,7 +1785,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             4,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             26,0
           </td>
@@ -1803,7 +1803,7 @@ describe("IBCS Table Test", () => {
             <span class=\"base category-w100 prefix-first\"></span>
             Sample Table Title
           </td>
-          <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+          <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
             <span class=\"columnGroup pp1 prefix-first\"></span>
             40,0
           </td>
@@ -1835,7 +1835,7 @@ describe("IBCS Table Test", () => {
             <span class=\"ac1 base prefix-first\"></span>
             16,0
           </td>
-          <td class=\"base decimal pos_pos\" colspan=\"1\">
+          <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
             <span class=\"base pos_pos prefix-first\"></span>
             54,0
           </td>
@@ -1917,7 +1917,7 @@ describe("IBCS Table Test", () => {
     expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
          <mock:shadow-root>
-       <table>
+       <table style=\"--bn-block-gap: 7.999979999999999px;\">
          <thead>
            <tr class=\"groupheader\">
              <th class=\"base headerlabel\" colspan=\"1\">
@@ -1925,7 +1925,7 @@ describe("IBCS Table Test", () => {
                  <span class=\"table-footer\"></span>
                </span>
              </th>
-             <th class=\"columnGroup headerlabel\" colspan=\"1\">
+             <th class=\"block-start columnGroup headerlabel\" colspan=\"1\">
                <span>
                  <span>
                    DE
@@ -1981,7 +1981,7 @@ describe("IBCS Table Test", () => {
                  </span>
                </span>
              </th>
-             <th class=\"base headerlabel\" colspan=\"1\">
+             <th class=\"base block-start headerlabel\" colspan=\"1\">
                <span>
                  <span>
                    Δ(PY - AC)
@@ -2002,7 +2002,7 @@ describe("IBCS Table Test", () => {
                  <span></span>
                </span>
              </th>
-             <th class=\"columnGroup pp1\" colspan=\"1\">
+             <th class=\"block-start columnGroup pp1\" colspan=\"1\">
                <span>
                  <span></span>
                </span>
@@ -2042,7 +2042,7 @@ describe("IBCS Table Test", () => {
                  <span></span>
                </span>
              </th>
-             <th class=\"base dpp1_ac1_pos\" colspan=\"1\">
+             <th class=\"base block-start dpp1_ac1_pos\" colspan=\"1\">
                <span>
                  <span></span>
                </span>
@@ -2060,7 +2060,7 @@ describe("IBCS Table Test", () => {
                <span class=\"base category-w100 prefix-first\"></span>
                Category C
              </td>
-             <td class=\"columnGroup decimal\" colspan=\"1\">
+             <td class=\"block-start columnGroup decimal\" colspan=\"1\">
                <span class=\"columnGroup prefix-first\"></span>
                -
              </td>
@@ -2092,7 +2092,7 @@ describe("IBCS Table Test", () => {
                <span class=\"ac1 base prefix-first\"></span>
                4,0
              </td>
-             <td class=\"base decimal pos_pos\" colspan=\"1\">
+             <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                <span class=\"base pos_pos prefix-first\"></span>
                6,0
              </td>
@@ -2106,7 +2106,7 @@ describe("IBCS Table Test", () => {
                <span class=\"base category-w100 prefix-second\"></span>
                Category B
              </td>
-             <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+             <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                <span class=\"columnGroup pp1 prefix-second\"></span>
                10,0
              </td>
@@ -2138,7 +2138,7 @@ describe("IBCS Table Test", () => {
                <span class=\"ac1 base prefix-second\"></span>
                7,0
              </td>
-             <td class=\"base decimal pos_pos\" colspan=\"1\">
+             <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                <span class=\"base pos_pos prefix-second\"></span>
                13,0
              </td>
@@ -2154,7 +2154,7 @@ describe("IBCS Table Test", () => {
                </span>
                Category - SUB 1
              </td>
-             <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+             <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                <span class=\"columnGroup pp1 prefix-first\"></span>
                10,0
              </td>
@@ -2186,7 +2186,7 @@ describe("IBCS Table Test", () => {
                <span class=\"ac1 base prefix-first\"></span>
                3,0
              </td>
-             <td class=\"base decimal pos_pos\" colspan=\"1\">
+             <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                <span class=\"base pos_pos prefix-first\"></span>
                7,0
              </td>
@@ -2202,7 +2202,7 @@ describe("IBCS Table Test", () => {
                </span>
                Category - SUB 2
              </td>
-             <td class=\"columnGroup decimal\" colspan=\"1\">
+             <td class=\"block-start columnGroup decimal\" colspan=\"1\">
                <span class=\"columnGroup prefix-second\"></span>
                -
              </td>
@@ -2234,7 +2234,7 @@ describe("IBCS Table Test", () => {
                <span class=\"ac1 base prefix-second\"></span>
                4,0
              </td>
-             <td class=\"base decimal pos_pos\" colspan=\"1\">
+             <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                <span class=\"base pos_pos prefix-second\"></span>
                6,0
              </td>
@@ -2248,7 +2248,7 @@ describe("IBCS Table Test", () => {
                <span class=\"base category-w100 prefix-first\"></span>
                REST
              </td>
-             <td class=\"columnGroup decimal\" colspan=\"1\">
+             <td class=\"block-start columnGroup decimal\" colspan=\"1\">
                <span class=\"columnGroup prefix-first\"></span>
                -
              </td>
@@ -2280,7 +2280,7 @@ describe("IBCS Table Test", () => {
                <span class=\"ac1 base prefix-first\"></span>
                5,0
              </td>
-             <td class=\"base decimal pos_pos\" colspan=\"1\">
+             <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                <span class=\"base pos_pos prefix-first\"></span>
                35,0
              </td>
@@ -2362,7 +2362,7 @@ describe("IBCS Table Test", () => {
     expect(withoutDataPointAttributes(page.root))
       .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
           <mock:shadow-root>
-        <table>
+        <table style=\"--bn-block-gap: 7.999979999999999px;\">
           <thead>
             <tr class=\"groupheader\">
               <th class=\"base headerlabel\" colspan=\"1\">
@@ -2375,7 +2375,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"table-footer\"></span>
                 </span>
               </th>
-              <th class=\"columnGroup headerlabel\" colspan=\"1\">
+              <th class=\"block-start columnGroup headerlabel\" colspan=\"1\">
                 <span>
                   <span>
                     DE
@@ -2431,7 +2431,7 @@ describe("IBCS Table Test", () => {
                   </span>
                 </span>
               </th>
-              <th class=\"base headerlabel\" colspan=\"1\">
+              <th class=\"base block-start headerlabel\" colspan=\"1\">
                 <span>
                   <span>
                     Δ(PY - AC)
@@ -2457,7 +2457,7 @@ describe("IBCS Table Test", () => {
                   <span></span>
                 </span>
               </th>
-              <th class=\"columnGroup pp1\" colspan=\"1\">
+              <th class=\"block-start columnGroup pp1\" colspan=\"1\">
                 <span>
                   <span></span>
                 </span>
@@ -2497,7 +2497,7 @@ describe("IBCS Table Test", () => {
                   <span></span>
                 </span>
               </th>
-              <th class=\"base dpp1_ac1_pos\" colspan=\"1\">
+              <th class=\"base block-start dpp1_ac1_pos\" colspan=\"1\">
                 <span>
                   <span></span>
                 </span>
@@ -2518,7 +2518,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base headerlabel prefix-first\"></span>
                 Services
               </td>
-              <td class=\"columnGroup decimal headerlabel\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal headerlabel\" colspan=\"1\">
                 <span class=\"columnGroup headerlabel prefix-first\"></span>
               </td>
               <td class=\"columnSubGroup decimal headerlabel\" colspan=\"1\">
@@ -2542,7 +2542,7 @@ describe("IBCS Table Test", () => {
               <td class=\"base decimal headerlabel\" colspan=\"1\">
                 <span class=\"base headerlabel prefix-first\"></span>
               </td>
-              <td class=\"base decimal headerlabel\" colspan=\"1\">
+              <td class=\"base block-start decimal headerlabel\" colspan=\"1\">
                 <span class=\"base headerlabel prefix-first\"></span>
               </td>
               <td class=\"base headerlabel percent\" colspan=\"1\">
@@ -2558,7 +2558,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base category-w100 prefix-first\"></span>
                 Category C
               </td>
-              <td class=\"columnGroup decimal\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal\" colspan=\"1\">
                 <span class=\"columnGroup prefix-first\"></span>
                 -
               </td>
@@ -2590,7 +2590,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"ac1 base prefix-first\"></span>
                 4,0
               </td>
-              <td class=\"base decimal pos_pos\" colspan=\"1\">
+              <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                 <span class=\"base pos_pos prefix-first\"></span>
                 6,0
               </td>
@@ -2608,7 +2608,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base category-w100 prefix-second\"></span>
                 Category B
               </td>
-              <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                 <span class=\"columnGroup pp1 prefix-second\"></span>
                 10,0
               </td>
@@ -2640,7 +2640,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"ac1 base prefix-second\"></span>
                 7,0
               </td>
-              <td class=\"base decimal pos_pos\" colspan=\"1\">
+              <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                 <span class=\"base pos_pos prefix-second\"></span>
                 13,0
               </td>
@@ -2657,7 +2657,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base category-w100 prefix-first\"></span>
                 REST
               </td>
-              <td class=\"columnGroup decimal\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal\" colspan=\"1\">
                 <span class=\"columnGroup prefix-first\"></span>
                 -
               </td>
@@ -2689,7 +2689,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"ac1 base prefix-first\"></span>
                 1,0
               </td>
-              <td class=\"base decimal pos_pos\" colspan=\"1\">
+              <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                 <span class=\"base pos_pos prefix-first\"></span>
                 9,0
               </td>
@@ -2707,7 +2707,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base category-w100 prefix-first\"></span>
                 Services
               </td>
-              <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                 <span class=\"columnGroup pp1 prefix-first\"></span>
                 20,0
               </td>
@@ -2739,7 +2739,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"ac1 base prefix-first\"></span>
                 12,0
               </td>
-              <td class=\"base decimal pos_pos\" colspan=\"1\">
+              <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                 <span class=\"base pos_pos prefix-first\"></span>
                 28,0
               </td>
@@ -2756,7 +2756,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base headerlabel prefix-first\"></span>
                 Product
               </td>
-              <td class=\"columnGroup decimal headerlabel\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal headerlabel\" colspan=\"1\">
                 <span class=\"columnGroup headerlabel prefix-first\"></span>
               </td>
               <td class=\"columnSubGroup decimal headerlabel\" colspan=\"1\">
@@ -2780,7 +2780,7 @@ describe("IBCS Table Test", () => {
               <td class=\"base decimal headerlabel\" colspan=\"1\">
                 <span class=\"base headerlabel prefix-first\"></span>
               </td>
-              <td class=\"base decimal headerlabel\" colspan=\"1\">
+              <td class=\"base block-start decimal headerlabel\" colspan=\"1\">
                 <span class=\"base headerlabel prefix-first\"></span>
               </td>
               <td class=\"base headerlabel percent\" colspan=\"1\">
@@ -2796,7 +2796,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base category-w100 prefix-first\"></span>
                 Category A
               </td>
-              <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                 <span class=\"columnGroup pp1 prefix-first\"></span>
                 20,0
               </td>
@@ -2828,7 +2828,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"ac1 base prefix-first\"></span>
                 4,0
               </td>
-              <td class=\"base decimal pos_pos\" colspan=\"1\">
+              <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                 <span class=\"base pos_pos prefix-first\"></span>
                 26,0
               </td>
@@ -2847,7 +2847,7 @@ describe("IBCS Table Test", () => {
                 </span>
                 Category - SUB 2
               </td>
-              <td class=\"columnGroup decimal\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal\" colspan=\"1\">
                 <span class=\"columnGroup prefix-first\"></span>
                 -
               </td>
@@ -2879,7 +2879,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"ac1 base prefix-first\"></span>
                 2,0
               </td>
-              <td class=\"base decimal pos_pos\" colspan=\"1\">
+              <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                 <span class=\"base pos_pos prefix-first\"></span>
                 8,0
               </td>
@@ -2897,7 +2897,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"base category-w100 prefix-first\"></span>
                 Product
               </td>
-              <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+              <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                 <span class=\"columnGroup pp1 prefix-first\"></span>
                 20,0
               </td>
@@ -2929,7 +2929,7 @@ describe("IBCS Table Test", () => {
                 <span class=\"ac1 base prefix-first\"></span>
                 4,0
               </td>
-              <td class=\"base decimal pos_pos\" colspan=\"1\">
+              <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                 <span class=\"base pos_pos prefix-first\"></span>
                 26,0
               </td>
@@ -3123,7 +3123,7 @@ describe("IBCS Table Test", () => {
       expect(withoutDataPointAttributes(page.root))
         .toEqualHtml(`<bn-table-renderer category-width=\"w100\" i18n-mode=\"all\" measure-scale=\"_\" measure-type=\"volume\" scenarios-data-format=\"decimal\" sum-title=\"Sample Table Title\">
             <mock:shadow-root>
-          <table>
+          <table class=\"grouped-list\" style=\"--bn-block-gap: 7.999979999999999px;\">
             <thead>
               <tr class=\"groupheader\">
                 <th class=\"base headerlabel\" colspan=\"1\">
@@ -3131,7 +3131,7 @@ describe("IBCS Table Test", () => {
                     <span class=\"table-footer\"></span>
                   </span>
                 </th>
-                <th class=\"columnGroup headerlabel\" colspan=\"1\">
+                <th class=\"block-start columnGroup headerlabel\" colspan=\"1\">
                   <span>
                     <span>
                       DE
@@ -3187,7 +3187,7 @@ describe("IBCS Table Test", () => {
                     </span>
                   </span>
                 </th>
-                <th class=\"base headerlabel\" colspan=\"1\">
+                <th class=\"base block-start headerlabel\" colspan=\"1\">
                   <span>
                     <span>
                       Δ(PY - AC)
@@ -3208,7 +3208,7 @@ describe("IBCS Table Test", () => {
                     <span></span>
                   </span>
                 </th>
-                <th class=\"columnGroup pp1\" colspan=\"1\">
+                <th class=\"block-start columnGroup pp1\" colspan=\"1\">
                   <span>
                     <span></span>
                   </span>
@@ -3248,7 +3248,7 @@ describe("IBCS Table Test", () => {
                     <span></span>
                   </span>
                 </th>
-                <th class=\"base dpp1_ac1_pos\" colspan=\"1\">
+                <th class=\"base block-start dpp1_ac1_pos\" colspan=\"1\">
                   <span>
                     <span></span>
                   </span>
@@ -3266,7 +3266,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"base headerlabel prefix-first\"></span>
                   Services
                 </td>
-                <td class=\"columnGroup decimal headerlabel\" colspan=\"1\">
+                <td class=\"block-start columnGroup decimal headerlabel\" colspan=\"1\">
                   <span class=\"columnGroup headerlabel prefix-first\"></span>
                 </td>
                 <td class=\"columnSubGroup decimal headerlabel\" colspan=\"1\">
@@ -3290,7 +3290,7 @@ describe("IBCS Table Test", () => {
                 <td class=\"base decimal headerlabel\" colspan=\"1\">
                   <span class=\"base headerlabel prefix-first\"></span>
                 </td>
-                <td class=\"base decimal headerlabel\" colspan=\"1\">
+                <td class=\"base block-start decimal headerlabel\" colspan=\"1\">
                   <span class=\"base headerlabel prefix-first\"></span>
                 </td>
                 <td class=\"base headerlabel percent\" colspan=\"1\">
@@ -3302,7 +3302,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"base category-w100 prefix-first\"></span>
                   Category A
                 </td>
-                <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+                <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                   <span class=\"columnGroup pp1 prefix-first\"></span>
                   10,0
                 </td>
@@ -3334,7 +3334,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"ac1 base prefix-first\"></span>
                   1,0
                 </td>
-                <td class=\"base decimal pos_pos\" colspan=\"1\">
+                <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                   <span class=\"base pos_pos prefix-first\"></span>
                   9,0
                 </td>
@@ -3348,7 +3348,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"base category-w100 prefix-first\"></span>
                   Services
                 </td>
-                <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+                <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                   <span class=\"columnGroup pp1 prefix-first\"></span>
                   10,0
                 </td>
@@ -3380,7 +3380,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"ac1 base prefix-first\"></span>
                   1,0
                 </td>
-                <td class=\"base decimal pos_pos\" colspan=\"1\">
+                <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                   <span class=\"base pos_pos prefix-first\"></span>
                   9,0
                 </td>
@@ -3394,7 +3394,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"base category-w100 prefix-first\"></span>
                   Sample Table Title
                 </td>
-                <td class=\"columnGroup decimal pp1\" colspan=\"1\">
+                <td class=\"block-start columnGroup decimal pp1\" colspan=\"1\">
                   <span class=\"columnGroup pp1 prefix-first\"></span>
                   10,0
                 </td>
@@ -3426,7 +3426,7 @@ describe("IBCS Table Test", () => {
                   <span class=\"ac1 base prefix-first\"></span>
                   1,0
                 </td>
-                <td class=\"base decimal pos_pos\" colspan=\"1\">
+                <td class=\"base block-start decimal pos_pos\" colspan=\"1\">
                   <span class=\"base pos_pos prefix-first\"></span>
                   9,0
                 </td>

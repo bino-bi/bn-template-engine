@@ -42,7 +42,7 @@ import { estimateLabelWidth } from "../utils/helper/barColumnGeometry";
 
 const EM = 13.3333; // SYSTEM_STYLE_DEFAULTS.global.fontSizePx, scaleFactor 1
 const LABEL_FONT = EM * 0.85;
-const HEAD = 10; // pin head side at scaleFactor 1
+const HEAD = 8; // pin head side at scaleFactor 1
 /** Every glyph of the stubbed font is 0.45 em wide, narrower than the estimate. */
 const GLYPH_EM = 0.45;
 /** What labelWidth returns for a measured label: the width plus its pad. */

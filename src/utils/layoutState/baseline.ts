@@ -67,7 +67,12 @@ export function readTableBaseline(table: Element | null | undefined, host: Eleme
   const isRowHeader = (cell: Element) => cell.classList.contains("category") || cell.classList.contains("operation");
   const valueCell = cells.some(isRowHeader) ? cells.find((cell) => !isRowHeader(cell)) : cells[1];
   if (valueCell) {
-    baseline.x = round2(frame.toLocal(valueCell.getBoundingClientRect()).x);
+    // a block gap is a transparent left border: the column starts after it
+    const gap =
+      valueCell.classList.contains("block-start") && typeof getComputedStyle === "function"
+        ? parseFloat(getComputedStyle(valueCell).borderLeftWidth) || 0
+        : 0;
+    baseline.x = round2(frame.toLocal(valueCell.getBoundingClientRect()).x + gap);
   }
   return baseline;
 }

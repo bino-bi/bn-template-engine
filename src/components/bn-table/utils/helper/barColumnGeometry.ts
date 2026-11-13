@@ -38,7 +38,15 @@ const OVERDRIVE_FRACTION = 0.15;
 /** Width of the axis of a variance bar or pin, in em: near the 0.3em scenario marker in the header. */
 export const VARIANCE_AXIS_EM = 0.25;
 /** Side of the square pin head, in px before scaleFactor. */
-export const PIN_HEAD_SIZE = 10;
+export const PIN_HEAD_SIZE = 8;
+/** Height of a bar in svg heights: IBCS leaves almost half the row free. */
+const BAR_HEIGHT_RATIO = 0.6;
+
+/** Top edge and height of a bar centred in an svg of the given height. */
+export function barBox(height: number): { barY: number; barHeight: number } {
+  const barHeight = height * BAR_HEIGHT_RATIO;
+  return { barY: (height - barHeight) / 2, barHeight };
+}
 
 /**
  * Advance widths in em, the larger of Noto Sans and Arial. The engine ships no font, so a

@@ -157,6 +157,22 @@ describe("IBCS Table interval columns", () => {
     expect(cells[2].getAttribute("colspan")).toBe("2");
   });
 
+  it("starts a block at every bucket, in the band row and in the rows below it", async () => {
+    const page = await renderTable({ scenarios: ["ac1", "pp1"] });
+    const isStart = (cell: Element) => cell.classList.contains("block-start");
+
+    // the band cells span the two scenarios of a bucket, so the column of a cell is not its index
+    const band = bandCells(page);
+    expect(band.slice(1).every((cell) => cell.getAttribute("colspan") === "2")).toBe(true);
+    expect(band.map(isStart)).toEqual([false, ...band.slice(1).map(() => true)]);
+
+    // category | AC PY | AC PY | ...: the first scenario of every bucket
+    const labels = Array.from(headerRows(page)[1].querySelectorAll("th"));
+    expect(labels.map(isStart)).toEqual(labels.map((_, i) => i > 0 && i % 2 === 1));
+    const body = Array.from(page.root.shadowRoot.querySelectorAll("tbody tr:first-child td"));
+    expect(body.map(isStart)).toEqual(labels.map(isStart));
+  });
+
   it("renders no band row when interval is none", async () => {
     const page = await renderTable({ interval: "none" });
 

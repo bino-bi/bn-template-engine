@@ -13,7 +13,13 @@ import {
   VarianceAxis,
 } from "./CellBarChart";
 import { WaterfallBarData, WaterfallRowKind } from "../helper/WaterfallCalculator";
-import { labelWidth, VARIANCE_AXIS_EM, waterfallGeometry, WaterfallGeometry } from "../helper/barColumnGeometry";
+import {
+  barBox,
+  labelWidth,
+  VARIANCE_AXIS_EM,
+  waterfallGeometry,
+  WaterfallGeometry,
+} from "../helper/barColumnGeometry";
 
 export interface WaterfallBarProps extends CellBarChartProps {
   waterfall: WaterfallBarData;
@@ -94,9 +100,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const pxPerUnit = barAreaWidth / range;
   const xOf = (coordinate: number) => labelAreaLeft + (coordinate - waterfall.min) * pxPerUnit;
 
-  const padding = 2 * s;
-  const barHeight = height - padding * 2;
-  const barY = padding;
+  const { barY, barHeight } = barBox(height);
   const axisX = xOf(0);
 
   const startX = xOf(waterfall.start);
