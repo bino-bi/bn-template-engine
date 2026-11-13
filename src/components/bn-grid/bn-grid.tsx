@@ -734,6 +734,9 @@ export class Grid {
             <div
               key={`cell-${slotName}`}
               class="grid-cell"
+              // a cell is as high as its content: no height in it is a limit for that content
+              // (see findConstrainedHeight in utils/parentDimensions)
+              data-bn-fit-content=""
               style={{
                 "grid-column": String(startCol + colIndex),
                 "grid-row": String(startRow + rowIndex),
