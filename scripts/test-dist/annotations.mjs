@@ -586,15 +586,9 @@ for (const [name, contextAttrs, pageAttrs, scale] of [
     const spare = Math.max(text.x - oval.x, oval.y + oval.height - (text.y + text.height));
     assert.ok(spare > (0.45 * 13 + 3) * scale, `the sign is in the box: ${JSON.stringify({ oval, text })}`);
 
-    // the marker stays clear of the sign, which is about 7.5 layout px wide
+    // the marker stays clear of the number. B is negative: its sign is part of the text
     const markerText = await textBoxOf(page, "plain", 'td[data-bn-category="B"][data-bn-scenario="dac1_pl1_pos"]');
-    const withSign = {
-      x: markerText.x - 7 * scale,
-      y: markerText.y,
-      width: markerText.width + 7 * scale,
-      height: markerText.height + (contextAttrs ? 7 * scale : 0),
-    };
-    assert.ok(disjoint(marks[0].circle, withSign), JSON.stringify({ circle: marks[0].circle, withSign }));
+    assert.ok(disjoint(marks[0].circle, markerText), JSON.stringify({ circle: marks[0].circle, markerText }));
 
     // a bar cell: the oval goes around the number, not around the whole bar
     assertSurrounds(marks[2].rect, result.barNumber, "oval around the number of a bar");
