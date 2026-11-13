@@ -86,14 +86,17 @@ function getVisualParent(element: HTMLElement): HTMLElement | null {
  * height as a last resort.
  *
  * Ancestors inside a fit-content layout region (marked with
- * `data-bn-fit-content` by bn-layout-page / bn-layout-card) are skipped
+ * `data-bn-fit-content` by bn-layout-page / bn-layout-card, and by every
+ * cell of bn-grid and node of bn-tree) are skipped
  * even when they clip overflow: their height is derived from their own
  * content - including the measuring component itself - so using it for
  * auto-scaling creates a feedback loop where the chart inflates the cell
  * and then reads the inflated cell back as "available height". The marker
  * value carries the grid's row count; the constraint found above the
  * fit-content region is divided by it, approximating the equal-share cell
- * height the same layout would produce with fit-to-content disabled.
+ * height the same layout would produce with fit-to-content disabled. A grid
+ * cell and a tree node carry no row count: their content gets the same
+ * height with and without a card around it.
  */
 function findConstrainedHeight(element: HTMLElement, debug = false): number {
   let current: HTMLElement | null = findLayoutParent(element);

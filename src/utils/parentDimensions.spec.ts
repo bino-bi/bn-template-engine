@@ -1,4 +1,4 @@
-import { getClippedHeight } from "./parentDimensions";
+import { getClippedHeight, getParentDimensions } from "./parentDimensions";
 
 interface FakeElement {
   overflowY: string;
@@ -132,5 +132,71 @@ describe("getClippedHeight", () => {
     const rotated = box(0, 800, "hidden", { layout: { width: 800, height: 200 } });
 
     expect(clipped(rotated, 424)).toBe(0);
+  });
+});
+
+interface FakeNode {
+  overflowY: string;
+  clientHeight: number;
+  marker: string | null;
+  parentElement: FakeNode | null;
+}
+
+/** An ancestor of the measured element: its overflow, its height and its `data-bn-fit-content` value. */
+const node = (overflowY: string, clientHeight: number, parent: FakeNode | null, marker: string | null = null) => ({
+  overflowY,
+  clientHeight,
+  marker,
+  parentElement: parent,
+  assignedSlot: null,
+  clientWidth: 400,
+  hasAttribute: () => marker !== null,
+  getAttribute: () => marker,
+  getRootNode: () => ({}),
+});
+
+const availableHeight = (parent: FakeNode): number =>
+  getParentDimensions({ parentElement: parent, assignedSlot: null } as unknown as HTMLElement).height;
+
+describe("getParentDimensions height", () => {
+  const original = (global as any).getComputedStyle;
+
+  beforeAll(() => {
+    (global as any).getComputedStyle = (element: FakeNode) => ({
+      overflowY: element.overflowY,
+      maxHeight: "none",
+      paddingTop: "0",
+      paddingBottom: "0",
+      paddingLeft: "0",
+      paddingRight: "0",
+    });
+  });
+
+  afterAll(() => {
+    (global as any).getComputedStyle = original;
+  });
+
+  it("is the height of the nearest ancestor that hides its overflow", () => {
+    const pageCell = node("hidden", 600, null);
+    const cardSlot = node("hidden", 300, node("visible", 300, pageCell));
+
+    expect(availableHeight(cardSlot)).toBe(300);
+  });
+
+  it("skips a card that a grid cell sizes from its content", () => {
+    const pageCell = node("hidden", 600, null);
+    const gridCell = node("visible", 57, node("visible", 240, pageCell), "");
+    // the card is as high as the chart in it, and it hides its overflow
+    const cardSlot = node("hidden", 56, node("hidden", 57, gridCell));
+
+    expect(availableHeight(cardSlot)).toBe(600);
+  });
+
+  it("divides by the row count of a fit-content layout, not by a grid cell", () => {
+    const pageCell = node("hidden", 600, null);
+    const fitContentRows = node("visible", 500, pageCell, "2");
+    const gridCell = node("visible", 57, node("visible", 240, fitContentRows), "");
+
+    expect(availableHeight(node("hidden", 56, gridCell))).toBe(300);
   });
 });

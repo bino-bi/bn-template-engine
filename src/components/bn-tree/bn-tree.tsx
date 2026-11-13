@@ -651,7 +651,9 @@ export class ChartTree {
     }
 
     return Array.from(this.treeConfig.allNodes).map((nodeId) => (
-      <div key={nodeId} class="tree-node" style={this.getSlotStyle(nodeId)}>
+      // data-bn-fit-content: a node is as high as its content, so no height in it is a limit
+      // for that content (see findConstrainedHeight in utils/parentDimensions)
+      <div key={nodeId} class="tree-node" data-bn-fit-content="" style={this.getSlotStyle(nodeId)}>
         <slot name={nodeId} />
       </div>
     ));
