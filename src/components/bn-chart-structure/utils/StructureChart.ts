@@ -1112,7 +1112,7 @@ export class StructureChart {
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       if (elements["type"] === VarianceType.RELATIVE) {
-        scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw();
+        scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits);
       } else {
         scenarioFactory.createVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
       }

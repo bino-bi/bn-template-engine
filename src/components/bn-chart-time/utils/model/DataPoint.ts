@@ -23,6 +23,12 @@ export class DataPoint {
   public variance: Scenario | string;
   /** The data row this point shows. Written as `data-bn-*` attributes on what is drawn for it. */
   public key?: DataPointKey;
+  /** Scenario type (`pl`, `fc`, ...) a variance is drawn in. Only set in a row that several variances share. */
+  public notation?: string;
+  /** Relative variances beyond this fraction are cut. Infinity when the chart has room for the full pin. */
+  public percentClamp: number = DataPoint.PERCENT_CLAMP;
+
+  static readonly PERCENT_CLAMP = 1.45;
 
   constructor(
     value: number | null | undefined,
@@ -59,7 +65,7 @@ export class DataPoint {
   }
 
   /**
-   * Returns the percentage value scaled to pixel height, clipped at +/-145%.
+   * Returns the percentage value scaled to pixel height, clipped at +/-145% unless the clamp is lifted.
    *
    * Values beyond +/-1.45 (145%) are clamped to prevent extreme bars from
    * distorting the chart layout. Use {@link isClipped} to check if clipping occurred.
@@ -69,12 +75,12 @@ export class DataPoint {
       return 0;
     }
 
-    if (this.value > 1.45) {
-      return 1.45 * this.pixelPerUnit;
+    if (this.value > this.percentClamp) {
+      return this.percentClamp * this.pixelPerUnit;
     }
 
-    if (this.value < -1.45) {
-      return -1.45 * this.pixelPerUnit;
+    if (this.value < -this.percentClamp) {
+      return -this.percentClamp * this.pixelPerUnit;
     }
 
     return this.value * this.pixelPerUnit;
@@ -111,7 +117,7 @@ export class DataPoint {
       return false;
     }
 
-    return Math.abs(this.value) > 1.45;
+    return Math.abs(this.value) > this.percentClamp;
   }
 
   /** Returns the fixed display value (145) shown on clipped percentage bars. */

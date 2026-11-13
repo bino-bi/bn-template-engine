@@ -123,6 +123,11 @@ export class DateStringFactory {
     this.dateFormatShortPinned = true;
   }
 
+  /** Replaces single short patterns and keeps the rest. Call it after `setLocale`. */
+  public patchDateFormatShort(patterns: Partial<DateFormat>) {
+    this.dateFormatShort = { ...this.dateFormatShort, ...patterns } as DateFormat;
+  }
+
   /**
    * Selects the locale used for Luxon's localized tokens and swaps in the
    * locale's pattern overrides. An explicit `setDateFormat` /

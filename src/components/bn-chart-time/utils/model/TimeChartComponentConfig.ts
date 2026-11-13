@@ -59,6 +59,12 @@ export class TimeChartComponentConfig {
   public stackConfig: StackConfigParsed | null = null;
   /** When true, line charts extend to the full width of the chart area. */
   public lineFullWidth: boolean = true;
+  /** Print every n-th category label only. */
+  public axisLabelsStep: number = 1;
+  /** One series that changes its scenario along the time axis, see `bn-chart-time`. */
+  public scenarioSwitch: boolean = false;
+  /** Side of the axis title: left, right or none. */
+  public axisTitlePosition: string = "left";
   /** Locale used for date-axis labels and SQL date normalization; set from the bn-context locale. */
   public locale: string = "de";
   constructor(
@@ -172,6 +178,18 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isBoolean(data.lineFullWidth)) {
       config.lineFullWidth = data.lineFullWidth;
+    }
+
+    if (CompareUtil.isNumber(data.axisLabelsStep) && data.axisLabelsStep >= 1) {
+      config.axisLabelsStep = data.axisLabelsStep;
+    }
+
+    if (CompareUtil.isBoolean(data.scenarioSwitch)) {
+      config.scenarioSwitch = data.scenarioSwitch;
+    }
+
+    if (CompareUtil.isString(data.axisTitlePosition)) {
+      config.axisTitlePosition = data.axisTitlePosition;
     }
 
     if (CompareUtil.isString(data.locale)) {

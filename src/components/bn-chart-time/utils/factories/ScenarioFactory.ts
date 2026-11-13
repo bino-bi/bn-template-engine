@@ -104,14 +104,14 @@ export class ScenarioFactory {
     ).updateLabelGroup(labelGroup);
   }
 
-  public createPrimaryBar(dataPoint: DataPoint, index: number): Column {
+  public createPrimaryBar(dataPoint: DataPoint, index: number, withScenarioLabel: boolean = true): Column {
     const isPrimaryColumn = true;
     const columnGroup = this.svgGroups.scenario1.group().id("" + index);
     const labelGroup = this.svgGroups.scenario1Label.group().id("" + index);
 
     let columnLabel: string | null = null;
 
-    if (this.isLastDataPoint(index)) {
+    if (withScenarioLabel && this.isLastDataPoint(index)) {
       columnLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 

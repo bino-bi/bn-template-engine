@@ -681,6 +681,16 @@ export namespace Components {
          */
         "chartTitle": string;
         /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal": number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances, shares of a 100 % stack)
+          * @default 2
+         */
+        "dataFormatDigitsPercent": number;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -752,7 +762,7 @@ export namespace Components {
          */
         "scale"?: string;
         /**
-          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) |
+          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) | | `"none"`      | Draw no scenario: the chart shows only its variances, the first one carries the categories |
           * @example scenarios="ac1,pp1,pl1"
          */
         "scenarios": string;
@@ -898,6 +908,16 @@ export namespace Components {
          */
         "axisLabelsMode": string;
         /**
+          * Prints only every n-th category label, starting with the first period. 2 labels every second period. Bar mode only.
+          * @default 1
+         */
+        "axisLabelsStep": number;
+        /**
+          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // none```
+          * @default "left"
+         */
+        "axisTitlePosition": string;
+        /**
           * Chart Mode - controls how the chart is rendered <br /><br /> values:<br /> ```bar // line // auto``` <br /><br /> When set to 'auto', the chart will switch to line mode when the number of data points exceeds maxBars.
           * @default "bar"
          */
@@ -907,6 +927,16 @@ export namespace Components {
           * @default ""
          */
         "chartTitle": string;
+        /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal": number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances)
+          * @default 2
+         */
+        "dataFormatDigitsPercent": number;
         /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
@@ -973,7 +1003,12 @@ export namespace Components {
          */
         "scale"?: string;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
+          * For a series that changes its scenario along the time axis, for example AC up to this year and PL after it. In a period where the first scenario has no value, the next scenario with a value is drawn in its place with its value label. A vertical line marks the change, and the scenario names stand under the axis. Variances with the same reference and type share one row. Bar mode without stack only.
+          * @default false
+         */
+        "scenarioSwitch": boolean;
+        /**
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.  When set to ```none```, no scenario is drawn: the chart shows only its variances,  and the lowest variance carries the category labels.
          */
         "scenarios": string;
         /**
@@ -1025,6 +1060,14 @@ export namespace Components {
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode": AxisLabelsMode;
+        /**
+          * @default 1
+         */
+        "axisLabelsStep": number;
+        /**
+          * @default "left"
+         */
+        "axisTitlePosition": string;
         /**
           * @default ChartMode.BAR
          */
@@ -1104,6 +1147,10 @@ export namespace Components {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default false
+         */
+        "scenarioSwitch": boolean;
         /**
           * @default []
          */
@@ -3218,6 +3265,16 @@ declare namespace LocalJSX {
          */
         "chartTitle"?: string;
         /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal"?: number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances, shares of a 100 % stack)
+          * @default 2
+         */
+        "dataFormatDigitsPercent"?: number;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -3280,7 +3337,7 @@ declare namespace LocalJSX {
          */
         "scale"?: string;
         /**
-          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) |
+          * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) | | `"none"`      | Draw no scenario: the chart shows only its variances, the first one carries the categories |
           * @example scenarios="ac1,pp1,pl1"
          */
         "scenarios": string;
@@ -3426,6 +3483,16 @@ declare namespace LocalJSX {
          */
         "axisLabelsMode": string;
         /**
+          * Prints only every n-th category label, starting with the first period. 2 labels every second period. Bar mode only.
+          * @default 1
+         */
+        "axisLabelsStep"?: number;
+        /**
+          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // none```
+          * @default "left"
+         */
+        "axisTitlePosition"?: string;
+        /**
           * Chart Mode - controls how the chart is rendered <br /><br /> values:<br /> ```bar // line // auto``` <br /><br /> When set to 'auto', the chart will switch to line mode when the number of data points exceeds maxBars.
           * @default "bar"
          */
@@ -3435,6 +3502,16 @@ declare namespace LocalJSX {
           * @default ""
          */
         "chartTitle"?: string;
+        /**
+          * Number of decimal digits of the value labels
+          * @default 1
+         */
+        "dataFormatDigitsDecimal"?: number;
+        /**
+          * Number of decimal digits of the percent labels (relative variances)
+          * @default 2
+         */
+        "dataFormatDigitsPercent"?: number;
         /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
@@ -3492,7 +3569,12 @@ declare namespace LocalJSX {
          */
         "scale"?: string;
         /**
-          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.
+          * For a series that changes its scenario along the time axis, for example AC up to this year and PL after it. In a period where the first scenario has no value, the next scenario with a value is drawn in its place with its value label. A vertical line marks the change, and the scenario names stand under the axis. Variances with the same reference and type share one row. Bar mode without stack only.
+          * @default false
+         */
+        "scenarioSwitch"?: boolean;
+        /**
+          * List of Scenarios Map. <br /> <br /> per chart there are up to 4 different scenarios supported. The first 4 scenarios in the list are used, the rest ignored.  <br /> <br />  values:<br /> ```ac // fc // pp // pl  [1-4] // auto```  example:<br /> ```ac1,ac2,ac3,ac4``` <br /> <br />  When set to ```auto```, scenarios are detected from the dataset silently.  When left blank, scenarios are detected from the dataset with a warning.  When set to ```none```, no scenario is drawn: the chart shows only its variances,  and the lowest variance carries the category labels.
          */
         "scenarios": string;
         /**
@@ -3544,6 +3626,14 @@ declare namespace LocalJSX {
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode"?: AxisLabelsMode;
+        /**
+          * @default 1
+         */
+        "axisLabelsStep"?: number;
+        /**
+          * @default "left"
+         */
+        "axisTitlePosition"?: string;
         /**
           * @default ChartMode.BAR
          */
@@ -3623,6 +3713,10 @@ declare namespace LocalJSX {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default false
+         */
+        "scenarioSwitch"?: boolean;
         /**
           * @default []
          */
@@ -4827,6 +4921,8 @@ declare namespace LocalJSX {
         "measureScale": string;
         "showMeasureScale": boolean;
         "measureUnit": string;
+        "dataFormatDigitsDecimal": number;
+        "dataFormatDigitsPercent": number;
         "stack": string;
         "scale": string;
     }
@@ -4870,6 +4966,11 @@ declare namespace LocalJSX {
         "showOverlayAvg": boolean;
         "showOverlayMedian": boolean;
         "measureUnit": string;
+        "dataFormatDigitsDecimal": number;
+        "dataFormatDigitsPercent": number;
+        "axisLabelsStep": number;
+        "scenarioSwitch": boolean;
+        "axisTitlePosition": string;
     }
     interface BnChartTimeRendererAttributes {
         "tableName": string;
@@ -4892,6 +4993,9 @@ declare namespace LocalJSX {
         "maxBars": number;
         "lineFullWidth": boolean;
         "containerWidth": number;
+        "axisLabelsStep": number;
+        "scenarioSwitch": boolean;
+        "axisTitlePosition": string;
     }
     interface BnComponentStyleAttributes {
         "name": string;

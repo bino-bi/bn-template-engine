@@ -8,6 +8,7 @@ import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGVariancesStyleGroup } from "../../../../utils/model";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
+import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 // import {SVGVariancesStyleGroup} from "../../../../utils/model/styles/SVGVariancesStyleGroup";
 
 /**
@@ -98,10 +99,10 @@ export class Needle {
     return this;
   }
 
-  public draw() {
+  public draw(dataFormatDigits: DataFormatDigits = { percent: 2, decimal: 1 }) {
     if (this.dataPoint?.value === undefined) {
       // reference 0: the label says "n/a", there is no pin
-      this.dataLabel?.draw();
+      this.dataLabel?.draw(true, dataFormatDigits);
       return this;
     }
 
@@ -134,6 +135,13 @@ export class Needle {
       }
     }
 
+    if (this.dataPoint.notation === "pl") {
+      // outlined like a plan column: the colour of the variance on the edge only
+      strokeStyle.color = scenarioStyle?.fill || strokeStyle.color;
+      strokeStyle.width = Math.max(1, Number(strokeStyle.width) || 0);
+      fillStyle = this.styles.fontStyles.background || "#ffffff";
+    }
+
     if (this.dimensions.clipped) {
       this.createClippedNeedleHead(fillStyle, strokeStyle);
     } else {
@@ -147,7 +155,7 @@ export class Needle {
       .fill(fillStyle)
       .stroke(strokeStyle);
 
-    this.dataLabel?.draw();
+    this.dataLabel?.draw(true, dataFormatDigits);
   }
 
   private createDimensions(position: ElementPositions, dataPoint: DataPoint, index: number): TimeChartDimension {

@@ -154,6 +154,18 @@ export class BnChartTimeRenderer {
 
   /** @internal */
   @Prop()
+  axisLabelsStep: number = 1;
+
+  /** @internal */
+  @Prop()
+  scenarioSwitch: boolean = false;
+
+  /** @internal */
+  @Prop()
+  axisTitlePosition: string = "left";
+
+  /** @internal */
+  @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
   /** @internal */
@@ -213,6 +225,18 @@ export class BnChartTimeRenderer {
   private syncQueryError(): void {
     this.queryError = this.measureScaleError ?? this.chart?.getQueryError();
     reportQueryError(this.errors, this.queryError);
+
+    const errId = `WARN_variances_overlap_${this.variances.join("_")}` as const;
+    const overlaps = this.chart?.getVarianceOverlaps() ?? 0;
+    if (overlaps > 0) {
+      this.errors?.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: `scenarioSwitch: the variances ${this.variances.join(", ")} share a row, but ${overlaps} period(s) have more than one value. The first variance wins there.`,
+      });
+    } else {
+      this.errors?.remove(errId);
+    }
   }
 
   public async componentWillLoad() {
@@ -235,8 +259,12 @@ export class BnChartTimeRenderer {
     // fitted chart fits by construction, and the overdrive's rough overhead
     // estimate would falsely re-engage on it.
     const unitWasAuto = config.pixelPerUnit <= 0;
+    const percentWasAuto = config.pixelPerPercentage <= 0;
     this.autoFitScaling(config, styles);
     this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
+    if (!percentWasAuto) {
+      this.chart.fitRelativeVariances(this.parentDimensions?.height || 0);
+    }
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
     this.syncQueryError();
@@ -257,8 +285,12 @@ export class BnChartTimeRenderer {
     this.chart.setConfig(config);
     // See componentWillLoad: no broken-bar overdrive for auto-fitted scaling
     const unitWasAuto = config.pixelPerUnit <= 0;
+    const percentWasAuto = config.pixelPerPercentage <= 0;
     this.autoFitScaling(config, styles);
     this.chart.setAvailableHeight(unitWasAuto ? 0 : this.parentDimensions?.height || 0);
+    if (!percentWasAuto) {
+      this.chart.fitRelativeVariances(this.parentDimensions?.height || 0);
+    }
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
     this.syncQueryError();
@@ -463,6 +495,9 @@ export class BnChartTimeRenderer {
       maxBars: this.maxBars,
       stackConfig: this.stackConfig,
       lineFullWidth: this.lineFullWidth,
+      axisLabelsStep: this.axisLabelsStep,
+      scenarioSwitch: this.scenarioSwitch,
+      axisTitlePosition: this.axisTitlePosition,
       locale: this.stores?.context?.state?.locale || "de",
     });
   }

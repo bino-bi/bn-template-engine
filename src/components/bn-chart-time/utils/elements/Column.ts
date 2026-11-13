@@ -120,8 +120,15 @@ export class Column {
     }
 
     const scenarioStyle: SVGStyle | undefined = this.getScenarioStyle();
-    const strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
-    const fillStyle = this.getFillStyle(scenarioStyle);
+    let strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
+    let fillStyle = this.getFillStyle(scenarioStyle);
+
+    if (this.isVarianceColumn && this.dataPoint.notation === "pl") {
+      // outlined like a plan column: the colour of the variance on the edge only
+      const planWidth = Number(this.columnBarStyles?.pl?.width);
+      strokeStyle = { color: scenarioStyle?.fill || this.FALLBACK_COLOUR, width: planWidth > 0 ? planWidth : 1 };
+      fillStyle = this.styles.fontStyles.background || "#ffffff";
+    }
 
     this.scenarioGroup.attr(dataPointAttributes(this.dataPoint.key));
     this.columnGroup?.attr(dataPointAttributes(this.dataPoint.key, "element"));
