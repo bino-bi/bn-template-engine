@@ -85,12 +85,8 @@ export class DataQuery {
     const sumGroupQueries: string[] = [];
     const res: DataQueryResultRow[][] = [];
 
-    const scenarios = this.config.scenarios
-      .map((s) => this.translateScenarioSQL(s, false, this.config.type))
-      .toString();
-    const scenariosSUMQuery = this.config.scenarios
-      .map((s) => this.translateScenarioSQL(s, true, this.config.type))
-      .toString();
+    const scenarios = this.scenariosSQL(false);
+    const scenariosSUMQuery = this.scenariosSQL(true);
     const relativeScenarios = this.getRelativeScenarios();
 
     const attributesSQL = this.config.attributes.map((attribute) => this.translateAttributeSQL(attribute)).toString();
@@ -250,7 +246,8 @@ export class DataQuery {
       resDrill.push(...this.exec(query));
     });
 
-    const scenarioNames = this.exctractScenarioNames(scenarios);
+    // two relative variances on one reference name its dr_* alias twice
+    const scenarioNames = [...new Set(this.exctractScenarioNames(scenarios))];
     const rowGroupSumResultRows: DataQueryResultRow[] = [];
 
     sumGroupQueries.forEach(function (query) {
@@ -263,22 +260,29 @@ export class DataQuery {
 
     resDrill = this.reduceResDrillByCategoryGroups(resDrill, scenarioNames);
 
-    resDrill.forEach(function (drillItem) {
-      scenarioNames.forEach((key) => {
-        try {
-          drillItem[key] =
-            (drillItem[key] as number) /
-            ((rowGroupSumResultMap.get(drillItem[QueryColumnNames.ROWGROUP] as string) as DataQueryResultRow)[
-              key
-            ] as number);
-        } catch (err) {
-          console.error("DataQuery: partOf drill row calculation failed", key, err);
-          drillItem[key] = Number.NaN;
-        }
-      });
+    resDrill.forEach((drillItem) => {
+      this.toShares(drillItem, rowGroupSumResultMap.get(drillItem[QueryColumnNames.ROWGROUP] as string), scenarioNames);
     });
 
     this.injectDrillRowsToResultRows(resDrill, res);
+  }
+
+  /**
+   * Turns the values of a partof row into shares of its total. A variance becomes the change of the
+   * share (percentage points), not the share of the variance.
+   */
+  private toShares(part: DataQueryResultRow, totals: DataQueryResultRow | undefined, names: string[]) {
+    const share = (key: string) => (part[key] as number) / (totals ? (totals[key] as number) : Number.NaN);
+    const changes = new Map<string, number>();
+    for (const name of names) {
+      const variance = new VarianceScenario(name);
+      if (variance.isValid) {
+        changes.set(name, share(variance.base) - share(variance.delta));
+      }
+    }
+    for (const name of names) {
+      part[name] = changes.get(name) ?? share(name);
+    }
   }
 
   /**
@@ -710,12 +714,8 @@ export class DataQuery {
 
     const separator = "##";
     const bucketSource = `(SELECT *, ${intervalBucketSQL(this.config.interval)} as __interval FROM ${this.fromExpr}) as p`;
-    const scenarios = this.config.scenarios
-      .map((s) => this.translateScenarioSQL(s, false, this.config.type))
-      .toString();
-    const scenariosSUMQuery = this.config.scenarios
-      .map((s) => this.translateScenarioSQL(s, true, this.config.type))
-      .toString();
+    const scenarios = this.scenariosSQL(false);
+    const scenariosSUMQuery = this.scenariosSQL(true);
     // two relative variances on one reference name its dr_* alias twice, it must be summed once
     const entryAliases = [...new Set(this.exctractScenarioNames(scenarios))];
     const relativeScenarios = this.getRelativeScenarios();
@@ -981,9 +981,7 @@ export class DataQuery {
           ? groupTotalsByKey.get(`${partRow.rowGroup}${separator}${bucketKey}`)
           : sumTotalsByBucket.get(bucketKey);
 
-        for (const alias of entryAliases) {
-          partRow[alias] = (partRow[alias] as number) / (totals ? (totals[alias] as number) : Number.NaN);
-        }
+        this.toShares(partRow, totals, entryAliases);
 
         finalizeBucketRow(partRow);
         for (const segment of res) {
@@ -1017,6 +1015,30 @@ export class DataQuery {
     }
 
     return whereClause + `)`;
+  }
+
+  /**
+   * The select list of the scenarios. A partof row needs both sides of every variance, also when they
+   * are not shown. Those come without their `_cnt`, so the NaN detection of the other rows does not change.
+   */
+  private scenariosSQL(isSumRow: boolean): string {
+    const shown = this.config.scenarios;
+    const sql = shown.map((s) => this.translateScenarioSQL(s, isSumRow, this.config.type));
+    if (this.checkConfigForPartOf() && this.config.type !== TableType.LIST) {
+      const hidden = new Set<string>();
+      for (const scenario of shown) {
+        const variance = new VarianceScenario(scenario);
+        if (variance.isValid) {
+          hidden.add(variance.base).add(variance.delta);
+        }
+      }
+      for (const scenario of hidden) {
+        if (!shown.includes(scenario)) {
+          sql.push(this.translateScenarioSQL(scenario, isSumRow, this.config.type).split(", COUNT(")[0]);
+        }
+      }
+    }
+    return sql.toString();
   }
 
   /** Collects all relative variance scenarios and maps each to its denominator column name. */

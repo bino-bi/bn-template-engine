@@ -493,18 +493,16 @@ export class TableDataSetFactory {
           scenario.name === scenario.type
             ? waterfallResult?.get(rawDataRow, scenario.type)
             : undefined;
-        // a share of a variance has no place in the walk of a variance waterfall: the row prints the number
-        const isBarChart =
-          isBarColumn &&
-          !(
-            type === TableRowType.PARTELEMENT &&
-            new VarianceScenario(scenario.type).isValid &&
-            waterfallResult?.has(scenario.type)
-          );
+        const isShareChange = type === TableRowType.PARTELEMENT && new VarianceScenario(scenario.type).isValid;
+        // the change of a share is in percentage points, it has no place on the axis of the column
+        const isBarChart = isBarColumn && !isShareChange;
         const columnStats = isBarChart ? columnStatsMap?.get(scenario.type) : undefined;
 
         detailsRow.createElement(
-          this.translateSumCellLabel(i18nMode, i18n, value, groupName, subCategory, type, scenario.type),
+          // percent values have no share, so there is no change of a share either
+          isShareChange && scenariosUnitType === DataFormat.PERCENT
+            ? "-"
+            : this.translateSumCellLabel(i18nMode, i18n, value, groupName, subCategory, type, scenario.type),
           scenario.type,
           this.createColumnType(scenario),
           this.setCellType(scenario.type, scenariosUnitType),

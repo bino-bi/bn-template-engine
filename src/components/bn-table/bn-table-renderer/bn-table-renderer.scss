@@ -148,6 +148,15 @@ tr.share td {
   border-top: 0em solid black;
 }
 
+/* the variance of a partof row is a change of the share, in percentage points */
+tr.partof td.percentpoint {
+  font-style: italic;
+}
+
+tr.partof td.percentpoint:after {
+  content: "%p";
+}
+
 th.share,
 tr.share,
 td.share {

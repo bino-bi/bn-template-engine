@@ -4,6 +4,7 @@ import { Cell, ColumnStats } from "./Cell";
 import { WaterfallBarData } from "../helper/WaterfallCalculator";
 import { NOT_AVAILABLE } from "../../../../utils/relativeVariance";
 import { DataPointKey } from "../../../../utils/layoutState/types";
+import { VarianceScenario } from "../../../../utils/model/VarianceScenario";
 
 /**
  * Represents a single row in an IBCS table, containing an ordered list of Cells.
@@ -96,12 +97,20 @@ export class TableRow {
     }
 
     if (this.type === TableRowType.PARTELEMENT) {
-      if (cellType === "percent") {
-        value = "-";
-      }
-      if (scenario !== "category" && scenario !== "operation") {
-        cellType = "percent";
-        cssStyle = "";
+      const variance = new VarianceScenario(scenario);
+      if (variance.isValid && Number.isFinite(value)) {
+        // the change of a share: percentage points, or the relative change in percent. It has no sentiment
+        cellType = variance.type === "d" ? "percentpoint" : "percent";
+        cssStyle = (cellStyle ?? "").replace(/^(pos|neg)_\w+/, "$1_neu");
+      } else {
+        // a share without a total has no change either
+        if (cellType === "percent" || variance.isValid) {
+          value = "-";
+        }
+        if (scenario !== "category" && scenario !== "operation") {
+          cellType = "percent";
+          cssStyle = "";
+        }
       }
     }
 

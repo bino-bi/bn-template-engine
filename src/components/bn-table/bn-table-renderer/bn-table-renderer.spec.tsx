@@ -885,7 +885,7 @@ describe("IBCS Table Test", () => {
           </td>
           <td class=\"base block-start percent\" colspan=\"1\">
             <span class=\"base prefix-first\"></span>
-            100,00%
+            -
           </td>
           <td class=\"base percent\" colspan=\"1\">
             <span class=\"base prefix-first\"></span>

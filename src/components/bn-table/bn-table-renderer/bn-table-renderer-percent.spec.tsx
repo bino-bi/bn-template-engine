@@ -129,7 +129,7 @@ describe("IBCS Table percent format", () => {
     expect(cellTexts(findRowByFirstCell(page, "Margin"))[3]).toBe("-2.10");
   });
 
-  it("leaves part-of rows unchanged", async () => {
+  it("prints no share and no change of a share in part-of rows", async () => {
     const page = await renderTable({
       type: TableType.SUM,
       partof: [{ rowGroup: "", category: "Margin", subCategory: "", partOf: "" }],
@@ -138,7 +138,6 @@ describe("IBCS Table percent format", () => {
     const partRow = page.root.shadowRoot.querySelector("tbody tr.partof");
 
     expect(partRow).not.toBeNull();
-    // share of the variance in the total variance: -0.021 / (-0.021 + 0.025) = -525%
-    expect(cellTexts(partRow)).toEqual(["in % von ❖", "-", "-", "-525.00%", "-"]);
+    expect(cellTexts(partRow)).toEqual(["in % von ❖", "-", "-", "-", "-"]);
   });
 });
