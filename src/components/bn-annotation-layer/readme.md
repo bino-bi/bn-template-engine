@@ -19,6 +19,10 @@ that is a finding in the data and not a broken page, so the layer does not fail.
 Place it in the `annotations` slot of `bn-layout-page`. The numbers are given,
 the layer never counts.
 
+A target can sit anywhere in the page, also on the child of one `bn-grid`
+cell or of a card in it. The mark then points at the first component in
+that element.
+
 ## Properties
 
 | Property        | Attribute        | Description                                                                                                                                                                                                                                                                                                                                                                                                                        | Type     | Default     |

@@ -54,6 +54,10 @@ The new style section `bn-layout-card` has one key, `titleFontSize` in px. Witho
 
 The new attribute `title-id` (property `titleId`) of `bn-layout-page` and `bn-title` shows a short text, a template number like `13A`, right-aligned on the level of the first title line, in the font of the title and not bold.
 
+#### `bn-annotation-layer`: a target in one cell of a grid
+
+A `data-bino-annotation-target` on the child of one `bn-grid` cell, or of a card in that cell, was already found. But the mark could stay where the chart was before the grid moved it onto the baseline. The layer now follows that move.
+
 #### `bn-table`: variance waterfall
 
 The new attribute `variance-waterfall` (property `varianceWaterfall`, default `false`) draws every absolute variance column listed in `bar-columns` as a waterfall down the rows, as IBCS shows the variances of a calculation scheme. Without it nothing changes: the column keeps single bars from the axis and no bar on sum rows. Relative variance columns stay pins.
