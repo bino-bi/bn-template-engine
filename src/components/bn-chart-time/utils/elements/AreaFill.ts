@@ -1,14 +1,5 @@
 import { G } from "@svgdotjs/svg.js";
-
-/**
- * IBCS-style area fill colors for stacked area charts.
- */
-const SCENARIO_AREA_STYLES: Record<string, { fill: string; opacity: number; lineColor: string; dashArray?: string }> = {
-  ac: { fill: "#000000", opacity: 0.3, lineColor: "#000000" },
-  pp: { fill: "#999999", opacity: 0.3, lineColor: "#999999" },
-  fc: { fill: "#000000", opacity: 0.2, lineColor: "#000000", dashArray: "4,4" },
-  pl: { fill: "#000000", opacity: 0.1, lineColor: "#000000" },
-};
+import { SCENARIO_AREA_STYLES } from "../../../../utils/notation";
 
 const GRAYSCALE_AREA_STYLES = [
   { fill: "#000000", opacity: 0.3 },

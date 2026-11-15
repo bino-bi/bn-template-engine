@@ -5,6 +5,23 @@ import { runIfExisits } from "./utils";
 import { merge } from "@corex/deepmerge";
 
 /**
+ * Merges the three style layers: `_system`, then `_default`, then the style
+ * with the given name. Without a name, or with an unknown one, the result is
+ * `_system` and `_default`.
+ */
+export const mergeStyleLayers = (state: Record<string, Style>, selectedStyle?: string): Style =>
+  // Arrays overwrite instead of concatenating: ordered color lists like
+  // seriesColors/stackColors must be replaced wholesale by an override.
+  merge(
+    [
+      state["_system"] || ({} as Style),
+      state["_default"] || ({} as Style),
+      (selectedStyle !== undefined && state[selectedStyle]) || ({} as Style),
+    ],
+    { arrayMergeType: "overwrite" },
+  );
+
+/**
  * Mixin that provides themed styling to a Stencil component using a
  * three-layer merge strategy.
  *
@@ -30,13 +47,7 @@ const withComponentStyle = (component: any) => {
   let style: Style;
 
   const updateStyle = () => {
-    const state = stores.componentStyles.state;
-    // Arrays overwrite instead of concatenating: ordered color lists like
-    // seriesColors/stackColors must be replaced wholesale by an override.
-    style = merge(
-      [state["_system"] || ({} as Style), state["_default"] || ({} as Style), state[selectedStyle] || ({} as Style)],
-      { arrayMergeType: "overwrite" },
-    );
+    style = mergeStyleLayers(stores.componentStyles.state, selectedStyle);
   };
 
   const connectedCallback = component["connectedCallback"];
