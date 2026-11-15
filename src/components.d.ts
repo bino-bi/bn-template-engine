@@ -23,6 +23,7 @@ import { ParentDimensions } from "./utils/parentDimensions";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+import { Notation } from "./utils/notation";
 import { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 import { TableType, ThereofPosition } from "./components/bn-table/utils/model";
@@ -52,6 +53,7 @@ export { ParentDimensions } from "./utils/parentDimensions";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+export { Notation } from "./utils/notation";
 export { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 export { TableType, ThereofPosition } from "./components/bn-table/utils/model";
@@ -1198,6 +1200,11 @@ export namespace Components {
          */
         "getLayoutState": (options?: LayoutStateOptions) => Promise<LayoutState>;
         /**
+          * Returns how this context draws: font, the look of the scenarios `ac`, `pp`, `fc` and `pl`, the variance colours and the scaling groups. A chart that is not part of this package can use it to draw like the charts that are.  The style values are merged like in every component: `_system`, then `_default`, then the style named `styleName`.  The promise resolves after every `<bn-component-style>` and `<bn-scaling-group>` that is inside the context at the time of the call has loaded. Listen to `bnNotationChange` for later changes.
+          * @param styleName - name of a `<bn-component-style>`, like the `selected-style` of a chart
+         */
+        "getNotation": (styleName?: string) => Promise<Notation>;
+        /**
           * Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
          */
         "i18nNamespace": string;
@@ -2279,6 +2286,10 @@ export namespace Components {
         "showOperators": boolean;
     }
 }
+export interface BnContextCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLBnContextElement;
+}
 declare global {
     /**
      * Draws annotation marks over a page: a numbered circle on a data point, a
@@ -2471,7 +2482,18 @@ declare global {
         prototype: HTMLBnComponentStyleElement;
         new (): HTMLBnComponentStyleElement;
     };
+    interface HTMLBnContextElementEventMap {
+        "bnNotationChange": void;
+    }
     interface HTMLBnContextElement extends Components.BnContext, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLBnContextElementEventMap>(type: K, listener: (this: HTMLBnContextElement, ev: BnContextCustomEvent<HTMLBnContextElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLBnContextElementEventMap>(type: K, listener: (this: HTMLBnContextElement, ev: BnContextCustomEvent<HTMLBnContextElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLBnContextElement: {
         prototype: HTMLBnContextElement;
@@ -3801,6 +3823,10 @@ declare namespace LocalJSX {
          */
         "i18nNamespace"?: string;
         "locale"?: string;
+        /**
+          * Fired when a `<bn-scaling-group>` or a `<bn-component-style>` of this context has changed, so the result of `getNotation()` may be different. The event has no detail: call `getNotation()` again.
+         */
+        "onBnNotationChange"?: (event: BnContextCustomEvent<void>) => void;
         /**
           * Orientation of the sheets the document is printed on: `landscape` or `portrait`. A `<bn-layout-page>` with the other orientation is turned onto the sheet. Without it no page is turned.
          */

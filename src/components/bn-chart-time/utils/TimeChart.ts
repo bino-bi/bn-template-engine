@@ -36,6 +36,7 @@ import { DataFormatDigits } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet, styleSlot, stylesBySlot } from "../../../utils/ibcsRuleSet";
 import { relativeVariance } from "../../../utils/relativeVariance";
+import { DASH_ARRAY } from "../../../utils/notation";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
@@ -1739,9 +1740,9 @@ export class TimeChart {
       .stroke({
         color: "#999999",
         width: 1,
-        dasharray: "4,4",
+        dasharray: DASH_ARRAY,
       })
-      .attr("stroke-dasharray", "4,4");
+      .attr("stroke-dasharray", DASH_ARRAY);
   }
 
   private drawVarianceScenario(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): G {

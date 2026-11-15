@@ -1,4 +1,4 @@
-import { Component, h, Host, Element, Method, Prop, Watch, forceUpdate } from "@stencil/core";
+import { Component, h, Host, Element, Event, EventEmitter, Method, Prop, Watch, forceUpdate } from "@stencil/core";
 import { ScopedStores, getOrCreateStores } from "../../context/context-protocol";
 import {
   ComponentLayoutState,
@@ -11,7 +11,9 @@ import {
   resolveOwnIdentity,
   toLayoutRect,
 } from "../../utils/layoutState";
+import { Notation, buildNotation } from "../../utils/notation";
 import withComponentStatus from "../../utils/withComponentStatus";
+import { mergeStyleLayers } from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { pageRule } from "../bn-page/pageFormats";
 
@@ -20,6 +22,9 @@ interface LayoutHostElement extends HTMLElement {
   componentOnReady?: () => Promise<unknown>;
   getLayoutState?: (options?: LayoutStateOptions) => Promise<ComponentLayoutState>;
 }
+
+/** The elements that write what `getNotation()` reads. */
+const NOTATION_SOURCE_SELECTOR = "bn-component-style, bn-scaling-group";
 
 /** Attributes that change the paper size, the orientation or the number of a page. */
 const PAGE_ATTRIBUTES = [
@@ -87,6 +92,13 @@ export class Context {
    */
   @Prop({ reflect: true, attribute: "render-orientation" }) renderOrientation?: "landscape" | "portrait";
 
+  /**
+   * Fired when a `<bn-scaling-group>` or a `<bn-component-style>` of this
+   * context has changed, so the result of `getNotation()` may be different.
+   * The event has no detail: call `getNotation()` again.
+   */
+  @Event() bnNotationChange: EventEmitter<void>;
+
   @Watch("locale")
   setLocale(newValue: string) {
     this.stores.context.state.locale = newValue;
@@ -97,6 +109,7 @@ export class Context {
   private pageObserver: MutationObserver | undefined;
   private pageSizeStyle: HTMLStyleElement | undefined;
   private lastRenderOrientation: string | null | undefined;
+  private notationSubscriptions: (() => void)[] = [];
 
   connectedCallback() {
     // Retrieve (or create) the stores for this context element.
@@ -107,6 +120,13 @@ export class Context {
     if (this.locale) {
       this.stores.context.state.locale = this.locale;
     }
+
+    // a removed scaling group is a "set" too: its entry is set to undefined
+    const notify = () => this.bnNotationChange.emit();
+    this.notationSubscriptions = [
+      this.stores.scalingGroups.on("set", notify),
+      this.stores.componentStyles.on("set", notify),
+    ];
 
     this.syncPages();
     // pages that come, go or change their format later
@@ -120,6 +140,8 @@ export class Context {
   }
 
   disconnectedCallback() {
+    this.notationSubscriptions.forEach((unsubscribe) => unsubscribe());
+    this.notationSubscriptions = [];
     this.pageObserver?.disconnect();
     this.pageSizeStyle?.remove();
     this.pageSizeStyle = undefined;
@@ -250,6 +272,32 @@ export class Context {
       },
       components,
     };
+  }
+
+  /**
+   * Returns how this context draws: font, the look of the scenarios `ac`,
+   * `pp`, `fc` and `pl`, the variance colours and the scaling groups. A
+   * chart that is not part of this package can use it to draw like the
+   * charts that are.
+   *
+   * The style values are merged like in every component: `_system`, then
+   * `_default`, then the style named `styleName`.
+   *
+   * The promise resolves after every `<bn-component-style>` and
+   * `<bn-scaling-group>` that is inside the context at the time of the call
+   * has loaded. Listen to `bnNotationChange` for later changes.
+   *
+   * @param styleName - name of a `<bn-component-style>`, like the `selected-style` of a chart
+   */
+  @Method()
+  async getNotation(styleName?: string): Promise<Notation> {
+    const sources = Array.from(this.element.querySelectorAll<LayoutHostElement>(NOTATION_SOURCE_SELECTOR));
+    await Promise.all(sources.map((el) => el.componentOnReady?.() ?? Promise.resolve()));
+
+    return buildNotation(
+      mergeStyleLayers(this.stores.componentStyles.state, styleName),
+      this.stores.scalingGroups.state,
+    );
   }
 
   componentWillLoad() {

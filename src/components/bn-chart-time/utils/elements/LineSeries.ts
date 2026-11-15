@@ -7,29 +7,7 @@ import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
-
-/**
- * IBCS Color Schema for Line Chart:
- * | Scenario | Marker Fill | Marker Stroke | Line Style |
- * |----------|-------------|---------------|------------|
- * | AC       | Black       | Black         | Solid      |
- * | PP       | Gray (#999) | Gray          | Solid      |
- * | FC       | White       | Black         | Dashed     |
- * | PL       | White       | Black         | Solid      |
- */
-interface LineSeriesStyle {
-  markerFill: string;
-  markerStroke: string;
-  lineColor: string;
-  lineDashArray?: string;
-}
-
-const IBCS_LINE_STYLES: Record<string, LineSeriesStyle> = {
-  ac: { markerFill: "#000000", markerStroke: "#000000", lineColor: "#000000" },
-  pp: { markerFill: "#999999", markerStroke: "#999999", lineColor: "#999999" },
-  fc: { markerFill: "#ffffff", markerStroke: "#000000", lineColor: "#000000", lineDashArray: "4,4" },
-  pl: { markerFill: "#ffffff", markerStroke: "#000000", lineColor: "#000000" },
-};
+import { IBCS_LINE_STYLES, LineSeriesStyle } from "../../../../utils/notation";
 
 export interface LineSeriesDataPoint {
   dataPoint: DataPoint;

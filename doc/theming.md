@@ -245,6 +245,29 @@ A page can also set the custom properties `--bn-annotation-color` and `--bn-anno
 
 A key that is not part of the style is ignored. `<bn-component-style>` reports such keys in its `has-error` attribute as `ERR_keys`, for example `timeChart` (the section is `bn-chart-time`) or a misspelled scale factor. Checked are the section names, the keys of each section, and the keys of `scaleFactors` and `padding`.
 
+## Reading the Style from Outside
+
+A chart that is not part of this package can read the merged style with `getNotation()` on `<bn-context>`. It returns the values a chart needs to draw like the charts of this package:
+
+```js
+const notation = await document.querySelector("bn-context").getNotation("corporate");
+
+notation.fontFamily; // global.fontFamily
+notation.fontSizePx; // global.fontSizePx
+notation.scenarios.ac.bar; // bn-chart-time.barStyles.ac: stroke, fill, width, fillpattern
+notation.scenarios.fc.line; // { color, dashArray }: fixed look of a line series
+notation.scenarios.fc.marker; // { fill, stroke }: fixed look of the line markers
+notation.scenarios.fc.area; // { fill, opacity, lineColor, dashArray }: fixed look of a stacked area
+notation.variance.pos; // bn-chart-time.varianceStyles.pos
+notation.scalingGroups; // { revenue: 250000 }: every <bn-scaling-group>, by name
+```
+
+`scenarios` has the four style slots `ac`, `pp`, `fc` and `pl`. The style layers are merged as described above: `_system`, then `_default`, then the style with the given name. Without a name the result is `_system` and `_default`. The line, marker and area looks are fixed and not part of the style JSON.
+
+The promise resolves after every `<bn-component-style>` and `<bn-scaling-group>` that is in the context at the time of the call has loaded. When one of them changes later, `<bn-context>` fires the event `bnNotationChange`. It has no detail, call `getNotation()` again.
+
+The result has `apiVersion: 1`. Adding a field keeps the number. Removing or renaming a field, or changing its meaning, is a breaking change and raises it. See [`<bn-context>`](../src/components/bn-context/readme.md) for the full shape.
+
 ## IBCS Default Colors
 
 The built-in system defaults follow IBCS standards:
