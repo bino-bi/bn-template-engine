@@ -6,6 +6,10 @@ export interface MatchedPoint {
   rect: DualRect;
   content?: DualRect;
   contentSign?: number;
+  /** The value of a bar, when its chart writes it. */
+  value?: number;
+  /** A segment of a stack: its value label stands in its middle. */
+  stacked?: boolean;
 }
 
 const KEY_FIELDS = ["rowGroup", "category", "subCategory", "date", "scenario", "row"] as const;
@@ -27,10 +31,16 @@ function matches(found: LayoutPoint | undefined, point: AnnotationPoint): boolea
  * without one means the parent: otherwise the parent could never be named.
  */
 export function matchPoint(state: ComponentLayoutState, point: AnnotationPoint): MatchedPoint[] {
-  const candidates: (MatchedPoint & { point?: LayoutPoint })[] =
+  const candidates: (MatchedPoint & { point?: LayoutPoint; value?: number; scenario?: string })[] =
     state.table && point.scenario == null ? state.table.rows : ((state.elements ?? []) as typeof candidates);
   const noThereof = state.table != null && point.subCategory == null;
   return candidates
     .filter((candidate) => matches(candidate.point, point) && !(noThereof && candidate.point!.subCategory != null))
-    .map(({ rect, content, contentSign }) => ({ rect, content, contentSign }));
+    .map(({ rect, content, contentSign, value, scenario }) => ({
+      rect,
+      content,
+      contentSign,
+      value,
+      stacked: typeof scenario === "string" && scenario.startsWith("stack:"),
+    }));
 }

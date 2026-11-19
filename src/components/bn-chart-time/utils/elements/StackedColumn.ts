@@ -1,4 +1,4 @@
-import { G } from "@svgdotjs/svg.js";
+import { G, Pattern, Svg } from "@svgdotjs/svg.js";
 import { ElementPositions } from "../helper";
 import { DataPoint } from "../model";
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
@@ -10,6 +10,7 @@ import { Formatter } from "../../../../utils/formatter";
 import { StackLayout, StackSegment } from "../../../../utils/stackLayout";
 import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 import { DataPointKey } from "../../../../utils/layoutState/types";
+import { getScenarioPrefix } from "../../../../utils/stackColors";
 
 /**
  * Renders a single segment within a stacked bar column in a time chart.
@@ -52,6 +53,8 @@ export class StackedColumn {
     stack: StackLayout,
     _isScenarioStack: boolean,
     parentGroup: G,
+    private readonly notation: boolean = false,
+    private readonly plainShares: boolean = false,
   ) {
     this.position = position;
     this.styles = styles;
@@ -91,11 +94,30 @@ export class StackedColumn {
     const columnWidth = this.position.getColumnWidth();
 
     const colors = this.styles.stackColors;
-    const fillColor = colors[this.segmentIndex % colors.length];
-    const fillStyle = { color: fillColor };
-    const strokeStyle = { color: fillColor, width: 0.5 };
+    let fillColor = colors[this.segmentIndex % colors.length];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let fillStyle: any = { color: fillColor };
+    let strokeStyle = { color: fillColor, width: 0.5 };
+    let hatched = false;
+
+    // FC and PL: the series keeps its shade, the scenario adds the hatching or the outline.
+    // The first series is the darkest: it takes the fill of the scenario, as a plain column does.
+    const family = getScenarioPrefix((this.dataPoint.scenario as string) ?? "");
+    if (this.notation && (family === "fc" || family === "pl")) {
+      const look = this.styles.barStyles.getSVGStyle(family);
+      if (this.segmentIndex === 0) {
+        fillColor = look.fill;
+      }
+      fillStyle = { color: fillColor };
+      strokeStyle = { color: look.stroke, width: 1 };
+      if (look.fillpattern === "hatched") {
+        hatched = true;
+        fillStyle = this.hatchPattern(fillColor, look.stroke) ?? fillStyle;
+      }
+    }
 
     this.columnGroup.attr(dataPointAttributes(this.dataPoint.key, "element"));
+    this.columnGroup.attr("data-bn-value", value);
 
     // Draw rectangle
     this.columnGroup
@@ -105,41 +127,81 @@ export class StackedColumn {
       .y(yPos)
       .cx(xPos);
 
-    // Draw segment value label if segment is tall enough (min ~18px)
-    const MIN_SEGMENT_HEIGHT_FOR_LABEL = 18;
+    // Draw segment value label if the segment is tall enough: 18px, less for a font that is smaller than that
+    const MIN_SEGMENT_HEIGHT_FOR_LABEL = Math.min(18, (this.styles.fontStyles.size || 18) * 1.15);
     if (segmentHeight >= MIN_SEGMENT_HEIGHT_FOR_LABEL) {
       const labelY = yPos + segmentHeight / 2;
 
+      // a label on a hatching keeps the background of a plain label
+      const onFill = (label: Label): Label => (hatched ? label : label.setSegmentFill(fillColor));
+
       if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
-        const labelValue = Formatter.number(
-          this.segment.share,
-          "percent",
-          dataFormatDigits.percent,
-          dataFormatDigits.percent,
-          1,
-          this.styles.locale,
-        );
-        new Label(
-          this.group,
-          xPos,
-          labelY,
-          "STACK_SEG",
-          labelValue,
-          this.styles,
-          HookLocation.Center,
-          HookLocation.Center,
+        // with the 100 % mark the unit stands there once, and the shares are plain numbers
+        const labelValue = this.plainShares
+          ? Formatter.number(
+              this.segment.share * 100,
+              "decimal",
+              dataFormatDigits.percent,
+              dataFormatDigits.percent,
+              1,
+              this.styles.locale,
+            )
+          : Formatter.number(
+              this.segment.share,
+              "percent",
+              dataFormatDigits.percent,
+              dataFormatDigits.percent,
+              1,
+              this.styles.locale,
+            );
+        onFill(
+          new Label(
+            this.group,
+            xPos,
+            labelY,
+            "STACK_SEG",
+            labelValue,
+            this.styles,
+            HookLocation.Center,
+            HookLocation.Center,
+          ),
         )
-          .setSegmentFill(fillColor)
           .setPoint(this.dataPoint.key)
           .forceStringTypeDraw();
       } else {
         // Pass raw numeric value - Label.draw() formats with measureScale
-        new Label(this.group, xPos, labelY, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
-          .setSegmentFill(fillColor)
+        onFill(
+          new Label(
+            this.group,
+            xPos,
+            labelY,
+            "STACK_SEG",
+            value,
+            this.styles,
+            HookLocation.Center,
+            HookLocation.Center,
+          ),
+        )
           .setPoint(this.dataPoint.key)
           .draw(true, dataFormatDigits, measureScale);
       }
     }
+  }
+
+  /** The hatching of a forecast over the shade of the series. One pattern per shade in the SVG. */
+  private hatchPattern(background: string, color: string): Pattern | null {
+    const root = this.group.root() as Svg | null;
+    if (!root) return null;
+    const id = `pattern-stack-fc-${this.segmentIndex}`;
+    const existing = root.findOne(`#${id}`) as Pattern | null;
+    if (existing) return existing;
+    return root
+      .pattern(10, 10, (add) => {
+        add.rect(10, 10).fill(background);
+        add.line(0, 5, 5, 0).stroke({ width: 1, color, linecap: "square" });
+        add.line(5, 10, 10, 5).stroke({ width: 1, color, linecap: "square" });
+      })
+      .id(id);
   }
 
   /**

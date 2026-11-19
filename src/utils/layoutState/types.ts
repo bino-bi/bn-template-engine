@@ -111,6 +111,8 @@ export interface BarElement extends LayoutElementBase {
   /** Ordinal of the bar's category within the segment. */
   index: number;
   point?: LayoutPoint;
+  /** The value the bar stands for, when the chart writes it (`data-bn-value`). */
+  value?: number;
 }
 
 export interface LabelElement extends LayoutElementBase {

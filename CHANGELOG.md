@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-time`: `stack` with `"by":"dimensions"` now stacks one segment per value of the `category` column of the dataset. The order comes from `categoryIndex`, else from the first appearance. There is no limit of four series, and a series keeps its colour in every period, also when a value is missing. Before, this mode drew one segment per period.
+- `bn-chart-time`: `scenario-switch` works with a stack by dimensions. The scenario that has values in a period is stacked, so one axis can go from AC to FC to PL, with the line at the change and the names under the axis.
+- `bn-chart-time`: new `stack` keys. `"notation":"scenario"` gives a segment the look of its scenario: forecast hatched over the shade of the series, plan outlined, and the first series with the fill of the scenario. `"legend"` (`left`, `right`, `both`, `none`) sets where the series names stand. `"percentMark":true` prints the shares of a 100 % stack as plain numbers and adds one `100%` mark on the side of the names.
+- `bn-chart-time`: `axis-labels-mode="two-row"` prints short labels and puts the parent period (the year of a month) in a second row, under the first period and where it changes. With `scenario-switch` the scenario names stand in the same row, for example `2025 AC`.
+- `bn-annotation-layer`: new mark `difference`. It shows the difference of two values of a chart: a thin line from each level to a bar behind the second value, and the label `to` minus `target`. `percent` adds the relative difference in brackets, `highlight` frames it, `digits` sets the digits and `sentiment` (`good-up`, `good-down`) picks the colour `positive` or `negative`. A point of a stack without a category means the sum of the stack. Stack segments and columns of `bn-chart-time` carry their value in `data-bn-value` for this, and a bar in the layout state has a `value`.
+- `bn-annotation-layer`: a `frame` item can bring a `text`. The text is printed on the target with the frame around it.
+- `bn-chart-time`: a segment of a stack by dimensions has the `category` in its point key, so an annotation can address one series of one period.
+- `bn-chart-time`: a warning when a stack by dimensions with `scenario-switch` has a scenario that is not drawn, because it has values in periods of the first scenario or because the chart is a stacked area.
+- `bn-chart-time`: a warning when a stack by scenarios gets more than four scenarios. The fifth and later ones were dropped without a message.
+
 - `bn-chart-time` and `bn-chart-structure`: `data-format-digits-decimal` and `data-format-digits-percent` set the digits of the value and percent labels, like on `bn-table`. Defaults stay 1 and 2.
 - `bn-chart-time` and `bn-chart-structure`: `scenarios="none"` draws no scenario. The chart shows only its variances, and the first variance carries the category labels. `bn-grid` then aligns such a chart on its variance axis.
 - `bn-chart-time`: `scenario-switch` is for a series that changes its scenario along the time axis, for example AC up to this year and PL after it. A scenario that only has values where the first scenario has none is drawn in its place, as a full column with value labels. A vertical line marks the change, and the scenario names stand under the axis. Variances of one type over the same reference share one row, and plan variances are outlined.
@@ -14,6 +24,11 @@ All notable changes to this project will be documented in this file. See [standa
 - `bn-chart-time`: the translation key `date-format-short-year` sets the pattern of the short year label, for example `’yy`.
 
 ### Changed
+
+- `bn-chart-time`: with `scenario-switch`, a chart with exactly one scenario now prints the name of that scenario under the axis. Such a chart gets one text row higher.
+- `bn-annotation-layer`: a marker on a segment of a stack sits on the upper right corner of the segment. Before, it sat in the middle and hid the value label.
+- `bn-chart-time`: the background box of a centred label is centred on its text. It was 1 px too far left.
+- `bn-chart-time`: the value label of a stack segment needs a segment height of 18 px, or of 1.15 times the font size when that is less. With a font below 15.6 px some small segments now get their label.
 
 - `bn-chart-time`: a relative variance above 145 % is no longer always cut. With a fixed `percentage-scaling` the pin is drawn in full length when it fits into the available height. It is still cut when it does not fit, and always with an automatic percentage scale. A chart with a fixed scale, long pins and enough room gets higher by this.
 

@@ -22,3 +22,22 @@ svg {
   text-anchor: middle;
   dominant-baseline: central;
 }
+
+.mark-text {
+  fill: #000000;
+  dominant-baseline: central;
+}
+
+.mark-text.caption {
+  text-anchor: middle;
+  font-size: 0.9em;
+}
+
+.mark-text .percent {
+  font-size: 0.85em;
+}
+
+.difference-line {
+  stroke: #000000;
+  stroke-width: 0.75;
+}

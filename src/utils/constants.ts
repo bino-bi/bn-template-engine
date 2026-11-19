@@ -134,11 +134,13 @@ export enum AggregationLevel {
  * - SMART: abbreviated labels with parent period shown at boundary crossings (e.g. "Jan" normally, "Jan 2024" at year boundary)
  * - LONG: full date format for every label
  * - SHORT: abbreviated format for every label
+ * - TWO_ROW: abbreviated labels, and the parent period (the year of a month) in a second row where it starts
  */
 export enum AxisLabelsMode {
   SMART = "smart",
   LONG = "long",
   SHORT = "short",
+  TWO_ROW = "two-row",
 }
 
 /**

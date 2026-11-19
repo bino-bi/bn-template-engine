@@ -32,8 +32,21 @@ export type DrawnMark =
       rx: number;
       ry: number;
       badge?: Badge;
+      /** The text the frame goes around, when the item brings its own. */
+      caption?: { x: number; y: number; text: string };
     }
-  | { kind: "arrow"; color?: string; x1: number; y1: number; x2: number; y2: number; head: string; badge?: Badge };
+  | { kind: "arrow"; color?: string; x1: number; y1: number; x2: number; y2: number; head: string; badge?: Badge }
+  | {
+      kind: "difference";
+      color?: string;
+      /** The levels of the two values, drawn to the bar. */
+      lines: { x1: number; y1: number; x2: number; y2: number }[];
+      bar: Box;
+      text: { x: number; y: number; anchor: "start" | "end"; value: string; percent?: string };
+      /** Around the relative difference. */
+      frame?: { x: number; y: number; width: number; height: number; r: number };
+      badge?: Badge;
+    };
 
 export interface MarkOptions {
   /** The box is a component and not one of its data points. */
@@ -44,6 +57,8 @@ export interface MarkOptions {
   text?: Box;
   /** What a marker next to a text must not cover: the texts of the other cells. */
   obstacles?: Box[];
+  /** The box is a segment of a stack: a marker sits on its right edge and leaves the value label free. */
+  stacked?: boolean;
 }
 
 const centre = (box: Box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
@@ -119,6 +134,86 @@ function besideText(text: Box, r: number, unit: number, options: MarkOptions): {
   return { x, y, r: Math.min(r, Math.max(wider / 2, 0.3 * unit)) };
 }
 
+/** A text cannot be measured here: the width of the digits and signs of a number, close enough for a frame. */
+const textWidth = (text: string, em: number): number => text.length * 0.6 * em;
+
+const signed = (value: number, digits: number): string => (value < 0 ? "-" : "+") + Math.abs(value).toFixed(digits);
+
+/**
+ * The difference of two values of a chart. `box` and `toBox` are the bars of
+ * the two values, and the upper edge of each is its level. A thin line runs
+ * from each level to a bar behind the second value, which spans the
+ * difference. The label is `to - from`, and with `percent` also relative to
+ * `from`. A difference in the good direction has the colour `positive`, else
+ * `negative`. Without two values there is nothing to print. `levels` gives
+ * the y of the two values when it is not the upper edge of the boxes.
+ */
+export function buildDifference(
+  item: AnnotationLayerItem,
+  box: Box,
+  toBox: Box,
+  fromValue: number | undefined,
+  toValue: number | undefined,
+  em: number,
+  levels?: { from: number; to: number },
+): DrawnMark | undefined {
+  if (fromValue == null || toValue == null) return undefined;
+  const difference = toValue - fromValue;
+  const digits = Number.isInteger(item.digits) && item.digits! >= 0 ? item.digits! : 1;
+  const good = item.sentiment === "good-down" ? difference <= 0 : difference >= 0;
+
+  // the bar stands behind the second value, away from the first one
+  const direction = toBox.x + toBox.width / 2 >= box.x + box.width / 2 ? 1 : -1;
+  const edge = (of: Box): number => (direction === 1 ? of.x + of.width : of.x);
+  const barX = edge(toBox) + direction * 0.9 * em;
+  const lineEnd = barX + direction * 0.125 * em;
+  // the upper edge is the level of a positive value only: the caller knows better for a negative one
+  const fromY = levels?.from ?? box.y;
+  const toY = levels?.to ?? toBox.y;
+  const barWidth = 0.25 * em;
+
+  const percent =
+    item.percent && fromValue !== 0 ? `(${signed((difference / Math.abs(fromValue)) * 100, 0)}%)` : undefined;
+  const value = signed(difference, digits);
+  const textX = barX + direction * 0.6 * em;
+  const textY = (fromY + toY) / 2;
+  const percentWidth = percent ? textWidth(percent, 0.85 * em) : 0;
+  // digits and signs alone are narrower than a text with a percent sign
+  const valueWidth = value.length * 0.5 * em;
+  // the percent is the last part of the text, which ends at textX when it stands at the left
+  const percentX = direction === 1 ? textX + valueWidth + 0.35 * em : textX - percentWidth;
+
+  return {
+    kind: "difference",
+    color: item.color ?? (good ? "positive" : "negative"),
+    lines: [
+      { x1: edge(box), y1: fromY, x2: lineEnd, y2: fromY },
+      { x1: edge(toBox), y1: toY, x2: lineEnd, y2: toY },
+    ],
+    bar: {
+      x: barX - barWidth / 2,
+      y: Math.min(fromY, toY),
+      width: barWidth,
+      height: Math.max(Math.abs(toY - fromY), 1),
+    },
+    text: { x: textX, y: textY, anchor: direction === 1 ? "start" : "end", value, percent },
+    frame:
+      percent && item.highlight
+        ? {
+            x: percentX - 0.25 * em,
+            y: textY - 0.65 * em,
+            width: percentWidth + 0.5 * em,
+            height: 1.3 * em,
+            r: 0.65 * em,
+          }
+        : undefined,
+    badge:
+      item.label != null
+        ? { cx: barX, cy: Math.min(fromY, toY) - 0.9 * em, r: 0.65 * em, label: item.label }
+        : undefined,
+  };
+}
+
 /**
  * The geometry of one item. On a whole component a marker sits in the top-right
  * corner, and on a table cell next to the number. A frame goes around the text
@@ -177,9 +272,20 @@ export function buildMark(
   }
 
   if (item.mark === "frame") {
-    const around = text ?? box;
+    // a text of its own stands in the upper part of the target, above a value label in its middle
+    const caption =
+      item.text != null && !whole
+        ? { x: box.x + box.width / 2, y: box.y + Math.min(box.height / 2, Math.max(0.9 * em, 0.3 * box.height)) }
+        : undefined;
+    const captionBox = caption && {
+      x: caption.x - textWidth(item.text!, em) / 2,
+      y: caption.y - 0.6 * em,
+      width: textWidth(item.text!, em),
+      height: 1.2 * em,
+    };
+    const around = captionBox ?? text ?? box;
     const part = item.point?.part;
-    const oval = !whole && (text != null || part === "label" || part === "total");
+    const oval = !whole && (captionBox != null || text != null || part === "label" || part === "total");
     const paddingX = (oval ? 0.45 : 0.2) * unit;
     const paddingY = (oval ? 0.1 : 0.2) * unit;
     // a single digit gets a circle and not a narrow upright oval
@@ -211,6 +317,7 @@ export function buildMark(
         label != null
           ? keepInside({ cx: x2 - rx * curve + outside, cy: top + ry * curve - outside, r: badgeR, label }, area)
           : undefined,
+      caption: caption && { ...caption, text: item.text! },
     };
   }
 
@@ -221,7 +328,11 @@ export function buildMark(
   }
   const size = (label == null ? 0.4 : 0.75) * unit;
   const r = isRow ? Math.min(size, box.height / 2) : size;
-  const at = whole ? { x: box.x + box.width - r, y: box.y + r } : centre(box);
+  let at = whole ? { x: box.x + box.width - r, y: box.y + r } : centre(box);
+  if (!whole && options.stacked && item.point?.part !== "label" && item.point?.part !== "total") {
+    // on the upper right corner: the label in the middle and a name beside the segment stay free
+    at = { x: box.x + box.width, y: box.y + Math.min(0.5 * r, box.height / 2) };
+  }
   if (isRow) {
     // the middle of a row is free in a wide table. In a narrow one it is a number: then next to that number
     const circle = { x: at.x - r, y: at.y - r, width: 2 * r, height: 2 * r };

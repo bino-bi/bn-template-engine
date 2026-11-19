@@ -406,14 +406,22 @@ export class Chart {
    * {
    *   "by": "scenarios" | "dimensions",
    *   "mode": "absolute" | "relative" | "absolute-relative",
-   *   "order": "asc" | "desc" | "dataset"
+   *   "order": "asc" | "desc" | "dataset",
+   *   "notation": "none" | "scenario",
+   *   "legend": "left" | "right" | "both" | "none",
+   *   "percentMark": true | false
    * }
    * ```
    *
    * - `by` (required): What a stack is made of.
-   *   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers.
-   *   - `"dimensions"` - only the first scenario is drawn. A time chart has one
-   *     value per period, so each stack has one segment.
+   *   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers,
+   *     four at most.
+   *   - `"dimensions"` - one segment per value of the `category` column of the
+   *     dataset, ordered by `categoryIndex`, else by first appearance. There is
+   *     no limit on the number of series, and a series keeps its colour in
+   *     every period. The first scenario is drawn. With `scenario-switch` the
+   *     scenario that has values in the period is drawn, so one axis can go
+   *     from AC to FC to PL.
    * - `mode` (optional, default `"absolute"`):
    *   - `"absolute"` - additive stacking, axis shows absolute units.
    *   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is
@@ -424,6 +432,17 @@ export class Chart {
    * - `order` (optional, default `"dataset"`): Segment order within each stack.
    *   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the
    *   original data/scenario order.
+   * - `notation` (optional, default `"none"`): with `"scenario"` a segment takes
+   *   the look of its scenario. A forecast segment is hatched over the shade of
+   *   its series, a plan segment is outlined, and the first series takes the
+   *   fill of the scenario from `barStyles`.
+   * - `legend` (optional, default `"left"`): where the series names stand. Left
+   *   of the first column, right of the last column with a value, at both, or
+   *   nowhere.
+   * - `percentMark` (optional, default `false`): for `mode: "relative"`. The
+   *   shares are plain numbers without the % sign, with
+   *   `data-format-digits-percent` digits, and one `100%` mark stands at the
+   *   upper end of the stack, on the side of the series names.
    *
    * @default '' (empty - no stacking)
    *
@@ -494,9 +513,12 @@ export class Chart {
    *  long, and short mode uses the long an short styles for the date
    *  smart only displays relevant information if a change/ transition occured
    *  (eg.  only on 1.Jan  the year is displayed)
+   *  two-row prints short labels and puts the parent period (the year of a
+   *  month, quarter or week) in a second row, under the first period and where
+   *  it changes. With scenario-switch the scenario names stand in the same row.
    *  <br /><br />
    *  values:<br />
-   *  ```smart // long // short```
+   *  ```smart // long // short // two-row```
    */
   @Prop() axisLabelsMode!: string;
 
@@ -656,7 +678,8 @@ export class Chart {
    * has no value, the next scenario with a value is drawn in its place with
    * its value label. A vertical line marks the change, and the scenario names
    * stand under the axis. Variances with the same reference and type share
-   * one row. Bar mode without stack only.
+   * one row. A chart with one scenario gets the name of that scenario under
+   * the axis. Bar mode, without a stack or with a stack by dimensions.
    */
   @Prop() scenarioSwitch: boolean = false;
 
@@ -1326,7 +1349,7 @@ export class Chart {
   }
 
   private prepareAxisLabelsMode(): AxisLabelsMode {
-    return AxisLabelsMode[this.axisLabelsMode?.toUpperCase() as keyof typeof AxisLabelsMode];
+    return AxisLabelsMode[this.axisLabelsMode?.toUpperCase().replace("-", "_") as keyof typeof AxisLabelsMode];
   }
 
   private prepareFilter(): string {
@@ -1410,6 +1433,7 @@ export class Chart {
   private prepareStackConfig(): StackConfigParsed | null {
     if (isBlankInput(this.stack)) {
       this.errors.remove("WARN_stack_dimensions_scenarios");
+      this.errors.remove("WARN_stack_scenarios_max");
       return null;
     }
     try {
@@ -1417,28 +1441,39 @@ export class Chart {
       const by = parsed.by as StackBy;
 
       const errId = "WARN_stack_dimensions_scenarios";
-      if (by === StackBy.DIMENSIONS) {
-        const scenarios = this.prepareScenarios();
-        if (scenarios.length > 1) {
-          this.errors.addOrReplace({
-            id: errId,
-            type: "warning",
-            message: `stack by dimensions: only the first scenario "${scenarios[0]}" is used, the rest (${scenarios.slice(1).join(", ")}) are discarded.`,
-          });
-        } else {
-          this.errors.remove(errId);
-        }
+      const maxId = "WARN_stack_scenarios_max";
+      const scenarios = this.prepareScenarios();
+      // with scenarioSwitch the further scenarios continue the first one along the time axis
+      if (by === StackBy.DIMENSIONS && scenarios.length > 1 && !this.scenarioSwitch) {
+        this.errors.addOrReplace({
+          id: errId,
+          type: "warning",
+          message: `stack by dimensions: only the first scenario "${scenarios[0]}" is used, the rest (${scenarios.slice(1).join(", ")}) are discarded.`,
+        });
       } else {
         this.errors.remove(errId);
+      }
+      if (by === StackBy.SCENARIOS && scenarios.length > 4) {
+        this.errors.addOrReplace({
+          id: maxId,
+          type: "warning",
+          message: `stack by scenarios: at most four scenarios are stacked, the rest (${scenarios.slice(4).join(", ")}) are discarded. Use stack by dimensions for more series.`,
+        });
+      } else {
+        this.errors.remove(maxId);
       }
 
       return {
         by,
         mode: (parsed.mode as StackMode) || StackMode.ABSOLUTE,
         order: (parsed.order as StackOrder) || StackOrder.DATASET,
+        notation: parsed.notation === "scenario" ? "scenario" : "none",
+        legend: ["right", "both", "none"].includes(parsed.legend) ? parsed.legend : "left",
+        percentMark: parsed.percentMark === true,
       };
     } catch {
       this.errors.remove("WARN_stack_dimensions_scenarios");
+      this.errors.remove("WARN_stack_scenarios_max");
       return null;
     }
   }
@@ -1471,7 +1506,8 @@ export class Chart {
     const isBase = segmentVariances.length === 0;
     const scenarios = this.hidesScenarios() ? variancesScenarios(segmentVariances) : this.prepareScenarios();
     // only the base chart draws a stack, a variance needs both of its scenarios
-    const effectiveScenarios = isBase && stackConfig?.by === StackBy.DIMENSIONS ? scenarios.slice(0, 1) : scenarios;
+    const effectiveScenarios =
+      isBase && stackConfig?.by === StackBy.DIMENSIONS && !this.scenarioSwitch ? scenarios.slice(0, 1) : scenarios;
 
     return (
       <bn-chart-time-renderer

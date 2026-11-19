@@ -91,10 +91,24 @@ type TimeChartDataModelEntry = {
   scenario2: DataPoint;
   scenario3: DataPoint;
   scenario4: DataPoint;
+  /** Stack by dimension: the series of the period, in the same order in every period. */
+  series?: StackSeries[];
 };
 
-/** One segment of a stack. */
-type StackGroupSegment = { value: number; scenario: string; dataPoint: DataPoint };
+/** One series of a stack by dimension: its value per scenario slot in one period. */
+type StackSeries = { key: string; points: Record<string, DataPoint> };
+
+/**
+ * One segment of a stack. A series of a stack by dimension has a `label` and a
+ * `colorIndex` that stay the same in every period.
+ */
+type StackGroupSegment = {
+  value: number;
+  scenario: string;
+  dataPoint: DataPoint;
+  colorIndex?: number;
+  label?: string;
+};
 
 /**
  * One stack of a period with its layout; `prefix` names the scenario family of an overlay stack.
@@ -304,6 +318,8 @@ export class TimeChart {
     this.scenarioSwitch = config.scenarioSwitch ?? false;
     this.axisTitlePosition = config.axisTitlePosition ?? "left";
     this.dateInterval = this.findDateInterval(config.dateInterval);
+    // the model of a stack by dimension holds the series
+    this.stackConfig = config.stackConfig;
 
     this.dataModel = this.populateModel(scenarios, this.dateInterval);
     this.variancesDataModel = this.populateVarianceModel(config.variances, this.dataModel);
@@ -442,7 +458,11 @@ export class TimeChart {
       titleEnd = axisEnd + this.position.spacings.labelToColumn + titleWidth + this.styles.padding.right;
     }
 
-    return Math.max(axisEnd + labelBuffer, bboxTotal, titleEnd);
+    const legendWidth = this.legendWidth("right");
+    const legendEnd =
+      legendWidth > 0 ? axisEnd + this.position.spacings.labelToColumn + legendWidth + this.styles.padding.right : 0;
+
+    return Math.max(axisEnd + labelBuffer, bboxTotal, titleEnd, legendEnd);
   }
 
   public getAllocatedCanvasHeight(): number {
@@ -483,9 +503,73 @@ export class TimeChart {
     return Math.max(analyticalHeight, bboxHeight) + this.switchNamesHeight();
   }
 
-  /** Room for the scenario names under the category labels of a series that changes its scenario. */
+  /**
+   * Room for the second row under the category labels: the scenario names of a
+   * `scenarioSwitch` chart, and in `two-row` mode the parent periods.
+   */
   private switchNamesHeight(): number {
-    return !this.hideAxisLabels && this.switchRuns().length > 1 ? this.position.dataLabelHeight : 0;
+    return !this.hideAxisLabels && this.contextRow().length > 0 ? this.position.dataLabelHeight : 0;
+  }
+
+  /** The parent period of a period in `two-row` mode: the year of a month, quarter or week, the month of a day. */
+  private parentPeriodLabel(date: DateTime): string {
+    if (this.axisLabelsMode !== AxisLabelsMode.TWO_ROW || date == null || !date.isValid) {
+      return "";
+    }
+    switch (this.dateInterval) {
+      case DateDistance.MONTH:
+      case DateDistance.QUARTER:
+        return date.setLocale(this.locale).toFormat("yyyy");
+      case DateDistance.WEEK:
+        // week 1 can start in December: the week year, as the week labels use it
+        return date.setLocale(this.locale).toFormat("kkkk");
+      case DateDistance.DAY:
+        return date.setLocale(this.locale).toFormat("LLL yyyy");
+      default:
+        return "";
+    }
+  }
+
+  /**
+   * The texts of the second row under the category labels. `two-row` mode: the
+   * parent period under the first period and where it changes, joined with the
+   * scenario name where a run starts, each under its period. Else the scenario
+   * names alone, each under the middle of its run.
+   */
+  private contextRow(): { from: number; to: number; text: string; scenario: string }[] {
+    const runs = this.switchRuns();
+    if (this.axisLabelsMode !== AxisLabelsMode.TWO_ROW) {
+      return runs.map((run) => ({
+        from: run.from,
+        to: run.to,
+        text: Formatter.translateScenarioLabel(run.scenario, this.i18n),
+        scenario: run.scenario,
+      }));
+    }
+
+    // the line chart writes its own labels and has no second row
+    if (!this.isVarianceChart() && this.determineEffectiveChartMode() !== ChartMode.BAR) {
+      return [];
+    }
+    const model = this.isVarianceChart() ? this.variancesDataModel : this.dataModel;
+    const entries: { from: number; to: number; text: string; scenario: string }[] = [];
+    let lastParent = "";
+    model.forEach((row, index) => {
+      const run = runs.find((candidate) => candidate.from === index);
+      const parent = this.parentPeriodLabel(row.date);
+      const parts: string[] = [];
+      if (parent !== "" && parent !== lastParent) {
+        parts.push(parent);
+      }
+      lastParent = parent;
+      if (run) {
+        parts.push(Formatter.translateScenarioLabel(run.scenario, this.i18n));
+      }
+      if (parts.length > 0) {
+        entries.push({ from: index, to: index, text: parts.join(" "), scenario: run?.scenario ?? "parent" });
+      }
+    });
+    return entries;
   }
 
   /** True for a scenario slot that has a value in this period. */
@@ -498,7 +582,9 @@ export class TimeChart {
    * periods where the first scenario has none. Empty without `scenarioSwitch`.
    */
   private followerSlots(): string[] {
-    if (!this.scenarioSwitch || this.stackConfig != null || this.determineEffectiveChartMode() !== ChartMode.BAR) {
+    // a stack by scenario draws its scenarios on top of each other: nothing follows there
+    const stacksScenarios = this.stackConfig != null && this.stackConfig.by !== StackBy.DIMENSIONS;
+    if (!this.scenarioSwitch || stacksScenarios || this.determineEffectiveChartMode() !== ChartMode.BAR) {
       return [];
     }
     return ["scenario2", "scenario3", "scenario4"].filter((slot) => {
@@ -525,8 +611,13 @@ export class TimeChart {
 
   /** Runs of periods with the same visible scenario. A period without a value belongs to the run before it. */
   private switchRuns(): { scenario: string; from: number; to: number }[] {
+    const stacksScenarios = this.stackConfig != null && this.stackConfig.by !== StackBy.DIMENSIONS;
+    if (!this.scenarioSwitch || stacksScenarios || this.determineEffectiveChartMode() !== ChartMode.BAR) {
+      return [];
+    }
     const followers = this.followerSlots();
-    if (followers.length === 0) {
+    // a chart with one scenario is one run: its scenario still gets its name under the axis
+    if (followers.length === 0 && this.scenarioPropOrder.length !== 1) {
       return [];
     }
     const runs: { scenario: string; from: number; to: number }[] = [];
@@ -541,6 +632,21 @@ export class TimeChart {
       runs.push({ scenario, from: index, to: index });
     });
     return runs;
+  }
+
+  /**
+   * Stack by dimensions with `scenarioSwitch`: the scenarios with values that
+   * are not drawn, because they have values in periods of the first scenario
+   * or because the chart is a stacked area. The component warns about them.
+   */
+  public getIgnoredSwitchScenarios(): string[] {
+    if (!this.scenarioSwitch || this.stackConfig?.by !== StackBy.DIMENSIONS || this.isVarianceChart()) {
+      return [];
+    }
+    const followers = this.followerSlots();
+    return ["scenario2", "scenario3", "scenario4"]
+      .filter((slot) => !followers.includes(slot) && this.dataModel.some((row) => TimeChart.hasValue(row[slot])))
+      .map((slot) => this.dataModel.find((row) => row[slot]?.scenario != null)?.[slot].scenario as string);
   }
 
   /** Number of periods where variances of one row overlap. The component warns about it. */
@@ -808,6 +914,8 @@ export class TimeChart {
     if (this.leftSideOffsetForHorizontalSync > -1) {
       maxLabelLengthLeft = this.leftSideOffsetForHorizontalSync;
     }
+    // the series names of a stack by dimension are not known to the component that hands in the offset
+    maxLabelLengthLeft = Math.max(maxLabelLengthLeft, this.legendWidth("left"));
 
     let min: DataPoint;
     let max: DataPoint;
@@ -941,7 +1049,71 @@ export class TimeChart {
 
     const dataModel: TimeChartDataModelEntry[] = this.createDataRows(result, selectedScenarios);
 
+    if (this.stackConfig?.by === StackBy.DIMENSIONS) {
+      this.populateSeries(dataModel, selectedScenarios, dateInterval);
+    }
+
     return dataModel;
+  }
+
+  /**
+   * Stack by dimension: one series per `category`, ordered by `categoryIndex`, else by first appearance.
+   * Every period gets every series, so a series keeps its place and colour when a value is missing.
+   */
+  private populateSeries(
+    dataModel: TimeChartDataModelEntry[],
+    selectedScenarios: string[],
+    dateInterval: DateDistance,
+  ): void {
+    const rows = this.queryDataSet(dateInterval, ", [category]", ", [category]");
+    this.detectNaNCells(selectedScenarios, rows);
+
+    const keyOf = (row: TimeChartResponseRow): string => (row.category == null ? "" : String(row.category));
+    const timeOf = (date: DateTime): number => date?.toMillis?.() ?? Number.NaN;
+
+    const order: string[] = [];
+    const byPeriod = new Map<number, Map<string, TimeChartResponseRow>>();
+    for (const row of rows) {
+      const key = keyOf(row);
+      if (!order.includes(key)) order.push(key);
+      const time = timeOf(row.calcdate);
+      if (!byPeriod.has(time)) byPeriod.set(time, new Map());
+      byPeriod.get(time)!.set(key, row);
+    }
+
+    // `categoryIndex` gives the order when the dataset has it, as for the rows of a structure chart
+    try {
+      const indexRows = this.db.exec<{ category: string | null; idx: number | null }[]>(
+        `SELECT [category], MIN(categoryIndex) AS idx FROM ${this.fromExpr} GROUP BY [category]`,
+      );
+      const indexOf = new Map(indexRows.map((row) => [row.category == null ? "" : String(row.category), row.idx]));
+      if (order.every((key) => Number.isFinite(indexOf.get(key)))) {
+        order.sort((a, b) => (indexOf.get(a) as number) - (indexOf.get(b) as number));
+      }
+    } catch {
+      // no usable index: the order of first appearance stays
+    }
+
+    const slots = ["scenario1", "scenario2", "scenario3", "scenario4"];
+    for (const entry of dataModel) {
+      const period = byPeriod.get(timeOf(entry.date));
+      entry.series = order.map((key) => {
+        const row = period?.get(key);
+        const points: Record<string, DataPoint> = {};
+        slots.forEach((slot, index) => {
+          const scenario = selectedScenarios[index];
+          if (scenario == null) return;
+          const raw = row?.[scenario];
+          const value = typeof raw === "number" ? raw : Number.NaN;
+          const point = new DataPoint(value, scenario, this.pixelPerUnit, Scenario.NEU);
+          if (Number.isFinite(value)) {
+            point.key = { date: TimeChart.pointDate(entry.date), scenario, category: key };
+          }
+          points[slot] = point;
+        });
+        return { key, points };
+      });
+    }
   }
 
   private detectNaNCells(scenarios: string[], res: TimeChartResponseRow[]) {
@@ -1388,6 +1560,9 @@ export class TimeChart {
           }
         } else if (this.axisLabelsMode === AxisLabelsMode.SHORT) {
           datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
+        } else if (this.axisLabelsMode === AxisLabelsMode.TWO_ROW && this.dateInterval !== DateDistance.YEAR) {
+          // the parent period stands in the second row
+          datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
         }
 
         new Label(
@@ -1436,7 +1611,8 @@ export class TimeChart {
    */
   private drawScenarioSwitch(svgContainer: Svg) {
     const runs = this.switchRuns();
-    if (runs.length < 2) {
+    const entries = this.contextRow();
+    if (runs.length < 2 && entries.length === 0) {
       return;
     }
     const group: G = svgContainer.group().id("ScenarioSwitch");
@@ -1457,18 +1633,21 @@ export class TimeChart {
     if (namesHeight === 0) {
       return;
     }
-    runs.forEach((run) => {
-      const center =
-        (this.position.getColumnCenterPositionX(run.from) + this.position.getColumnCenterPositionX(run.to)) / 2;
+    // in two-row mode a text starts at the left edge of its period, like the parent period it carries
+    const leftAligned = this.axisLabelsMode === AxisLabelsMode.TWO_ROW;
+    entries.forEach((entry) => {
+      const x = leftAligned
+        ? this.position.getColumnCenterPositionX(entry.from) - this.position.getColumnWidth() / 2
+        : (this.position.getColumnCenterPositionX(entry.from) + this.position.getColumnCenterPositionX(entry.to)) / 2;
       new Label(
         group,
-        center,
+        x,
         bottom - namesHeight,
-        "SWITCH_" + run.scenario,
-        Formatter.translateScenarioLabel(run.scenario, this.i18n),
+        "SWITCH_" + entry.scenario + "_" + entry.from,
+        entry.text,
         this.styles,
         HookLocation.Top,
-        HookLocation.Center,
+        leftAligned ? HookLocation.Left : HookLocation.Center,
       ).forceStringTypeDraw();
     });
   }
@@ -1795,11 +1974,51 @@ export class TimeChart {
 
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
     const isArea = this.determineEffectiveChartMode() === ChartMode.LINE;
+    const relativeSpan = this.stackConfig.mode === StackMode.RELATIVE ? RELATIVE_STACK_UNITS : 0;
+    // a segment without a value sorts like 0: NaN in the comparison would leave the stack unsorted
+    const sortValue = (segment: StackGroupSegment): number => (Number.isFinite(segment.value) ? segment.value : 0);
+    const sortByValue = (list: StackGroupSegment[]): void => {
+      if (this.stackConfig!.order === "asc") {
+        list.sort((a, b) => sortValue(a) - sortValue(b));
+      } else if (this.stackConfig!.order === "desc") {
+        list.sort((a, b) => sortValue(b) - sortValue(a));
+      }
+    };
+
+    if (!isScenarioStack && !isArea && row.series) {
+      // one stack of the scenario that is visible in this period
+      const slot = this.visibleSlot(row, this.followerSlots()) ?? "scenario1";
+      const series: StackGroupSegment[] = [];
+      row.series.forEach((entry, index) => {
+        const dataPoint = entry.points[slot];
+        if (dataPoint) {
+          series.push({
+            value: dataPoint.value as number,
+            scenario: dataPoint.scenario as string,
+            dataPoint,
+            colorIndex: index,
+            label: entry.key,
+          });
+        }
+      });
+      if (!series.some((segment) => Number.isFinite(segment.value))) return [];
+      sortByValue(series);
+      return [
+        {
+          prefix: "",
+          segments: series,
+          layout: layoutStack(
+            series.map((segment) => segment.value),
+            relativeSpan,
+          ),
+          hasValue: true,
+        },
+      ];
+    }
+
     const segments: StackGroupSegment[] = [];
 
-    for (const key of isScenarioStack || isArea
-      ? ["scenario1", "scenario2", "scenario3", "scenario4"]
-      : ["scenario1"]) {
+    for (const key of isScenarioStack ? ["scenario1", "scenario2", "scenario3", "scenario4"] : ["scenario1"]) {
       const dp: DataPoint = row[key];
       if (dp && !dp.isEmpty() && dp.value != null) {
         segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
@@ -1808,7 +2027,6 @@ export class TimeChart {
 
     if (segments.length === 0) return [];
 
-    const relativeSpan = this.stackConfig.mode === StackMode.RELATIVE ? RELATIVE_STACK_UNITS : 0;
     const toGroup = (prefix: string, groupSegments: StackGroupSegment[]): StackGroup => ({
       prefix,
       segments: groupSegments,
@@ -1851,13 +2069,7 @@ export class TimeChart {
       }
     }
 
-    // a segment without a value sorts like 0: NaN in the comparison would leave the stack unsorted
-    const sortValue = (segment: StackGroupSegment): number => (Number.isFinite(segment.value) ? segment.value : 0);
-    if (this.stackConfig.order === "asc") {
-      segments.sort((a, b) => sortValue(a) - sortValue(b));
-    } else if (this.stackConfig.order === "desc") {
-      segments.sort((a, b) => sortValue(b) - sortValue(a));
-    }
+    sortByValue(segments);
 
     return [toGroup("", segments)];
   }
@@ -1890,11 +2102,13 @@ export class TimeChart {
             group.layout.segments[segIdx],
             seg.scenario,
             // overlay: one colour per group, back=lighter, front=darker
-            groups.length > 1 ? groups.length - 1 - groupIdx : segIdx,
+            groups.length > 1 ? groups.length - 1 - groupIdx : (seg.colorIndex ?? segIdx),
             this.stackConfig!.mode,
             group.layout,
             isScenarioStack,
             stackGroup,
+            this.stackConfig!.notation === "scenario",
+            this.hasPercentMark(),
           );
           column.draw(this.dataFormatDigits, this.measureScale);
           lastColumn = column;
@@ -1917,67 +2131,168 @@ export class TimeChart {
     };
   }
 
+  /** True for a 100 % stack that prints plain shares and one `100%` mark. */
+  private hasPercentMark(): boolean {
+    return this.stackConfig?.mode === StackMode.RELATIVE && this.stackConfig.percentMark === true;
+  }
+
+  /** The side of the `100%` mark: with the series names, at the left when they stand on both sides or nowhere. */
+  private percentMarkSide(): "left" | "right" {
+    return this.stackConfig?.legend === "right" ? "right" : "left";
+  }
+
+  /** The name of a series of a stack by dimension. A translation of the category wins. */
+  private seriesName(key: string): string {
+    return (this.i18n.get(key) || key) as string;
+  }
+
+  /**
+   * Width of the widest text the stack writes on one side of the columns, 0 when
+   * there is none. The names of a stack by scenario at the left are part of the
+   * left offset the component hands in, so they do not count here.
+   */
+  private legendWidth(side: "left" | "right"): number {
+    // the stacked area draws no names and no mark
+    if (!this.stackConfig || this.determineEffectiveChartMode() !== ChartMode.BAR) return 0;
+    const legend = this.stackConfig.legend ?? "left";
+    const texts: string[] = [];
+    if (legend === side || legend === "both") {
+      const series = this.dataModel.find((row) => row.series != null)?.series;
+      if (series) {
+        texts.push(...series.map((entry) => this.seriesName(entry.key)));
+      } else if (side === "right" && this.stackConfig.by === StackBy.SCENARIOS) {
+        texts.push(...this.lastScenarios.map((scenario) => (this.i18n.get(scenario) || scenario) as string));
+      }
+    }
+    if (this.hasPercentMark() && this.percentMarkSide() === side) {
+      texts.push("100%");
+    }
+    let width = 0;
+    for (const text of texts) {
+      width = Math.max(
+        width,
+        CalculateSize(text, { font: this.styles.fontStyles.font, fontSize: this.styles.fontStyles.size + "px" }).width,
+      );
+    }
+    return width;
+  }
+
   /**
    * Draw column headers next to stacked columns showing what each group/segment represents.
    * For overlay mode (multiple scenario types): shows one header per group.
    * For single-group: shows individual segment headers.
-   * The headers take their place from the first period.
+   * The headers at the left take their place from the first period, the ones at
+   * the right from the last period with a value.
    */
   private drawStackedHeaders(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig || dataModel.length === 0) return;
 
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
-    if (!isScenarioStack) return;
+    const hasSeries = dataModel.some((row) => row.series != null);
+    if (!isScenarioStack && !hasSeries) return;
 
     const headerGroup: G = svgContainer.group().id("StackedHeaders");
-
-    const groups = this.stackGroups(dataModel[0]);
-    if (groups.length === 0) return;
-
     const axisY = this.position.getColumnPositionY();
-    const xBase = this.position.getColumnCenterPositionX(0) - this.position.getColumnWidth() / 2;
-    const labelX = xBase - this.position.spacings.labelToColumn;
+    const halfColumn = this.position.getColumnWidth() / 2;
+    const gap = this.position.spacings.labelToColumn;
 
-    const drawHeader = (centerY: number, labelText: string): void => {
-      new Label(
-        headerGroup,
-        labelX,
-        centerY,
-        "STACK_HEADER",
-        labelText,
-        this.styles,
-        HookLocation.Center,
-        HookLocation.Right,
-      ).forceStringTypeDraw();
+    const withValue = dataModel.map((row, index) => (this.stackGroups(row).length > 0 ? index : -1));
+    const filled = withValue.filter((index) => index >= 0);
+    // a stack by scenario keeps the first period, also when it is empty
+    const firstIndex = hasSeries ? (filled[0] ?? 0) : 0;
+    const lastIndex = filled[filled.length - 1] ?? dataModel.length - 1;
+
+    const drawSide = (side: "left" | "right"): void => {
+      const index = side === "left" ? firstIndex : lastIndex;
+      const groups = this.stackGroups(dataModel[index]);
+      if (groups.length === 0) return;
+
+      const center = this.position.getColumnCenterPositionX(index);
+      const labelX = side === "left" ? center - halfColumn - gap : center + halfColumn + gap;
+
+      const drawHeader = (centerY: number, labelText: string): void => {
+        new Label(
+          headerGroup,
+          labelX,
+          centerY,
+          "STACK_HEADER",
+          labelText,
+          this.styles,
+          HookLocation.Center,
+          side === "left" ? HookLocation.Right : HookLocation.Left,
+        ).forceStringTypeDraw();
+      };
+
+      if (groups.length > 1) {
+        // Overlay mode: one header per group
+        groups.forEach((group, groupIdx) => {
+          const { positive, negative, total } = group.layout;
+          const pixelPerUnit = group.segments[0].dataPoint.pixelPerUnit;
+          // The front-most group (drawn last, e.g. AC) is fully visible, so its
+          // label is centered on the bar. Back groups are mostly hidden behind it
+          // and only peek out at their outer end, so their labels align with that edge.
+          const isFrontGroup = groupIdx === groups.length - 1;
+          const outerEnd = total < 0 ? 0 - negative : positive;
+          const centerY = axisY - (isFrontGroup ? (positive - negative) / 2 : outerEnd) * pixelPerUnit;
+
+          drawHeader(centerY, (this.i18n.get(group.prefix + "1") || group.prefix.toUpperCase()) as string);
+        });
+        return;
+      }
+
+      // Single group: one header per segment, centered on the segment
+      const [group] = groups;
+      group.segments.forEach((seg, segIdx) => {
+        // a series without a value in this period has no segment to stand next to
+        if (seg.label != null && !Number.isFinite(seg.value)) return;
+        const { start, end } = group.layout.segments[segIdx];
+
+        drawHeader(
+          axisY - ((start + end) / 2) * seg.dataPoint.pixelPerUnit,
+          seg.label != null ? this.seriesName(seg.label) : ((this.i18n.get(seg.scenario) || seg.scenario) as string),
+        );
+      });
     };
 
-    if (groups.length > 1) {
-      // Overlay mode: one header per group
-      groups.forEach((group, groupIdx) => {
-        const { positive, negative, total } = group.layout;
-        const pixelPerUnit = group.segments[0].dataPoint.pixelPerUnit;
-        // The front-most group (drawn last, e.g. AC) is fully visible, so its
-        // label is centered on the bar. Back groups are mostly hidden behind it
-        // and only peek out at their outer end, so their labels align with that edge.
-        const isFrontGroup = groupIdx === groups.length - 1;
-        const outerEnd = total < 0 ? 0 - negative : positive;
-        const centerY = axisY - (isFrontGroup ? (positive - negative) / 2 : outerEnd) * pixelPerUnit;
+    const legend = this.stackConfig.legend ?? "left";
+    if (legend === "left" || legend === "both") drawSide("left");
+    if (legend === "right" || legend === "both") drawSide("right");
 
-        drawHeader(centerY, (this.i18n.get(group.prefix + "1") || group.prefix.toUpperCase()) as string);
-      });
-      return;
+    if (this.hasPercentMark() && filled.length > 0) {
+      this.drawPercentMark(headerGroup, this.percentMarkSide() === "left" ? firstIndex : lastIndex);
     }
+  }
 
-    // Single group: one header per segment, centered on the segment
-    const [group] = groups;
-    group.segments.forEach((seg, segIdx) => {
-      const { start, end } = group.layout.segments[segIdx];
+  /** The `100%` label with a pointer at the upper end of a 100 % stack, on the side of the series names. */
+  private drawPercentMark(group: G, index: number): void {
+    const side = this.percentMarkSide();
+    const direction = side === "left" ? -1 : 1;
+    const top = this.position.getColumnPositionY() - RELATIVE_STACK_UNITS * this.pixelPerUnit;
+    const edge = this.position.getColumnCenterPositionX(index) + direction * (this.position.getColumnWidth() / 2);
+    const size = this.styles.fontStyles.size * 0.45;
+    const tip = edge + direction * 1;
+    const base = tip + direction * size;
 
-      drawHeader(
-        axisY - ((start + end) / 2) * seg.dataPoint.pixelPerUnit,
-        (this.i18n.get(seg.scenario) || seg.scenario) as string,
-      );
-    });
+    group
+      .polygon([
+        [tip, top],
+        [base, top - size / 2],
+        [base, top + size / 2],
+      ])
+      .fill(this.styles.fontStyles.color || "#000000")
+      .addClass("percent-mark");
+
+    // above the pointer, so the name of the uppermost series keeps its place next to its segment
+    new Label(
+      group,
+      base,
+      top - size / 2,
+      "STACK_PERCENT_MARK",
+      "100%",
+      this.styles,
+      HookLocation.Bottom,
+      side === "left" ? HookLocation.Right : HookLocation.Left,
+    ).forceStringTypeDraw();
   }
 
   /**
@@ -2004,7 +2319,8 @@ export class TimeChart {
 
     // Identify active layers
     const activeLayers: string[] = [];
-    for (const key of scenarioKeys) {
+    // a stack by dimensions draws its first scenario only
+    for (const key of isScenarioStack ? scenarioKeys : ["scenario1"]) {
       if (dataModel.some((el: TimeChartDataModelEntry) => el[key] && !el[key].isEmpty())) {
         activeLayers.push(key);
       }
