@@ -164,6 +164,10 @@ export class Label {
       if (this.isVarianceLabel && Number(this.value) > 0 && valueStr !== zeroStr) {
         prefix = "+";
       }
+      // only a value: a share, a category or a title comes as a string
+      if (typeof this.value === "number" && !this.isVarianceLabel && !this.isRelativeLabel) {
+        valueStr += this.styles.valueSuffix ?? "";
+      }
     } else {
       valueStr = "" + this.value;
     }

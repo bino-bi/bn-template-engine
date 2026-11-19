@@ -65,6 +65,7 @@ export class StructureChartComponentConfig {
   public sums: SumRows = "none";
   /** Label of the row over all rows. Empty: the `SUM_TOTAL` text. */
   public sumTitle: string = "";
+  public valueSuffix: string = "";
   /** The name of the scenario stands above the first bar and not below the last one. */
   public scenarioLabelTop: boolean = false;
   /** No chart draws the name of the scenario: the component shows variances only. */
@@ -170,6 +171,10 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isString(data.sumTitle)) {
       config.sumTitle = data.sumTitle;
+    }
+
+    if (CompareUtil.isString(data.valueSuffix)) {
+      config.valueSuffix = data.valueSuffix;
     }
 
     if (CompareUtil.isBoolean(data.scenarioLabelTop)) {

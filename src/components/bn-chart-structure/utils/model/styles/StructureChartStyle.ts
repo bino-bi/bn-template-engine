@@ -26,6 +26,8 @@ export class StructureChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
   public stackColors: string[] = ["#000000", "#c0c0c0", "#808080"];
   public titleBold: boolean = false;
+  /** Not a style key: the `value-suffix` of the chart, kept here because every label gets the style. */
+  public valueSuffix: string = "";
   /** Locale for number labels. */
   public locale: string = "de";
 

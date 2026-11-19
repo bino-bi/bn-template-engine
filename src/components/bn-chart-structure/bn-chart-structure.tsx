@@ -542,6 +542,15 @@ export class Chart {
   @Prop() sumTitle: string = "";
 
   /**
+   * Text printed right after every value label, for example a unit that IBCS repeats in each row.
+   * Variance labels do not get it.
+   *
+   * @default ""
+   * @example value-suffix="%"
+   */
+  @Prop() valueSuffix: string = "";
+
+  /**
    * Where the name of the scenario of a chart with plain bars stands:
    * `bottom` below the last bar, `top` above the first one.
    *
@@ -1391,6 +1400,7 @@ export class Chart {
         stackConfig={stackConfig}
         sums={["groups", "total", "all"].includes(this.sums) ? this.sums : "none"}
         sumTitle={this.sumTitle}
+        valueSuffix={this.valueSuffix}
         scenarioLabelTop={this.scenarioLabelPosition === "top"}
         hideScenarioName={this.hidesScenarios()}
         referenceLine={isBase ? this.prepareReferenceLine() : null}

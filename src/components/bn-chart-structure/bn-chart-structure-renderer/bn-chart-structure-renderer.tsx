@@ -141,6 +141,9 @@ export class BnChartStructureRenderer {
   @Prop() sumTitle: string = "";
 
   /** @internal */
+  @Prop() valueSuffix: string = "";
+
+  /** @internal */
   @Prop() scenarioLabelTop: boolean = false;
 
   /** @internal */
@@ -442,6 +445,7 @@ export class BnChartStructureRenderer {
       stackConfig: this.stackConfig,
       sums: this.sums,
       sumTitle: this.sumTitle,
+      valueSuffix: this.valueSuffix,
       scenarioLabelTop: this.scenarioLabelTop,
       hideScenarioName: this.hideScenarioName,
       referenceLine: this.referenceLine,
