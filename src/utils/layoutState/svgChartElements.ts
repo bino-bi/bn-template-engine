@@ -135,7 +135,7 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
         text,
         segment,
         index: indexOfGroup(group.id) ?? walkIndex,
-        rect: measure(group, origins),
+        rect: measure(group.querySelector("text") ?? group, origins),
         point: readLayoutPoint(group),
       };
       elements.push(label);
@@ -164,7 +164,7 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
       text: el.textContent?.trim() ?? "",
       segment,
       index,
-      rect: measure(el, origins),
+      rect: measure(el.querySelector("text") ?? el, origins),
       point,
     };
     elements.push(label);

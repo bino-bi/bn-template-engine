@@ -297,8 +297,10 @@ export function buildMark(
       item.text == null || whole
         ? undefined
         : options.label
-          ? // right of a value label, so both can be read
-            { x: box.x + box.width + 0.7 * em + textWidth(item.text, em) / 2, y: box.y + box.height / 2 }
+          ? item.textPosition === "above"
+            ? { x: box.x + box.width / 2 + 0.5 * em, y: box.y - 0.8 * em }
+            : // right of a value label, so both can be read
+              { x: box.x + box.width + 0.7 * em + textWidth(item.text, em) / 2, y: box.y + box.height / 2 }
           : { x: box.x + box.width / 2, y: box.y + Math.min(box.height / 2, Math.max(0.9 * em, 0.3 * box.height)) };
     const captionBox = caption && {
       x: caption.x - textWidth(item.text!, em) / 2,
@@ -466,7 +468,7 @@ export function buildPointer(item: AnnotationLayerItem, at: { x: number; y: numb
  * A bracket around a range of rows of a chart with bars from left to right. A line
  * runs below the last row from `left` to the end of its bar, and from there up to the
  * end of the bar of the first row. `ends` are the x of the two values. `text` stands
- * in a frame at the left, above the first row.
+ * in a frame at the left, at half the height of the rows.
  */
 export function buildBracket(
   item: AnnotationLayerItem,
@@ -487,7 +489,8 @@ export function buildBracket(
     [upperEnd, upper.y - 0.1 * em],
   ];
   const width = text ? textWidth(text, em) : 0;
-  const captionY = upper.y - 0.9 * em;
+  // beside the rows, at half their height
+  const captionY = (upper.y + lower.y + lower.height) / 2;
   const caption = text ? { x: left + 0.5 * em + width / 2, y: captionY, text } : undefined;
   // the number stands behind the text, or in its place
   const badgeX = caption ? caption.x + width / 2 + 1.2 * em : left + 0.65 * em;
