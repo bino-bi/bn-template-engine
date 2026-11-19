@@ -144,6 +144,9 @@ export class BnChartStructureRenderer {
   @Prop() scenarioLabelTop: boolean = false;
 
   /** @internal */
+  @Prop() hideScenarioName: boolean = false;
+
+  /** @internal */
   @Prop() referenceLine: ReferenceLine | null = null;
 
   /** @internal */
@@ -440,6 +443,7 @@ export class BnChartStructureRenderer {
       sums: this.sums,
       sumTitle: this.sumTitle,
       scenarioLabelTop: this.scenarioLabelTop,
+      hideScenarioName: this.hideScenarioName,
       referenceLine: this.referenceLine,
       italicCategories: this.italicCategories,
     });

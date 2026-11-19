@@ -133,6 +133,7 @@ export class StructureChart {
   private sums: SumRows = "none";
   private sumTitle: string = "";
   private scenarioLabelTop: boolean = false;
+  private hideScenarioName: boolean = false;
   private referenceLine: ReferenceLine | null = null;
   private italicCategories: string[] = [];
 
@@ -201,6 +202,7 @@ export class StructureChart {
     this.sums = config.sums;
     this.sumTitle = config.sumTitle;
     this.scenarioLabelTop = config.scenarioLabelTop;
+    this.hideScenarioName = config.hideScenarioName;
     this.referenceLine = config.referenceLine;
     this.italicCategories = config.italicCategories;
     this.dataModel = this.populateModel(scenarios, config.level, config.sortOrder);
@@ -1079,7 +1081,7 @@ export class StructureChart {
           const side = this.stackLabelPlace(elements);
           isPositive = !side.flipped;
           clearance = side.clearance * this.pixelPerUnit * (side.flipped ? 1 : -1);
-        } else if (elements["scenario1"].value < 0) {
+        } else if (elements["scenario1"].value < 0 && !this.hasSumNumbers(this.dataModel[index])) {
           isPositive = false;
         }
         if (!isPositive) {
@@ -1183,6 +1185,11 @@ export class StructureChart {
       return index === -1 ? order.length : index;
     };
     return points.sort((a, b) => place(a) - place(b));
+  }
+
+  /** A sum row of the base chart that prints several numbers right of the axis: its title stays left of it. */
+  private hasSumNumbers(row: StructureChartDataModelEntry | undefined): boolean {
+    return !!row?.sum && this.variancesDataModel.length === 0 && !this.stackConfig && this.sumPoints(row).length > 1;
   }
 
   /** How wide the numbers of a sum row of a chart with plain bars are, from the axis on. */
@@ -1755,7 +1762,12 @@ export class StructureChart {
     const byTotal = this.stackConfig?.thickness === "total";
     // the name of the scenario stands below the last bar: it needs room when a sum row follows
     const lastBar = rows.reduce((last, row, index) => (row.sum ? last : index), -1);
-    const nameBelow = !this.stackConfig && !this.scenarioLabelTop && lastBar >= 0 && lastBar < rows.length - 1;
+    const nameBelow =
+      !this.stackConfig &&
+      !this.scenarioLabelTop &&
+      !this.hideScenarioName &&
+      lastBar >= 0 &&
+      lastBar < rows.length - 1;
     if (!byTotal && !nameBelow && !rows.some((row) => row.gapAfter)) return null;
 
     const totals = rows.map((row) => {

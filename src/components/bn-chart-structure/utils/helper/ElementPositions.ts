@@ -106,6 +106,11 @@ export class ElementPositions {
     return this.categoryPosition.y + this.spacings.scenarioOffset + index * this.spacings.categoryWidth;
   }
 
+  /** A sum row follows the last bar, so the name of the scenario stands right below that bar. */
+  public isNameBelowBar(): boolean {
+    return !!this.rows?.nameBelowBar;
+  }
+
   /** Upper edge of the room of a row. */
   public getRowTopPositionY(index: number): number {
     const start = this.rows && index < this.rows.start.length ? this.rows.start[index] : index;

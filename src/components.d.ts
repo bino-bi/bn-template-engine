@@ -865,6 +865,10 @@ export namespace Components {
          */
         "hideCategories": boolean;
         /**
+          * @default false
+         */
+        "hideScenarioName": boolean;
+        /**
           * @default new Map()
          */
         "i18n": Map<string, string>;
@@ -1255,7 +1259,7 @@ export namespace Components {
          */
         "getNotation": (styleName?: string) => Promise<Notation>;
         /**
-          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself. It holds for the whole page, also for a context that does not set it.
+          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself. It holds for the whole page, also for a context that does not set it. With several contexts the last one that declares a separator wins.
           * @default "" (the separator of the locale)
           * @example group-separator="thin-space"
          */
@@ -3550,6 +3554,10 @@ declare namespace LocalJSX {
          */
         "hideCategories"?: boolean;
         /**
+          * @default false
+         */
+        "hideScenarioName"?: boolean;
+        /**
           * @default new Map()
          */
         "i18n"?: Map<string, string>;
@@ -3921,7 +3929,7 @@ declare namespace LocalJSX {
     }
     interface BnContext {
         /**
-          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself. It holds for the whole page, also for a context that does not set it.
+          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself. It holds for the whole page, also for a context that does not set it. With several contexts the last one that declares a separator wins.
           * @default "" (the separator of the locale)
           * @example group-separator="thin-space"
          */
@@ -5141,6 +5149,7 @@ declare namespace LocalJSX {
         "sums": string;
         "sumTitle": string;
         "scenarioLabelTop": boolean;
+        "hideScenarioName": boolean;
     }
     interface BnChartTimeAttributes {
         "datasets": string;

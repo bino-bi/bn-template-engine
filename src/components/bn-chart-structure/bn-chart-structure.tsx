@@ -1273,6 +1273,7 @@ export class Chart {
       };
     } catch {
       this.errors.remove("WARN_stack_dimensions_scenarios");
+      this.errors.remove("WARN_stack_thickness_variances");
       return null;
     }
   }
@@ -1390,6 +1391,7 @@ export class Chart {
         sums={["groups", "total", "all"].includes(this.sums) ? this.sums : "none"}
         sumTitle={this.sumTitle}
         scenarioLabelTop={this.scenarioLabelPosition === "top"}
+        hideScenarioName={this.hidesScenarios()}
         referenceLine={isBase ? this.prepareReferenceLine() : null}
         italicCategories={this.prepareItalicCategories() ?? []}
         dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}
