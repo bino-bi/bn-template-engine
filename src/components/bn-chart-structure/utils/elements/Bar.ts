@@ -156,6 +156,7 @@ export class Bar {
 
     this.scenarioGroup?.attr(dataPointAttributes(this.dataPoint.key));
     this.barGroup?.attr(dataPointAttributes(this.dataPoint.key, "element"));
+    if (!this.isVarianceBar) this.barGroup?.attr("data-bn-value", this.dataPoint.value as number);
 
     if (this.barGroup != null) {
       if (this.isOverflowing && this.overflowConfig) {

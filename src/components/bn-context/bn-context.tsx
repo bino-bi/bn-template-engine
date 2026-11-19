@@ -1,3 +1,4 @@
+import { Formatter } from "../../utils/formatter";
 import { Component, h, Host, Element, Event, EventEmitter, Method, Prop, Watch, forceUpdate } from "@stencil/core";
 import { ScopedStores, getOrCreateStores } from "../../context/context-protocol";
 import {
@@ -99,6 +100,26 @@ export class Context {
    */
   @Event() bnNotationChange: EventEmitter<void>;
 
+  /**
+   * Group separator of every number in the document, in place of the one of
+   * the locale: `thin-space`, `space`, `none`, or the separator itself. It
+   * holds for the whole page, also for a context that does not set it.
+   *
+   * @default "" (the separator of the locale)
+   * @example group-separator="thin-space"
+   */
+  @Prop() groupSeparator: string = "";
+
+  private setsGroupSeparator = false;
+
+  @Watch("groupSeparator")
+  setGroupSeparator(newValue: string) {
+    const named: Record<string, string> = { "thin-space": "\u2009", space: "\u00a0", none: "" };
+    // no value: the separator of the locale
+    Formatter.groupSeparator = newValue ? (named[newValue] ?? newValue) : null;
+    this.setsGroupSeparator = !!newValue;
+  }
+
   @Watch("locale")
   setLocale(newValue: string) {
     this.stores.context.state.locale = newValue;
@@ -120,6 +141,9 @@ export class Context {
     if (this.locale) {
       this.stores.context.state.locale = this.locale;
     }
+    if (this.groupSeparator) {
+      this.setGroupSeparator(this.groupSeparator);
+    }
 
     // a removed scaling group is a "set" too: its entry is set to undefined
     const notify = () => this.bnNotationChange.emit();
@@ -140,6 +164,11 @@ export class Context {
   }
 
   disconnectedCallback() {
+    // only the context that set it takes it back
+    if (this.setsGroupSeparator) {
+      Formatter.groupSeparator = null;
+      this.setsGroupSeparator = false;
+    }
     this.notationSubscriptions.forEach((unsubscribe) => unsubscribe());
     this.notationSubscriptions = [];
     this.pageObserver?.disconnect();

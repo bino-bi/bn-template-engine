@@ -1,11 +1,13 @@
 import { G, Svg } from "@svgdotjs/svg.js";
 
-import { ElementPositions, FactoryState, Padding, VarianceType } from "./helper";
+import { ElementPositions, FactoryState, Padding, RowLayout, VarianceType } from "./helper";
 
 import {
   DataPoint,
+  ReferenceLine,
   Scenario,
   StackConfigParsed,
+  SumRows,
   StructureChartComponentConfig,
   StructureChartStyle,
   OverflowConfig,
@@ -31,6 +33,7 @@ import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
 import { levelKey } from "../../../utils/layoutState/dataPoint";
+import { SYSTEM_STYLE_DEFAULTS } from "../../../stores/componentStyles";
 
 /** Internal data model entry: one category with up to 4 scenario DataPoints and optional stack segments. */
 type StructureChartDataModelEntry = {
@@ -42,7 +45,14 @@ type StructureChartDataModelEntry = {
   scenario3: DataPoint;
   scenario4: DataPoint;
   stackSegments?: { label: string; value: number; dataPoint: DataPoint }[];
+  /** A sum row: over the rows of one `rowGroup`, or over all rows. */
+  sum?: "group" | "total";
+  /** Half a row of room below this row: it closes a group. */
+  gapAfter?: boolean;
 };
+
+/** The id of the row that sums the rows a limit cut off. */
+const REST_ROW_ID = 9999;
 
 /** One segment of a stack; `scenario` is the scenario or the value of the stack dimension. */
 type StackGroupSegment = { value: number; scenario: string; dataPoint: DataPoint };
@@ -120,6 +130,11 @@ export class StructureChart {
   private rowCount: number = 0;
   /** Text of the first query that failed since the source was set. The component reports it as ERR_sql. */
   private queryError: string | undefined;
+  private sums: SumRows = "none";
+  private sumTitle: string = "";
+  private scenarioLabelTop: boolean = false;
+  private referenceLine: ReferenceLine | null = null;
+  private italicCategories: string[] = [];
 
   constructor(
     ruleSet: VisualisationRuleSet,
@@ -159,7 +174,8 @@ export class StructureChart {
       this.titleLength,
       leftSideWidth,
       categoryWidth,
-      !!this.stackConfig && this.variancesDataModel.length === 0,
+      (!!this.stackConfig && this.variancesDataModel.length === 0) || this.scenarioLabelTop,
+      this.rowLayout(),
     );
   }
 
@@ -182,7 +198,19 @@ export class StructureChart {
     this.pixelPerPercentage = config.pixelPerPercentage || 100;
     this.setSource(config.filter);
     this.level = config.level;
+    this.sums = config.sums;
+    this.sumTitle = config.sumTitle;
+    this.scenarioLabelTop = config.scenarioLabelTop;
+    this.referenceLine = config.referenceLine;
+    this.italicCategories = config.italicCategories;
     this.dataModel = this.populateModel(scenarios, config.level, config.sortOrder);
+
+    // Populate per-dimension stack segments when stacking by a data dimension
+    if (config.stackConfig && config.stackConfig.by !== StackBy.SCENARIOS) {
+      this.populateDimensionStackSegments(scenarios, config.stackConfig, config.level);
+    }
+    this.addSumRows(scenarios);
+
     for (const row of this.dataModel) {
       for (const dataPoint of [row.scenario1, row.scenario2, row.scenario3, row.scenario4]) {
         // a category without a value has no bar: nothing an annotation can point at
@@ -192,21 +220,19 @@ export class StructureChart {
       }
     }
 
-    // Populate per-dimension stack segments when stacking by a data dimension
-    if (config.stackConfig && config.stackConfig.by !== StackBy.SCENARIOS) {
-      this.populateDimensionStackSegments(scenarios, config.stackConfig, config.level);
-    }
-
     this.variancesDataModel = this.populateVarianceModel(config.variances, this.dataModel);
 
     this.configTitle = config.title;
     this.configVariances = config?.variances ?? [];
     this.updateTitle();
 
-    this.smallestDataPointValue = this.findSmallestDataPointValue(this.dataModel);
-    this.smallestVarianceDataPointValue = this.findSmallestDataPointValue(this.variancesDataModel);
-    this.highestDataPointValue = this.findHighestDataPointValue(this.dataModel);
-    this.highestVarianceDataPointValue = this.findHighestDataPointValue(this.variancesDataModel);
+    // a sum row has no bar: it does not count for the scale
+    const bars = this.dataModel.filter((row) => !row.sum);
+    this.smallestDataPointValue = this.findSmallestDataPointValue(bars);
+    const varianceBars = this.variancesDataModel.filter((row) => !row.sum);
+    this.smallestVarianceDataPointValue = this.findSmallestDataPointValue(varianceBars);
+    this.highestDataPointValue = this.findHighestDataPointValue(bars);
+    this.highestVarianceDataPointValue = this.findHighestDataPointValue(varianceBars);
     this.axisScenario = this.setAxisScenario(config.variances);
 
     this.measureScale = config.measureScale;
@@ -340,7 +366,8 @@ export class StructureChart {
       // both sides of the axis; a relative stack is laid out on a span of 1, so its sides add up to 1 * ppu
       fixedDomain: stacked ? this.stackSides.positive + this.stackSides.negative : undefined,
       relativeVariance: vt === VarianceType.RELATIVE,
-      maxPositive: highest?.value ?? 0,
+      // a reference line right of the longest bar needs its room too
+      maxPositive: Math.max(highest?.value ?? 0, !stacked && !isVariance ? (this.referenceLine?.value ?? 0) : 0),
       minNegative: smallest?.value ?? 0,
     });
   }
@@ -383,6 +410,8 @@ export class StructureChart {
       this.position.getAxisEndPositionY() +
       this.position.spacings.labelToAxis +
       this.position.fontSize +
+      // the 100% mark stands below the axis end
+      (this.hasPercentMark() ? this.position.fontSize * 0.8 : 0) +
       this.styles.padding.bottom
     );
   }
@@ -451,9 +480,13 @@ export class StructureChart {
       this.drawStackedScenarios(this.dataModel, svgContainer);
       this.drawStackedHeaders(this.dataModel, svgContainer);
       this.drawAxisAndLabels(this.dataModel, svgContainer, true);
+      this.drawPercentMark(svgContainer);
     } else {
       this.drawScenarios(this.dataModel, svgContainer);
       this.drawAxisAndLabels(this.dataModel, svgContainer);
+    }
+    if (this.variancesDataModel.length === 0) {
+      this.drawReferenceLine(svgContainer);
     }
   }
 
@@ -626,7 +659,7 @@ export class StructureChart {
         return obj;
       },
       {
-        id: 9999,
+        id: REST_ROW_ID,
         category: "REST",
         type: VarianceType.NONE,
         scenario1: new DataPoint(NaN, selectedScenarios[0], this.pixelPerUnit, Scenario.NEU),
@@ -857,7 +890,7 @@ export class StructureChart {
     const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
     // a 100 % stack prints no total
     const totalLabelRoom = (layout: StackLayout): number =>
-      this.stackConfig?.mode === StackMode.RELATIVE
+      this.stackConfig?.mode === StackMode.RELATIVE && this.stackConfig.labels !== "value"
         ? 0
         : (labelToBar + this.calculateTotalLabelWidth(layout.total)) / this.pixelPerUnit;
 
@@ -866,6 +899,7 @@ export class StructureChart {
 
   /** Layouts of the stacks of a row that are drawn, back to front. */
   private drawnStackLayouts(row: StructureChartDataModelEntry): StackLayout[] {
+    if (this.isTextSum(row)) return [];
     return this.stackGroups(row)
       .filter((group) => group.hasValue)
       .map((group) => group.layout);
@@ -937,6 +971,7 @@ export class StructureChart {
             scenario2: new DataPoint(null, null, null, null),
             scenario3: new DataPoint(null, null, null, null),
             scenario4: new DataPoint(null, null, null, null),
+            sum: dataModel[index].sum,
           });
         }
       }
@@ -1062,9 +1097,23 @@ export class StructureChart {
           this.styles,
           HookLocation.Center,
           textHook,
-        ).draw();
+        )
+          .setEmphasis(!!this.dataModel[index]?.sum, this.isItalic(elements.category))
+          .draw();
       });
     }
+
+    // a thin line above a sum row, from the labels to the end of the row
+    dataModel.forEach((_elements, index) => {
+      const row = this.dataModel[index];
+      if (!row?.sum) return;
+      const y = this.position.getBarCenterPositionY(index) - this.position.spacings.categoryWidth / 2;
+      const left = this.hideCategories ? this.position.getAxisPositionX() : this.styles.padding.left;
+      axisLabelGroup
+        .line(left, y, this.position.getAxisPositionX() + this.sumRowExtent(row), y)
+        .stroke({ color: "#000000", width: Math.max(0.5, this.position.spacings.axisLineWidth / 2) })
+        .addClass("sum-line");
+    });
 
     new Axis(
       {
@@ -1081,21 +1130,70 @@ export class StructureChart {
   private drawScenarios(dataModel: StructureChartDataModelEntry[], svgContainer: Svg) {
     const barsGroup: G = svgContainer.group().id("Scenarios");
 
+    // the name of the scenario stands below the last bar, or above the first one
+    let lastBar = -1;
+    dataModel.forEach((row, index) => {
+      if (!row.sum) lastBar = index;
+    });
     const scenarioFactory = new ScenarioFactory(
       this.position,
       barsGroup,
       this.scenarioStyles(),
-      dataModel.length,
+      // the factory names the last bar. The row layout leaves room for the name when a sum row follows.
+      this.scenarioLabelTop ? 0 : lastBar + 1,
       this.i18n,
     );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
+      if (elements.sum) {
+        this.drawSumValue(elements, index, barsGroup);
+        return;
+      }
       scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
       scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
       scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
     });
+
+    const first = dataModel.find((row) => !row.sum);
+    if (this.scenarioLabelTop && first && !first.scenario1.isEmpty() && first.scenario1.scenario != null) {
+      const scenario = first.scenario1.scenario as string;
+      new Label(
+        barsGroup,
+        // from the axis on: the first bar can be shorter than the name
+        this.position.getBarPositionX() + this.position.spacings.labelToAxis,
+        this.position.getStackedHeaderPositionY(),
+        "SCENARIO_HEADER",
+        this.i18n.get(scenario) || scenario,
+        this.styles,
+        HookLocation.Bottom,
+        HookLocation.Left,
+      ).draw();
+    }
+  }
+
+  /** The value of a sum row of a chart with plain bars or variances: a bold number at the axis, no bar. */
+  private drawSumValue(row: StructureChartDataModelEntry, index: number, group: G): void {
+    const point = row.scenario1;
+    if (point.isEmpty() || !Number.isFinite(point.value)) return;
+    const negative = (point.value as number) < 0;
+    const label = new Label(
+      group,
+      // like the label of a bar without length: a negative number stands left of the axis
+      this.position.getLabelPositionX(negative ? -0.000001 : 0),
+      this.position.getBarCenterPositionY(index),
+      "SUM_" + index,
+      point.value as number,
+      this.styles,
+      HookLocation.Center,
+      negative ? HookLocation.Right : HookLocation.Left,
+    )
+      .setEmphasis(true, false)
+      .setPoint(point.key);
+    if (row.type === VarianceType.RELATIVE) label.setToRelativeVarianceLabel();
+    else if (row.type === VarianceType.ABSOLUTE) label.setToVarianceLabel();
+    label.draw(this.dataFormatDigits, this.measureScale);
   }
 
   private drawVarianceScenario(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): G {
@@ -1111,6 +1209,10 @@ export class StructureChart {
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
+      if (elements.sum) {
+        this.drawSumValue(elements, index, barsGroup);
+        return;
+      }
       if (elements["type"] === VarianceType.RELATIVE) {
         scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits);
       } else {
@@ -1145,8 +1247,23 @@ export class StructureChart {
     const stackGroup: G = svgContainer.group().id("StackedScenarios");
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
 
+    const relative = this.stackConfig.mode === StackMode.RELATIVE;
+    const valueLabels = relative && this.stackConfig.labels === "value";
+    const label = valueLabels ? "value" : this.stackConfig.percentMark ? "plain-share" : "share";
+
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       const groups = this.stackGroups(elements);
+
+      if (this.isTextSum(elements)) {
+        this.drawSumText(elements, index, stackGroup);
+        return;
+      }
+      const options = {
+        label,
+        total: valueLabels,
+        bold: !!elements.sum,
+        italic: this.isItalic(elements.category),
+      } as const;
 
       groups.forEach((group, groupIdx) => {
         let lastBar: StackedBar | null = null;
@@ -1165,6 +1282,7 @@ export class StructureChart {
             group.layout,
             isScenarioStack,
             stackGroup,
+            options,
           );
           bar.draw(this.dataFormatDigits, this.measureScale);
           lastBar = bar;
@@ -1190,7 +1308,7 @@ export class StructureChart {
   private drawStackedHeaders(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig || dataModel.length === 0) return;
 
-    const firstRow = dataModel[0];
+    const firstRow = dataModel.find((row) => !this.isTextSum(row)) ?? dataModel[0];
 
     // Dimension stacking without segments draws one plain bar: nothing to name
     if (this.stackConfig.by !== StackBy.SCENARIOS && (!firstRow.stackSegments || firstRow.stackSegments.length === 0)) {
@@ -1230,6 +1348,20 @@ export class StructureChart {
 
     // Single group: one header per segment, centered on the segment
     const [group] = groups;
+    const totalDrawn = this.stackConfig.mode !== StackMode.RELATIVE || this.stackConfig.labels === "value";
+    if (this.stackConfig.totalTitle && totalDrawn) {
+      // above the total of the first bar, which starts behind the bar
+      new Label(
+        headerGroup,
+        this.position.getLabelPositionX(group.layout.positive * this.pixelPerUnit),
+        headerY,
+        "STACK_TOTAL_HEADER",
+        this.stackConfig.totalTitle,
+        this.styles,
+        HookLocation.Bottom,
+        HookLocation.Left,
+      ).draw();
+    }
     group.segments.forEach((seg, segIdx) => {
       const { start, end } = group.layout.segments[segIdx];
 
@@ -1307,7 +1439,15 @@ export class StructureChart {
         );
       }
 
-      return Math.max(width, this.titleLength);
+      if (this.stackConfig?.totalTitle) {
+        const title = CalculateSize(this.stackConfig.totalTitle, {
+          font: this.styles.fontStyles.font,
+          fontSize: this.styles.fontStyles.size + "px",
+        }).width;
+        width = Math.max(width, this.stackSides.positive * this.pixelPerUnit + labelToBar + title);
+      }
+
+      return Math.max(width, this.titleLength, this.sumColumns()?.width ?? 0, this.referenceLineExtent());
     }
 
     let width = 0;
@@ -1334,6 +1474,15 @@ export class StructureChart {
     ) {
       const sizeLabelValue = this.calculateTextBoxWidth(this.highestVarianceDataPointValue.value);
       width = Math.abs(this.highestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
+    }
+
+    width = Math.max(width, this.referenceLineExtent());
+
+    // the bold number of a sum row stands at the axis
+    for (const row of this.dataModel) {
+      if (row.sum && VarianceType.NONE === varianceType && Number.isFinite(row.scenario1.value)) {
+        width = Math.max(width, this.sumRowExtent(row));
+      }
     }
 
     if (width <= this.titleLength) {
@@ -1372,6 +1521,7 @@ export class StructureChart {
     try {
       result = this.db.exec<Record<string, unknown>[]>(
         `SELECT [${displayColumn}] as displayGroup, [${stackColumn}] as stackLabel, ` +
+          `MIN([${stackColumn}Index]) as stackIndex, ` +
           `SUM([${scenario}] * transformOperator(operation)) as stackValue ` +
           `FROM ${this.fromExpr} GROUP BY [${displayColumn}], [${stackColumn}]`,
       );
@@ -1380,19 +1530,47 @@ export class StructureChart {
       return;
     }
 
+    // The series of the chart: by the index column of the stack dimension, else in the order of the rows
+    const series = new Map<string, number>();
+    for (const row of result) {
+      if (row.stackValue == null || row.stackLabel == null) continue;
+      const label = row.stackLabel as string;
+      const index = Number.isFinite(Number(row.stackIndex)) && row.stackIndex != null ? Number(row.stackIndex) : NaN;
+      const known = series.get(label);
+      if (known === undefined || (Number.isNaN(known) && !Number.isNaN(index)) || index < known) {
+        series.set(label, index);
+      }
+    }
+    const order = [...series.keys()];
+    if ([...series.values()].every((index) => !Number.isNaN(index))) {
+      order.sort((a, b) => series.get(a)! - series.get(b)!);
+    }
+
     // Group results by displayGroup
-    const groupMap = new Map<string, { label: string; value: number }[]>();
+    const groupMap = new Map<string, Map<string, number>>();
     for (const row of result) {
       const key = row.displayGroup as string;
-      if (!groupMap.has(key)) groupMap.set(key, []);
+      if (!groupMap.has(key)) groupMap.set(key, new Map());
       if (row.stackValue != null && row.stackLabel != null) {
-        groupMap.get(key)!.push({ label: row.stackLabel as string, value: row.stackValue as number });
+        groupMap.get(key)!.set(row.stackLabel as string, row.stackValue as number);
       }
     }
 
-    // Attach stackSegments to each dataModel row
+    // the REST row stands for the rows the limit cut off: it gets their sum per series
+    const shown = new Set(this.dataModel.map((row) => row.category));
+    const rest = new Map<string, number>();
+    for (const [category, values] of groupMap) {
+      if (shown.has(category)) continue;
+      for (const [label, value] of values) {
+        rest.set(label, (rest.get(label) ?? 0) + value);
+      }
+    }
+
+    // Attach stackSegments to each dataModel row: every row has every series, so place and colour stay
     for (const row of this.dataModel) {
-      const segments = groupMap.get(row.category);
+      const values = row.id === REST_ROW_ID && !groupMap.has(row.category) ? rest : groupMap.get(row.category);
+      const segments =
+        values && values.size > 0 ? order.map((label) => ({ label, value: values.get(label) ?? NaN })) : undefined;
       if (segments && segments.length > 0) {
         row.stackSegments = segments.map((seg: { label: string; value: number }) => {
           const dataPoint = new DataPoint(seg.value, scenario, this.pixelPerUnit, Scenario.NEU);
@@ -1402,6 +1580,377 @@ export class StructureChart {
       } else {
         row.stackSegments = [];
       }
+    }
+  }
+
+  /** A sum row that is printed as numbers: every stack but a 100 % stack, where it is a bar of shares. */
+  private isTextSum(row: StructureChartDataModelEntry): boolean {
+    return !!row.sum && !!this.stackConfig && this.stackConfig.mode !== StackMode.RELATIVE;
+  }
+
+  private isItalic(category: string): boolean {
+    return this.italicCategories.includes(category);
+  }
+
+  private hasPercentMark(): boolean {
+    return (
+      !!this.stackConfig?.percentMark &&
+      this.stackConfig.mode === StackMode.RELATIVE &&
+      this.variancesDataModel.length === 0 &&
+      this.isStacked()
+    );
+  }
+
+  /**
+   * Adds the sum rows: one below the rows of each `rowGroup`, which keeps the rows of a
+   * group together, and one over all rows at the end.
+   */
+  private addSumRows(scenarios: string[]): void {
+    if (this.sums === "none" || this.dataModel.length === 0) return;
+
+    // a cell without a value is left out, and a sum over no value stays NaN
+    const add = (sum: number, value: number | null | undefined): number =>
+      Number.isFinite(value) ? (Number.isFinite(sum) ? sum : 0) + (value as number) : sum;
+
+    const sumRow = (
+      members: StructureChartDataModelEntry[],
+      category: string,
+      sum: "group" | "total",
+    ): StructureChartDataModelEntry => {
+      const point = (key: "scenario1" | "scenario2" | "scenario3" | "scenario4", index: number): DataPoint =>
+        new DataPoint(
+          scenarios[index] === undefined
+            ? (undefined as unknown as number)
+            : members.reduce((total, row) => add(total, row[key].value), NaN),
+          scenarios[index],
+          this.pixelPerUnit,
+          Scenario.NEU,
+        );
+      const row: StructureChartDataModelEntry = {
+        id: 10000 + this.dataModel.length,
+        category,
+        type: VarianceType.NONE,
+        scenario1: point("scenario1", 0),
+        scenario2: point("scenario2", 1),
+        scenario3: point("scenario3", 2),
+        scenario4: point("scenario4", 3),
+        sum,
+      };
+      if (members.some((member) => member.stackSegments)) {
+        const values = new Map<string, number>();
+        for (const member of members) {
+          for (const segment of member.stackSegments ?? []) {
+            values.set(segment.label, add(values.get(segment.label) ?? NaN, segment.value));
+          }
+        }
+        row.stackSegments = [...values].map(([label, value]) => {
+          const dataPoint = new DataPoint(value, scenarios[0], this.pixelPerUnit, Scenario.NEU);
+          return { label, value, dataPoint };
+        });
+      }
+      return row;
+    };
+
+    const rows = this.dataModel;
+    const result: StructureChartDataModelEntry[] = [];
+    const groups = this.sums === "total" ? new Map<string, { name: string; index: number }>() : this.rowGroups();
+
+    if (groups.size > 0) {
+      const names = [...new Set([...groups.values()].sort((a, b) => a.index - b.index).map((group) => group.name))];
+      for (const name of names) {
+        const members = rows.filter((row) => groups.get(row.category)?.name === name);
+        if (members.length === 0) continue;
+        const sum = sumRow(members, name, "group");
+        sum.gapAfter = true;
+        result.push(...members, sum);
+      }
+      // a row without a group, like REST, comes last
+      result.push(...rows.filter((row) => !groups.has(row.category)));
+    } else {
+      result.push(...rows);
+    }
+
+    if (this.sums === "total" || this.sums === "all") {
+      result.push(sumRow(rows, this.sumTitle || "SUM_TOTAL", "total"));
+    }
+    this.dataModel = result;
+  }
+
+  /** The `rowGroup` of each row of a chart at level `category`, with the place of the group. */
+  private rowGroups(): Map<string, { name: string; index: number }> {
+    const groups = new Map<string, { name: string; index: number }>();
+    if (this.level !== AggregationLevel.CATEGORY && this.level !== AggregationLevel.CATEGORYINDEX) return groups;
+    let result: Record<string, unknown>[];
+    try {
+      result = this.db.exec<Record<string, unknown>[]>(
+        `SELECT [category] as category, [rowGroup] as rowGroup, MIN([rowGroupIndex]) as rowGroupIndex ` +
+          `FROM ${this.fromExpr} GROUP BY [category], [rowGroup]`,
+      );
+    } catch (e) {
+      this.failQuery(e);
+      return groups;
+    }
+    const first = new Map<string, number>();
+    result.forEach((row, position) => {
+      if (row.rowGroup == null || row.rowGroup === "") return;
+      const name = String(row.rowGroup);
+      const given = Number(row.rowGroupIndex);
+      // without an index column the groups keep the order of the rows
+      const index = row.rowGroupIndex != null && Number.isFinite(given) ? given : (first.get(name) ?? position);
+      if (!first.has(name)) first.set(name, index);
+      groups.set(String(row.category), { name, index: Math.min(index, first.get(name)!) });
+    });
+    return groups;
+  }
+
+  /** Rows of different height (`stack.thickness: total`) and the room below a group. Null: all rows are equal. */
+  private rowLayout(): RowLayout | null {
+    const rows = this.dataModel;
+    // the component does not set it together with variances: a variance bar has one thickness
+    const byTotal = this.stackConfig?.thickness === "total";
+    // the name of the scenario stands below the last bar: it needs room when a sum row follows
+    const lastBar = rows.reduce((last, row, index) => (row.sum ? last : index), -1);
+    const nameBelow = !this.stackConfig && !this.scenarioLabelTop && lastBar >= 0 && lastBar < rows.length - 1;
+    if (!byTotal && !nameBelow && !rows.some((row) => row.gapAfter)) return null;
+
+    const totals = rows.map((row) => {
+      if (!byTotal || row.sum) return null;
+      const groups = this.stackGroups(row);
+      const front = groups[groups.length - 1];
+      return front ? Math.abs(front.layout.total) : 0;
+    });
+    const weights = this.rowWeights(totals);
+
+    const start: number[] = [];
+    const weight: number[] = [];
+    let at = 0;
+    rows.forEach((row, index) => {
+      const rowWeight = weights[index];
+      start.push(at);
+      weight.push(rowWeight);
+      at +=
+        rowWeight + (row.gapAfter && index < rows.length - 1 ? 0.5 : 0) + (nameBelow && index === lastBar ? 0.8 : 0);
+    });
+    return { start, weight, total: at };
+  }
+
+  /**
+   * The height of each row in units of a normal row: by its total, with the same height
+   * over all. A row is at least one line of text high, and the others give up that room.
+   * Null stands for a row that keeps the normal height.
+   */
+  private rowWeights(totals: (number | null)[]): number[] {
+    const minimum = Math.min(1, 1 / this.styles.scaleFactors.categoryWidth);
+    const weights: number[] = totals.map((total) => (total === null ? 1 : 0));
+    const open = new Set(totals.flatMap((total, index) => (total === null ? [] : [index])));
+    let room = open.size;
+
+    // a row below the minimum is set to it, then the rest is shared again
+    for (;;) {
+      const sum = [...open].reduce((all, index) => all + (totals[index] as number), 0);
+      if (sum <= 0) {
+        open.forEach((index) => (weights[index] = room / open.size));
+        break;
+      }
+      const small = [...open].filter((index) => ((totals[index] as number) / sum) * room < minimum);
+      if (small.length === 0 || small.length === open.size) {
+        open.forEach((index) => (weights[index] = ((totals[index] as number) / sum) * room));
+        break;
+      }
+      for (const index of small) {
+        weights[index] = minimum;
+        room -= minimum;
+        open.delete(index);
+      }
+    }
+    return weights;
+  }
+
+  private boldWidth(text: string): number {
+    return CalculateSize(text, {
+      font: this.styles.fontStyles.font,
+      fontSize: this.styles.fontStyles.size + "px",
+      fontWeight: "bold",
+    }).width;
+  }
+
+  private sumText(value: number): string {
+    const digits = this.dataFormatDigits.decimal;
+    return Formatter.number(value, "decimal", digits, digits, this.measureScale.value, this.styles.locale);
+  }
+
+  /**
+   * Where the numbers of the text sum rows stand, as distance from the axis: one column
+   * per series, the same for all sum rows, then the total. Null without such a row.
+   */
+  private sumColumns(): { x: number[]; totalX: number; width: number; key: number; keyGap: number } | null {
+    const rows = this.dataModel.filter((row) => this.isTextSum(row));
+    if (rows.length === 0) return null;
+    const font = this.styles.fontStyles.size;
+    const key = font * 0.6;
+    const keyGap = font * 0.3;
+    const columnGap = font * 1.4;
+
+    const widths: number[] = [];
+    let totalWidth = 0;
+    for (const row of rows) {
+      const groups = this.stackGroups(row);
+      const front = groups[groups.length - 1];
+      if (!front) continue;
+      front.segments.forEach((segment, index) => {
+        const width = Number.isFinite(segment.value) ? this.boldWidth(this.sumText(segment.value)) : 0;
+        widths[index] = Math.max(widths[index] ?? 0, width);
+      });
+      totalWidth = Math.max(totalWidth, this.boldWidth(this.sumText(front.layout.total)));
+    }
+
+    const x: number[] = [];
+    let at = font * 0.3;
+    // one series: its sum is the total
+    for (const width of widths.length > 1 ? widths : []) {
+      x.push(at);
+      at += key + keyGap + width + columnGap;
+    }
+    return { x, totalX: at, width: at + totalWidth, key, keyGap };
+  }
+
+  /** A sum row of a stack as numbers: per series a small square in its colour and the sum, then the total. */
+  private drawSumText(row: StructureChartDataModelEntry, index: number, group: G): void {
+    const columns = this.sumColumns();
+    const groups = this.stackGroups(row);
+    const front = groups[groups.length - 1];
+    if (!columns || !front) return;
+
+    const axisX = this.position.getBarPositionX();
+    const y = this.position.getBarCenterPositionY(index);
+    const colors = this.styles.stackColors;
+    const sumGroup = group.group().id(`stacked_sum_${index}`);
+
+    front.segments.forEach((segment, segmentIndex) => {
+      if (!Number.isFinite(segment.value) || columns.x[segmentIndex] === undefined) return;
+      const x = axisX + columns.x[segmentIndex];
+      sumGroup
+        .rect(columns.key, columns.key)
+        .fill({ color: colors[segmentIndex % colors.length] })
+        .cy(y)
+        .x(x);
+      new Label(
+        sumGroup,
+        x + columns.key + columns.keyGap,
+        y,
+        `SUM_SEG_${segmentIndex}`,
+        segment.value,
+        this.styles,
+        HookLocation.Center,
+        HookLocation.Left,
+      )
+        .setEmphasis(true, false)
+        .setPoint(segment.dataPoint.key)
+        .draw(this.dataFormatDigits, this.measureScale);
+    });
+
+    new Label(
+      sumGroup,
+      axisX + columns.totalX,
+      y,
+      "SUM_TOTAL",
+      front.layout.total,
+      this.styles,
+      HookLocation.Center,
+      HookLocation.Left,
+    )
+      .setEmphasis(true, false)
+      .setPoint(levelKey(this.level, row.category), "total")
+      .draw(this.dataFormatDigits, this.measureScale);
+  }
+
+  /** How far a sum row reaches right of the axis, in px. */
+  private sumRowExtent(row: StructureChartDataModelEntry): number {
+    const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
+    if (this.variancesDataModel.length > 0) return 0;
+    if (this.isTextSum(row)) return this.sumColumns()?.width ?? 0;
+    if (this.stackConfig) {
+      const total =
+        this.stackConfig.labels === "value" ? labelToBar + this.boldWidth(this.sumText(row.scenario1.value ?? 0)) : 0;
+      return this.stackSides.positive * this.pixelPerUnit + total;
+    }
+    return Number.isFinite(row.scenario1.value)
+      ? labelToBar + this.boldWidth(this.sumText(row.scenario1.value as number))
+      : 0;
+  }
+
+  /** Where the reference line stands, as distance from the axis in px. Null without a line in this chart. */
+  private referenceLineOffset(): number | null {
+    const line = this.referenceLine;
+    if (!line || !Number.isFinite(line.value) || this.variancesDataModel.length > 0) return null;
+    const relative = this.stackConfig?.mode === StackMode.RELATIVE;
+    return (relative ? line.value / 100 : line.value) * this.pixelPerUnit;
+  }
+
+  /** The room right of the axis that the reference line and its label need. */
+  private referenceLineExtent(): number {
+    const offset = this.referenceLineOffset();
+    if (offset === null || offset <= 0) return 0;
+    const label = this.referenceLine?.label
+      ? CalculateSize(this.referenceLine.label, {
+          font: this.styles.fontStyles.font,
+          fontSize: this.styles.fontStyles.size + "px",
+        }).width
+      : 0;
+    return offset + Math.max(label / 2, this.styles.fontStyles.size * 0.25);
+  }
+
+  /** The end of a 100 % stack: a line along the bar ends and one `100%` below it. */
+  private drawPercentMark(svgContainer: Svg): void {
+    if (!this.hasPercentMark()) return;
+    const group = svgContainer.group().id("PercentMark");
+    const font = this.styles.fontStyles.size;
+    const x = this.position.getBarPositionX() + this.stackSides.positive * this.pixelPerUnit;
+    const top = this.position.getAxisPositionY();
+    const bottom = this.position.getAxisEndPositionY();
+    const tip = bottom + font * 0.15;
+    const base = tip + font * 0.5;
+
+    group.line(x, top, x, bottom).stroke({ color: "#000000", width: this.position.spacings.axisLineWidth });
+    group.polygon(`${x},${tip} ${x - font * 0.25},${base} ${x + font * 0.25},${base}`).fill("#000000");
+    new Label(group, x, base + font * 0.1, "PERCENT_MARK", "100%", this.styles, HookLocation.Top, HookLocation.Center)
+      .setEmphasis(true, false)
+      .draw();
+  }
+
+  /** A line across the bars at one value, with its label above the first bar. In a 100 % stack the value is a percent. */
+  private drawReferenceLine(svgContainer: Svg): void {
+    const line = this.referenceLine;
+    const offset = this.referenceLineOffset();
+    if (!line || offset === null || this.dataModel.length === 0) return;
+    const group = svgContainer.group().id("ReferenceLine");
+    const font = this.styles.fontStyles.size;
+    const color = `var(--bn-annotation-color, ${SYSTEM_STYLE_DEFAULTS["bn-annotation"].color})`;
+    const x = this.position.getBarPositionX() + offset;
+    const top =
+      this.position.getStackedHeaderPositionY() - (this.stackConfig || this.scenarioLabelTop ? font * 1.1 : 0);
+    // down to the last row from the top that reaches the line, or over all rows when the first one does not
+    const reaches = (row: StructureChartDataModelEntry): boolean => {
+      if (row.sum) return false;
+      if (!this.stackConfig) return (row.scenario1.value ?? 0) >= line.value;
+      const first = this.stackGroups(row)[0]?.layout.segments[0];
+      return first != null && first.end * this.pixelPerUnit >= x - this.position.getBarPositionX();
+    };
+    let lastBar = this.dataModel.findIndex((row) => !reaches(row)) - 1;
+    if (lastBar < 0) lastBar = this.dataModel.reduce((last, row, index) => (row.sum ? last : index), 0);
+    const bottom = this.position.getBarCenterPositionY(lastBar) + this.position.getBarWidthAt(lastBar) / 2;
+
+    group
+      .line(x, top, x, bottom)
+      .attr("style", `stroke: ${color}; stroke-width: ${Math.max(1, this.position.spacings.axisLineWidth)}px`);
+    group
+      .polygon(`${x},${top + font * 0.5} ${x - font * 0.25},${top} ${x + font * 0.25},${top}`)
+      .attr("style", `fill: ${color}`);
+    if (line.label) {
+      group
+        .plain(line.label)
+        .attr({ x, y: top - font * 0.3, "text-anchor": "middle" })
+        .attr("style", `fill: ${color}`);
     }
   }
 

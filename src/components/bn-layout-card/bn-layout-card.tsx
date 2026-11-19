@@ -251,6 +251,17 @@ export class LayoutCard {
   @Prop() cardCustomTemplate: string = '"a b" "c d"';
 
   /**
+   * Puts the child after the last slot of the template on top of the grid,
+   * in the cells this CSS `grid-area` names by line numbers:
+   * `row-start / column-start / row-end / column-end`. Use it for a text or a
+   * comment list in the free part of a chart.
+   *
+   * @default "" (no overlay)
+   * @example card-overlay-area="4 / 3 / 7 / 5"
+   */
+  @Prop() cardOverlayArea: string = "";
+
+  /**
    * Gap between grid cells in pixels.
    */
   @Prop() cardGridGap: string = "0";
@@ -341,8 +352,25 @@ export class LayoutCard {
             </div>
           );
         })}
+        {this.overlayArea() ? (
+          <div style={{ display: "flex", overflow: "hidden", "grid-area": this.overlayArea(), "z-index": "1" }}>
+            <slot name={"card-slot-" + items.length}></slot>
+          </div>
+        ) : null}
       </Fragment>
     );
+  }
+
+  /** The overlay area when it is four line numbers inside the grid of the layout, else nothing. */
+  private overlayArea(): string | undefined {
+    const area = (this.cardOverlayArea ?? "").trim();
+    if (!/^\d+(\s*\/\s*\d+){3}$/.test(area)) return undefined;
+    const [rowStart, columnStart, rowEnd, columnEnd] = area.split("/").map((line) => Number(line.trim()));
+    const rows = this.getRowCount(this.cardLayout);
+    const columns = templateRows(this.getTemplatePattern(this.cardLayout))[0]?.length || 1;
+    // a line outside the template would add rows or columns to the grid
+    const inside = rowStart >= 1 && columnStart >= 1 && rowEnd <= rows + 1 && columnEnd <= columns + 1;
+    return inside && rowStart < rowEnd && columnStart < columnEnd ? area : undefined;
   }
 
   private extractSlotNames(styleElement: string | null) {
@@ -363,6 +391,15 @@ export class LayoutCard {
       });
     } else {
       this.errors.remove("WARN_cardCustomTemplate");
+    }
+    if ((this.cardOverlayArea ?? "").trim() !== "" && !this.overlayArea()) {
+      this.errors.addOrReplace({
+        id: "WARN_cardOverlayArea",
+        type: "warning",
+        message: `cardOverlayArea: '${this.cardOverlayArea}' is not 'row-start / column-start / row-end / column-end' in line numbers of the layout.`,
+      });
+    } else {
+      this.errors.remove("WARN_cardOverlayArea");
     }
   }
 

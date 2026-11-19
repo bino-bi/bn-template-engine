@@ -13,7 +13,15 @@ import { Style } from "../../stores/componentStyles";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
-import { Box, buildDifference, buildMark, DrawnMark } from "./utils/marks";
+import {
+  Box,
+  buildBracket,
+  buildDifference,
+  buildHorizontalDifference,
+  buildMark,
+  buildPointer,
+  DrawnMark,
+} from "./utils/marks";
 import { isWholeComponent, matchPoint } from "./utils/matchPoint";
 
 /** A component with a layout state of its own. */
@@ -24,11 +32,19 @@ interface TargetElement extends HTMLElement {
 
 /** The result of looking up one end of an item, in viewport coordinates. */
 type Anchor =
-  | { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[]; stacked?: boolean }
+  | {
+      box: Box;
+      whole: boolean;
+      text?: CellText;
+      obstacles?: CellText[];
+      stacked?: boolean;
+      label?: boolean;
+      horizontal?: boolean;
+    }
   | { problem: string };
 
 /** The bars of one point of a difference: their common box and the sum of their values. */
-type SumAnchor = { box: Box; negatives: Box[]; value: number } | { problem: string };
+type SumAnchor = { box: Box; negatives: Box[]; value: number; horizontal: boolean } | { problem: string };
 
 /** The text of a cell: its screen box, and the width of the sign in front of it. */
 interface CellText {
@@ -293,7 +309,9 @@ export class AnnotationLayer {
         return { problem: `the point ${JSON.stringify(point)} in "${id}" is cut off` };
       }
       const content = found[0].content;
-      if (!state!.table) return { box, whole: false, stacked: found[0].stacked };
+      if (!state!.table) {
+        return { box, whole: false, stacked: found[0].stacked, label: found[0].label, horizontal: isHorizontal(state) };
+      }
       const cells = (state!.elements ?? []).flatMap((element) =>
         element.kind === "cell" && element.content
           ? [{ box: onScreen(element.content), sign: element.contentSign }]
@@ -306,6 +324,10 @@ export class AnnotationLayer {
         obstacles: cells,
       };
     };
+
+    // the bars of a structure chart run from left to right: its value axis is an upright line
+    const isHorizontal = (state: ComponentLayoutState | undefined): boolean =>
+      (state?.elements ?? []).some((element) => element.kind === "axis" && element.orientation === "vertical");
 
     // a difference takes all bars of a point: the segments of a stack together are its sum
     const sumOf = (id: string | undefined, point: AnnotationPoint | undefined): SumAnchor => {
@@ -336,7 +358,26 @@ export class AnnotationLayer {
         box: { x: host.left + left, y: host.top + top, width: right - left, height: bottom - top },
         negatives: bars.filter((bar) => bar.value! < 0).map((bar) => screen(bar.rect.component)),
         value: bars.reduce((sum, bar) => sum + bar.value!, 0),
+        horizontal: isHorizontal(state),
       };
+    };
+
+    // the share of the rows from one point to another in all rows of the chart, for the bars the points name
+    const shareOf = (item: AnnotationLayerItem, upper: Box, lower: Box): number | undefined => {
+      const visual = targets.get(item.target);
+      const state = visual && states.get(visual);
+      if (!visual || !state || !item.point) return undefined;
+      const host = visual.getBoundingClientRect();
+      const { rowGroup: _r, category: _c, subCategory: _s, date: _d, ...series } = item.point;
+      const bars = matchPoint(state, { ...series, part: "element" }).filter((bar) => bar.value != null);
+      const all = bars.reduce((sum, bar) => sum + bar.value!, 0);
+      const inside = bars
+        .filter((bar) => {
+          const middle = host.top + bar.rect.component.y + bar.rect.component.height / 2;
+          return middle >= upper.y && middle <= lower.y + lower.height;
+        })
+        .reduce((sum, bar) => sum + bar.value!, 0);
+      return all !== 0 ? inside / all : undefined;
     };
 
     const toLocal = this.toLocalSpace();
@@ -360,7 +401,20 @@ export class AnnotationLayer {
           problems.push({ item, problem: failed.problem });
           continue;
         }
-        const [a, b] = [first, second] as { box: Box; negatives: Box[]; value: number }[];
+        const [a, b] = [first, second] as { box: Box; negatives: Box[]; value: number; horizontal: boolean }[];
+        if (a.horizontal) {
+          // the level of a sum is the right end, and left of it by the length of the negative values
+          const endOf = (anchor: { box: Box; negatives: Box[] }): number => {
+            const local = toLocal(anchor.box);
+            return local.x + local.width - anchor.negatives.reduce((sum, bar) => sum + toLocal(bar).width, 0);
+          };
+          const mark = buildHorizontalDifference(item, toLocal(a.box), toLocal(b.box), a.value, b.value, em, {
+            from: endOf(a),
+            to: endOf(b),
+          });
+          if (mark) marks.push(mark);
+          continue;
+        }
         // the level of a sum: the top for positive values, and below it by the length of the negative ones.
         // Measured in the space of the layer, so it holds on a turned page too.
         const levelOf = (anchor: { box: Box; negatives: Box[] }): number =>
@@ -372,6 +426,58 @@ export class AnnotationLayer {
         if (mark) marks.push(mark);
         continue;
       }
+      if (item.mark === "pointer" || item.mark === "bracket") {
+        const first = sumOf(item.target, item.point);
+        const second = item.mark === "bracket" ? sumOf(item.to ?? item.target, item.toPoint) : first;
+        const failed = "problem" in first ? first : "problem" in second ? second : undefined;
+        if (failed) {
+          problems.push({ item, problem: failed.problem });
+          continue;
+        }
+        const [a, b] = [first, second] as { box: Box; negatives: Box[]; horizontal: boolean }[];
+        // the end of a value: the right end of a bar or the top of a column, moved by the negative values
+        const endOf = (anchor: { box: Box; negatives: Box[]; horizontal: boolean }): { x: number; y: number } => {
+          const local = toLocal(anchor.box);
+          return anchor.horizontal
+            ? {
+                x: local.x + local.width - anchor.negatives.reduce((sum, bar) => sum + toLocal(bar).width, 0),
+                y: local.y,
+              }
+            : {
+                x: local.x + local.width / 2,
+                y: local.y + anchor.negatives.reduce((sum, bar) => sum + toLocal(bar).height, 0),
+              };
+        };
+        if (item.mark === "pointer") {
+          marks.push(buildPointer(item, endOf(a), em));
+          continue;
+        }
+        if (!a.horizontal) {
+          problems.push({ item, problem: "a bracket needs bars that run from left to right" });
+          continue;
+        }
+        if (item.to != null && item.to !== item.target) {
+          problems.push({ item, problem: "both ends of a bracket must be in one chart" });
+          continue;
+        }
+        const [upper, lower] = a.box.y <= b.box.y ? [a.box, b.box] : [b.box, a.box];
+        const share = item.percent ? shareOf(item, upper, lower) : undefined;
+        const host = targets.get(item.target)!.getBoundingClientRect();
+        const hostBox = toLocal({ x: host.left, y: host.top, width: host.width, height: host.height });
+        const caption = item.text ?? (share != null ? `${Math.round(share * 100)}%` : undefined);
+        marks.push(
+          buildBracket(
+            item,
+            toLocal(a.box),
+            toLocal(b.box),
+            { first: endOf(a).x, last: endOf(b).x },
+            hostBox.x,
+            caption,
+            em,
+          ),
+        );
+        continue;
+      }
       const from = anchorOf(item.target, item.point);
       const to = item.mark === "arrow" ? anchorOf(item.to, item.toPoint) : undefined;
       const failed = "problem" in from ? from : to && "problem" in to ? to : undefined;
@@ -379,7 +485,15 @@ export class AnnotationLayer {
         problems.push({ item, problem: failed.problem });
         continue;
       }
-      const start = from as { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[]; stacked?: boolean };
+      const start = from as {
+        box: Box;
+        whole: boolean;
+        text?: CellText;
+        obstacles?: CellText[];
+        stacked?: boolean;
+        label?: boolean;
+        horizontal?: boolean;
+      };
       const end = to as { box: Box } | undefined;
       const mark = buildMark(item, toLocal(start.box), end && toLocal(end.box), em, {
         whole: start.whole,
@@ -387,6 +501,8 @@ export class AnnotationLayer {
         text: start.text && textToLocal(start.text),
         obstacles: start.obstacles?.map(textToLocal),
         stacked: start.stacked,
+        label: start.label,
+        horizontal: start.horizontal,
       });
       if (mark) {
         marks.push(mark);
@@ -582,6 +698,38 @@ export class AnnotationLayer {
             ></rect>
           ) : null}
           {this.renderBadge(mark.badge, main)}
+        </g>
+      );
+    }
+    if (mark.kind === "pointer") {
+      return (
+        <g class="mark pointer" data-label={mark.badge?.label}>
+          <polygon points={mark.shape} style={{ fill: color }}></polygon>
+          {this.renderBadge(mark.badge, color)}
+        </g>
+      );
+    }
+    if (mark.kind === "bracket") {
+      return (
+        <g class="mark bracket" data-label={mark.badge?.label}>
+          <polyline points={mark.path} style={{ fill: "none", stroke: color, strokeWidth: "1.5" }}></polyline>
+          {mark.frame ? (
+            <rect
+              x={mark.frame.x}
+              y={mark.frame.y}
+              width={mark.frame.width}
+              height={mark.frame.height}
+              rx={mark.frame.r}
+              ry={mark.frame.r}
+              style={{ fill: "#ffffff", stroke: color, strokeWidth: "1.5" }}
+            ></rect>
+          ) : null}
+          {mark.caption ? (
+            <text class="mark-text caption" x={mark.caption.x} y={mark.caption.y}>
+              {mark.caption.text}
+            </text>
+          ) : null}
+          {this.renderBadge(mark.badge, color)}
         </g>
       );
     }

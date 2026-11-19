@@ -10,6 +10,12 @@ export class Formatter {
   private static formats = new Map<string, Intl.NumberFormat>();
 
   /**
+   * Replaces the group separator of the locale in every number, for example by a thin
+   * space. Null: the separator of the locale. One setting for the page: `bn-context` sets it.
+   */
+  static groupSeparator: string | null = null;
+
+  /**
    * Formats a number for display in the given locale.
    *
    * Pipeline: divide by scale factor -> format via `Intl.NumberFormat` for the locale ->
@@ -48,10 +54,17 @@ export class Formatter {
       this.formats.set(key, format);
     }
 
-    const text = format.format(value / scale);
+    const print = (number: number): string =>
+      this.groupSeparator === null
+        ? format.format(number)
+        : format
+            .formatToParts(number)
+            .map((part) => (part.type === "group" ? (this.groupSeparator as string) : part.value))
+            .join("");
+    const text = print(value / scale);
 
     // a small negative that rounds to zero would print "-0"
-    return (text === format.format(-0) ? format.format(0) : text).replace(/\s+(%)/g, "$1");
+    return (text === print(-0) ? print(0) : text).replace(/\s+(%)/g, "$1");
   }
 
   /**

@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-structure`: `sums` adds sum rows. `groups` adds a row below the rows of each `rowGroup` (level `category`) and keeps the rows of a group together, `total` adds a row over all rows, `all` does both. `sum-title` names the row over all rows. A sum row is bold with a line above it and has no bar, so it does not count for the scale: a chart with plain bars or a variance chart prints the number, a stack prints one number per series with a small square in the colour of the series and then the total, and a 100 % stack draws a bar of shares. The total of a sum row has the name of the row as `category` in its point key.
+- `bn-chart-structure`: new `stack` keys. `"percentMark":true` prints the shares of a 100 % stack as plain numbers and draws one `100%` mark at the end of the bars. `"labels":"value"` prints the value of each segment of a 100 % stack and the total of the bar. `"thickness":"total"` makes a bar as thick as the total of its row is large, with the same chart height. A row is at least one line of text high. It is not used together with variances: the rows then keep one height and the chart warns. `"totalTitle"` puts a name above the totals.
+- `bn-chart-structure`: `reference-line` draws a line across the bars at one value, with an optional label. In a 100 % stack the value is a percent. The line ends at the last row from the top that reaches it.
+- `bn-chart-structure`: `scenario-label-position="top"` puts the name of the scenario of a chart with plain bars above the first bar.
+- `bn-chart-structure`: `italic-categories` prints rows in italics, for example the rest rows.
+- `bn-annotation-layer`: new mark `pointer`, a thick arrow that points down at the end of a bar or at the top of a column.
+- `bn-annotation-layer`: new mark `bracket` for a chart with bars from left to right. It marks the rows from `target` to `to` with a line, and prints `text` in a frame, or with `percent` the share of these rows in all rows.
+- `bn-annotation-layer`: the mark `difference` works on a chart with bars from left to right. Bars and stack segments of `bn-chart-structure` carry their value in `data-bn-value` for it.
+- `bn-context`: `group-separator` replaces the group separator of the locale in every number of the document: `thin-space`, `space`, `none`, or the separator itself.
+- `bn-layout-card`: `card-overlay-area` puts the child after the last slot of the layout on top of the grid, in a CSS `grid-area` given in line numbers. For a text or a comment list in the free part of a chart.
 - `bn-chart-time`: `stack` with `"by":"dimensions"` now stacks one segment per value of the `category` column of the dataset. The order comes from `categoryIndex`, else from the first appearance. There is no limit of four series, and a series keeps its colour in every period, also when a value is missing. Before, this mode drew one segment per period.
 - `bn-chart-time`: `scenario-switch` works with a stack by dimensions. The scenario that has values in a period is stacked, so one axis can go from AC to FC to PL, with the line at the change and the names under the axis.
 - `bn-chart-time`: new `stack` keys. `"notation":"scenario"` gives a segment the look of its scenario: forecast hatched over the shade of the series, plan outlined, and the first series with the fill of the scenario. `"legend"` (`left`, `right`, `both`, `none`) sets where the series names stand. `"percentMark":true` prints the shares of a 100 % stack as plain numbers and adds one `100%` mark on the side of the names.
@@ -25,6 +35,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
+- `bn-chart-structure`: a stack by dimensions orders its series by the index column of the stack dimension (`categoryIndex`, `subCategoryIndex`), else by first appearance, and every bar has a place for every series. Before, the order came from the rows, and a bar without a value for a series moved the following series to another place and colour. The `REST` row of a `limit` now has the segments of the rows it stands for. Before, it was one plain bar.
+- `bn-chart-structure`: the room a segment label of a stack needs gets smaller with the font: 0.375 em, at most 6 px as before. With a scaled-down chart more small segments show their label.
+- `bn-annotation-layer`: a marker on a value label of a chart (`part` `label` or `total`) sits right of the label. Before, it sat on the label and hid it. The text of a `frame` on such a label stands right of the label too.
+- `bn-annotation-layer`: a marker on a segment of a stack of `bn-chart-structure` sits in the segment, right of its middle, or on its upper edge when the segment is narrow. Before, it sat on the upper right corner and could touch the total.
 - `bn-chart-time`: with `scenario-switch`, a chart with exactly one scenario now prints the name of that scenario under the axis. Such a chart gets one text row higher.
 - `bn-annotation-layer`: a marker on a segment of a stack sits on the upper right corner of the segment. Before, it sat in the middle and hid the value label.
 - `bn-chart-time`: the background box of a centred label is centred on its text. It was 1 px too far left.

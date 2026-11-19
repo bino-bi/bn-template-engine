@@ -16,7 +16,7 @@ export interface AnnotationPoint {
 export interface AnnotationLayerItem {
   /** Number on the mark. Absent when the annotation has none. */
   label?: string;
-  mark?: "marker" | "frame" | "arrow" | "difference";
+  mark?: "marker" | "frame" | "arrow" | "difference" | "pointer" | "bracket";
   /** Named colour, see {@link annotationColor}. */
   color?: string;
   /** `data-bino-annotation-target` of the slot that holds the component. */

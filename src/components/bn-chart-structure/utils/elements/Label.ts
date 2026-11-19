@@ -44,6 +44,8 @@ export class Label {
   private isVarianceLabel: boolean;
   private segmentFillColor: string | null = null;
   private maxWidth: number | null = null;
+  private bold: boolean = false;
+  private italic: boolean = false;
 
   readonly ID_SCENARIOLABEL: string = "Label";
   readonly CSS_CATEGORIES: string = "categories";
@@ -95,6 +97,13 @@ export class Label {
 
   public setSegmentFill(color: string): Label {
     this.segmentFillColor = color;
+    return this;
+  }
+
+  /** Bold for a sum row, italic for a rest row. */
+  public setEmphasis(bold: boolean, italic: boolean): Label {
+    this.bold = bold;
+    this.italic = italic;
     return this;
   }
 
@@ -167,6 +176,8 @@ export class Label {
 
     // @ts-ignore
     const text = label.text(prefix + valueStr);
+    if (this.bold) text.font({ weight: "bold" });
+    if (this.italic) text.font({ style: "italic" });
     text.move(this.x, this.y);
 
     // One bbox() per label, not two: svg.js caches nothing, and on a detached

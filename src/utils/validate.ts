@@ -469,6 +469,18 @@ export function validateStackConfig(value: string): string[] {
       errors.push("stack: 'percentMark' must be true or false");
     }
 
+    if (config.hasOwnProperty("labels") && !["share", "value"].includes(config.labels)) {
+      errors.push("stack: 'labels' must be one of: share, value");
+    }
+
+    if (config.hasOwnProperty("totalTitle") && typeof config.totalTitle !== "string") {
+      errors.push("stack: 'totalTitle' must be a text");
+    }
+
+    if (config.hasOwnProperty("thickness") && !["equal", "total"].includes(config.thickness)) {
+      errors.push("stack: 'thickness' must be one of: equal, total");
+    }
+
     return errors;
   } catch (_e) {
     return ["stack: invalid JSON"];

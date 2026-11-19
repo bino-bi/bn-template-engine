@@ -1,4 +1,4 @@
-import { boxEdge, buildDifference, buildMark } from "./marks";
+import { boxEdge, buildBracket, buildDifference, buildHorizontalDifference, buildMark, buildPointer } from "./marks";
 
 const BOX = { x: 100, y: 100, width: 40, height: 20 };
 const EM = 10;
@@ -277,5 +277,119 @@ describe("marker on a stack segment", () => {
     if (mark?.kind !== "marker") throw new Error("no marker");
     expect(mark.badge.cx).toBe(140);
     expect(mark.badge.cy).toBeLessThan(110);
+  });
+});
+
+describe("marks on a chart with bars from left to right", () => {
+  const LABEL = { x: 200, y: 100, width: 30, height: 12 };
+
+  it("puts a marker right of a value label and not on it", () => {
+    const mark = buildMark({ target: "t", label: "3", point: { part: "total" } }, LABEL, undefined, EM, {
+      label: true,
+    });
+    // 2.5 px gap and the radius of 7.5 px behind the label
+    expect(mark).toMatchObject({ kind: "marker", badge: { cx: 240, cy: 106, r: 7.5 } });
+  });
+
+  it("prints the text of a frame right of a value label", () => {
+    const mark = buildMark({ target: "t", mark: "frame", text: "8%", point: { part: "total" } }, LABEL, undefined, EM, {
+      label: true,
+    });
+    expect(mark).toMatchObject({ kind: "frame", caption: { text: "8%", y: 106 } });
+    if (mark?.kind !== "frame") throw new Error("no frame");
+    // the caption and its frame start behind the label
+    expect(mark.caption!.x).toBeGreaterThan(LABEL.x + LABEL.width);
+    expect(mark.x).toBeGreaterThanOrEqual(LABEL.x + LABEL.width);
+  });
+
+  it("puts a marker into a wide segment right of its middle, and on the upper edge of a narrow one", () => {
+    const wide = buildMark({ target: "t", label: "1" }, { x: 100, y: 100, width: 200, height: 10 }, undefined, EM, {
+      stacked: true,
+      horizontal: true,
+    });
+    expect(wide).toMatchObject({ badge: { cx: 220.5, cy: 105 } });
+
+    const narrow = buildMark({ target: "t", label: "1" }, { x: 100, y: 100, width: 30, height: 10 }, undefined, EM, {
+      stacked: true,
+      horizontal: true,
+    });
+    // inside the end of the segment, so the total behind the bar stays free
+    expect(narrow).toMatchObject({ badge: { cx: 122.5, cy: 100 } });
+  });
+
+  it("draws the difference of two bars along x", () => {
+    const from = { x: 50, y: 100, width: 100, height: 10 };
+    const to = { x: 50, y: 130, width: 160, height: 10 };
+    const mark = buildHorizontalDifference({ target: "t", percent: true }, from, to, 100, 160, EM, {
+      from: 150,
+      to: 210,
+    });
+    if (mark?.kind !== "difference") throw new Error("no difference");
+
+    // the bar lies in the gap below the second row and spans the two ends
+    expect(mark.bar).toEqual({ x: 150, y: 141.25, width: 60, height: 2.5 });
+    // one upright line per value, from its row to the bar
+    expect(mark.lines).toEqual([
+      { x1: 150, y1: 110, x2: 150, y2: 142.5 },
+      { x1: 210, y1: 140, x2: 210, y2: 142.5 },
+    ]);
+    // the label stands right of the longer bar
+    expect(mark.text).toEqual({ x: 215, y: 142.5, anchor: "start", value: "+60.0", percent: "(+60%)" });
+  });
+
+  it("puts the difference above the second row when that row is the upper one", () => {
+    const from = { x: 50, y: 130, width: 160, height: 10 };
+    const to = { x: 50, y: 100, width: 100, height: 10 };
+    const mark = buildHorizontalDifference({ target: "t" }, from, to, 160, 100, EM, { from: 210, to: 150 });
+    if (mark?.kind !== "difference") throw new Error("no difference");
+    expect(mark.bar).toEqual({ x: 150, y: 96.25, width: 60, height: 2.5 });
+    expect(mark.color).toBe("negative");
+    expect(mark.text.value).toBe("-60.0");
+  });
+
+  it("points a thick arrow down at a value end", () => {
+    const mark = buildPointer({ target: "t", label: "4" }, { x: 150, y: 100 }, EM);
+    if (mark.kind !== "pointer") throw new Error("no pointer");
+    expect(mark.shape.startsWith("150,98.5 ")).toBe(true);
+    expect(mark.badge).toMatchObject({ label: "4" });
+  });
+
+  it("draws a bracket below the last row and up to the end of the first one", () => {
+    const first = { x: 50, y: 100, width: 100, height: 10 };
+    const last = { x: 50, y: 140, width: 80, height: 10 };
+    // the two rows can come in any order
+    for (const [a, b] of [
+      [first, last],
+      [last, first],
+    ]) {
+      const ends = { first: a.x + a.width, last: b.x + b.width };
+      const mark = buildBracket({ target: "t" }, a, b, ends, 10, "38%", EM);
+      if (mark.kind !== "bracket") throw new Error("no bracket");
+      expect(mark.path).toBe("10,152 130,152 150,99");
+      expect(mark.caption).toMatchObject({ text: "38%", y: 91 });
+      expect(mark.frame!.x).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  it("ends the bracket at the values, not at the edge of the boxes", () => {
+    // a row with a negative part: its value ends left of the right edge
+    const row = { x: 50, y: 100, width: 100, height: 10 };
+    const mark = buildBracket({ target: "t" }, row, row, { first: 120, last: 120 }, 10, undefined, EM);
+    if (mark.kind !== "bracket") throw new Error("no bracket");
+    expect(mark.path).toBe("10,112 120,112 120,99");
+  });
+
+  it("keeps the number of a bracket without a text", () => {
+    const row = { x: 50, y: 100, width: 100, height: 10 };
+    const ends = { first: 150, last: 150 };
+    expect(buildBracket({ target: "t" }, row, row, ends, 10, undefined, EM)).toMatchObject({
+      kind: "bracket",
+      caption: undefined,
+      frame: undefined,
+      badge: undefined,
+    });
+    expect(buildBracket({ target: "t", label: "2" }, row, row, ends, 10, undefined, EM)).toMatchObject({
+      badge: { label: "2", cx: 16.5, cy: 91 },
+    });
   });
 });
