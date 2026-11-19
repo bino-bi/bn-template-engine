@@ -53,6 +53,12 @@ export interface Stack {
   mode?: StackMode;
   /** Order of the segments in a stack. Default: `dataset`. */
   order?: StackOrder;
+  /** `bn-chart-time`: `scenario` gives a segment the look of its scenario. Default: `none`. */
+  notation?: "none" | "scenario";
+  /** `bn-chart-time`: where the series names stand. Default: `left`. */
+  legend?: "left" | "right" | "both" | "none";
+  /** `bn-chart-time`, mode `relative`: plain shares and one `100%` mark. Default: `false`. */
+  percentMark?: boolean;
 }
 
 /** The `x` and `y` attribute of `bn-chart-scatter` and `bn-chart-bubble`, in its JSON form. */
