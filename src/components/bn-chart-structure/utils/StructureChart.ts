@@ -201,6 +201,7 @@ export class StructureChart {
     this.level = config.level;
     this.sums = config.sums;
     this.sumTitle = config.sumTitle;
+    this.styles.valueSuffix = config.valueSuffix;
     this.scenarioLabelTop = config.scenarioLabelTop;
     this.hideScenarioName = config.hideScenarioName;
     this.referenceLine = config.referenceLine;
@@ -1964,10 +1965,10 @@ export class StructureChart {
     const top = this.position.getAxisPositionY();
     const bottom = this.position.getAxisEndPositionY();
     const tip = bottom + font * 0.15;
-    const base = tip + font * 0.5;
+    const base = tip + font * 0.75;
 
     group.line(x, top, x, bottom).stroke({ color: "#000000", width: this.position.spacings.axisLineWidth });
-    group.polygon(`${x},${tip} ${x - font * 0.25},${base} ${x + font * 0.25},${base}`).fill("#000000");
+    group.polygon(`${x},${tip} ${x - font * 0.28},${base} ${x + font * 0.28},${base}`).fill("#000000");
     new Label(group, x, base + font * 0.1, "PERCENT_MARK", "100%", this.styles, HookLocation.Top, HookLocation.Center)
       .setEmphasis(true, false)
       .draw();

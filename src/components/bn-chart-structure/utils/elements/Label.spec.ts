@@ -36,3 +36,19 @@ describe("structure chart variance label sign", () => {
     expect(drawn(12.34, (label) => label)).toBe("12.3");
   });
 });
+
+describe("structure chart value suffix", () => {
+  const withSuffix = { locale: "en", fontStyles: {}, valueSuffix: "%" } as unknown as StructureChartStyle;
+  const text = (prepare: (label: Label) => Label): unknown => {
+    const parent = fakeGroup();
+    prepare(new Label(parent.node as G, 0, 0, "test", 12.34, withSuffix, HookLocation.Top, HookLocation.Center)).draw(
+      digits,
+    );
+    return parent.groups[0].calls.find(([name]) => name === "text")?.[1][0];
+  };
+
+  it("stands after a value, and not after a variance", () => {
+    expect(text((label) => label)).toBe("12.3%");
+    expect(text((label) => label.setToVarianceLabel())).toBe("+12.3");
+  });
+});

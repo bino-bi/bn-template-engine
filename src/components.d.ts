@@ -832,6 +832,12 @@ export namespace Components {
          */
         "unitScaling": string | number;
         /**
+          * Text printed right after every value label, for example a unit that IBCS repeats in each row. Variance labels do not get it.
+          * @default ""
+          * @example value-suffix="%"
+         */
+        "valueSuffix": string;
+        /**
           * Comma-separated list of variance definitions. Each variance adds a separate sub-chart next to the main bar chart.  **Pattern:** `d<base>_<comparison>_<sentiment>` (absolute) or `dr<base>_<comparison>_<sentiment>` (relative / percentage).  - `base` / `comparison`: scenario names that must also appear in `scenarios`. - `sentiment`: `pos` (positive is good), `neg` (negative is good), `neu` (neutral).   `op` acts like `pos` and `opinv` like `neg`, because chart values carry their operation sign.  When empty, no variance charts are shown.
           * @example variances="dpp1_ac1_neg,dfc1_ac1_neg"
           * @example variances="drac1_pl1_pos"
@@ -947,6 +953,10 @@ export namespace Components {
           * @default ""
          */
         "tableName": string;
+        /**
+          * @default ""
+         */
+        "valueSuffix": string;
         /**
           * @default []
          */
@@ -3521,6 +3531,12 @@ declare namespace LocalJSX {
          */
         "unitScaling": string | number;
         /**
+          * Text printed right after every value label, for example a unit that IBCS repeats in each row. Variance labels do not get it.
+          * @default ""
+          * @example value-suffix="%"
+         */
+        "valueSuffix"?: string;
+        /**
           * Comma-separated list of variance definitions. Each variance adds a separate sub-chart next to the main bar chart.  **Pattern:** `d<base>_<comparison>_<sentiment>` (absolute) or `dr<base>_<comparison>_<sentiment>` (relative / percentage).  - `base` / `comparison`: scenario names that must also appear in `scenarios`. - `sentiment`: `pos` (positive is good), `neg` (negative is good), `neu` (neutral).   `op` acts like `pos` and `opinv` like `neg`, because chart values carry their operation sign.  When empty, no variance charts are shown.
           * @example variances="dpp1_ac1_neg,dfc1_ac1_neg"
           * @example variances="drac1_pl1_pos"
@@ -3636,6 +3652,10 @@ declare namespace LocalJSX {
           * @default ""
          */
         "tableName"?: string;
+        /**
+          * @default ""
+         */
+        "valueSuffix"?: string;
         /**
           * @default []
          */
@@ -5127,6 +5147,7 @@ declare namespace LocalJSX {
         "dataFormatDigitsPercent": number;
         "sums": "none" | "groups" | "total" | "all";
         "sumTitle": string;
+        "valueSuffix": string;
         "scenarioLabelPosition": "bottom" | "top";
         "referenceLine": string;
         "italicCategories": string;
@@ -5148,6 +5169,7 @@ declare namespace LocalJSX {
         "showMeasureScale": boolean;
         "sums": string;
         "sumTitle": string;
+        "valueSuffix": string;
         "scenarioLabelTop": boolean;
         "hideScenarioName": boolean;
     }

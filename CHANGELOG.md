@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-structure`: `value-suffix` prints a text right after every value label, for example `%` when each row shows the unit. Variance labels do not get it.
 - Component style `bn-annotation`: `markerStyle: "outlined"` draws the numbered circles of `bn-annotation-layer` and `bn-annotation-list` as a white circle with a ring and a number in the colour. The default `"filled"` is the look so far.
 - Component style `bn-chart-structure`: `titleBold: true` prints the title above the axis in bold: the chart title, and the name of the variance in a variance chart.
 - `bn-annotation-layer`: `textPosition: "above"` on a `frame` item puts its text above the value label and not right of it.
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
+- `bn-chart-structure`: the triangle of the `100%` mark of a stack is larger.
 - `bn-annotation-layer`: a mark on a value label of a chart takes the box of the text, not of the group with its background. A frame around a total is as wide as the number now.
 - `bn-annotation-layer`: the text of a `bracket` stands beside the rows at half their height. It stood above the first row.
 - `bn-chart-structure`: a stack by dimensions orders its series by the index column of the stack dimension (`categoryIndex`, `subCategoryIndex`), else by first appearance, and every bar has a place for every series. Before, the order came from the rows, and a bar without a value for a series moved the following series to another place and colour. The `REST` row of a `limit` now has the segments of the rows it stands for. Before, it was one plain bar.
