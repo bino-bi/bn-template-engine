@@ -1426,6 +1426,26 @@ export class StructureChart {
     });
   }
 
+  /** How far the header of a segment of the first row reaches right of the axis: a name can be wider than its segment. */
+  private stackHeaderExtent(): number {
+    if (!this.stackConfig || this.dataModel.length === 0) return 0;
+    const firstRow = this.dataModel.find((row) => !this.isTextSum(row)) ?? this.dataModel[0];
+    const groups = this.stackGroups(firstRow);
+    if (groups.length !== 1) return 0;
+    const [group] = groups;
+    let extent = 0;
+    group.segments.forEach((seg, index) => {
+      const { start, end } = group.layout.segments[index];
+      const name = String(this.i18n.get(seg.scenario) || seg.scenario);
+      const width = CalculateSize(name, {
+        font: this.styles.fontStyles.font,
+        fontSize: this.styles.fontStyles.size + "px",
+      }).width;
+      extent = Math.max(extent, ((start + end) / 2) * seg.dataPoint.pixelPerUnit + width / 2);
+    });
+    return extent;
+  }
+
   private getVarianceType() {
     if (this.variancesDataModel.length > 0) {
       return this.variancesDataModel[0].type;
@@ -1441,7 +1461,8 @@ export class StructureChart {
       // the negative side with the label of a negative total behind it
       if (this.stackSides.negative > 0) {
         width = this.stackSides.negative * this.pixelPerUnit;
-        if (this.stackSides.minTotal < 0) {
+        const totalDrawn = this.stackConfig?.mode !== StackMode.RELATIVE || this.stackConfig?.labels === "value";
+        if (this.stackSides.minTotal < 0 && totalDrawn) {
           width += labelToBar + this.calculateTotalLabelWidth(this.stackSides.minTotal);
         }
       }
@@ -1487,7 +1508,7 @@ export class StructureChart {
       const totalDrawn = this.stackConfig?.mode !== StackMode.RELATIVE || this.stackConfig?.labels === "value";
       let endRoom = labelToBar + this.calculateTextBoxWidth(this.stackSides.maxTotal);
       if (!totalDrawn) endRoom = this.hasPercentMark() ? this.boldWidth("100%") / 2 : 0;
-      let width = this.stackSides.positive * this.pixelPerUnit + endRoom;
+      let width = Math.max(this.stackSides.positive * this.pixelPerUnit + endRoom, this.stackHeaderExtent());
 
       // the category label of a row with a negative total sits right of the axis, behind its positive segments
       if (this.stackSides.minTotal < 0) {
@@ -1499,7 +1520,7 @@ export class StructureChart {
         );
       }
 
-      if (this.stackConfig?.totalTitle) {
+      if (this.stackConfig?.totalTitle && totalDrawn) {
         const title = CalculateSize(this.stackConfig.totalTitle, {
           font: this.styles.fontStyles.font,
           fontSize: this.styles.fontStyles.size + "px",
