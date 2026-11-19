@@ -73,16 +73,6 @@ export class LayoutPage {
   @Prop() messageImage: string = "";
 
   /**
-   * Short id of the page, a template number like `13A`. Shown at the top
-   * right of the title, on the level of its first line, in the font of the
-   * title and not bold. If empty, nothing is shown.
-   *
-   * @example
-   * <bn-layout-page title-id="13A"></bn-layout-page>
-   */
-  @Prop() titleId?: string;
-
-  /**
    * Name of the business unit displayed in the title header row.
    * If empty, the business unit row is omitted.
    *
@@ -443,7 +433,6 @@ export class LayoutPage {
           <bn-title // @ts-ignore
             i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
             ruleset={this.ruleset}
-            title-id={this.titleId}
             business-unit={this.titleBusinessUnit}
             scenarios={this.titleScenarios}
             variances={this.titleVariances}
