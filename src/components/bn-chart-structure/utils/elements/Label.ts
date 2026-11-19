@@ -174,6 +174,9 @@ export class Label {
 
     // @ts-ignore
     const text = label.text(prefix + valueStr);
+    // bbox() of a detached label clones only the label into a sandbox, where the font of the SVG root is lost
+    if (this.styles.fontStyles?.size) text.attr("font-size", this.styles.fontStyles.size);
+    if (this.styles.fontStyles?.family) text.attr("font-family", this.styles.fontStyles.family);
     if (this.bold) text.font({ weight: "bold" });
     if (this.italic) text.font({ style: "italic" });
     text.move(this.x, this.y);
