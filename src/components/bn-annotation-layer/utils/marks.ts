@@ -145,7 +145,8 @@ const signed = (value: number, digits: number): string => (value < 0 ? "-" : "+"
  * from each level to a bar behind the second value, which spans the
  * difference. The label is `to - from`, and with `percent` also relative to
  * `from`. A difference in the good direction has the colour `positive`, else
- * `negative`. Without two values there is nothing to print.
+ * `negative`. Without two values there is nothing to print. `levels` gives
+ * the y of the two values when it is not the upper edge of the boxes.
  */
 export function buildDifference(
   item: AnnotationLayerItem,
@@ -154,6 +155,7 @@ export function buildDifference(
   fromValue: number | undefined,
   toValue: number | undefined,
   em: number,
+  levels?: { from: number; to: number },
 ): DrawnMark | undefined {
   if (fromValue == null || toValue == null) return undefined;
   const difference = toValue - fromValue;
@@ -165,8 +167,9 @@ export function buildDifference(
   const edge = (of: Box): number => (direction === 1 ? of.x + of.width : of.x);
   const barX = edge(toBox) + direction * 0.9 * em;
   const lineEnd = barX + direction * 0.125 * em;
-  const fromY = box.y;
-  const toY = toBox.y;
+  // the upper edge is the level of a positive value only: the caller knows better for a negative one
+  const fromY = levels?.from ?? box.y;
+  const toY = levels?.to ?? toBox.y;
   const barWidth = 0.25 * em;
 
   const percent =
@@ -177,7 +180,8 @@ export function buildDifference(
   const percentWidth = percent ? textWidth(percent, 0.85 * em) : 0;
   // digits and signs alone are narrower than a text with a percent sign
   const valueWidth = value.length * 0.5 * em;
-  const percentX = direction === 1 ? textX + valueWidth + 0.35 * em : textX - valueWidth - 0.35 * em - percentWidth;
+  // the percent is the last part of the text, which ends at textX when it stands at the left
+  const percentX = direction === 1 ? textX + valueWidth + 0.35 * em : textX - percentWidth;
 
   return {
     kind: "difference",

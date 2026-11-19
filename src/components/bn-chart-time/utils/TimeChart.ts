@@ -519,8 +519,10 @@ export class TimeChart {
     switch (this.dateInterval) {
       case DateDistance.MONTH:
       case DateDistance.QUARTER:
-      case DateDistance.WEEK:
         return date.setLocale(this.locale).toFormat("yyyy");
+      case DateDistance.WEEK:
+        // week 1 can start in December: the week year, as the week labels use it
+        return date.setLocale(this.locale).toFormat("kkkk");
       case DateDistance.DAY:
         return date.setLocale(this.locale).toFormat("LLL yyyy");
       default:
@@ -545,6 +547,10 @@ export class TimeChart {
       }));
     }
 
+    // the line chart writes its own labels and has no second row
+    if (this.determineEffectiveChartMode() !== ChartMode.BAR) {
+      return [];
+    }
     const model = this.isVarianceChart() ? this.variancesDataModel : this.dataModel;
     const entries: { from: number; to: number; text: string; scenario: string }[] = [];
     let lastParent = "";
@@ -626,6 +632,21 @@ export class TimeChart {
       runs.push({ scenario, from: index, to: index });
     });
     return runs;
+  }
+
+  /**
+   * Stack by dimensions with `scenarioSwitch`: the scenarios with values that
+   * are not drawn, because they have values in periods of the first scenario
+   * or because the chart is a stacked area. The component warns about them.
+   */
+  public getIgnoredSwitchScenarios(): string[] {
+    if (!this.scenarioSwitch || this.stackConfig?.by !== StackBy.DIMENSIONS || this.isVarianceChart()) {
+      return [];
+    }
+    const followers = this.followerSlots();
+    return ["scenario2", "scenario3", "scenario4"]
+      .filter((slot) => !followers.includes(slot) && this.dataModel.some((row) => TimeChart.hasValue(row[slot])))
+      .map((slot) => this.dataModel.find((row) => row[slot]?.scenario != null)?.[slot].scenario as string);
   }
 
   /** Number of periods where variances of one row overlap. The component warns about it. */
@@ -1997,9 +2018,7 @@ export class TimeChart {
 
     const segments: StackGroupSegment[] = [];
 
-    for (const key of isScenarioStack || isArea
-      ? ["scenario1", "scenario2", "scenario3", "scenario4"]
-      : ["scenario1"]) {
+    for (const key of isScenarioStack ? ["scenario1", "scenario2", "scenario3", "scenario4"] : ["scenario1"]) {
       const dp: DataPoint = row[key];
       if (dp && !dp.isEmpty() && dp.value != null) {
         segments.push({ value: dp.value, scenario: dp.scenario as string, dataPoint: dp });
@@ -2133,7 +2152,8 @@ export class TimeChart {
    * left offset the component hands in, so they do not count here.
    */
   private legendWidth(side: "left" | "right"): number {
-    if (!this.stackConfig) return 0;
+    // the stacked area draws no names and no mark
+    if (!this.stackConfig || this.determineEffectiveChartMode() !== ChartMode.BAR) return 0;
     const legend = this.stackConfig.legend ?? "left";
     const texts: string[] = [];
     if (legend === side || legend === "both") {
@@ -2299,7 +2319,8 @@ export class TimeChart {
 
     // Identify active layers
     const activeLayers: string[] = [];
-    for (const key of scenarioKeys) {
+    // a stack by dimensions draws its first scenario only
+    for (const key of isScenarioStack ? scenarioKeys : ["scenario1"]) {
       if (dataModel.some((el: TimeChartDataModelEntry) => el[key] && !el[key].isEmpty())) {
         activeLayers.push(key);
       }

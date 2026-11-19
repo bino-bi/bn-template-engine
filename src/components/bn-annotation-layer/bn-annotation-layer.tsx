@@ -28,7 +28,7 @@ type Anchor =
   | { problem: string };
 
 /** The bars of one point of a difference: their common box and the sum of their values. */
-type SumAnchor = { box: Box; value: number } | { problem: string };
+type SumAnchor = { box: Box; level: number; value: number } | { problem: string };
 
 /** The text of a cell: its screen box, and the width of the sign in front of it. */
 interface CellText {
@@ -317,13 +317,20 @@ export class AnnotationLayer {
       if (bars.length === 0) {
         return { problem: `no bar with a value matches the point ${JSON.stringify(point)} in "${id}"` };
       }
+      // bars side by side or behind each other are no sum: the point must name one of them
+      if (bars.length > 1 && !bars.every((bar) => bar.stacked)) {
+        return { problem: `${bars.length} elements match the point ${JSON.stringify(point)} in "${id}"` };
+      }
       const host = visual.getBoundingClientRect();
       const left = Math.min(...bars.map((bar) => bar.rect.component.x));
       const top = Math.min(...bars.map((bar) => bar.rect.component.y));
       const right = Math.max(...bars.map((bar) => bar.rect.component.x + bar.rect.component.width));
       const bottom = Math.max(...bars.map((bar) => bar.rect.component.y + bar.rect.component.height));
+      // the level of the sum: the top for positive values, and below it by the length of the negative ones
+      const negative = bars.filter((bar) => bar.value! < 0).reduce((sum, bar) => sum + bar.rect.component.height, 0);
       return {
         box: { x: host.left + left, y: host.top + top, width: right - left, height: bottom - top },
+        level: host.top + top + negative,
         value: bars.reduce((sum, bar) => sum + bar.value!, 0),
       };
     };
@@ -349,8 +356,13 @@ export class AnnotationLayer {
           problems.push({ item, problem: failed.problem });
           continue;
         }
-        const [a, b] = [first, second] as { box: Box; value: number }[];
-        const mark = buildDifference(item, toLocal(a.box), toLocal(b.box), a.value, b.value, em);
+        const [a, b] = [first, second] as { box: Box; level: number; value: number }[];
+        const levelOf = (anchor: { box: Box; level: number }): number =>
+          toLocal({ x: anchor.box.x, y: anchor.level, width: 0, height: 0 }).y;
+        const mark = buildDifference(item, toLocal(a.box), toLocal(b.box), a.value, b.value, em, {
+          from: levelOf(a),
+          to: levelOf(b),
+        });
         if (mark) marks.push(mark);
         continue;
       }

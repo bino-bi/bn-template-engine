@@ -233,6 +233,26 @@ describe("buildDifference", () => {
     expect(mark.bar.x).toBeLessThan(100);
   });
 
+  it("frames the percent that ends the text at the left", () => {
+    const mark = buildDifference(
+      { target: "t", mark: "difference", percent: true, highlight: true },
+      to,
+      from,
+      114.1,
+      101.9,
+      10,
+    );
+    if (mark?.kind !== "difference" || !mark.frame) throw new Error("no frame");
+    expect(mark.frame.x + mark.frame.width).toBeCloseTo(mark.text.x + 2.5);
+  });
+
+  it("takes the levels it is given, for a negative value", () => {
+    const mark = buildDifference({ target: "t", mark: "difference" }, from, to, -5, 10, 10, { from: 500, to: 150 });
+    if (mark?.kind !== "difference") throw new Error("no difference");
+    expect(mark.lines.map((line) => line.y1)).toEqual([500, 150]);
+    expect(mark.bar.height).toBe(350);
+  });
+
   it("draws nothing without two values", () => {
     expect(buildDifference({ target: "t", mark: "difference" }, from, to, undefined, 1, 10)).toBeUndefined();
   });

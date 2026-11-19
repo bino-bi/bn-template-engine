@@ -234,6 +234,17 @@ export class BnChartTimeRenderer {
     this.queryError = this.measureScaleError ?? this.chart?.getQueryError();
     reportQueryError(this.errors, this.queryError);
 
+    const ignored = this.chart?.getIgnoredSwitchScenarios() ?? [];
+    if (ignored.length > 0) {
+      this.errors?.addOrReplace({
+        id: "WARN_stack_switch_ignored",
+        type: "warning",
+        message: `stack by dimensions with scenarioSwitch: ${ignored.join(", ")} is not drawn. A scenario continues the first one only where the first one has no value, and only in bar mode.`,
+      });
+    } else {
+      this.errors?.remove("WARN_stack_switch_ignored");
+    }
+
     const errId = `WARN_variances_overlap_${this.variances.join("_")}` as const;
     const overlaps = this.chart?.getVarianceOverlaps() ?? 0;
     // the row can get other variances: the warning of the old list has to go

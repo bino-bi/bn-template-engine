@@ -149,6 +149,14 @@ describe("time chart stack by dimension", () => {
     expect(chart.switchRuns()).toEqual([]);
   });
 
+  it("reports a scenario that overlaps the first one, and stacks only the first", () => {
+    const rows = ROWS.map((row) => ("ac1" in row ? { ...row, pl1: 5 } : row));
+    const chart = buildChart({ scenarios: ["ac1", "pl1"] }, rows);
+    expect(chart.getIgnoredSwitchScenarios()).toEqual(["pl1"]);
+    expect(internals(chart).stackGroups(internals(chart).dataModel[0])[0].layout.total).toBe(210);
+    expect(buildChart({}).getIgnoredSwitchScenarios()).toEqual([]);
+  });
+
   it("names the scenario of a chart with one scenario under the axis", () => {
     const chart = internals(buildChart({ scenarios: ["ac1"] }));
     expect(chart.contextRow().map((entry) => entry.text)).toEqual(["AC"]);
@@ -251,6 +259,30 @@ describe("time chart two-row axis labels", () => {
   it("prints the year without a scenario switch", () => {
     const chart = internals(buildChart({ ...options, scenarioSwitch: false, scenarios: ["ac1"] }, months));
     expect(chart.contextRow().map((entry) => entry.text)).toEqual(["2025", "2026"]);
+  });
+
+  it("uses the week year for weeks around a year change", () => {
+    const weeks = ["2025-12-22", "2025-12-29", "2026-01-05"].map((date) => ({
+      date,
+      operation: "+",
+      category: "Software",
+      categoryIndex: 0,
+      ac1: 10,
+    }));
+    const chart = internals(
+      buildChart({ scenarios: ["ac1"], scenarioSwitch: false, dateInterval: "week", axisLabelsMode: "two-row" }, weeks),
+    );
+    // 2025-12-29 is the Monday of week 1 of 2026
+    expect(chart.contextRow().map((entry) => [entry.from, entry.text])).toEqual([
+      [0, "2025"],
+      [1, "2026"],
+    ]);
+  });
+
+  it("has no second row and no legend width in line mode", () => {
+    const chart = internals(buildChart({ ...options, chartMode: "line" }, months));
+    expect(chart.contextRow()).toEqual([]);
+    expect(chart.legendWidth("left")).toBe(0);
   });
 
   it("has no second row for years", () => {

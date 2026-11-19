@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. See [standa
 - `bn-annotation-layer`: new mark `difference`. It shows the difference of two values of a chart: a thin line from each level to a bar behind the second value, and the label `to` minus `target`. `percent` adds the relative difference in brackets, `highlight` frames it, `digits` sets the digits and `sentiment` (`good-up`, `good-down`) picks the colour `positive` or `negative`. A point of a stack without a category means the sum of the stack. Stack segments and columns of `bn-chart-time` carry their value in `data-bn-value` for this, and a bar in the layout state has a `value`.
 - `bn-annotation-layer`: a `frame` item can bring a `text`. The text is printed on the target with the frame around it.
 - `bn-chart-time`: a segment of a stack by dimensions has the `category` in its point key, so an annotation can address one series of one period.
+- `bn-chart-time`: a warning when a stack by dimensions with `scenario-switch` has a scenario that is not drawn, because it has values in periods of the first scenario or because the chart is a stacked area.
 - `bn-chart-time`: a warning when a stack by scenarios gets more than four scenarios. The fifth and later ones were dropped without a message.
 
 - `bn-chart-time` and `bn-chart-structure`: `data-format-digits-decimal` and `data-format-digits-percent` set the digits of the value and percent labels, like on `bn-table`. Defaults stay 1 and 2.
