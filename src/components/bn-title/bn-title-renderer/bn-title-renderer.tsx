@@ -69,16 +69,11 @@ export class BnTitleRenderer {
   @Prop()
   ruleSetConfig?: RuleSetConfig;
 
-  /** @internal */
-  @Prop()
-  titleId?: string;
-
   private title: Title = new Title(new IBCSRuleSet());
 
   render() {
     return (
-      <div class={this.titleId ? "with-id" : undefined}>
-        {this.titleId ? <div class="title-id">{this.titleId}</div> : null}
+      <div>
         <div innerHTML={sanitizeHtml(this.title.unit)}></div>
         <div>
           {this.title.measures.map((measure, index) => (

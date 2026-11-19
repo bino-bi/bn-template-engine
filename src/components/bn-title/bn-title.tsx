@@ -85,12 +85,6 @@ export class Title {
    */
   @Prop() readonly titleFontSize?: number;
 
-  /**
-   * Short id of the report, a template number like `13A`. Shown at the top
-   * right, on the level of the first title line. Without it nothing is shown.
-   */
-  @Prop() readonly titleId?: string;
-
   /** Name of the business unit displayed in card header. If empty string (`''` or `null`) the business unit row is omitted
    *  <br /><br />
    *  Rendered as sanitized HTML, so inline markup such as ```<b>```, ```<i>``` and ```<br />``` is supported.
@@ -462,7 +456,6 @@ export class Title {
           i18n-mode={this.prepareI18nMode()}
           locale={this.prepareLocale()}
           ruleSetConfig={this.ruleSetConfig()}
-          titleId={this.titleId || undefined}
         ></bn-title-renderer>
       </Host>
     );

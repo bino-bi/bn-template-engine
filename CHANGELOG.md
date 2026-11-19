@@ -61,10 +61,6 @@ The child of a cell can carry `row-span` and `column-span` (whole numbers, defau
 
 The new style section `bn-layout-card` has one key, `titleFontSize` in px. Without it the title keeps the font size of `global.fontSizePx`. `bn-title` has the matching attribute `title-font-size`.
 
-#### `bn-layout-page`: an id at the top right of the title
-
-The new attribute `title-id` (property `titleId`) of `bn-layout-page` and `bn-title` shows a short text, a template number like `13A`, right-aligned on the level of the first title line, in the font of the title and not bold.
-
 #### `bn-annotation-layer`: a target in one cell of a grid
 
 A `data-bino-annotation-target` on the child of one `bn-grid` cell, or of a card in that cell, was already found. But the mark could stay where the chart was before the grid moved it onto the baseline. The layer now follows that move.
