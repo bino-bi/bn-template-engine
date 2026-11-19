@@ -1139,8 +1139,8 @@ export class StructureChart {
       this.position,
       barsGroup,
       this.scenarioStyles(),
-      // the factory names the last bar. With a sum row below it the name goes below that row, see the end.
-      this.scenarioLabelTop || lastBar !== dataModel.length - 1 ? 0 : lastBar + 1,
+      // the factory names the last bar. The row layout leaves room for the name when a sum row follows.
+      this.scenarioLabelTop ? 0 : lastBar + 1,
       this.i18n,
     );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
@@ -1155,21 +1155,6 @@ export class StructureChart {
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
       scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
     });
-
-    const last = dataModel[lastBar];
-    if (!this.scenarioLabelTop && last && lastBar !== dataModel.length - 1 && last.scenario1.scenario != null) {
-      const scenario = last.scenario1.scenario as string;
-      new Label(
-        barsGroup,
-        this.position.getBarPositionX() + Math.abs(last.scenario1.getScaledUnit()) / 2,
-        this.position.getBarCenterPositionY(dataModel.length - 1) + this.position.getScenarioLabelPositionOffsetY(true),
-        "SCENARIO_FOOTER",
-        this.i18n.get(scenario) || scenario,
-        this.styles,
-        HookLocation.Top,
-        HookLocation.Center,
-      ).draw();
-    }
 
     const first = dataModel.find((row) => !row.sum);
     if (this.scenarioLabelTop && first && !first.scenario1.isEmpty() && first.scenario1.scenario != null) {
@@ -1721,9 +1706,12 @@ export class StructureChart {
   /** Rows of different height (`stack.thickness: total`) and the room below a group. Null: all rows are equal. */
   private rowLayout(): RowLayout | null {
     const rows = this.dataModel;
-    // the variance charts next to the base chart get the same rows
+    // the component does not set it together with variances: a variance bar has one thickness
     const byTotal = this.stackConfig?.thickness === "total";
-    if (!byTotal && !rows.some((row) => row.gapAfter)) return null;
+    // the name of the scenario stands below the last bar: it needs room when a sum row follows
+    const lastBar = rows.reduce((last, row, index) => (row.sum ? last : index), -1);
+    const nameBelow = !this.stackConfig && !this.scenarioLabelTop && lastBar >= 0 && lastBar < rows.length - 1;
+    if (!byTotal && !nameBelow && !rows.some((row) => row.gapAfter)) return null;
 
     const totals = rows.map((row) => {
       if (!byTotal || row.sum) return null;
@@ -1740,7 +1728,8 @@ export class StructureChart {
       const rowWeight = weights[index];
       start.push(at);
       weight.push(rowWeight);
-      at += rowWeight + (row.gapAfter && index < rows.length - 1 ? 0.5 : 0);
+      at +=
+        rowWeight + (row.gapAfter && index < rows.length - 1 ? 0.5 : 0) + (nameBelow && index === lastBar ? 0.8 : 0);
     });
     return { start, weight, total: at };
   }

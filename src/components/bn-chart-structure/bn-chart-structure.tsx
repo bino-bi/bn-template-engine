@@ -1226,6 +1226,7 @@ export class Chart {
   private prepareStackConfig(): StackConfigParsed | null {
     if (isBlankInput(this.stack)) {
       this.errors.remove("WARN_stack_dimensions_scenarios");
+      this.errors.remove("WARN_stack_thickness_variances");
       return null;
     }
     try {
@@ -1248,13 +1249,26 @@ export class Chart {
         this.errors.remove(errId);
       }
 
+      // rows of different height are for the base chart alone: a variance bar has one thickness
+      const byTotal = parsed.thickness === "total";
+      const withVariances = byTotal && this.prepareVariances().length > 0;
+      if (withVariances) {
+        this.errors.addOrReplace({
+          id: "WARN_stack_thickness_variances",
+          type: "warning",
+          message: "stack thickness total: not used together with variances, the rows keep one height.",
+        });
+      } else {
+        this.errors.remove("WARN_stack_thickness_variances");
+      }
+
       return {
         by,
         mode: (parsed.mode as StackMode) || StackMode.ABSOLUTE,
         order: (parsed.order as StackOrder) || StackOrder.DATASET,
         percentMark: parsed.percentMark === true,
         labels: parsed.labels === "value" ? "value" : "share",
-        thickness: parsed.thickness === "total" ? "total" : "equal",
+        thickness: byTotal && !withVariances ? "total" : "equal",
         totalTitle: typeof parsed.totalTitle === "string" ? parsed.totalTitle : undefined,
       };
     } catch {

@@ -282,18 +282,17 @@ describe("findings of the review", () => {
     expect(height).toBeCloseTo(3 * pitch);
   });
 
-  it("gives the variance chart next to the base chart the same rows", () => {
-    const config = {
-      scenarios: ["ac1", "pp1"],
-      stackConfig: stack({ thickness: "total" }),
-    };
-    const rows = [structureRow("A", 1, { ac1: 30, pp1: 20 }), structureRow("B", 2, { ac1: 10, pp1: 10 })];
-    const base = internals(chartOf(config, rows)).position;
-    const variance = internals(chartOf({ ...config, variances: ["dac1_pp1_pos"] }, rows)).position;
+  it("leaves room for the name of the scenario between the last bar and a sum row", () => {
+    const rows = [structureRow("A", 1, { ac1: 10 }), structureRow("B", 2, { ac1: 20 })];
+    const position = internals(chartOf({ scenarios: ["ac1"], sums: "total" }, rows)).position;
+    const pitch = position.spacings.categoryWidth;
 
-    expect(variance.getBarCenterPositionY(1) - variance.getBarCenterPositionY(0)).toBeCloseTo(
-      base.getBarCenterPositionY(1) - base.getBarCenterPositionY(0),
-    );
+    expect(position.getBarCenterPositionY(1) - position.getBarCenterPositionY(0)).toBeCloseTo(pitch);
+    expect(position.getBarCenterPositionY(2) - position.getBarCenterPositionY(1)).toBeCloseTo(1.8 * pitch);
+
+    // no room with the name above the first bar, and none in a stack, which has its names there
+    const top = internals(chartOf({ scenarios: ["ac1"], sums: "total", scenarioLabelTop: true }, rows)).position;
+    expect(top.getBarCenterPositionY(2) - top.getBarCenterPositionY(1)).toBeCloseTo(pitch);
   });
 
   it("does not count the sum row of a variance chart for the scale", () => {
