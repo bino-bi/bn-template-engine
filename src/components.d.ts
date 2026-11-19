@@ -1255,7 +1255,7 @@ export namespace Components {
          */
         "getNotation": (styleName?: string) => Promise<Notation>;
         /**
-          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself.
+          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself. It holds for the whole page: with several contexts the last one that is connected sets it.
           * @default "" (the separator of the locale)
           * @example group-separator="thin-space"
          */
@@ -3921,7 +3921,7 @@ declare namespace LocalJSX {
     }
     interface BnContext {
         /**
-          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself.
+          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself. It holds for the whole page: with several contexts the last one that is connected sets it.
           * @default "" (the separator of the locale)
           * @example group-separator="thin-space"
          */

@@ -51,6 +51,9 @@ type StructureChartDataModelEntry = {
   gapAfter?: boolean;
 };
 
+/** The id of the row that sums the rows a limit cut off. */
+const REST_ROW_ID = 9999;
+
 /** One segment of a stack; `scenario` is the scenario or the value of the stack dimension. */
 type StackGroupSegment = { value: number; scenario: string; dataPoint: DataPoint };
 
@@ -171,7 +174,7 @@ export class StructureChart {
       this.titleLength,
       leftSideWidth,
       categoryWidth,
-      (!!this.stackConfig || this.scenarioLabelTop) && this.variancesDataModel.length === 0,
+      (!!this.stackConfig && this.variancesDataModel.length === 0) || this.scenarioLabelTop,
       this.rowLayout(),
     );
   }
@@ -226,9 +229,10 @@ export class StructureChart {
     // a sum row has no bar: it does not count for the scale
     const bars = this.dataModel.filter((row) => !row.sum);
     this.smallestDataPointValue = this.findSmallestDataPointValue(bars);
-    this.smallestVarianceDataPointValue = this.findSmallestDataPointValue(this.variancesDataModel);
+    const varianceBars = this.variancesDataModel.filter((row) => !row.sum);
+    this.smallestVarianceDataPointValue = this.findSmallestDataPointValue(varianceBars);
     this.highestDataPointValue = this.findHighestDataPointValue(bars);
-    this.highestVarianceDataPointValue = this.findHighestDataPointValue(this.variancesDataModel);
+    this.highestVarianceDataPointValue = this.findHighestDataPointValue(varianceBars);
     this.axisScenario = this.setAxisScenario(config.variances);
 
     this.measureScale = config.measureScale;
@@ -362,7 +366,8 @@ export class StructureChart {
       // both sides of the axis; a relative stack is laid out on a span of 1, so its sides add up to 1 * ppu
       fixedDomain: stacked ? this.stackSides.positive + this.stackSides.negative : undefined,
       relativeVariance: vt === VarianceType.RELATIVE,
-      maxPositive: highest?.value ?? 0,
+      // a reference line right of the longest bar needs its room too
+      maxPositive: Math.max(highest?.value ?? 0, !stacked && !isVariance ? (this.referenceLine?.value ?? 0) : 0),
       minNegative: smallest?.value ?? 0,
     });
   }
@@ -654,7 +659,7 @@ export class StructureChart {
         return obj;
       },
       {
-        id: 9999,
+        id: REST_ROW_ID,
         category: "REST",
         type: VarianceType.NONE,
         scenario1: new DataPoint(NaN, selectedScenarios[0], this.pixelPerUnit, Scenario.NEU),
@@ -966,6 +971,7 @@ export class StructureChart {
             scenario2: new DataPoint(null, null, null, null),
             scenario3: new DataPoint(null, null, null, null),
             scenario4: new DataPoint(null, null, null, null),
+            sum: dataModel[index].sum,
           });
         }
       }
@@ -1133,7 +1139,8 @@ export class StructureChart {
       this.position,
       barsGroup,
       this.scenarioStyles(),
-      this.scenarioLabelTop ? 0 : lastBar + 1,
+      // the factory names the last bar. With a sum row below it the name goes below that row, see the end.
+      this.scenarioLabelTop || lastBar !== dataModel.length - 1 ? 0 : lastBar + 1,
       this.i18n,
     );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
@@ -1148,6 +1155,21 @@ export class StructureChart {
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
       scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
     });
+
+    const last = dataModel[lastBar];
+    if (!this.scenarioLabelTop && last && lastBar !== dataModel.length - 1 && last.scenario1.scenario != null) {
+      const scenario = last.scenario1.scenario as string;
+      new Label(
+        barsGroup,
+        this.position.getBarPositionX() + Math.abs(last.scenario1.getScaledUnit()) / 2,
+        this.position.getBarCenterPositionY(dataModel.length - 1) + this.position.getScenarioLabelPositionOffsetY(true),
+        "SCENARIO_FOOTER",
+        this.i18n.get(scenario) || scenario,
+        this.styles,
+        HookLocation.Top,
+        HookLocation.Center,
+      ).draw();
+    }
 
     const first = dataModel.find((row) => !row.sum);
     if (this.scenarioLabelTop && first && !first.scenario1.isEmpty() && first.scenario1.scenario != null) {
@@ -1166,23 +1188,27 @@ export class StructureChart {
     }
   }
 
-  /** The value of a sum row of a chart with plain bars: a bold number at the axis, no bar. */
+  /** The value of a sum row of a chart with plain bars or variances: a bold number at the axis, no bar. */
   private drawSumValue(row: StructureChartDataModelEntry, index: number, group: G): void {
     const point = row.scenario1;
     if (point.isEmpty() || !Number.isFinite(point.value)) return;
-    new Label(
+    const negative = (point.value as number) < 0;
+    const label = new Label(
       group,
-      this.position.getLabelPositionX(0),
+      // like the label of a bar without length: a negative number stands left of the axis
+      this.position.getLabelPositionX(negative ? -0.000001 : 0),
       this.position.getBarCenterPositionY(index),
       "SUM_" + index,
       point.value as number,
       this.styles,
       HookLocation.Center,
-      HookLocation.Left,
+      negative ? HookLocation.Right : HookLocation.Left,
     )
       .setEmphasis(true, false)
-      .setPoint(point.key)
-      .draw(this.dataFormatDigits, this.measureScale);
+      .setPoint(point.key);
+    if (row.type === VarianceType.RELATIVE) label.setToRelativeVarianceLabel();
+    else if (row.type === VarianceType.ABSOLUTE) label.setToVarianceLabel();
+    label.draw(this.dataFormatDigits, this.measureScale);
   }
 
   private drawVarianceScenario(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): G {
@@ -1198,6 +1224,10 @@ export class StructureChart {
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
+      if (elements.sum) {
+        this.drawSumValue(elements, index, barsGroup);
+        return;
+      }
       if (elements["type"] === VarianceType.RELATIVE) {
         scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits);
       } else {
@@ -1432,7 +1462,7 @@ export class StructureChart {
         width = Math.max(width, this.stackSides.positive * this.pixelPerUnit + labelToBar + title);
       }
 
-      return Math.max(width, this.titleLength, this.sumColumns()?.width ?? 0);
+      return Math.max(width, this.titleLength, this.sumColumns()?.width ?? 0, this.referenceLineExtent());
     }
 
     let width = 0;
@@ -1460,6 +1490,8 @@ export class StructureChart {
       const sizeLabelValue = this.calculateTextBoxWidth(this.highestVarianceDataPointValue.value);
       width = Math.abs(this.highestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
+
+    width = Math.max(width, this.referenceLineExtent());
 
     // the bold number of a sum row stands at the axis
     for (const row of this.dataModel) {
@@ -1539,9 +1571,19 @@ export class StructureChart {
       }
     }
 
+    // the REST row stands for the rows the limit cut off: it gets their sum per series
+    const shown = new Set(this.dataModel.map((row) => row.category));
+    const rest = new Map<string, number>();
+    for (const [category, values] of groupMap) {
+      if (shown.has(category)) continue;
+      for (const [label, value] of values) {
+        rest.set(label, (rest.get(label) ?? 0) + value);
+      }
+    }
+
     // Attach stackSegments to each dataModel row: every row has every series, so place and colour stay
     for (const row of this.dataModel) {
-      const values = groupMap.get(row.category);
+      const values = row.id === REST_ROW_ID && !groupMap.has(row.category) ? rest : groupMap.get(row.category);
       const segments =
         values && values.size > 0 ? order.map((label) => ({ label, value: values.get(label) ?? NaN })) : undefined;
       if (segments && segments.length > 0) {
@@ -1679,7 +1721,8 @@ export class StructureChart {
   /** Rows of different height (`stack.thickness: total`) and the room below a group. Null: all rows are equal. */
   private rowLayout(): RowLayout | null {
     const rows = this.dataModel;
-    const byTotal = this.stackConfig?.thickness === "total" && this.variancesDataModel.length === 0;
+    // the variance charts next to the base chart get the same rows
+    const byTotal = this.stackConfig?.thickness === "total";
     if (!byTotal && !rows.some((row) => row.gapAfter)) return null;
 
     const totals = rows.map((row) => {
@@ -1688,20 +1731,50 @@ export class StructureChart {
       const front = groups[groups.length - 1];
       return front ? Math.abs(front.layout.total) : 0;
     });
-    const counted = totals.filter((total): total is number => total !== null);
-    const mean = counted.length > 0 ? counted.reduce((sum, total) => sum + total, 0) / counted.length : 0;
+    const weights = this.rowWeights(totals);
 
     const start: number[] = [];
     const weight: number[] = [];
     let at = 0;
     rows.forEach((row, index) => {
-      const total = totals[index];
-      const rowWeight = total === null || mean <= 0 ? 1 : total / mean;
+      const rowWeight = weights[index];
       start.push(at);
       weight.push(rowWeight);
       at += rowWeight + (row.gapAfter && index < rows.length - 1 ? 0.5 : 0);
     });
     return { start, weight, total: at };
+  }
+
+  /**
+   * The height of each row in units of a normal row: by its total, with the same height
+   * over all. A row is at least one line of text high, and the others give up that room.
+   * Null stands for a row that keeps the normal height.
+   */
+  private rowWeights(totals: (number | null)[]): number[] {
+    const minimum = Math.min(1, 1 / this.styles.scaleFactors.categoryWidth);
+    const weights: number[] = totals.map((total) => (total === null ? 1 : 0));
+    const open = new Set(totals.flatMap((total, index) => (total === null ? [] : [index])));
+    let room = open.size;
+
+    // a row below the minimum is set to it, then the rest is shared again
+    for (;;) {
+      const sum = [...open].reduce((all, index) => all + (totals[index] as number), 0);
+      if (sum <= 0) {
+        open.forEach((index) => (weights[index] = room / open.size));
+        break;
+      }
+      const small = [...open].filter((index) => ((totals[index] as number) / sum) * room < minimum);
+      if (small.length === 0 || small.length === open.size) {
+        open.forEach((index) => (weights[index] = ((totals[index] as number) / sum) * room));
+        break;
+      }
+      for (const index of small) {
+        weights[index] = minimum;
+        room -= minimum;
+        open.delete(index);
+      }
+    }
+    return weights;
   }
 
   private boldWidth(text: string): number {
@@ -1817,6 +1890,27 @@ export class StructureChart {
       : 0;
   }
 
+  /** Where the reference line stands, as distance from the axis in px. Null without a line in this chart. */
+  private referenceLineOffset(): number | null {
+    const line = this.referenceLine;
+    if (!line || !Number.isFinite(line.value) || this.variancesDataModel.length > 0) return null;
+    const relative = this.stackConfig?.mode === StackMode.RELATIVE;
+    return (relative ? line.value / 100 : line.value) * this.pixelPerUnit;
+  }
+
+  /** The room right of the axis that the reference line and its label need. */
+  private referenceLineExtent(): number {
+    const offset = this.referenceLineOffset();
+    if (offset === null || offset <= 0) return 0;
+    const label = this.referenceLine?.label
+      ? CalculateSize(this.referenceLine.label, {
+          font: this.styles.fontStyles.font,
+          fontSize: this.styles.fontStyles.size + "px",
+        }).width
+      : 0;
+    return offset + Math.max(label / 2, this.styles.fontStyles.size * 0.25);
+  }
+
   /** The end of a 100 % stack: a line along the bar ends and one `100%` below it. */
   private drawPercentMark(svgContainer: Svg): void {
     if (!this.hasPercentMark()) return;
@@ -1838,12 +1932,12 @@ export class StructureChart {
   /** A line across the bars at one value, with its label above the first bar. In a 100 % stack the value is a percent. */
   private drawReferenceLine(svgContainer: Svg): void {
     const line = this.referenceLine;
-    if (!line || !Number.isFinite(line.value) || this.dataModel.length === 0) return;
-    const relative = this.stackConfig?.mode === StackMode.RELATIVE;
+    const offset = this.referenceLineOffset();
+    if (!line || offset === null || this.dataModel.length === 0) return;
     const group = svgContainer.group().id("ReferenceLine");
     const font = this.styles.fontStyles.size;
     const color = `var(--bn-annotation-color, ${SYSTEM_STYLE_DEFAULTS["bn-annotation"].color})`;
-    const x = this.position.getBarPositionX() + (relative ? line.value / 100 : line.value) * this.pixelPerUnit;
+    const x = this.position.getBarPositionX() + offset;
     const top =
       this.position.getStackedHeaderPositionY() - (this.stackConfig || this.scenarioLabelTop ? font * 1.1 : 0);
     // down to the last row from the top that reaches the line, or over all rows when the first one does not

@@ -434,13 +434,30 @@ export class AnnotationLayer {
           problems.push({ item, problem: failed.problem });
           continue;
         }
-        const [a, b] = [first, second] as { box: Box; horizontal: boolean }[];
+        const [a, b] = [first, second] as { box: Box; negatives: Box[]; horizontal: boolean }[];
+        // the end of a value: the right end of a bar or the top of a column, moved by the negative values
+        const endOf = (anchor: { box: Box; negatives: Box[]; horizontal: boolean }): { x: number; y: number } => {
+          const local = toLocal(anchor.box);
+          return anchor.horizontal
+            ? {
+                x: local.x + local.width - anchor.negatives.reduce((sum, bar) => sum + toLocal(bar).width, 0),
+                y: local.y,
+              }
+            : {
+                x: local.x + local.width / 2,
+                y: local.y + anchor.negatives.reduce((sum, bar) => sum + toLocal(bar).height, 0),
+              };
+        };
         if (item.mark === "pointer") {
-          marks.push(buildPointer(item, toLocal(a.box), em, a.horizontal));
+          marks.push(buildPointer(item, endOf(a), em));
           continue;
         }
         if (!a.horizontal) {
           problems.push({ item, problem: "a bracket needs bars that run from left to right" });
+          continue;
+        }
+        if (item.to != null && item.to !== item.target) {
+          problems.push({ item, problem: "both ends of a bracket must be in one chart" });
           continue;
         }
         const [upper, lower] = a.box.y <= b.box.y ? [a.box, b.box] : [b.box, a.box];
@@ -448,7 +465,17 @@ export class AnnotationLayer {
         const host = targets.get(item.target)!.getBoundingClientRect();
         const hostBox = toLocal({ x: host.left, y: host.top, width: host.width, height: host.height });
         const caption = item.text ?? (share != null ? `${Math.round(share * 100)}%` : undefined);
-        marks.push(buildBracket(item, toLocal(a.box), toLocal(b.box), hostBox.x, caption, em));
+        marks.push(
+          buildBracket(
+            item,
+            toLocal(a.box),
+            toLocal(b.box),
+            { first: endOf(a).x, last: endOf(b).x },
+            hostBox.x,
+            caption,
+            em,
+          ),
+        );
         continue;
       }
       const from = anchorOf(item.target, item.point);

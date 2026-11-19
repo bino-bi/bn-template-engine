@@ -121,7 +121,7 @@ describe("Formatter Test", () => {
 
   describe("Group separator of the document", () => {
     afterEach(() => {
-      Formatter.groupSeparator = "";
+      Formatter.groupSeparator = null;
     });
 
     it("keeps the separator of the locale when none is set", () => {
@@ -133,6 +133,11 @@ describe("Formatter Test", () => {
       expect(Formatter.number(1234567.5, "decimal", 1, 1, 1, "en")).toBe("1\u2009234\u2009567.5");
       expect(Formatter.number(1234567.5, "decimal", 1, 1, 1, "de")).toBe("1\u2009234\u2009567,5");
       expect(Formatter.number(-0.001, "decimal", 1, 1, 1, "en")).toBe("0.0");
+    });
+
+    it("prints no separator for the empty string", () => {
+      Formatter.groupSeparator = "";
+      expect(Formatter.number(1234567, "decimal", 0, 0, 1, "de")).toBe("1234567");
     });
   });
 });

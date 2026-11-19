@@ -11,9 +11,9 @@ export class Formatter {
 
   /**
    * Replaces the group separator of the locale in every number, for example by a thin
-   * space. Empty: the separator of the locale. One setting for the document: `bn-context` sets it.
+   * space. Null: the separator of the locale. One setting for the page: `bn-context` sets it.
    */
-  static groupSeparator = "";
+  static groupSeparator: string | null = null;
 
   /**
    * Formats a number for display in the given locale.
@@ -55,11 +55,11 @@ export class Formatter {
     }
 
     const print = (number: number): string =>
-      this.groupSeparator === ""
+      this.groupSeparator === null
         ? format.format(number)
         : format
             .formatToParts(number)
-            .map((part) => (part.type === "group" ? this.groupSeparator : part.value))
+            .map((part) => (part.type === "group" ? (this.groupSeparator as string) : part.value))
             .join("");
     const text = print(value / scale);
 

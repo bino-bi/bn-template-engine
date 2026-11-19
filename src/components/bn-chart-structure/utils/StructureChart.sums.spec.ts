@@ -128,15 +128,15 @@ describe("structure chart sum rows", () => {
 });
 
 describe("structure chart rows by total", () => {
-  const ROWS_BY_TOTAL = [structureRow("A", 1, { ac1: 30 }), structureRow("B", 2, { ac1: 10 })];
+  const ROWS_BY_TOTAL = [structureRow("A", 1, { ac1: 30 }), structureRow("B", 2, { ac1: 20 })];
 
   it("makes a bar as thick as the total of its row is large, with the same height over all", () => {
     const chart = internals(chartOf({ scenarios: ["ac1"], stackConfig: stack({ thickness: "total" }) }, ROWS_BY_TOTAL));
     const position = chart.position;
     const bar = position.spacings.barWidth;
 
-    expect(position.getBarWidthAt(0)).toBeCloseTo(1.5 * bar);
-    expect(position.getBarWidthAt(1)).toBeCloseTo(0.5 * bar);
+    expect(position.getBarWidthAt(0)).toBeCloseTo(1.2 * bar);
+    expect(position.getBarWidthAt(1)).toBeCloseTo(0.8 * bar);
     // the two rows together are as high as two equal rows
     expect(position.getBarCenterPositionY(1) - position.getBarCenterPositionY(0)).toBeCloseTo(
       position.spacings.categoryWidth,
@@ -222,5 +222,95 @@ describe("stack keys of a structure chart", () => {
 
   it("reports a value it does not know", () => {
     expect(validateStackConfig('{"by":"scenarios","labels":"x","thickness":"y","totalTitle":1}')).toHaveLength(3);
+  });
+});
+
+describe("findings of the review", () => {
+  it("gives the REST row of a stack by dimensions the series of the rows it stands for", () => {
+    const cell = (category: string, index: number, series: string, ac1: number) => ({
+      ...structureRow(category, index, { ac1 }),
+      subCategory: series,
+      subCategoryIndex: series === "x" ? 1 : 2,
+    });
+    const chart = internals(
+      chartOf(
+        {
+          scenarios: ["ac1"],
+          limit: 2,
+          sums: "total",
+          sortOrder: { hierarchy: ["categoryIndex"], direction: "asc" },
+          stackConfig: stack({ by: StackBy.DIMENSIONS }),
+        },
+        [
+          cell("A", 1, "x", 10),
+          cell("A", 1, "y", 20),
+          cell("B", 2, "x", 5),
+          cell("C", 3, "x", 100),
+          cell("D", 4, "y", 200),
+        ],
+      ),
+    );
+    const rows = chart.dataModel;
+    expect(rows.map((row) => row.category)).toEqual(["A", "B", "REST", "SUM_TOTAL"]);
+    expect(rows[2].stackSegments!.map(({ label, value }) => ({ label, value }))).toEqual([
+      { label: "x", value: 100 },
+      { label: "y", value: 200 },
+    ]);
+    // the sum row adds up what the bars show
+    expect(rows[3].stackSegments!.map(({ label, value }) => ({ label, value }))).toEqual([
+      { label: "x", value: 115 },
+      { label: "y", value: 220 },
+    ]);
+  });
+
+  it("keeps a row by total at least one line of text high, with the same height over all", () => {
+    const chart = internals(
+      chartOf({ scenarios: ["ac1"], stackConfig: stack({ thickness: "total" }) }, [
+        structureRow("A", 1, { ac1: 1900 }),
+        structureRow("B", 2, { ac1: 30 }),
+        structureRow("C", 3, { ac1: 11 }),
+      ]),
+    );
+    const position = chart.position;
+    const line = position.fontSize;
+    const pitch = position.spacings.categoryWidth;
+    const y = (index: number): number => position.getBarCenterPositionY(index);
+
+    expect(y(2) - y(1)).toBeCloseTo(line);
+    // three rows: from the top of the first to the bottom of the last
+    const height = y(2) + line / 2 - (y(0) - (y(1) - line / 2 - y(0)));
+    expect(height).toBeCloseTo(3 * pitch);
+  });
+
+  it("gives the variance chart next to the base chart the same rows", () => {
+    const config = {
+      scenarios: ["ac1", "pp1"],
+      stackConfig: stack({ thickness: "total" }),
+    };
+    const rows = [structureRow("A", 1, { ac1: 30, pp1: 20 }), structureRow("B", 2, { ac1: 10, pp1: 10 })];
+    const base = internals(chartOf(config, rows)).position;
+    const variance = internals(chartOf({ ...config, variances: ["dac1_pp1_pos"] }, rows)).position;
+
+    expect(variance.getBarCenterPositionY(1) - variance.getBarCenterPositionY(0)).toBeCloseTo(
+      base.getBarCenterPositionY(1) - base.getBarCenterPositionY(0),
+    );
+  });
+
+  it("does not count the sum row of a variance chart for the scale", () => {
+    const rows = [structureRow("A", 1, { ac1: 12, pp1: 10 }), structureRow("B", 2, { ac1: 14, pp1: 10 })];
+    const config = { scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"] };
+
+    expect(chartOf({ ...config, sums: "total" }, rows).getUnitBarExtent()).toBe(
+      chartOf(config, rows).getUnitBarExtent(),
+    );
+  });
+
+  it("makes room for a reference line right of the longest bar", () => {
+    const rows = [structureRow("A", 1, { ac1: 10 }), structureRow("B", 2, { ac1: 20 })];
+    const plain = chartOf({ scenarios: ["ac1"], pixelPerUnit: 1 }, rows);
+    const withLine = chartOf({ scenarios: ["ac1"], pixelPerUnit: 1, referenceLine: { value: 500 } }, rows);
+
+    expect(withLine.getUnitBarExtent()).toBe(500);
+    expect(withLine.getAllocatedCanvasWidth()).toBeGreaterThan(plain.getAllocatedCanvasWidth() + 400);
   });
 });

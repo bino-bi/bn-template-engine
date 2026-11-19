@@ -1375,7 +1375,7 @@ export class Chart {
         stackConfig={stackConfig}
         sums={["groups", "total", "all"].includes(this.sums) ? this.sums : "none"}
         sumTitle={this.sumTitle}
-        scenarioLabelTop={isBase && this.scenarioLabelPosition === "top"}
+        scenarioLabelTop={this.scenarioLabelPosition === "top"}
         referenceLine={isBase ? this.prepareReferenceLine() : null}
         italicCategories={this.prepareItalicCategories() ?? []}
         dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}

@@ -361,10 +361,16 @@ export class LayoutCard {
     );
   }
 
-  /** The overlay area when it is four line numbers, else nothing. */
+  /** The overlay area when it is four line numbers inside the grid of the layout, else nothing. */
   private overlayArea(): string | undefined {
     const area = (this.cardOverlayArea ?? "").trim();
-    return /^\d+(\s*\/\s*\d+){3}$/.test(area) ? area : undefined;
+    if (!/^\d+(\s*\/\s*\d+){3}$/.test(area)) return undefined;
+    const [rowStart, columnStart, rowEnd, columnEnd] = area.split("/").map((line) => Number(line.trim()));
+    const rows = this.getRowCount(this.cardLayout);
+    const columns = templateRows(this.getTemplatePattern(this.cardLayout))[0]?.length || 1;
+    // a line outside the template would add rows or columns to the grid
+    const inside = rowStart >= 1 && columnStart >= 1 && rowEnd <= rows + 1 && columnEnd <= columns + 1;
+    return inside && rowStart < rowEnd && columnStart < columnEnd ? area : undefined;
   }
 
   private extractSlotNames(styleElement: string | null) {
@@ -390,7 +396,7 @@ export class LayoutCard {
       this.errors.addOrReplace({
         id: "WARN_cardOverlayArea",
         type: "warning",
-        message: `cardOverlayArea: '${this.cardOverlayArea}' is not 'row-start / column-start / row-end / column-end' in line numbers.`,
+        message: `cardOverlayArea: '${this.cardOverlayArea}' is not 'row-start / column-start / row-end / column-end' in line numbers of the layout.`,
       });
     } else {
       this.errors.remove("WARN_cardOverlayArea");

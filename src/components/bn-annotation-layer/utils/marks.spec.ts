@@ -326,27 +326,32 @@ describe("marks on a chart with bars from left to right", () => {
     });
     if (mark?.kind !== "difference") throw new Error("no difference");
 
-    // the bar lies below the second row and spans the two ends
-    expect(mark.bar.x).toBe(150);
-    expect(mark.bar.width).toBe(60);
-    expect(mark.bar.y).toBeGreaterThan(to.y + to.height);
+    // the bar lies in the gap below the second row and spans the two ends
+    expect(mark.bar).toEqual({ x: 150, y: 141.25, width: 60, height: 2.5 });
     // one upright line per value, from its row to the bar
-    expect(mark.lines.map((line) => [line.x1, line.x2])).toEqual([
-      [150, 150],
-      [210, 210],
+    expect(mark.lines).toEqual([
+      { x1: 150, y1: 110, x2: 150, y2: 142.5 },
+      { x1: 210, y1: 140, x2: 210, y2: 142.5 },
     ]);
-    expect(mark.text).toMatchObject({ x: 180, anchor: "middle", value: "+60.0", percent: "(+60%)" });
-    expect(mark.text.y).toBeGreaterThan(mark.bar.y);
+    // the label stands right of the longer bar
+    expect(mark.text).toEqual({ x: 215, y: 142.5, anchor: "start", value: "+60.0", percent: "(+60%)" });
   });
 
-  it("points a thick arrow down at the end of a bar, and at the top of a column", () => {
-    const bar = buildPointer({ target: "t" }, { x: 50, y: 100, width: 100, height: 10 }, EM, true);
-    if (bar.kind !== "pointer") throw new Error("no pointer");
-    expect(bar.shape.startsWith("150,98.5 ")).toBe(true);
+  it("puts the difference above the second row when that row is the upper one", () => {
+    const from = { x: 50, y: 130, width: 160, height: 10 };
+    const to = { x: 50, y: 100, width: 100, height: 10 };
+    const mark = buildHorizontalDifference({ target: "t" }, from, to, 160, 100, EM, { from: 210, to: 150 });
+    if (mark?.kind !== "difference") throw new Error("no difference");
+    expect(mark.bar).toEqual({ x: 150, y: 96.25, width: 60, height: 2.5 });
+    expect(mark.color).toBe("negative");
+    expect(mark.text.value).toBe("-60.0");
+  });
 
-    const column = buildPointer({ target: "t" }, { x: 50, y: 100, width: 20, height: 80 }, EM, false);
-    if (column.kind !== "pointer") throw new Error("no pointer");
-    expect(column.shape.startsWith("60,98.5 ")).toBe(true);
+  it("points a thick arrow down at a value end", () => {
+    const mark = buildPointer({ target: "t", label: "4" }, { x: 150, y: 100 }, EM);
+    if (mark.kind !== "pointer") throw new Error("no pointer");
+    expect(mark.shape.startsWith("150,98.5 ")).toBe(true);
+    expect(mark.badge).toMatchObject({ label: "4" });
   });
 
   it("draws a bracket below the last row and up to the end of the first one", () => {
@@ -357,7 +362,8 @@ describe("marks on a chart with bars from left to right", () => {
       [first, last],
       [last, first],
     ]) {
-      const mark = buildBracket({ target: "t" }, a, b, 10, "38%", EM);
+      const ends = { first: a.x + a.width, last: b.x + b.width };
+      const mark = buildBracket({ target: "t" }, a, b, ends, 10, "38%", EM);
       if (mark.kind !== "bracket") throw new Error("no bracket");
       expect(mark.path).toBe("10,152 130,152 150,99");
       expect(mark.caption).toMatchObject({ text: "38%", y: 91 });
@@ -365,12 +371,25 @@ describe("marks on a chart with bars from left to right", () => {
     }
   });
 
-  it("draws a bracket without a text", () => {
+  it("ends the bracket at the values, not at the edge of the boxes", () => {
+    // a row with a negative part: its value ends left of the right edge
     const row = { x: 50, y: 100, width: 100, height: 10 };
-    expect(buildBracket({ target: "t" }, row, row, 10, undefined, EM)).toMatchObject({
+    const mark = buildBracket({ target: "t" }, row, row, { first: 120, last: 120 }, 10, undefined, EM);
+    if (mark.kind !== "bracket") throw new Error("no bracket");
+    expect(mark.path).toBe("10,112 120,112 120,99");
+  });
+
+  it("keeps the number of a bracket without a text", () => {
+    const row = { x: 50, y: 100, width: 100, height: 10 };
+    const ends = { first: 150, last: 150 };
+    expect(buildBracket({ target: "t" }, row, row, ends, 10, undefined, EM)).toMatchObject({
       kind: "bracket",
       caption: undefined,
       frame: undefined,
+      badge: undefined,
+    });
+    expect(buildBracket({ target: "t", label: "2" }, row, row, ends, 10, undefined, EM)).toMatchObject({
+      badge: { label: "2", cx: 16.5, cy: 91 },
     });
   });
 });
