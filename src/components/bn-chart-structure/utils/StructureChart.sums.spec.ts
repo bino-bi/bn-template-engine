@@ -430,3 +430,24 @@ describe("sum rows next to short and negative bars", () => {
     expect(pitch(chartOf({ ...config, hideScenarioName: true }, rows))).toBeCloseTo(1);
   });
 });
+
+describe("room behind a 100 % stack", () => {
+  const roomOf = (extra: Record<string, unknown>): number => {
+    const chart = chartOf({
+      pixelPerUnit: 1000,
+      stackConfig: stack({ mode: StackMode.RELATIVE, ...extra }),
+    }) as unknown as {
+      calculateRightSideWidth(variance?: unknown): number;
+      stackSides: { positive: number };
+      pixelPerUnit: number;
+    };
+    return chart.calculateRightSideWidth() - chart.stackSides.positive * chart.pixelPerUnit;
+  };
+
+  it("keeps room for the total only when the total is printed", () => {
+    // every character is 6 px wide here: half of "100%" is 12 px
+    expect(roomOf({})).toBeCloseTo(0, 5);
+    expect(roomOf({ percentMark: true })).toBeCloseTo(12, 5);
+    expect(roomOf({ labels: "value" })).toBeGreaterThan(12);
+  });
+});

@@ -1483,8 +1483,11 @@ export class StructureChart {
     // Stacked charts: width based on the positive side of the stacks, not individual max
     if (this.isStacked()) {
       const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
-      const sizeTotalLabel = this.calculateTextBoxWidth(this.stackSides.maxTotal);
-      let width = this.stackSides.positive * this.pixelPerUnit + labelToBar + sizeTotalLabel;
+      // a 100 % stack prints no total behind its bars: it needs room for half of the `100%` mark at most
+      const totalDrawn = this.stackConfig?.mode !== StackMode.RELATIVE || this.stackConfig?.labels === "value";
+      let endRoom = labelToBar + this.calculateTextBoxWidth(this.stackSides.maxTotal);
+      if (!totalDrawn) endRoom = this.hasPercentMark() ? this.boldWidth("100%") / 2 : 0;
+      let width = this.stackSides.positive * this.pixelPerUnit + endRoom;
 
       // the category label of a row with a negative total sits right of the axis, behind its positive segments
       if (this.stackSides.minTotal < 0) {
