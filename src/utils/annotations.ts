@@ -16,7 +16,7 @@ export interface AnnotationPoint {
 export interface AnnotationLayerItem {
   /** Number on the mark. Absent when the annotation has none. */
   label?: string;
-  mark?: "marker" | "frame" | "arrow";
+  mark?: "marker" | "frame" | "arrow" | "difference";
   /** Named colour, see {@link annotationColor}. */
   color?: string;
   /** `data-bino-annotation-target` of the slot that holds the component. */
@@ -24,6 +24,16 @@ export interface AnnotationLayerItem {
   point?: AnnotationPoint;
   to?: string;
   toPoint?: AnnotationPoint;
+  /** `frame`: a text the frame is drawn around, on the target. `difference`: not used. */
+  text?: string;
+  /** `difference`: also print the relative difference, in brackets. */
+  percent?: boolean;
+  /** `difference`: digits of the absolute difference, 1 by default. */
+  digits?: number;
+  /** `difference`: `good-down` when a lower value is the good one. */
+  sentiment?: "good-up" | "good-down";
+  /** `difference`: a frame around the relative difference. */
+  highlight?: boolean;
 }
 
 /** One entry of the `items` attribute of `bn-annotation-list`. */
@@ -64,6 +74,7 @@ export function parseLayerItems(json: string | undefined): AnnotationLayerItem[]
     color: text(item.color),
     target: text(item.target) ?? "",
     to: text(item.to),
+    text: text(item.text),
   }));
 }
 

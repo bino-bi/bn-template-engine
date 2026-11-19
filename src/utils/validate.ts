@@ -251,7 +251,7 @@ export function isValidDateFormat(value: string): boolean {
 }
 
 export function isValidAxisLabelsMode(value: string): boolean {
-  return value?.toUpperCase() in AxisLabelsMode;
+  return value?.toUpperCase().replace("-", "_") in AxisLabelsMode;
 }
 
 export function isValidDataFormat(value: string): boolean {
@@ -449,6 +449,24 @@ export function validateStackConfig(value: string): string[] {
       if (!validOrders.includes(config.order)) {
         errors.push(`stack: 'order' must be one of: ${validOrders.join(", ")}`);
       }
+    }
+
+    if (config.hasOwnProperty("notation")) {
+      const validNotations = ["none", "scenario"];
+      if (!validNotations.includes(config.notation)) {
+        errors.push(`stack: 'notation' must be one of: ${validNotations.join(", ")}`);
+      }
+    }
+
+    if (config.hasOwnProperty("legend")) {
+      const validLegends = ["left", "right", "both", "none"];
+      if (!validLegends.includes(config.legend)) {
+        errors.push(`stack: 'legend' must be one of: ${validLegends.join(", ")}`);
+      }
+    }
+
+    if (config.hasOwnProperty("percentMark") && typeof config.percentMark !== "boolean") {
+      errors.push("stack: 'percentMark' must be true or false");
     }
 
     return errors;

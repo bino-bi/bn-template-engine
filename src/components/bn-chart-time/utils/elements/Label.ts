@@ -239,7 +239,8 @@ export class Label {
         .stroke(background)
         .fill(background)
         .opacity(0.9)
-        .move(rectX - 1, rectY)
+        // the box of a centred label is already centred with its margin
+        .move(this.horizontalHookLocation === HookLocation.Center ? rectX : rectX - 1, rectY)
         .insertBefore(text);
     }
 

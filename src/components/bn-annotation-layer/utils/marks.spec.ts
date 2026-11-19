@@ -1,4 +1,4 @@
-import { boxEdge, buildMark } from "./marks";
+import { boxEdge, buildDifference, buildMark } from "./marks";
 
 const BOX = { x: 100, y: 100, width: 40, height: 20 };
 const EM = 10;
@@ -180,5 +180,82 @@ describe("buildMark", () => {
   it("draws no arrow without a second box or between two boxes with the same centre", () => {
     expect(buildMark({ target: "t", mark: "arrow" }, BOX, undefined, EM)).toBeUndefined();
     expect(buildMark({ target: "t", mark: "arrow" }, BOX, BOX, EM)).toBeUndefined();
+  });
+});
+
+describe("buildDifference", () => {
+  const from = { x: 100, y: 200, width: 20, height: 300 };
+  const to = { x: 140, y: 150, width: 20, height: 350 };
+
+  it("prints to minus from and spans the two levels behind the second value", () => {
+    const mark = buildDifference({ target: "t", mark: "difference" }, from, to, 101.9, 114.1, 10);
+    expect(mark).toMatchObject({ kind: "difference", color: "positive", text: { value: "+12.2", anchor: "start" } });
+    if (mark?.kind !== "difference") throw new Error("no difference");
+    expect(mark.bar.y).toBe(150);
+    expect(mark.bar.height).toBe(50);
+    expect(mark.bar.x).toBeGreaterThan(160);
+    expect(mark.lines.map((line) => line.y1)).toEqual([200, 150]);
+    expect(mark.frame).toBeUndefined();
+  });
+
+  it("adds the relative difference and its frame", () => {
+    const mark = buildDifference(
+      { target: "t", mark: "difference", percent: true, highlight: true },
+      from,
+      to,
+      101.9,
+      114.1,
+      10,
+    );
+    if (mark?.kind !== "difference") throw new Error("no difference");
+    expect(mark.text.percent).toBe("(+12%)");
+    expect(mark.frame).toBeDefined();
+  });
+
+  it("is negative for a lower value, and positive again with good-down", () => {
+    const lower = buildDifference({ target: "t", mark: "difference" }, from, to, 101.9, 94.9, 10);
+    expect(lower).toMatchObject({ color: "negative", text: { value: "-7.0" } });
+    const goodDown = buildDifference(
+      { target: "t", mark: "difference", sentiment: "good-down", digits: 0 },
+      from,
+      to,
+      101.9,
+      94.9,
+      10,
+    );
+    expect(goodDown).toMatchObject({ color: "positive", text: { value: "-7" } });
+  });
+
+  it("stands at the left when the second value is left of the first", () => {
+    const mark = buildDifference({ target: "t", mark: "difference" }, to, from, 114.1, 101.9, 10);
+    if (mark?.kind !== "difference") throw new Error("no difference");
+    expect(mark.text.anchor).toBe("end");
+    expect(mark.bar.x).toBeLessThan(100);
+  });
+
+  it("draws nothing without two values", () => {
+    expect(buildDifference({ target: "t", mark: "difference" }, from, to, undefined, 1, 10)).toBeUndefined();
+  });
+});
+
+describe("frame with its own text", () => {
+  it("goes around the text in the upper part of the target", () => {
+    const box = { x: 100, y: 100, width: 40, height: 300 };
+    const mark = buildMark({ target: "t", mark: "frame", text: "61%" }, box, undefined, 10);
+    if (mark?.kind !== "frame") throw new Error("no frame");
+    expect(mark.caption).toEqual({ x: 120, y: 190, text: "61%" });
+    expect(mark.y).toBeLessThan(190);
+    expect(mark.y + mark.height).toBeGreaterThan(190);
+    expect(mark.height).toBeLessThan(30);
+  });
+});
+
+describe("marker on a stack segment", () => {
+  it("sits on the upper right corner", () => {
+    const box = { x: 100, y: 100, width: 40, height: 80 };
+    const mark = buildMark({ target: "t", label: "1" }, box, undefined, 10, { stacked: true });
+    if (mark?.kind !== "marker") throw new Error("no marker");
+    expect(mark.badge.cx).toBe(140);
+    expect(mark.badge.cy).toBeLessThan(110);
   });
 });

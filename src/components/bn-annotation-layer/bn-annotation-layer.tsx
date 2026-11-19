@@ -13,7 +13,7 @@ import { Style } from "../../stores/componentStyles";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withComponentStyle from "../../utils/withComponentStyle";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
-import { Box, buildMark, DrawnMark } from "./utils/marks";
+import { Box, buildDifference, buildMark, DrawnMark } from "./utils/marks";
 import { isWholeComponent, matchPoint } from "./utils/matchPoint";
 
 /** A component with a layout state of its own. */
@@ -23,7 +23,12 @@ interface TargetElement extends HTMLElement {
 }
 
 /** The result of looking up one end of an item, in viewport coordinates. */
-type Anchor = { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[] } | { problem: string };
+type Anchor =
+  | { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[]; stacked?: boolean }
+  | { problem: string };
+
+/** The bars of one point of a difference: their common box and the sum of their values. */
+type SumAnchor = { box: Box; value: number } | { problem: string };
 
 /** The text of a cell: its screen box, and the width of the sign in front of it. */
 interface CellText {
@@ -288,7 +293,7 @@ export class AnnotationLayer {
         return { problem: `the point ${JSON.stringify(point)} in "${id}" is cut off` };
       }
       const content = found[0].content;
-      if (!state!.table) return { box, whole: false };
+      if (!state!.table) return { box, whole: false, stacked: found[0].stacked };
       const cells = (state!.elements ?? []).flatMap((element) =>
         element.kind === "cell" && element.content
           ? [{ box: onScreen(element.content), sign: element.contentSign }]
@@ -299,6 +304,27 @@ export class AnnotationLayer {
         whole: false,
         text: content && { box: onScreen(content), sign: found[0].contentSign },
         obstacles: cells,
+      };
+    };
+
+    // a difference takes all bars of a point: the segments of a stack together are its sum
+    const sumOf = (id: string | undefined, point: AnnotationPoint | undefined): SumAnchor => {
+      const visual = id != null ? targets.get(id) : undefined;
+      if (!visual) return { problem: `no target "${id}" on this page` };
+      const state = states.get(visual);
+      const found = state && point ? matchPoint(state, { ...point, part: "element" }) : [];
+      const bars = found.filter((match) => match.value != null);
+      if (bars.length === 0) {
+        return { problem: `no bar with a value matches the point ${JSON.stringify(point)} in "${id}"` };
+      }
+      const host = visual.getBoundingClientRect();
+      const left = Math.min(...bars.map((bar) => bar.rect.component.x));
+      const top = Math.min(...bars.map((bar) => bar.rect.component.y));
+      const right = Math.max(...bars.map((bar) => bar.rect.component.x + bar.rect.component.width));
+      const bottom = Math.max(...bars.map((bar) => bar.rect.component.y + bar.rect.component.height));
+      return {
+        box: { x: host.left + left, y: host.top + top, width: right - left, height: bottom - top },
+        value: bars.reduce((sum, bar) => sum + bar.value!, 0),
       };
     };
 
@@ -315,6 +341,19 @@ export class AnnotationLayer {
     const problems: { item: AnnotationLayerItem; problem: string }[] = [];
 
     for (const item of this.parsedItems) {
+      if (item.mark === "difference") {
+        const first = sumOf(item.target, item.point);
+        const second = sumOf(item.to ?? item.target, item.toPoint);
+        const failed = "problem" in first ? first : "problem" in second ? second : undefined;
+        if (failed) {
+          problems.push({ item, problem: failed.problem });
+          continue;
+        }
+        const [a, b] = [first, second] as { box: Box; value: number }[];
+        const mark = buildDifference(item, toLocal(a.box), toLocal(b.box), a.value, b.value, em);
+        if (mark) marks.push(mark);
+        continue;
+      }
       const from = anchorOf(item.target, item.point);
       const to = item.mark === "arrow" ? anchorOf(item.to, item.toPoint) : undefined;
       const failed = "problem" in from ? from : to && "problem" in to ? to : undefined;
@@ -322,13 +361,14 @@ export class AnnotationLayer {
         problems.push({ item, problem: failed.problem });
         continue;
       }
-      const start = from as { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[] };
+      const start = from as { box: Box; whole: boolean; text?: CellText; obstacles?: CellText[]; stacked?: boolean };
       const end = to as { box: Box } | undefined;
       const mark = buildMark(item, toLocal(start.box), end && toLocal(end.box), em, {
         whole: start.whole,
         area,
         text: start.text && textToLocal(start.text),
         obstacles: start.obstacles?.map(textToLocal),
+        stacked: start.stacked,
       });
       if (mark) {
         marks.push(mark);
@@ -476,9 +516,54 @@ export class AnnotationLayer {
             height={mark.height}
             rx={mark.rx}
             ry={mark.ry}
-            style={{ fill: "none", stroke: color, strokeWidth: "1.5" }}
+            style={{ fill: mark.caption ? "#ffffff" : "none", stroke: color, strokeWidth: "1.5" }}
           ></rect>
+          {mark.caption ? (
+            <text class="mark-text caption" x={mark.caption.x} y={mark.caption.y}>
+              {mark.caption.text}
+            </text>
+          ) : null}
           {this.renderBadge(mark.badge, color)}
+        </g>
+      );
+    }
+    if (mark.kind === "difference") {
+      const main = annotationColor(
+        undefined,
+        this.componentStyle(($) => $["bn-annotation"]),
+      );
+      return (
+        <g class="mark difference" data-label={mark.badge?.label}>
+          {mark.lines.map((line) => (
+            <line class="difference-line" x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2}></line>
+          ))}
+          <rect
+            x={mark.bar.x}
+            y={mark.bar.y}
+            width={mark.bar.width}
+            height={mark.bar.height}
+            style={{ fill: color }}
+          ></rect>
+          <text class="mark-text" x={mark.text.x} y={mark.text.y} style={{ textAnchor: mark.text.anchor }}>
+            {mark.text.value}
+            {mark.text.percent ? (
+              <tspan class="percent" dx="0.35em">
+                {mark.text.percent}
+              </tspan>
+            ) : null}
+          </text>
+          {mark.frame ? (
+            <rect
+              x={mark.frame.x}
+              y={mark.frame.y}
+              width={mark.frame.width}
+              height={mark.frame.height}
+              rx={mark.frame.r}
+              ry={mark.frame.r}
+              style={{ fill: "none", stroke: main, strokeWidth: "1.5" }}
+            ></rect>
+          ) : null}
+          {this.renderBadge(mark.badge, main)}
         </g>
       );
     }

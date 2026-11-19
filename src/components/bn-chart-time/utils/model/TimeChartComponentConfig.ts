@@ -21,6 +21,12 @@ export interface StackConfigParsed {
   by: StackBy;
   mode: StackMode;
   order: StackOrder;
+  /** `scenario`: a segment takes the look of its scenario (FC hatched, PL outlined). */
+  notation: "none" | "scenario";
+  /** Where the series names stand: at the first column, at the last one, at both, or nowhere. */
+  legend: "left" | "right" | "both" | "none";
+  /** 100 % stack: shares as plain numbers and one `100%` mark on the legend side. */
+  percentMark: boolean;
 }
 
 /**

@@ -132,6 +132,9 @@ export class Column {
 
     this.scenarioGroup.attr(dataPointAttributes(this.dataPoint.key));
     this.columnGroup?.attr(dataPointAttributes(this.dataPoint.key, "element"));
+    if (this.dataPoint.key && Number.isFinite(this.dataPoint.value)) {
+      this.columnGroup?.attr("data-bn-value", this.dataPoint.value as number);
+    }
 
     if (this.columnGroup != null) {
       if (this.isOverflowing && this.overflowConfig) {

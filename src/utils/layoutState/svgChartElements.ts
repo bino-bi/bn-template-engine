@@ -20,6 +20,14 @@ const SCENARIO_GROUP_RE = /^Scenario([1-4])$/;
 const STACK_SEGMENT_RE = /^stacked_(?:col|bar)_(\d+)_seg_\d+$/;
 const STACK_SEGMENTS = 'g[id^="stacked_col_"], g[id^="stacked_bar_"]';
 
+/** The value a bar group carries in `data-bn-value`. */
+function readValue(group: Element): number | undefined {
+  const raw = group.getAttribute("data-bn-value");
+  if (raw == null || raw === "") return undefined;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : undefined;
+}
+
 /** Nearest `#Scenario1..4` ancestor of an element, as "scenario1".."scenario4". */
 function scenarioOf(el: Element, root: Element): string | undefined {
   let current: Element | null = el.parentElement;
@@ -90,6 +98,7 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
       index: indexOfGroup(group.id) ?? walkIndex,
       rect: measure(group, origins),
       point: readLayoutPoint(group),
+      value: readValue(group),
     };
     elements.push(bar);
   });
@@ -108,6 +117,7 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
       index: Number(match[1]),
       rect: measure(group, origins),
       point,
+      value: readValue(group),
     };
     elements.push(bar);
   });
