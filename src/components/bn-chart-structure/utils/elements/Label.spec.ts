@@ -58,3 +58,14 @@ describe("structure chart value suffix", () => {
     expect(parent.groups[0].calls.find(([name]) => name === "text")?.[1][0]).not.toContain("%");
   });
 });
+
+describe("structure chart label font", () => {
+  it("writes the font on the text, so a detached label is measured in the chart font", () => {
+    const withFont = { locale: "en", fontStyles: { size: 11, family: "Arial" } } as unknown as StructureChartStyle;
+    const parent = fakeGroup();
+    new Label(parent.node as G, 0, 0, "test", 12, withFont, HookLocation.Top, HookLocation.Center).draw(digits);
+    const attrs = parent.groups[0].calls.filter(([name]) => name === "attr").map(([, args]) => args);
+    expect(attrs).toContainEqual(["font-size", 11]);
+    expect(attrs).toContainEqual(["font-family", "Arial"]);
+  });
+});
