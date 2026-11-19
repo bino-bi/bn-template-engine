@@ -113,7 +113,7 @@ export interface StructureChartStyle {
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
   stackColors: string[];
-  /** The chart title in bold. */
+  /** The title above the axis in bold: the chart title, or the name of the variance. */
   titleBold: boolean;
   padding: {
     top: number;
