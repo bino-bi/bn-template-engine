@@ -42,8 +42,24 @@ export type DrawnMark =
       /** The levels of the two values, drawn to the bar. */
       lines: { x1: number; y1: number; x2: number; y2: number }[];
       bar: Box;
-      text: { x: number; y: number; anchor: "start" | "end"; value: string; percent?: string };
+      text: { x: number; y: number; anchor: "start" | "end" | "middle"; value: string; percent?: string };
       /** Around the relative difference. */
+      frame?: { x: number; y: number; width: number; height: number; r: number };
+      badge?: Badge;
+    }
+  | {
+      kind: "pointer";
+      color?: string;
+      /** A thick arrow that points down at the end of a bar. */
+      shape: string;
+      badge?: Badge;
+    }
+  | {
+      kind: "bracket";
+      color?: string;
+      /** The line below the last row and up to the end of the first one. */
+      path: string;
+      caption?: { x: number; y: number; text: string };
       frame?: { x: number; y: number; width: number; height: number; r: number };
       badge?: Badge;
     };
@@ -59,6 +75,10 @@ export interface MarkOptions {
   obstacles?: Box[];
   /** The box is a segment of a stack: a marker sits on its right edge and leaves the value label free. */
   stacked?: boolean;
+  /** The bars of the chart run from left to right. */
+  horizontal?: boolean;
+  /** The box is a value label of a chart: a mark stands right of it and not on it. */
+  label?: boolean;
 }
 
 const centre = (box: Box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
@@ -274,9 +294,12 @@ export function buildMark(
   if (item.mark === "frame") {
     // a text of its own stands in the upper part of the target, above a value label in its middle
     const caption =
-      item.text != null && !whole
-        ? { x: box.x + box.width / 2, y: box.y + Math.min(box.height / 2, Math.max(0.9 * em, 0.3 * box.height)) }
-        : undefined;
+      item.text == null || whole
+        ? undefined
+        : options.label
+          ? // right of a value label, so both can be read
+            { x: box.x + box.width + 0.7 * em + textWidth(item.text, em) / 2, y: box.y + box.height / 2 }
+          : { x: box.x + box.width / 2, y: box.y + Math.min(box.height / 2, Math.max(0.9 * em, 0.3 * box.height)) };
     const captionBox = caption && {
       x: caption.x - textWidth(item.text!, em) / 2,
       y: caption.y - 0.6 * em,
@@ -329,7 +352,18 @@ export function buildMark(
   const size = (label == null ? 0.4 : 0.75) * unit;
   const r = isRow ? Math.min(size, box.height / 2) : size;
   let at = whole ? { x: box.x + box.width - r, y: box.y + r } : centre(box);
-  if (!whole && options.stacked && item.point?.part !== "label" && item.point?.part !== "total") {
+  if (!whole && options.label) {
+    // right of the label of a chart, not on it
+    at = { x: box.x + box.width + 0.25 * unit + r, y: box.y + box.height / 2 };
+  } else if (!whole && options.stacked && options.horizontal) {
+    // in a wide segment right of its label, like in a table. Else on the upper edge at its end.
+    // The total behind the bar stays free in both cases.
+    const beside = 1.3 * unit + r;
+    at =
+      box.width / 2 >= beside + r
+        ? { x: box.x + box.width / 2 + beside, y: box.y + box.height / 2 }
+        : { x: box.x + box.width - Math.min(r, box.width / 2), y: box.y };
+  } else if (!whole && options.stacked && item.point?.part !== "label" && item.point?.part !== "total") {
     // on the upper right corner: the label in the middle and a name beside the segment stay free
     at = { x: box.x + box.width, y: box.y + Math.min(0.5 * r, box.height / 2) };
   }
@@ -343,4 +377,116 @@ export function buildMark(
     }
   }
   return { kind: "marker", color, badge: keepInside({ cx: at.x, cy: at.y, r, label }, area) };
+}
+
+const flip = (box: Box): Box => ({ x: box.y, y: box.x, width: box.height, height: box.width });
+
+/**
+ * The difference of two bars that run from left to right. Built like the one of two
+ * columns with x and y swapped: the bar of the difference lies below the second row,
+ * or above it when that row is the upper one, and the label stands behind it.
+ * `levels` are the x of the two values.
+ */
+export function buildHorizontalDifference(
+  item: AnnotationLayerItem,
+  box: Box,
+  toBox: Box,
+  fromValue: number | undefined,
+  toValue: number | undefined,
+  em: number,
+  levels: { from: number; to: number },
+): DrawnMark | undefined {
+  const mark = buildDifference(item, flip(box), flip(toBox), fromValue, toValue, em, levels);
+  if (!mark || mark.kind !== "difference") return mark;
+  const below = mark.text.anchor === "start";
+  const value = mark.text.value;
+  const percent = mark.text.percent;
+  const valueWidth = value.length * 0.5 * em;
+  const percentWidth = percent ? textWidth(percent, 0.85 * em) : 0;
+  const width = valueWidth + (percent ? 0.35 * em + percentWidth : 0);
+  const textX = mark.text.y;
+  const textY = mark.text.x + (below ? 0.2 : -0.2) * em;
+  return {
+    ...mark,
+    lines: mark.lines.map((line) => ({ x1: line.y1, y1: line.x1, x2: line.y2, y2: line.x2 })),
+    bar: flip(mark.bar),
+    text: { x: textX, y: textY, anchor: "middle", value, percent },
+    frame:
+      percent && item.highlight
+        ? {
+            x: textX + width / 2 - percentWidth - 0.25 * em,
+            y: textY - 0.65 * em,
+            width: percentWidth + 0.5 * em,
+            height: 1.3 * em,
+            r: 0.65 * em,
+          }
+        : undefined,
+    badge: mark.badge && { ...mark.badge, cx: mark.badge.cy, cy: mark.badge.cx },
+  };
+}
+
+/** A thick arrow that points down at the value end of a bar: its right end, or the top of a column. */
+export function buildPointer(item: AnnotationLayerItem, box: Box, em: number, horizontal: boolean): DrawnMark {
+  const x = horizontal ? box.x + box.width : box.x + box.width / 2;
+  const tip = box.y - 0.15 * em;
+  const neck = tip - 0.7 * em;
+  const top = tip - 1.9 * em;
+  const head = 0.55 * em;
+  const shaft = 0.22 * em;
+  const points = [
+    [x, tip],
+    [x - head, neck],
+    [x - shaft, neck],
+    [x - shaft, top],
+    [x + shaft, top],
+    [x + shaft, neck],
+    [x + head, neck],
+  ];
+  return {
+    kind: "pointer",
+    color: item.color,
+    shape: points.map(([px, py]) => `${px},${py}`).join(" "),
+    badge: item.label != null ? { cx: x + 1.1 * em, cy: top + 0.65 * em, r: 0.65 * em, label: item.label } : undefined,
+  };
+}
+
+/**
+ * A bracket around a range of rows of a chart with bars from left to right. A line
+ * runs below the last row from `left` to the end of its bar, and from there up to the
+ * end of the bar of the first row. `text` stands in a frame at the left, above the first row.
+ */
+export function buildBracket(
+  item: AnnotationLayerItem,
+  first: Box,
+  last: Box,
+  left: number,
+  text: string | undefined,
+  em: number,
+): DrawnMark {
+  const [upper, lower] = first.y <= last.y ? [first, last] : [last, first];
+  const bottom = lower.y + lower.height + 0.2 * em;
+  const points = [
+    [left, bottom],
+    [lower.x + lower.width, bottom],
+    [upper.x + upper.width, upper.y - 0.1 * em],
+  ];
+  const width = text ? textWidth(text, em) : 0;
+  const caption = text ? { x: left + 0.5 * em + width / 2, y: upper.y - 0.9 * em, text } : undefined;
+  return {
+    kind: "bracket",
+    color: item.color,
+    path: points.map(([px, py]) => `${px},${py}`).join(" "),
+    caption,
+    frame: caption && {
+      x: caption.x - width / 2 - 0.45 * em,
+      y: caption.y - 0.7 * em,
+      width: width + 0.9 * em,
+      height: 1.4 * em,
+      r: 0.7 * em,
+    },
+    badge:
+      item.label != null && caption
+        ? { cx: caption.x + width / 2 + 1.2 * em, cy: caption.y, r: 0.65 * em, label: item.label }
+        : undefined,
+  };
 }

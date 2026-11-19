@@ -18,7 +18,7 @@ import { BulletChartStyle } from "./components/bn-chart-bullet/utils/model/Bulle
 import { AutoScalingReport } from "./utils/scaling";
 import { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 import { DataFormatDigits } from "./utils/model/DataFormatDigits";
-import { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
+import { ReferenceLine, StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 import { ParentDimensions } from "./utils/parentDimensions";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
@@ -48,7 +48,7 @@ export { BulletChartStyle } from "./components/bn-chart-bullet/utils/model/Bulle
 export { AutoScalingReport } from "./utils/scaling";
 export { StructureChartStyle } from "./components/bn-chart-structure/utils/model/styles/StructureChartStyle";
 export { DataFormatDigits } from "./utils/model/DataFormatDigits";
-export { StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
+export { ReferenceLine, StackConfigParsed } from "./components/bn-chart-structure/utils/model/StructureChartComponentConfig";
 export { ParentDimensions } from "./utils/parentDimensions";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
@@ -719,6 +719,12 @@ export namespace Components {
          */
         "i18nNamespace"?: string;
         /**
+          * Rows that are printed in italics, as a JSON array of values of the level column, for example the rest rows.
+          * @default "" (none)
+          * @example italic-categories='["Rest of world"]'
+         */
+        "italicCategories": string;
+        /**
           * Aggregation level that determines which hierarchy dimension each bar represents.  | Value              | Bars represent            | |--------------------|---------------------------| | `"rowGroup"`       | Row groups                | | `"rowGroupIndex"`  | Row groups (dataset order)| | `"category"`       | Categories                | | `"categoryIndex"`  | Categories (dataset order)| | `"subCategory"`    | Sub-categories            | | `"subCategoryIndex"` | Sub-categories (dataset order)| | `"auto"`           | Auto-detect from dataset metadata (no warning) | | not set / `""`     | Auto-detect with `AUTO_level` warning          |  Index variants preserve the original dataset order instead of sorting alphabetically. When `stack.by` is `"dimensions"`, the chart automatically stacks by the next-lower level (e.g. level `"rowGroup"` stacks by category).
           * @example level="category"
          */
@@ -759,6 +765,12 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
+          * A line across the bars at one value of the axis, as a JSON string: `value` and an optional `label`. In a 100 % stack the value is a percent.
+          * @default "" (no line)
+          * @example reference-line='{"value":50,"label":"50%"}'
+         */
+        "referenceLine": string;
+        /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
         "ruleset"?: string;
@@ -766,6 +778,12 @@ export namespace Components {
           * Controls proportional scaling of the chart to fit the available parent height.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                      |
          */
         "scale"?: string;
+        /**
+          * Where the name of the scenario of a chart with plain bars stands: `bottom` below the last bar, `top` above the first one.
+          * @default "bottom"
+          * @example scenario-label-position="top"
+         */
+        "scenarioLabelPosition": "bottom" | "top";
         /**
           * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) | | `"none"`      | Draw no scenario: the chart shows only its variances, the first one carries the categories |
           * @example scenarios="ac1,pp1,pl1"
@@ -794,6 +812,18 @@ export namespace Components {
           * @example stack='{"by":"dimensions","mode":"relative"}'
          */
         "stack": string;
+        /**
+          * Label of the sum row over all rows.
+          * @default "" (the `SUM_TOTAL` text)
+          * @example sum-title="World"
+         */
+        "sumTitle": string;
+        /**
+          * Sum rows. `groups` adds a row below the rows of each `rowGroup` (level `category`), `total` a row over all rows, `all` both. A sum row has no bar: it prints the sum in bold, in a stack one number per series with a small square in the colour of the series. In a 100 % stack it is a bar of shares. A sum row does not count for the scale.
+          * @default "none"
+          * @example sums="all"
+         */
+        "sums": "none" | "groups" | "total" | "all";
         /**
           * Data units displayed per 1 em of bar length (horizontal bars) - map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container width         | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |  When using a custom value that causes the chart to exceed its container, an `ERR_overflow` error is emitted.
           * @example unit-scaling="auto"
@@ -839,6 +869,10 @@ export namespace Components {
          */
         "i18n": Map<string, string>;
         /**
+          * @default []
+         */
+        "italicCategories": string[];
+        /**
           * @default AggregationLevel.CATEGORY
          */
         "level": AggregationLevel;
@@ -871,10 +905,18 @@ export namespace Components {
          */
         "pixelPerUnit": number;
         /**
+          * @default null
+         */
+        "referenceLine": ReferenceLine | null;
+        /**
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default false
+         */
+        "scenarioLabelTop": boolean;
         /**
           * @default []
          */
@@ -888,6 +930,14 @@ export namespace Components {
          */
         "stackConfig": StackConfigParsed | null;
         "styles": StructureChartStyle | undefined;
+        /**
+          * @default ""
+         */
+        "sumTitle": string;
+        /**
+          * @default "none"
+         */
+        "sums": string;
         /**
           * Name of the dataset (table or view in the shared alasql database).
           * @default ""
@@ -1205,6 +1255,12 @@ export namespace Components {
          */
         "getNotation": (styleName?: string) => Promise<Notation>;
         /**
+          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself.
+          * @default "" (the separator of the locale)
+          * @example group-separator="thin-space"
+         */
+        "groupSeparator": string;
+        /**
           * Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
          */
         "i18nNamespace": string;
@@ -1453,6 +1509,12 @@ export namespace Components {
     | "2-over-1"
     | "3-over-1"
     | "custom-template";
+        /**
+          * Puts the child after the last slot of the template on top of the grid, in the cells this CSS `grid-area` names by line numbers: `row-start / column-start / row-end / column-end`. Use it for a text or a comment list in the free part of a chart.
+          * @default "" (no overlay)
+          * @example card-overlay-area="4 / 3 / 7 / 5"
+         */
+        "cardOverlayArea": string;
         /**
           * Whether to display a visible border around the card.
           * @default true
@@ -3342,6 +3404,12 @@ declare namespace LocalJSX {
          */
         "i18nNamespace"?: string;
         /**
+          * Rows that are printed in italics, as a JSON array of values of the level column, for example the rest rows.
+          * @default "" (none)
+          * @example italic-categories='["Rest of world"]'
+         */
+        "italicCategories"?: string;
+        /**
           * Aggregation level that determines which hierarchy dimension each bar represents.  | Value              | Bars represent            | |--------------------|---------------------------| | `"rowGroup"`       | Row groups                | | `"rowGroupIndex"`  | Row groups (dataset order)| | `"category"`       | Categories                | | `"categoryIndex"`  | Categories (dataset order)| | `"subCategory"`    | Sub-categories            | | `"subCategoryIndex"` | Sub-categories (dataset order)| | `"auto"`           | Auto-detect from dataset metadata (no warning) | | not set / `""`     | Auto-detect with `AUTO_level` warning          |  Index variants preserve the original dataset order instead of sorting alphabetically. When `stack.by` is `"dimensions"`, the chart automatically stacks by the next-lower level (e.g. level `"rowGroup"` stacks by category).
           * @example level="category"
          */
@@ -3382,6 +3450,12 @@ declare namespace LocalJSX {
          */
         "percentageScaling": string | number;
         /**
+          * A line across the bars at one value of the axis, as a JSON string: `value` and an optional `label`. In a 100 % stack the value is a percent.
+          * @default "" (no line)
+          * @example reference-line='{"value":50,"label":"50%"}'
+         */
+        "referenceLine"?: string;
+        /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
         "ruleset"?: string;
@@ -3389,6 +3463,12 @@ declare namespace LocalJSX {
           * Controls proportional scaling of the chart to fit the available parent height.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent height; emit `AUTO_scale` warning with the applied factor | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent height silently (no warning)                             | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                      |
          */
         "scale"?: string;
+        /**
+          * Where the name of the scenario of a chart with plain bars stands: `bottom` below the last bar, `top` above the first one.
+          * @default "bottom"
+          * @example scenario-label-position="top"
+         */
+        "scenarioLabelPosition"?: "bottom" | "top";
         /**
           * Comma-separated list of scenario columns to display as bars. Up to 4 scenarios are supported; additional values are ignored.  Valid scenario names: `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value         | Behavior                                                    | |---------------|-------------------------------------------------------------| | `"ac1,fc1"`   | Show the listed scenarios                                   | | `"auto"`      | Auto-detect from dataset metadata (no warning)              | | not set / `""` | Auto-detect from dataset metadata (emits `AUTO_scenarios` warning) | | `"none"`      | Draw no scenario: the chart shows only its variances, the first one carries the categories |
           * @example scenarios="ac1,pp1,pl1"
@@ -3417,6 +3497,18 @@ declare namespace LocalJSX {
           * @example stack='{"by":"dimensions","mode":"relative"}'
          */
         "stack"?: string;
+        /**
+          * Label of the sum row over all rows.
+          * @default "" (the `SUM_TOTAL` text)
+          * @example sum-title="World"
+         */
+        "sumTitle"?: string;
+        /**
+          * Sum rows. `groups` adds a row below the rows of each `rowGroup` (level `category`), `total` a row over all rows, `all` both. A sum row has no bar: it prints the sum in bold, in a stack one number per series with a small square in the colour of the series. In a 100 % stack it is a bar of shares. A sum row does not count for the scale.
+          * @default "none"
+          * @example sums="all"
+         */
+        "sums"?: "none" | "groups" | "total" | "all";
         /**
           * Data units displayed per 1 em of bar length (horizontal bars) - map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container width         | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |  When using a custom value that causes the chart to exceed its container, an `ERR_overflow` error is emitted.
           * @example unit-scaling="auto"
@@ -3462,6 +3554,10 @@ declare namespace LocalJSX {
          */
         "i18n"?: Map<string, string>;
         /**
+          * @default []
+         */
+        "italicCategories"?: string[];
+        /**
           * @default AggregationLevel.CATEGORY
          */
         "level"?: AggregationLevel;
@@ -3494,10 +3590,18 @@ declare namespace LocalJSX {
          */
         "pixelPerUnit"?: number;
         /**
+          * @default null
+         */
+        "referenceLine"?: ReferenceLine | null;
+        /**
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default false
+         */
+        "scenarioLabelTop"?: boolean;
         /**
           * @default []
          */
@@ -3511,6 +3615,14 @@ declare namespace LocalJSX {
          */
         "stackConfig"?: StackConfigParsed | null;
         "styles"?: StructureChartStyle | undefined;
+        /**
+          * @default ""
+         */
+        "sumTitle"?: string;
+        /**
+          * @default "none"
+         */
+        "sums"?: string;
         /**
           * Name of the dataset (table or view in the shared alasql database).
           * @default ""
@@ -3809,6 +3921,12 @@ declare namespace LocalJSX {
     }
     interface BnContext {
         /**
+          * Group separator of every number in the document, in place of the one of the locale: `thin-space`, `space`, `none`, or the separator itself.
+          * @default "" (the separator of the locale)
+          * @example group-separator="thin-space"
+         */
+        "groupSeparator"?: string;
+        /**
           * Default i18n namespace for every component inside this context. Resolved at runtime from the `i18n-namespace` attribute by the nearest ancestor lookup in `withTranslation`; a namespace set on a page, card, tree, grid, or the component itself wins. Declared so the attribute is part of the typed public API rather than a bare DOM attribute.
          */
         "i18nNamespace"?: string;
@@ -4056,6 +4174,12 @@ declare namespace LocalJSX {
     | "2-over-1"
     | "3-over-1"
     | "custom-template";
+        /**
+          * Puts the child after the last slot of the template on top of the grid, in the cells this CSS `grid-area` names by line numbers: `row-start / column-start / row-end / column-end`. Use it for a text or a comment list in the free part of a chart.
+          * @default "" (no overlay)
+          * @example card-overlay-area="4 / 3 / 7 / 5"
+         */
+        "cardOverlayArea"?: string;
         /**
           * Whether to display a visible border around the card.
           * @default true
@@ -4993,6 +5117,11 @@ declare namespace LocalJSX {
         "measureUnit": string;
         "dataFormatDigitsDecimal": number;
         "dataFormatDigitsPercent": number;
+        "sums": "none" | "groups" | "total" | "all";
+        "sumTitle": string;
+        "scenarioLabelPosition": "bottom" | "top";
+        "referenceLine": string;
+        "italicCategories": string;
         "stack": string;
         "scale": string;
     }
@@ -5009,6 +5138,9 @@ declare namespace LocalJSX {
         "measureScale": string;
         "measureUnit": string;
         "showMeasureScale": boolean;
+        "sums": string;
+        "sumTitle": string;
+        "scenarioLabelTop": boolean;
     }
     interface BnChartTimeAttributes {
         "datasets": string;
@@ -5074,6 +5206,7 @@ declare namespace LocalJSX {
         "locale": string;
         "i18nNamespace": string;
         "renderOrientation": "landscape" | "portrait";
+        "groupSeparator": string;
     }
     interface BnDatasetAttributes {
         "name": string;
@@ -5150,6 +5283,7 @@ declare namespace LocalJSX {
     | "3-over-1"
     | "custom-template";
         "cardCustomTemplate": string;
+        "cardOverlayArea": string;
         "cardGridGap": string;
         "cardFitToContent": boolean;
         "cardShowBorder": boolean;

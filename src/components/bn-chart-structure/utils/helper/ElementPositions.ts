@@ -2,6 +2,9 @@ import { Box, DataPoint, Point2D, ScaleFactorsStructureChart } from "../model";
 
 import { Padding } from "./Padding";
 
+/** Rows that are not all one `categoryWidth` high: start and height of each, in units of `categoryWidth`. */
+export type RowLayout = { start: number[]; weight: number[]; total: number };
+
 /**
  * Spatial layout engine for the structure chart (horizontal bars).
  *
@@ -52,6 +55,8 @@ export class ElementPositions {
   private leftSideLabelLength: number;
   private topSideLabelHeight: number;
   private hasStackedHeaders: boolean;
+  /** Per row, in units of `categoryWidth`: where it starts below the axis top, and its height. */
+  private rows: RowLayout | null;
 
   // private smallestDataPoint: DataPoint;
 
@@ -65,6 +70,7 @@ export class ElementPositions {
     leftSideWidth: number,
     categoryWidth: number,
     hasStackedHeaders: boolean = false,
+    rows: RowLayout | null = null,
   ) {
     this.padding = padding;
     this.scaleFactors = scaleFactors;
@@ -74,6 +80,7 @@ export class ElementPositions {
     this.leftSideLengthSync = leftSideLengthSync;
     this.topSideLabelHeight = titleLength > 0 ? this.fontSize : 0;
     this.hasStackedHeaders = hasStackedHeaders;
+    this.rows = rows;
 
     this.leftSideLabelLength = this.calculateSideLabelLength(titleLength, leftSideWidth, categoryWidth);
     this.calculateSpacings();
@@ -86,7 +93,23 @@ export class ElementPositions {
   }
 
   public getBarCenterPositionY(index: number): number {
+    if (this.rows && index < this.rows.start.length) {
+      const middle = this.rows.start[index] + this.rows.weight[index] / 2;
+      return this.getAxisPositionY() + this.spacings.scenarioOffset + middle * this.spacings.categoryWidth;
+    }
     return this.categoryPosition.y + this.spacings.scenarioOffset + index * this.spacings.categoryWidth;
+  }
+
+  /** Upper edge of the room of a row. */
+  public getRowTopPositionY(index: number): number {
+    const start = this.rows && index < this.rows.start.length ? this.rows.start[index] : index;
+    return this.getAxisPositionY() + this.spacings.scenarioOffset + start * this.spacings.categoryWidth;
+  }
+
+  /** Thickness of the bar of a row. Rows have one thickness unless the chart sets a row layout. */
+  public getBarWidthAt(index: number): number {
+    const weight = this.rows && index < this.rows.weight.length ? this.rows.weight[index] : 1;
+    return this.spacings.barWidth * weight;
   }
 
   public getBarPositionY(index: number, isPrimaryMarker: boolean): number {
@@ -116,7 +139,7 @@ export class ElementPositions {
   }
 
   public getStackedHeaderPositionY(): number {
-    return this.getBarCenterPositionY(0) - this.spacings.barWidth * 0.5 - this.spacings.scenarioLabelToBar;
+    return this.getBarCenterPositionY(0) - this.getBarWidthAt(0) * 0.5 - this.spacings.scenarioLabelToBar;
   }
 
   getNeedleWidth() {
@@ -186,7 +209,8 @@ export class ElementPositions {
   }
 
   getAxisEndPositionY() {
-    return this.getAxisPositionY() + (this.numberOfColumns + 1 / 2) * this.spacings.categoryWidth;
+    const rows = this.rows ? this.rows.total : this.numberOfColumns;
+    return this.getAxisPositionY() + (rows + 1 / 2) * this.spacings.categoryWidth;
   }
 
   getScenarioLabelPositionOffsetY(isPrimaryBar: boolean) {

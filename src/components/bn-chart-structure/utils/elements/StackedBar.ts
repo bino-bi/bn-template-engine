@@ -10,6 +10,19 @@ import { StackLayout, StackSegment } from "../../../../utils/stackLayout";
 import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 import { DataPointKey } from "../../../../utils/layoutState/types";
 
+/** What a segment prints: its share with a percent sign, its share as a plain number, or its value. */
+export type StackLabel = "share" | "plain-share" | "value";
+
+/** Options of one segment that only some charts set. */
+export interface StackedBarOptions {
+  /** Label of a segment in mode `relative`. Default: `share`. */
+  label?: StackLabel;
+  /** A 100 % stack prints no total, unless this is set. */
+  total?: boolean;
+  bold?: boolean;
+  italic?: boolean;
+}
+
 /**
  * Renders a single horizontal stacked bar segment for the structure chart.
  */
@@ -26,6 +39,7 @@ export class StackedBar {
   private readonly stackMode: StackMode;
   private readonly stack: StackLayout;
   private hasData: boolean = false;
+  private readonly options: StackedBarOptions;
 
   constructor(
     position: ElementPositions,
@@ -39,6 +53,7 @@ export class StackedBar {
     stack: StackLayout,
     _isScenarioStack: boolean,
     parentGroup: G,
+    options: StackedBarOptions = {},
   ) {
     this.position = position;
     this.styles = styles;
@@ -48,6 +63,7 @@ export class StackedBar {
     this.segmentIndex = segmentIndex;
     this.stackMode = stackMode;
     this.stack = stack;
+    this.options = options;
     this.group = parentGroup;
     this.barGroup = parentGroup.group().id(`stacked_bar_${index}_seg_${segmentIndex}`);
 
@@ -68,7 +84,7 @@ export class StackedBar {
     const value = this.dataPoint.value;
     const pixelPerUnit = this.dataPoint.pixelPerUnit;
     const axisX = this.position.getBarPositionX();
-    const barWidth = this.position.getBarWidth();
+    const barWidth = this.position.getBarWidthAt(this.index);
 
     // a negative segment ends left of its start: the rect begins at the edge that is further left
     const segmentLength = Math.abs(this.segment.end - this.segment.start) * pixelPerUnit;
@@ -82,23 +98,38 @@ export class StackedBar {
     const strokeStyle = { color: fillColor, width: 0.5 };
 
     this.barGroup.attr(dataPointAttributes(this.dataPoint.key, "element"));
+    this.barGroup.attr("data-bn-value", value as number);
     this.barGroup.rect(Math.max(segmentLength, 0.5), barWidth).fill(fillStyle).stroke(strokeStyle).cy(yPos).x(xPos);
 
     // Draw segment value label centered on bar if wide enough
-    const LABEL_PADDING = 6;
-    const availableWidth = segmentLength - LABEL_PADDING;
+    // 6 px at the base font of 16 px, less with a smaller font
+    const labelPadding = Math.min(6, this.styles.fontStyles.size * 0.375);
+    const availableWidth = segmentLength - labelPadding;
+    const { bold = false, italic = false } = this.options;
+    const relative = this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE;
+    const labelKind: StackLabel = this.stackMode === StackMode.RELATIVE ? (this.options.label ?? "share") : "share";
     if (availableWidth > 0) {
       const labelX = xPos + segmentLength / 2;
 
-      if (this.stackMode === StackMode.RELATIVE || this.stackMode === StackMode.ABSOLUTE_RELATIVE) {
-        const labelValue = Formatter.number(
-          this.segment.share,
-          "percent",
-          dataFormatDigits.percent,
-          dataFormatDigits.percent,
-          1,
-          this.styles.locale,
-        );
+      if (relative && labelKind !== "value") {
+        const labelValue =
+          labelKind === "plain-share"
+            ? Formatter.number(
+                this.segment.share * 100,
+                "decimal",
+                dataFormatDigits.percent,
+                dataFormatDigits.percent,
+                1,
+                this.styles.locale,
+              )
+            : Formatter.number(
+                this.segment.share,
+                "percent",
+                dataFormatDigits.percent,
+                dataFormatDigits.percent,
+                1,
+                this.styles.locale,
+              );
         new Label(
           this.group,
           labelX,
@@ -110,6 +141,7 @@ export class StackedBar {
           HookLocation.Center,
         )
           .setSegmentFill(fillColor)
+          .setEmphasis(bold, italic)
           .setMaxWidth(availableWidth)
           .setPoint(this.dataPoint.key)
           .draw();
@@ -117,6 +149,7 @@ export class StackedBar {
         // Pass raw numeric value - Label.draw() formats with measureScale
         new Label(this.group, labelX, yPos, "STACK_SEG", value, this.styles, HookLocation.Center, HookLocation.Center)
           .setSegmentFill(fillColor)
+          .setEmphasis(bold, italic)
           .setMaxWidth(availableWidth)
           .setPoint(this.dataPoint.key)
           .draw(dataFormatDigits, measureScale);
@@ -129,7 +162,7 @@ export class StackedBar {
     measureScale: SiPrefix = new SiPrefix(),
     key?: DataPointKey,
   ): void {
-    if (this.stackMode === StackMode.RELATIVE) {
+    if (this.stackMode === StackMode.RELATIVE && !this.options.total) {
       return;
     }
 
@@ -149,6 +182,9 @@ export class StackedBar {
       HookLocation.Center,
       isNegative ? HookLocation.Right : HookLocation.Left,
     );
-    label.setPoint(key, "total").draw(dataFormatDigits, measureScale);
+    label
+      .setEmphasis(this.options.bold ?? false, this.options.italic ?? false)
+      .setPoint(key, "total")
+      .draw(dataFormatDigits, measureScale);
   }
 }

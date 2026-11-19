@@ -15,6 +15,23 @@ export interface StackConfigParsed {
   by: StackBy;
   mode: StackMode;
   order: StackOrder;
+  /** Mode `relative`: plain shares and one `100%` mark. */
+  percentMark?: boolean;
+  /** Mode `relative`: `value` prints the value of a segment and the total of the bar. Default: `share`. */
+  labels?: "share" | "value";
+  /** `total`: the thickness of a bar follows the total of its row. Default: `equal`. */
+  thickness?: "equal" | "total";
+  /** A name above the totals of the bars, on the line of the series names. */
+  totalTitle?: string;
+}
+
+/** Which sum rows a chart adds: one per `rowGroup`, one over all rows, or both. */
+export type SumRows = "none" | "groups" | "total" | "all";
+
+/** A line across the bars at one value of the axis. */
+export interface ReferenceLine {
+  value: number;
+  label?: string;
 }
 
 /**
@@ -45,6 +62,14 @@ export class StructureChartComponentConfig {
   public showMeasureScale: boolean = true;
   public dataFormatDigits: DataFormatDigits = { decimal: 1, percent: 2 };
   public stackConfig: StackConfigParsed | null = null;
+  public sums: SumRows = "none";
+  /** Label of the row over all rows. Empty: the `SUM_TOTAL` text. */
+  public sumTitle: string = "";
+  /** The name of the scenario stands above the first bar and not below the last one. */
+  public scenarioLabelTop: boolean = false;
+  public referenceLine: ReferenceLine | null = null;
+  /** Values of the level column whose row is printed in italics. */
+  public italicCategories: string[] = [];
 
   constructor(
     public data: StructureChartDataRow[],
@@ -135,6 +160,26 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isExisting(data.stackConfig)) {
       config.stackConfig = data.stackConfig as StackConfigParsed;
+    }
+
+    if (CompareUtil.isString(data.sums) && ["groups", "total", "all"].includes(data.sums)) {
+      config.sums = data.sums as SumRows;
+    }
+
+    if (CompareUtil.isString(data.sumTitle)) {
+      config.sumTitle = data.sumTitle;
+    }
+
+    if (CompareUtil.isBoolean(data.scenarioLabelTop)) {
+      config.scenarioLabelTop = data.scenarioLabelTop;
+    }
+
+    if (CompareUtil.isExisting(data.referenceLine)) {
+      config.referenceLine = data.referenceLine as ReferenceLine;
+    }
+
+    if (CompareUtil.isArray(data.italicCategories)) {
+      config.italicCategories = AdapterUtils.adaptArray(data.italicCategories, this.stringAdapter);
     }
 
     return config;

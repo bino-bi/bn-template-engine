@@ -517,6 +517,107 @@ export class Chart {
   }
 
   /**
+   * Sum rows. `groups` adds a row below the rows of each `rowGroup` (level
+   * `category`), `total` a row over all rows, `all` both. A sum row has no
+   * bar: it prints the sum in bold, in a stack one number per series with a
+   * small square in the colour of the series. In a 100 % stack it is a bar
+   * of shares. A sum row does not count for the scale.
+   *
+   * @default "none"
+   * @example sums="all"
+   */
+  @Prop() sums: "none" | "groups" | "total" | "all" = "none";
+
+  @Watch("sums")
+  validateSums(newValue: string) {
+    this.warnUnless("sums", ["none", "groups", "total", "all"].includes(newValue), newValue);
+  }
+
+  /**
+   * Label of the sum row over all rows.
+   *
+   * @default "" (the `SUM_TOTAL` text)
+   * @example sum-title="World"
+   */
+  @Prop() sumTitle: string = "";
+
+  /**
+   * Where the name of the scenario of a chart with plain bars stands:
+   * `bottom` below the last bar, `top` above the first one.
+   *
+   * @default "bottom"
+   * @example scenario-label-position="top"
+   */
+  @Prop() scenarioLabelPosition: "bottom" | "top" = "bottom";
+
+  @Watch("scenarioLabelPosition")
+  validateScenarioLabelPosition(newValue: string) {
+    this.warnUnless("scenarioLabelPosition", ["bottom", "top"].includes(newValue), newValue);
+  }
+
+  /**
+   * A line across the bars at one value of the axis, as a JSON string:
+   * `value` and an optional `label`. In a 100 % stack the value is a percent.
+   *
+   * @default "" (no line)
+   * @example reference-line='{"value":50,"label":"50%"}'
+   */
+  @Prop() referenceLine: string = "";
+
+  @Watch("referenceLine")
+  validateReferenceLine(newValue: string) {
+    this.warnUnless("referenceLine", isBlankInput(newValue) || this.prepareReferenceLine() !== null, newValue);
+  }
+
+  /**
+   * Rows that are printed in italics, as a JSON array of values of the
+   * level column, for example the rest rows.
+   *
+   * @default "" (none)
+   * @example italic-categories='["Rest of world"]'
+   */
+  @Prop() italicCategories: string = "";
+
+  @Watch("italicCategories")
+  validateItalicCategories(newValue: string) {
+    this.warnUnless("italicCategories", isBlankInput(newValue) || this.prepareItalicCategories() !== null, newValue);
+  }
+
+  private warnUnless(name: string, valid: boolean, value: unknown) {
+    const errId = `WARN_${name}` as const;
+    if (valid) {
+      this.errors.remove(errId);
+    } else {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: name + ": invalid value '" + value + "' is not supported.",
+      });
+    }
+  }
+
+  private prepareReferenceLine(): { value: number; label?: string } | null {
+    if (isBlankInput(this.referenceLine)) return null;
+    try {
+      const parsed = JSON.parse(this.referenceLine);
+      if (typeof parsed?.value !== "number" || !Number.isFinite(parsed.value)) return null;
+      return { value: parsed.value, label: typeof parsed.label === "string" ? parsed.label : undefined };
+    } catch {
+      return null;
+    }
+  }
+
+  private prepareItalicCategories(): string[] | null {
+    if (isBlankInput(this.italicCategories)) return [];
+    try {
+      const parsed = JSON.parse(this.italicCategories);
+      return Array.isArray(parsed) && parsed.every((entry) => typeof entry === "string") ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Stacking configuration as a JSON string. When set, bars are drawn as
    * stacked segments instead of side-by-side.
    *
@@ -636,6 +737,10 @@ export class Chart {
     this.validateOrderList(this.order);
     this.validateMeasureScale(this.measureScale);
     this.validateStack(this.stack);
+    this.validateSums(this.sums);
+    this.validateScenarioLabelPosition(this.scenarioLabelPosition);
+    this.validateReferenceLine(this.referenceLine);
+    this.validateItalicCategories(this.italicCategories);
     this.validateScaling(this.scale);
   }
 
@@ -1147,6 +1252,10 @@ export class Chart {
         by,
         mode: (parsed.mode as StackMode) || StackMode.ABSOLUTE,
         order: (parsed.order as StackOrder) || StackOrder.DATASET,
+        percentMark: parsed.percentMark === true,
+        labels: parsed.labels === "value" ? "value" : "share",
+        thickness: parsed.thickness === "total" ? "total" : "equal",
+        totalTitle: typeof parsed.totalTitle === "string" ? parsed.totalTitle : undefined,
       };
     } catch {
       this.errors.remove("WARN_stack_dimensions_scenarios");
@@ -1264,6 +1373,11 @@ export class Chart {
         measure-unit={this.prepareMeasureUnit()}
         showMeasureScale={this.prepareShowMeasureScale(idx)}
         stackConfig={stackConfig}
+        sums={["groups", "total", "all"].includes(this.sums) ? this.sums : "none"}
+        sumTitle={this.sumTitle}
+        scenarioLabelTop={isBase && this.scenarioLabelPosition === "top"}
+        referenceLine={isBase ? this.prepareReferenceLine() : null}
+        italicCategories={this.prepareItalicCategories() ?? []}
         dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}

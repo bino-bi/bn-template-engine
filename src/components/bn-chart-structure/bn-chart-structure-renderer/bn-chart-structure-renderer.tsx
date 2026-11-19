@@ -2,7 +2,7 @@ import { Component, Element, h, Host, Prop } from "@stencil/core";
 import { StructureChart } from "../utils/StructureChart";
 import { CustomPattern } from "../utils/helper";
 import { StructureChartComponentConfig, StructureChartComponentConfigAdapter } from "../utils/model";
-import { StackConfigParsed } from "../utils/model/StructureChartComponentConfig";
+import { ReferenceLine, StackConfigParsed } from "../utils/model/StructureChartComponentConfig";
 import { StructureChartDataRowAdapter } from "../utils/model";
 import { ScaleFactorsStructureChartAdapter } from "../utils/model";
 import { getStores, ScopedStores } from "../../../context/context-protocol";
@@ -133,6 +133,21 @@ export class BnChartStructureRenderer {
   /** @internal */
   @Prop()
   stackConfig: StackConfigParsed | null = null;
+
+  /** @internal */
+  @Prop() sums: string = "none";
+
+  /** @internal */
+  @Prop() sumTitle: string = "";
+
+  /** @internal */
+  @Prop() scenarioLabelTop: boolean = false;
+
+  /** @internal */
+  @Prop() referenceLine: ReferenceLine | null = null;
+
+  /** @internal */
+  @Prop() italicCategories: string[] = [];
 
   /** @internal */
   @Prop()
@@ -422,6 +437,11 @@ export class BnChartStructureRenderer {
       showMeasureScale: this.showMeasureScale,
       dataFormatDigits: this.dataFormatDigits,
       stackConfig: this.stackConfig,
+      sums: this.sums,
+      sumTitle: this.sumTitle,
+      scenarioLabelTop: this.scenarioLabelTop,
+      referenceLine: this.referenceLine,
+      italicCategories: this.italicCategories,
     });
   }
 

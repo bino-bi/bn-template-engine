@@ -118,4 +118,21 @@ describe("Formatter Test", () => {
       expect(Formatter.translateScenarioLabel("dac1_pl1_pos", i18n)).toEqual("ΔPL");
     });
   });
+
+  describe("Group separator of the document", () => {
+    afterEach(() => {
+      Formatter.groupSeparator = "";
+    });
+
+    it("keeps the separator of the locale when none is set", () => {
+      expect(Formatter.number(1234567.5, "decimal", 1, 1, 1, "en")).toBe("1,234,567.5");
+    });
+
+    it("replaces the group separator and keeps the decimal sign", () => {
+      Formatter.groupSeparator = "\u2009";
+      expect(Formatter.number(1234567.5, "decimal", 1, 1, 1, "en")).toBe("1\u2009234\u2009567.5");
+      expect(Formatter.number(1234567.5, "decimal", 1, 1, 1, "de")).toBe("1\u2009234\u2009567,5");
+      expect(Formatter.number(-0.001, "decimal", 1, 1, 1, "en")).toBe("0.0");
+    });
+  });
 });

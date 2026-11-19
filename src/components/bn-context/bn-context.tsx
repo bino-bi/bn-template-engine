@@ -1,3 +1,4 @@
+import { Formatter } from "../../utils/formatter";
 import { Component, h, Host, Element, Event, EventEmitter, Method, Prop, Watch, forceUpdate } from "@stencil/core";
 import { ScopedStores, getOrCreateStores } from "../../context/context-protocol";
 import {
@@ -99,6 +100,22 @@ export class Context {
    */
   @Event() bnNotationChange: EventEmitter<void>;
 
+  /**
+   * Group separator of every number in the document, in place of the one of
+   * the locale: `thin-space`, `space`, `none`, or the separator itself.
+   *
+   * @default "" (the separator of the locale)
+   * @example group-separator="thin-space"
+   */
+  @Prop() groupSeparator: string = "";
+
+  @Watch("groupSeparator")
+  setGroupSeparator(newValue: string) {
+    const named: Record<string, string> = { "thin-space": "\u2009", space: "\u00a0", none: "" };
+    // "none" removes the separator: a zero width space, since the empty string means "of the locale"
+    Formatter.groupSeparator = newValue === "none" ? "\u200b" : (named[newValue] ?? newValue ?? "");
+  }
+
   @Watch("locale")
   setLocale(newValue: string) {
     this.stores.context.state.locale = newValue;
@@ -119,6 +136,9 @@ export class Context {
 
     if (this.locale) {
       this.stores.context.state.locale = this.locale;
+    }
+    if (this.groupSeparator) {
+      this.setGroupSeparator(this.groupSeparator);
     }
 
     // a removed scaling group is a "set" too: its entry is set to undefined

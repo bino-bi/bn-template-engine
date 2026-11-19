@@ -57,8 +57,14 @@ export interface Stack {
   notation?: "none" | "scenario";
   /** `bn-chart-time`: where the series names stand. Default: `left`. */
   legend?: "left" | "right" | "both" | "none";
-  /** `bn-chart-time`, mode `relative`: plain shares and one `100%` mark. Default: `false`. */
+  /** Mode `relative`: plain shares and one `100%` mark. Default: `false`. */
   percentMark?: boolean;
+  /** `bn-chart-structure`, mode `relative`: `value` prints the value of a segment and the total of the bar. Default: `share`. */
+  labels?: "share" | "value";
+  /** `bn-chart-structure`: `total` makes a bar as thick as the total of its row is large. Default: `equal`. */
+  thickness?: "equal" | "total";
+  /** `bn-chart-structure`: a name above the totals of the bars. */
+  totalTitle?: string;
 }
 
 /** The `x` and `y` attribute of `bn-chart-scatter` and `bn-chart-bubble`, in its JSON form. */
