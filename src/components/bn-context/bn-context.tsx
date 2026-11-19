@@ -27,6 +27,37 @@ interface LayoutHostElement extends HTMLElement {
 /** The elements that write what `getNotation()` reads. */
 const NOTATION_SOURCE_SELECTOR = "bn-component-style, bn-scaling-group";
 
+/** What the page needs to know of a context for the group separator of its numbers. */
+interface SeparatorSource {
+  /** The `group-separator` the context declares, "" for none. */
+  separator: () => string;
+  /** Makes what follows the locale of the context draw again. */
+  redraw: () => void;
+}
+
+/** The contexts on the page, in the order they connected. */
+const separatorSources = new Map<object, SeparatorSource>();
+
+const NAMED_SEPARATORS: Record<string, string> = { "thin-space": "\u2009", space: "\u00a0", none: "" };
+
+/**
+ * Sets the group separator of the page: the one of the last connected context that
+ * declares one, else the one of the locale. The numbers on the page are drawn with
+ * the old separator, so every context draws again, but `connecting`: it has drawn nothing yet.
+ */
+function syncGroupSeparator(connecting?: object): void {
+  let declared = "";
+  for (const source of separatorSources.values()) {
+    declared = source.separator() || declared;
+  }
+  const separator = declared ? (NAMED_SEPARATORS[declared] ?? declared) : null;
+  if (separator === Formatter.groupSeparator) return;
+  Formatter.groupSeparator = separator;
+  for (const [context, source] of separatorSources) {
+    if (context !== connecting) source.redraw();
+  }
+}
+
 /** Attributes that change the paper size, the orientation or the number of a page. */
 const PAGE_ATTRIBUTES = [
   "format",
@@ -103,33 +134,19 @@ export class Context {
   /**
    * Group separator of every number in the document, in place of the one of
    * the locale: `thin-space`, `space`, `none`, or the separator itself. It
-   * holds for the whole page, also for a context that does not set it.
+   * holds for the whole page, also for a context that does not set it. With
+   * several contexts the last one that declares a separator wins.
    *
    * @default "" (the separator of the locale)
    * @example group-separator="thin-space"
    */
   @Prop() groupSeparator: string = "";
 
-  private setsGroupSeparator = false;
+  private wasConnected = false;
 
   @Watch("groupSeparator")
-  watchGroupSeparator(newValue: string) {
-    const before = Formatter.groupSeparator;
-    this.setGroupSeparator(newValue);
-    // the numbers are drawn with the old separator: what follows the locale draws again
-    const state = this.stores?.context.state;
-    if (state && Formatter.groupSeparator !== before) {
-      const locale = state.locale;
-      state.locale = "";
-      state.locale = locale;
-    }
-  }
-
-  private setGroupSeparator(newValue: string) {
-    const named: Record<string, string> = { "thin-space": "\u2009", space: "\u00a0", none: "" };
-    // no value: the separator of the locale
-    Formatter.groupSeparator = newValue ? (named[newValue] ?? newValue) : null;
-    this.setsGroupSeparator = !!newValue;
+  watchGroupSeparator() {
+    syncGroupSeparator();
   }
 
   @Watch("locale")
@@ -153,9 +170,18 @@ export class Context {
     if (this.locale) {
       this.stores.context.state.locale = this.locale;
     }
-    if (this.groupSeparator) {
-      this.setGroupSeparator(this.groupSeparator);
-    }
+    separatorSources.set(this, {
+      separator: () => this.groupSeparator ?? "",
+      redraw: () => {
+        const state = this.stores.context.state;
+        const locale = state.locale;
+        state.locale = "";
+        state.locale = locale;
+      },
+    });
+    // a context that comes back to the page has drawn its numbers before
+    syncGroupSeparator(this.wasConnected ? undefined : this);
+    this.wasConnected = true;
 
     // a removed scaling group is a "set" too: its entry is set to undefined
     const notify = () => this.bnNotationChange.emit();
@@ -176,11 +202,9 @@ export class Context {
   }
 
   disconnectedCallback() {
-    // only the context that set it takes it back
-    if (this.setsGroupSeparator) {
-      Formatter.groupSeparator = null;
-      this.setsGroupSeparator = false;
-    }
+    // the separator of this context no longer holds, the one of another context may
+    separatorSources.delete(this);
+    syncGroupSeparator();
     this.notationSubscriptions.forEach((unsubscribe) => unsubscribe());
     this.notationSubscriptions = [];
     this.pageObserver?.disconnect();

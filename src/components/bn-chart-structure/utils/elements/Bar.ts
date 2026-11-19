@@ -361,8 +361,19 @@ export class Bar {
 
   private drawScenarioLabel() {
     if (this.scenarioLabel != null && !this.scenarioLabel.isEmpty() && !this.isVarianceBar) {
-      this.scenarioLabel.setPos(this.dimensions.scenarioLabelXPos, this.dimensions.scenarioLabelYPos).draw();
+      let x = this.dimensions.scenarioLabelXPos;
+      if (this.nameBesideAxis()) {
+        // a short bar would put the name on the axis line, which runs on to the sum row
+        const side = this.dataPoint.getScaledUnit() < 0 ? -1 : 1;
+        x = this.position.getBarPositionX() + side * this.position.spacings.labelToAxis;
+      }
+      this.scenarioLabel.setPos(x, this.dimensions.scenarioLabelYPos).draw();
     }
+  }
+
+  /** The name of the scenario starts at the axis and is not centred on the bar. */
+  private nameBesideAxis(): boolean {
+    return this.isPrimaryBar && this.position.isNameBelowBar();
   }
 
   private drawBarDataLabel(dataFormatDigits: DataFormatDigits, measureScale: SiPrefix = new SiPrefix()) {
@@ -377,6 +388,10 @@ export class Bar {
 
   private getScenarioLabel(barLabel: string | null) {
     if (this.isPrimaryBar) {
+      let hook = HookLocation.Center;
+      if (this.nameBesideAxis()) {
+        hook = this.dataPoint.getScaledUnit() < 0 ? HookLocation.Right : HookLocation.Left;
+      }
       return new Label(
         this.scenarioGroup,
         -1,
@@ -385,7 +400,7 @@ export class Bar {
         barLabel,
         this.styles,
         HookLocation.Top,
-        HookLocation.Center,
+        hook,
       );
     }
 

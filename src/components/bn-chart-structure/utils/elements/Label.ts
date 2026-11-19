@@ -142,7 +142,6 @@ export class Label {
     const background: string = this.styles.fontStyles.background || "#ffffff";
 
     let prefix = "";
-    let labelAnchor = "start";
 
     if (Number.isNaN(Number(this.value)) === false) {
       let digits = dataFormatDigits.percent;
@@ -160,10 +159,6 @@ export class Label {
 
       valueStr = Formatter.number(Number(value), type, digits, digitsMin, scale, this.styles.locale);
 
-      if (Number(this.value) < 0) {
-        labelAnchor = "end";
-      }
-
       // a value that rounds to zero prints without a sign
       const zeroStr = Formatter.number(0, type, digits, digitsMin, scale, this.styles.locale);
       if (this.isVarianceLabel && Number(this.value) > 0 && valueStr !== zeroStr) {
@@ -171,7 +166,6 @@ export class Label {
       }
     } else {
       valueStr = "" + this.value;
-      labelAnchor = "start";
     }
 
     // @ts-ignore
@@ -192,6 +186,8 @@ export class Label {
       return this;
     }
 
+    // the hook says where the text is anchored: at its right, its middle or its left
+    let labelAnchor = "start";
     if (this.horizontalHookLocation === HookLocation.Right) {
       labelAnchor = "end";
       text.move((text.x() as number) - text.length(), text.y());

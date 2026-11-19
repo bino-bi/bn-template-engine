@@ -67,6 +67,8 @@ export class StructureChartComponentConfig {
   public sumTitle: string = "";
   /** The name of the scenario stands above the first bar and not below the last one. */
   public scenarioLabelTop: boolean = false;
+  /** No chart draws the name of the scenario: the component shows variances only. */
+  public hideScenarioName: boolean = false;
   public referenceLine: ReferenceLine | null = null;
   /** Values of the level column whose row is printed in italics. */
   public italicCategories: string[] = [];
@@ -172,6 +174,10 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isBoolean(data.scenarioLabelTop)) {
       config.scenarioLabelTop = data.scenarioLabelTop;
+    }
+
+    if (CompareUtil.isBoolean(data.hideScenarioName)) {
+      config.hideScenarioName = data.hideScenarioName;
     }
 
     if (CompareUtil.isExisting(data.referenceLine)) {

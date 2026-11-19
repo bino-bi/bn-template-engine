@@ -5,7 +5,9 @@ jest.mock("calculate-size", () => ({
   default: (text: string) => ({ width: text.length * 6, height: 12 }),
 }));
 
+import { Svg } from "@svgdotjs/svg.js";
 import { StructureChart } from "./StructureChart";
+import { FakeGroup, fakeGroup } from "../../../utils/testing/fakeGroup";
 import { ElementPositions } from "./helper";
 import { StackBy, StackMode, StackOrder } from "../../../utils/constants";
 import { buildStructureChart, structureRow } from "../../../utils/testing/structureChart";
@@ -332,5 +334,99 @@ describe("findings of the review", () => {
 
     expect(withLine.getUnitBarExtent()).toBe(500);
     expect(withLine.getAllocatedCanvasWidth()).toBeGreaterThan(plain.getAllocatedCanvasWidth() + 400);
+  });
+});
+
+describe("sum rows next to short and negative bars", () => {
+  interface Drawing {
+    dataModel: unknown[];
+    position: ElementPositions;
+    drawScenarios(dataModel: unknown[], svgContainer: Svg): void;
+    drawAxisAndLabels(dataModel: unknown[], svgContainer: Svg, stacked?: boolean): void;
+  }
+
+  /** Every group below `root`, at any depth. */
+  const all = (root: FakeGroup): FakeGroup[] => root.groups.flatMap((group) => [group, ...all(group)]);
+
+  /** Where the label with this text starts, and how it is anchored. */
+  const label = (root: FakeGroup, text: string): { x: number; anchor: string } => {
+    const group = all(root).find((entry) => entry.calls.some(([name, args]) => name === "text" && args[0] === text));
+    if (!group) throw new Error(`no label "${text}"`);
+    const move = group.calls.find(([name]) => name === "move")![1];
+    const anchors = group.calls.flatMap(([name, args]) =>
+      name === "font" && (args[0] as { anchor?: string }).anchor ? [(args[0] as { anchor: string }).anchor] : [],
+    );
+    return { x: move[0] as number, anchor: anchors[anchors.length - 1] };
+  };
+
+  const draw = (chart: StructureChart, method: "drawScenarios" | "drawAxisAndLabels"): FakeGroup => {
+    const container = fakeGroup();
+    const drawing = chart as unknown as Drawing;
+    drawing[method](drawing.dataModel, container.node as Svg);
+    return container;
+  };
+
+  it("puts the name of the scenario beside the axis when a sum row follows a short last bar", () => {
+    const rows = [structureRow("A", 1, { ac1: 100 }), structureRow("B", 2, { ac1: 1 })];
+    const chart = chartOf({ scenarios: ["ac1"], pixelPerUnit: 1, sums: "total" }, rows);
+    const position = (chart as unknown as Drawing).position;
+
+    expect(position.isNameBelowBar()).toBe(true);
+    // the name starts right of the axis line, which runs on to the sum row
+    expect(label(draw(chart, "drawScenarios"), "AC")).toEqual({
+      x: position.getBarPositionX() + position.spacings.labelToAxis,
+      anchor: "start",
+    });
+  });
+
+  it("keeps the name centred below the last bar without a sum row", () => {
+    const rows = [structureRow("A", 1, { ac1: 100 }), structureRow("B", 2, { ac1: 40 })];
+    const chart = chartOf({ scenarios: ["ac1"], pixelPerUnit: 1 }, rows);
+    const position = (chart as unknown as Drawing).position;
+
+    expect(position.isNameBelowBar()).toBe(false);
+    expect(label(draw(chart, "drawScenarios"), "AC")).toEqual({ x: position.getBarPositionX() + 20, anchor: "middle" });
+  });
+
+  it("keeps the title of a sum row with several numbers left of the axis, also for a negative sum", () => {
+    const rows = [structureRow("A", 1, { ac1: -30, pp1: 10 }), structureRow("B", 2, { ac1: 10, pp1: 20 })];
+    const chart = chartOf({ scenarios: ["ac1", "pp1"], sums: "total", sumTitle: "World" }, rows);
+    const position = (chart as unknown as Drawing).position;
+
+    expect(label(draw(chart, "drawAxisAndLabels"), "World")).toEqual({
+      x: position.getCategoryPositionX(true),
+      anchor: "end",
+    });
+    // a negative number of the sum row starts behind its square and does not run back over it
+    const numbers = draw(chart, "drawScenarios");
+    expect(label(numbers, "-20,0").anchor).toBe("start");
+    expect(label(numbers, "30,0").anchor).toBe("start");
+    expect(label(numbers, "30,0").x).toBeGreaterThan(label(numbers, "-20,0").x);
+  });
+
+  it("puts the title of a negative sum with one number right of the axis, like the label of a negative bar", () => {
+    const rows = [structureRow("A", 1, { ac1: -30 }), structureRow("B", 2, { ac1: 10 })];
+    const chart = chartOf({ scenarios: ["ac1"], sums: "total", sumTitle: "World" }, rows);
+    const position = (chart as unknown as Drawing).position;
+
+    expect(label(draw(chart, "drawAxisAndLabels"), "World")).toEqual({
+      x: position.getCategoryPositionX(false),
+      anchor: "start",
+    });
+    expect(label(draw(chart, "drawScenarios"), "-20,0").anchor).toBe("end");
+  });
+
+  it("leaves no room for a scenario name that no chart draws", () => {
+    const rows = [structureRow("A", 1, { ac1: 12, pp1: 10 }), structureRow("B", 2, { ac1: 14, pp1: 10 })];
+    const config = { scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"], sums: "total" };
+    const pitch = (chart: StructureChart): number => {
+      const position = (chart as unknown as Drawing).position;
+      return (position.getBarCenterPositionY(2) - position.getBarCenterPositionY(1)) / position.spacings.categoryWidth;
+    };
+
+    // next to a base chart the variance chart leaves the same room as the base chart
+    expect(pitch(chartOf(config, rows))).toBeCloseTo(2);
+    // a component that shows variances only has no name to leave room for
+    expect(pitch(chartOf({ ...config, hideScenarioName: true }, rows))).toBeCloseTo(1);
   });
 });

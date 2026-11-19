@@ -7,21 +7,32 @@ import { installMutationObserverFake } from "../../utils/testing/mutationObserve
 
 installMutationObserverFake();
 
-import { newSpecPage } from "@stencil/core/testing";
+import { newSpecPage, SpecPage } from "@stencil/core/testing";
 import { getOrCreateStores } from "../../context/context-protocol";
 import { Formatter } from "../../utils/formatter";
 import { Context } from "./bn-context";
 
+// The separator is one value for the page, and a spec page does not disconnect what the
+// page before it left behind: every test takes its contexts off the page when it is done.
+const pages: SpecPage[] = [];
+
+const open = async (html: string): Promise<SpecPage> => {
+  const page = await newSpecPage({ components: [Context], html });
+  pages.push(page);
+  return page;
+};
+
 const render = async (attributes: string) => {
-  const page = await newSpecPage({
-    components: [Context],
-    html: `<bn-context locale="en" ${attributes}></bn-context>`,
-  });
+  const page = await open(`<bn-context locale="en" ${attributes}></bn-context>`);
   return { page, context: page.root as HTMLElement };
 };
 
 describe("bn-context group separator", () => {
-  afterEach(() => {
+  afterEach(async () => {
+    for (const page of pages.splice(0)) {
+      page.body.querySelectorAll("bn-context").forEach((context) => context.remove());
+      await page.waitForChanges();
+    }
     Formatter.groupSeparator = null;
   });
 
@@ -32,13 +43,15 @@ describe("bn-context group separator", () => {
   });
 
   it("takes a named separator, none, and the separator itself", async () => {
-    await render('group-separator="thin-space"');
-    expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "en")).toBe("1 234.5");
+    const { page, context } = await render('group-separator="thin-space"');
+    expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "en")).toBe("1\u2009234.5");
 
-    await render('group-separator="none"');
+    context.setAttribute("group-separator", "none");
+    await page.waitForChanges();
     expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "en")).toBe("1234.5");
 
-    await render(`group-separator="'"`);
+    context.setAttribute("group-separator", "'");
+    await page.waitForChanges();
     expect(Formatter.number(1234.5, "decimal", 1, 1, 1, "en")).toBe("1'234.5");
   });
 
@@ -70,5 +83,83 @@ describe("bn-context group separator", () => {
     context.remove();
     await page.waitForChanges();
     expect(Formatter.groupSeparator).toBeNull();
+  });
+
+  describe("with two contexts on a page", () => {
+    const renderTwo = async (first: string, second: string) => {
+      const page = await open(
+        `<bn-context id="a" locale="en" ${first}></bn-context><bn-context id="b" locale="en" ${second}></bn-context>`,
+      );
+      const a = page.body.querySelector("#a") as HTMLElement;
+      const b = page.body.querySelector("#b") as HTMLElement;
+      return { page, a, b };
+    };
+
+    it("keeps the separator of one context when the other declares none", async () => {
+      await renderTwo('group-separator="thin-space"', "");
+      expect(Formatter.groupSeparator).toBe("\u2009");
+    });
+
+    it("lets the last context that declares one win, and falls back when it leaves", async () => {
+      const { page, a, b } = await renderTwo('group-separator="thin-space"', 'group-separator="space"');
+      expect(Formatter.groupSeparator).toBe("\u00a0");
+
+      b.remove();
+      await page.waitForChanges();
+      expect(Formatter.groupSeparator).toBe("\u2009");
+
+      a.remove();
+      await page.waitForChanges();
+      expect(Formatter.groupSeparator).toBeNull();
+    });
+
+    it("keeps the separator of the other context when one clears its own", async () => {
+      const { page, b } = await renderTwo('group-separator="thin-space"', 'group-separator="space"');
+      b.removeAttribute("group-separator");
+      await page.waitForChanges();
+      expect(Formatter.groupSeparator).toBe("\u2009");
+    });
+
+    it("draws the numbers of a context again that comes back to the page", async () => {
+      const { page, a, b } = await renderTwo('group-separator="thin-space"', 'group-separator="space"');
+      const seen: string[] = [];
+      for (const [name, element] of [
+        ["a", a],
+        ["b", b],
+      ] as const) {
+        getOrCreateStores(element).context.on("set", (key, value) => {
+          if (key === "locale") seen.push(`${name}:${value}`);
+        });
+      }
+
+      // a moves behind b: now it is the last one that declares a separator
+      a.remove();
+      await page.waitForChanges();
+      seen.length = 0;
+      page.body.appendChild(a);
+      await page.waitForChanges();
+
+      expect(Formatter.groupSeparator).toBe("\u2009");
+      expect(seen.sort()).toEqual(["a:", "a:en", "b:", "b:en"]);
+    });
+
+    it("draws the numbers of every context again when the separator changes", async () => {
+      const { page, a, b } = await renderTwo('group-separator="thin-space"', "");
+      const seen: string[] = [];
+      for (const [name, element] of [
+        ["a", a],
+        ["b", b],
+      ] as const) {
+        getOrCreateStores(element).context.on("set", (key, value) => {
+          if (key === "locale") seen.push(`${name}:${value}`);
+        });
+      }
+
+      a.setAttribute("group-separator", "space");
+      await page.waitForChanges();
+
+      expect(Formatter.groupSeparator).toBe("\u00a0");
+      expect(seen).toEqual(["a:", "a:en", "b:", "b:en"]);
+    });
   });
 });
