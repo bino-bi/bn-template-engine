@@ -548,7 +548,7 @@ export class TimeChart {
     }
 
     // the line chart writes its own labels and has no second row
-    if (this.determineEffectiveChartMode() !== ChartMode.BAR) {
+    if (!this.isVarianceChart() && this.determineEffectiveChartMode() !== ChartMode.BAR) {
       return [];
     }
     const model = this.isVarianceChart() ? this.variancesDataModel : this.dataModel;

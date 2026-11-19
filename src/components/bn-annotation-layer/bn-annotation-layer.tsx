@@ -28,7 +28,7 @@ type Anchor =
   | { problem: string };
 
 /** The bars of one point of a difference: their common box and the sum of their values. */
-type SumAnchor = { box: Box; level: number; value: number } | { problem: string };
+type SumAnchor = { box: Box; negatives: Box[]; value: number } | { problem: string };
 
 /** The text of a cell: its screen box, and the width of the sign in front of it. */
 interface CellText {
@@ -326,11 +326,15 @@ export class AnnotationLayer {
       const top = Math.min(...bars.map((bar) => bar.rect.component.y));
       const right = Math.max(...bars.map((bar) => bar.rect.component.x + bar.rect.component.width));
       const bottom = Math.max(...bars.map((bar) => bar.rect.component.y + bar.rect.component.height));
-      // the level of the sum: the top for positive values, and below it by the length of the negative ones
-      const negative = bars.filter((bar) => bar.value! < 0).reduce((sum, bar) => sum + bar.rect.component.height, 0);
+      const screen = (rect: { x: number; y: number; width: number; height: number }): Box => ({
+        x: host.left + rect.x,
+        y: host.top + rect.y,
+        width: rect.width,
+        height: rect.height,
+      });
       return {
         box: { x: host.left + left, y: host.top + top, width: right - left, height: bottom - top },
-        level: host.top + top + negative,
+        negatives: bars.filter((bar) => bar.value! < 0).map((bar) => screen(bar.rect.component)),
         value: bars.reduce((sum, bar) => sum + bar.value!, 0),
       };
     };
@@ -356,9 +360,11 @@ export class AnnotationLayer {
           problems.push({ item, problem: failed.problem });
           continue;
         }
-        const [a, b] = [first, second] as { box: Box; level: number; value: number }[];
-        const levelOf = (anchor: { box: Box; level: number }): number =>
-          toLocal({ x: anchor.box.x, y: anchor.level, width: 0, height: 0 }).y;
+        const [a, b] = [first, second] as { box: Box; negatives: Box[]; value: number }[];
+        // the level of a sum: the top for positive values, and below it by the length of the negative ones.
+        // Measured in the space of the layer, so it holds on a turned page too.
+        const levelOf = (anchor: { box: Box; negatives: Box[] }): number =>
+          toLocal(anchor.box).y + anchor.negatives.reduce((sum, bar) => sum + toLocal(bar).height, 0);
         const mark = buildDifference(item, toLocal(a.box), toLocal(b.box), a.value, b.value, em, {
           from: levelOf(a),
           to: levelOf(b),
