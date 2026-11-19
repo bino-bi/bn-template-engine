@@ -912,7 +912,8 @@ export class StructureChart {
   private calculateTotalLabelWidth(total: number): number {
     const digits = this.dataFormatDigits.decimal;
     return CalculateSize(
-      Formatter.number(total, "decimal", digits, digits, this.measureScale.value, this.styles.locale),
+      Formatter.number(total, "decimal", digits, digits, this.measureScale.value, this.styles.locale) +
+        this.styles.valueSuffix,
       {
         font: this.styles.fontStyles.font,
         fontSize: this.styles.fontStyles.size + "px",
@@ -1026,8 +1027,10 @@ export class StructureChart {
     return varianceMap;
   }
 
-  private calculateTextBoxWidth(value: number): number {
-    return CalculateSize(Formatter.number(value, "decimal", 1, 0, 1, this.styles.locale), {
+  /** Width of a value label. A variance label has no `value-suffix`. */
+  private calculateTextBoxWidth(value: number, variance = false): number {
+    const suffix = variance ? "" : this.styles.valueSuffix;
+    return CalculateSize(Formatter.number(value, "decimal", 1, 0, 1, this.styles.locale) + suffix, {
       font: this.styles.fontStyles.font,
       fontSize: this.styles.fontStyles.size + "px",
     }).width;
@@ -1465,7 +1468,7 @@ export class StructureChart {
       this.smallestVarianceDataPointValue?.value != null &&
       this.smallestVarianceDataPointValue.value < 0
     ) {
-      const sizeLabelValue = this.calculateTextBoxWidth(this.smallestVarianceDataPointValue.value);
+      const sizeLabelValue = this.calculateTextBoxWidth(this.smallestVarianceDataPointValue.value, true);
       width = Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
 
@@ -1526,7 +1529,7 @@ export class StructureChart {
       this.highestVarianceDataPointValue?.value != null &&
       this.highestVarianceDataPointValue.value >= 0
     ) {
-      const sizeLabelValue = this.calculateTextBoxWidth(this.highestVarianceDataPointValue.value);
+      const sizeLabelValue = this.calculateTextBoxWidth(this.highestVarianceDataPointValue.value, true);
       width = Math.abs(this.highestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
 
@@ -1834,7 +1837,10 @@ export class StructureChart {
 
   private sumText(value: number): string {
     const digits = this.dataFormatDigits.decimal;
-    return Formatter.number(value, "decimal", digits, digits, this.measureScale.value, this.styles.locale);
+    return (
+      Formatter.number(value, "decimal", digits, digits, this.measureScale.value, this.styles.locale) +
+      this.styles.valueSuffix
+    );
   }
 
   /**

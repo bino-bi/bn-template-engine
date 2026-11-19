@@ -51,4 +51,10 @@ describe("structure chart value suffix", () => {
     expect(text((label) => label)).toBe("12.3%");
     expect(text((label) => label.setToVarianceLabel())).toBe("+12.3");
   });
+
+  it("does not stand after a text that reads like a number", () => {
+    const parent = fakeGroup();
+    new Label(parent.node as G, 0, 0, "test", "2024", withSuffix, HookLocation.Top, HookLocation.Center).draw(digits);
+    expect(parent.groups[0].calls.find(([name]) => name === "text")?.[1][0]).not.toContain("%");
+  });
 });
