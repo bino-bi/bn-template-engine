@@ -302,6 +302,20 @@ describe("marks on a chart with bars from left to right", () => {
     expect(mark.x).toBeGreaterThanOrEqual(LABEL.x + LABEL.width);
   });
 
+  it("prints the text of a frame above a value label when asked", () => {
+    const mark = buildMark(
+      { target: "t", mark: "frame", text: "8%", textPosition: "above", point: { part: "total" } },
+      LABEL,
+      undefined,
+      EM,
+      { label: true },
+    );
+    if (mark?.kind !== "frame") throw new Error("no frame");
+    // above the label, and the label itself stays free
+    expect(mark.caption).toMatchObject({ text: "8%", x: 220, y: 92 });
+    expect(mark.y + mark.height).toBeLessThanOrEqual(LABEL.y);
+  });
+
   it("puts a marker into a wide segment right of its middle, and on the upper edge of a narrow one", () => {
     const wide = buildMark({ target: "t", label: "1" }, { x: 100, y: 100, width: 200, height: 10 }, undefined, EM, {
       stacked: true,
@@ -366,7 +380,8 @@ describe("marks on a chart with bars from left to right", () => {
       const mark = buildBracket({ target: "t" }, a, b, ends, 10, "38%", EM);
       if (mark.kind !== "bracket") throw new Error("no bracket");
       expect(mark.path).toBe("10,152 130,152 150,99");
-      expect(mark.caption).toMatchObject({ text: "38%", y: 91 });
+      // beside the rows, at half their height
+      expect(mark.caption).toMatchObject({ text: "38%", y: 125 });
       expect(mark.frame!.x).toBeGreaterThanOrEqual(10);
     }
   });
@@ -389,7 +404,7 @@ describe("marks on a chart with bars from left to right", () => {
       badge: undefined,
     });
     expect(buildBracket({ target: "t", label: "2" }, row, row, ends, 10, undefined, EM)).toMatchObject({
-      badge: { label: "2", cx: 16.5, cy: 91 },
+      badge: { label: "2", cx: 16.5, cy: 105 },
     });
   });
 });

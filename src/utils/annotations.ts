@@ -26,6 +26,8 @@ export interface AnnotationLayerItem {
   toPoint?: AnnotationPoint;
   /** `frame`: a text the frame is drawn around, on the target. `difference`: not used. */
   text?: string;
+  /** Where the text of a frame on a value label stands: right of the label (default) or above it. */
+  textPosition?: "beside" | "above";
   /** `difference`: also print the relative difference, in brackets. */
   percent?: boolean;
   /** `difference`: digits of the absolute difference, 1 by default. */
