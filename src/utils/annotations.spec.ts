@@ -26,7 +26,7 @@ describe("annotationColor", () => {
   });
 
   it("takes the colours of the style", () => {
-    const style = { color: "#111111", colors: { brand: "#222222" } };
+    const style = { color: "#111111", colors: { brand: "#222222" }, markerStyle: "filled" as const };
     expect(annotationColor(undefined, style)).toBe("var(--bn-annotation-color, #111111)");
     expect(annotationColor("brand", style)).toBe("var(--bn-annotation-color-brand, #222222)");
   });

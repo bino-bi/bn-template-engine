@@ -63,6 +63,22 @@ describe("bn-annotation-list", () => {
     expect(list.shadowRoot!.querySelectorAll(".badge-space")).toHaveLength(1);
   });
 
+  it("draws the circle as a ring when the style asks for outlined markers", async () => {
+    const { page, list } = await render(ITEMS);
+    const badge = () => (list.shadowRoot!.querySelector(".badge") as HTMLElement).style;
+    expect(badge().background).toContain("#0070c0");
+
+    const styles = getStores(list).componentStyles;
+    styles.set("_default", { "bn-annotation": { markerStyle: "outlined" } } as never);
+    await page.waitForChanges();
+    try {
+      expect(badge().background).toBe("#ffffff");
+      expect(badge().color).toContain("#0070c0");
+    } finally {
+      styles.set("_default", {} as never);
+    }
+  });
+
   it("ignores the labels of another page", async () => {
     const { page, list, entries } = await render(ITEMS);
 

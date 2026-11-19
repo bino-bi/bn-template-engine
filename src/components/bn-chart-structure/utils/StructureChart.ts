@@ -501,6 +501,7 @@ export class StructureChart {
     const width = CalculateSize(this.title.length > tmpTitle.length ? this.title : tmpTitle, {
       font: this.styles.fontStyles.font,
       fontSize: this.styles.fontStyles.size + "px",
+      fontWeight: this.styles.titleBold ? "bold" : "normal",
     }).width;
 
     if (width < minWidth) {

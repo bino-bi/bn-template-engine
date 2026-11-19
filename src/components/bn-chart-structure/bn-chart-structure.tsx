@@ -1208,6 +1208,7 @@ export class Chart {
         barStyles: $["bn-chart-structure"]["barStyles"],
         varianceStyles: $["bn-chart-structure"]["varianceStyles"],
         stackColors: $["bn-chart-structure"]["stackColors"],
+        titleBold: $["bn-chart-structure"]["titleBold"],
         padding: $["bn-chart-structure"]["padding"],
         pattern: null,
       };

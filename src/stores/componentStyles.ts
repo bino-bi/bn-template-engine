@@ -70,6 +70,8 @@ export interface AnnotationStyle {
   color: string;
   /** The colours a mark can name in its `color`. */
   colors: Record<string, string>;
+  /** A numbered circle is filled with the colour, or white with a ring and a number in the colour. */
+  markerStyle: "filled" | "outlined";
 }
 
 /** Baseline typography inherited by all components unless overridden. */
@@ -111,6 +113,8 @@ export interface StructureChartStyle {
   barStyles: SVGStyleGroup;
   varianceStyles: SVGVariancesStyleGroup;
   stackColors: string[];
+  /** The title above the axis in bold: the chart title, or the name of the variance. */
+  titleBold: boolean;
   padding: {
     top: number;
     left: number;
@@ -271,6 +275,7 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
       neu: { stroke: "#808080", fill: "#808080", width: 0.1 },
     },
     stackColors: ["#000000", "#c0c0c0", "#808080"],
+    titleBold: false,
     padding: {
       top: 10,
       left: 10,
@@ -340,6 +345,7 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
   "bn-annotation": {
     color: "#0070c0",
     colors: { negative: "#ff0000", positive: "#008f96" },
+    markerStyle: "filled",
   },
 };
 

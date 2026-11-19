@@ -45,7 +45,7 @@ export class Axis {
       this.style,
       HookLocation.Bottom,
       HookLocation.Center,
-    );
+    ).setEmphasis(this.style.titleBold, false);
 
     this.svgGroup = svgParentGroup.group().id(this.ID_AXIS);
   }

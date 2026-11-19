@@ -75,10 +75,12 @@ export class AnnotationList {
     } else {
       this.errors.addOrReplace({ id: "ERR_items", type: "error", message: "items: not a JSON array of objects." });
     }
-    const color = annotationColor(
-      undefined,
-      this.componentStyle(($) => $["bn-annotation"]),
-    );
+    const style = this.componentStyle(($) => $["bn-annotation"]);
+    const color = annotationColor(undefined, style);
+    const badgeStyle =
+      style?.markerStyle === "outlined"
+        ? { background: "#ffffff", color, boxShadow: `inset 0 0 0 1.5px ${color}` }
+        : { background: color };
     const unplaced = this.stores?.annotationsUnplaced.state[this.pageKey] ?? [];
 
     return (
@@ -87,7 +89,7 @@ export class AnnotationList {
           {(items ?? []).map((item) => (
             <li>
               {item.label != null && !unplaced.includes(item.label) ? (
-                <div class="badge" style={{ background: color }}>
+                <div class="badge" style={badgeStyle}>
                   <span>{item.label}</span>
                 </div>
               ) : item.label != null ? (

@@ -25,6 +25,7 @@ import { ScaleFactorsStructureChart, ScaleFactorsStructureChartAdapter } from ".
 export class StructureChartStyle {
   public pattern: Map<string, SVGPolgonPattern> = new Map<string, SVGPolgonPattern>();
   public stackColors: string[] = ["#000000", "#c0c0c0", "#808080"];
+  public titleBold: boolean = false;
   /** Locale for number labels. */
   public locale: string = "de";
 
@@ -90,6 +91,8 @@ export class StructureChartStylesAdapter implements IAdapter<StructureChartStyle
       if (Array.isArray(data.stackColors) && data.stackColors.length > 0) {
         styles.stackColors = data.stackColors as string[];
       }
+
+      styles.titleBold = data.titleBold === true;
 
       styles.pattern = new MarkerPattern(styles.fontStyles.size).createPatternMapForStructureBar();
     }

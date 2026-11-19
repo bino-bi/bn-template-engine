@@ -113,6 +113,23 @@ describe("bn-annotation-layer", () => {
     expect(getStores(layer).annotationsUnplaced.state[annotationPageKey(layer)]).toEqual(["2", "3"]);
   });
 
+  it("draws a marker as a ring with a coloured number when the style asks for outlined markers", async () => {
+    const { page, layer, release } = await setup();
+    const styles = getStores(layer).componentStyles;
+    styles.set("_default", { "bn-annotation": { markerStyle: "outlined" } } as never);
+    try {
+      release();
+      await until(page, () => marks(layer).length === 1);
+      await page.waitForChanges();
+      const circle = layer.shadowRoot!.querySelector(".marker circle") as SVGElement;
+      expect(circle.style.fill).toBe("#ffffff");
+      expect(circle.style.stroke).toContain("#0070c0");
+      expect((layer.shadowRoot!.querySelector(".marker .badge-text") as SVGElement).style.fill).toContain("#0070c0");
+    } finally {
+      styles.set("_default", {} as never);
+    }
+  });
+
   it("names an item it could not place in a console warning, once", async () => {
     const { page, release } = await setup();
     release();
