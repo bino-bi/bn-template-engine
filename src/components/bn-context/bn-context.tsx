@@ -113,7 +113,19 @@ export class Context {
   private setsGroupSeparator = false;
 
   @Watch("groupSeparator")
-  setGroupSeparator(newValue: string) {
+  watchGroupSeparator(newValue: string) {
+    const before = Formatter.groupSeparator;
+    this.setGroupSeparator(newValue);
+    // the numbers are drawn with the old separator: what follows the locale draws again
+    const state = this.stores?.context.state;
+    if (state && Formatter.groupSeparator !== before) {
+      const locale = state.locale;
+      state.locale = "";
+      state.locale = locale;
+    }
+  }
+
+  private setGroupSeparator(newValue: string) {
     const named: Record<string, string> = { "thin-space": "\u2009", space: "\u00a0", none: "" };
     // no value: the separator of the locale
     Formatter.groupSeparator = newValue ? (named[newValue] ?? newValue) : null;
