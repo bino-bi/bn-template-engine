@@ -87,6 +87,12 @@ export class Needle {
     }
   }
 
+  /** Prints the value in bold: the bar of a sum row. */
+  public emphasize(): Needle {
+    this.label?.setEmphasis(true, false);
+    return this;
+  }
+
   public updateLabelGroup(newGroup: G | undefined): Needle {
     if (this.isEmpty() || newGroup == null) {
       return this;

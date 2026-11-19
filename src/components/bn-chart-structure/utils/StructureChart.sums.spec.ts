@@ -288,20 +288,41 @@ describe("findings of the review", () => {
     const pitch = position.spacings.categoryWidth;
 
     expect(position.getBarCenterPositionY(1) - position.getBarCenterPositionY(0)).toBeCloseTo(pitch);
-    expect(position.getBarCenterPositionY(2) - position.getBarCenterPositionY(1)).toBeCloseTo(1.8 * pitch);
+    expect(position.getBarCenterPositionY(2) - position.getBarCenterPositionY(1)).toBeCloseTo(2 * pitch);
 
     // no room with the name above the first bar, and none in a stack, which has its names there
     const top = internals(chartOf({ scenarios: ["ac1"], sums: "total", scenarioLabelTop: true }, rows)).position;
     expect(top.getBarCenterPositionY(2) - top.getBarCenterPositionY(1)).toBeCloseTo(pitch);
   });
 
-  it("does not count the sum row of a variance chart for the scale", () => {
+  it("draws the variance of a sum row as a bar, so it counts for the scale of the variance chart", () => {
     const rows = [structureRow("A", 1, { ac1: 12, pp1: 10 }), structureRow("B", 2, { ac1: 14, pp1: 10 })];
     const config = { scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"] };
 
-    expect(chartOf({ ...config, sums: "total" }, rows).getUnitBarExtent()).toBe(
-      chartOf(config, rows).getUnitBarExtent(),
-    );
+    // the variances are 2 and 4, the one of the sum row is 6
+    expect(chartOf(config, rows).getUnitBarExtent()).toBe(4);
+    expect(chartOf({ ...config, sums: "total" }, rows).getUnitBarExtent()).toBe(6);
+    // the base chart next to it keeps its scale
+    const base = { scenarios: ["ac1", "pp1"] };
+    expect(chartOf({ ...base, sums: "total" }, rows).getUnitBarExtent()).toBe(chartOf(base, rows).getUnitBarExtent());
+  });
+
+  it("prints every scenario of the sum row of a chart with plain bars, in the order of the prop", () => {
+    const rows = [structureRow("A", 1, { ac1: 12, pl1: 10 }), structureRow("B", 2, { ac1: 14, pl1: 20 })];
+    const chart = chartOf({ scenarios: ["ac1", "pl1"], sums: "total" }, rows) as unknown as {
+      dataModel: Row[];
+      sumPoints(row: Row): { scenario: string; value: number }[];
+      sumValuesWidth(row: Row): number;
+    };
+    const sum = chart.dataModel[2];
+    expect(chart.sumPoints(sum).map(({ scenario, value }) => ({ scenario, value }))).toEqual([
+      { scenario: "ac1", value: 26 },
+      { scenario: "pl1", value: 30 },
+    ]);
+
+    const one = chartOf({ scenarios: ["ac1"], sums: "total" }, rows) as unknown as typeof chart;
+    // two numbers with their squares need more room than one plain number
+    expect(chart.sumValuesWidth(sum)).toBeGreaterThan(one.sumValuesWidth(one.dataModel[2]) * 2);
   });
 
   it("makes room for a reference line right of the longest bar", () => {
