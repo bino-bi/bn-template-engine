@@ -142,6 +142,8 @@ export class Context {
    */
   @Prop() groupSeparator: string = "";
 
+  private wasConnected = false;
+
   @Watch("groupSeparator")
   watchGroupSeparator() {
     syncGroupSeparator();
@@ -177,7 +179,9 @@ export class Context {
         state.locale = locale;
       },
     });
-    syncGroupSeparator(this);
+    // a context that comes back to the page has drawn its numbers before
+    syncGroupSeparator(this.wasConnected ? undefined : this);
+    this.wasConnected = true;
 
     // a removed scaling group is a "set" too: its entry is set to undefined
     const notify = () => this.bnNotationChange.emit();

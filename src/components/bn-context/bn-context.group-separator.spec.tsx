@@ -120,6 +120,29 @@ describe("bn-context group separator", () => {
       expect(Formatter.groupSeparator).toBe("\u2009");
     });
 
+    it("draws the numbers of a context again that comes back to the page", async () => {
+      const { page, a, b } = await renderTwo('group-separator="thin-space"', 'group-separator="space"');
+      const seen: string[] = [];
+      for (const [name, element] of [
+        ["a", a],
+        ["b", b],
+      ] as const) {
+        getOrCreateStores(element).context.on("set", (key, value) => {
+          if (key === "locale") seen.push(`${name}:${value}`);
+        });
+      }
+
+      // a moves behind b: now it is the last one that declares a separator
+      a.remove();
+      await page.waitForChanges();
+      seen.length = 0;
+      page.body.appendChild(a);
+      await page.waitForChanges();
+
+      expect(Formatter.groupSeparator).toBe("\u2009");
+      expect(seen.sort()).toEqual(["a:", "a:en", "b:", "b:en"]);
+    });
+
     it("draws the numbers of every context again when the separator changes", async () => {
       const { page, a, b } = await renderTwo('group-separator="thin-space"', "");
       const seen: string[] = [];
