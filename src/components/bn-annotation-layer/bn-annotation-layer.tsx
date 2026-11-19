@@ -616,11 +616,28 @@ export class AnnotationLayer {
 
   private renderBadge(badge: { cx: number; cy: number; r: number; label?: string } | undefined, color: string) {
     if (!badge) return null;
+    const outlined = this.componentStyle(($) => $["bn-annotation"])?.markerStyle === "outlined";
+    // the ring lies inside the radius, so both styles take the same room
+    const circle = outlined ? (
+      <circle
+        cx={badge.cx}
+        cy={badge.cy}
+        r={badge.r - 0.75}
+        style={{ fill: "#ffffff", stroke: color, strokeWidth: "1.5" }}
+      ></circle>
+    ) : (
+      <circle cx={badge.cx} cy={badge.cy} r={badge.r} style={{ fill: color }}></circle>
+    );
     return (
       <g>
-        <circle cx={badge.cx} cy={badge.cy} r={badge.r} style={{ fill: color }}></circle>
+        {circle}
         {badge.label != null ? (
-          <text class="badge-text" x={badge.cx} y={badge.cy} style={{ fontSize: `${badge.r * 1.1}px` }}>
+          <text
+            class="badge-text"
+            x={badge.cx}
+            y={badge.cy}
+            style={{ fontSize: `${badge.r * 1.1}px`, ...(outlined ? { fill: color } : {}) }}
+          >
             {badge.label}
           </text>
         ) : null}
