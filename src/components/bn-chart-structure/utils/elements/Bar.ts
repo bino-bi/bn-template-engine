@@ -118,6 +118,12 @@ export class Bar {
     return this;
   }
 
+  /** Prints the value in bold: the bar of a sum row. */
+  public emphasize(): Bar {
+    this.label?.setEmphasis(true, false);
+    return this;
+  }
+
   public updateLabelGroup(newGroup: G | undefined): Bar {
     if (this.isEmpty() || newGroup == null) {
       return this;

@@ -3,7 +3,13 @@ import { Box, DataPoint, Point2D, ScaleFactorsStructureChart } from "../model";
 import { Padding } from "./Padding";
 
 /** Rows that are not all one `categoryWidth` high: start and height of each, in units of `categoryWidth`. */
-export type RowLayout = { start: number[]; weight: number[]; total: number };
+export type RowLayout = {
+  start: number[];
+  weight: number[];
+  total: number;
+  /** A sum row follows the last bar: the name of the scenario stands right below that bar, not below the axis end. */
+  nameBelowBar?: boolean;
+};
 
 /**
  * Spatial layout engine for the structure chart (horizontal bars).
@@ -219,6 +225,7 @@ export class ElementPositions {
       // center by (categoryWidth - scenarioOffset); place the label below the axis
       // end so the line does not strike through it.
       const belowBar = this.getBarWidth() * 0.5 + this.spacings.scenarioLabelToBar;
+      if (this.rows?.nameBelowBar) return belowBar;
       const belowAxisEnd = this.spacings.categoryWidth - this.spacings.scenarioOffset + this.spacings.labelToAxis;
       return Math.max(belowBar, belowAxisEnd);
     }

@@ -229,10 +229,9 @@ export class StructureChart {
     // a sum row has no bar: it does not count for the scale
     const bars = this.dataModel.filter((row) => !row.sum);
     this.smallestDataPointValue = this.findSmallestDataPointValue(bars);
-    const varianceBars = this.variancesDataModel.filter((row) => !row.sum);
-    this.smallestVarianceDataPointValue = this.findSmallestDataPointValue(varianceBars);
+    this.smallestVarianceDataPointValue = this.findSmallestDataPointValue(this.variancesDataModel);
     this.highestDataPointValue = this.findHighestDataPointValue(bars);
-    this.highestVarianceDataPointValue = this.findHighestDataPointValue(varianceBars);
+    this.highestVarianceDataPointValue = this.findHighestDataPointValue(this.variancesDataModel);
     this.axisScenario = this.setAxisScenario(config.variances);
 
     this.measureScale = config.measureScale;
@@ -1173,27 +1172,72 @@ export class StructureChart {
     }
   }
 
-  /** The value of a sum row of a chart with plain bars or variances: a bold number at the axis, no bar. */
+  /** The scenarios of a sum row of a chart with plain bars that have a value, in the order of the `scenarios` prop. */
+  private sumPoints(row: StructureChartDataModelEntry): DataPoint[] {
+    const points = [row.scenario1, row.scenario2, row.scenario3, row.scenario4].filter(
+      (point) => point != null && !point.isEmpty() && Number.isFinite(point.value),
+    );
+    const order = this.scenarioPropOrder;
+    const place = (point: DataPoint): number => {
+      const index = order.indexOf(point.scenario as string);
+      return index === -1 ? order.length : index;
+    };
+    return points.sort((a, b) => place(a) - place(b));
+  }
+
+  /** How wide the numbers of a sum row of a chart with plain bars are, from the axis on. */
+  private sumValuesWidth(row: StructureChartDataModelEntry): number {
+    const font = this.styles.fontStyles.size;
+    const labelToBar = font * this.styles.scaleFactors.labelToBar;
+    const points = this.sumPoints(row);
+    if (points.length === 0) return 0;
+    const numbers = points.map((point) => this.boldWidth(this.sumText(point.value as number)));
+    if (points.length === 1) return labelToBar + numbers[0];
+    return labelToBar + numbers.reduce((sum, width) => sum + font * 0.9 + width, 0) + (points.length - 1) * font * 1.4;
+  }
+
+  /**
+   * The sum row of a chart with plain bars: bold numbers at the axis, no bar. One
+   * scenario is a plain number. Several get a small square each, in the look of the scenario.
+   */
   private drawSumValue(row: StructureChartDataModelEntry, index: number, group: G): void {
-    const point = row.scenario1;
-    if (point.isEmpty() || !Number.isFinite(point.value)) return;
-    const negative = (point.value as number) < 0;
-    const label = new Label(
-      group,
+    const points = this.sumPoints(row);
+    if (points.length === 0) return;
+    const font = this.styles.fontStyles.size;
+    const y = this.position.getBarCenterPositionY(index);
+    const sumGroup = group.group().id(`sum_${index}`);
+    const number = (point: DataPoint, x: number, hook: HookLocation): void => {
+      new Label(sumGroup, x, y, `SUM_${point.scenario}`, point.value as number, this.styles, HookLocation.Center, hook)
+        .setEmphasis(true, false)
+        .setPoint(point.key)
+        .draw(this.dataFormatDigits, this.measureScale);
+    };
+
+    if (points.length === 1) {
       // like the label of a bar without length: a negative number stands left of the axis
-      this.position.getLabelPositionX(negative ? -0.000001 : 0),
-      this.position.getBarCenterPositionY(index),
-      "SUM_" + index,
-      point.value as number,
-      this.styles,
-      HookLocation.Center,
-      negative ? HookLocation.Right : HookLocation.Left,
-    )
-      .setEmphasis(true, false)
-      .setPoint(point.key);
-    if (row.type === VarianceType.RELATIVE) label.setToRelativeVarianceLabel();
-    else if (row.type === VarianceType.ABSOLUTE) label.setToVarianceLabel();
-    label.draw(this.dataFormatDigits, this.measureScale);
+      const negative = (points[0].value as number) < 0;
+      number(
+        points[0],
+        this.position.getLabelPositionX(negative ? -0.000001 : 0),
+        negative ? HookLocation.Right : HookLocation.Left,
+      );
+      return;
+    }
+
+    const key = font * 0.6;
+    const barStyles = this.scenarioStyles().barStyles;
+    let x = this.position.getLabelPositionX(0);
+    for (const point of points) {
+      const style = barStyles.getSVGStyle(point.getScenario());
+      sumGroup
+        .rect(key, key)
+        .fill({ color: style?.fill || "#000000" })
+        .stroke({ color: style?.stroke || "#000000", width: 1 })
+        .cy(y)
+        .x(x);
+      number(point, x + key + font * 0.3, HookLocation.Left);
+      x += font * 0.9 + this.boldWidth(this.sumText(point.value as number)) + font * 1.4;
+    }
   }
 
   private drawVarianceScenario(dataModel: StructureChartDataModelEntry[], svgContainer: Svg): G {
@@ -1209,14 +1253,15 @@ export class StructureChart {
     scenarioFactory.setOverflowConfig(this.overflowConfig);
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
-      if (elements.sum) {
-        this.drawSumValue(elements, index, barsGroup);
-        return;
-      }
+      // the variance of a sum row is a bar like the others, with a bold number
       if (elements["type"] === VarianceType.RELATIVE) {
-        scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits);
+        const needle = scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index);
+        if (elements.sum) needle.emphasize();
+        needle.draw(this.dataFormatDigits);
       } else {
-        scenarioFactory.createVarianceBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
+        const bar = scenarioFactory.createVarianceBar(elements["scenario1"], index);
+        if (elements.sum) bar.emphasize();
+        bar.draw(this.dataFormatDigits, this.measureScale);
       }
     });
 
@@ -1480,7 +1525,7 @@ export class StructureChart {
 
     // the bold number of a sum row stands at the axis
     for (const row of this.dataModel) {
-      if (row.sum && VarianceType.NONE === varianceType && Number.isFinite(row.scenario1.value)) {
+      if (row.sum && VarianceType.NONE === varianceType) {
         width = Math.max(width, this.sumRowExtent(row));
       }
     }
@@ -1728,10 +1773,9 @@ export class StructureChart {
       const rowWeight = weights[index];
       start.push(at);
       weight.push(rowWeight);
-      at +=
-        rowWeight + (row.gapAfter && index < rows.length - 1 ? 0.5 : 0) + (nameBelow && index === lastBar ? 0.8 : 0);
+      at += rowWeight + (row.gapAfter && index < rows.length - 1 ? 0.5 : 0) + (nameBelow && index === lastBar ? 1 : 0);
     });
-    return { start, weight, total: at };
+    return { start, weight, total: at, nameBelowBar: nameBelow };
   }
 
   /**
@@ -1874,9 +1918,7 @@ export class StructureChart {
         this.stackConfig.labels === "value" ? labelToBar + this.boldWidth(this.sumText(row.scenario1.value ?? 0)) : 0;
       return this.stackSides.positive * this.pixelPerUnit + total;
     }
-    return Number.isFinite(row.scenario1.value)
-      ? labelToBar + this.boldWidth(this.sumText(row.scenario1.value as number))
-      : 0;
+    return this.sumValuesWidth(row);
   }
 
   /** Where the reference line stands, as distance from the axis in px. Null without a line in this chart. */
