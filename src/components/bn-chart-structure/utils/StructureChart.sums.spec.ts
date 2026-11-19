@@ -451,3 +451,17 @@ describe("room behind a 100 % stack", () => {
     expect(roomOf({ labels: "value" })).toBeGreaterThan(12);
   });
 });
+
+describe("room for the stack headers", () => {
+  it("covers a header that is wider than its segment at the end of the bar", () => {
+    const chart = chartOf({ pixelPerUnit: 20, stackConfig: stack({ mode: StackMode.RELATIVE }) }) as unknown as {
+      calculateRightSideWidth(): number;
+      stackHeaderExtent(): number;
+      stackSides: { positive: number };
+      pixelPerUnit: number;
+    };
+    // a full bar is 20 px here, a header of three characters is 18 px: the last one ends behind the bar
+    expect(chart.stackHeaderExtent()).toBeGreaterThan(chart.stackSides.positive * chart.pixelPerUnit);
+    expect(chart.calculateRightSideWidth()).toBeGreaterThanOrEqual(chart.stackHeaderExtent());
+  });
+});
