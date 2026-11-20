@@ -187,6 +187,10 @@ export class BnChartTimeRenderer {
 
   /** @internal */
   @Prop()
+  syncedLeft: boolean = false;
+
+  /** @internal */
+  @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
   /** @internal */
@@ -566,6 +570,7 @@ export class BnChartTimeRenderer {
       varianceWaterfall: this.varianceWaterfall,
       bridgeVariances: this.bridgeVariances,
       referenceColumn: this.referenceColumn,
+      syncedLeft: this.syncedLeft,
       locale: this.stores?.context?.state?.locale || "de",
     });
   }

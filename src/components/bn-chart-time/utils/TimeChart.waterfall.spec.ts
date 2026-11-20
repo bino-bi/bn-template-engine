@@ -75,6 +75,7 @@ interface Step {
   index: number;
   from: number;
   to: number;
+  run: number;
 }
 
 interface ChartInternals {
@@ -83,6 +84,7 @@ interface ChartInternals {
   highestVarianceDataPointValue: DataPoint;
   smallestVarianceDataPointValue: DataPoint;
   walkSteps(model: unknown[], start?: number): Step[];
+  dateLabelPlace(entry: unknown): { hookLocation: unknown };
   isWalkTier(): boolean;
   referenceColumnSlot(): string | null;
   leadRoom(): number;
@@ -134,6 +136,47 @@ describe("time chart variance walk", () => {
     expect(internals(buildChart({ variances: ABSOLUTE, varianceWaterfall: true })).isWalkTier()).toBe(true);
   });
 
+  it("starts again behind a total column on the axis", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", ac1: 15, pl1: 11 },
+      { date: "2025-03-01", operation: "+", ac1: 13, pl1: 10 },
+      { date: "2025-04-01", operation: "+", ac1: 26, pl1: 15 },
+      { date: "2025-06-01", operation: "+", ac1: 22, pl1: 15 },
+    ];
+    const chart = buildChart(
+      {
+        scenarios: ["ac1", "pl1"],
+        variances: ["dac1_pl1_pos"],
+        varianceWaterfall: true,
+        totals: { ...TOTALS, by: "quarter", pixelPerUnit: 0.5 },
+      },
+      rows,
+    );
+    const steps = internals(chart).walkSteps(internals(chart).variancesDataModel);
+    expect(steps.map(({ from, to, run }) => ({ from, to, run }))).toEqual([
+      { from: 0, to: 4, run: 0 },
+      { from: 4, to: 7, run: 0 },
+      { from: 0, to: 11, run: 1 },
+      { from: 11, to: 18, run: 1 },
+    ]);
+    // the row is as high as the highest level of a quarter, not as their sum
+    expect(internals(chart).highestVarianceDataPointValue.value).toBe(18);
+  });
+
+  it("puts the date label opposite the column of a step", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", ac1: 20, pl1: 10 },
+      { date: "2025-02-01", operation: "+", ac1: 2, pl1: 10 },
+      { date: "2025-03-01", operation: "+", ac1: 1, pl1: 10 },
+    ];
+    const chart = buildChart({ scenarios: ["ac1", "pl1"], variances: ["dac1_pl1_pos"], varianceWaterfall: true }, rows);
+    const model = internals(chart).variancesDataModel;
+    const flipped = model.map((entry) => internals(chart).dateLabelPlace(entry).hookLocation);
+    // +10 from 0, -8 down to 2 (still above the axis), -9 down to -7 (crosses it)
+    expect(flipped[0]).toBe(flipped[1]);
+    expect(flipped[2]).not.toBe(flipped[0]);
+  });
+
   it("draws the walk with its lines", () => {
     const svg = buildChart({ variances: ABSOLUTE, varianceWaterfall: true }).toString();
     expect(svg).toContain('id="Walk"');
@@ -161,6 +204,10 @@ describe("time chart bridge", () => {
     expect(base).toBeGreaterThan(0);
     expect(internals(buildChart({ ...BRIDGE, variances: RELATIVE })).leadRoom()).toBe(base);
     expect(internals(buildChart({ totals: TOTALS })).leadRoom()).toBe(0);
+  });
+
+  it("adds no room to a synced left space", () => {
+    expect(internals(buildChart({ ...BRIDGE, syncedLeft: true })).leadRoom()).toBe(0);
   });
 
   it("draws the reference total, the steps and the variance of the total", () => {
@@ -192,6 +239,19 @@ describe("time chart bridge", () => {
     const chart = buildChart(BRIDGE, rows);
     expect(internals(chart).bridge).toBeNull();
     expect(chart.getBridgeFallback()).not.toBeNull();
+  });
+
+  it("falls back when the variances are not against the reference of the total", () => {
+    // the plan is the reference of the total, the previous year sums up to the same value
+    const rows = [
+      { date: "2025-01-01", operation: "+", ac1: 30, pp1: 20, pl1: 25 },
+      { date: "2025-02-01", operation: "+", ac1: 30, pp1: 30, pl1: 25 },
+      { date: "2025-03-01", operation: "+", ac1: 30, pp1: 25, pl1: 25 },
+    ];
+    const options = { scenarios: ["ac1", "pp1", "pl1"], scenarioSwitch: false, pixelPerUnit: 4 };
+    const other = buildChart({ ...BRIDGE, ...options, bridgeVariances: ["dac1_pp1_pos"] }, rows);
+    expect(internals(other).bridge).toBeNull();
+    expect(other.getBridgeFallback()).toBe("the variances are not the series against the reference of the total");
   });
 
   it("reports nothing without totals or without the attribute", () => {

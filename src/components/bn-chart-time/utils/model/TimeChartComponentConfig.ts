@@ -100,6 +100,8 @@ export class TimeChartComponentConfig {
   public bridgeVariances: string[] = [];
   /** With `scenarioSwitch`: the reference is a column behind the series, not a marker. */
   public referenceColumn: boolean = false;
+  /** The left space comes from `sync-space-left`: the chart adds no room of its own to it. */
+  public syncedLeft: boolean = false;
   /** Locale used for date-axis labels and SQL date normalization; set from the bn-context locale. */
   public locale: string = "de";
   constructor(
@@ -257,6 +259,10 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isBoolean(data.referenceColumn)) {
       config.referenceColumn = data.referenceColumn;
+    }
+
+    if (CompareUtil.isBoolean(data.syncedLeft)) {
+      config.syncedLeft = data.syncedLeft;
     }
 
     if (CompareUtil.isString(data.locale)) {

@@ -720,6 +720,7 @@ export class Chart {
   private parseTotals(value: string): (Omit<TotalsConfig, "pixelPerUnit"> & { unitScaling: number }) | null {
     try {
       const parsed = JSON.parse(value);
+      if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) return null;
       // the same values as `unit-scaling`: a number, with an SI suffix, or the name of a scaling group
       // left out: the totals take the scale of the chart
       const ownScale = parsed?.unitScaling != null && parsed.unitScaling !== "";
@@ -835,8 +836,11 @@ export class Chart {
    * at the scale of the chart (no `unitScaling` in `totals`, aggregation
    * `sum`) the first row of absolute variances becomes a bridge: the reference
    * total stands before the first period, the total of the series behind the
-   * last one, and the walk runs between their ends. Bar mode, plain columns:
-   * no effect in line mode and with `stack`.
+   * last one, and the walk runs between their ends. With `sync-space-left`
+   * the reference total stands inside that space, so the space must have room
+   * for it. Behind a total column on the axis (`by` other than `all`) a walk
+   * starts again. Bar mode, plain columns: no effect in line mode and with
+   * `stack`.
    */
   @Prop() varianceWaterfall: boolean = false;
 
@@ -1782,6 +1786,7 @@ export class Chart {
         varianceWaterfall={this.varianceWaterfall === true}
         bridgeVariances={this.prepareBridgeVariances()}
         referenceColumn={this.referenceColumn === true}
+        syncedLeft={this.syncSpaceLeft > -1}
         axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension(isBase)}
