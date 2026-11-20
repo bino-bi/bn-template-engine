@@ -9,18 +9,47 @@ const scales = (xMin: number, xMax: number, yMin: number, yMax: number) => ({
 });
 
 describe("IsoCurves", () => {
-  describe("positive-domain guard", () => {
-    it("accepts strictly positive domains", () => {
-      const { x, y } = scales(1, 35, 1, 35);
-      expect(new IsoCurves(x, y).isPositiveDomain()).toBe(true);
+  describe("domain guard", () => {
+    it("accepts axes that start at 0 or above", () => {
+      expect(IsoCurves.isDrawable([1, 35], [1, 35])).toBe(true);
+      expect(IsoCurves.isDrawable([0, 35], [0, 35])).toBe(true);
     });
 
-    it("rejects domains touching or crossing zero", () => {
-      const zeroX = scales(0, 35, 1, 35);
-      expect(new IsoCurves(zeroX.x, zeroX.y).isPositiveDomain()).toBe(false);
+    it("rejects an axis that goes below 0 or ends at 0", () => {
+      expect(IsoCurves.isDrawable([1, 35], [-5, 35])).toBe(false);
+      expect(IsoCurves.isDrawable([-1, 35], [0, 35])).toBe(false);
+      expect(IsoCurves.isDrawable([0, 0], [0, 35])).toBe(false);
+    });
+  });
 
-      const negativeY = scales(1, 35, -5, 35);
-      expect(new IsoCurves(negativeY.x, negativeY.y).isPositiveDomain()).toBe(false);
+  describe("axes from 0", () => {
+    const { x, y } = scales(0, 35, 0, 35);
+    const iso = new IsoCurves(x, y);
+
+    it("draws the curve from the top edge to the right edge", () => {
+      const path = iso.path(100)!;
+      const points = path
+        .split(/[ML]/)
+        .filter(Boolean)
+        .map((p) => p.trim().split(" ").map(Number));
+      // x = k / yMax at the top, y = k / xMax at the right
+      expect(points[0][0]).toBeCloseTo(x.scale(100 / 35));
+      expect(points[0][1]).toBeCloseTo(y.scale(35));
+      expect(points[points.length - 1][0]).toBeCloseTo(x.scale(35));
+      expect(points[points.length - 1][1]).toBeCloseTo(y.scale(100 / 35));
+      expect(iso.exitPoint(100)).toMatchObject({ edge: "right" });
+    });
+
+    it("shades the region above the curve and not the whole frame", () => {
+      const region = iso.regionPath(100)!;
+      expect(region.startsWith(`M ${x.scale(100 / 35)} ${y.scale(35)}`)).toBe(true);
+      expect(region.endsWith(`L ${x.scale(35)} ${y.scale(35)} Z`)).toBe(true);
+    });
+
+    it("has no curve below 0", () => {
+      const negative = scales(-5, 35, 0, 35);
+      expect(new IsoCurves(negative.x, negative.y).path(100)).toBeNull();
+      expect(new IsoCurves(negative.x, negative.y).regionPath(100)).toBeNull();
     });
   });
 
@@ -80,8 +109,8 @@ describe("IsoCurves", () => {
       expect(iso.path(1000)).toBeNull();
     });
 
-    it("returns null on non-positive domains", () => {
-      const { x, y } = scales(0, 10, 1, 10);
+    it("returns null on a domain below 0", () => {
+      const { x, y } = scales(-1, 10, 1, 10);
       expect(new IsoCurves(x, y).path(5)).toBeNull();
     });
   });

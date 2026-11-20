@@ -87,6 +87,23 @@ describe("PointLabeler", () => {
       expect(overlap).toBe(false);
     });
 
+    it("puts a label with a fixed side there, also outside the frame and on a mark", () => {
+      const labeler = new PointLabeler(FRAME, 4);
+      labeler.registerMark(500, 0, 30);
+      const [placed] = labeler.place([candidate({ cy: 5, side: "n" })]);
+      expect(placed.anchor).toBe("n");
+      expect(placed.y).toBeLessThan(0);
+    });
+
+    it("keeps the other labels clear of one with a fixed side, whatever the order", () => {
+      const labeler = new PointLabeler(FRAME, 4);
+      const free = candidate({ name: "free", cx: 500 });
+      const fixed = candidate({ name: "fixed", cx: 520, side: "n" });
+      const placed = labeler.place([free, fixed]);
+      expect(placed.find((p) => p.candidate.name === "fixed")!.anchor).toBe("n");
+      expect(placed.find((p) => p.candidate.name === "free")!.anchor).not.toBe("n");
+    });
+
     it("keeps labels off registered marks", () => {
       const labeler = new PointLabeler(FRAME, 4);
       labeler.registerMark(500, 300, 10);

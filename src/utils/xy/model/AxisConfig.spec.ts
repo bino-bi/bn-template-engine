@@ -96,6 +96,15 @@ describe("toSizeConfig / toShareConfig", () => {
   });
 });
 
+describe("toAxisConfig step", () => {
+  it("reads a positive step and rejects any other", () => {
+    expect(toAxisConfig({ measure: "ac1", step: 10 }).config!.step).toBe(10);
+    const { config, invalidFields } = toAxisConfig({ measure: "ac1", step: -1 });
+    expect(config!.step).toBeUndefined();
+    expect(invalidFields).toContain("step");
+  });
+});
+
 describe("toIsoConfig", () => {
   it("accepts 'auto' and numeric arrays", () => {
     expect(toIsoConfig({ values: "auto" }).config).toEqual({ values: "auto", label: undefined, unit: undefined });
@@ -106,6 +115,13 @@ describe("toIsoConfig", () => {
     const { config, invalidFields } = toIsoConfig({ values: "1,2" });
     expect(config).toBeNull();
     expect(invalidFields).toContain("values");
+  });
+
+  it("reads a positive factor and rejects any other", () => {
+    expect(toIsoConfig({ values: [1], factor: 0.001 }).config!.factor).toBe(0.001);
+    const { config, invalidFields } = toIsoConfig({ values: [1], factor: 0 });
+    expect(config!.factor).toBeUndefined();
+    expect(invalidFields).toContain("factor");
   });
 
   it("extracts the highlight-from threshold", () => {
@@ -123,6 +139,27 @@ describe("toLabelConfig", () => {
   it("accepts keyword and explicit-list points", () => {
     expect(toLabelConfig({ points: "none" }, defaults).config!.points).toBe("none");
     expect(toLabelConfig({ points: ["VAB", "RS6"] }, defaults).config!.points).toEqual(["VAB", "RS6"]);
+  });
+
+  it("reads the side of a list entry and keeps its name in the list", () => {
+    const { config, invalidFields } = toLabelConfig(
+      { points: ["VAB", { name: "RS6", side: "nw" }, { name: "X" }] },
+      defaults,
+    );
+    expect(invalidFields).toEqual([]);
+    expect(config!.points).toEqual(["VAB", "RS6", "X"]);
+    expect(config!.sides).toEqual({ RS6: "nw" });
+  });
+
+  it("has no side for a point that is named like a property of an object", () => {
+    const { config } = toLabelConfig({ points: ["constructor", { name: "RS6", side: "n" }] }, defaults);
+    expect(config!.sides!["constructor"]).toBeUndefined();
+  });
+
+  it("rejects a list with an unknown side", () => {
+    const { config, invalidFields } = toLabelConfig({ points: [{ name: "RS6", side: "up" }] }, defaults);
+    expect(invalidFields).toContain("points");
+    expect(config!.points).toBe("auto");
   });
 
   it("rejects invalid points values but keeps the rest", () => {

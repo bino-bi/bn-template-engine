@@ -140,7 +140,8 @@ export class AnnotationLayer {
    * `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw
    * data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`)
    * and a `part` (`element`, `label`, `total`). Without a field they mean the
-   * component as a whole.
+   * component as a whole. A `frame` with `to` or `toPoint` is one oval around
+   * both data points. Both ends must be data points then, and a `text` is not drawn.
    */
   @Prop() items?: string;
 
@@ -482,7 +483,14 @@ export class AnnotationLayer {
         continue;
       }
       const from = anchorOf(item.target, item.point);
-      const to = item.mark === "arrow" ? anchorOf(item.to, item.toPoint) : undefined;
+      // a frame with a second end goes around both
+      const framesTwo = item.mark === "frame" && (item.to != null || item.toPoint != null);
+      const to =
+        item.mark === "arrow"
+          ? anchorOf(item.to, item.toPoint)
+          : framesTwo
+            ? anchorOf(item.to ?? item.target, item.toPoint)
+            : undefined;
       const failed = "problem" in from ? from : to && "problem" in to ? to : undefined;
       if (failed) {
         problems.push({ item, problem: failed.problem });
@@ -497,8 +505,14 @@ export class AnnotationLayer {
         label?: boolean;
         horizontal?: boolean;
       };
-      const end = to as { box: Box } | undefined;
-      const mark = buildMark(item, toLocal(start.box), end && toLocal(end.box), em, {
+      const end = to as { box: Box; whole?: boolean; text?: CellText } | undefined;
+      if (framesTwo && (start.whole || end?.whole)) {
+        problems.push({ item, problem: "a frame around two needs a data point at both ends" });
+        continue;
+      }
+      // a frame goes around the text of a cell, at both ends
+      const endBox = end && (framesTwo && end.text ? textToLocal(end.text) : toLocal(end.box));
+      const mark = buildMark(item, toLocal(start.box), endBox, em, {
         whole: start.whole,
         area,
         text: start.text && textToLocal(start.text),

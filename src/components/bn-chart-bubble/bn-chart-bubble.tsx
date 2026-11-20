@@ -148,8 +148,9 @@ export class ChartBubble {
    * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as
    * shorthand: `{"measure":"ac1","label":"Market attractiveness",
    * "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent:
-   * the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are
-   * written in percent too (`20` for 20 %).
+   * the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are
+   * written in percent too (`20` for 20 %). `step` is the distance between
+   * two ticks, without it the chart picks one.
    */
   @Prop() x!: string;
   @Watch("x")
@@ -264,7 +265,10 @@ export class ChartBubble {
   /**
    * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"],
    * "values":true,"max":12}`. Bubble charts label every point by default;
-   * `values` renders the value inside the bubble.
+   * `values` renders the value inside the bubble. An entry of the list can
+   * be `{"name":"VAB","side":"n"}`: the label then stands on that side of
+   * its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside
+   * the plot or on another mark.
    */
   @Prop() labels: string = "";
   @Watch("labels")
@@ -846,6 +850,7 @@ export class ChartBubble {
         },
         axisStyles: $["bn-chart-bubble"]["axisStyles"],
         seriesColors: $["bn-chart-bubble"]["seriesColors"],
+        markStyles: $["bn-chart-bubble"]["markStyles"],
         padding: $["bn-chart-bubble"]["padding"],
       } as unknown as XYChartStyle;
     });

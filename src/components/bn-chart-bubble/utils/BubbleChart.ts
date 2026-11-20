@@ -10,7 +10,7 @@ import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
 import { formatXYValue, xyTickDecimals } from "../../../utils/xy/formatXYValue";
 import { NumericScale } from "../../../utils/xy/NumericScale";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
-import { markTreatment, MarkTreatment, resolveSeriesColor, shade } from "../../../utils/xy/SeriesPalette";
+import { markTreatment, MarkTreatment, mixHex, resolveSeriesColor, shade } from "../../../utils/xy/SeriesPalette";
 import { RadiusScale } from "../../../utils/xy/RadiusScale";
 import { axisInValueUnits, isRelativeMeasure, resolveMeasure } from "../../../utils/xy/VarianceMeasure";
 import { XYFrame } from "../../../utils/xy/XYFrame";
@@ -162,7 +162,8 @@ export class BubbleChart {
 
   private textWidth(text: string, bold: boolean = false): number {
     const width = CalculateSize(text, {
-      font: this.styles.fontStyles.font,
+      // the family only: with the size in front the value is no font family and the text is measured in the font of the page
+      font: this.fontFamily(),
       fontSize: this.styles.fontStyles.size + "px",
       fontWeight: bold ? "bold" : "normal",
     }).width;
@@ -285,7 +286,13 @@ export class BubbleChart {
   /** A legend row whose swatch has the fill of the bubbles it stands for: hatched for forecast. */
   private legendEntry(label: string, colorIndex: number, seriesIndex: number): LegendEntry {
     const hue = this.seriesHue(seriesIndex);
-    const treatment = markTreatment(colorIndex, hue, "bubble");
+    const treatment = markTreatment(
+      colorIndex,
+      hue,
+      "bubble",
+      this.styles.markStyles.stroke,
+      this.styles.markStyles.opacity,
+    );
 
     return { label, treatment, fill: this.treatmentFill(treatment, seriesIndex, hue) };
   }
@@ -367,7 +374,7 @@ export class BubbleChart {
       const panelH = grid.panelRect(0).height;
       const targetY = Math.max(4, Math.min(8, Math.round(panelH / (4 * em))));
       const yScale = new NumericScale(yDomain[0], yDomain[1], panelH, 0);
-      ticksY = yScale.ticks(targetY);
+      ticksY = yScale.ticks(targetY, this.config.y.step);
 
       const yDecimals = xyTickDecimals(ticksY, this.yPercent);
       const maxTickW = Math.max(
@@ -393,7 +400,10 @@ export class BubbleChart {
     }
 
     const panels = this.buildPanels(grid!, xDomain, yDomain);
-    const ticksX = panels[0].xScale.ticks(Math.max(3, Math.min(8, Math.round(panels[0].rect.width / (7 * em)))));
+    const ticksX = panels[0].xScale.ticks(
+      Math.max(3, Math.min(8, Math.round(panels[0].rect.width / (7 * em)))),
+      this.config.x.step,
+    );
     const xDecimals = xyTickDecimals(ticksX, this.xPercent);
     const yDecimals = xyTickDecimals(ticksY, this.yPercent);
 
@@ -567,7 +577,13 @@ export class BubbleChart {
     for (const point of ordered) {
       const seriesIndex = this.data.series.find((s) => s.key === point.seriesKey)?.index ?? 0;
       const hue = this.seriesHue(seriesIndex);
-      const treatment = markTreatment(this.primaryColorIndex(), hue, "bubble");
+      const treatment = markTreatment(
+        this.primaryColorIndex(),
+        hue,
+        "bubble",
+        this.styles.markStyles.stroke,
+        this.styles.markStyles.opacity,
+      );
       const cx = panel.xScale.scale(point.x);
       const cy = panel.yScale.scale(point.y);
       const r = radiusScale.radius(point.size ?? 0);
@@ -577,7 +593,13 @@ export class BubbleChart {
       }
 
       if (point.compare != null) {
-        const compareTreatment = markTreatment(this.compareColorIndex(), hue, "bubble");
+        const compareTreatment = markTreatment(
+          this.compareColorIndex(),
+          hue,
+          "bubble",
+          this.styles.markStyles.stroke,
+          this.styles.markStyles.opacity,
+        );
         const ccx = panel.xScale.scale(point.compare.x);
         const ccy = panel.yScale.scale(point.compare.y);
         const cr = radiusScale.radius(point.compare.size ?? 0);
@@ -586,7 +608,15 @@ export class BubbleChart {
 
         // Comparison bubbles carry a value label only when large enough - never a share slice.
         if (this.config.labels.values && point.compare.size !== undefined && cr >= 1.2 * em) {
-          this.drawValueLabel(compareGroup, ccx, ccy, cr, point.compare.size, compareTreatment.fill);
+          this.drawValueLabel(
+            compareGroup,
+            ccx,
+            ccy,
+            cr,
+            point.compare.size,
+            compareTreatment.fill,
+            compareTreatment.fillOpacity,
+          );
         }
       }
 
@@ -600,7 +630,15 @@ export class BubbleChart {
       }
 
       if (this.config.labels.values && point.size !== undefined) {
-        this.drawValueLabel(primaryGroup, cx, cy, r, point.size, treatment.hatch === true ? "#ffffff" : treatment.fill);
+        this.drawValueLabel(
+          primaryGroup,
+          cx,
+          cy,
+          r,
+          point.size,
+          treatment.hatch === true ? "#ffffff" : treatment.fill,
+          treatment.fillOpacity,
+        );
       }
 
       marks.push({ point, cx, cy, r, seriesIndex, hue, treatment });
@@ -644,6 +682,7 @@ export class BubbleChart {
       .circle(r * 2)
       .center(cx, cy)
       .fill(this.treatmentFill(treatment, seriesIndex, hue))
+      .attr("fill-opacity", treatment.fillOpacity ?? 1)
       .stroke({ color: treatment.stroke, width: treatment.strokeWidth });
   }
 
@@ -671,7 +710,17 @@ export class BubbleChart {
   }
 
   /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. */
-  private drawValueLabel(group: G, cx: number, cy: number, r: number, value: number, fill: string): void {
+  private drawValueLabel(
+    group: G,
+    cx: number,
+    cy: number,
+    r: number,
+    value: number,
+    fill: string,
+    fillOpacity: number = 1,
+  ): void {
+    // a see-through fill is lighter on the page: the text colour follows what is seen
+    const shown = fillOpacity < 1 && /^#[0-9a-f]{6}$/i.test(fill) ? mixHex(fill, "#ffffff", 1 - fillOpacity) : fill;
     const text = formatXYValue(value, this.valueDecimals(), this.styles.locale, this.sizePercent);
     const width = this.textWidth(text);
     if (width + 0.4 * this.em > 2 * r) {
@@ -679,7 +728,7 @@ export class BubbleChart {
     }
     this.drawText(group, text, cx, cy + 0.35 * this.em, {
       anchor: "middle",
-      color: getContrastTextColor(fill),
+      color: getContrastTextColor(shown),
     });
   }
 
@@ -707,6 +756,7 @@ export class BubbleChart {
         r: mark.r,
         width: this.textWidth(mark.point.name),
         height: 1.1 * this.em,
+        side: this.config.labels.sides?.[mark.point.name],
       };
       pointOf.set(candidate, mark.point);
       return candidate;

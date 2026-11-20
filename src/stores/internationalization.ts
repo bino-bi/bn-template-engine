@@ -119,7 +119,7 @@ const de = flattenObject({
   "bn-chart-structure": { "no-data": "Keine Daten", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysDe,
-    "xy-iso-domain": "Iso-Linien benötigen einen strikt positiven Wertebereich auf beiden Achsen; übersprungen.",
+    "xy-iso-domain": "Iso-Linien benötigen Achsen, die nicht unter 0 beginnen; übersprungen.",
   },
   "bn-chart-bubble": {
     ...xyChartKeysDe,
@@ -194,7 +194,7 @@ const en = flattenObject({
   "bn-chart-structure": { "no-data": "No Data", REST: "REST" },
   "bn-chart-scatter": {
     ...xyChartKeysEn,
-    "xy-iso-domain": "Iso-lines need a strictly positive domain on both axes; skipped.",
+    "xy-iso-domain": "Iso-lines need axes that do not start below 0; skipped.",
   },
   "bn-chart-bubble": {
     ...xyChartKeysEn,

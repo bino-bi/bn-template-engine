@@ -14,7 +14,8 @@ const SAMPLES = 64;
  * a third derived measure visualized as thin curves with value labels at
  * the curve's exit edge, optionally shading the region `x·y >= k`.
  *
- * Requires a strictly positive plot domain on both axes.
+ * Needs axes that do not go below 0. An axis may start at 0: the curve then
+ * runs on to the far edge of the frame.
  */
 export class IsoCurves {
   constructor(
@@ -22,9 +23,16 @@ export class IsoCurves {
     private readonly yScale: NumericScale,
   ) {}
 
-  /** Iso-curves are only defined on strictly positive domains. */
-  public isPositiveDomain(): boolean {
-    return this.xScale.domainMin > 0 && this.yScale.domainMin > 0;
+  /** Iso-curves are drawn in the first quadrant only: no axis may go below 0. */
+  public static isDrawable(xDomain: [number, number], yDomain: [number, number]): boolean {
+    return xDomain[0] >= 0 && yDomain[0] >= 0 && xDomain[1] > 0 && yDomain[1] > 0;
+  }
+
+  private isDrawableDomain(): boolean {
+    return IsoCurves.isDrawable(
+      [this.xScale.domainMin, this.xScale.domainMax],
+      [this.yScale.domainMin, this.yScale.domainMax],
+    );
   }
 
   /**
@@ -83,11 +91,13 @@ export class IsoCurves {
    * rectangle, or `null` when the curve misses it entirely.
    */
   private visibleRange(k: number): [number, number] | null {
-    if (!this.isPositiveDomain() || k <= 0) {
+    if (!this.isDrawableDomain() || k <= 0) {
       return null;
     }
     const x1 = Math.max(this.xScale.domainMin, k / this.yScale.domainMax);
-    const x2 = Math.min(this.xScale.domainMax, k / this.yScale.domainMin);
+    // with y from 0 the curve never reaches the lower edge
+    const x2 =
+      this.yScale.domainMin > 0 ? Math.min(this.xScale.domainMax, k / this.yScale.domainMin) : this.xScale.domainMax;
     if (x1 >= x2) {
       return null;
     }
@@ -140,7 +150,7 @@ export class IsoCurves {
    * region is empty.
    */
   public regionPath(k: number): string | null {
-    if (!this.isPositiveDomain() || k <= 0) {
+    if (!this.isDrawableDomain() || k <= 0) {
       return null;
     }
 

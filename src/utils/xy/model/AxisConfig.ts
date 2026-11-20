@@ -24,6 +24,8 @@ export interface AxisConfig {
   max?: number;
   refLine?: number;
   highlight?: HighlightRange;
+  /** Distance between two ticks. Default: a nice step for the size of the plot. */
+  step?: number;
 }
 
 /** Parsed `size` prop (bubble). */
@@ -45,13 +47,22 @@ export interface IsoConfig {
   values: "auto" | number[];
   label?: string;
   unit?: string;
-  /** Shade the region `x·y >= from`. */
+  /** Shade the region `x·y·factor >= from`. */
   highlight?: { from: number };
+  /** `values` are `x·y·factor`: 0.001 for lines in millions over axes in units and thousands. Default 1. */
+  factor?: number;
 }
+
+/** The side of a mark a label stands on. */
+export type LabelSide = "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
+
+const LABEL_SIDES: string[] = ["n", "ne", "e", "se", "s", "sw", "w", "nw"];
 
 /** Parsed `labels` prop. */
 export interface LabelConfig {
   points: "auto" | "none" | "all" | string[];
+  /** The side of its mark a named label stands on, by point name. Such a label may leave the plot. */
+  sides?: Record<string, LabelSide>;
   /** Bubble only: render the value inside the bubble. */
   values: boolean;
   /** Candidate cap for `points: "auto"`. */
@@ -145,6 +156,15 @@ function readNumber(data: Record<string, unknown>, key: string, invalid: string[
   return undefined;
 }
 
+function readPositive(data: Record<string, unknown>, key: string, invalid: string[]): number | undefined {
+  const value = readNumber(data, key, invalid);
+  if (value !== undefined && value <= 0) {
+    invalid.push(key);
+    return undefined;
+  }
+  return value;
+}
+
 function readHighlight(data: Record<string, unknown>, invalid: string[]): HighlightRange | undefined {
   if (!CompareUtil.isExisting(data.highlight)) {
     return undefined;
@@ -166,7 +186,7 @@ function readHighlight(data: Record<string, unknown>, invalid: string[]): Highli
   return result;
 }
 
-const AXIS_KEYS = ["measure", "label", "unit", "min", "max", "refLine", "highlight"];
+const AXIS_KEYS = ["measure", "label", "unit", "min", "max", "refLine", "highlight", "step"];
 
 export function toAxisConfig(data: Record<string, unknown>): SpecResult<AxisConfig> {
   const invalidFields: string[] = [];
@@ -184,6 +204,7 @@ export function toAxisConfig(data: Record<string, unknown>): SpecResult<AxisConf
   config.max = readNumber(data, "max", invalidFields);
   config.refLine = readNumber(data, "refLine", invalidFields);
   config.highlight = readHighlight(data, invalidFields);
+  config.step = readPositive(data, "step", invalidFields);
 
   return { config, unknownKeys: collectUnknownKeys(data, AXIS_KEYS), invalidFields };
 }
@@ -221,7 +242,7 @@ export function toShareConfig(data: Record<string, unknown>): SpecResult<ShareCo
   return { config: { measure: measure.trim() }, unknownKeys: collectUnknownKeys(data, SHARE_KEYS), invalidFields };
 }
 
-const ISO_KEYS = ["values", "label", "unit", "highlight"];
+const ISO_KEYS = ["values", "label", "unit", "highlight", "factor"];
 
 export function toIsoConfig(data: Record<string, unknown>): SpecResult<IsoConfig> {
   const invalidFields: string[] = [];
@@ -242,6 +263,7 @@ export function toIsoConfig(data: Record<string, unknown>): SpecResult<IsoConfig
   const config: IsoConfig = { values };
   config.label = readString(data, "label", invalidFields);
   config.unit = readString(data, "unit", invalidFields);
+  config.factor = readPositive(data, "factor", invalidFields);
 
   if (CompareUtil.isExisting(data.highlight)) {
     if (CompareUtil.isObject(data.highlight) && !Array.isArray(data.highlight)) {
@@ -259,6 +281,17 @@ export function toIsoConfig(data: Record<string, unknown>): SpecResult<IsoConfig
 
 const LABEL_KEYS = ["points", "values", "max"];
 
+function isPointEntry(entry: unknown): boolean {
+  if (CompareUtil.isString(entry)) {
+    return true;
+  }
+  if (!CompareUtil.isObject(entry) || Array.isArray(entry)) {
+    return false;
+  }
+  const { name, side } = entry as Record<string, unknown>;
+  return CompareUtil.isString(name) && (side === undefined || LABEL_SIDES.includes(side as string));
+}
+
 export function toLabelConfig(
   data: Record<string, unknown>,
   defaults: { points: LabelConfig["points"]; values: boolean; max: number },
@@ -269,8 +302,22 @@ export function toLabelConfig(
   if (CompareUtil.isExisting(data.points)) {
     if (data.points === "auto" || data.points === "none" || data.points === "all") {
       config.points = data.points;
-    } else if (CompareUtil.isArray(data.points) && (data.points as unknown[]).every((p) => CompareUtil.isString(p))) {
-      config.points = data.points as string[];
+    } else if (CompareUtil.isArray(data.points) && (data.points as unknown[]).every(isPointEntry)) {
+      // an entry is a name, or `{ name, side }` for a label on a fixed side of its mark
+      // no prototype: a point may be named `constructor`
+      const sides: Record<string, LabelSide> = Object.create(null);
+      config.points = (data.points as (string | { name: string; side?: LabelSide })[]).map((entry) => {
+        if (typeof entry === "string") {
+          return entry;
+        }
+        if (entry.side !== undefined) {
+          sides[entry.name] = entry.side;
+        }
+        return entry.name;
+      });
+      if (Object.keys(sides).length > 0) {
+        config.sides = sides;
+      }
     } else {
       invalidFields.push("points");
     }

@@ -1,5 +1,7 @@
 /** Most decimals a label gets: a double has about 15 significant digits. */
 const MAX_DECIMALS = 15;
+/** A typed step that gives more ticks than this is not used: the labels would cover each other. */
+const MAX_FIXED_TICKS = 50;
 
 /**
  * Linear numeric scale with nice-tick generation for the XY charts.
@@ -79,16 +81,21 @@ export class NumericScale {
 
   /**
    * Nice tick values inside the domain, aiming for `targetCount` ticks
-   * (the renderer picks 4-8 depending on panel size).
+   * (the renderer picks 4-8 depending on panel size). A `fixedStep` replaces
+   * the nice step, unless it gives more than MAX_FIXED_TICKS ticks.
    */
-  public ticks(targetCount: number): number[] {
+  public ticks(targetCount: number, fixedStep?: number): number[] {
     const span = this.domainMax - this.domainMin;
     if (span <= 0) {
       return [this.domainMin];
     }
 
-    const step = NumericScale.niceStep(span, targetCount);
-    const first = Math.ceil(this.domainMin / step) * step;
+    const step =
+      fixedStep !== undefined && fixedStep > 0 && span / fixedStep <= MAX_FIXED_TICKS
+        ? fixedStep
+        : NumericScale.niceStep(span, targetCount);
+    // 0.07 / 0.01 is 7.000000000000001: without the tolerance the tick on the domain start is lost
+    const first = Math.ceil(this.domainMin / step - 1e-9) * step;
     // One tick when a second one cannot be told from the first: the span is below the float
     // resolution of its values, or the step is finer than the decimals a label can show.
     if (first + step === first || step < Math.pow(10, -MAX_DECIMALS)) {

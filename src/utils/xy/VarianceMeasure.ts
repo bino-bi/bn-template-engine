@@ -111,6 +111,7 @@ export function axisInValueUnits(axis: AxisConfig): AxisConfig {
     min: fraction(axis.min),
     max: fraction(axis.max),
     refLine: fraction(axis.refLine),
+    step: fraction(axis.step),
     highlight: axis.highlight && { from: fraction(axis.highlight.from), to: fraction(axis.highlight.to) },
   };
 }
