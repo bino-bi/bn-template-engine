@@ -451,7 +451,8 @@ export class BubbleChart {
 
     // A bubble may hang out of the plot. The chart is as high as its bubbles, so none is cut at its edge.
     let reach = this.bubbleReach(panels, radiusScale);
-    const shiftDown = Math.max(0, padding.top - reach.top);
+    // at the top a bubble stays below the chart title
+    const shiftDown = Math.max(0, padding.top + titleH - reach.top);
     if (shiftDown > 0) {
       drawing = { ...drawing, y: drawing.y + shiftDown };
       grid = new FacetGrid(facetCount, columns, drawing, this.styles.scaleFactors.panelGap * em);
@@ -459,13 +460,9 @@ export class BubbleChart {
       reach = { top: reach.top + shiftDown, bottom: reach.bottom + shiftDown };
     }
     this.canvasHeight =
-      Math.max(
-        drawing.y +
-          drawing.height +
-          xAxisH +
-          (this.config.legend.position === "bottom" && showLegend ? legendSize.height + em : 0),
-        reach.bottom,
-      ) + padding.bottom;
+      Math.max(drawing.y + drawing.height + xAxisH, reach.bottom) +
+      (this.config.legend.position === "bottom" && showLegend ? legendSize.height + em : 0) +
+      padding.bottom;
 
     if (this.config.chartTitle !== "") {
       this.drawText(root, this.config.chartTitle, padding.left, padding.top + em, { bold: true });
@@ -508,7 +505,8 @@ export class BubbleChart {
           grid!.isOuterLeft(index),
           grid!.isOuterBottom(index),
           this.data.facets.length > 1 ? facet.key : "",
-          grid!.hasLeftNeighbour(index),
+          // a panel above the last row shows no x labels: nothing to run into
+          grid!.hasLeftNeighbour(index) && grid!.isOuterBottom(index - 1),
           grid!.hasRightNeighbour(index),
         );
       });
@@ -548,7 +546,7 @@ export class BubbleChart {
           root,
           legendModel,
           drawing.x + legendOffset(this.config.legend, drawing.width - legendSize.width),
-          drawing.y + drawing.height + xAxisH,
+          Math.max(drawing.y + drawing.height + xAxisH, reach.bottom),
           "bottom",
         );
       }
@@ -701,8 +699,6 @@ export class BubbleChart {
       const seriesIndex = this.data.series.find((s) => s.key === point.seriesKey)?.index ?? 0;
       const hue = this.seriesHue(seriesIndex);
       const treatment = this.bubbleTreatment(this.primaryColorIndex(), seriesIndex, hue);
-      // an outlined bubble is see-through: a name may stand in it
-      const blocksLabels = treatment.textColor === undefined;
       const cx = panel.xScale.scale(point.x);
       const cy = panel.yScale.scale(point.y);
       const r = radiusScale.radius(point.size ?? 0);
@@ -717,7 +713,8 @@ export class BubbleChart {
         const ccy = panel.yScale.scale(point.compare.y);
         const cr = radiusScale.radius(point.compare.size ?? 0);
         this.drawBubble(compareGroup, ccx, ccy, cr, compareTreatment, seriesIndex, hue);
-        if (blocksLabels) {
+        // an outlined bubble is see-through: a name may stand in it
+        if (compareTreatment.textColor === undefined) {
           labeler.registerMark(ccx, ccy, cr);
         }
         // a comparison bubble that is fully behind its own bubble needs no second name
@@ -727,13 +724,13 @@ export class BubbleChart {
 
         // Comparison bubbles carry a value label only when large enough - never a share slice.
         if (this.config.labels.values && point.compare.size !== undefined && cr >= 1.2 * em) {
-          this.drawValueLabel(compareGroup, ccx, ccy, cr, point.compare.size, compareTreatment);
+          this.drawValueLabel(compareGroup, labeler, ccx, ccy, cr, point.compare.size, compareTreatment);
         }
       }
 
       const key = xyPointKey(point, facet.key, this.config);
       this.drawBubble(primaryGroup, cx, cy, r, treatment, seriesIndex, hue)?.attr(dataPointAttributes(key, "element"));
-      if (blocksLabels) {
+      if (treatment.textColor === undefined) {
         labeler.registerMark(cx, cy, r);
       }
 
@@ -745,7 +742,7 @@ export class BubbleChart {
       }
 
       if (this.config.labels.values && point.size !== undefined) {
-        this.drawValueLabel(primaryGroup, cx, cy, r, point.size, treatment);
+        this.drawValueLabel(primaryGroup, labeler, cx, cy, r, point.size, treatment);
       }
 
       marks.push({ point, cx, cy, r, seriesIndex, hue, treatment });
@@ -814,8 +811,9 @@ export class BubbleChart {
       return undefined;
     }
     const outlined = treatment.textColor !== undefined;
-    const own = this.styles.shareColors?.[seriesIndex];
-    const fill = own !== undefined && own !== "" ? own : outlined ? hue : shade(hue);
+    const entry: unknown = this.styles.shareColors?.[seriesIndex];
+    const own = typeof entry === "string" && entry !== "" ? entry : undefined;
+    const fill = own ?? (outlined ? hue : shade(hue));
     const opacity = own === undefined && outlined ? 2 * (treatment.fillOpacity ?? 1) : 1;
     const stroke = { color: treatment.stroke, width: treatment.strokeWidth };
 
@@ -840,8 +838,16 @@ export class BubbleChart {
       .stroke(stroke);
   }
 
-  /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. */
-  private drawValueLabel(group: G, cx: number, cy: number, r: number, value: number, treatment: MarkTreatment): void {
+  /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. No name is placed on it. */
+  private drawValueLabel(
+    group: G,
+    labeler: PointLabeler,
+    cx: number,
+    cy: number,
+    r: number,
+    value: number,
+    treatment: MarkTreatment,
+  ): void {
     const fill = treatment.hatch === true ? "#ffffff" : treatment.fill;
     const fillOpacity = treatment.fillOpacity ?? 1;
     // a see-through fill is lighter on the page: the text colour follows what is seen
@@ -855,6 +861,7 @@ export class BubbleChart {
       anchor: "middle",
       color: treatment.textColor ?? getContrastTextColor(shown),
     });
+    labeler.registerText(cx - width / 2, cy - 0.65 * this.em, width, 1.1 * this.em);
   }
 
   /** Name labels - bubbles are few, named entities; labels prefer the spot above (10A). */

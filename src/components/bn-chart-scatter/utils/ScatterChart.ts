@@ -432,7 +432,8 @@ export class ScatterChart {
           grid!.isOuterBottom(index),
           isoDrawable,
           this.data.facets.length > 1 ? facet.key : "",
-          grid!.hasLeftNeighbour(index),
+          // a panel above the last row shows no x labels: nothing to run into
+          grid!.hasLeftNeighbour(index) && grid!.isOuterBottom(index - 1),
           grid!.hasRightNeighbour(index),
         );
       });

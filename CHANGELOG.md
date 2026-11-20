@@ -78,9 +78,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
-- `bn-chart-bubble`: with `compareWith` the comparison bubble of a named point carries the name too, unless it is fully behind its own bubble. A name that finds no free place stands on the side where the least of it covers a bubble. Before, such a name was left out. A name never stands on another name or on the title of a panel.
+- `bn-chart-bubble`: with `compareWith` the comparison bubble of a named point carries the name too, unless it is fully behind its own bubble. A name that finds no free place stands on the side where the least of it covers a bubble. Before, such a name was left out. A name never stands on another name, on a value or on the title of a panel.
 - `bn-chart-bubble`: the share slice has the outline of its bubble. Before, it had none.
-- `bn-chart-bubble`: the chart is as high as its bubbles. A bubble that hangs below or above the plot is part of the height of the chart, so it is not cut at the edge of a card. The plot moves down by what a bubble hangs out at the top.
+- `bn-chart-bubble`: the chart is as high as its bubbles. A bubble that hangs below or above the plot is part of the height of the chart, so it is not cut at the edge of a card. The plot moves down by what a bubble hangs out at the top, and a legend below the chart moves below the lowest bubble.
+- `bn-chart-scatter`: with `facet`, a point label does not stand on the title of its panel. It takes another side, or is left out when no side is free.
 - `bn-chart-scatter`, `bn-chart-bubble`: in a facet row the first and the last tick label of the x axis stay inside their panel when a panel stands next to it. Before, the two labels at a gap ran into each other (`2,00,0`).
 - `bn-chart-structure`: with a fixed `unit-scaling` (and a fixed `percentage-scaling` when the chart has a relative variance) the segments share the width of the chart. A segment that needs less than its equal share leaves the rest to the others. Before, each segment had its share only, so long bars got break marks while the chart had room. A segment that fits its room as it is gets no break marks.
 - `bn-chart-structure`: the value of a longer reference bar is printed whenever the label of the front bar fits between the two bar ends. In a chart with break marks only the rows whose bars are cut lose it. Before, it needed more room, and one break mark in the chart removed all of them.

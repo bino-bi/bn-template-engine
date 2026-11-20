@@ -407,6 +407,87 @@ describe("BubbleChart options shared with the scatter chart", () => {
     expect(heightWith(1000)).toBeGreaterThan(heightWith(1) + 100);
   });
 
+  it("moves the plot down for a bubble that hangs above it", () => {
+    const frameY = (size: number): number => {
+      const db = createScopedDb().db;
+      db.tables["bubbleData"] = { data: [row({ ac1: 0.5, ac2: 1, ac3: size })] };
+      const svg = new BubbleChart(
+        new IBCSRuleSet(),
+        db,
+        "`bubbleData`",
+        baseConfig({
+          x: { measure: "ac1", min: 0, max: 1 },
+          y: { measure: "ac2", min: 0, max: 1 },
+          sizeAreaPerUnit: 100,
+          labels: { points: "none", values: false, max: 12 },
+        }),
+        defaultStyles(),
+        1000,
+      ).toString();
+      return Number(/<rect[^>]*\sy="([\d.]+)"[^>]*fill="none"/.exec(svg)![1]);
+    };
+    // radius 178 px at the top of the y axis
+    expect(frameY(1000)).toBeGreaterThan(frameY(1) + 100);
+  });
+
+  it("does not break on a share colour list with an empty entry", () => {
+    const db = createScopedDb().db;
+    db.tables["bubbleData"] = { data: [row({ ac4: 0.25 })] };
+    const styles = defaultStyles();
+    styles.shareColors = [null as unknown as string];
+    const svg = new BubbleChart(
+      new IBCSRuleSet(),
+      db,
+      "`bubbleData`",
+      baseConfig({ share: { measure: "ac4" } }),
+      styles,
+      1000,
+    ).toString();
+    expect(/<path[^>]*>/.exec(svg)![0]).toContain(`fill="${shade(XY_SERIES_PALETTE[0])}"`);
+  });
+
+  it("puts no name on the value of an outlined bubble", () => {
+    const db = createScopedDb().db;
+    // a small bubble just below the centre of a large outlined one: above it stands the value of the large one
+    db.tables["bubbleData"] = {
+      data: [
+        row({
+          category: "Total",
+          categoryIndex: 1,
+          subCategory: "T",
+          subCategoryIndex: 1,
+          ac1: 0.5,
+          ac2: 0.5,
+          ac3: 900,
+        }),
+        row({ category: "Part", categoryIndex: 2, subCategory: "P", subCategoryIndex: 2, ac1: 0.5, ac2: 0.47, ac3: 1 }),
+      ],
+    };
+    const styles = defaultStyles();
+    styles.seriesFills = ["outline"];
+    const svg = new BubbleChart(
+      new IBCSRuleSet(),
+      db,
+      "`bubbleData`",
+      baseConfig({
+        x: { measure: "ac1", min: 0, max: 1 },
+        y: { measure: "ac2", min: 0, max: 1 },
+        sizeAreaPerUnit: 100,
+        labels: { points: ["P"], values: true, max: 12 },
+      }),
+      styles,
+      1000,
+    ).toString();
+    const box = (text: string): { x: number; y: number } => {
+      const tag = new RegExp(`<text[^>]*>(?:<tspan[^>]*>)?${text}<`).exec(svg)![0];
+      return { x: Number(/\sx="([\d.]+)"/.exec(tag)![1]), y: Number(/\sy="([\d.]+)"/.exec(tag)![1]) };
+    };
+    const value = box("900");
+    const name = box("P");
+    // not in the same row within the width of the value
+    expect(Math.abs(name.y - value.y) > 10 || Math.abs(name.x - value.x) > 40).toBe(true);
+  });
+
   describe("labels in facet panels", () => {
     const facetRows = (): Record<string, unknown>[] => [
       row({ rowGroup: "North", rowGroupIndex: 1, subCategory: "A", subCategoryIndex: 1, ac1: 10, ac2: 10, ac3: 5 }),
