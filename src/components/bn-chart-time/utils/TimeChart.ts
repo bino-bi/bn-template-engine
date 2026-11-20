@@ -914,8 +914,9 @@ export class TimeChart {
 
     if (this.isVarianceChart()) {
       this.drawVarianceScenario(this.variancesDataModel, svgContainer);
-      this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
+      // before the axis: the line of a scenario switch runs over the full height of the row
       this.drawTotalVariance(svgContainer);
+      this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
     } else if (this.stackConfig != null) {
       const effectiveChartMode = this.determineEffectiveChartMode();
       if (effectiveChartMode === ChartMode.LINE) {
@@ -948,6 +949,8 @@ export class TimeChart {
     return (
       this.scalingIndicator > 0 &&
       !this.isVarianceChart() &&
+      // the segment of a variance that is not valid has no variance model, but it is no base chart
+      (this.configVariances ?? []).every((variance) => !variance) &&
       this.determineEffectiveChartMode() === ChartMode.BAR &&
       this.stackConfig?.mode !== StackMode.RELATIVE
     );
@@ -1356,8 +1359,10 @@ export class TimeChart {
     if (point == null) {
       return;
     }
-    const group = svgContainer.group().id("TotalColumn");
-    const labelGroup = svgContainer.group().id("TotalColumnLabels");
+    // inside the group of the variances: its box is the height of the row, also below the axis
+    const scenarios = (svgContainer.findOne("#Scenarios") as G | null) ?? svgContainer.group().id("Scenarios");
+    const group = scenarios.group().id("TotalColumn");
+    const labelGroup = scenarios.group().id("TotalColumnLabels");
     const { center } = this.totalColumnGeometry();
     // the elements take their place from an index: the one of the centre of the total column
     const index =
@@ -1369,13 +1374,29 @@ export class TimeChart {
         .updateLabelGroup(labelGroup.group())
         .draw(this.dataFormatDigits);
     } else {
-      // a row whose period variances are cut cuts the total the same way
-      new Column(this.position, this.scenarioStyles(), point, index, true, group.group(), null, this.overflowConfig)
+      // a row whose period variances are cut cuts the total the same way. The part above the
+      // break is scaled by the largest overflow: that is the one of the total here.
+      const overflow = this.overflowConfig
+        ? {
+            ...this.overflowConfig,
+            maxOverflow: Math.max(
+              this.overflowConfig.maxOverflow,
+              point.getScaledUnit() - (this.overflowConfig.cutHeight - this.overflowConfig.scenarioCutOffset),
+            ),
+          }
+        : null;
+      new Column(this.position, this.scenarioStyles(), point, index, true, group.group(), null, overflow)
         .updateLabelGroup(labelGroup.group())
         .setAsVariance()
         .draw(this.dataFormatDigits, this.measureScale);
     }
     this.drawTotalAxis(group, this.position.getAxisPositionY(relative));
+
+    const box = scenarios.bbox();
+    this.scenariosArea = {
+      height: box.height + this.styles.padding.top + this.styles.padding.bottom,
+      width: box.width + this.position.spacings.columnWidth,
+    };
   }
 
   private determineEffectiveChartMode(): ChartMode {
