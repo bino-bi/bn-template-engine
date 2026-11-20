@@ -182,6 +182,45 @@ describe("stacked area by dimension", () => {
     expect(count(2)).toBe(MONTHS.length / 2);
   });
 
+  it("puts the total line of a negative stack on its lower edge, with the label", () => {
+    const rows = ROWS.map((row) => ({ ...row, ac1: -(row.ac1 as number) }));
+    const svg = draw(buildChart({}, rows));
+    const fillYs = all(svg, "#area_fill_2 path").flatMap((path) =>
+      (path.getAttribute("d") ?? "").match(/,(-?[\d.]+)/g)!.map((part) => Number(part.slice(1))),
+    );
+    const marker = all(svg, "#StackedAreaTotal .area-total-marker")[0];
+    // the middle of the marker is the lowest point of the last layer
+    expect(Number(marker.getAttribute("y")) + 4).toBeCloseTo(Math.max(...fillYs), 5);
+  });
+
+  it("has no total and still all names for a period without a value", () => {
+    const rows = [...ROWS, { date: "2025-03-01", operation: "+", category: "Priority 1", categoryIndex: 0, pl1: 5 }];
+    const svg = draw(buildChart({}, rows));
+    expect(all(svg, "#StackedAreaTotal .area-total-marker")).toHaveLength(MONTHS.length);
+    expect(all(svg, '#StackedAreaLabels [data-bn-part="total"]')).toHaveLength(MONTHS.length);
+    expect(texts(svg, "#StackedAreaLabels text").filter((text) => text.startsWith("Priority"))).toEqual(SERIES);
+  });
+
+  it("prints the shares of a 100 % stack with the percent sign, also with percentMark", () => {
+    const svg = draw(buildChart({ stackConfig: { ...STACK, mode: "relative", percentMark: true } }));
+    const values = texts(svg, '#StackedAreaLabels [data-bn-part="label"] text');
+    expect(values.length).toBeGreaterThan(0);
+    expect(values.every((text) => text.includes("%"))).toBe(true);
+  });
+
+  it("keeps the year line of a plain line chart with periodLines", () => {
+    const rows = MONTHS.map((date) => ({ date, operation: "+", ac1: 100 }));
+    const svg = draw(buildChart({ stackConfig: null, periodLines: 1 }, rows));
+    expect(all(svg, "#YearSeparators line")).toHaveLength(1);
+    expect(all(svg, ".period-line")).toHaveLength(0);
+  });
+
+  it("tells the layout state the number of periods of a plain line chart", () => {
+    const rows = MONTHS.map((date) => ({ date, operation: "+", ac1: 100 }));
+    const svg = draw(buildChart({ stackConfig: null }, rows));
+    expect(countPrimaryDataPoints(svg.node)).toBe(MONTHS.length);
+  });
+
   it("tells the layout state the number of its periods", () => {
     const svg = draw(buildChart());
     expect(countPrimaryDataPoints(svg.node)).toBe(MONTHS.length);

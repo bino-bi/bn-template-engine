@@ -3462,8 +3462,9 @@ export class TimeChart {
         ).forceStringTypeDraw();
 
         // Draw vertical dashed separator line at year transitions (except for first and last).
-        // Period lines take its place. Its own group: it is as high as the chart and must not count as axis height
-        if (this.periodLines < 1 && index > 0 && index < lastIndex && this.isYearChange(dataModel, index)) {
+        // The period lines of a stacked area take its place. Its own group: it is as high as the chart and must not count as axis height
+        const replaced = this.periodLines >= 1 && this.stackConfig != null;
+        if (!replaced && index > 0 && index < lastIndex && this.isYearChange(dataModel, index)) {
           this.drawYearSeparatorLine(separatorGroup, index, isRelative);
         }
       });
@@ -3822,6 +3823,11 @@ export class TimeChart {
         CalculateSize(text, { font: this.styles.fontStyles.font, fontSize: this.styles.fontStyles.size + "px" }).width,
       );
     }
+    if (isArea && side === "left" && width > 0) {
+      // the names keep clear of the value labels of the first period, which can be wider than a column
+      const halfColumn = (this.styles.fontStyles.size * this.styles.scaleFactors.columnWidth) / 2;
+      width += Math.max(0, this.areaLabelHalfWidth() - halfColumn);
+    }
     return width;
   }
 
@@ -4154,18 +4160,25 @@ export class TimeChart {
       (dataModel.find((row) => row.scenario1?.scenario != null)?.scenario1.scenario as string) ?? "ac1";
     const lineStyle =
       IBCS_LINE_STYLES[styleSlot(this.ruleSet.getScenarioColorIndex(scenarioName))] ?? IBCS_LINE_STYLES.ac;
-    const topY = (index: number): number => axisY - layouts[index].positive * pixelPerUnit;
+    // like the total of a column: on the positive edge, for a negative total on the negative edge
+    const totalEnd = (index: number): number =>
+      layouts[index].total < 0 ? 0 - layouts[index].negative : layouts[index].positive;
+    const topY = (index: number): number => axisY - totalEnd(index) * pixelPerUnit;
+    // a period without a value of any series has no total
+    const filled = dataModel.map((row) => names.some((_, layer) => Number.isFinite(pointOf(row, layer)?.value)));
     const markerSize = 8;
     if (!isRelative) {
       const totalGroup = areaGroup.group().id("StackedAreaTotal");
-      if (xs.length > 1) {
+      const linePoints = xs.map((x, index) => [x, topY(index)]).filter((_, index) => filled[index]);
+      if (linePoints.length > 1) {
         totalGroup
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .polyline(xs.map((x, index) => [x, topY(index)]) as any)
+          .polyline(linePoints as any)
           .fill("none")
           .stroke({ color: lineStyle.lineColor, width: 1.5 });
       }
       xs.forEach((x, index) => {
+        if (!filled[index]) return;
         totalGroup
           .rect(markerSize, markerSize)
           .fill(lineStyle.markerFill)
@@ -4183,9 +4196,7 @@ export class TimeChart {
     const fontSize = this.styles.fontStyles.size || 18;
     const minHeight = Math.min(18, fontSize * 1.15);
     const shareText = (share: number): string =>
-      this.hasPercentMark()
-        ? Formatter.number(share * 100, "decimal", digits.percent, digits.percent, 1, this.styles.locale)
-        : Formatter.number(share, "percent", digits.percent, digits.percent, 1, this.styles.locale);
+      Formatter.number(share, "percent", digits.percent, digits.percent, 1, this.styles.locale);
     const taken: { x: number; x2: number; y: number; y2: number }[] = [];
     const keep = (draw: (holder: G) => void): void => {
       const holder = labelGroup.group();
@@ -4201,21 +4212,13 @@ export class TimeChart {
     for (let index = lastIndex; index >= 0; index--) {
       const row = dataModel[index];
       const layout = layouts[index];
-      // a label of the first or the last period stays inside the area
-      const hook =
-        dataModel.length > 1 && index === lastIndex
-          ? HookLocation.Right
-          : dataModel.length > 1 && index === 0
-            ? HookLocation.Left
-            : HookLocation.Center;
-      const inset = fontSize * 0.2;
-      const labelX =
-        hook === HookLocation.Right ? xs[index] - inset : hook === HookLocation.Left ? xs[index] + inset : xs[index];
+      // half of a label of the first or the last period lies beside the area: it gets the box of a plain label
+      const onEdge = index === 0 || index === lastIndex;
 
-      if (!isRelative) {
+      if (!isRelative && filled[index]) {
         // like a column: the total of a negative stack hangs below its negative side
         const isNegative = layout.total < 0;
-        const end = isNegative ? 0 - layout.negative : layout.positive;
+        const end = totalEnd(index);
         keep((holder) =>
           new Label(
             holder,
@@ -4240,16 +4243,15 @@ export class TimeChart {
         keep((holder) => {
           const label = new Label(
             holder,
-            labelX,
+            xs[index],
             axisY - ((segment.start + segment.end) / 2) * pixelPerUnit,
             "STACK_SEG",
             stackMode === StackMode.ABSOLUTE ? point.value : shareText(segment.share),
             this.styles,
             HookLocation.Center,
-            hook,
-          )
-            .setSegmentFill(colorOf(layer))
-            .setPoint(point.key);
+            HookLocation.Center,
+          ).setPoint(point.key);
+          if (!onEdge) label.setSegmentFill(colorOf(layer));
           if (stackMode === StackMode.ABSOLUTE) {
             label.draw(true, digits, this.measureScale);
           } else {
@@ -4259,14 +4261,13 @@ export class TimeChart {
       });
     }
 
-    // the names of the series, each at half the height of its layer
+    // the names of the series, each at half the height its layer has in the first or the last period with a value
     const legend = this.stackConfig.legend ?? "left";
     const drawNames = (side: "left" | "right"): void => {
-      const index = side === "left" ? 0 : lastIndex;
+      const index = side === "left" ? filled.indexOf(true) : filled.lastIndexOf(true);
+      if (index < 0) return;
       const layout = layouts[index];
       names.forEach((entry, layer) => {
-        const point = pointOf(dataModel[index], layer);
-        if (!point || !Number.isFinite(point.value)) return;
         const segment = layout.segments[layer];
         new Label(
           labelGroup,

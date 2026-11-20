@@ -427,8 +427,10 @@ export class Chart {
    *     area, in its colour from `stackColors`, with its value in its middle.
    *     The total is a line with markers and values on top, and the names of
    *     the series stand on the side `legend` names. A label that would lie
-   *     on another one is left out. `order`, `notation`, `percentMark` and
-   *     `scenario-switch` have no effect on the area.
+   *     on another one is left out. The labels of the first and the last
+   *     period have the box of a plain label, as half of them lies beside
+   *     the area. `order`, `notation`, `percentMark` and `scenario-switch`
+   *     have no effect on the area.
    * - `mode` (optional, default `"absolute"`):
    *   - `"absolute"` - additive stacking, axis shows absolute units.
    *   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is
@@ -851,6 +853,34 @@ export class Chart {
     }
   }
 
+  @Watch("periodLines")
+  validatePeriodLines(newValue: number) {
+    const errId = "WARN_periodLines";
+    if (!isValidInteger(newValue) || Number(newValue) < 0) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "periodLines: invalid value '" + newValue + "' is not supported.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  @Watch("pointPosition")
+  validatePointPosition(newValue: string) {
+    const errId = "WARN_pointPosition";
+    if (newValue !== "center" && newValue !== "end") {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "pointPosition: value '" + newValue + "' is not supported. Valid values are: center, end.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
   /**
    * For a series that changes its scenario along the time axis, for example
    * AC up to this year and PL after it. In a period where the first scenario
@@ -955,6 +985,8 @@ export class Chart {
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDataFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateAxisLabelsStep(this.axisLabelsStep);
+    this.validatePeriodLines(this.periodLines);
+    this.validatePointPosition(this.pointPosition);
     this.validateTotals(this.totals);
     this.validateAxisTitlePosition(this.axisTitlePosition);
   }
