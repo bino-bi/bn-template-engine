@@ -19,6 +19,7 @@ import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
 import withScalingGroup from "../../utils/withScalingGroup";
 import { globalLabelKeys } from "../../stores/internationalization";
+import { getStores } from "../../context/context-protocol";
 import { withStyled } from "../../utils/styled/withStyled";
 import withComponentStyle from "../../utils/withComponentStyle";
 import { ruleSetLabels } from "../../utils/ibcsRuleSet";
@@ -563,6 +564,64 @@ export class Chart {
   @Prop() dataFormatPercentSign: boolean = true;
 
   /**
+   * Scenarios that are shown at the total row only, comma separated, for
+   * example `pl1`. The chart adds them up from its dataset. Such a scenario
+   * must not be in `scenarios`. Needs `sums` with a total row. In a bridge it is
+   * a bar above the reference total, and its variance to the total of the
+   * series is a thin bar below the variance of the total. Else its value
+   * stands in the total row with the others.
+   */
+  @Prop() sumScenarios: string = "";
+
+  /**
+   * Name of a dataset with the values of the total row: the scenario columns,
+   * in one row or added up over its rows. The chart then computes no total.
+   * Every scenario column that the chart does not draw is shown at the total
+   * only, and `sum-scenarios` limits them.
+   */
+  @Prop() sumDataset: string = "";
+
+  @Watch("sumDataset")
+  bindSumDataset() {
+    const name = (this.sumDataset ?? "").trim();
+    // an element that is not in the page has no subscription: it binds when it connects
+    if (!this.element.isConnected) return;
+    if (name === this.sumDatasetName) return;
+    this.sumDatasetUnsubscribe?.();
+    this.sumDatasetUnsubscribe = null;
+    this.sumDatasetName = name;
+    if (name) {
+      this.sumDatasetUnsubscribe = getStores(this.element).db.subscribe(name, () => {
+        this.dataVersion++;
+      });
+    }
+  }
+
+  private sumDatasetUnsubscribe: (() => void) | null = null;
+  private sumDatasetName = "";
+
+  connectedCallback() {
+    this.bindSumDataset();
+  }
+
+  private prepareSumScenarios(): string[] {
+    const errId = "WARN_sumScenarios_stack";
+    if (this.prepareStackConfig() != null && (!isBlankInput(this.sumScenarios) || !isBlankInput(this.sumDataset))) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "sumScenarios, sumDataset: no effect with stack, the total row of a stack adds up its rows.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+    return (this.sumScenarios ?? "")
+      .split(",")
+      .map((entry) => entry.trim().toLowerCase())
+      .filter((entry) => /^(ac|fc|pp|pl)[1-4]$/.test(entry));
+  }
+
+  /**
    * Text printed right after every value label, for example a unit that IBCS repeats in each row.
    * Variance labels do not get it.
    *
@@ -888,6 +947,9 @@ export class Chart {
   }
 
   disconnectedCallback() {
+    this.sumDatasetUnsubscribe?.();
+    this.sumDatasetUnsubscribe = null;
+    this.sumDatasetName = "";
     this.layoutObserver?.disconnect();
     this.layoutObserver = null;
   }
@@ -1461,6 +1523,8 @@ export class Chart {
         hideScenarioName={this.hidesScenarios()}
         referenceLine={isBase ? this.prepareReferenceLine() : null}
         italicCategories={this.prepareItalicCategories() ?? []}
+        sumScenarios={this.prepareSumScenarios()}
+        sumDataset={(this.sumDataset ?? "").trim()}
         varianceWaterfall={this.varianceWaterfall === true}
         bridgeVariances={this.prepareBridgeVariances()}
         dataFormatDigits={{

@@ -689,6 +689,13 @@ export class Chart {
    * - `dataset` - name of a dataset with one row per total (`date` and the
    *   scenario columns). The chart takes the values from it and computes none.
    *   With `average` or `last` the values of a row are one column.
+   * - `scenarios` - scenarios that are drawn at a total only, not in the periods,
+   *   for example `["pp1"]`. The chart adds them up from its dataset. Such a
+   *   scenario must not be in `scenarios` of the chart. It is a column next to
+   *   the reference of the total, and with `by: all` its variance to the total
+   *   of the series is a thin bar at the right. With `dataset` every scenario of
+   *   a row that the chart does not draw is such a scenario, and the list
+   *   limits them.
    * - `label` - text under the column of `by: all`. The other columns take the name of their period.
    * - `width` - width in widths of a period column, default 1.
    *
@@ -741,6 +748,12 @@ export class Chart {
         label,
         width: width > 0 ? width : 1,
         dataset: typeof parsed.dataset === "string" ? parsed.dataset.trim() : "",
+        scenarios: Array.isArray(parsed.scenarios)
+          ? parsed.scenarios
+              .filter((entry: unknown): entry is string => typeof entry === "string")
+              .map((entry: string) => entry.trim().toLowerCase())
+              .filter((entry: string) => /^(ac|fc|pp|pl)[1-4]$/.test(entry))
+          : [],
       };
     } catch {
       return null;

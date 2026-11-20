@@ -46,6 +46,8 @@ export interface TotalsConfig {
   width: number;
   /** Name of a dataset that holds the values. Empty: the chart computes them from its periods. */
   dataset: string;
+  /** Scenarios that are drawn at the total only, not in the periods. */
+  scenarios?: string[];
 }
 
 /**
@@ -238,6 +240,9 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
         label: typeof totals.label === "string" ? totals.label : "",
         width: CompareUtil.isNumber(totals.width) && totals.width > 0 ? totals.width : 1,
         dataset: typeof totals.dataset === "string" ? totals.dataset : "",
+        scenarios: Array.isArray(totals.scenarios)
+          ? totals.scenarios.filter((entry): entry is string => typeof entry === "string")
+          : [],
       };
     }
 
