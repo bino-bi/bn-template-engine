@@ -158,6 +158,10 @@ export class BnChartTimeRenderer {
 
   /** @internal */
   @Prop()
+  scalingIndicator: number = 0;
+
+  /** @internal */
+  @Prop()
   scenarioSwitch: boolean = false;
 
   /** @internal */
@@ -523,6 +527,7 @@ export class BnChartTimeRenderer {
       stackConfig: this.stackConfig,
       lineFullWidth: this.lineFullWidth,
       axisLabelsStep: this.axisLabelsStep,
+      scalingIndicator: this.scalingIndicator,
       scenarioSwitch: this.scenarioSwitch,
       axisTitlePosition: this.axisTitlePosition,
       locale: this.stores?.context?.state?.locale || "de",

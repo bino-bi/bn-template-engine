@@ -2,7 +2,7 @@ import { DataPoint, TimeChartDimension } from "../model";
 import { HookLocation, Label } from "./Label";
 
 import { G } from "@svgdotjs/svg.js";
-import { ElementPositions } from "../helper";
+import { ElementPositions, hatchPattern } from "../helper";
 
 import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { SVGVariancesStyleGroup } from "../../../../utils/model";
@@ -144,6 +144,11 @@ export class Needle {
 
     if (this.dimensions.clipped) {
       this.createClippedNeedleHead(fillStyle, strokeStyle);
+    } else if (this.dataPoint.notation === "fc") {
+      // the head of a forecast pin is hatched like a forecast column
+      const background = this.styles.fontStyles.background || "#ffffff";
+      const hatch = hatchPattern(this.barGroup, strokeStyleHead.color, background);
+      this.createNeedleHead(hatch ?? strokeStyleHead, { color: strokeStyleHead.color, width: 1 });
     } else {
       this.createNeedleHead(strokeStyleHead, fillStyleHead);
     }
@@ -207,7 +212,8 @@ export class Needle {
     }
   }
 
-  private createNeedleHead(strokeStyleHead: string, fillStyleHead: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private createNeedleHead(strokeStyleHead: any, fillStyleHead: any) {
     this.barGroup
       .rect(2 * this.position.getNeedleWidth(), this.position.getNeedleHeadWidth())
       .cx(this.dimensions.xPos)

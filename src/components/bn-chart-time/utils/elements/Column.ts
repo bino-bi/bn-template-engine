@@ -2,7 +2,7 @@ import { DataPoint, TimeChartDimension } from "../model";
 import { HookLocation, Label } from "./Label";
 
 import { G } from "@svgdotjs/svg.js";
-import { ElementPositions } from "../helper";
+import { ElementPositions, hatchPattern } from "../helper";
 // import {
 //   SVGStyle,
 // } from "../../../../utils/model";
@@ -128,6 +128,15 @@ export class Column {
       const planWidth = Number(this.columnBarStyles?.pl?.width);
       strokeStyle = { color: scenarioStyle?.fill || this.FALLBACK_COLOUR, width: planWidth > 0 ? planWidth : 1 };
       fillStyle = this.styles.fontStyles.background || "#ffffff";
+    }
+    if (this.isVarianceColumn && this.dataPoint.notation === "fc") {
+      // hatched like a forecast column, in the colour of the variance
+      const color = scenarioStyle?.fill || this.FALLBACK_COLOUR;
+      const hatch = hatchPattern(this.scenarioGroup, color, this.styles.fontStyles.background || "#ffffff");
+      if (hatch) {
+        strokeStyle = { color, width: 1 };
+        fillStyle = hatch;
+      }
     }
 
     this.scenarioGroup.attr(dataPointAttributes(this.dataPoint.key));

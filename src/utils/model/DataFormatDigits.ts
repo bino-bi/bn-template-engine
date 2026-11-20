@@ -6,6 +6,8 @@ export class DataFormatDigits {
   constructor(
     public percent: number = 2,
     public decimal: number = 1,
+    /** False: a relative variance prints as a plain number, the unit stands in the title of its row. */
+    public percentSign?: boolean,
   ) {}
 }
 
@@ -23,6 +25,10 @@ export class DataFormatDigitsAdapter implements IAdapter<DataFormatDigits> {
 
     if (valid(data.decimal)) {
       prefix.decimal = data.decimal;
+    }
+
+    if (data.percentSign === false) {
+      prefix.percentSign = false;
     }
 
     return prefix;

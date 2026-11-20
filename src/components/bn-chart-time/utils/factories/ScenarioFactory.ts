@@ -159,13 +159,13 @@ export class ScenarioFactory {
     return new Needle(this.position, this.styles, dataPoint, index, needleGroup).updateLabelGroup(labelGroup);
   }
 
-  public createSecondaryBar(dataPoint: DataPoint, index: number): Column {
+  public createSecondaryBar(dataPoint: DataPoint, index: number, withScenarioLabel: boolean = true): Column {
     const isPrimaryBar = false;
     const barGroup = this.svgGroups.scenario2.group().id("" + index);
 
     let columnLabel: string | null = null;
 
-    if (this.isFirstDataPoint(index)) {
+    if (withScenarioLabel && this.isFirstDataPoint(index)) {
       columnLabel = `${this.i18n.get(dataPoint.scenario as string) || dataPoint.scenario}`;
     }
 

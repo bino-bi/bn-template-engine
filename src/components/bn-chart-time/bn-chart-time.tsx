@@ -25,6 +25,7 @@ import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
+import { measureHeightBonus, settleHeightBonus } from "./utils/helper/heightBonus";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
@@ -634,6 +635,12 @@ export class Chart {
    */
   @Prop() dataFormatDigitsPercent: number = 2;
 
+  /**
+   * `false` prints the labels of relative variances without the percent sign (`+11.6`).
+   * The title of the row (`ΔPY%`) still names the unit.
+   */
+  @Prop() dataFormatPercentSign: boolean = true;
+
   @Watch("dataFormatDigitsPercent")
   validateDataFormatDigitsPercent(newValue: number) {
     this.validateDigits("dataFormatDigitsPercent", newValue);
@@ -657,6 +664,13 @@ export class Chart {
    * 2 labels every second period. Bar mode only.
    */
   @Prop() axisLabelsStep: number = 1;
+
+  /**
+   * Scaling indicator: a light band behind the columns, from the axis up to this
+   * value, with the value at its right end. Two charts with different scales
+   * show the same value, so the reader sees the difference. Bar mode only.
+   */
+  @Prop() scalingIndicator?: number;
 
   @Watch("axisLabelsStep")
   validateAxisLabelsStep(newValue: number) {
@@ -850,6 +864,11 @@ export class Chart {
   componentDidRender() {
     syncEmptyState(this.element, "bn-chart-time-renderer");
 
+    const bonusChanged = this.updateBaseHeightBonus();
+    if (bonusChanged && !this._autoScaleGuard) {
+      forceUpdate(this);
+    }
+
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {
@@ -861,6 +880,10 @@ export class Chart {
     if (this._autoScaleGuard) {
       this._autoScaleGuard = false;
       this.checkOverflow();
+      if (bonusChanged) {
+        // the guard render did not use the new bonus yet
+        forceUpdate(this);
+      }
       return;
     }
 
@@ -995,19 +1018,52 @@ export class Chart {
 
   private _lastAppliedHeight = 0;
 
-  prepareDimension(): ParentDimensions {
+  /**
+   * Height that the variance segments leave of their shares. With a fixed
+   * `unitScaling` the base segment gets it on top of its own share, so a
+   * column is cut only when the whole chart has no room for it.
+   */
+  private _baseHeightBonus = 0;
+
+  /** Measures the drawn variance segments. True when the bonus of the base segment changed. */
+  private updateBaseHeightBonus(): boolean {
+    const segments = this.prepareSegments();
+    const fixedUnit = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind === "value";
+    let measured = 0;
+    if (fixedUnit && segments.length > 1 && segments[0].length === 0) {
+      const renderers = Array.from(this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer") ?? []);
+      measured = measureHeightBonus(
+        this.segmentShare(this._lastAppliedHeight, segments.length),
+        renderers.slice(1).map((renderer) => (renderer as HTMLElement).offsetHeight),
+      );
+    }
+    const bonus = settleHeightBonus(this._baseHeightBonus, measured);
+    if (bonus === this._baseHeightBonus) {
+      return false;
+    }
+    this._baseHeightBonus = bonus;
+    return true;
+  }
+
+  /**
+   * The base chart and each variance render as vertically stacked segments
+   * (see render()), so each one may only claim its share of the height.
+   * The measure-scale footer (first segment only) renders below its SVG:
+   * reserve roughly one em for it so the fitted charts leave it room.
+   */
+  private segmentShare(parentHeight: number, segmentCount: number): number {
+    const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
+    return Math.max(0, parentHeight - footerAllowance) / Math.max(1, segmentCount);
+  }
+
+  prepareDimension(isBase: boolean = false): ParentDimensions {
     const parent = getParentDimensions(this.element);
     const scenariosList = this.prepareScenarios();
     const segments = this.prepareSegments();
     this.canvasWidthSegmented = parent.width / (scenariosList.length + this.prepareVariances().length || 1);
     this._lastAppliedHeight = parent.height;
-    // The base chart and each variance render as vertically stacked segments
-    // (see render()), so each one may only claim its share of the height.
-    // The measure-scale footer (first segment only) renders below its SVG:
-    // reserve roughly one em for it so the fitted charts leave it room.
-    const segmentCount = Math.max(1, segments.length);
-    const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
-    return { width: this.canvasWidthSegmented, height: Math.max(0, parent.height - footerAllowance) / segmentCount };
+    const share = this.segmentShare(parent.height, segments.length);
+    return { width: this.canvasWidthSegmented, height: share + (isBase ? this._baseHeightBonus : 0) };
   }
 
   private prepareScenarios(): string[] {
@@ -1537,12 +1593,17 @@ export class Chart {
         maxBars={this.prepareMaxBars()}
         stackConfig={stackConfig}
         lineFullWidth={this.prepareLineFullWidth()}
-        dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}
+        dataFormatDigits={{
+          percent: this.dataFormatDigitsPercent,
+          decimal: this.dataFormatDigitsDecimal,
+          percentSign: this.dataFormatPercentSign !== false,
+        }}
         axisLabelsStep={Math.max(1, Math.floor(Number(this.axisLabelsStep) || 1))}
+        scalingIndicator={isBase ? Number(this.scalingIndicator) || 0 : 0}
         scenarioSwitch={this.scenarioSwitch}
         axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}
-        parentDimensions={this.prepareDimension()}
+        parentDimensions={this.prepareDimension(isBase)}
         ruleSetConfig={this.ruleSetConfig()}
       ></bn-chart-time-renderer>
     );

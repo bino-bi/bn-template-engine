@@ -67,6 +67,8 @@ export class TimeChartComponentConfig {
   public lineFullWidth: boolean = true;
   /** Print every n-th category label only. */
   public axisLabelsStep: number = 1;
+  /** Value of the scaling indicator band, 0 for none. */
+  public scalingIndicator: number = 0;
   /** One series that changes its scenario along the time axis, see `bn-chart-time`. */
   public scenarioSwitch: boolean = false;
   /** Side of the axis title: left, right or none. */
@@ -188,6 +190,10 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isNumber(data.axisLabelsStep) && data.axisLabelsStep >= 1) {
       config.axisLabelsStep = data.axisLabelsStep;
+    }
+
+    if (CompareUtil.isNumber(data.scalingIndicator) && data.scalingIndicator > 0) {
+      config.scalingIndicator = data.scalingIndicator;
     }
 
     if (CompareUtil.isBoolean(data.scenarioSwitch)) {

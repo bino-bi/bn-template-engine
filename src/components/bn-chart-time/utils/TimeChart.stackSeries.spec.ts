@@ -86,6 +86,8 @@ interface Segment {
 
 interface ChartInternals {
   dataModel: Record<string, unknown>[];
+  highestDataPointValue: { value: number };
+  smallestDataPointValue: { value: number };
   stackGroups(row: unknown): { segments: Segment[]; layout: { total: number } }[];
   switchRuns(): { scenario: string; from: number; to: number }[];
   contextRow(): { from: number; text: string }[];
@@ -149,12 +151,95 @@ describe("time chart stack by dimension", () => {
     expect(chart.switchRuns()).toEqual([]);
   });
 
-  it("reports a scenario that overlaps the first one, and stacks only the first", () => {
-    const rows = ROWS.map((row) => ("ac1" in row ? { ...row, pl1: 5 } : row));
+  it("draws a scenario that overlaps the first one as the column behind the stack", () => {
+    const rows = ROWS.map((row) => ("ac1" in row ? { ...row, pl1: 50 } : row));
     const chart = buildChart({ scenarios: ["ac1", "pl1"] }, rows);
-    expect(chart.getIgnoredSwitchScenarios()).toEqual(["pl1"]);
+    expect(chart.getIgnoredSwitchScenarios()).toEqual([]);
     expect(internals(chart).stackGroups(internals(chart).dataModel[0])[0].layout.total).toBe(210);
+    // 2024 has six series with 50 each: the reference is higher than the stack of 210
+    expect(internals(chart).highestDataPointValue.value).toBe(300);
+    const svg = draw(chart);
+    expect(svg.node.querySelectorAll("#StackReference #Scenario2 > g").length).toBe(4);
+    expect(svg.node.querySelector("#StackReference ~ #StackedScenarios")).not.toBeNull();
+  });
+
+  it("reports a second scenario that overlaps, and one in a 100 % stack", () => {
+    const rows = ROWS.map((row) => ("ac1" in row ? { ...row, pl1: 5, pp1: 5 } : row));
+    expect(buildChart({ scenarios: ["ac1", "pl1", "pp1"] }, rows).getIgnoredSwitchScenarios()).toEqual(["pp1"]);
+    const relative = buildChart({ scenarios: ["ac1", "pl1"], stackConfig: { ...STACK, mode: "relative" } }, rows);
+    expect(relative.getIgnoredSwitchScenarios()).toEqual(["pl1"]);
+    expect(draw(relative).node.querySelector("#StackReference")).toBeNull();
     expect(buildChart({}).getIgnoredSwitchScenarios()).toEqual([]);
+  });
+
+  it("fills a series without a value from the scenario that has it", () => {
+    // one year in two parts: the months with actual values and the months of the forecast
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "AC", categoryIndex: 1, ac1: 100, pp1: 90 },
+      { date: "2025-01-01", operation: "+", category: "FC", categoryIndex: 2, fc1: 40, pp1: 30 },
+    ];
+    const chart = buildChart(
+      { scenarios: ["ac1", "fc1", "pp1"], stackConfig: { ...STACK, notation: "scenario" } },
+      rows,
+    );
+    const [group] = internals(chart).stackGroups(internals(chart).dataModel[0]);
+    expect(group.segments.map((segment) => segment.scenario)).toEqual(["ac1", "fc1"]);
+    expect(group.layout.total).toBe(140);
+    expect(chart.getIgnoredSwitchScenarios()).toEqual([]);
+    const svg = draw(chart);
+    const fills = Array.from(svg.node.querySelectorAll('#StackedScenarios g[id^="stacked_col_0_"] rect')).map(
+      (rect) => rect.getAttribute("fill") ?? "",
+    );
+    expect(fills[0].startsWith("#")).toBe(true);
+    expect(fills[1].startsWith("url(#pattern-stack-fc-")).toBe(true);
+    // pp1 is the column behind
+    expect(svg.node.querySelectorAll("#StackReference #Scenario2 > g").length).toBe(1);
+  });
+
+  it("takes a 0 as no value when it finds the roles", () => {
+    // a dataset often has 0 where a scenario has no value
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "AC", categoryIndex: 1, ac1: 100, fc1: 0 },
+      { date: "2025-01-01", operation: "+", category: "FC", categoryIndex: 2, ac1: 0, fc1: 40 },
+    ];
+    const chart = buildChart({ scenarios: ["ac1", "fc1"] }, rows);
+    const [group] = internals(chart).stackGroups(internals(chart).dataModel[0]);
+    expect(group.segments.map((segment) => segment.scenario)).toEqual(["ac1", "fc1"]);
+    expect(group.layout.total).toBe(140);
+    expect(draw(chart).node.querySelector("#StackReference")).toBeNull();
+  });
+
+  it("keeps room below the axis for a negative reference", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "A", categoryIndex: 1, ac1: 100, pp1: -200 },
+      { date: "2025-01-01", operation: "+", category: "B", categoryIndex: 2, ac1: 50, pp1: -100 },
+    ];
+    const chart = internals(buildChart({ scenarios: ["ac1", "pp1"] }, rows));
+    expect(chart.smallestDataPointValue.value).toBe(-300);
+  });
+
+  it("names the reference only when the series names stand at the right", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "A", categoryIndex: 1, ac1: 100, pp1: 90 },
+      { date: "2025-01-01", operation: "+", category: "B", categoryIndex: 2, ac1: 50, pp1: 40 },
+    ];
+    const names = (legend: string): string[] =>
+      texts(
+        draw(buildChart({ scenarios: ["ac1", "pp1"], stackConfig: { ...STACK, legend } }, rows)),
+        "#StackReference text",
+      );
+    expect(names("left")).not.toContain("PY");
+    expect(names("both")).not.toContain("PY");
+    expect(names("right")).toContain("PY");
+  });
+
+  it("does not fill without the switch", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "AC", categoryIndex: 1, ac1: 100 },
+      { date: "2025-01-01", operation: "+", category: "FC", categoryIndex: 2, fc1: 40 },
+    ];
+    const chart = internals(buildChart({ scenarios: ["ac1", "fc1"], scenarioSwitch: false }, rows));
+    expect(chart.stackGroups(chart.dataModel[0])[0].layout.total).toBe(100);
   });
 
   it("names the scenario of a chart with one scenario under the axis", () => {
