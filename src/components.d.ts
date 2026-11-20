@@ -22,7 +22,7 @@ import { ReferenceLine, StackConfigParsed } from "./components/bn-chart-structur
 import { ParentDimensions } from "./utils/parentDimensions";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
-import { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+import { StackConfigParsed as StackConfigParsed1, TotalColumnConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 import { Notation } from "./utils/notation";
 import { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
@@ -52,7 +52,7 @@ export { ReferenceLine, StackConfigParsed } from "./components/bn-chart-structur
 export { ParentDimensions } from "./utils/parentDimensions";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
-export { StackConfigParsed as StackConfigParsed1 } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+export { StackConfigParsed as StackConfigParsed1, TotalColumnConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 export { Notation } from "./utils/notation";
 export { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
@@ -1122,6 +1122,11 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
+          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of the total must be positive.
+          * @default ""
+         */
+        "totalColumn": string;
+        /**
           * Data units displayed per 1 em of bar length (vertical bars) - map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container height        | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
           * @example unit-scaling="auto"
           * @example unit-scaling="1M"
@@ -1259,6 +1264,10 @@ export namespace Components {
           * @default ""
          */
         "tableName": string;
+        /**
+          * @default null
+         */
+        "totalColumn": TotalColumnConfig | null;
         /**
           * @default []
          */
@@ -3825,6 +3834,11 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
+          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of the total must be positive.
+          * @default ""
+         */
+        "totalColumn"?: string;
+        /**
           * Data units displayed per 1 em of bar length (vertical bars) - map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container height        | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
           * @example unit-scaling="auto"
           * @example unit-scaling="1M"
@@ -3962,6 +3976,10 @@ declare namespace LocalJSX {
           * @default ""
          */
         "tableName"?: string;
+        /**
+          * @default null
+         */
+        "totalColumn"?: TotalColumnConfig | null;
         /**
           * @default []
          */
@@ -5230,6 +5248,7 @@ declare namespace LocalJSX {
         "dataFormatPercentSign": boolean;
         "axisLabelsStep": number;
         "scalingIndicator": number;
+        "totalColumn": string;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;
     }

@@ -65,6 +65,12 @@ const buildChart = (options: Record<string, unknown>, rows: Record<string, unkno
 
 interface ChartInternals {
   title: string;
+  totalVariance: DataPoint | null;
+  totalColumnParts(): {
+    parts: { scenario: string; value: number }[];
+    total: number;
+    reference: { scenario: string; value: number } | null;
+  } | null;
   variancesDataModel: { scenario1: DataPoint }[];
   followerSlots(): string[];
   switchRuns(): { scenario: string; from: number; to: number }[];
@@ -298,5 +304,126 @@ describe("time chart scaling indicator", () => {
   it("draws no band in a variance chart", () => {
     const svg = buildChart({ scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"], scalingIndicator: 100 });
     expect(svg.toString()).not.toContain("ScalingIndicator");
+  });
+});
+
+describe("time chart total column", () => {
+  const TOTAL = { totalColumn: { pixelPerUnit: 0.1, label: "All years", width: 1.5 } };
+
+  it("has no total column by default, with a stack or in line mode", () => {
+    expect(internals(buildChart({})).totalColumnParts()).toBeNull();
+    expect(buildChart({}).toString()).not.toContain("TotalColumn");
+    const stack = { by: "scenarios", mode: "absolute", order: "dataset", notation: "none", legend: "left" };
+    expect(internals(buildChart({ ...TOTAL, stackConfig: stack })).totalColumnParts()).toBeNull();
+    expect(internals(buildChart({ ...TOTAL, chartMode: "line" })).totalColumnParts()).toBeNull();
+  });
+
+  it("sums the first scenario, with the first other scenario as the reference", () => {
+    const total = internals(buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"] })).totalColumnParts();
+    expect(total.parts).toEqual([{ scenario: "ac1", value: 220 }]);
+    expect(total.reference).toEqual({ scenario: "pp1", value: 320 });
+  });
+
+  it("has one part per scenario of a switched series", () => {
+    const total = internals(buildChart({ ...TOTAL, scenarioSwitch: true })).totalColumnParts();
+    expect(total.parts).toEqual([
+      { scenario: "ac1", value: 220 },
+      { scenario: "pl1", value: 460 },
+    ]);
+    expect(total.total).toBe(680);
+    expect(total.reference).toEqual({ scenario: "pp1", value: 320 });
+  });
+
+  it("draws the parts, their names, the total, the label and its own axis", () => {
+    const svg = buildChart({ ...TOTAL, scenarioSwitch: true, dataFormatDigits: { percent: 1, decimal: 0 } }).toString();
+    expect(svg).toContain('id="TotalColumn"');
+    // the reference and two parts
+    expect(svg.match(/data-bn-row="total"[^>]*data-bn-part="element"/g)).toHaveLength(3);
+    for (const text of ["220", "460", "680", "AC", "PL", "All years"]) {
+      expect(svg).toContain(`>${text}</tspan>`);
+    }
+    expect(svg).toMatch(/<g id="TotalColumn">[\s\S]*<line[^>]*class="axis-/);
+  });
+
+  it("counts for the height of the chart, and causes no break mark", () => {
+    const plain = buildChart({ scenarios: ["ac1", "pp1"] });
+    const total = buildChart({ scenarios: ["ac1", "pp1"], totalColumn: { pixelPerUnit: 2, label: "", width: 1 } });
+    plain.layout();
+    total.layout();
+    // the reference of 320 at 2 px per unit is 640 high, the highest column 120
+    expect(total.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(520);
+    total.setAvailableHeight(400);
+    expect((total as unknown as { overflowConfig: unknown }).overflowConfig).toBeNull();
+  });
+
+  it("gives each variance row the variance of the totals", () => {
+    const options = { ...TOTAL, scenarioSwitch: true };
+    const absolute = internals(buildChart({ ...options, variances: ["dac1_pp1_pos", "dpl1_pp1_pos"] })).totalVariance;
+    expect(absolute.value).toBe(360);
+    expect(absolute.key).toEqual({ row: "total", scenario: "dac1_pp1_pos" });
+    expect(absolute.notation).toBe("ac");
+    const relative = internals(buildChart({ ...options, variances: ["drac1_pp1_pos", "drpl1_pp1_pos"] })).totalVariance;
+    expect(relative.value).toBeCloseTo(1.125);
+    const svg = buildChart({ ...options, variances: ["dac1_pp1_pos", "dpl1_pp1_pos"] }).toString();
+    expect(svg).toMatch(/data-bn-row="total"/);
+    expect(internals(buildChart({ variances: ["dac1_pp1_pos"] })).totalVariance).toBeNull();
+  });
+
+  it("takes the notation of a forecast that is part of the total", () => {
+    const rows = ROWS.map((row) => ("pl1" in row ? { date: row.date, operation: "+", fc1: row.pl1, pp1: 80 } : row));
+    const chart = buildChart(
+      { ...TOTAL, scenarios: ["ac1", "fc1", "pp1"], scenarioSwitch: true, variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] },
+      rows,
+    );
+    expect(internals(chart).totalVariance.notation).toBe("fc");
+  });
+
+  it("has no total column when a part is not positive", () => {
+    const rows = ROWS.map((row, index) => (index === 1 ? { ...row, ac1: -300 } : row));
+    const options = { ...TOTAL, scenarios: ["ac1", "pp1"] };
+    expect(internals(buildChart(options, rows)).totalColumnParts()).toBeNull();
+    // the variance row and the width agree: no total anywhere
+    expect(internals(buildChart({ ...options, variances: ["dac1_pp1_pos"] }, rows)).totalVariance).toBeNull();
+    const plain = buildChart({ scenarios: ["ac1", "pp1"] }, rows);
+    const total = buildChart(options, rows);
+    plain.layout();
+    total.layout();
+    expect(total.getAllocatedCanvasWidth()).toBe(plain.getAllocatedCanvasWidth());
+  });
+
+  it("does not cut period variances for the variance of the total", () => {
+    const chart = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"] });
+    chart.setAvailableHeight(160);
+    // the period variances are 20 and 40, the total 60... the row has room for the periods
+    expect((chart as unknown as { overflowConfig: unknown }).overflowConfig).toBeNull();
+  });
+
+  it("lifts the cut of the total pin with the pins of the periods", () => {
+    const rows = [
+      { date: "2024-01-01", operation: "+", ac1: 100, pp1: 80 },
+      { date: "2025-01-01", operation: "+", ac1: 400, pp1: 80 },
+    ];
+    const chart = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], variances: ["drac1_pp1_pos"] }, rows);
+    expect(internals(chart).totalVariance.isClipped()).toBe(true);
+    chart.fitRelativeVariances(100000);
+    expect(internals(chart).totalVariance.isClipped()).toBe(false);
+  });
+
+  it("counts the band of the total column for the height", () => {
+    const options = { scenarios: ["ac1", "pp1"], totalColumn: { pixelPerUnit: 5, label: "", width: 1 } };
+    const plain = buildChart(options);
+    const band = buildChart({ ...options, scalingIndicator: 400 });
+    plain.layout();
+    band.layout();
+    // the reference of 320 is 1600 high, the band of 400 is 2000 high
+    expect(band.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(400);
+  });
+
+  it("links the bands of the scaling indicator", () => {
+    const svg = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], scalingIndicator: 100 }).toString();
+    expect(svg).toContain('id="ScalingIndicatorLink"');
+    // 100 at 0.1 px per unit
+    expect(svg).toMatch(/<g id="TotalColumn"><rect[^>]*height="10"/);
+    expect(buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"] }).toString()).not.toContain("ScalingIndicatorLink");
   });
 });

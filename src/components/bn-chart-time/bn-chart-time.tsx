@@ -672,6 +672,73 @@ export class Chart {
    */
   @Prop() scalingIndicator?: number;
 
+  /**
+   * A column right of the last period for the total of all periods, at its own
+   * scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.
+   *
+   * - `unitScaling` - data units per em of column height, like `unit-scaling`. Required.
+   * - `label` - text under the column.
+   * - `width` - width in widths of a period column, default 1.
+   *
+   * The column stacks one part per scenario of the series: the first scenario,
+   * and with `scenario-switch` the ones that follow it. The first other
+   * scenario is the reference behind it. Each variance row gets the variance
+   * of the totals at the scale of the row. With `scaling-indicator` the column
+   * has its own band, and a line links the two bands. Plain columns only: not
+   * with `stack` and not in line mode. The chart needs a fixed `unit-scaling`,
+   * and every part of the total must be positive.
+   */
+  @Prop() totalColumn: string = "";
+
+  @Watch("totalColumn")
+  validateTotalColumn(newValue: string) {
+    const errId = "WARN_totalColumn";
+    if (isBlankInput(newValue) || this.parseTotalColumn(newValue) != null) {
+      this.errors.remove(errId);
+    } else {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: 'totalColumn: needs JSON with a unitScaling greater than 0, for example {"unitScaling":280}.',
+      });
+    }
+  }
+
+  private parseTotalColumn(value: string): { unitScaling: number; label: string; width: number } | null {
+    try {
+      const parsed = JSON.parse(value);
+      // the same values as `unit-scaling`: a number, with an SI suffix, or the name of a scaling group
+      const scaling = resolveScalingValue(parsed?.unitScaling, this.pixelPerUnitGroupMap);
+      if (scaling.kind !== "value" || !(scaling.value > 0)) return null;
+      const width = Number(parsed.width);
+      const label = typeof parsed.label === "string" || typeof parsed.label === "number" ? String(parsed.label) : "";
+      return { unitScaling: scaling.value, label, width: width > 0 ? width : 1 };
+    } catch {
+      return null;
+    }
+  }
+
+  /** The total column in the units of the inner chart: pixels for one data unit. */
+  private prepareTotalColumn(): { pixelPerUnit: number; label: string; width: number } | null {
+    const parsed = isBlankInput(this.totalColumn) ? null : this.parseTotalColumn(this.totalColumn);
+    const errId = "WARN_totalColumn_unitScaling";
+    if (parsed == null) {
+      this.errors.remove(errId);
+      return null;
+    }
+    // two fixed scales side by side: with an automatic scale of the periods there is nothing to compare
+    if (resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind !== "value") {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "totalColumn: needs a fixed unitScaling of the chart, the total column is not drawn.",
+      });
+      return null;
+    }
+    this.errors.remove(errId);
+    return { pixelPerUnit: this.getEffectiveFontPx() / parsed.unitScaling, label: parsed.label, width: parsed.width };
+  }
+
   @Watch("axisLabelsStep")
   validateAxisLabelsStep(newValue: number) {
     const errId = "WARN_axisLabelsStep";
@@ -768,6 +835,7 @@ export class Chart {
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDataFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateAxisLabelsStep(this.axisLabelsStep);
+    this.validateTotalColumn(this.totalColumn);
     this.validateAxisTitlePosition(this.axisTitlePosition);
   }
 
@@ -1599,7 +1667,8 @@ export class Chart {
           percentSign: this.dataFormatPercentSign !== false,
         }}
         axisLabelsStep={Math.max(1, Math.floor(Number(this.axisLabelsStep) || 1))}
-        scalingIndicator={isBase ? Number(this.scalingIndicator) || 0 : 0}
+        scalingIndicator={Number(this.scalingIndicator) || 0}
+        totalColumn={this.prepareTotalColumn()}
         scenarioSwitch={this.scenarioSwitch}
         axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}

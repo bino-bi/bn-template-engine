@@ -29,6 +29,16 @@ export interface StackConfigParsed {
   percentMark: boolean;
 }
 
+/** A column right of the last period for the total of all periods, at its own scale. */
+export interface TotalColumnConfig {
+  /** Pixels for one unit in the total column. */
+  pixelPerUnit: number;
+  /** Text under the column. */
+  label: string;
+  /** Width of the column in widths of a period column. */
+  width: number;
+}
+
 /**
  * Configuration for an IBCS time-series chart component.
  *
@@ -69,6 +79,8 @@ export class TimeChartComponentConfig {
   public axisLabelsStep: number = 1;
   /** Value of the scaling indicator band, 0 for none. */
   public scalingIndicator: number = 0;
+  /** The column for the total of all periods, null for none. */
+  public totalColumn: TotalColumnConfig | null = null;
   /** One series that changes its scenario along the time axis, see `bn-chart-time`. */
   public scenarioSwitch: boolean = false;
   /** Side of the axis title: left, right or none. */
@@ -194,6 +206,15 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isNumber(data.scalingIndicator) && data.scalingIndicator > 0) {
       config.scalingIndicator = data.scalingIndicator;
+    }
+
+    const total = data.totalColumn as Partial<TotalColumnConfig> | null | undefined;
+    if (total != null && CompareUtil.isNumber(total.pixelPerUnit) && total.pixelPerUnit > 0) {
+      config.totalColumn = {
+        pixelPerUnit: total.pixelPerUnit,
+        label: typeof total.label === "string" ? total.label : "",
+        width: CompareUtil.isNumber(total.width) && total.width > 0 ? total.width : 1,
+      };
     }
 
     if (CompareUtil.isBoolean(data.scenarioSwitch)) {
