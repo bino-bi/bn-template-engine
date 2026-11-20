@@ -79,6 +79,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
+- `bn-chart-time`: the variance of a total from a `dataset` was hatched as a forecast when its row named a forecast that is no part of the value. It takes the notation of the scenarios in its value now.
 - `bn-chart-time`: with `totals` from a `dataset`, a variance row gets a variance of the total only when the whole series stands on one side of its variances and none of it on the other. A row that sets parts of the series against each other got a value before.
 - `bn-chart-time`: two more points of `totals` with a `dataset`. A variance that names the series second (`dpp1_ac1_neg`) is treated like one that names it first: the side with the series is added up, and a row for a part of the series gets no variance of the total. And a row of the dataset with the date of a week of the chart belongs to the total of that week, also when the week counts into another year than its first day.
 - `bn-chart-time`: three points of `totals`. With a `dataset`, `aggregation` `average` or `last` now gives one column from the values of the row, as without a dataset. With a `dataset`, a variance row for a part of the series only gets no variance of the total: the reference of the row is the one of the whole total. And a week counts into the year, quarter or month of its Thursday, as its number does.

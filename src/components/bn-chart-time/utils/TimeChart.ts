@@ -1448,12 +1448,13 @@ export class TimeChart {
         }
         // a 0 is a scenario without a value in this total, as for the parts
         const has = (name: string): boolean => Number.isFinite(data[name]) && data[name] !== 0;
-        const side = (names: string[]): number | null => {
-          // of the side with the series only the series counts, of the other side the first name
+        // of the side with the series only the series counts, of the other side the first name
+        const used = (names: string[]): string[] => {
           const ofSeries = names.filter((name) => series.has(name));
-          const used = (ofSeries.length > 0 ? ofSeries : names.slice(0, 1)).filter(has);
-          return used.length > 0 ? used.reduce((sum, name) => sum + data[name], 0) : null;
+          return (ofSeries.length > 0 ? ofSeries : names.slice(0, 1)).filter(has);
         };
+        const side = (names: string[]): number | null =>
+          used(names).length > 0 ? used(names).reduce((sum, name) => sum + data[name], 0) : null;
         const baseSide = side(bases);
         const deltaSide = side(deltas);
         if (baseSide == null || deltaSide == null) {
@@ -1461,7 +1462,8 @@ export class TimeChart {
         }
         base = baseSide;
         delta = deltaSide;
-        bases.filter(has).forEach((name) => notations.add(name.slice(0, 2)));
+        // the notation of what is in the value, not of every name of the row
+        used(bases).forEach((name) => notations.add(name.slice(0, 2)));
       } else {
         // the same periods as the column, so the two tell the same: with `last` the one
         // period of the value. Without both values in each of them there is no variance.
