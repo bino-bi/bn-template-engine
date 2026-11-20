@@ -88,7 +88,7 @@ export namespace Components {
      */
     interface BnAnnotationLayer {
         /**
-          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points.
+          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points. Both ends must be data points then, and a `text` is not drawn.
          */
         "items"?: string;
         /**
@@ -2956,7 +2956,7 @@ declare namespace LocalJSX {
      */
     interface BnAnnotationLayer {
         /**
-          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points.
+          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points. Both ends must be data points then, and a `text` is not drawn.
          */
         "items"?: string;
         /**
