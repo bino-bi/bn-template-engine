@@ -694,6 +694,9 @@ describe("time chart totals by period", () => {
     // the reference minus a part of the series is no variance of the total
     expect(build(["dpp1_ac1_neg"])).toBeNull();
     expect(build(["dpp1_ac1_neg", "dpp1_fc1_neg"]).value).toBe(-50);
+    // parts of the series against each other, or the series on both sides, are no variance of the total
+    expect(build(["dac1_fc1_pos"])).toBeNull();
+    expect(build(["dac1_pp1_pos", "dpp1_fc1_neg"])).toBeNull();
   });
 
   it("puts a dataset row with the date of a week into the total of that week", () => {
