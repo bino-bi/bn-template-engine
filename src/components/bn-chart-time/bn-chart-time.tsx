@@ -753,11 +753,13 @@ export class Chart {
     } catch {
       name = "";
     }
+    // an element that is not in the page has no subscription: it binds when it connects
+    if (!this.element.isConnected) return;
     if (name === this.totalsDatasetName) return;
     this.totalsDatasetUnsubscribe?.();
     this.totalsDatasetUnsubscribe = null;
     this.totalsDatasetName = name;
-    if (name && this.element.isConnected) {
+    if (name) {
       this.totalsDatasetUnsubscribe = getStores(this.element).db.subscribe(name, () => {
         this.dataVersion++;
       });

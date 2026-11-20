@@ -94,6 +94,8 @@ interface TotalColumn {
   parts: { scenario: string; value: number }[];
   total: number;
   reference: { scenario: string; value: number } | null;
+  /** The periods the computed value counts: the ones where the series has a value. Empty with a dataset. */
+  counted: number[];
 }
 
 /** Fill of the scaling indicator band, the light blue of the IBCS templates. */
@@ -1121,7 +1123,13 @@ export class TimeChart {
     }
     // the names of the scenarios stand right of the last period: its total keeps one place of room for them.
     // A series with a scenario switch has its names under the axis.
-    const namesRoom = this.followerSlots().length === 0 ? 1 : 0;
+    const followers = this.followerSlots();
+    const lastRow = this.dataModel[count - 1];
+    const lastIsFollower = followers.includes(this.visibleSlot(lastRow, followers) ?? "scenario1");
+    // the second marker prints its name there too
+    const markerName =
+      !followers.includes("scenario4") && this.dataModel.some((row) => TimeChart.hasValue(row.scenario4));
+    const namesRoom = lastIsFollower && !markerName ? 0 : 1;
     let offset = 0;
     let next = 0;
     for (let index = 0; index < count; index++) {
@@ -1298,6 +1306,7 @@ export class TimeChart {
       const rows = this.dataModel.slice(group.from, group.to + 1);
       let parts: { scenario: string; value: number }[] = [];
       let reference: { scenario: string; value: number } | null = null;
+      let counted: number[] = [];
 
       if (fromData != null) {
         // the values as the dataset gives them: one part per scenario of the series
@@ -1319,11 +1328,15 @@ export class TimeChart {
           const slot = this.visibleSlot(row, followers);
           return slot != null && Number.isFinite(row[slot]?.value);
         });
+        counted = used.map((row) => this.dataModel.indexOf(row));
         const visible = used.map((row) => row[this.visibleSlot(row, followers)!]);
+        // with `last` the one period that gives the value counts. A reference with a gap in
+        // the counted periods is no reference: half a sum would stand against a full one.
         const referenceRows = this.totals.aggregation === "last" ? used.slice(-1) : used;
-        const references = referenceSlot
+        const found = referenceSlot
           ? referenceRows.map((row) => row[referenceSlot]).filter((point) => Number.isFinite(point?.value))
           : [];
+        const references = found.length === referenceRows.length ? found : [];
         const sum = (points: DataPoint[]): number => points.reduce((total, point) => total + point.value, 0);
         if (this.totals.aggregation === "sum") {
           const sums = new Map<string, number>();
@@ -1361,7 +1374,7 @@ export class TimeChart {
         return [];
       }
       const total = parts.reduce((sum, part) => sum + part.value, 0);
-      columns.push({ ...group, label: this.totalLabel(group.start), parts, total, reference });
+      columns.push({ ...group, label: this.totalLabel(group.start), parts, total, reference, counted });
     }
     return columns;
   }
@@ -1407,7 +1420,8 @@ export class TimeChart {
         const data = fromData.get(column.start ? (column.start.toISODate() ?? "") : "") ?? {};
         // the bases of the row are the scenarios of the series, each counts once
         for (const name of new Set(candidates.map((entry) => entry.variance.base))) {
-          if (Number.isFinite(data[name])) {
+          // a 0 is a scenario without a value in this total, as for the parts
+          if (Number.isFinite(data[name]) && data[name] !== 0) {
             base += data[name];
             notations.add(name.slice(0, 2));
           }
@@ -1417,8 +1431,13 @@ export class TimeChart {
         }
         delta = data[first.delta];
       } else {
+        // the same periods as the column, so the two tell the same: with `last` the one
+        // period of the value. Without both values in each of them there is no variance.
+        const rows = (aggregation === "last" ? column.counted.slice(-1) : column.counted).map(
+          (index) => this.dataModel[index],
+        );
         const pairs: { base: number; delta: number; notation: string }[] = [];
-        for (const row of this.dataModel.slice(column.from, column.to + 1)) {
+        for (const row of rows) {
           for (const { variance } of candidates) {
             const slots = this.mapScenarios(variance, firstRow);
             const baseValue = row[slots.get(variance.base) ?? ""]?.value;
@@ -1429,14 +1448,13 @@ export class TimeChart {
             }
           }
         }
-        if (pairs.length === 0) {
+        if (pairs.length === 0 || pairs.length !== rows.length) {
           return null;
         }
-        const used = aggregation === "last" ? pairs.slice(-1) : pairs;
-        const divisor = aggregation === "average" ? used.length : 1;
-        base = used.reduce((sum, pair) => sum + pair.base, 0) / divisor;
-        delta = used.reduce((sum, pair) => sum + pair.delta, 0) / divisor;
-        used.forEach((pair) => notations.add(pair.notation));
+        const divisor = aggregation === "average" ? pairs.length : 1;
+        base = pairs.reduce((sum, pair) => sum + pair.base, 0) / divisor;
+        delta = pairs.reduce((sum, pair) => sum + pair.delta, 0) / divisor;
+        pairs.forEach((pair) => notations.add(pair.notation));
       }
       const point = new DataPoint(
         relative ? relativeVariance(base - delta, delta) : base - delta,

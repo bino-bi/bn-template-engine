@@ -621,6 +621,49 @@ describe("time chart totals by period", () => {
     }
   });
 
+  it("has no reference and no variance for a total when the reference has a gap in its periods", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", ac1: 100, pp1: 90 },
+      { date: "2025-02-01", operation: "+", ac1: 200 },
+      { date: "2025-03-01", operation: "+", ac1: 120 },
+    ];
+    for (const aggregation of ["sum", "average", "last"]) {
+      const chart = buildChart(
+        {
+          dateInterval: "month",
+          scenarios: ["ac1", "pp1"],
+          variances: ["dac1_pp1_pos"],
+          ...totals({ by: "all", aggregation }),
+        },
+        rows,
+      );
+      expect(internals(chart).totalColumns[0].reference).toBeNull();
+      expect(internals(chart).totalVariances[0]).toBeNull();
+    }
+  });
+
+  it("does not take the notation of a scenario that is 0 in the dataset", () => {
+    const year = [{ date: "2025-01-01", ac1: 300, fc1: 0, pp1: 500 }];
+    const chart = buildChart(
+      { ...options, ...totals({ by: "all", dataset: "year" }), variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] },
+      MONTHS,
+      { year },
+    );
+    expect(internals(chart).totalVariances[0].value).toBe(-200);
+    expect(internals(chart).totalVariances[0].notation).toBe("ac");
+  });
+
+  it("keeps room for a name right of the last period before its total", () => {
+    // the first scenario runs to the last period: its name stands there
+    const rows = MONTHS.map((row) => ({ date: row.date, operation: "+", ac1: 10, pp1: 5 }));
+    const named = buildChart({ ...options, ...totals(), scenarios: ["ac1", "pp1"], scenarioSwitch: false }, rows);
+    const switched = buildChart({ ...options, ...totals() }, MONTHS);
+    const step = place(named, 1) - place(named, 0);
+    // September is index 8, the total of the third quarter index 12
+    expect(place(named, 12) - place(named, 8)).toBeCloseTo(2 * step);
+    expect(place(switched, 12) - place(switched, 8)).toBeCloseTo(step);
+  });
+
   it("has no totals when every period would get its own", () => {
     const chart = buildChart({ ...options, ...totals({ by: "month" }) }, MONTHS);
     expect(internals(chart).totalColumns).toEqual([]);
