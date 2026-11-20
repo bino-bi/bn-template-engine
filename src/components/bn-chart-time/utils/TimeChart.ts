@@ -1505,8 +1505,8 @@ export class TimeChart {
   /**
    * The steps of a walk: each starts at the level where the step before ended.
    * A period without a value has no step. Behind a total column on the axis
-   * (`by` other than `all`) the walk starts again, so the walk of a group ends
-   * at the variance of its total.
+   * (`by` other than `all`) the walk starts again. With the aggregation `sum`
+   * the walk of a group ends at the variance of its total.
    */
   private walkSteps(model: TimeChartDataModelEntry[], start: number = 0): WalkStep[] {
     const steps: WalkStep[] = [];
@@ -1542,10 +1542,16 @@ export class TimeChart {
       this.bridgeFallback = reason;
       return null;
     };
+    if (this.stackConfig != null || this.determineEffectiveChartMode() !== ChartMode.BAR) {
+      // no totals and no walk there: the attribute has no effect
+      return null;
+    }
     if (!this.hasTotals()) {
       // an empty chart has nothing to report
       return this.dataModel.length === 0 ? null : fail("the chart draws no total columns");
     }
+    // the reference total needs its own room left of the names, a synced left space has none
+    if (this.syncedLeft) return fail("sync-space-left is set");
     const totals = this.totals!;
     if (totals.by !== "all") return fail("totals.by is not all");
     if (totals.aggregation !== "sum") return fail("totals.aggregation is not sum");
@@ -1555,7 +1561,14 @@ export class TimeChart {
     const column = this.totalColumns[0];
     if (column.reference == null || !(column.reference.value > 0)) return fail("the total has no reference");
     // the walk must tell the same as the totals: the series against the reference of the total
-    const names = this.bridgeVariances.map((name) => new VarianceScenario(name)).filter((entry) => entry.isValid);
+    // a variance of a scenario without a value, like the forecast of a closed year, has no step
+    const hasValues = (scenario: string): boolean =>
+      ["scenario1", "scenario2", "scenario3", "scenario4"].some((slot) =>
+        this.dataModel.some((row) => row[slot]?.scenario === scenario && Number.isFinite(row[slot]?.value)),
+      );
+    const names = this.bridgeVariances
+      .map((name) => new VarianceScenario(name))
+      .filter((entry) => entry.isValid && hasValues(entry.base));
     const referenceScenario = column.reference.scenario;
     if (names.some((entry) => entry.delta !== referenceScenario || !column.scenarios.includes(entry.base))) {
       return fail("the variances are not the series against the reference of the total");
@@ -1596,8 +1609,7 @@ export class TimeChart {
 
   /** Room left of the names for the reference total of a bridge. */
   private leadRoom(): number {
-    // `sync-space-left` is the room left of the axis for every chart that shares it: the reference total stands inside it
-    if (this.bridge == null || this.syncedLeft) {
+    if (this.bridge == null) {
       return 0;
     }
     const fontSize = this.styles.fontStyles.size;
@@ -2901,7 +2913,14 @@ export class TimeChart {
       // a step hangs at its level: the label stands opposite the side the column is on
       const low = Math.min(step.from, step.to);
       const high = Math.max(step.from, step.to);
-      flipped = high <= 0 ? low < 0 : low < 0 && flipped;
+      flipped = high <= 0 && low < 0;
+      if (low < 0 && high > 0) {
+        // the column crosses the axis: the label stands below its lower end, and below its value label there
+        offset += -low * this.pixelPerUnit;
+        if (step.to < step.from) {
+          offset += this.position.spacings.labelToColumn + this.position.dataLabelHeight;
+        }
+      }
     }
 
     if (this.stackConfig != null && !this.isVarianceChart()) {

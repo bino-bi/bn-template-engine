@@ -84,7 +84,7 @@ interface ChartInternals {
   highestVarianceDataPointValue: DataPoint;
   smallestVarianceDataPointValue: DataPoint;
   walkSteps(model: unknown[], start?: number): Step[];
-  dateLabelPlace(entry: unknown): { hookLocation: unknown };
+  dateLabelPlace(entry: unknown): { hookLocation: unknown; offset: number };
   isWalkTier(): boolean;
   referenceColumnSlot(): string | null;
   leadRoom(): number;
@@ -172,9 +172,12 @@ describe("time chart variance walk", () => {
     const chart = buildChart({ scenarios: ["ac1", "pl1"], variances: ["dac1_pl1_pos"], varianceWaterfall: true }, rows);
     const model = internals(chart).variancesDataModel;
     const flipped = model.map((entry) => internals(chart).dateLabelPlace(entry).hookLocation);
-    // +10 from 0, -8 down to 2 (still above the axis), -9 down to -7 (crosses it)
+    // +10 from 0, -8 down to 2 (still above the axis), -9 down to -7 (crosses it): all below the axis,
+    // the last one below the end of its column
     expect(flipped[0]).toBe(flipped[1]);
-    expect(flipped[2]).not.toBe(flipped[0]);
+    expect(flipped[2]).toBe(flipped[0]);
+    const offsets = model.map((entry) => internals(chart).dateLabelPlace(entry).offset);
+    expect(offsets[2]).toBeGreaterThan(offsets[0] + 7 * 2);
   });
 
   it("draws the walk with its lines", () => {
@@ -206,8 +209,28 @@ describe("time chart bridge", () => {
     expect(internals(buildChart({ totals: TOTALS })).leadRoom()).toBe(0);
   });
 
-  it("adds no room to a synced left space", () => {
-    expect(internals(buildChart({ ...BRIDGE, syncedLeft: true })).leadRoom()).toBe(0);
+  it("draws no bridge into a synced left space", () => {
+    const chart = buildChart({ ...BRIDGE, syncedLeft: true });
+    expect(internals(chart).bridge).toBeNull();
+    expect(internals(chart).leadRoom()).toBe(0);
+    expect(chart.getBridgeFallback()).toBe("sync-space-left is set");
+  });
+
+  it("builds the bridge of a year without a forecast", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", ac1: 15, pl1: 11 },
+      { date: "2025-02-01", operation: "+", ac1: 13, pl1: 10 },
+      { date: "2025-03-01", operation: "+", ac1: 26, pl1: 15 },
+    ];
+    const chart = buildChart({ ...BRIDGE, pixelPerUnit: 3 }, rows);
+    expect(chart.getBridgeFallback()).toBeNull();
+    const bridge = internals(chart).bridge!;
+    expect(bridge.reference.value).toBe(36);
+    expect(bridge.total).toBe(54);
+  });
+
+  it("reports nothing in line mode and with a stack", () => {
+    expect(buildChart({ ...BRIDGE, chartMode: "line" }).getBridgeFallback()).toBeNull();
   });
 
   it("draws the reference total, the steps and the variance of the total", () => {
