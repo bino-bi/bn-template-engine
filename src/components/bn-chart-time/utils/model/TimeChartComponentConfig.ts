@@ -29,14 +29,23 @@ export interface StackConfigParsed {
   percentMark: boolean;
 }
 
-/** A column right of the last period for the total of all periods, at its own scale. */
-export interface TotalColumnConfig {
-  /** Pixels for one unit in the total column. */
+/**
+ * Total columns of a time chart, at their own scale: one for all periods right
+ * of the last one, or one behind the periods of each year, quarter, month or week.
+ */
+export interface TotalsConfig {
+  /** What a total covers: all periods, or the periods of one year, quarter, month or week. */
+  by: "all" | "year" | "quarter" | "month" | "week";
+  /** How the periods become one value. Only `sum` stacks one part per scenario. */
+  aggregation: "sum" | "average" | "last";
+  /** Pixels for one unit in a total column. */
   pixelPerUnit: number;
-  /** Text under the column. */
+  /** Text under the column of `by: all`. The others take the name of their period. */
   label: string;
-  /** Width of the column in widths of a period column. */
+  /** Width of a column in widths of a period column. */
   width: number;
+  /** Name of a dataset that holds the values. Empty: the chart computes them from its periods. */
+  dataset: string;
 }
 
 /**
@@ -79,8 +88,8 @@ export class TimeChartComponentConfig {
   public axisLabelsStep: number = 1;
   /** Value of the scaling indicator band, 0 for none. */
   public scalingIndicator: number = 0;
-  /** The column for the total of all periods, null for none. */
-  public totalColumn: TotalColumnConfig | null = null;
+  /** The total columns, null for none. */
+  public totals: TotalsConfig | null = null;
   /** One series that changes its scenario along the time axis, see `bn-chart-time`. */
   public scenarioSwitch: boolean = false;
   /** Side of the axis title: left, right or none. */
@@ -208,12 +217,19 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
       config.scalingIndicator = data.scalingIndicator;
     }
 
-    const total = data.totalColumn as Partial<TotalColumnConfig> | null | undefined;
-    if (total != null && CompareUtil.isNumber(total.pixelPerUnit) && total.pixelPerUnit > 0) {
-      config.totalColumn = {
-        pixelPerUnit: total.pixelPerUnit,
-        label: typeof total.label === "string" ? total.label : "",
-        width: CompareUtil.isNumber(total.width) && total.width > 0 ? total.width : 1,
+    const totals = data.totals as Partial<TotalsConfig> | null | undefined;
+    if (totals != null && CompareUtil.isNumber(totals.pixelPerUnit) && totals.pixelPerUnit > 0) {
+      const by = ["all", "year", "quarter", "month", "week"].includes(totals.by as string) ? totals.by! : "all";
+      const aggregation = ["sum", "average", "last"].includes(totals.aggregation as string)
+        ? totals.aggregation!
+        : "sum";
+      config.totals = {
+        by,
+        aggregation,
+        pixelPerUnit: totals.pixelPerUnit,
+        label: typeof totals.label === "string" ? totals.label : "",
+        width: CompareUtil.isNumber(totals.width) && totals.width > 0 ? totals.width : 1,
+        dataset: typeof totals.dataset === "string" ? totals.dataset : "",
       };
     }
 

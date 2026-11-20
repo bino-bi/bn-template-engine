@@ -34,7 +34,8 @@ import { VarianceScenario, variancesScenarios } from "../../utils/model/Variance
 import { TimeChartStyle } from "./utils/model";
 import { Formatter } from "../../utils/formatter";
 import { AxisLabelsMode, ChartMode, StackBy, StackMode, StackOrder } from "../../utils/constants";
-import { StackConfigParsed } from "./utils/model/TimeChartComponentConfig";
+import { StackConfigParsed, TotalsConfig } from "./utils/model/TimeChartComponentConfig";
+import { getStores } from "../../context/context-protocol";
 import { DateDistance } from "../../utils/DateStringFactory";
 import {
   ComponentLayoutState,
@@ -673,55 +674,93 @@ export class Chart {
   @Prop() scalingIndicator?: number;
 
   /**
-   * A column right of the last period for the total of all periods, at its own
-   * scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.
+   * Total columns at their own scale, as JSON:
+   * `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.
    *
    * - `unitScaling` - data units per em of column height, like `unit-scaling`. Required.
-   * - `label` - text under the column.
+   * - `by` - what a total covers. `all` (default): one column right of the last
+   *   period for all periods. `year`, `quarter`, `month`, `week`: one column
+   *   behind the periods of each of them, on the axis.
+   * - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column
+   *   stacks one part per scenario of the series: the first scenario, and with
+   *   `scenario-switch` the ones that follow it. Else it is one column, hatched
+   *   when a forecast is in its value and outlined for a plan.
+   * - `dataset` - name of a dataset with one row per total (`date` and the
+   *   scenario columns). The chart takes the values from it and computes none.
+   * - `label` - text under the column of `by: all`. The other columns take the name of their period.
    * - `width` - width in widths of a period column, default 1.
    *
-   * The column stacks one part per scenario of the series: the first scenario,
-   * and with `scenario-switch` the ones that follow it. The first other
-   * scenario is the reference behind it. Each variance row gets the variance
-   * of the totals at the scale of the row. With `scaling-indicator` the column
-   * has its own band, and a line links the two bands. Plain columns only: not
-   * with `stack` and not in line mode. The chart needs a fixed `unit-scaling`,
-   * and every part of the total must be positive.
+   * The first other scenario is the reference behind a column. Each variance
+   * row gets the variance of each total at the scale of the row. With
+   * `scaling-indicator` a column has its own band, and with `by: all` a line
+   * links it to the band of the periods. Plain columns only: not with `stack`
+   * and not in line mode. The chart needs a fixed `unit-scaling`, and every
+   * part of a total must be positive.
    */
-  @Prop() totalColumn: string = "";
+  @Prop() totals: string = "";
 
-  @Watch("totalColumn")
-  validateTotalColumn(newValue: string) {
-    const errId = "WARN_totalColumn";
-    if (isBlankInput(newValue) || this.parseTotalColumn(newValue) != null) {
+  @Watch("totals")
+  validateTotals(newValue: string) {
+    const errId = "WARN_totals";
+    if (isBlankInput(newValue) || this.parseTotals(newValue) != null) {
       this.errors.remove(errId);
     } else {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: 'totalColumn: needs JSON with a unitScaling greater than 0, for example {"unitScaling":280}.',
+        message:
+          'totals: needs JSON with a unitScaling greater than 0, by one of all, year, quarter, month, week, and aggregation one of sum, average, last. For example {"unitScaling":280}.',
       });
     }
+    this.bindTotalsDataset();
   }
 
-  private parseTotalColumn(value: string): { unitScaling: number; label: string; width: number } | null {
+  private parseTotals(value: string): (Omit<TotalsConfig, "pixelPerUnit"> & { unitScaling: number }) | null {
     try {
       const parsed = JSON.parse(value);
       // the same values as `unit-scaling`: a number, with an SI suffix, or the name of a scaling group
       const scaling = resolveScalingValue(parsed?.unitScaling, this.pixelPerUnitGroupMap);
       if (scaling.kind !== "value" || !(scaling.value > 0)) return null;
+      const by = parsed.by ?? "all";
+      const aggregation = parsed.aggregation ?? "sum";
+      if (!["all", "year", "quarter", "month", "week"].includes(by)) return null;
+      if (!["sum", "average", "last"].includes(aggregation)) return null;
       const width = Number(parsed.width);
       const label = typeof parsed.label === "string" || typeof parsed.label === "number" ? String(parsed.label) : "";
-      return { unitScaling: scaling.value, label, width: width > 0 ? width : 1 };
+      return {
+        unitScaling: scaling.value,
+        by,
+        aggregation,
+        label,
+        width: width > 0 ? width : 1,
+        dataset: typeof parsed.dataset === "string" ? parsed.dataset.trim() : "",
+      };
     } catch {
       return null;
     }
   }
 
-  /** The total column in the units of the inner chart: pixels for one data unit. */
-  private prepareTotalColumn(): { pixelPerUnit: number; label: string; width: number } | null {
-    const parsed = isBlankInput(this.totalColumn) ? null : this.parseTotalColumn(this.totalColumn);
-    const errId = "WARN_totalColumn_unitScaling";
+  private totalsDatasetUnsubscribe: (() => void) | null = null;
+  private totalsDatasetName = "";
+
+  /** Draws the chart again when the dataset of the totals gets its rows. */
+  private bindTotalsDataset() {
+    const name = (isBlankInput(this.totals) ? null : this.parseTotals(this.totals))?.dataset ?? "";
+    if (name === this.totalsDatasetName) return;
+    this.totalsDatasetUnsubscribe?.();
+    this.totalsDatasetUnsubscribe = null;
+    this.totalsDatasetName = name;
+    if (name && this.element.isConnected) {
+      this.totalsDatasetUnsubscribe = getStores(this.element).db.subscribe(name, () => {
+        this.dataVersion++;
+      });
+    }
+  }
+
+  /** The totals in the units of the inner chart: pixels for one data unit. */
+  private prepareTotals(): TotalsConfig | null {
+    const parsed = isBlankInput(this.totals) ? null : this.parseTotals(this.totals);
+    const errId = "WARN_totals_unitScaling";
     if (parsed == null) {
       this.errors.remove(errId);
       return null;
@@ -731,12 +770,13 @@ export class Chart {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: "totalColumn: needs a fixed unitScaling of the chart, the total column is not drawn.",
+        message: "totals: needs a fixed unitScaling of the chart, the total columns are not drawn.",
       });
       return null;
     }
     this.errors.remove(errId);
-    return { pixelPerUnit: this.getEffectiveFontPx() / parsed.unitScaling, label: parsed.label, width: parsed.width };
+    const { unitScaling, ...rest } = parsed;
+    return { ...rest, pixelPerUnit: this.getEffectiveFontPx() / unitScaling };
   }
 
   @Watch("axisLabelsStep")
@@ -835,7 +875,7 @@ export class Chart {
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDataFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateAxisLabelsStep(this.axisLabelsStep);
-    this.validateTotalColumn(this.totalColumn);
+    this.validateTotals(this.totals);
     this.validateAxisTitlePosition(this.axisTitlePosition);
   }
 
@@ -1076,6 +1116,9 @@ export class Chart {
   }
 
   disconnectedCallback() {
+    this.totalsDatasetUnsubscribe?.();
+    this.totalsDatasetUnsubscribe = null;
+    this.totalsDatasetName = "";
     this.layoutObserver?.disconnect();
     this.layoutObserver = null;
     if (this._settleTimer != null) {
@@ -1668,7 +1711,7 @@ export class Chart {
         }}
         axisLabelsStep={Math.max(1, Math.floor(Number(this.axisLabelsStep) || 1))}
         scalingIndicator={Number(this.scalingIndicator) || 0}
-        totalColumn={this.prepareTotalColumn()}
+        totals={this.prepareTotals()}
         scenarioSwitch={this.scenarioSwitch}
         axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}
