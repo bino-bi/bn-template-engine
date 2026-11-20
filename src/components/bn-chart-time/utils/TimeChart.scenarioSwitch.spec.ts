@@ -664,6 +664,43 @@ describe("time chart totals by period", () => {
     expect(place(switched, 12) - place(switched, 8)).toBeCloseTo(step);
   });
 
+  it("draws one column for an average or a last value from a dataset", () => {
+    const year = [{ date: "2025-01-01", ac1: 35, fc1: 80, pp1: 100 }];
+    const chart = buildChart(
+      { ...options, ...totals({ by: "all", aggregation: "average", dataset: "year" }) },
+      MONTHS,
+      {
+        year,
+      },
+    );
+    expect(internals(chart).totalColumns[0].parts).toEqual([{ scenario: "fc1", value: 115 }]);
+  });
+
+  it("gives a variance row for a part of the series no total from a dataset", () => {
+    const year = [{ date: "2025-01-01", ac1: 400, fc1: 300, pp1: 650 }];
+    const build = (variances: string[]) =>
+      internals(buildChart({ ...options, ...totals({ by: "all", dataset: "year" }), variances }, MONTHS, { year }))
+        .totalVariances[0];
+    // the reference of the dataset is the one of the whole year, the row has the actual months only
+    expect(build(["dac1_pp1_pos"])).toBeNull();
+    expect(build(["dac1_pp1_pos", "dfc1_pp1_pos"]).value).toBe(50);
+  });
+
+  it("counts a week into the year of its Thursday", () => {
+    // the week from 2025-12-29 is week 1 of 2026
+    const weeks = ["2025-12-15", "2025-12-22", "2025-12-29", "2026-01-05"].map((date) => ({
+      date,
+      operation: "+",
+      ac1: 10,
+      pp1: 5,
+    }));
+    const chart = buildChart({ dateInterval: "week", scenarios: ["ac1", "pp1"], ...totals({ by: "year" }) }, weeks);
+    expect(internals(chart).totalColumns.map((column) => [column.from, column.to])).toEqual([
+      [0, 1],
+      [2, 3],
+    ]);
+  });
+
   it("has no totals when every period would get its own", () => {
     const chart = buildChart({ ...options, ...totals({ by: "month" }) }, MONTHS);
     expect(internals(chart).totalColumns).toEqual([]);

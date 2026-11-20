@@ -687,6 +687,7 @@ export class Chart {
    *   when a forecast is in its value and outlined for a plan.
    * - `dataset` - name of a dataset with one row per total (`date` and the
    *   scenario columns). The chart takes the values from it and computes none.
+   *   With `average` or `last` the values of a row are one column.
    * - `label` - text under the column of `by: all`. The other columns take the name of their period.
    * - `width` - width in widths of a period column, default 1.
    *

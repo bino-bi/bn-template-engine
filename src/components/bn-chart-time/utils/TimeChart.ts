@@ -96,6 +96,8 @@ interface TotalColumn {
   reference: { scenario: string; value: number } | null;
   /** The periods the computed value counts: the ones where the series has a value. Empty with a dataset. */
   counted: number[];
+  /** The scenarios of the series that are in the value. */
+  scenarios: string[];
 }
 
 /** Fill of the scaling indicator band, the light blue of the IBCS templates. */
@@ -1160,12 +1162,14 @@ export class TimeChart {
   }
 
   /** The start of the group of a date, null for one group over all periods. */
-  private totalGroupStart(date: DateTime): DateTime | null {
+  private totalGroupStart(date: DateTime, period: boolean = false): DateTime | null {
     const by = this.totals?.by ?? "all";
     if (by === "all" || date == null || !date.isValid) {
       return null;
     }
-    return date.startOf(by);
+    // a week belongs to the year, quarter or month of its Thursday, as its number does
+    const day = period && this.dateInterval === DateDistance.WEEK && by !== "week" ? date.plus({ days: 3 }) : date;
+    return day.startOf(by);
   }
 
   /** The name of a total column under the axis: the text of the config at the end, else the name of its period. */
@@ -1287,7 +1291,7 @@ export class TimeChart {
     // the groups: runs of periods with the same start
     const groups: { from: number; to: number; start: DateTime | null }[] = [];
     this.dataModel.forEach((row, index) => {
-      const start = this.totalGroupStart(row.date);
+      const start = this.totalGroupStart(row.date, true);
       const last = groups[groups.length - 1];
       if (last != null && (start == null || (last.start != null && +last.start === +start))) {
         last.to = index;
@@ -1307,6 +1311,7 @@ export class TimeChart {
       let parts: { scenario: string; value: number }[] = [];
       let reference: { scenario: string; value: number } | null = null;
       let counted: number[] = [];
+      let scenarios: string[];
 
       if (fromData != null) {
         // the values as the dataset gives them: one part per scenario of the series
@@ -1321,6 +1326,13 @@ export class TimeChart {
         if (referenceScenario != null && Number.isFinite(data[referenceScenario])) {
           reference = { scenario: referenceScenario, value: data[referenceScenario] };
         }
+        scenarios = parts.map((part) => part.scenario);
+        if (this.totals.aggregation !== "sum" && parts.length > 1 && parts.every((part) => part.value > 0)) {
+          // an average or a last value is one column: the dataset gives the value, not its parts
+          parts = [
+            { scenario: this.mixedScenario(scenarios), value: parts.reduce((sum, part) => sum + part.value, 0) },
+          ];
+        }
       } else {
         // the periods where the series has a value. The reference counts in the same periods only,
         // as the variance of the total does: else the two would not tell the same.
@@ -1329,6 +1341,7 @@ export class TimeChart {
           return slot != null && Number.isFinite(row[slot]?.value);
         });
         counted = used.map((row) => this.dataModel.indexOf(row));
+        scenarios = [...new Set(used.map((row) => row[this.visibleSlot(row, followers)!].scenario as string))];
         const visible = used.map((row) => row[this.visibleSlot(row, followers)!]);
         // with `last` the one period that gives the value counts. A reference with a gap in
         // the counted periods is no reference: half a sum would stand against a full one.
@@ -1374,7 +1387,7 @@ export class TimeChart {
         return [];
       }
       const total = parts.reduce((sum, part) => sum + part.value, 0);
-      columns.push({ ...group, label: this.totalLabel(group.start), parts, total, reference, counted });
+      columns.push({ ...group, label: this.totalLabel(group.start), parts, total, reference, counted, scenarios });
     }
     return columns;
   }
@@ -1419,7 +1432,13 @@ export class TimeChart {
         base = 0;
         const data = fromData.get(column.start ? (column.start.toISODate() ?? "") : "") ?? {};
         // the bases of the row are the scenarios of the series, each counts once
-        for (const name of new Set(candidates.map((entry) => entry.variance.base))) {
+        const bases = new Set(candidates.map((entry) => entry.variance.base));
+        // a row for a part of the series only has no total: the reference of the dataset is the one of the whole total
+        const covered = column.scenarios.filter((scenario) => bases.has(scenario)).length;
+        if (covered > 0 && covered < column.scenarios.length) {
+          return null;
+        }
+        for (const name of bases) {
           // a 0 is a scenario without a value in this total, as for the parts
           if (Number.isFinite(data[name]) && data[name] !== 0) {
             base += data[name];
