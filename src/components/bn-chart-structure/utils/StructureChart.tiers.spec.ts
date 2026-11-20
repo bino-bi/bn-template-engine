@@ -220,8 +220,15 @@ describe("structure chart mark of the order", () => {
     expect(header(sorted)).toBeGreaterThan(markBox(sorted).right);
   });
 
-  it("draws none for an order by a dimension, and none without the switch", () => {
-    expect(marks({})).toBe(0);
+  it("marks the names for an order by a dimension, not in the segment of a variance", () => {
+    const chart = buildChart({ orderMark: true });
+    const box = markBox(chart.toString());
+    expect(box.right).toBeLessThanOrEqual(internal(chart).position.getBarPositionX());
+    expect(box.bottom).toBeLessThan(internal(chart).position.getBarCenterPositionY(0));
+    expect(marks({ variances: ["dac1_pl1_pos"], hideCategories: true })).toBe(0);
+  });
+
+  it("draws none without the switch", () => {
     expect(count(buildChart({ sortOrder: order("ac1") }).toString(), "order-mark")).toBe(0);
   });
 

@@ -359,3 +359,99 @@ describe("structure chart scenarios at the total only", () => {
     expect(bar?.[1]).toBe("#ff0000");
   });
 });
+
+describe("structure chart bridge marks and axes", () => {
+  const marks = (svg: string): number => (svg.match(/class="order-mark"/g) ?? []).length;
+  const markLeft = (svg: string): number => {
+    const points = /<polygon[^>]*points="([^"]+)"[^>]*class="order-mark"/.exec(svg)?.[1] ?? "";
+    return Math.min(...points.split(" ").map((pair) => Number(pair.split(",")[0])));
+  };
+  const axes = (svg: string): { y1: number; y2: number }[] =>
+    [...svg.matchAll(/<line[^>]*class="axis-[a-z]+"[^>]*>/g)].map((match) => ({
+      y1: Number(/y1="([^"]+)"/.exec(match[0])?.[1]),
+      y2: Number(/y2="([^"]+)"/.exec(match[0])?.[1]),
+    }));
+  const place = (chart: StructureChart) =>
+    (
+      chart as unknown as {
+        position: {
+          getBarPositionX(): number;
+          getBarCenterPositionY(i: number): number;
+          getAxisEndPositionY(): number;
+        };
+      }
+    ).position;
+  const marked = (column: string, direction = "desc") =>
+    buildChart({ ...BRIDGE, orderMark: true, ...order([column], direction) });
+
+  it("marks the walk for an order by its variance", () => {
+    // first step +20: the mark stands left of the level of the reference total
+    const down = marked("dac1_pp1");
+    expect(marks(down.toString())).toBe(1);
+    expect(markLeft(down.toString())).toBeLessThan(place(down).getBarPositionX() + 1000);
+    // first step -150: its label stands left, the mark right of the level
+    const up = marked("dac1_pp1", "asc");
+    expect(markLeft(up.toString())).toBeGreaterThan(place(up).getBarPositionX() + 1000);
+    expect(marks(marked("drac1_pp1").toString())).toBe(0);
+  });
+
+  it("marks the first row for an order by a scenario, and the names for a dimension", () => {
+    const chart = marked("ac1");
+    // B: 450 and 600
+    expect(markLeft(chart.toString())).toBeGreaterThan(place(chart).getBarPositionX() + 600);
+    expect(marks(marked("pp1").toString())).toBe(1);
+    expect(marks(marked("fc1").toString())).toBe(0);
+    const named = marked("categoryIndex", "asc");
+    expect(markLeft(named.toString())).toBeLessThan(place(named).getBarPositionX());
+  });
+
+  it("draws no mark for a scenario where the label of a step down takes the room", () => {
+    // the first row holds most of the total: its labels end right before the label of its step
+    const rows = [
+      { operation: "+", category: "A", categoryIndex: 1, ac1: 500, pp1: 520 },
+      { operation: "+", category: "B", categoryIndex: 2, ac1: 33, pp1: 32 },
+      { operation: "+", category: "C", categoryIndex: 3, ac1: 25, pp1: 24 },
+    ];
+    const chart = buildChart({ ...BRIDGE, orderMark: true, ...order(["ac1"], "desc") }, rows);
+    expect(internals(chart).bridge).not.toBeNull();
+    expect(marks(chart.toString())).toBe(0);
+  });
+
+  it("puts the mark of a dimension left of a title", () => {
+    const titled = buildChart({ ...BRIDGE, orderMark: true, title: "T" });
+    const plain = buildChart({ ...BRIDGE, orderMark: true });
+    expect(markLeft(titled.toString())).toBeLessThan(markLeft(plain.toString()));
+  });
+
+  it("ends the axis at the total row", () => {
+    const chart = buildChart(BRIDGE);
+    const lines = axes(chart.toString());
+    expect(lines).toHaveLength(1);
+    expect(lines[0].y2).toBeLessThan(place(chart).getAxisEndPositionY());
+    expect(lines[0].y2).toBeGreaterThan(place(chart).getBarCenterPositionY(3));
+    // the segment of another variance: down to the last row, and a piece at the total
+    const tier = buildChart({ ...BRIDGE, variances: ["drac1_pp1_pos"] });
+    const pieces = axes(tier.toString());
+    expect(pieces).toHaveLength(2);
+    expect(pieces[0].y2).toBeLessThan(pieces[1].y1);
+    expect(pieces[1].y2).toBeCloseTo(lines[0].y2);
+    // no bridge: one line over the full height
+    expect(axes(buildChart({ sums: "total" }).toString())).toHaveLength(1);
+  });
+
+  it("draws the level of the reference in black along the rows", () => {
+    const svg = buildChart(BRIDGE).toString();
+    expect((svg.match(/class="bridge-axis"/g) ?? []).length).toBe(1);
+  });
+
+  it("prints the variance of the total in regular weight on a bar of half the bar width", () => {
+    const chart = buildChart(BRIDGE);
+    const svg = chart.toString();
+    const label = /id="[^"]*BRIDGE_VARIANCE[^"]*"[\s\S]*?<text[^>]*>/.exec(svg)?.[0] ?? "";
+    expect(label).not.toBe("");
+    expect(label).not.toContain("bold");
+    const bar = /<rect[^>]*data-bn-scenario="dac1_pp1_pos" data-bn-row="total"[^>]*>/.exec(svg)?.[0] ?? "";
+    const total = /<rect[^>]*height="([^"]+)"[^>]*data-bn-value="1000"/.exec(svg)?.[1];
+    expect(Number(/height="([^"]+)"/.exec(bar)?.[1])).toBeCloseTo(Number(total) / 2);
+  });
+});
