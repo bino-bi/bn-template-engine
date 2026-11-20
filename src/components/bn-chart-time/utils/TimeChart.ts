@@ -1230,9 +1230,13 @@ export class TimeChart {
       this.failQuery(e);
       return rows;
     }
+    const periods = new Set(this.dataModel.map((row) => row.date?.toISODate?.() ?? ""));
     for (const row of result) {
       const date = TimeChart.parseDate(row.date);
-      const start = date ? this.totalGroupStart(date) : null;
+      // a row with the date of a period of the chart belongs to the total of that period: a week can
+      // count into another year than its first day
+      const isPeriod = date != null && periods.has(date.toISODate() ?? "");
+      const start = date ? this.totalGroupStart(date, isPeriod) : null;
       const key = start ? (start.toISODate() ?? "") : "";
       if (this.totals!.by !== "all" && key === "") continue;
       const sums = rows.get(key) ?? {};
@@ -1429,26 +1433,31 @@ export class TimeChart {
       let delta: number;
       const notations = new Set<string>();
       if (fromData != null) {
-        base = 0;
         const data = fromData.get(column.start ? (column.start.toISODate() ?? "") : "") ?? {};
-        // the bases of the row are the scenarios of the series, each counts once
-        const bases = new Set(candidates.map((entry) => entry.variance.base));
+        // the scenarios of the series can stand on either side of a variance: that side is
+        // added up, each scenario once, the other side is the one reference of the row
+        const series = new Set(column.scenarios);
+        const bases = [...new Set(candidates.map((entry) => entry.variance.base))];
+        const deltas = [...new Set(candidates.map((entry) => entry.variance.delta))];
         // a row for a part of the series only has no total: the reference of the dataset is the one of the whole total
-        const covered = column.scenarios.filter((scenario) => bases.has(scenario)).length;
-        if (covered > 0 && covered < column.scenarios.length) {
+        const covered = new Set([...bases, ...deltas].filter((name) => series.has(name))).size;
+        if (covered > 0 && covered < series.size) {
           return null;
         }
-        for (const name of bases) {
-          // a 0 is a scenario without a value in this total, as for the parts
-          if (Number.isFinite(data[name]) && data[name] !== 0) {
-            base += data[name];
-            notations.add(name.slice(0, 2));
-          }
-        }
-        if (notations.size === 0 || !Number.isFinite(data[first.delta])) {
+        // a 0 is a scenario without a value in this total, as for the parts
+        const has = (name: string): boolean => Number.isFinite(data[name]) && data[name] !== 0;
+        const side = (names: string[]): number | null => {
+          const used = names.some((name) => series.has(name)) ? names.filter(has) : names.slice(0, 1).filter(has);
+          return used.length > 0 ? used.reduce((sum, name) => sum + data[name], 0) : null;
+        };
+        const baseSide = side(bases);
+        const deltaSide = side(deltas);
+        if (baseSide == null || deltaSide == null) {
           return null;
         }
-        delta = data[first.delta];
+        base = baseSide;
+        delta = deltaSide;
+        bases.filter(has).forEach((name) => notations.add(name.slice(0, 2)));
       } else {
         // the same periods as the column, so the two tell the same: with `last` the one
         // period of the value. Without both values in each of them there is no variance.

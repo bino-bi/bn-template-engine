@@ -686,6 +686,33 @@ describe("time chart totals by period", () => {
     expect(build(["dac1_pp1_pos", "dfc1_pp1_pos"]).value).toBe(50);
   });
 
+  it("takes the series from either side of a variance with a dataset", () => {
+    const year = [{ date: "2025-01-01", ac1: 400, fc1: 300, pp1: 650 }];
+    const build = (variances: string[]) =>
+      internals(buildChart({ ...options, ...totals({ by: "all", dataset: "year" }), variances }, MONTHS, { year }))
+        .totalVariances[0];
+    // the reference minus a part of the series is no variance of the total
+    expect(build(["dpp1_ac1_neg"])).toBeNull();
+    expect(build(["dpp1_ac1_neg", "dpp1_fc1_neg"]).value).toBe(-50);
+  });
+
+  it("puts a dataset row with the date of a week into the total of that week", () => {
+    const weeks = ["2025-12-15", "2025-12-22", "2025-12-29", "2026-01-05"].map((date) => ({
+      date,
+      operation: "+",
+      ac1: 10,
+      pp1: 5,
+    }));
+    const rows = weeks.map((week) => ({ date: week.date, ac1: 7, pp1: 5 }));
+    const chart = buildChart(
+      { dateInterval: "week", scenarios: ["ac1", "pp1"], ...totals({ by: "year", dataset: "t" }) },
+      weeks,
+      { t: rows },
+    );
+    // two weeks of 2025, two of 2026: the week from 2025-12-29 is week 1 of 2026
+    expect(internals(chart).totalColumns.map((column) => column.total)).toEqual([14, 14]);
+  });
+
   it("counts a week into the year of its Thursday", () => {
     // the week from 2025-12-29 is week 1 of 2026
     const weeks = ["2025-12-15", "2025-12-22", "2025-12-29", "2026-01-05"].map((date) => ({
