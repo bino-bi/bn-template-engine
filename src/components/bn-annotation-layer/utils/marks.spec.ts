@@ -108,6 +108,29 @@ describe("buildMark", () => {
   });
 
   describe("frame", () => {
+    it("draws one ellipse through the corners of the box around two data points", () => {
+      const other = { x: 300, y: 140, width: 40, height: 20 };
+      const mark = buildMark({ target: "t", mark: "frame", label: "2" }, BOX, other, EM) as {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        rx: number;
+        ry: number;
+        badge: { cx: number; cy: number };
+      };
+      // the common box is 240 x 60 around (220, 130)
+      expect(mark.rx).toBeCloseTo(120 * Math.SQRT2 + 2);
+      expect(mark.ry).toBeCloseTo(30 * Math.SQRT2 + 2);
+      expect(mark.x + mark.width / 2).toBeCloseTo(220);
+      expect(mark.y + mark.height / 2).toBeCloseTo(130);
+      expect(mark.width).toBeCloseTo(2 * mark.rx);
+      // a corner of the common box is inside the ellipse
+      expect(((100 - 220) / mark.rx) ** 2 + ((100 - 130) / mark.ry) ** 2).toBeLessThan(1);
+      // the number sits on the outline
+      expect(((mark.badge.cx - 220) / mark.rx) ** 2 + ((mark.badge.cy - 130) / mark.ry) ** 2).toBeCloseTo(1);
+    });
+
     it("is an oval around the text of a cell, not around the cell", () => {
       const mark = buildMark({ target: "t", mark: "frame" }, BOX, undefined, EM, { text: TEXT });
       // centred on the text, 4.5 px wider and 1 px higher on each side

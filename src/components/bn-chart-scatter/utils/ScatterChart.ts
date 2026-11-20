@@ -123,7 +123,8 @@ export class ScatterChart {
 
   private textWidth(text: string, bold: boolean = false): number {
     const width = CalculateSize(text, {
-      font: this.styles.fontStyles.font,
+      // the family only: with the size in front the value is no font family and the text is measured in the font of the page
+      font: this.fontFamily(),
       fontSize: this.styles.fontStyles.size + "px",
       fontWeight: bold ? "bold" : "normal",
     }).width;
@@ -217,7 +218,7 @@ export class ScatterChart {
     if (overflowed) {
       this.addWarningOnce("xy-series-overflow", {});
     }
-    return markTreatment(this.primaryColorIndex(), color, "dot");
+    return markTreatment(this.primaryColorIndex(), color, "dot", this.styles.markStyles.stroke);
   }
 
   private addWarningOnce(code: string, data: Record<string, string>): void {
@@ -305,7 +306,7 @@ export class ScatterChart {
       const panelH = grid.panelRect(0).height;
       const targetY = Math.max(4, Math.min(8, Math.round(panelH / (4 * em))));
       const yScale = new NumericScale(yDomain[0], yDomain[1], panelH, 0);
-      ticksY = yScale.ticks(targetY);
+      ticksY = yScale.ticks(targetY, this.config.y.step);
 
       const yDecimals = xyTickDecimals(ticksY, this.yPercent);
       const maxTickW = Math.max(
@@ -333,14 +334,17 @@ export class ScatterChart {
     }
 
     const panels = this.buildPanels(grid!, xDomain, yDomain);
-    const ticksX = panels[0].xScale.ticks(Math.max(3, Math.min(8, Math.round(panels[0].rect.width / (7 * em)))));
+    const ticksX = panels[0].xScale.ticks(
+      Math.max(3, Math.min(8, Math.round(panels[0].rect.width / (7 * em)))),
+      this.config.x.step,
+    );
     const xDecimals = xyTickDecimals(ticksX, this.xPercent);
     const yDecimals = xyTickDecimals(ticksY, this.yPercent);
 
-    // Iso guard: requires a strictly positive domain on both axes.
+    // Iso guard: no axis may go below 0.
     let isoDrawable = false;
     if (isoActive) {
-      if (xDomain[0] > 0 && yDomain[0] > 0) {
+      if (IsoCurves.isDrawable(xDomain, yDomain)) {
         isoDrawable = true;
       } else {
         this.addWarningOnce("xy-iso-domain", {});
@@ -488,6 +492,7 @@ export class ScatterChart {
         .circle(radius * 2)
         .center(cx, cy)
         .fill(treatment.fill)
+        .attr("fill-opacity", this.styles.markStyles.opacity)
         .stroke({ color: treatment.stroke, width: treatment.strokeWidth })
         .attr(dataPointAttributes(xyPointKey(point, facet.key, this.config), "element"));
       if (treatment.dasharray !== undefined) {
@@ -547,6 +552,7 @@ export class ScatterChart {
         r: radius,
         width: this.textWidth(mark.point.name),
         height: 1.1 * this.em,
+        side: this.config.labels.sides?.[mark.point.name],
       };
       pointOf.set(candidate, mark.point);
       return candidate;
@@ -564,11 +570,12 @@ export class ScatterChart {
     const curves = new IsoCurves(panel.xScale, panel.yScale);
     const inWord = this.i18nMap.get("axis.in") || "in";
 
-    const ks = this.isoValues();
+    const factor = iso.factor ?? 1;
+    const values = this.isoValues();
     const labels = this.isoValueLabels();
 
     if (iso.highlight !== undefined) {
-      const region = curves.regionPath(iso.highlight.from);
+      const region = curves.regionPath(iso.highlight.from / factor);
       if (region !== null) {
         group.path(region).fill(this.styles.axisStyles.pl.fill).stroke("none");
       }
@@ -580,7 +587,8 @@ export class ScatterChart {
     };
     let topExit: { x: number; y: number } | null = null;
 
-    for (const [index, k] of ks.entries()) {
+    for (const [index, value] of values.entries()) {
+      const k = value / factor;
       const path = curves.path(k);
       if (path === null) {
         continue;
@@ -602,23 +610,27 @@ export class ScatterChart {
       }
     }
 
-    // Edge caption ("Gross profit in mUSD"), once, above the topmost k label.
+    // Edge caption ("Gross profit in mUSD"), once, above the topmost value with half a line between.
     if (topExit !== null && iso.label !== undefined && iso.label !== "") {
       const suffix = iso.unit !== undefined && iso.unit !== "" ? `${inWord} ${iso.unit}` : "";
-      this.drawText(group, iso.label, topExit.x + 0.4 * this.em, topExit.y - 1.6 * this.em, { bold: true });
+      const unitY = topExit.y - 1.2 * this.em;
+      this.drawText(group, iso.label, topExit.x + 0.4 * this.em, suffix !== "" ? unitY - 1.1 * this.em : unitY, {
+        bold: true,
+      });
       if (suffix !== "") {
-        this.drawText(group, suffix, topExit.x + 0.4 * this.em, topExit.y - 0.5 * this.em, {});
+        this.drawText(group, suffix, topExit.x + 0.4 * this.em, unitY, {});
       }
     }
   }
 
-  /** The products x * y the iso lines are drawn for. */
+  /** The values the iso lines are drawn for: x * y * factor. */
   private isoValues(): number[] {
     const iso = this.config.iso!;
     if (iso.values !== "auto") {
       return iso.values;
     }
-    return IsoCurves.autoK(this.data.facets.flatMap((facet) => facet.points.map((p) => p.x * p.y)));
+    const factor = iso.factor ?? 1;
+    return IsoCurves.autoK(this.data.facets.flatMap((facet) => facet.points.map((p) => p.x * p.y * factor)));
   }
 
   /** Labels of the iso lines, all with the decimals the finest value needs (0,5 and 1,0, not 1 and 1). */

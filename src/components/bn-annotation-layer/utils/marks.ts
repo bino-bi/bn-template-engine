@@ -291,6 +291,32 @@ export function buildMark(
     };
   }
 
+  if (item.mark === "frame" && toBox && !whole) {
+    // one oval around both ends: the ellipse through the corners of their common box, so what lies between is inside
+    const left = Math.min(box.x, toBox.x);
+    const top = Math.min(box.y, toBox.y);
+    const right = Math.max(box.x + box.width, toBox.x + toBox.width);
+    const bottom = Math.max(box.y + box.height, toBox.y + toBox.height);
+    const rx = ((right - left) / 2) * Math.SQRT2 + 0.2 * em;
+    const ry = ((bottom - top) / 2) * Math.SQRT2 + 0.2 * em;
+    const cx = (left + right) / 2;
+    const cy = (top + bottom) / 2;
+    return {
+      kind: "frame",
+      color,
+      x: cx - rx,
+      y: cy - ry,
+      width: 2 * rx,
+      height: 2 * ry,
+      rx,
+      ry,
+      badge:
+        label != null
+          ? keepInside({ cx: cx + rx * Math.SQRT1_2, cy: cy - ry * Math.SQRT1_2, r: 0.65 * em, label }, area)
+          : undefined,
+    };
+  }
+
   if (item.mark === "frame") {
     // a text of its own stands in the upper part of the target, above a value label in its middle
     const caption =

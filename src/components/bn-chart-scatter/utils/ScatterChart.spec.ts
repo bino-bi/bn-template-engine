@@ -182,6 +182,55 @@ describe("ScatterChart", () => {
     expect(chart.getWarnings().map((w) => w.code)).not.toContain("xy-iso-domain");
   });
 
+  const two = [row({ ac1: 10, ac2: 20 }), row({ subCategory: "B", subCategoryIndex: 2, ac1: 30, ac2: 15 })];
+  const pathCount = (svg: string): number => (svg.match(/<path/g) ?? []).length;
+
+  it("draws iso-curves and their region on axes that start at 0", () => {
+    const chart = makeChart(
+      two,
+      baseConfig({
+        x: { measure: "ac1", min: 0, max: 40 },
+        y: { measure: "ac2", min: 0, max: 40 },
+        iso: { values: [200, 400], highlight: { from: 400 } },
+      }),
+    );
+    expect(pathCount(chart.toString())).toBe(3);
+    expect(chart.getWarnings().map((w) => w.code)).not.toContain("xy-iso-domain");
+  });
+
+  it("draws an iso value at x * y * factor and labels it with the value", () => {
+    const config = (iso: ScatterChartConfig["iso"]): ScatterChartConfig =>
+      baseConfig({ x: { measure: "ac1", min: 0, max: 40 }, y: { measure: "ac2", min: 0, max: 40 }, iso });
+    const curve = (svg: string): string => /<path d="([^"]+)"/.exec(svg)![1];
+    const plain = makeChart(two, config({ values: [400] })).toString();
+    const scaled = makeChart(two, config({ values: [0.4], factor: 0.001 })).toString();
+    expect(curve(scaled)).toBe(curve(plain));
+    expect(scaled).toContain(">0,4<");
+    expect(scaled).not.toContain(">400<");
+  });
+
+  it("puts ticks at a typed step", () => {
+    const svg = makeChart(
+      two,
+      baseConfig({ x: { measure: "ac1", min: 0, max: 40, step: 8 }, y: { measure: "ac2", min: 0, max: 40 } }),
+    ).toString();
+    for (const tick of ["8", "16", "24", "32", "40"]) {
+      expect(svg).toContain(`>${tick}<`);
+    }
+  });
+
+  it("takes the outline and the opacity of a point from the style", () => {
+    const db = createScopedDb().db;
+    db.tables["scatterData"] = { data: two };
+    const styles = defaultStyles();
+    expect(styles.markStyles).toEqual({ stroke: "#ffffff", opacity: 1 });
+    styles.markStyles = { stroke: "#404040", opacity: 0.8 };
+    const svg = new ScatterChart(new IBCSRuleSet(), db, "`scatterData`", baseConfig(), styles, 1000).toString();
+    const circle = /<circle[^>]*>/.exec(svg)![0];
+    expect(circle).toContain('stroke="#404040"');
+    expect(circle).toContain('fill-opacity="0.8"');
+  });
+
   it("skips iso-curves on non-positive domains with xy-iso-domain", () => {
     const chart = makeChart(
       [row({ ac1: -5, ac2: 20 }), row({ subCategory: "B", subCategoryIndex: 2, ac1: 30, ac2: 15 })],

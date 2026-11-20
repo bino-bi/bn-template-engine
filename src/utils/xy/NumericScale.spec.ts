@@ -90,6 +90,17 @@ describe("NumericScale", () => {
       }
     });
 
+    it("takes a typed step in place of the nice one", () => {
+      expect(new NumericScale(0, 150, 0, 100).ticks(4, 10)).toHaveLength(16);
+      expect(new NumericScale(0, 1, 0, 100).ticks(4, 0.25)).toEqual([0, 0.25, 0.5, 0.75, 1]);
+    });
+
+    it("ignores a typed step that gives too many ticks, or none", () => {
+      const nice = new NumericScale(0, 150, 0, 100).ticks(4);
+      expect(new NumericScale(0, 150, 0, 100).ticks(4, 0.01)).toEqual(nice);
+      expect(new NumericScale(0, 150, 0, 100).ticks(4, 0)).toEqual(nice);
+    });
+
     it("reproduces the 0.25 steps of the IBCS 10A template", () => {
       const scale = new NumericScale(0, 1.25, 0, 500);
       const ticks = scale.ticks(5);

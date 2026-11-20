@@ -167,7 +167,7 @@ Customize `<bn-chart-structure>` appearance. It has the same sections as the tim
 
 ### Other charts
 
-`bn-chart-bullet`, `bn-chart-scatter` and `bn-chart-bubble` have a section of their own under their tag name, with `scaleFactors`, `axisStyles` and `padding`. The bullet chart also has `barStyles`, `varianceStyles` and `rangeColors`, the scatter and the bubble chart have `seriesColors`.
+`bn-chart-bullet`, `bn-chart-scatter` and `bn-chart-bubble` have a section of their own under their tag name, with `scaleFactors`, `axisStyles` and `padding`. The bullet chart also has `barStyles`, `varianceStyles` and `rangeColors`, the scatter and the bubble chart have `seriesColors` and `markStyles`: `{ "stroke": "#ffffff", "opacity": 1 }` is the line around a filled point or bubble and the opacity of its fill.
 
 ### Tree
 

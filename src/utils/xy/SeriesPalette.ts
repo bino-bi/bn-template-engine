@@ -80,12 +80,17 @@ export interface MarkTreatment {
  * | 30 (fc)    | hatched             | white + hue hatch + hue stroke  | white + dashed hue ring      |
  * | 50 (pl/bu) | outlined            | white + solid hue stroke        | white + solid hue ring       |
  */
-export function markTreatment(colorIndex: number, hue: string, kind: "dot" | "bubble"): MarkTreatment {
+export function markTreatment(
+  colorIndex: number,
+  hue: string,
+  kind: "dot" | "bubble",
+  outline: string = "#ffffff",
+): MarkTreatment {
   const strokeWidth = kind === "dot" ? 0.75 : 1;
 
   switch (colorIndex) {
     case 20:
-      return { fill: tint(hue), stroke: "#ffffff", strokeWidth };
+      return { fill: tint(hue), stroke: outline, strokeWidth };
     case 30:
       if (kind === "bubble") {
         return { fill: "#ffffff", stroke: hue, strokeWidth, hatch: true };
@@ -95,6 +100,6 @@ export function markTreatment(colorIndex: number, hue: string, kind: "dot" | "bu
       return { fill: "#ffffff", stroke: hue, strokeWidth };
     case 10:
     default:
-      return { fill: hue, stroke: "#ffffff", strokeWidth };
+      return { fill: hue, stroke: outline, strokeWidth };
   }
 }

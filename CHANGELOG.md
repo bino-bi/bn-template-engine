@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-scatter`: iso-lines are drawn on axes that start at 0. Before, both axes had to start above 0. An axis below 0 still gives no lines and `WARN_xy_iso_domain`.
+- `bn-chart-scatter`: `factor` in `iso` brings the product to the unit of the lines: a line with the value `v` runs where `x·y·factor = v`, and `highlight.from` and the automatic values are in that unit too. For example `0.01` for a margin in percent, `0.001` for millions from units and thousands.
+- `bn-chart-scatter`, `bn-chart-bubble`: `step` in `x` and `y` sets the distance between two ticks. A step that gives more than 50 ticks is not used.
+- `bn-chart-scatter`, `bn-chart-bubble`: an entry of `labels.points` can be `{"name":"VAB","side":"n"}`. The label then stands on that side of its mark (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark, and the other labels stay clear of it.
+- `bn-chart-scatter`, `bn-chart-bubble`: `markStyles` in the component style sets the line around a filled point or bubble (`stroke`, default `#ffffff`) and the opacity of its fill (`opacity`, default `1`). The legend follows.
+- `bn-annotation-layer`: a `frame` with `to` or `toPoint` is one oval around both data points: the ellipse through the corners of their common box.
+
 - `bn-chart-time`: a stacked area with `"by":"dimensions"` (`chart-mode="line"`) draws one layer per series, in the colours of `stackColors`. Each layer prints its value in its middle at each period, the total is a line with a marker and a value on top, and the names of the series stand next to the first or the last period, as `legend` says. A label that would lie on another one is left out, so a chart with many periods needs a smaller `scale` to print all of them. The labels of the first and the last period have the box of a plain label, as half of them lies beside the area. A period where no series has a value has no total, and the area ends at the first and the last period with a value. A 100 % stack has no total line, and its labels are percent values. Before, such a chart drew one area with the sum of the series. A dataset without categories stays one area.
 - `bn-chart-time`: `period-lines` draws a thin line at every n-th period of a stacked area, from the axis to the top of the stack. With it the dashed line at the change of the year is not drawn.
 - `bn-chart-time`: `point-position="end"` puts the points of a stacked area on the right border of their period, for values at the end of a period.
@@ -103,6 +110,9 @@ All notable changes to this project will be documented in this file. See [standa
   - The axis of a variance against PL is two lines with a gap of the same width. Before, the two lines were thin and far apart.
 
 ### Fixed
+
+- `bn-chart-scatter`, `bn-chart-bubble`: text widths were measured in the font of the page and not in the font of the chart. Where the two differ, the bold name of an axis title ran into its unit (`Net salesin mEUR`), and the room for the legend and the tick labels was off. The widths are measured in the font of the chart now, so legends, labels and the plot can move by a few px.
+- `bn-chart-scatter`: the caption of the iso-lines stood directly on the highest value. It has half a line of distance now.
 
 - `bn-chart-time`: `unit-scaling="auto"` gave a flat line chart or area when the chart had a change of the year: the dashed year line counted twice for the height. The same error made the layout state report a height overflow.
 - `bn-chart-time`: the layout state reported a line chart and a stacked area as empty.

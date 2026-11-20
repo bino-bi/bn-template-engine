@@ -138,10 +138,11 @@ export class ChartScatter {
   /**
    * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as
    * shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0,
-   * "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a
+   * "max":40,"step":5,"refLine":0.5,"highlight":{"from":30}}`. `step` is the
+   * distance between two ticks, without it the chart picks one. The measure is a
    * scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`,
    * sentiment suffix optional). A relative variance (`dr…`) gives an axis
-   * in percent: the ticks print `20%`, and `min`, `max`, `refLine` and
+   * in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and
    * `highlight` are written in percent too (`20` for 20 %).
    */
   @Prop() x!: string;
@@ -160,9 +161,12 @@ export class ChartScatter {
   }
 
   /**
-   * Hyperbolic iso-lines `x·y = k` (IBCS 09C/09D). JSON object:
+   * Hyperbolic iso-lines `x·y·factor = value` (IBCS 09C/09D). JSON object:
    * `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD",
-   * "highlight":{"from":3}}`. Requires a strictly positive plot domain.
+   * "factor":0.01,"highlight":{"from":3}}`. `factor` (default 1) brings the
+   * product to the unit of the lines: 0.01 for a margin in percent, 0.001
+   * for millions from units and thousands. `values` and `highlight.from`
+   * are in that unit. No axis may start below 0.
    */
   @Prop() iso: string = "";
   @Watch("iso")
@@ -223,7 +227,10 @@ export class ChartScatter {
 
   /**
    * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"],
-   * "max":12}` (IBCS requires selective, proximate labels).
+   * "max":12}` (IBCS requires selective, proximate labels). An entry of the
+   * list can be `{"name":"VAB","side":"n"}`: the label then stands on that
+   * side of its point (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also
+   * outside the plot or on another mark.
    */
   @Prop() labels: string = "";
   @Watch("labels")
@@ -730,6 +737,7 @@ export class ChartScatter {
         },
         axisStyles: $[tag]["axisStyles"],
         seriesColors: $[tag]["seriesColors"],
+        markStyles: $[tag]["markStyles"],
         padding: $[tag]["padding"],
       } as unknown as XYChartStyle;
     });

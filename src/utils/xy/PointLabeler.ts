@@ -19,6 +19,8 @@ export interface LabelCandidate {
   /** Measured text box. */
   width: number;
   height: number;
+  /** A fixed side. The label stands there, also outside the frame or on a mark. */
+  side?: LabelAnchor;
 }
 
 /** A successfully placed label; `x`/`y` is the label box's top-left corner. */
@@ -91,7 +93,20 @@ export class PointLabeler {
   public place(candidates: LabelCandidate[]): PlacedLabel[] {
     const placed: PlacedLabel[] = [];
 
+    // fixed sides first, so the other labels stay clear of them
     for (const candidate of candidates) {
+      if (candidate.side === undefined) {
+        continue;
+      }
+      const box = this.anchorBox(candidate, candidate.side);
+      this.manager.register(this.bounds(box.x, box.y, candidate.width, candidate.height));
+      placed.push({ candidate, x: box.x, y: box.y, anchor: candidate.side });
+    }
+
+    for (const candidate of candidates) {
+      if (candidate.side !== undefined) {
+        continue;
+      }
       for (const anchor of ANCHORS) {
         const box = this.anchorBox(candidate, anchor);
         if (!this.insideFrame(box.x, box.y, candidate.width, candidate.height)) {

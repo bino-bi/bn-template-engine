@@ -88,7 +88,7 @@ export namespace Components {
      */
     interface BnAnnotationLayer {
         /**
-          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole.
+          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points.
          */
         "items"?: string;
         /**
@@ -188,7 +188,7 @@ export namespace Components {
          */
         "i18nNamespace"?: string;
         /**
-          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble. An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark.
           * @default ""
          */
         "labels": string;
@@ -234,7 +234,7 @@ export namespace Components {
          */
         "size": string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %). `step` is the distance between two ticks, without it the chart picks one.
          */
         "x": string;
         /**
@@ -547,12 +547,12 @@ export namespace Components {
          */
         "i18nNamespace"?: string;
         /**
-          * Hyperbolic iso-lines `x·y = k` (IBCS 09C/09D). JSON object: `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD", "highlight":{"from":3}}`. Requires a strictly positive plot domain.
+          * Hyperbolic iso-lines `x·y·factor = value` (IBCS 09C/09D). JSON object: `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD", "factor":0.01,"highlight":{"from":3}}`. `factor` (default 1) brings the product to the unit of the lines: 0.01 for a margin in percent, 0.001 for millions from units and thousands. `values` and `highlight.from` are in that unit. No axis may start below 0.
           * @default ""
          */
         "iso": string;
         /**
-          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "max":12}` (IBCS requires selective, proximate labels).
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "max":12}` (IBCS requires selective, proximate labels). An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its point (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark.
           * @default ""
          */
         "labels": string;
@@ -589,7 +589,7 @@ export namespace Components {
          */
         "seriesLevel": string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"step":5,"refLine":0.5,"highlight":{"from":30}}`. `step` is the distance between two ticks, without it the chart picks one. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
          */
         "x": string;
         /**
@@ -2956,7 +2956,7 @@ declare namespace LocalJSX {
      */
     interface BnAnnotationLayer {
         /**
-          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole.
+          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points.
          */
         "items"?: string;
         /**
@@ -3047,7 +3047,7 @@ declare namespace LocalJSX {
          */
         "i18nNamespace"?: string;
         /**
-          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble.
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble. An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark.
           * @default ""
          */
         "labels"?: string;
@@ -3093,7 +3093,7 @@ declare namespace LocalJSX {
          */
         "size": string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %). `step` is the distance between two ticks, without it the chart picks one.
          */
         "x": string;
         /**
@@ -3388,12 +3388,12 @@ declare namespace LocalJSX {
          */
         "i18nNamespace"?: string;
         /**
-          * Hyperbolic iso-lines `x·y = k` (IBCS 09C/09D). JSON object: `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD", "highlight":{"from":3}}`. Requires a strictly positive plot domain.
+          * Hyperbolic iso-lines `x·y·factor = value` (IBCS 09C/09D). JSON object: `{"values":"auto"|[1,2,3],"label":"Gross profit","unit":"mUSD", "factor":0.01,"highlight":{"from":3}}`. `factor` (default 1) brings the product to the unit of the lines: 0.01 for a margin in percent, 0.001 for millions from units and thousands. `values` and `highlight.from` are in that unit. No axis may start below 0.
           * @default ""
          */
         "iso"?: string;
         /**
-          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "max":12}` (IBCS requires selective, proximate labels).
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "max":12}` (IBCS requires selective, proximate labels). An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its point (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark.
           * @default ""
          */
         "labels"?: string;
@@ -3430,7 +3430,7 @@ declare namespace LocalJSX {
          */
         "seriesLevel"?: string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"refLine":0.5,"highlight":{"from":30}}`. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"step":5,"refLine":0.5,"highlight":{"from":30}}`. `step` is the distance between two ticks, without it the chart picks one. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
          */
         "x": string;
         /**
