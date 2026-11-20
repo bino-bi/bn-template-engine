@@ -12,6 +12,8 @@ export interface MatchedPoint {
   stacked?: boolean;
   /** The point is a value label of a chart, not a bar. */
   label?: boolean;
+  /** The point belongs to a sum row: `subtotal` or `total`. */
+  row?: string;
 }
 
 const KEY_FIELDS = ["rowGroup", "category", "subCategory", "date", "scenario", "row"] as const;
@@ -38,8 +40,9 @@ export function matchPoint(state: ComponentLayoutState, point: AnnotationPoint):
   const noThereof = state.table != null && point.subCategory == null;
   return candidates
     .filter((candidate) => matches(candidate.point, point) && !(noThereof && candidate.point!.subCategory != null))
-    .map(({ rect, content, contentSign, value, scenario, kind }) => ({
+    .map(({ rect, content, contentSign, value, scenario, kind, point: found }) => ({
       rect,
+      row: found?.row,
       content,
       contentSign,
       value,

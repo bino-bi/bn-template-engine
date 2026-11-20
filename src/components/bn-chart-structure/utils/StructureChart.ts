@@ -1208,6 +1208,9 @@ export class StructureChart {
           const side = this.stackLabelPlace(elements);
           isPositive = !side.flipped;
           clearance = side.clearance * this.pixelPerUnit * (side.flipped ? 1 : -1);
+        } else if (this.isWalkTier()) {
+          // the bars hang at their levels on both sides of the axis: the names stand left of all of them
+          clearance = -this.walkExtent().left;
         } else if (elements["scenario1"].value < 0 && !this.hasSumNumbers(this.dataModel[index])) {
           isPositive = false;
         }
@@ -1221,7 +1224,7 @@ export class StructureChart {
           "",
           // Category labels come from the data, but the synthetic "REST"
           // overflow bucket is engine-generated and translatable, as in bn-table.
-          this.i18n.get(elements.category) || elements.category,
+          this.bridgeTotalName(this.dataModel[index]) ?? (this.i18n.get(elements.category) || elements.category),
           this.styles,
           HookLocation.Center,
           textHook,
@@ -1328,9 +1331,13 @@ export class StructureChart {
     if (frontValue < 0 || referenceValue <= frontValue) {
       return;
     }
+    // a marker of a further scenario stands at the bar ends: the label would cover it
+    if ([row.scenario3, row.scenario4].some((point) => Number.isFinite(point?.value))) {
+      return;
+    }
     const labelToBar = this.position.spacings.labelToBar;
     const room = (referenceValue - frontValue) * this.pixelPerUnit;
-    if (room < this.calculateTextBoxWidth(frontValue) + 3 * labelToBar) {
+    if (room < this.valueLabelWidth(frontValue) + 3 * labelToBar) {
       return;
     }
     new Label(
@@ -1342,9 +1349,8 @@ export class StructureChart {
       this.styles,
       HookLocation.Center,
       HookLocation.Left,
-    )
-      .setPoint(reference.key)
-      .draw(this.dataFormatDigits, this.measureScale);
+      // no point key: a label point without a scenario stays the label of the front bar
+    ).draw(this.dataFormatDigits, this.measureScale);
   }
 
   /** The scenarios of a sum row of a chart with plain bars that have a value, in the order of the `scenarios` prop. */
@@ -1668,6 +1674,14 @@ export class StructureChart {
       const sizeLabelValue = this.calculateTextBoxWidth(this.smallestVarianceDataPointValue.value, true);
       width = Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
+    if (this.isWalkTier()) {
+      // a bar hangs at its level: its label can stand anywhere, also next to the axis
+      width = this.walkExtent().left;
+      if (!this.hideCategories) {
+        // the names stand left of the walk
+        width += this.calculateCategoryWidth() + this.styles.fontStyles.size * this.styles.scaleFactors.labelToAxis;
+      }
+    }
 
     if (width <= this.titleLength) {
       return this.titleLength;
@@ -1733,6 +1747,9 @@ export class StructureChart {
       width = Math.abs(this.highestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
 
+    if (this.isWalkTier()) {
+      width = this.walkExtent().right;
+    }
     width = Math.max(width, this.referenceLineExtent());
 
     // the bold number of a sum row stands at the axis
@@ -1960,6 +1977,52 @@ export class StructureChart {
     return groups;
   }
 
+  /** Width of a value label as it is printed, with the digits of the chart. */
+  private valueLabelWidth(value: number, variance = false): number {
+    const digits = this.dataFormatDigits?.decimal ?? 1;
+    const text =
+      (variance && value > 0 ? "+" : "") +
+      Formatter.number(value, "decimal", digits, digits, this.measureScale?.value || 1, this.styles.locale) +
+      (variance ? "" : (this.styles.valueSuffix ?? ""));
+    return CalculateSize(text, {
+      font: this.styles.fontStyles.font,
+      fontSize: this.styles.fontStyles.size + "px",
+    }).width;
+  }
+
+  /**
+   * Room a walk needs left and right of its axis, in pixels: each bar at its
+   * level with its label behind its end, and the bars of the sum rows.
+   */
+  private walkExtent(): { left: number; right: number } {
+    const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
+    const bars = [
+      ...this.walkSteps(this.variancesDataModel).map((step) => ({ ...step, value: step.point.value as number })),
+      ...this.variancesDataModel
+        .filter((entry) => entry.sum && Number.isFinite(entry.scenario1.value))
+        .map((entry) => ({ from: 0, to: entry.scenario1.value as number, value: entry.scenario1.value as number })),
+    ];
+    let left = 0;
+    let right = 0;
+    for (const bar of bars) {
+      const label = labelToBar + this.valueLabelWidth(bar.value, true);
+      const low = Math.min(bar.from, bar.to) * this.pixelPerUnit;
+      const high = Math.max(bar.from, bar.to) * this.pixelPerUnit;
+      left = Math.max(left, -low + (bar.value < 0 ? label : 0));
+      right = Math.max(right, high + (bar.value < 0 ? 0 : label));
+    }
+    return { left, right };
+  }
+
+  /** The total row of a bridge without a `sum-title` takes the name of its scenario: the bars carry no names. */
+  private bridgeTotalName(row: StructureChartDataModelEntry | undefined): string | null {
+    if (this.bridge == null || row?.sum !== "total" || this.sumTitle) {
+      return null;
+    }
+    const scenario = this.bridge.total.scenario as string;
+    return (this.i18n.get(scenario) as string) || scenario;
+  }
+
   /** True for an absolute variance that is drawn as a walk down the rows. */
   private isWalkTier(): boolean {
     return (
@@ -2045,6 +2108,13 @@ export class StructureChart {
     ) {
       return fail("the total row has no bar for the series and its reference");
     }
+    // the bridge shows the series and its reference: a further scenario would lose its total and its name
+    const others = (["scenario2", "scenario3", "scenario4"] as const).filter(
+      (slot) => slot !== slots.get(variance.delta) && this.dataModel.some((row) => Number.isFinite(row[slot]?.value)),
+    );
+    if (slots.get(variance.delta) !== "scenario2" || others.length > 0) {
+      return fail("the chart has more scenarios than the series and its reference");
+    }
 
     const model = this.populateVarianceModel([name], this.dataModel);
     const steps = this.walkSteps(model, reference.value as number);
@@ -2063,9 +2133,7 @@ export class StructureChart {
         .filter((value) => Number.isFinite(value));
       const longest = Math.max(0, ...bars);
       const room =
-        this.calculateTextBoxWidth(longest) +
-        this.calculateTextBoxWidth(step.point.value as number, true) +
-        3 * labelToBar;
+        this.valueLabelWidth(longest) + this.valueLabelWidth(step.point.value as number, true) + 3 * labelToBar;
       if ((Math.min(step.from, step.to) - longest) * this.pixelPerUnit < room) {
         return fail("the walk would cross the bars of the rows");
       }

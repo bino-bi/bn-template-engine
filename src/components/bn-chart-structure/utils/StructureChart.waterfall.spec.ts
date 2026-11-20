@@ -78,6 +78,8 @@ interface ChartInternals {
   highestVarianceDataPointValue: DataPoint;
   smallestVarianceDataPointValue: DataPoint;
   walkSteps(model: unknown[], start?: number): Step[];
+  walkExtent(): { left: number; right: number };
+  valueLabelWidth(value: number, variance?: boolean): number;
   isWalkTier(): boolean;
   rowLayout(): { start: number[]; total: number } | null;
 }
@@ -140,6 +142,19 @@ describe("structure chart variance walk", () => {
     expect(chart.toString()).toContain('id="Walk"');
   });
 
+  it("keeps room for the label of a step that ends at the axis", () => {
+    // -150, +20, +130: the walk ends at the axis, the label of the last step stands right of it
+    const rows = [
+      { operation: "+", category: "A", categoryIndex: 1, ac1: 0, pp1: 150 },
+      { operation: "+", category: "B", categoryIndex: 2, ac1: 20, pp1: 0 },
+      { operation: "+", category: "C", categoryIndex: 3, ac1: 130, pp1: 0 },
+    ];
+    const chart = buildChart({ variances: ["dac1_pp1_pos"], varianceWaterfall: true }, rows);
+    const extent = internals(chart).walkExtent();
+    expect(extent.left).toBe(150 + internals(chart).valueLabelWidth(-150, true) + 16 * 0.3);
+    expect(extent.right).toBeGreaterThan(internals(chart).valueLabelWidth(130, true));
+  });
+
   it("leaves relative variances and a chart without the attribute as they are", () => {
     expect(internals(buildChart({ variances: ["drac1_pp1_pos"], varianceWaterfall: true })).isWalkTier()).toBe(false);
     expect(internals(buildChart({ variances: ["dac1_pp1_pos"] })).isWalkTier()).toBe(false);
@@ -198,6 +213,18 @@ describe("structure chart bridge", () => {
     expect(chart.getBridgeFallback()).toBe("the reference total plus the variances is not the total of the series");
   });
 
+  it("falls back for a chart with a third scenario", () => {
+    const rows = ROWS.map((row) => ({ ...row, pl1: 100 }));
+    const chart = buildChart({ ...BRIDGE, scenarios: ["ac1", "pp1", "pl1"] }, rows);
+    expect(internals(chart).bridge).toBeNull();
+    expect(chart.getBridgeFallback()).toBe("the chart has more scenarios than the series and its reference");
+  });
+
+  it("names an untitled total row by its scenario", () => {
+    const svg = buildChart({ ...BRIDGE, sumTitle: "" }).toString();
+    expect(svg).toContain(">AC<");
+  });
+
   it("reports nothing without a total row or without the attribute", () => {
     expect(buildChart({ varianceWaterfall: true, bridgeVariances: ["dac1_pp1_pos"] }).getBridgeFallback()).toBeNull();
     expect(buildChart({ sums: "total" }).getBridgeFallback()).toBeNull();
@@ -234,7 +261,7 @@ describe("structure chart percent sign", () => {
 
 describe("structure chart reference label", () => {
   const labels = (chart: StructureChart): number =>
-    (chart.toString().match(/data-bn-scenario="pp1" data-bn-part="label"/g) ?? []).length;
+    (chart.toString().match(/id="[^"]*REFERENCE_\d+[^"]*"/g) ?? []).length;
 
   it("prints the value of a reference bar that is much longer than the bar in front", () => {
     const rows = [
@@ -243,5 +270,12 @@ describe("structure chart reference label", () => {
       { operation: "+", category: "C", categoryIndex: 3, ac1: 100, pp1: 90 },
     ];
     expect(labels(buildChart({}, rows))).toBe(1);
+    // the label has no point key: the label of the front bar stays the only one of its row
+    expect(buildChart({}, rows).toString()).not.toContain('data-bn-scenario="pp1" data-bn-part="label"');
+  });
+
+  it("prints none next to the marker of a third scenario", () => {
+    const rows = [{ operation: "+", category: "A", categoryIndex: 1, ac1: 100, pp1: 300, fc1: 310 }];
+    expect(labels(buildChart({ scenarios: ["ac1", "pp1", "fc1"] }, rows))).toBe(0);
   });
 });
