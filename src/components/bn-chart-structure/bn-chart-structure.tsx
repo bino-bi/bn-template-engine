@@ -605,6 +605,16 @@ export class Chart {
   }
 
   private prepareSumScenarios(): string[] {
+    const errId = "WARN_sumScenarios_stack";
+    if (this.prepareStackConfig() != null && (!isBlankInput(this.sumScenarios) || !isBlankInput(this.sumDataset))) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "sumScenarios, sumDataset: no effect with stack, the total row of a stack adds up its rows.",
+      });
+    } else {
+      this.errors.remove(errId);
+    }
     return (this.sumScenarios ?? "")
       .split(",")
       .map((entry) => entry.trim().toLowerCase())

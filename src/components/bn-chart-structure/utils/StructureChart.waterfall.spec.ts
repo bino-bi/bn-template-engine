@@ -337,4 +337,18 @@ describe("structure chart scenarios at the total only", () => {
     // 900 - 850
     expect(svg).toContain('data-bn-scenario="dac1_pl1" data-bn-row="total"');
   });
+
+  it("draws no bridge for a scenario without a positive total", () => {
+    const rows = ROWS.map((row, index) => ({ ...row, pl1: [-100, 50, 0][index] }));
+    const chart = buildChart({ ...BRIDGE, sumScenarios: ["pl1"] }, rows);
+    expect(internals(chart).bridge).toBeNull();
+    expect(chart.getBridgeFallback()).toBe("a scenario at the total has no positive total");
+  });
+
+  it("colours its variance like the variance of the bridge", () => {
+    // more is bad: 900 against 850 is red
+    const svg = buildChart({ ...BRIDGE, bridgeVariances: ["dac1_pp1_neg"], sumScenarios: ["pl1"] }, WITH_PL).toString();
+    const bar = /<rect[^>]*fill="(#[0-9a-f]+)"[^>]*data-bn-scenario="dac1_pl1"/.exec(svg);
+    expect(bar?.[1]).toBe("#ff0000");
+  });
 });

@@ -1137,7 +1137,13 @@ export class TimeChart {
     if (!this.hasEndTotal()) {
       return undefined;
     }
-    return this.totalGeometry(0).right + this.endTotalTextWidth() + this.position.spacings.labelToColumn;
+    // behind the thin variance bars of the base chart, in every tier
+    return (
+      this.totalGeometry(0).right +
+      this.endTotalTextWidth() +
+      this.endVariancesWidth(true) +
+      this.position.spacings.labelToColumn
+    );
   }
 
   /** True for a chart with total columns. */
@@ -1702,7 +1708,10 @@ export class TimeChart {
   /** The variance of the total of the series to a scenario that is drawn at the total only. */
   private extraVariance(column: TotalColumn, extra: { scenario: string; value: number }): DataPoint {
     const series = column.parts[0]?.scenario ?? "ac1";
-    const point = new DataPoint(column.total - extra.value, extra.scenario, this.totalScale(), "pos");
+    // the sentiment of the variances of the chart, where it names them
+    const first = new VarianceScenario(this.bridgeVariances[0] ?? "");
+    const direction = first.isValid ? first.direction : "pos";
+    const point = new DataPoint(column.total - extra.value, extra.scenario, this.totalScale(), direction);
     point.key = this.totalKey(column, `d${series}_${extra.scenario}`);
     return point;
   }
@@ -1720,8 +1729,8 @@ export class TimeChart {
   }
 
   /** Width of the thin variance bars right of the total column at the end, each with its label. */
-  private endVariancesWidth(): number {
-    if (!this.hasEndTotal() || this.isVarianceChart()) {
+  private endVariancesWidth(everyTier: boolean = false): number {
+    if (!this.hasEndTotal() || (this.isVarianceChart() && !everyTier)) {
       return 0;
     }
     const column = this.totalColumns[0];
@@ -1734,7 +1743,15 @@ export class TimeChart {
   }
 
   /** A thin bar between two levels right of the total column, with its value: the variance of a total. */
-  private drawEndVariance(group: G, labelGroup: G, point: DataPoint, x: number, fromY: number, toY: number): number {
+  private drawEndVariance(
+    group: G,
+    labelGroup: G,
+    point: DataPoint,
+    x: number,
+    fromY: number,
+    toY: number,
+    id: string = "TOTAL_VARIANCE",
+  ): number {
     const gap = this.position.spacings.labelToColumn;
     const style = this.styles.varianceStyles.getSVGStyle(point.getVarianceStyle());
     const width = this.bridgeBarWidth();
@@ -1749,7 +1766,7 @@ export class TimeChart {
       labelGroup,
       x + width + gap,
       (fromY + toY) / 2,
-      "TOTAL_VARIANCE",
+      id,
       point.value,
       this.styles,
       HookLocation.Center,
@@ -1775,7 +1792,9 @@ export class TimeChart {
     const { center, width } = this.totalGeometry(index);
     const offset = this.position.spacings.scenarioOffset;
     let x = this.totalGeometry(index).right + this.endTotalTextWidth() + this.position.spacings.labelToColumn;
-    column.extras.forEach((extra, at) => {
+    // the farthest one first: the ones next to the reference stand in front of it
+    [...column.extras].reverse().forEach((extra, reversed) => {
+      const at = column.extras.length - 1 - reversed;
       const look = this.columnLook(extra.scenario);
       const height = extra.value * scale;
       group
@@ -1785,13 +1804,21 @@ export class TimeChart {
         .fill(look.fill)
         .stroke(look.stroke)
         .attr(dataPointAttributes(this.totalKey(column, extra.scenario), "element"))
-        .attr("data-bn-value", extra.value)
-        .back();
+        .attr("data-bn-value", extra.value);
+    });
+    for (const extra of column.extras) {
       const point = this.extraVariance(column, extra);
       if (this.hasEndTotal() && point.value !== 0) {
-        x = this.drawEndVariance(group, labelGroup, point, x, axisY - height, axisY - column.total * scale);
+        x = this.drawEndVariance(
+          group,
+          labelGroup,
+          point,
+          x,
+          axisY - extra.value * scale,
+          axisY - column.total * scale,
+        );
       }
-    });
+    }
   }
 
   /** The variance of the total of a bridge: the series against the reference. */
@@ -1954,7 +1981,7 @@ export class TimeChart {
     let x = barX;
     const point = this.bridgeVariance();
     if (point != null && point.value !== 0) {
-      x = this.drawEndVariance(group, labelGroup, point, x, referenceY, totalY);
+      x = this.drawEndVariance(group, labelGroup, point, x, referenceY, totalY, "BRIDGE_VARIANCE");
     }
     // a scenario at the total only: a line from its total, and its variance behind the one of the reference
     column.extras.forEach((extra, at) => {
@@ -2179,6 +2206,9 @@ export class TimeChart {
         }
       }
 
+      // behind the reference, in front of the band of the scaling indicator
+      this.drawTotalExtras(group, labelGroup, column, index);
+
       // the reference of a bridge stands before the periods
       if (column.reference != null && column.reference.value > 0 && this.bridge == null) {
         const look = this.columnLook(column.reference.scenario);
@@ -2192,8 +2222,6 @@ export class TimeChart {
           .attr(dataPointAttributes(this.totalKey(column, column.reference.scenario), "element"))
           .attr("data-bn-value", column.reference.value);
       }
-
-      this.drawTotalExtras(group, labelGroup, column, index);
 
       let top = axisY;
       for (const part of column.parts) {

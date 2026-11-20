@@ -250,6 +250,10 @@ export class StructureChart {
     this.sumScenarios = config.sumScenarios ?? [];
     this.sumDataset = config.sumDataset ?? "";
     this.stackConfig = config.stackConfig;
+    // before the model: the room of the labels is measured with them
+    this.measureScale = config.measureScale;
+    this.measureUnit = config.measureUnit;
+    this.dataFormatDigits = config.dataFormatDigits;
     this.dataModel = this.populateModel(scenarios, config.level, config.sortOrder);
 
     // Populate per-dimension stack segments when stacking by a data dimension
@@ -324,10 +328,6 @@ export class StructureChart {
       );
     }
 
-    this.measureScale = config.measureScale;
-    this.measureUnit = config.measureUnit;
-    this.dataFormatDigits = config.dataFormatDigits;
-    this.stackConfig = config.stackConfig;
     this.measureStacks();
 
     this.updatePosition();
@@ -886,13 +886,20 @@ export class StructureChart {
     let longestLength: number = 0;
 
     for (const entry of this.dataModel) {
-      const columnLength = CalculateSize(entry.category, {
+      const columnLength = CalculateSize(this.bridgeTotalName(entry) ?? entry.category, {
         font: this.styles.fontStyles.font,
         fontSize: this.styles.fontStyles.size + "px",
       });
 
       if (columnLength.width > longestLength) {
         longestLength = columnLength.width;
+      }
+    }
+    if (this.bridge && this.variancesDataModel.length === 0) {
+      // the bold names of the totals above the rows stand where the categories stand
+      for (const point of [this.bridge.reference, ...this.bridgeExtras()]) {
+        const scenario = point.scenario as string;
+        longestLength = Math.max(longestLength, this.boldWidth((this.i18n.get(scenario) as string) || scenario));
       }
     }
 
@@ -2221,8 +2228,13 @@ export class StructureChart {
     const others = (["scenario2", "scenario3", "scenario4"] as const).filter(
       (slot) => slot !== slots.get(variance.delta) && this.dataModel.some((row) => Number.isFinite(row[slot]?.value)),
     );
-    if (slots.get(variance.delta) !== "scenario2" || others.length > 0) {
+    if (others.length > 0) {
       return fail("the chart has more scenarios than the series and its reference");
+    }
+
+    // a scenario at the total only is a bar above the reference: without a positive total it has none
+    if (this.sumExtras.some((point) => !((point.value as number) > 0))) {
+      return fail("a scenario at the total has no positive total");
     }
 
     const model = this.populateVarianceModel([name], this.dataModel);
@@ -2251,9 +2263,9 @@ export class StructureChart {
     return { reference, total: series, steps, variance: totalVariance };
   }
 
-  /** The scenarios at the total only that a bridge draws as bars: the ones with a positive total. */
+  /** The scenarios at the total only that a bridge draws as bars. */
   private bridgeExtras(): DataPoint[] {
-    return this.sumExtras.filter((point) => (point.value as number) > 0);
+    return this.sumExtras;
   }
 
   /** Rows of room above the first row of a bridge: the reference total, and the totals above it. */
@@ -2409,7 +2421,13 @@ export class StructureChart {
       if (value === 0) return;
       const y = varianceY + (at + 1) * pitch;
       const extraX = axisX + extraLengths[at];
-      const variance = new DataPoint(value, bridge.total.scenario, this.pixelPerUnit, "pos");
+      // the sentiment of the variance of the bridge: more is good, or more is bad
+      const variance = new DataPoint(
+        value,
+        bridge.total.scenario,
+        this.pixelPerUnit,
+        new VarianceScenario(this.bridgeVariances[0]).direction,
+      );
       variance.key = {
         scenario: `d${bridge.total.scenario}_${extra.scenario}`,
         row: "total" as const,
