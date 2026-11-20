@@ -745,7 +745,14 @@ export class Chart {
 
   /** Draws the chart again when the dataset of the totals gets its rows. */
   private bindTotalsDataset() {
-    const name = (isBlankInput(this.totals) ? null : this.parseTotals(this.totals))?.dataset ?? "";
+    // from the plain JSON: the name does not depend on a scaling group that may get its value later
+    let name: string;
+    try {
+      const dataset = isBlankInput(this.totals) ? "" : JSON.parse(this.totals)?.dataset;
+      name = typeof dataset === "string" ? dataset.trim() : "";
+    } catch {
+      name = "";
+    }
     if (name === this.totalsDatasetName) return;
     this.totalsDatasetUnsubscribe?.();
     this.totalsDatasetUnsubscribe = null;
@@ -771,6 +778,15 @@ export class Chart {
         id: errId,
         type: "warning",
         message: "totals: needs a fixed unitScaling of the chart, the total columns are not drawn.",
+      });
+      return null;
+    }
+    // without the columns each variance row would decide on its own which periods have a total
+    if (this.hidesScenarios()) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: "totals: needs the columns of the chart, a chart with scenarios none draws no total columns.",
       });
       return null;
     }
@@ -1113,6 +1129,11 @@ export class Chart {
     };
 
     this._settleTimer = setTimeout(check, delays.shift());
+  }
+
+  connectedCallback() {
+    // an element that is moved in the page comes back without its subscription
+    this.bindTotalsDataset();
   }
 
   disconnectedCallback() {

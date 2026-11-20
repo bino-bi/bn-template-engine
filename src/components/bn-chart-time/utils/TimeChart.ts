@@ -995,7 +995,11 @@ export class TimeChart {
   private scalingIndicatorLabelX(): number {
     const gap = this.position.spacings.labelToColumn;
     const half = this.position.getColumnWidth() / 2 + this.position.spacings.scenarioOffset;
-    const right = this.position.getColumnCenterPositionX(Math.max(0, this.dataModel.length - 1)) + half;
+    let right = this.position.getColumnCenterPositionX(Math.max(0, this.dataModel.length - 1)) + half;
+    if (this.hasTotals() && !this.hasEndTotal()) {
+      // a total stands behind the last period: the value goes behind it
+      right = Math.max(right, this.totalGeometry(this.totalColumns.length - 1).right);
+    }
     const legendWidth = this.legendWidth("right");
     return right + gap + (legendWidth > 0 ? legendWidth + gap : 0);
   }
@@ -1031,11 +1035,22 @@ export class TimeChart {
     const axisY = this.position.getColumnPositionY();
 
     const group = svgContainer.group().id("ScalingIndicator");
-    group
-      .rect(right - left, height)
-      .x(left)
-      .y(axisY - height)
-      .fill(SCALING_INDICATOR_FILL);
+    // totals on the axis have their own band at their own scale: the band of the periods leaves their place free
+    const half = this.position.getColumnWidth() / 2 + this.position.spacings.scenarioOffset;
+    const runs =
+      this.hasTotals() && !this.hasEndTotal()
+        ? this.totalRuns().map((run) => ({
+            left: this.position.getColumnCenterPositionX(run.from) - half,
+            right: this.position.getColumnCenterPositionX(run.to) + half,
+          }))
+        : [{ left, right }];
+    for (const run of runs) {
+      group
+        .rect(run.right - run.left, height)
+        .x(run.left)
+        .y(axisY - height)
+        .fill(SCALING_INDICATOR_FILL);
+    }
     group.back();
     new Label(
       svgContainer.group().id("ScalingIndicatorLabel"),
@@ -1069,7 +1084,8 @@ export class TimeChart {
 
   /** The index of a total column for the positions: the totals follow the periods. */
   private totalIndex(total: number): number {
-    return this.dataModel.length + total;
+    // the index behind the last period stays what it is without totals: the end of the overlay lines
+    return this.dataModel.length + 1 + total;
   }
 
   /** Place of a total column. `left` and `right` are the ends of its band, and of its own axis at the end. */
@@ -1101,20 +1117,38 @@ export class TimeChart {
           ? (this.scalingIndicatorTextWidth() + scenarioOffset * fontSize) / (categoryWidth * fontSize)
           : 0;
       totals.push(count + 1 + extra / 2 + shift);
-      return { slots: [...slots, ...totals], axisColumns: count };
+      return { slots: [...slots, count, ...totals], axisColumns: count };
     }
+    // the names of the scenarios stand right of the last period: its total keeps one place of room for them.
+    // A series with a scenario switch has its names under the axis.
+    const namesRoom = this.followerSlots().length === 0 ? 1 : 0;
     let offset = 0;
     let next = 0;
     for (let index = 0; index < count; index++) {
       slots.push(index + offset);
       const group = this.totalColumns[next];
       if (group != null && group.to === index) {
-        totals.push(index + offset + 1 + extra / 2);
-        offset += 1 + extra;
+        const room = index === count - 1 ? namesRoom : 0;
+        totals.push(index + offset + room + 1 + extra / 2);
+        offset += room + 1 + extra;
         next++;
       }
     }
-    return { slots: [...slots, ...totals], axisColumns: count + offset };
+    return { slots: [...slots, count + offset, ...totals], axisColumns: count + offset };
+  }
+
+  /** The runs of periods between the total columns on the axis: each ends with the last period of a total, or of the chart. */
+  private totalRuns(): { from: number; to: number }[] {
+    const runs: { from: number; to: number }[] = [];
+    let from = 0;
+    for (const column of this.totalColumns) {
+      runs.push({ from, to: column.to });
+      from = column.to + 1;
+    }
+    if (from < this.dataModel.length) {
+      runs.push({ from, to: this.dataModel.length - 1 });
+    }
+    return runs;
   }
 
   /** The start of the group of a date, null for one group over all periods. */
@@ -1190,8 +1224,10 @@ export class TimeChart {
       const key = start ? (start.toISODate() ?? "") : "";
       if (this.totals!.by !== "all" && key === "") continue;
       const sums = rows.get(key) ?? {};
-      for (const [column, value] of Object.entries(row)) {
-        if (typeof value === "number" && Number.isFinite(value)) {
+      for (const [column, raw] of Object.entries(row)) {
+        // a value can come as a text, like in the dataset of the chart
+        const value = typeof raw === "string" && raw.trim() !== "" ? Number(raw) : raw;
+        if (column !== "date" && typeof value === "number" && Number.isFinite(value)) {
           sums[column] = (sums[column] ?? 0) + value;
         }
       }
@@ -1252,6 +1288,11 @@ export class TimeChart {
       }
     });
 
+    // a total per period would repeat every column: `by` is not coarser than the periods of the chart
+    if (this.totals.by !== "all" && groups.length === this.dataModel.length && groups.length > 1) {
+      return [];
+    }
+
     const columns: TotalColumn[] = [];
     for (const group of groups) {
       const rows = this.dataModel.slice(group.from, group.to + 1);
@@ -1263,7 +1304,8 @@ export class TimeChart {
         const data = fromData.get(group.start ? (group.start.toISODate() ?? "") : "") ?? {};
         for (const slot of series) {
           const scenario = this.dataModel.find((row) => row[slot]?.scenario != null)?.[slot].scenario as string;
-          if (scenario != null && Number.isFinite(data[scenario])) {
+          // a 0 is a scenario without a value in this total
+          if (scenario != null && Number.isFinite(data[scenario]) && data[scenario] !== 0) {
             parts.push({ scenario, value: data[scenario] });
           }
         }
@@ -1271,14 +1313,16 @@ export class TimeChart {
           reference = { scenario: referenceScenario, value: data[referenceScenario] };
         }
       } else {
-        const visible = rows
-          .map((row) => {
-            const slot = this.visibleSlot(row, followers);
-            return slot != null && Number.isFinite(row[slot]?.value) ? row[slot] : null;
-          })
-          .filter((point): point is DataPoint => point != null);
+        // the periods where the series has a value. The reference counts in the same periods only,
+        // as the variance of the total does: else the two would not tell the same.
+        const used = rows.filter((row) => {
+          const slot = this.visibleSlot(row, followers);
+          return slot != null && Number.isFinite(row[slot]?.value);
+        });
+        const visible = used.map((row) => row[this.visibleSlot(row, followers)!]);
+        const referenceRows = this.totals.aggregation === "last" ? used.slice(-1) : used;
         const references = referenceSlot
-          ? rows.map((row) => row[referenceSlot]).filter((point) => Number.isFinite(point?.value))
+          ? referenceRows.map((row) => row[referenceSlot]).filter((point) => Number.isFinite(point?.value))
           : [];
         const sum = (points: DataPoint[]): number => points.reduce((total, point) => total + point.value, 0);
         if (this.totals.aggregation === "sum") {
@@ -1309,7 +1353,11 @@ export class TimeChart {
         }
       }
 
-      if (parts.length === 0 || parts.some((part) => !(part.value > 0))) {
+      if (parts.length === 0) {
+        // a group without a value of the series has no total, the others keep theirs
+        continue;
+      }
+      if (parts.some((part) => !(part.value > 0))) {
         return [];
       }
       const total = parts.reduce((sum, part) => sum + part.value, 0);

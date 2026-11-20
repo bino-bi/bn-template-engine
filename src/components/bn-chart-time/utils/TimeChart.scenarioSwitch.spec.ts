@@ -331,7 +331,8 @@ describe("time chart total column", () => {
   it("sums the first scenario, with the first other scenario as the reference", () => {
     const total = internals(buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"] })).totalColumns[0] ?? null;
     expect(total.parts).toEqual([{ scenario: "ac1", value: 220 }]);
-    expect(total.reference).toEqual({ scenario: "pp1", value: 320 });
+    // the reference counts in the periods of the series: 2024 and 2025
+    expect(total.reference).toEqual({ scenario: "pp1", value: 160 });
   });
 
   it("has one part per scenario of a switched series", () => {
@@ -360,8 +361,8 @@ describe("time chart total column", () => {
     const total = buildChart({ scenarios: ["ac1", "pp1"], totals: { pixelPerUnit: 2, label: "", width: 1 } });
     plain.layout();
     total.layout();
-    // the reference of 320 at 2 px per unit is 640 high, the highest column 120
-    expect(total.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(520);
+    // the total of 220 at 2 px per unit is 440 high, the highest column 120
+    expect(total.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(320);
     total.setAvailableHeight(400);
     expect((total as unknown as { overflowConfig: unknown }).overflowConfig).toBeNull();
   });
@@ -429,8 +430,8 @@ describe("time chart total column", () => {
     const band = buildChart({ ...options, scalingIndicator: 400 });
     plain.layout();
     band.layout();
-    // the reference of 320 is 1600 high, the band of 400 is 2000 high
-    expect(band.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(400);
+    // the total of 220 is 1100 high, the band of 400 is 2000 high
+    expect(band.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(900);
   });
 
   it("draws the variance of the total inside the group of the variances, for the height of the row", () => {
@@ -497,8 +498,8 @@ describe("time chart totals by period", () => {
     expect(columns[0].reference).toEqual({ scenario: "pp1", value: 150 });
     // March, the total of the first quarter, April: each one place further
     const step = place(chart, 1) - place(chart, 0);
-    expect(place(chart, 9) - place(chart, 2)).toBeCloseTo(step);
-    expect(place(chart, 3) - place(chart, 9)).toBeCloseTo(step);
+    expect(place(chart, 10) - place(chart, 2)).toBeCloseTo(step);
+    expect(place(chart, 3) - place(chart, 10)).toBeCloseTo(step);
   });
 
   it("draws the line of the scenario switch behind the total between the two runs", () => {
@@ -506,7 +507,7 @@ describe("time chart totals by period", () => {
     const svg = chart.toString();
     const x = Number(/<line[^>]*x1="([\d.]+)"[^>]*class="scenario-switch"/.exec(svg)?.[1]);
     // June, the total of the second quarter, the line, July
-    expect(x).toBeGreaterThan(place(chart, 10));
+    expect(x).toBeGreaterThan(place(chart, 11));
     expect(x).toBeLessThan(place(chart, 6));
   });
 
@@ -587,10 +588,52 @@ describe("time chart totals by period", () => {
     expect(internals(chart).totalColumns.map((column) => column.total)).toEqual([100, 200, 300]);
   });
 
-  it("has no totals when the dataset misses a group", () => {
-    const quarters = [{ date: "2025-01-01", ac1: 100, pp1: 90 }];
+  it("has a total only where the dataset has a row, and takes a 0 or a text like the main dataset", () => {
+    const quarters = [{ date: "2025-01-01", ac1: "100", fc1: 0, pp1: 90 }];
     const chart = buildChart({ ...options, ...totals({ dataset: "quarters" }) }, MONTHS, { quarters });
+    const columns = internals(chart).totalColumns;
+    expect(columns).toHaveLength(1);
+    expect(columns[0].parts).toEqual([{ scenario: "ac1", value: 100 }]);
+  });
+
+  it("has no total for a group where the series has no value", () => {
+    const rows = MONTHS.map((row, index) => (index < 3 ? row : { date: row.date, operation: "+", pp1: 50 }));
+    const chart = buildChart({ ...options, ...totals(), scenarios: ["ac1", "pp1"], scenarioSwitch: false }, rows);
+    expect(internals(chart).totalColumns.map((column) => [column.from, column.to])).toEqual([[0, 2]]);
+  });
+
+  it("takes the reference from the periods of the series", () => {
+    const rows = MONTHS.map((row, index) => (index < 3 ? row : { date: row.date, operation: "+", pp1: 50 }));
+    for (const aggregation of ["sum", "average", "last"]) {
+      const chart = buildChart(
+        {
+          ...options,
+          ...totals({ by: "all", aggregation }),
+          scenarios: ["ac1", "pp1"],
+          scenarioSwitch: false,
+          variances: ["dac1_pp1_pos"],
+        },
+        rows,
+      );
+      const [column] = internals(chart).totalColumns;
+      const variance = internals(chart).totalVariances[0].value;
+      expect(column.total - column.reference.value).toBeCloseTo(variance);
+    }
+  });
+
+  it("has no totals when every period would get its own", () => {
+    const chart = buildChart({ ...options, ...totals({ by: "month" }) }, MONTHS);
     expect(internals(chart).totalColumns).toEqual([]);
+  });
+
+  it("keeps the end of the average line behind the last period, and the bands of the totals free", () => {
+    const chart = buildChart({ ...options, ...totals(), scalingIndicator: 20, showOverlayAvg: true }, MONTHS);
+    // the index behind the last period is one place behind the last total, not the place of a total
+    expect(place(chart, 9)).toBeGreaterThan(place(chart, 12));
+    const svg = chart.toString();
+    const band = /<g id="ScalingIndicator">([\s\S]*?)<\/g>/.exec(svg)?.[1] ?? "";
+    // one piece per quarter
+    expect(band.match(/<rect/g)).toHaveLength(3);
   });
 
   it("draws one column per total and no own axis on the axis of the periods", () => {
