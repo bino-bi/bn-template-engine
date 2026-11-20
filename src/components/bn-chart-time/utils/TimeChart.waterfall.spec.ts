@@ -254,6 +254,16 @@ describe("time chart bridge", () => {
     expect(other.getBridgeFallback()).toBe("the variances are not the series against the reference of the total");
   });
 
+  it("reports that the totals are not drawn", () => {
+    // a total that is not positive gives no total columns
+    const rows = [
+      { date: "2025-01-01", operation: "+", ac1: -40, pl1: 50 },
+      { date: "2025-02-01", operation: "+", ac1: 15, pl1: 50 },
+    ];
+    const chart = buildChart({ ...BRIDGE, scenarios: ["ac1", "pl1"], bridgeVariances: ["dac1_pl1_pos"] }, rows);
+    expect(chart.getBridgeFallback()).toBe("the chart draws no total columns");
+  });
+
   it("reports nothing without totals or without the attribute", () => {
     expect(buildChart({ varianceWaterfall: true, bridgeVariances: ABSOLUTE }).getBridgeFallback()).toBeNull();
     expect(buildChart({ totals: TOTALS }).getBridgeFallback()).toBeNull();

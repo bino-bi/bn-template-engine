@@ -1535,13 +1535,17 @@ export class TimeChart {
    */
   private computeBridge(): Bridge | null {
     this.bridgeFallback = null;
-    if (!this.varianceWaterfall || this.bridgeVariances.length === 0 || !this.hasTotals()) {
+    if (!this.varianceWaterfall || this.bridgeVariances.length === 0 || this.totals == null) {
       return null;
     }
     const fail = (reason: string): null => {
       this.bridgeFallback = reason;
       return null;
     };
+    if (!this.hasTotals()) {
+      // an empty chart has nothing to report
+      return this.dataModel.length === 0 ? null : fail("the chart draws no total columns");
+    }
     const totals = this.totals!;
     if (totals.by !== "all") return fail("totals.by is not all");
     if (totals.aggregation !== "sum") return fail("totals.aggregation is not sum");
