@@ -231,3 +231,17 @@ describe("structure chart percent sign", () => {
     expect(without.toString()).toContain(">+20<");
   });
 });
+
+describe("structure chart reference label", () => {
+  const labels = (chart: StructureChart): number =>
+    (chart.toString().match(/data-bn-scenario="pp1" data-bn-part="label"/g) ?? []).length;
+
+  it("prints the value of a reference bar that is much longer than the bar in front", () => {
+    const rows = [
+      { operation: "+", category: "A", categoryIndex: 1, ac1: 100, pp1: 300 },
+      { operation: "+", category: "B", categoryIndex: 2, ac1: 100, pp1: 105 },
+      { operation: "+", category: "C", categoryIndex: 3, ac1: 100, pp1: 90 },
+    ];
+    expect(labels(buildChart({}, rows))).toBe(1);
+  });
+});

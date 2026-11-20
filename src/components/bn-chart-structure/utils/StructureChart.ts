@@ -1291,6 +1291,7 @@ export class StructureChart {
       }
       scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
       scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
+      this.drawReferenceLabel(elements, index, barsGroup);
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
       scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
     });
@@ -1310,6 +1311,40 @@ export class StructureChart {
         HookLocation.Left,
       ).draw();
     }
+  }
+
+  /**
+   * The value of a reference bar that is much longer than the bar in front of
+   * it: printed at its end, when it has room behind the label of the front bar.
+   */
+  private drawReferenceLabel(row: StructureChartDataModelEntry, index: number, group: G): void {
+    const front = row.scenario1;
+    const reference = row.scenario2;
+    if (this.overflowConfig != null || !Number.isFinite(front?.value) || !Number.isFinite(reference?.value)) {
+      return;
+    }
+    const frontValue = front.value as number;
+    const referenceValue = reference.value as number;
+    if (frontValue < 0 || referenceValue <= frontValue) {
+      return;
+    }
+    const labelToBar = this.position.spacings.labelToBar;
+    const room = (referenceValue - frontValue) * this.pixelPerUnit;
+    if (room < this.calculateTextBoxWidth(frontValue) + 3 * labelToBar) {
+      return;
+    }
+    new Label(
+      group,
+      this.position.getLabelPositionX(referenceValue * this.pixelPerUnit),
+      this.position.getBarCenterPositionY(index),
+      `REFERENCE_${index}`,
+      referenceValue,
+      this.styles,
+      HookLocation.Center,
+      HookLocation.Left,
+    )
+      .setPoint(reference.key)
+      .draw(this.dataFormatDigits, this.measureScale);
   }
 
   /** The scenarios of a sum row of a chart with plain bars that have a value, in the order of the `scenarios` prop. */
