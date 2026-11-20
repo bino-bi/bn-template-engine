@@ -960,7 +960,7 @@ export namespace Components {
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
-        "reportWidth"?: (width: number) => void;
+        "reportWidth"?: (width: number, cuttable: boolean) => void;
         /**
           * @default 0
          */
@@ -3766,7 +3766,7 @@ declare namespace LocalJSX {
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
-        "reportWidth"?: (width: number) => void;
+        "reportWidth"?: (width: number, cuttable: boolean) => void;
         /**
           * @default 0
          */

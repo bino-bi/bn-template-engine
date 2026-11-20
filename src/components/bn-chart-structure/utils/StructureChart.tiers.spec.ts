@@ -98,6 +98,40 @@ describe("structure chart row lines", () => {
   });
 });
 
+describe("structure chart row lines and the footer", () => {
+  it("start left of the room of the footer text", () => {
+    const options = { rowLines: 2, tiers: true, hideCategories: true, variances: ["dac1_pl1_pos"] };
+    const plain = lineEnds(buildChart(options).toString(), "row-line")[0].x1;
+    // the footer "in EUR" stands left of the segment, also where it is not shown
+    const unit = lineEnds(buildChart({ ...options, measureUnit: "EUR" }).toString(), "row-line")[0].x1;
+    expect(unit).toBeLessThan(plain - 5);
+  });
+
+  it("stand half way between two rows of a stack with rows of their own thickness", () => {
+    const rows = [
+      { operation: "+", category: "A", categoryIndex: 1, ac1: 300, pl1: 100 },
+      { operation: "+", category: "B", categoryIndex: 2, ac1: 40, pl1: 60 },
+      { operation: "+", category: "C", categoryIndex: 3, ac1: 10, pl1: 20 },
+    ];
+    const chart = buildChart(
+      { rowLines: 1, stackConfig: { by: "scenarios", mode: "absolute", order: "dataset", thickness: "total" } },
+      rows,
+    );
+    const svg = chart.toString();
+    const position = (
+      chart as unknown as { position: { getBarCenterPositionY(i: number): number; getBarWidthAt(i: number): number } }
+    ).position;
+    const ys = [...svg.matchAll(/<line[^>]*class="row-line"[^>]*>/g)].map((m) =>
+      Number(/y1="([^"]+)"/.exec(m[0])?.[1]),
+    );
+    expect(ys).toHaveLength(2);
+    ys.forEach((y, index) => {
+      expect(y).toBeGreaterThanOrEqual(position.getBarCenterPositionY(index) + position.getBarWidthAt(index) / 2);
+      expect(y).toBeLessThanOrEqual(position.getBarCenterPositionY(index + 1) - position.getBarWidthAt(index + 1) / 2);
+    });
+  });
+});
+
 describe("structure chart line of a sum row", () => {
   it("ends behind the numbers in a chart with one segment", () => {
     const chart = buildChart({ sums: "total" });
@@ -138,6 +172,41 @@ describe("structure chart mark of the order", () => {
     expect(marks({ sortOrder: order("fc1") })).toBe(0);
   });
 
+  const markBox = (svg: string): { left: number; right: number; bottom: number } => {
+    const points = /<polygon[^>]*points="([^"]+)"[^>]*class="order-mark"/.exec(svg)?.[1] ?? "";
+    const pairs = points.split(" ").map((pair) => pair.split(",").map(Number));
+    return {
+      left: Math.min(...pairs.map((pair) => pair[0])),
+      right: Math.max(...pairs.map((pair) => pair[0])),
+      bottom: Math.max(...pairs.map((pair) => pair[1])),
+    };
+  };
+  const internal = (chart: StructureChart) =>
+    chart as unknown as {
+      position: { getBarPositionX(): number; getBarCenterPositionY(i: number): number };
+      dataModel: unknown[];
+    };
+
+  it("stands beside the name below the last bar, not on the reference bar of the first row", () => {
+    // first row: ac 50, pl 100. The name of ac stands below the last bar
+    const rows = [
+      { operation: "+", category: "A", categoryIndex: 1, ac1: 50, pl1: 100 },
+      { operation: "+", category: "B", categoryIndex: 2, ac1: 80, pl1: 60 },
+    ];
+    const chart = buildChart({ orderMark: true, sortOrder: order("ac1") }, rows);
+    const box = markBox(chart.toString());
+    expect(box.bottom).toBeGreaterThan(internal(chart).position.getBarCenterPositionY(1));
+  });
+
+  it("keeps the name of the first scenario right of the mark at the name of the reference", () => {
+    const header = (svg: string): number =>
+      Number(/id="[^"]*SCENARIO_HEADER[^"]*"[\s\S]*?<text[^>]* x="([^"]+)"/.exec(svg)?.[1]);
+    // a short reference bar: its name, the mark and the other name stand in a row
+    const rows = [{ operation: "+", category: "A", categoryIndex: 1, ac1: 3, pl1: 4 }];
+    const svg = buildChart({ orderMark: true, sortOrder: order("pl1"), scenarioLabelTop: true }, rows).toString();
+    expect(header(svg)).toBeGreaterThan(markBox(svg).right);
+  });
+
   it("draws none for an order by a dimension, and none without the switch", () => {
     expect(marks({})).toBe(0);
     expect(count(buildChart({ sortOrder: order("ac1") }).toString(), "order-mark")).toBe(0);
@@ -161,6 +230,24 @@ describe("structure chart name of the first scenario on top", () => {
   it("stands at the end of the first bar when the row has a reference bar", () => {
     // ac 120, pl 100: right of the reference bar and of its name
     expect(header(buildChart({ scenarioLabelTop: true }))).toBeGreaterThan(100);
+  });
+
+  it("stays at the axis next to the name of a marker, and in a chart with break marks", () => {
+    const withMarker = ROWS.map((row) => ({ ...row, pp1: row.pl1 + 5 }));
+    const two = header(buildChart({ scenarioLabelTop: true }));
+    expect(header(buildChart({ scenarioLabelTop: true, scenarios: ["ac1", "pl1", "pp1"] }, withMarker))).toBeLessThan(
+      two - 50,
+    );
+
+    const long = [{ operation: "+", category: "A", categoryIndex: 1, ac1: 1000, pl1: 1200 }];
+    const plain = buildChart({}, long);
+    plain.setAvailableWidth(300);
+    plain.layout();
+    const top = buildChart({ scenarioLabelTop: true }, long);
+    top.setAvailableWidth(300);
+    top.layout();
+    // the name adds nothing to the width that was fitted to the room
+    expect(top.getAllocatedCanvasWidth()).toBeCloseTo(plain.getAllocatedCanvasWidth());
   });
 
   it("stands at the axis in a chart with one scenario", () => {
@@ -197,5 +284,19 @@ describe("structure chart value of a longer reference bar", () => {
     const chart = buildChart({}, cut);
     chart.setAvailableWidth(800);
     expect(labels(chart)).toBe(1);
+  });
+});
+
+describe("structure chart segments that cannot get break marks", () => {
+  it("are the pins, a walk and a stack", () => {
+    expect(buildChart({}).canCut()).toBe(true);
+    expect(buildChart({ variances: ["dac1_pl1_pos"] }).canCut()).toBe(true);
+    expect(buildChart({ variances: ["drac1_pl1_pos"] }).canCut()).toBe(false);
+    expect(buildChart({ variances: ["dac1_pl1_pos"], varianceWaterfall: true }).canCut()).toBe(false);
+    expect(buildChart({ stackConfig: { by: "scenarios", mode: "absolute", order: "dataset" } }).canCut()).toBe(false);
+  });
+
+  it("have a footer room that grows with the text of the footer", () => {
+    expect(buildChart({ measureUnit: "EUR" }).getFooterRoom()).toBeGreaterThan(buildChart({}).getFooterRoom());
   });
 });

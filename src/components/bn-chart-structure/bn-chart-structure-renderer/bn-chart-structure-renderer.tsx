@@ -177,7 +177,7 @@ export class BnChartStructureRenderer {
   @Prop() tiers: boolean = false;
 
   /** @internal The width this segment needs without break marks. The wrapper shares the free room with it. */
-  @Prop() reportWidth?: (width: number) => void;
+  @Prop() reportWidth?: (width: number, cuttable: boolean) => void;
 
   /** @internal */
   @Prop()
@@ -301,15 +301,19 @@ export class BnChartStructureRenderer {
 
   /** Sets the room for the bars. Before, it reports the width the segment has when no bar is cut. */
   private fitWidth(auto: boolean): void {
-    const room = auto ? 0 : this.parentDimensions?.width || 0;
+    let room = auto ? 0 : this.parentDimensions?.width || 0;
     if (!auto && this.reportWidth) {
       this.chart.setAvailableWidth(0);
+      const hidden = this.chart.isBridgeTier() || this.chart.hasNoData();
       let natural = 0;
-      if (!this.chart.isBridgeTier() && !this.chart.hasNoData()) {
+      if (!hidden) {
         this.chart.layout();
         natural = this.chart.getAllocatedCanvasWidth();
       }
-      this.reportWidth(natural);
+      // the footer stands beside the chart and takes a part of the room
+      const footer = hidden ? 0 : this.chart.getFooterRoom();
+      this.reportWidth(natural + footer, !hidden && this.chart.canCut());
+      room = Math.max(0, room - footer);
       // the check for break marks keeps room for them: a segment that fits as it is needs none
       if (natural <= room + 0.5) return;
     }

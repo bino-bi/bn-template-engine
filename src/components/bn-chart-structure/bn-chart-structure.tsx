@@ -1040,6 +1040,8 @@ export class Chart {
 
   /** The width each segment has when no bar is cut, as its renderer reported it. */
   private segmentWidths: (number | undefined)[] = [];
+  /** Segments whose bars cannot get break marks: they are as wide as they are. */
+  private segmentFixed: boolean[] = [];
   private widthUpdate = false;
 
   /** With fixed scales the segments share the width: one that needs less than its share leaves room to the others. */
@@ -1053,20 +1055,19 @@ export class Chart {
   /** The room of each segment: its equal share, plus a part of what the segments below their share leave. */
   private segmentRooms(total: number, count: number): number[] {
     if (!this.sharesWidth()) return new Array(count).fill(total / count);
-    // each segment has the margin of its footer beside its chart: 0.4em of a font of 0.6em
-    const margin = this.getEffectiveFontPx() * 0.24 + 0.5;
     return segmentRooms(
       total,
       Array.from({ length: count }, (_, index) => this.segmentWidths[index]),
-      margin,
+      Array.from({ length: count }, (_, index) => this.segmentFixed[index] === true),
     );
   }
 
-  private handleWidthReport(index: number, width: number): void {
+  private handleWidthReport(index: number, width: number, cuttable: boolean): void {
     const count = Math.max(1, this.prepareSegments().length);
     const total = getParentDimensions(this.element).width;
     const before = this.segmentRooms(total, count);
     this.segmentWidths[index] = width;
+    this.segmentFixed[index] = !cuttable;
     const after = this.segmentRooms(total, count);
     if (this.widthUpdate || after.every((room, at) => Math.abs(room - before[at]) <= 0.5)) return;
     this.widthUpdate = true;
@@ -1081,6 +1082,7 @@ export class Chart {
     const segmentCount = Math.max(1, this.prepareSegments().length);
     this.canvasWidthSegmented = parent.width / segmentCount;
     if (this.segmentWidths.length > segmentCount) this.segmentWidths.length = segmentCount;
+    if (this.segmentFixed.length > segmentCount) this.segmentFixed.length = segmentCount;
     return {
       width: this.segmentRooms(parent.width, segmentCount)[index] ?? this.canvasWidthSegmented,
       height: parent.height,
@@ -1591,7 +1593,11 @@ export class Chart {
         rowLines={Number.isFinite(Number(this.rowLines)) ? Math.max(0, Math.floor(Number(this.rowLines))) : 0}
         orderMark={this.orderMark === true}
         tiers={this.prepareSegments().length > 1}
-        reportWidth={this.sharesWidth() ? (width: number) => this.handleWidthReport(idx, width) : undefined}
+        reportWidth={
+          this.sharesWidth()
+            ? (width: number, cuttable: boolean) => this.handleWidthReport(idx, width, cuttable)
+            : undefined
+        }
         parentDimensions={this.prepareDimension(idx)}
         ruleSetConfig={this.ruleSetConfig()}
       ></bn-chart-structure-renderer>
