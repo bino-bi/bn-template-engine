@@ -50,19 +50,25 @@ export class Axis {
     this.svgGroup = svgParentGroup.group().id(this.ID_AXIS);
   }
 
+  private spans: [number, number][] | null = null;
+
+  /** The axis as pieces from one height to another, in place of one line over the full height. */
+  public setSpans(spans: [number, number][] | null): Axis {
+    this.spans = spans;
+    return this;
+  }
+
   public draw(): Axis {
     if (this.labelText) {
       this.label.draw();
     }
 
-    this.svgGroup
-      .line(
-        this.position.getAxisPositionX(),
-        this.position.getAxisPositionY(),
-        this.position.getAxisEndPositionX(),
-        this.position.getAxisEndPositionY(),
-      )
-      .addClass(this.ID_AXIS + "-" + this.convertScenarioType());
+    const spans = this.spans ?? [[this.position.getAxisPositionY(), this.position.getAxisEndPositionY()]];
+    for (const [from, to] of spans) {
+      this.svgGroup
+        .line(this.position.getAxisPositionX(), from, this.position.getAxisEndPositionX(), to)
+        .addClass(this.ID_AXIS + "-" + this.convertScenarioType());
+    }
 
     this.height = this.svgGroup.height() as number;
     return this;

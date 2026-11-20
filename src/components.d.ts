@@ -764,7 +764,7 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
-          * Marks the column the rows are sorted by with an arrow: beside the name of the scenario, or beside the title of the variance, that comes first in `order`. No mark for an order by a dimension, and none with `stack`.
+          * Marks the column the rows are sorted by with an arrow: beside the name of the scenario, or beside the title of the variance, that comes first in `order`. For an order by a dimension it stands above the names. In a chart with a bridge it stands beside the first step of the walk, or behind the bars of the first row for a scenario. None with `stack`.
           * @default false
          */
         "orderMark": boolean;
@@ -3596,7 +3596,7 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
-          * Marks the column the rows are sorted by with an arrow: beside the name of the scenario, or beside the title of the variance, that comes first in `order`. No mark for an order by a dimension, and none with `stack`.
+          * Marks the column the rows are sorted by with an arrow: beside the name of the scenario, or beside the title of the variance, that comes first in `order`. For an order by a dimension it stands above the names. In a chart with a bridge it stands beside the first step of the walk, or behind the bars of the first row for a scenario. None with `stack`.
           * @default false
          */
         "orderMark"?: boolean;

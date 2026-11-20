@@ -1314,7 +1314,26 @@ export class StructureChart {
       this.position,
       axisLabelGroup,
       this.styles,
-    ).draw();
+    )
+      .setSpans(this.bridgeAxisSpans())
+      .draw();
+  }
+
+  /**
+   * Where the axis of a chart with a bridge runs: not through the room of the variance of
+   * the total. The bars from the first total to the last, a variance down to the last row
+   * and with a piece of its own at the total. Null: over the full height.
+   */
+  private bridgeAxisSpans(): [number, number][] | null {
+    const sum = this.dataModel.findIndex((row) => row.sum === "total");
+    if (!this.bridge || sum < 1) return null;
+    const half = this.position.spacings.categoryWidth / 2;
+    const end = this.position.getBarCenterPositionY(sum) + half;
+    if (this.variancesDataModel.length === 0) return [[this.position.getAxisPositionY(), end]];
+    return [
+      [this.position.getAxisPositionY(), this.position.getBarCenterPositionY(sum - 1) + half],
+      [end - 2 * half, end],
+    ];
   }
 
   private drawScenarios(dataModel: StructureChartDataModelEntry[], svgContainer: Svg) {
@@ -1469,6 +1488,22 @@ export class StructureChart {
     const token = this.orderToken;
     if (!this.position || !this.orderMark || !token || token.bucket !== undefined || this.stackConfig) return null;
     const gap = this.styles.fontStyles.size * 0.25;
+    if (token.kind === "dim") {
+      // at the head of the names, on the line of the titles
+      if (this.hideCategories || this.variancesDataModel.length > 0) return null;
+      // the title stands on that line, centred on the axis: the mark stands left of it
+      const title = this.title
+        ? CalculateSize(this.title, {
+            font: this.styles.fontStyles.font,
+            fontSize: this.styles.fontStyles.size + "px",
+            fontWeight: this.styles.titleBold ? "bold" : "normal",
+          }).width
+        : 0;
+      const x =
+        Math.min(this.position.getCategoryPositionX(true), this.position.getAxisTitlePositionX() - title / 2 - gap) -
+        this.orderMarkWidth();
+      return x < 0 ? null : { x, bottom: this.position.getAxisTitlePositionY() };
+    }
     if (this.variancesDataModel.length > 0) {
       if (token.kind !== "variance" || this.isBridgeTier()) return null;
       const own = new VarianceScenario(this.configVariances?.toString() ?? "");
@@ -1485,7 +1520,8 @@ export class StructureChart {
         bottom: this.position.getAxisTitlePositionY(),
       };
     }
-    if (token.kind !== "scenario" || this.bridge) return null;
+    if (this.bridge) return this.bridgeMarkPlace(token, gap);
+    if (token.kind !== "scenario") return null;
     const first = this.dataModel.find((row) => !row.sum);
     if (!first) return null;
     const axis = this.position.getBarPositionX();
@@ -1509,6 +1545,58 @@ export class StructureChart {
       };
     }
     return null;
+  }
+
+  /** How far the bars of a row and the label behind them reach right of the axis. */
+  private rowLabelEnd(row: StructureChartDataModelEntry): number {
+    const points = [row.scenario1, row.scenario2].filter((point) => point != null && Number.isFinite(point.value));
+    if (points.length === 0) return 0;
+    return (
+      Math.max(0, ...points.map((point) => this.barReach(point))) +
+      this.position.spacings.labelToBar +
+      Math.max(...points.map((point) => this.valueLabelWidth(point.value as number)))
+    );
+  }
+
+  /**
+   * The mark in a chart with a bridge, where the bars carry no names and the walk has no title:
+   * for a variance beside the first step of the walk, for a scenario behind the first row.
+   */
+  private bridgeMarkPlace(token: OrderToken, gap: number): { x: number; bottom: number } | null {
+    const bridge = this.bridge;
+    if (!bridge) return null;
+    const axis = this.position.getBarPositionX();
+    const half = this.styles.fontStyles.size / 2;
+    if (token.kind === "variance") {
+      const own = new VarianceScenario(this.bridgeVariances[0] ?? "");
+      if (!own.isValid || own.type !== token.type || own.base !== token.base || own.delta !== token.delta) return null;
+      const step = bridge.steps[0];
+      if (!step) return null;
+      const bottom = this.position.getBarCenterPositionY(step.index) + half;
+      const level = axis + step.from * this.pixelPerUnit;
+      // opposite the label of the step, beside the line of the reference total
+      if ((step.point.value as number) < 0) return { x: level + gap, bottom };
+      const left = level - gap - this.orderMarkWidth();
+      if (left >= axis + this.rowLabelEnd(this.dataModel[step.index]) + gap) return { x: left, bottom };
+      const label = this.position.spacings.labelToBar + this.valueLabelWidth(step.point.value as number, true);
+      return { x: axis + step.to * this.pixelPerUnit + label + gap, bottom };
+    }
+    if (token.kind !== "scenario") return null;
+    const index = this.dataModel.findIndex((row) => !row.sum);
+    const first = this.dataModel[index];
+    if (!first) return null;
+    const drawn = [first.scenario1, first.scenario2].some(
+      (point) => point?.scenario === token.column && Number.isFinite(point.value),
+    );
+    if (!drawn) return null;
+    const x = axis + this.rowLabelEnd(first) + gap;
+    // the label of a step down stands left of it, in the same row: no mark without room before it
+    const step = bridge.steps.find((entry) => entry.index === index);
+    if (step && (step.point.value as number) < 0) {
+      const label = this.position.spacings.labelToBar + this.valueLabelWidth(step.point.value as number, true);
+      if (x + this.orderMarkWidth() + gap > axis + step.to * this.pixelPerUnit - label) return null;
+    }
+    return { x, bottom: this.position.getBarCenterPositionY(index) + half };
   }
 
   /** The mark right of the name of the first scenario, which stands below the last bar. */
@@ -2641,7 +2729,13 @@ export class StructureChart {
     const totalX = axisX + (bridge.total.value as number) * scale;
     const stroke = { color: WALK_LINE, width: 1 };
     const last = bridge.steps[bridge.steps.length - 1];
-    lineGroup.line(referenceX, referenceY + barWidth / 2, referenceX, varianceY).stroke(stroke);
+    // the level of the reference is the axis of the walk: black along the rows
+    const rowsEnd = this.position.getBarCenterPositionY(last.index) + barWidth / 2;
+    lineGroup
+      .line(referenceX, referenceY + barWidth / 2, referenceX, rowsEnd)
+      .stroke({ color: "#000000", width: 1 })
+      .addClass("bridge-axis");
+    lineGroup.line(referenceX, rowsEnd, referenceX, varianceY).stroke(stroke);
     lineGroup
       .line(totalX, this.position.getBarCenterPositionY(last.index) + barWidth / 2, totalX, varianceY)
       .stroke(stroke);
@@ -2650,7 +2744,7 @@ export class StructureChart {
     // a thin bar between two levels below the total row, with its value below: the variance of a total
     const varianceBar = (point: DataPoint, fromX: number, y: number): void => {
       const varianceStyle = this.styles.varianceStyles.getSVGStyle(point.getVarianceStyle());
-      const height = barWidth * 0.25;
+      const height = barWidth * 0.5;
       group
         .rect(Math.abs(totalX - fromX), height)
         .x(Math.min(totalX, fromX))
@@ -2667,7 +2761,6 @@ export class StructureChart {
         HookLocation.Top,
         HookLocation.Center,
       )
-        .setEmphasis(true, false)
         .setPoint(point.key)
         .setToVarianceLabel()
         .draw(this.dataFormatDigits, this.measureScale);
