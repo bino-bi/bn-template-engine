@@ -364,10 +364,10 @@ describe("time chart two-row axis labels", () => {
     ]);
   });
 
-  it("has no second row and no legend width in line mode", () => {
-    const chart = internals(buildChart({ ...options, chartMode: "line" }, months));
-    expect(chart.contextRow()).toEqual([]);
-    expect(chart.legendWidth("left")).toBe(0);
+  it("has the second row and room for the names in line mode", () => {
+    const chart = internals(buildChart({ ...options, scenarioSwitch: false, chartMode: "line" }, months));
+    expect(chart.contextRow().map((entry) => entry.text)).toEqual(["2025", "2026"]);
+    expect(chart.legendWidth("left")).toBeGreaterThan(0);
   });
 
   it("has no second row for years", () => {

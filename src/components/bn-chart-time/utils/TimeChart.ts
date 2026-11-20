@@ -39,7 +39,7 @@ import { DataFormatDigits } from "../../../components";
 import { Formatter } from "../../../utils";
 import { IBCSRuleSet, styleSlot, stylesBySlot } from "../../../utils/ibcsRuleSet";
 import { relativeVariance } from "../../../utils/relativeVariance";
-import { DASH_ARRAY } from "../../../utils/notation";
+import { DASH_ARRAY, IBCS_LINE_STYLES } from "../../../utils/notation";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
@@ -235,6 +235,8 @@ export class TimeChart {
   private overflowConfig: OverflowConfig | null = null;
   private lastScenarios: string[] = [];
   private axisLabelsStep: number = 1;
+  private periodLines: number = 0;
+  private pointPosition: string = "center";
   private scalingIndicator: number = 0;
   private totals: TotalsConfig | null = null;
   private totalColumns: TotalColumn[] = [];
@@ -386,6 +388,8 @@ export class TimeChart {
     this.axisLabelsMode = config.axisLabelsMode;
     this.intervalSpanLimit = config.intervalSpanLimit;
     this.axisLabelsStep = config.axisLabelsStep ?? 1;
+    this.periodLines = config.periodLines ?? 0;
+    this.pointPosition = config.pointPosition ?? "center";
     this.scalingIndicator = config.scalingIndicator ?? 0;
     this.totals = config.totals ?? null;
     this.scenarioSwitch = config.scenarioSwitch ?? false;
@@ -612,8 +616,9 @@ export class TimeChart {
     }
 
     const legendWidth = this.legendWidth("right");
-    const legendEnd =
-      legendWidth > 0 ? axisEnd + this.position.spacings.labelToColumn + legendWidth + this.styles.padding.right : 0;
+    const legendStart =
+      this.areaSeries() != null ? this.areaLegendX("right") : axisEnd + this.position.spacings.labelToColumn;
+    const legendEnd = legendWidth > 0 ? legendStart + legendWidth + this.styles.padding.right : 0;
 
     let indicatorEnd = 0;
     if (this.hasScalingIndicator()) {
@@ -713,10 +718,6 @@ export class TimeChart {
       }));
     }
 
-    // the line chart writes its own labels and has no second row
-    if (!this.isVarianceChart() && this.determineEffectiveChartMode() !== ChartMode.BAR) {
-      return [];
-    }
     const model = this.isVarianceChart() ? this.variancesDataModel : this.dataModel;
     const entries: { from: number; to: number; text: string; scenario: string }[] = [];
     let lastParent = "";
@@ -2533,7 +2534,10 @@ export class TimeChart {
       const fixedOverhead =
         padding.left + padding.right + fontSize * sf.scenarioOffset + maxLabelLengthLeft + fontSize * sf.columnWidth;
 
-      const availableDataWidth = this.availableWidth - fixedOverhead;
+      // the names right of a stacked area by series take their room from the periods
+      const namesRight = this.legendWidth("right");
+      const availableDataWidth =
+        this.availableWidth - fixedOverhead - (namesRight > 0 ? namesRight + fontSize * sf.columnWidth * 0.5 : 0);
 
       if (availableDataWidth > 0) {
         const customCategoryWidthFactor = availableDataWidth / this.dataModel.length / fontSize;
@@ -3321,6 +3325,7 @@ export class TimeChart {
 
   private drawLineScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     const lineGroup: G = svgContainer.group().id("LineScenarios");
+    lineGroup.attr("data-bn-periods", dataModel.length);
     // Create collision manager for label overlap detection across all line series
     const collisionManager = new LabelCollisionManager();
 
@@ -3410,6 +3415,7 @@ export class TimeChart {
 
   private drawAxisAndLabelsForLineChart(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     const dateStringFactory: DateStringFactory = this.createDateFactory();
+    const separatorGroup: G = svgContainer.group().id("YearSeparators");
     const axisLabelGroup: G = svgContainer.group().id("AxisAndDateLabelsLine");
     const isRelative: boolean = false;
     const lastIndex = dataModel.length - 1;
@@ -3431,7 +3437,11 @@ export class TimeChart {
             if (index === 0 && this.dateInterval !== DateDistance.YEAR) {
               datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
             }
-          } else if (this.axisLabelsMode === AxisLabelsMode.SHORT) {
+          } else if (
+            this.axisLabelsMode === AxisLabelsMode.SHORT ||
+            (this.axisLabelsMode === AxisLabelsMode.TWO_ROW && this.dateInterval !== DateDistance.YEAR)
+          ) {
+            // two-row: the parent period stands in the second row
             datelabel = dateStringFactory.getShortDateString(elements.date, this.dateInterval);
           } else {
             datelabel = dateStringFactory.getDateString(elements.date, this.dateInterval);
@@ -3451,9 +3461,10 @@ export class TimeChart {
           HookLocation.Center,
         ).forceStringTypeDraw();
 
-        // Draw vertical dashed separator line at year transitions (except for first and last)
-        if (index > 0 && index < lastIndex && this.isYearChange(dataModel, index)) {
-          this.drawYearSeparatorLine(axisLabelGroup, index, isRelative);
+        // Draw vertical dashed separator line at year transitions (except for first and last).
+        // Period lines take its place. Its own group: it is as high as the chart and must not count as axis height
+        if (this.periodLines < 1 && index > 0 && index < lastIndex && this.isYearChange(dataModel, index)) {
+          this.drawYearSeparatorLine(separatorGroup, index, isRelative);
         }
       });
     }
@@ -3475,12 +3486,15 @@ export class TimeChart {
       height: axisBox.height,
       width: axisBox.width,
     };
+
+    // the second row of `two-row` mode
+    this.drawScenarioSwitch(svgContainer);
   }
 
   private shouldShowLineChartAxisLabel(dataModel: TimeChartDataModelEntry[], index: number): boolean {
     // In full-width mode, every data point gets a label (enough horizontal space)
     if (this.lineFullWidth && this.availableWidth > 0) {
-      return true;
+      return index % this.axisLabelsStep === 0;
     }
 
     const lastIndex = dataModel.length - 1;
@@ -3595,10 +3609,10 @@ export class TimeChart {
       }
     };
 
-    if (!isScenarioStack && !isArea && row.series) {
-      // one stack of the scenario that is visible in this period
-      const slot = this.visibleSlot(row, this.followerSlots()) ?? "scenario1";
-      const { fill } = this.seriesSlots();
+    if (!isScenarioStack && row.series && (!isArea || this.areaSeries() != null)) {
+      // one stack of the scenario that is visible in this period. The area draws the first scenario only
+      const slot = isArea ? "scenario1" : (this.visibleSlot(row, this.followerSlots()) ?? "scenario1");
+      const fill = isArea ? [] : this.seriesSlots().fill;
       const series: StackGroupSegment[] = [];
       row.series.forEach((entry, index) => {
         // a series without a value in the visible scenario takes the scenario that fills it
@@ -3617,7 +3631,8 @@ export class TimeChart {
         }
       });
       if (!series.some((segment) => Number.isFinite(segment.value))) return [];
-      sortByValue(series);
+      // an area keeps the order of its layers in every period
+      if (!isArea) sortByValue(series);
       return [
         {
           prefix: "",
@@ -3783,8 +3798,10 @@ export class TimeChart {
    * left offset the component hands in, so they do not count here.
    */
   private legendWidth(side: "left" | "right"): number {
-    // the stacked area draws no names and no mark
-    if (!this.stackConfig || this.determineEffectiveChartMode() !== ChartMode.BAR) return 0;
+    if (!this.stackConfig) return 0;
+    // an area by scenario draws no names, and no area draws the mark
+    const isArea = this.determineEffectiveChartMode() !== ChartMode.BAR;
+    if (isArea && this.areaSeries() == null) return 0;
     const legend = this.stackConfig.legend ?? "left";
     const texts: string[] = [];
     if (legend === side || legend === "both") {
@@ -3795,7 +3812,7 @@ export class TimeChart {
         texts.push(...this.lastScenarios.map((scenario) => (this.i18n.get(scenario) || scenario) as string));
       }
     }
-    if (this.hasPercentMark() && this.percentMarkSide() === side) {
+    if (!isArea && this.hasPercentMark() && this.percentMarkSide() === side) {
       texts.push("100%");
     }
     let width = 0;
@@ -3933,7 +3950,14 @@ export class TimeChart {
   private drawStackedAreaScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig) return;
 
+    const series = this.areaSeries();
+    if (series) {
+      this.drawSeriesArea(dataModel, svgContainer, series);
+      return;
+    }
+
     const areaGroup: G = svgContainer.group().id("StackedAreaScenarios");
+    areaGroup.attr("data-bn-periods", dataModel.length);
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;
     const stackMode = this.stackConfig.mode;
     const scenarioKeys = ["scenario1", "scenario2", "scenario3", "scenario4"];
@@ -3998,7 +4022,7 @@ export class TimeChart {
 
     const toAreaPoints = (layerIdx: number, edge: "start" | "end"): AreaPoint[] => {
       return layouts.map((layout, idx) => ({
-        x: this.position.getColumnCenterPositionX(idx),
+        x: this.areaPointX(idx),
         y: axisY - layout.segments[layerIdx][edge] * pixelPerUnit,
       }));
     };
@@ -4016,10 +4040,255 @@ export class TimeChart {
       areaFill.draw();
       areaFill.drawBoundaryLine();
     }
+    this.drawPeriodLines(areaGroup, layouts);
 
     const areaBox = areaGroup.bbox();
     this.scenariosArea = {
       height: areaBox.height + this.styles.padding.top + this.styles.padding.bottom,
+      width: areaBox.width + this.position.spacings.columnWidth,
+    };
+  }
+
+  /**
+   * The series of a stacked area by dimension. Null for an area by scenario,
+   * for columns, and for a dataset without categories: that one stays one area.
+   */
+  private areaSeries(): StackSeries[] | null {
+    if (this.stackConfig?.by !== StackBy.DIMENSIONS || this.determineEffectiveChartMode() !== ChartMode.LINE) {
+      return null;
+    }
+    const series = this.dataModel.find((row) => row.series != null)?.series;
+    if (!series || series.length === 0 || (series.length === 1 && series[0].key === "")) {
+      return null;
+    }
+    return series;
+  }
+
+  /** Where the point of a period stands in a stacked area: in its middle, or on its right border. */
+  private areaPointX(index: number): number {
+    return this.position.getColumnCenterPositionX(this.pointPosition === "end" ? index + 0.5 : index);
+  }
+
+  /** Half the width of the widest value label of a stacked area by series: the names keep clear of it. */
+  private areaLabelHalfWidth(): number {
+    const digits = Math.max(0, this.dataFormatDigits.decimal);
+    const highest = Math.max(
+      Math.abs(this.highestDataPointValue.value ?? 0),
+      Math.abs(this.smallestDataPointValue.value ?? 0),
+    );
+    const text = Formatter.number(highest, "decimal", digits, digits, this.measureScale.value ?? 1, this.styles.locale);
+    return (
+      CalculateSize(text, { font: this.styles.fontStyles.font, fontSize: this.styles.fontStyles.size + "px" }).width / 2
+    );
+  }
+
+  /** Where the names of a stacked area by series start (right) or end (left). */
+  private areaLegendX(side: "left" | "right"): number {
+    const half = Math.max(this.position.getColumnWidth() / 2, this.areaLabelHalfWidth());
+    const gap = this.position.spacings.labelToColumn;
+    const lastIndex = Math.max(0, this.dataModel.length - 1);
+    return side === "left" ? this.areaPointX(0) - half - gap : this.areaPointX(lastIndex) + half + gap;
+  }
+
+  /** Thin lines at every n-th period of a stacked area, over the height of the stack. */
+  private drawPeriodLines(group: G, layouts: StackLayout[]): void {
+    if (this.periodLines < 1) return;
+    const axisY = this.position.getColumnPositionY();
+    layouts.forEach((layout, index) => {
+      if (index % this.periodLines !== 0) return;
+      const top = axisY - layout.positive * this.pixelPerUnit;
+      const bottom = axisY + layout.negative * this.pixelPerUnit;
+      if (bottom - top < 1) return;
+      const x = this.areaPointX(index);
+      group.line(x, top, x, bottom).stroke({ color: "#ffffff", width: 1, opacity: 0.5 }).addClass("period-line");
+    });
+  }
+
+  /**
+   * A stacked area by dimension: one layer per series in the colour of the
+   * series, the value of each layer in its middle, the total as a line with
+   * markers on top, and the names of the series next to the first or the last period.
+   */
+  private drawSeriesArea(dataModel: TimeChartDataModelEntry[], svgContainer: Svg, names: StackSeries[]): void {
+    if (!this.stackConfig || dataModel.length === 0) return;
+
+    const areaGroup: G = svgContainer.group().id("StackedAreaScenarios");
+    // the layout state counts the periods of a chart without columns from this
+    areaGroup.attr("data-bn-periods", dataModel.length);
+    const stackMode = this.stackConfig.mode;
+    const isRelative = stackMode === StackMode.RELATIVE;
+    const pointOf = (row: TimeChartDataModelEntry, layer: number): DataPoint | undefined =>
+      row.series?.[layer]?.points["scenario1"];
+    const valueOf = (row: TimeChartDataModelEntry, layer: number): number => {
+      const value = pointOf(row, layer)?.value;
+      return Number.isFinite(value) ? (value as number) : 0;
+    };
+
+    // a layer that is negative over all periods stays below the axis where it has no value
+    const emptyValues = names.map((_, layer) =>
+      dataModel.reduce((sum, row) => sum + valueOf(row, layer), 0) < 0 ? -0 : 0,
+    );
+    const relativeSpan = isRelative ? RELATIVE_STACK_UNITS : 0;
+    const layouts = dataModel.map((row) =>
+      layoutStack(
+        names.map((_, layer) => valueOf(row, layer) || emptyValues[layer]),
+        relativeSpan,
+      ),
+    );
+
+    const axisY = this.position.getColumnPositionY();
+    const pixelPerUnit = this.pixelPerUnit;
+    const xs = dataModel.map((_, index) => this.areaPointX(index));
+    const colors = this.styles.stackColors;
+    const colorOf = (layer: number): string => colors[layer % colors.length];
+    const edge = (layer: number, side: "start" | "end"): AreaPoint[] =>
+      layouts.map((layout, index) => ({ x: xs[index], y: axisY - layout.segments[layer][side] * pixelPerUnit }));
+
+    names.forEach((_, layer) => {
+      new AreaFill(areaGroup, edge(layer, "end"), edge(layer, "start"), null, layer, false, colorOf(layer)).draw();
+    });
+    this.drawPeriodLines(areaGroup, layouts);
+
+    // the total: a line on the upper edge of the stack with a marker at each period. A 100 % stack has none
+    const scenarioName =
+      (dataModel.find((row) => row.scenario1?.scenario != null)?.scenario1.scenario as string) ?? "ac1";
+    const lineStyle =
+      IBCS_LINE_STYLES[styleSlot(this.ruleSet.getScenarioColorIndex(scenarioName))] ?? IBCS_LINE_STYLES.ac;
+    const topY = (index: number): number => axisY - layouts[index].positive * pixelPerUnit;
+    const markerSize = 8;
+    if (!isRelative) {
+      const totalGroup = areaGroup.group().id("StackedAreaTotal");
+      if (xs.length > 1) {
+        totalGroup
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .polyline(xs.map((x, index) => [x, topY(index)]) as any)
+          .fill("none")
+          .stroke({ color: lineStyle.lineColor, width: 1.5 });
+      }
+      xs.forEach((x, index) => {
+        totalGroup
+          .rect(markerSize, markerSize)
+          .fill(lineStyle.markerFill)
+          .stroke({ color: lineStyle.markerStroke, width: 1 })
+          .move(x - markerSize / 2, topY(index) - markerSize / 2)
+          .addClass("area-total-marker");
+      });
+    }
+
+    // labels: from the last period back, each one that does not lie on a label that is drawn.
+    // The drawn label is measured: the size of a text is not known before, on a page that still loads its font
+    const labelGroup: G = svgContainer.group().id("StackedAreaLabels");
+    const lastIndex = dataModel.length - 1;
+    const digits = this.dataFormatDigits;
+    const fontSize = this.styles.fontStyles.size || 18;
+    const minHeight = Math.min(18, fontSize * 1.15);
+    const shareText = (share: number): string =>
+      this.hasPercentMark()
+        ? Formatter.number(share * 100, "decimal", digits.percent, digits.percent, 1, this.styles.locale)
+        : Formatter.number(share, "percent", digits.percent, digits.percent, 1, this.styles.locale);
+    const taken: { x: number; x2: number; y: number; y2: number }[] = [];
+    const keep = (draw: (holder: G) => void): void => {
+      const holder = labelGroup.group();
+      draw(holder);
+      const box = holder.bbox();
+      if (taken.some((other) => box.x < other.x2 && box.x2 > other.x && box.y < other.y2 && box.y2 > other.y)) {
+        holder.remove();
+        return;
+      }
+      taken.push({ x: box.x, x2: box.x2, y: box.y, y2: box.y2 });
+    };
+
+    for (let index = lastIndex; index >= 0; index--) {
+      const row = dataModel[index];
+      const layout = layouts[index];
+      // a label of the first or the last period stays inside the area
+      const hook =
+        dataModel.length > 1 && index === lastIndex
+          ? HookLocation.Right
+          : dataModel.length > 1 && index === 0
+            ? HookLocation.Left
+            : HookLocation.Center;
+      const inset = fontSize * 0.2;
+      const labelX =
+        hook === HookLocation.Right ? xs[index] - inset : hook === HookLocation.Left ? xs[index] + inset : xs[index];
+
+      if (!isRelative) {
+        // like a column: the total of a negative stack hangs below its negative side
+        const isNegative = layout.total < 0;
+        const end = isNegative ? 0 - layout.negative : layout.positive;
+        keep((holder) =>
+          new Label(
+            holder,
+            xs[index],
+            this.position.getColumnDataLabelPositionY(end * pixelPerUnit) + (isNegative ? 0 : -markerSize / 2),
+            "STACK_TOTAL",
+            layout.total,
+            this.styles,
+            isNegative ? HookLocation.Top : HookLocation.Bottom,
+            HookLocation.Center,
+          )
+            .setPoint({ date: TimeChart.pointDate(row.date) }, "total")
+            .draw(true, digits, this.measureScale),
+        );
+      }
+
+      names.forEach((_, layer) => {
+        const point = pointOf(row, layer);
+        if (!point || !Number.isFinite(point.value)) return;
+        const segment = layout.segments[layer];
+        if (Math.abs(segment.end - segment.start) * pixelPerUnit < minHeight) return;
+        keep((holder) => {
+          const label = new Label(
+            holder,
+            labelX,
+            axisY - ((segment.start + segment.end) / 2) * pixelPerUnit,
+            "STACK_SEG",
+            stackMode === StackMode.ABSOLUTE ? point.value : shareText(segment.share),
+            this.styles,
+            HookLocation.Center,
+            hook,
+          )
+            .setSegmentFill(colorOf(layer))
+            .setPoint(point.key);
+          if (stackMode === StackMode.ABSOLUTE) {
+            label.draw(true, digits, this.measureScale);
+          } else {
+            label.forceStringTypeDraw();
+          }
+        });
+      });
+    }
+
+    // the names of the series, each at half the height of its layer
+    const legend = this.stackConfig.legend ?? "left";
+    const drawNames = (side: "left" | "right"): void => {
+      const index = side === "left" ? 0 : lastIndex;
+      const layout = layouts[index];
+      names.forEach((entry, layer) => {
+        const point = pointOf(dataModel[index], layer);
+        if (!point || !Number.isFinite(point.value)) return;
+        const segment = layout.segments[layer];
+        new Label(
+          labelGroup,
+          this.areaLegendX(side),
+          axisY - ((segment.start + segment.end) / 2) * pixelPerUnit,
+          "STACK_HEADER",
+          this.seriesName(entry.key),
+          this.styles,
+          HookLocation.Center,
+          side === "left" ? HookLocation.Right : HookLocation.Left,
+        ).forceStringTypeDraw();
+      });
+    };
+    if (legend === "left" || legend === "both") drawNames("left");
+    if (legend === "right" || legend === "both") drawNames("right");
+
+    const areaBox = areaGroup.bbox();
+    const labelBox = labelGroup.bbox();
+    const top = Math.min(areaBox.y, labelBox.height > 0 ? labelBox.y : areaBox.y);
+    const bottom = Math.max(areaBox.y2, labelBox.height > 0 ? labelBox.y2 : areaBox.y2);
+    this.scenariosArea = {
+      height: bottom - top + this.styles.padding.top + this.styles.padding.bottom,
       width: areaBox.width + this.position.spacings.columnWidth,
     };
   }

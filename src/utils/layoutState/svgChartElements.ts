@@ -211,7 +211,10 @@ export function countPrimaryDataPoints(svgRoot: Element): number {
     const match = STACK_SEGMENT_RE.exec(group.id);
     if (match && group.querySelector("rect")) stacks.add(match[1]);
   });
-  return stacks.size;
+  if (stacks.size > 0) return stacks.size;
+  // a line or an area has no columns: the chart writes the number of its periods
+  const periods = Number(svgRoot.querySelector("[data-bn-periods]")?.getAttribute("data-bn-periods"));
+  return Number.isFinite(periods) ? periods : 0;
 }
 
 export interface ChartFacadeLayout {

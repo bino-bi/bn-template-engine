@@ -33,6 +33,8 @@ export class AreaFill {
     scenarioType: string | null,
     segmentIndex: number,
     isScenarioStack: boolean,
+    /** Fill of a layer of a stack by series. Without it the scenario or the grey step decides. */
+    private readonly color?: string,
   ) {
     this.group = parentGroup.group().id(`area_fill_${segmentIndex}`);
     this.upperPoints = upperPoints;
@@ -61,7 +63,10 @@ export class AreaFill {
     let fill: string;
     let opacity: number;
 
-    if (this.isScenarioStack && this.scenarioType) {
+    if (this.color) {
+      fill = this.color;
+      opacity = 1;
+    } else if (this.isScenarioStack && this.scenarioType) {
       const prefix = this.scenarioType.slice(0, 2).toLowerCase();
       const style = SCENARIO_AREA_STYLES[prefix] || SCENARIO_AREA_STYLES["ac"];
       fill = style.fill;

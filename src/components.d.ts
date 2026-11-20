@@ -1044,7 +1044,7 @@ export namespace Components {
          */
         "axisLabelsMode": string;
         /**
-          * Prints only every n-th category label, starting with the first period. 2 labels every second period. Bar mode only.
+          * Prints only every n-th category label, starting with the first period. 2 labels every second period. In line mode it works for a chart that uses the full width.
           * @default 1
          */
         "axisLabelsStep": number;
@@ -1136,6 +1136,16 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
+          * Stacked area: a thin line at every n-th period, from the axis to the top of the stack. 1 draws one at every period. With it the dashed line at the change of the year is not drawn. Default 0: no lines.
+          * @default 0
+         */
+        "periodLines": number;
+        /**
+          * Stacked area: where the point of a period stands. `center` (default) is the middle of the period, above its label. `end` is the right border of the period, for values at the end of a period such as a stock.
+          * @default "center"
+         */
+        "pointPosition": "center" | "end";
+        /**
           * With `scenario-switch`: draws the reference (the first scenario that is not part of the series) as a column behind the series in every period, in place of the marker. Further scenarios stay markers. Without `scenario-switch` it has no effect.
           * @default false
          */
@@ -1183,7 +1193,7 @@ export namespace Components {
          */
         "showOverlayMedian": boolean;
         /**
-          * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenarios" | "dimensions",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset",   "notation": "none" | "scenario",   "legend": "left" | "right" | "both" | "none",   "percentMark": true | false } ```  - `by` (required): What a stack is made of.   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers,     four at most.   - `"dimensions"` - one segment per value of the `category` column of the     dataset, ordered by `categoryIndex`, else by first appearance. There is     no limit on the number of series, and a series keeps its colour in     every period. The first scenario is drawn. With `scenario-switch` the     scenario that has values in the period is drawn, so one axis can go     from AC to FC to PL. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order. - `notation` (optional, default `"none"`): with `"scenario"` a segment takes   the look of its scenario. A forecast segment is hatched over the shade of   its series, a plan segment is outlined, and the first series takes the   fill of the scenario from `barStyles`. - `legend` (optional, default `"left"`): where the series names stand. Left   of the first column, right of the last column with a value, at both, or   nowhere. - `percentMark` (optional, default `false`): for `mode: "relative"`. The   shares are plain numbers without the % sign, with   `data-format-digits-percent` digits, and one `100%` mark stands at the   upper end of the stack, on the side of the series names.
+          * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenarios" | "dimensions",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset",   "notation": "none" | "scenario",   "legend": "left" | "right" | "both" | "none",   "percentMark": true | false } ```  - `by` (required): What a stack is made of.   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers,     four at most.   - `"dimensions"` - one segment per value of the `category` column of the     dataset, ordered by `categoryIndex`, else by first appearance. There is     no limit on the number of series, and a series keeps its colour in     every period. The first scenario is drawn. With `scenario-switch` the     scenario that has values in the period is drawn, so one axis can go     from AC to FC to PL. In line mode each series is one layer of the     area, in its colour from `stackColors`, with its value in its middle.     The total is a line with markers and values on top, and the names of     the series stand on the side `legend` names. A label that would lie     on another one is left out. `order`, `notation`, `percentMark` and     `scenario-switch` have no effect on the area. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order. - `notation` (optional, default `"none"`): with `"scenario"` a segment takes   the look of its scenario. A forecast segment is hatched over the shade of   its series, a plan segment is outlined, and the first series takes the   fill of the scenario from `barStyles`. - `legend` (optional, default `"left"`): where the series names stand. Left   of the first column, right of the last column with a value, at both, or   nowhere. - `percentMark` (optional, default `false`): for `mode: "relative"`. The   shares are plain numbers without the % sign, with   `data-format-digits-percent` digits, and one `100%` mark stands at the   upper end of the stack, on the side of the series names.
           * @default '' (empty - no stacking)
           * @example // Stack scenarios stack='{"by":"scenarios"}'
           * @example // Stack scenarios, relative mode stack='{"by":"scenarios","mode":"relative"}'
@@ -1299,6 +1309,10 @@ export namespace Components {
          */
         "parentDimensions": ParentDimensions;
         /**
+          * @default 0
+         */
+        "periodLines": number;
+        /**
           * @default 50
          */
         "pixelPerPercentage": number;
@@ -1306,6 +1320,10 @@ export namespace Components {
           * @default 2
          */
         "pixelPerUnit": number;
+        /**
+          * @default "center"
+         */
+        "pointPosition": string;
         /**
           * @default false
          */
@@ -3858,7 +3876,7 @@ declare namespace LocalJSX {
          */
         "axisLabelsMode": string;
         /**
-          * Prints only every n-th category label, starting with the first period. 2 labels every second period. Bar mode only.
+          * Prints only every n-th category label, starting with the first period. 2 labels every second period. In line mode it works for a chart that uses the full width.
           * @default 1
          */
         "axisLabelsStep"?: number;
@@ -3941,6 +3959,16 @@ declare namespace LocalJSX {
          */
         "percentageScaling": string | number;
         /**
+          * Stacked area: a thin line at every n-th period, from the axis to the top of the stack. 1 draws one at every period. With it the dashed line at the change of the year is not drawn. Default 0: no lines.
+          * @default 0
+         */
+        "periodLines"?: number;
+        /**
+          * Stacked area: where the point of a period stands. `center` (default) is the middle of the period, above its label. `end` is the right border of the period, for values at the end of a period such as a stock.
+          * @default "center"
+         */
+        "pointPosition"?: "center" | "end";
+        /**
           * With `scenario-switch`: draws the reference (the first scenario that is not part of the series) as a column behind the series in every period, in place of the marker. Further scenarios stay markers. Without `scenario-switch` it has no effect.
           * @default false
          */
@@ -3988,7 +4016,7 @@ declare namespace LocalJSX {
          */
         "showOverlayMedian"?: boolean;
         /**
-          * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenarios" | "dimensions",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset",   "notation": "none" | "scenario",   "legend": "left" | "right" | "both" | "none",   "percentMark": true | false } ```  - `by` (required): What a stack is made of.   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers,     four at most.   - `"dimensions"` - one segment per value of the `category` column of the     dataset, ordered by `categoryIndex`, else by first appearance. There is     no limit on the number of series, and a series keeps its colour in     every period. The first scenario is drawn. With `scenario-switch` the     scenario that has values in the period is drawn, so one axis can go     from AC to FC to PL. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order. - `notation` (optional, default `"none"`): with `"scenario"` a segment takes   the look of its scenario. A forecast segment is hatched over the shade of   its series, a plan segment is outlined, and the first series takes the   fill of the scenario from `barStyles`. - `legend` (optional, default `"left"`): where the series names stand. Left   of the first column, right of the last column with a value, at both, or   nowhere. - `percentMark` (optional, default `false`): for `mode: "relative"`. The   shares are plain numbers without the % sign, with   `data-format-digits-percent` digits, and one `100%` mark stands at the   upper end of the stack, on the side of the series names.
+          * Stacking configuration for the chart as a JSON string.  When set, bars/columns are drawn stacked (additive layers) instead of side-by-side. In line mode (`chart-mode="line"`), stacking produces a stacked area chart with filled regions between cumulative lines.  **JSON schema:** ```json {   "by": "scenarios" | "dimensions",   "mode": "absolute" | "relative" | "absolute-relative",   "order": "asc" | "desc" | "dataset",   "notation": "none" | "scenario",   "legend": "left" | "right" | "both" | "none",   "percentMark": true | false } ```  - `by` (required): What a stack is made of.   - `"scenarios"` - stack the scenarios from the `scenarios` prop as layers,     four at most.   - `"dimensions"` - one segment per value of the `category` column of the     dataset, ordered by `categoryIndex`, else by first appearance. There is     no limit on the number of series, and a series keeps its colour in     every period. The first scenario is drawn. With `scenario-switch` the     scenario that has values in the period is drawn, so one axis can go     from AC to FC to PL. In line mode each series is one layer of the     area, in its colour from `stackColors`, with its value in its middle.     The total is a line with markers and values on top, and the names of     the series stand on the side `legend` names. A label that would lie     on another one is left out. `order`, `notation`, `percentMark` and     `scenario-switch` have no effect on the area. - `mode` (optional, default `"absolute"`):   - `"absolute"` - additive stacking, axis shows absolute units.   - `"relative"` - 100% stacking, axis shows 0%-100%. `unit-scaling` is     interpreted as pixels per percentage point (e.g. `0.4` → 40px full     stack); `"auto"` fits the stack to the available height as usual.   - `"absolute-relative"` - bar height is absolute (real value), but     segment labels inside show percentages. - `order` (optional, default `"dataset"`): Segment order within each stack.   `"asc"` / `"desc"` sort segments by value; `"dataset"` preserves the   original data/scenario order. - `notation` (optional, default `"none"`): with `"scenario"` a segment takes   the look of its scenario. A forecast segment is hatched over the shade of   its series, a plan segment is outlined, and the first series takes the   fill of the scenario from `barStyles`. - `legend` (optional, default `"left"`): where the series names stand. Left   of the first column, right of the last column with a value, at both, or   nowhere. - `percentMark` (optional, default `false`): for `mode: "relative"`. The   shares are plain numbers without the % sign, with   `data-format-digits-percent` digits, and one `100%` mark stands at the   upper end of the stack, on the side of the series names.
           * @default '' (empty - no stacking)
           * @example // Stack scenarios stack='{"by":"scenarios"}'
           * @example // Stack scenarios, relative mode stack='{"by":"scenarios","mode":"relative"}'
@@ -4104,6 +4132,10 @@ declare namespace LocalJSX {
          */
         "parentDimensions"?: ParentDimensions;
         /**
+          * @default 0
+         */
+        "periodLines"?: number;
+        /**
           * @default 50
          */
         "pixelPerPercentage"?: number;
@@ -4111,6 +4143,10 @@ declare namespace LocalJSX {
           * @default 2
          */
         "pixelPerUnit"?: number;
+        /**
+          * @default "center"
+         */
+        "pointPosition"?: string;
         /**
           * @default false
          */
@@ -5445,6 +5481,8 @@ declare namespace LocalJSX {
         "dataFormatDigitsPercent": number;
         "dataFormatPercentSign": boolean;
         "axisLabelsStep": number;
+        "periodLines": number;
+        "pointPosition": "center" | "end";
         "scalingIndicator": number;
         "totals": string;
         "scenarioSwitch": boolean;
@@ -5474,6 +5512,8 @@ declare namespace LocalJSX {
         "lineFullWidth": boolean;
         "containerWidth": number;
         "axisLabelsStep": number;
+        "periodLines": number;
+        "pointPosition": string;
         "scalingIndicator": number;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;

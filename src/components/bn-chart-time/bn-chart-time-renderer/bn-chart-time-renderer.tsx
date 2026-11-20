@@ -159,6 +159,14 @@ export class BnChartTimeRenderer {
 
   /** @internal */
   @Prop()
+  periodLines: number = 0;
+
+  /** @internal */
+  @Prop()
+  pointPosition: string = "center";
+
+  /** @internal */
+  @Prop()
   scalingIndicator: number = 0;
 
   /** @internal */
@@ -563,6 +571,8 @@ export class BnChartTimeRenderer {
       stackConfig: this.stackConfig,
       lineFullWidth: this.lineFullWidth,
       axisLabelsStep: this.axisLabelsStep,
+      periodLines: this.periodLines,
+      pointPosition: this.pointPosition,
       scalingIndicator: this.scalingIndicator,
       totals: this.totals,
       scenarioSwitch: this.scenarioSwitch,
