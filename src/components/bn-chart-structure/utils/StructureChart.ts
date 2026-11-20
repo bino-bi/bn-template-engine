@@ -167,6 +167,11 @@ export class StructureChart {
   private hideScenarioName: boolean = false;
   private referenceLine: ReferenceLine | null = null;
   private italicCategories: string[] = [];
+  private rowLines: number = 0;
+  private orderMark: boolean = false;
+  private tiers: boolean = false;
+  /** The first column of the order: the mark of the order points at it. */
+  private orderToken: OrderToken | undefined;
   private varianceWaterfall: boolean = false;
   private bridgeVariances: string[] = [];
   private bridge: Bridge | null = null;
@@ -245,6 +250,10 @@ export class StructureChart {
     this.hideScenarioName = config.hideScenarioName;
     this.referenceLine = config.referenceLine;
     this.italicCategories = config.italicCategories;
+    this.rowLines = config.rowLines ?? 0;
+    this.orderMark = config.orderMark ?? false;
+    this.tiers = config.tiers ?? false;
+    this.orderToken = parseOrderToken(config.sortOrder?.hierarchy?.[0]);
     this.varianceWaterfall = config.varianceWaterfall ?? false;
     this.bridgeVariances = config.bridgeVariances ?? [];
     this.sumScenarios = config.sumScenarios ?? [];
@@ -527,6 +536,7 @@ export class StructureChart {
     container.id("drawCanvas");
     container.width(this.getAllocatedCanvasWidth());
     container.height(this.getAllocatedCanvasHeight());
+    if (this.tiers && this.hideCategories) container.attr("overflow", "visible");
     return container.svg();
   }
 
@@ -604,6 +614,27 @@ export class StructureChart {
       return " ";
     }
     return Formatter.translateScenarioLabel("in", this.i18n) + " " + this.measureScale.prefix + this.measureUnit;
+  }
+
+  /** The room the footer takes left of the chart: its margins and its text, also where it is not shown. */
+  public getFooterRoom(): number {
+    const font = this.styles.fontStyles.size * 0.6;
+    const text = this.getFooter().trim();
+    const width = text ? CalculateSize(text, { font: this.styles.fontStyles.font, fontSize: font + "px" }).width : 0;
+    return font * 0.4 + width;
+  }
+
+  /** Bars of this segment can get break marks. The others are drawn at their width, whatever room they have. */
+  public canCut(): boolean {
+    if (this.stackConfig != null || this.isWalkTier() || (this.bridge && this.variancesDataModel.length === 0)) {
+      return false;
+    }
+    return this.getVarianceType() !== VarianceType.RELATIVE;
+  }
+
+  /** In a room of this width the bars of the segment get break marks. A room that is too small for them gives none. */
+  public cutsAt(availableWidth: number): boolean {
+    return this.canCut() && availableWidth > 0 && this.calculateOverflowConfig(availableWidth) != null;
   }
 
   /**
@@ -1258,12 +1289,19 @@ export class StructureChart {
       const row = this.dataModel[index];
       if (!row?.sum || this.bridge) return;
       const y = this.position.getBarCenterPositionY(index) - this.position.spacings.categoryWidth / 2;
-      const left = this.hideCategories ? this.position.getAxisPositionX() : this.styles.padding.left;
+      const [left, right] = this.tiers
+        ? this.rowLineSpan()
+        : [
+            this.hideCategories ? this.position.getAxisPositionX() : this.styles.padding.left,
+            this.position.getAxisPositionX() + this.sumRowExtent(row),
+          ];
       axisLabelGroup
-        .line(left, y, this.position.getAxisPositionX() + this.sumRowExtent(row), y)
+        .line(left, y, right, y)
         .stroke({ color: "#000000", width: Math.max(0.5, this.position.spacings.axisLineWidth / 2) })
         .addClass("sum-line");
     });
+    this.drawRowLines(dataModel, axisLabelGroup);
+    this.drawOrderMark(axisLabelGroup);
 
     new Axis(
       {
@@ -1321,11 +1359,12 @@ export class StructureChart {
     const first = dataModel.find((row) => !row.sum);
     if (this.scenarioLabelTop && first && !first.scenario1.isEmpty() && first.scenario1.scenario != null) {
       const scenario = first.scenario1.scenario as string;
+      const place = this.topNamePlace();
       new Label(
         barsGroup,
         // from the axis on: the first bar can be shorter than the name
-        this.position.getBarPositionX() + this.position.spacings.labelToAxis,
-        this.position.getStackedHeaderPositionY(),
+        place?.x ?? this.position.getBarPositionX() + this.position.spacings.labelToAxis,
+        place?.y ?? this.position.getStackedHeaderPositionY(),
         "SCENARIO_HEADER",
         this.i18n.get(scenario) || scenario,
         this.styles,
@@ -1335,6 +1374,209 @@ export class StructureChart {
     }
   }
 
+  /** Width of a text in the font of the chart. */
+  private textWidth(text: string): number {
+    return CalculateSize(text, { font: this.styles.fontStyles.font, fontSize: this.styles.fontStyles.size + "px" })
+      .width;
+  }
+
+  /** How far a bar reaches from the axis, with a break mark at most to its cut. */
+  private barReach(point: DataPoint): number {
+    const reach = point.getScaledUnit();
+    const cut = this.overflowConfig;
+    return cut ? Math.min(reach, cut.cutWidth + cut.breakGap + cut.overdriveZoneWidth) : reach;
+  }
+
+  /**
+   * Where the name of the first scenario stands with `scenarioLabelTop` when the
+   * first row has a reference bar: at the end of its bar, on the line of the name
+   * of the reference and right of that name and of the reference bar. Null: at the axis.
+   */
+  private topNamePlace(): { x: number; y: number; width: number } | null {
+    if (!this.position || !this.scenarioLabelTop || this.stackConfig || this.variancesDataModel.length > 0) return null;
+    // with break marks the room behind the bars is fitted to the value labels: the name stays at the axis
+    if (this.bridge || this.overflowConfig) return null;
+    const first = this.dataModel.find((row) => !row.sum);
+    // the name of a marker stands on the same line, near the bar ends
+    if ([first?.scenario3, first?.scenario4].some((point) => Number.isFinite(point?.value))) return null;
+    const front = first?.scenario1;
+    const reference = first?.scenario2;
+    if (!front || !reference || front.scenario == null || reference.scenario == null) return null;
+    if (!Number.isFinite(front.value) || !Number.isFinite(reference.value)) return null;
+    if ((front.value as number) < 0 || (reference.value as number) <= 0) return null;
+    const gap = this.position.spacings.labelToBar;
+    const width = this.textWidth(this.i18n.get(front.scenario as string) || (front.scenario as string));
+    const referenceName = this.textWidth(this.i18n.get(reference.scenario as string) || (reference.scenario as string));
+    const referenceReach = this.barReach(reference);
+    // the mark of an order by the reference stands right of the name of the reference
+    const token = this.orderToken;
+    const mark =
+      this.orderMark && token?.kind === "scenario" && token.bucket === undefined && token.column === reference.scenario
+        ? this.orderMarkWidth() + this.styles.fontStyles.size * 0.5
+        : 0;
+    const x =
+      this.position.getBarPositionX() +
+      Math.max(
+        this.barReach(front) - width / 2,
+        referenceReach + gap,
+        referenceReach / 2 + referenceName / 2 + gap + mark,
+      );
+    // the name must not make the chart wider: else it stays at the axis
+    const end = x + width - this.position.getAxisPositionX();
+    if (end > this.baseRightSideWidth(VarianceType.NONE)) return null;
+    const y = this.position.getBarPositionY(0, false) + this.position.getScenarioLabelPositionOffsetY(false);
+    return { x, y, width };
+  }
+
+  /** From where to where a line of a row runs: over the whole segment, in the base chart from the labels on. */
+  private rowLineSpan(): [number, number] {
+    // a segment without categories starts behind its footer: the line runs through that room
+    const gap = this.getFooterRoom() + 0.5;
+    return [this.hideCategories ? -gap : this.styles.padding.left, this.getAllocatedCanvasWidth()];
+  }
+
+  /** A thin line after every n-th row. The count starts again behind a sum row, and a sum row has its own line. */
+  private drawRowLines(dataModel: StructureChartDataModelEntry[], group: G): void {
+    if (this.rowLines < 1) return;
+    const [left, right] = this.rowLineSpan();
+    let count = 0;
+    dataModel.forEach((_elements, index) => {
+      const row = this.dataModel[index];
+      if (!row || row.sum) {
+        count = 0;
+        return;
+      }
+      count += 1;
+      const next = this.dataModel[index + 1];
+      if (count % this.rowLines !== 0 || !next || next.sum) return;
+      // half way between the two rows: rows of a stack can have their own thickness
+      const above = this.position.getBarCenterPositionY(index) + this.position.getBarWidthAt(index) / 2;
+      const below = this.position.getBarCenterPositionY(index + 1) - this.position.getBarWidthAt(index + 1) / 2;
+      const y = (above + below) / 2;
+      group
+        .line(left, y, right, y)
+        .stroke({ color: "#999999", width: Math.max(0.5, this.position.spacings.axisLineWidth / 2) })
+        .addClass("row-line");
+    });
+  }
+
+  /** Where the mark of the order stands in this segment: its left edge and the line its text neighbour stands on. */
+  private orderMarkPlace(): { x: number; bottom: number } | null {
+    const token = this.orderToken;
+    if (!this.position || !this.orderMark || !token || token.bucket !== undefined || this.stackConfig) return null;
+    const gap = this.styles.fontStyles.size * 0.25;
+    if (this.variancesDataModel.length > 0) {
+      if (token.kind !== "variance" || this.isBridgeTier()) return null;
+      const own = new VarianceScenario(this.configVariances?.toString() ?? "");
+      if (!own.isValid || own.type !== token.type || own.base !== token.base || own.delta !== token.delta) return null;
+      const title = this.title
+        ? CalculateSize(this.title, {
+            font: this.styles.fontStyles.font,
+            fontSize: this.styles.fontStyles.size + "px",
+            fontWeight: this.styles.titleBold ? "bold" : "normal",
+          }).width
+        : 0;
+      return {
+        x: this.position.getAxisTitlePositionX() + title / 2 + gap,
+        bottom: this.position.getAxisTitlePositionY(),
+      };
+    }
+    if (token.kind !== "scenario" || this.bridge) return null;
+    const first = this.dataModel.find((row) => !row.sum);
+    if (!first) return null;
+    const axis = this.position.getBarPositionX();
+    const name = (point: DataPoint): number =>
+      this.textWidth(this.i18n.get(point.scenario as string) || (point.scenario as string));
+    if (first.scenario1?.scenario === token.column && Number.isFinite(first.scenario1.value)) {
+      const place = this.topNamePlace();
+      if (place) return { x: place.x + place.width + gap, bottom: place.y };
+      const bottom = this.position.getStackedHeaderPositionY();
+      if (this.scenarioLabelTop) {
+        return { x: axis + this.position.spacings.labelToAxis + name(first.scenario1) + gap, bottom };
+      }
+      return this.bottomNameMark(gap);
+    }
+    if (first.scenario2?.scenario === token.column && Number.isFinite(first.scenario2.value)) {
+      const reach = this.barReach(first.scenario2);
+      if (reach <= 0) return null;
+      return {
+        x: axis + reach / 2 + name(first.scenario2) / 2 + gap,
+        bottom: this.position.getBarPositionY(0, false) + this.position.getScenarioLabelPositionOffsetY(false),
+      };
+    }
+    return null;
+  }
+
+  /** The mark right of the name of the first scenario, which stands below the last bar. */
+  private bottomNameMark(gap: number): { x: number; bottom: number } | null {
+    if (this.hideScenarioName) return null;
+    let last = -1;
+    this.dataModel.forEach((row, index) => {
+      if (!row.sum) last = index;
+    });
+    const point = this.dataModel[last]?.scenario1;
+    if (!point || point.scenario == null || !Number.isFinite(point.value)) return null;
+    const name = this.textWidth(this.i18n.get(point.scenario as string) || (point.scenario as string));
+    const axis = this.position.getBarPositionX();
+    // the name is centred on the bar, on a bar with a break mark on the part before the mark
+    let reach = point.getScaledUnit();
+    const cut = this.overflowConfig;
+    if (cut) {
+      const part = point.getScenario() === "ac" ? cut.cutWidth : cut.cutWidth - cut.scenarioCutOffset;
+      if (Math.abs(reach) > part) reach = Math.sign(reach) * part;
+    }
+    let x: number;
+    if (this.position.isNameBelowBar()) {
+      // the name starts at the axis. Left of the axis the mark would stand on it
+      if (reach < 0) return null;
+      x = axis + this.position.spacings.labelToAxis + name + gap;
+    } else {
+      x = axis + reach / 2 + name / 2 + gap;
+    }
+    const top = this.position.getBarPositionY(last, true) + this.position.getScenarioLabelPositionOffsetY(true);
+    return { x, bottom: top + this.styles.fontStyles.size };
+  }
+
+  private orderMarkWidth(): number {
+    return this.styles.fontStyles.size * 0.7;
+  }
+
+  /** How far the mark of the order reaches right of the axis. */
+  private orderMarkExtent(): number {
+    const place = this.orderMarkPlace();
+    return place ? place.x + this.orderMarkWidth() - this.position.getAxisPositionX() : 0;
+  }
+
+  /** A thick arrow that points down at the scenario or the variance the rows are sorted by. */
+  private drawOrderMark(group: G): void {
+    const place = this.orderMarkPlace();
+    if (!place) return;
+    const font = this.styles.fontStyles.size;
+    const width = this.orderMarkWidth();
+    const shaft = width * 0.45;
+    const top = place.bottom - font * 1.05;
+    const neck = place.bottom - font * 0.45;
+    const tip = place.bottom - font * 0.05;
+    const middle = place.x + width / 2;
+    const color = `var(--bn-annotation-color, ${SYSTEM_STYLE_DEFAULTS["bn-annotation"].color})`;
+    group
+      .polygon(
+        [
+          [middle - shaft / 2, top],
+          [middle + shaft / 2, top],
+          [middle + shaft / 2, neck],
+          [place.x + width, neck],
+          [middle, tip],
+          [place.x, neck],
+          [middle - shaft / 2, neck],
+        ]
+          .map((point) => point.join(","))
+          .join(" "),
+      )
+      .attr("style", `fill: ${color}`)
+      .addClass("order-mark");
+  }
+
   /**
    * The value of a reference bar that is much longer than the bar in front of
    * it: printed at its end, when it has room behind the label of the front bar.
@@ -1342,7 +1584,12 @@ export class StructureChart {
   private drawReferenceLabel(row: StructureChartDataModelEntry, index: number, group: G): void {
     const front = row.scenario1;
     const reference = row.scenario2;
-    if (this.overflowConfig != null || !Number.isFinite(front?.value) || !Number.isFinite(reference?.value)) {
+    if (!Number.isFinite(front?.value) || !Number.isFinite(reference?.value)) {
+      return;
+    }
+    // a bar with a break mark has no end at its value
+    const cut = this.overflowConfig;
+    if (cut && Math.max(front.getScaledUnit(), reference.getScaledUnit()) > cut.cutWidth - cut.scenarioCutOffset) {
       return;
     }
     const frontValue = front.value as number;
@@ -1356,7 +1603,8 @@ export class StructureChart {
     }
     const labelToBar = this.position.spacings.labelToBar;
     const room = (referenceValue - frontValue) * this.pixelPerUnit;
-    if (room < this.valueLabelWidth(frontValue) + 3 * labelToBar) {
+    // the label of the front bar and a gap on each side of it
+    if (room < this.valueLabelWidth(frontValue) + 2 * labelToBar) {
       return;
     }
     new Label(
@@ -1712,6 +1960,11 @@ export class StructureChart {
   }
 
   private calculateRightSideWidth(varianceType: VarianceType): number {
+    return Math.max(this.baseRightSideWidth(varianceType), this.orderMarkExtent());
+  }
+
+  /** The room right of the axis without the mark of the order. */
+  private baseRightSideWidth(varianceType: VarianceType): number {
     // Stacked charts: width based on the positive side of the stacks, not individual max
     if (this.isStacked()) {
       const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;

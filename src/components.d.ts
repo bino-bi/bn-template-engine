@@ -764,6 +764,11 @@ export namespace Components {
          */
         "orderDirection": string;
         /**
+          * Marks the column the rows are sorted by with an arrow: beside the name of the scenario, or beside the title of the variance, that comes first in `order`. No mark for an order by a dimension, and none with `stack`.
+          * @default false
+         */
+        "orderMark": boolean;
+        /**
           * Percentage points displayed per 1 em of bar length for relative variances - a larger value means shorter bars.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available width                                   | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
           * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
@@ -775,6 +780,11 @@ export namespace Components {
           * @example reference-line='{"value":50,"label":"50%"}'
          */
         "referenceLine": string;
+        /**
+          * Draws a thin line after every n-th row, over all segments of the chart (`row-lines="5"`). The count starts again behind a sum row. Default: no lines.
+          * @default 0
+         */
+        "rowLines": number;
         /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
@@ -883,6 +893,10 @@ export namespace Components {
          */
         "dataVersion": number;
         /**
+          * @default 0
+         */
+        "equalShare": number;
+        /**
           * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
          */
         "errors"?: ErrorDispatcher;
@@ -927,6 +941,10 @@ export namespace Components {
          */
         "order": Order;
         /**
+          * @default false
+         */
+        "orderMark": boolean;
+        /**
           * @default { width: 0, height: 0 }
          */
         "parentDimensions": ParentDimensions;
@@ -946,6 +964,11 @@ export namespace Components {
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
+        "reportWidth"?: (width: number, cuttable: boolean) => void;
+        /**
+          * @default 0
+         */
+        "rowLines": number;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default false
@@ -985,6 +1008,10 @@ export namespace Components {
           * @default ""
          */
         "tableName": string;
+        /**
+          * @default false
+         */
+        "tiers": boolean;
         /**
           * @default ""
          */
@@ -3547,6 +3574,11 @@ declare namespace LocalJSX {
          */
         "orderDirection": string;
         /**
+          * Marks the column the rows are sorted by with an arrow: beside the name of the scenario, or beside the title of the variance, that comes first in `order`. No mark for an order by a dimension, and none with `stack`.
+          * @default false
+         */
+        "orderMark"?: boolean;
+        /**
           * Percentage points displayed per 1 em of bar length for relative variances - a larger value means shorter bars.  | Value             | Behavior                                                      | |-------------------|---------------------------------------------------------------| | `"auto"`          | Auto-fit to available width                                   | | not set / invalid | Same as auto with `AUTO_percentageScaling` warning            | | `"10"`, `"2.5"`   | Percentage points per em; optional SI suffix `k`/`K`/`M`/`G`/`T` | | group name        | References a `<bn-scaling-group>` for synchronized scaling    |
           * @example percentage-scaling="10"
           * @example percentage-scaling="pct-scale"
@@ -3558,6 +3590,11 @@ declare namespace LocalJSX {
           * @example reference-line='{"value":50,"label":"50%"}'
          */
         "referenceLine"?: string;
+        /**
+          * Draws a thin line after every n-th row, over all segments of the chart (`row-lines="5"`). The count starts again behind a sum row. Default: no lines.
+          * @default 0
+         */
+        "rowLines"?: number;
         /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
@@ -3666,6 +3703,10 @@ declare namespace LocalJSX {
          */
         "dataVersion"?: number;
         /**
+          * @default 0
+         */
+        "equalShare"?: number;
+        /**
           * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
          */
         "errors"?: ErrorDispatcher;
@@ -3710,6 +3751,10 @@ declare namespace LocalJSX {
          */
         "order"?: Order;
         /**
+          * @default false
+         */
+        "orderMark"?: boolean;
+        /**
           * @default { width: 0, height: 0 }
          */
         "parentDimensions"?: ParentDimensions;
@@ -3729,6 +3774,11 @@ declare namespace LocalJSX {
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-structure` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
+        "reportWidth"?: (width: number, cuttable: boolean) => void;
+        /**
+          * @default 0
+         */
+        "rowLines"?: number;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default false
@@ -3768,6 +3818,10 @@ declare namespace LocalJSX {
           * @default ""
          */
         "tableName"?: string;
+        /**
+          * @default false
+         */
+        "tiers"?: boolean;
         /**
           * @default ""
          */
@@ -5316,6 +5370,8 @@ declare namespace LocalJSX {
         "sums": "none" | "groups" | "total" | "all";
         "sumTitle": string;
         "varianceWaterfall": boolean;
+        "rowLines": number;
+        "orderMark": boolean;
         "dataFormatPercentSign": boolean;
         "sumScenarios": string;
         "sumDataset": string;
@@ -5346,6 +5402,10 @@ declare namespace LocalJSX {
         "valueSuffix": string;
         "scenarioLabelTop": boolean;
         "hideScenarioName": boolean;
+        "rowLines": number;
+        "orderMark": boolean;
+        "tiers": boolean;
+        "equalShare": number;
     }
     interface BnChartTimeAttributes {
         "datasets": string;
