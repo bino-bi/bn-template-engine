@@ -85,6 +85,8 @@ export class ScatterChart {
   private data: ResolvedXYData;
   private warnings: XYWarningRecord[] = [];
   private labelReport: LabelReport = new LabelReport();
+  /** The box of a legend that stands inside the plot. */
+  private legendInside: Rect | null = null;
   /** Text of the query that failed. The component reports it as ERR_sql. */
   private queryError: string | undefined;
   private canvasHeight: number = 0;
@@ -124,7 +126,10 @@ export class ScatterChart {
       limit: config.limit,
       limitBy: "order",
     });
-    this.data.series = pinSeries(this.data.series, styles.seriesNames);
+    // a chart without a series level has one series without a name: there is nothing to pin
+    if (config.seriesLevel !== null) {
+      this.data.series = pinSeries(this.data.series, styles.seriesNames);
+    }
     this.warnings.push(...this.data.warnings);
   }
 
@@ -416,6 +421,17 @@ export class ScatterChart {
       }
     }
 
+    // A legend inside the plot stands in its top right corner, clear of the frame. No name is placed on it.
+    this.legendInside =
+      showLegend && this.config.legend.position === "inside"
+        ? {
+            x: Math.max(drawing.x, drawing.x + drawing.width - legendSize.width - 0.5 * em),
+            y: drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
+            width: legendSize.width,
+            height: legendSize.height,
+          }
+        : null;
+
     if (this.data.facets.length === 0) {
       this.drawPanel(
         root,
@@ -481,15 +497,8 @@ export class ScatterChart {
           drawing.y + legendOffset(this.config.legend, drawing.height - legendSize.height),
           "right",
         );
-      } else if (this.config.legend.position === "inside") {
-        // in the top right corner of the plot, clear of the frame
-        legend.draw(
-          root,
-          legendModel,
-          drawing.x + drawing.width - legendSize.width - 0.5 * em,
-          drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
-          "right",
-        );
+      } else if (this.legendInside !== null) {
+        legend.draw(root, legendModel, this.legendInside.x, this.legendInside.y, "right");
       } else {
         legend.draw(
           root,
@@ -589,6 +598,9 @@ export class ScatterChart {
     if (panelTitle !== "") {
       const origin = panel.frame.panelTitleOrigin();
       labeler.registerText(origin.x, origin.y - em, this.textWidth(panelTitle, true), 1.3 * em);
+    }
+    if (this.legendInside !== null) {
+      labeler.registerText(this.legendInside.x, this.legendInside.y, this.legendInside.width, this.legendInside.height);
     }
     const marks: { point: XYPoint; cx: number; cy: number; treatment: MarkTreatment }[] = [];
 

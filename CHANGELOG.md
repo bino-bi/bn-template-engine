@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Added
 
 - `bn-chart-bubble`: `labels` in `share` prints the value of the slice (size times share) outside the bubble at the middle of its arc: `"all"`, or a list of point names such as `["Total"]`. Default `"none"`.
-- `bn-chart-bubble`: `"values":"always"` in `labels` prints the value of a bubble also when it is wider than the bubble, in the font colour, and the value of a small comparison bubble too.
+- `bn-chart-bubble`: `"values":"always"` in `labels` prints the value of a bubble also when it is wider than the bubble: in the font colour with a thin line in the colour of the page around it, so it can be read on the fill and beside it. A small comparison bubble gets its value too, unless its middle is behind its own bubble.
 - `bn-chart-scatter`, `bn-chart-bubble`: `"position":"inside"` in `legend` puts the legend into the top right corner of the plot. It takes no room beside the plot. `align` moves it down.
 - `bn-chart-scatter`, `bn-chart-bubble`: an entry of `labels.points` can name a `panel`: `{"name":"IT","side":"s","panel":"India"}`. The side then holds for that facet panel only.
 - `bn-chart-scatter`, `bn-chart-bubble`: `seriesNames` in the component style names the series that the entries of `seriesColors`, `seriesFills` and `shareColors` are for. A named series keeps its colour in every chart, also when a chart has only some of the series, for example the panels of a small multiple. Series without a name follow after the named ones.
@@ -83,8 +83,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
-- `bn-chart-scatter`, `bn-chart-bubble`: tick labels of the x axis that would run into each other are left out. The labels at the two ends of the axis stay.
-- `bn-grid` with `cell-width="equal"`: every cell has the same width for its content. Before, the room between two columns was taken from the right cell only, so the first column had 8 px more than the others and a chart in it was wider. Now each cell gives up the same share. Content moves by a few px.
+- `bn-chart-scatter`, `bn-chart-bubble`: tick labels of the x axis that would run into each other are left out: the chart then prints every second, third, ... label from the start of the axis, and the last one when it has room.
+- `bn-grid` with `cell-width="equal"`: every cell has the same width for its content. Before, the room between two columns was taken from the right cell only, so the first column had 8 px more than the others and a chart in it was wider. Now each cell gives up the same share, and a column header starts where the content of its column starts. Content moves by a few px. With `show-borders` the line between two columns is no longer at the left edge of the room between them.
 - `bn-chart-bubble`: with `compareWith` the comparison bubble of a named point carries the name too, unless it is fully behind its own bubble. A name that finds no free place stands on the side where the least of it covers a bubble. Before, such a name was left out. A name never stands on another name, on a value or on the title of a panel.
 - `bn-chart-bubble`: the share slice has the outline of its bubble. Before, it had none.
 - `bn-chart-bubble`: the chart is as high as its bubbles. A bubble that hangs below or above the plot is part of the height of the chart, so it is not cut at the edge of a card. The plot moves down by what a bubble hangs out at the top, and a legend below the chart moves below the lowest bubble.

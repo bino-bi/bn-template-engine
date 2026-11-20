@@ -153,16 +153,21 @@ export class XYFrame {
         return { x, text, anchor, left, right: left + width };
       });
 
-      // No label runs into another one: the two ends of the axis come first, then the others in their order.
+      // No label runs into another one. When not all fit, every second, third, ... label from the
+      // start of the axis is drawn, so the steps stay even. The last label is added when it has room.
       const minGap = 0.3 * this.em;
-      const kept: typeof labels = [];
-      const ordered = [labels[0], labels[labels.length - 1], ...labels.slice(1, -1)].filter(
-        (label, index, list) => label !== undefined && list.indexOf(label) === index,
-      );
-      for (const label of ordered) {
-        if (kept.every((other) => label.left >= other.right + minGap || label.right <= other.left - minGap)) {
-          kept.push(label);
+      const clear = (a: (typeof labels)[number], b: (typeof labels)[number]): boolean =>
+        a.left >= b.right + minGap || a.right <= b.left - minGap;
+      let kept = labels;
+      for (let every = 1; every <= labels.length; every++) {
+        kept = labels.filter((_, index) => index % every === 0);
+        if (kept.every((label, index) => index === 0 || clear(label, kept[index - 1]))) {
+          break;
         }
+      }
+      const last = labels[labels.length - 1];
+      if (last !== undefined && !kept.includes(last) && clear(last, kept[kept.length - 1])) {
+        kept = [...kept, last];
       }
 
       for (const label of kept) {

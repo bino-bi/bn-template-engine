@@ -792,7 +792,10 @@ export class Grid {
             "grid-row": String(headerRow),
             "border-left": isNotFirstCol ? borderStyle : "none",
             padding: `${style.cellPadding}px`,
-            "padding-left": isNotFirstCol ? `${style.cellPadding + 4}px` : `${style.cellPadding}px`,
+            // a header starts where the content of its column starts
+            "padding-left": isNotFirstCol
+              ? this.cellSidePadding(index, 1, style.cellPadding + 4)["padding-left"]
+              : `${style.cellPadding}px`,
           }}
         >
           {col.label}

@@ -517,6 +517,20 @@ describe("BubbleChart options shared with the scatter chart", () => {
       expect(svg).not.toContain(">40<");
     });
 
+    it("puts the value outside the bubble, right of the middle of the arc of a quarter slice", () => {
+      const svg = shareChart(["A"]);
+      const label = /<text[^>]*>(?:<tspan[^>]*>)?50</.exec(svg)![0];
+      const x = Number(/\sx="([\d.]+)"/.exec(label)![1]);
+      const circle = /<circle r="([\d.]+)" cx="([\d.]+)" cy="([\d.]+)"/.exec(svg)!;
+      const [r, cx] = [Number(circle[1]), Number(circle[2])];
+      // the middle of a quarter slice is at 45 degrees
+      expect(x).toBeGreaterThan(cx + r * 0.7);
+      expect(x).toBeLessThan(cx + r + 20);
+      // drawn after both bubbles, so the smaller one cannot cover it
+      const bubbles = [...svg.matchAll(/<circle r="/g)].map((m) => m.index!);
+      expect(bubbles[1]).toBeLessThan(svg.indexOf(label));
+    });
+
     it("prints it for all bubbles", () => {
       const svg = shareChart("all");
       expect(svg).toContain(">50<");
@@ -547,6 +561,32 @@ describe("BubbleChart options shared with the scatter chart", () => {
     expect(valueShown(true)).toBe(true);
   });
 
+  it("prints the value of a small comparison bubble with values always, unless it is behind its own bubble", () => {
+    const compareValue = (valuesAlways: boolean, pp: Record<string, number>): boolean => {
+      const db = createScopedDb().db;
+      db.tables["bubbleData"] = { data: [row({ ac1: 0.3, ac2: 0.3, ac3: 900, pp3: 2, ...pp })] };
+      const svg = new BubbleChart(
+        new IBCSRuleSet(),
+        db,
+        "`bubbleData`",
+        baseConfig({
+          compareFamily: "pp",
+          sizeAreaPerUnit: 20,
+          x: { measure: "ac1", min: 0, max: 1 },
+          y: { measure: "ac2", min: 0, max: 1 },
+          labels: { points: "none", values: true, valuesAlways, max: 12 },
+        }),
+        defaultStyles(),
+        1000,
+      ).toString();
+      return svg.includes(">2<");
+    };
+    const away = { pp1: 0.8, pp2: 0.8 };
+    expect(compareValue(false, away)).toBe(false);
+    expect(compareValue(true, away)).toBe(true);
+    expect(compareValue(true, { pp1: 0.3, pp2: 0.3 })).toBe(false);
+  });
+
   it("draws a legend inside the plot and keeps the plot as wide as without a legend", () => {
     const frameWidth = (legend: BubbleChartConfig["legend"]): number =>
       Number(/<rect width="([\d.]+)"[^>]*fill="none"/.exec(chartWith(baseConfig({ legend })))![1]);
@@ -556,15 +596,62 @@ describe("BubbleChart options shared with the scatter chart", () => {
     expect(chartWith(baseConfig({ legend: { show: true, position: "inside" } }))).toContain(">Core Business<");
   });
 
-  it("leaves out tick labels of the x axis that would run into each other, and keeps both ends", () => {
+  it("leaves out tick labels of the x axis that would run into each other, in even steps", () => {
     const svg = chartWith(
       baseConfig({ x: { measure: "ac1", min: 0, max: 900, step: 20 }, y: { measure: "ac2", min: 0, max: 40 } }),
     );
     const ticks = [...svg.matchAll(/text-anchor="middle"[^>]*>(?:<tspan[^>]*>)?(\d+)</g)].map((m) => Number(m[1]));
-    expect(ticks).toContain(0);
-    expect(ticks).toContain(900);
+    expect(ticks[0]).toBe(0);
     // 46 ticks on less than 1000 px: three digits need more than the 21 px between two of them
     expect(ticks.length).toBeLessThan(46);
+    expect(ticks.length).toBeGreaterThan(5);
+    const steps = new Set(ticks.slice(1, -1).map((tick, index) => tick - ticks[index]));
+    expect(steps.size).toBe(1);
+  });
+
+  it("does not move the one series of a chart without a series level behind the names of the style", () => {
+    const db = createScopedDb().db;
+    db.tables["bubbleData"] = { data: rows() };
+    const styles = defaultStyles();
+    styles.seriesColors = ["#111111", "#222222"];
+    styles.seriesNames = ["A", "B"];
+    const chart = new BubbleChart(
+      new IBCSRuleSet(),
+      db,
+      "`bubbleData`",
+      baseConfig({ seriesLevel: null }),
+      styles,
+      1000,
+    );
+    expect(/<circle[^>]*>/.exec(chart.toString())![0]).toContain('fill="#111111"');
+    expect(chart.getWarnings().some((w) => w.code === "xy-series-overflow")).toBe(false);
+  });
+
+  it("puts a name on the side that is typed for its panel", () => {
+    const db = createScopedDb().db;
+    db.tables["bubbleData"] = {
+      data: [
+        row({ rowGroup: "North", rowGroupIndex: 1, subCategory: "A", subCategoryIndex: 1, ac1: 10, ac2: 10, ac3: 5 }),
+        row({ rowGroup: "South", rowGroupIndex: 2, subCategory: "A", subCategoryIndex: 1, ac1: 10, ac2: 10, ac3: 5 }),
+      ],
+    };
+    const svg = new BubbleChart(
+      new IBCSRuleSet(),
+      db,
+      "`bubbleData`",
+      baseConfig({
+        facet: { level: "rowgroup" },
+        x: { measure: "ac1", min: 0, max: 20 },
+        y: { measure: "ac2", min: 0, max: 20 },
+        labels: { points: ["A"], values: false, max: 12, panelSides: { "South\u0000A": "s" } },
+      }),
+      defaultStyles(),
+      1000,
+    ).toString();
+    const ys = [...svg.matchAll(/<text[^>]*\sy="([\d.]+)"[^>]*>(?:<tspan[^>]*>)?A</g)].map((m) => Number(m[1]));
+    expect(ys).toHaveLength(2);
+    // same place of the bubble in both panels: above it in North, below it in South
+    expect(ys[1]).toBeGreaterThan(ys[0] + 10);
   });
 
   it("gives a series the colour that the style names for it", () => {

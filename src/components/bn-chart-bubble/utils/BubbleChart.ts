@@ -115,6 +115,8 @@ export class BubbleChart {
   private scaleOverflowCount: number = 0;
   private svgRoot: Svg | null = null;
   private labelReport: LabelReport = new LabelReport();
+  /** The box of a legend that stands inside the plot. */
+  private legendInside: Rect | null = null;
 
   constructor(
     private readonly ruleSet: IBCSRuleSet,
@@ -154,7 +156,10 @@ export class BubbleChart {
       limit: config.limit,
       limitBy: "size",
     });
-    this.data.series = pinSeries(this.data.series, styles.seriesNames);
+    // a chart without a series level has one series without a name: there is nothing to pin
+    if (config.seriesLevel !== null) {
+      this.data.series = pinSeries(this.data.series, styles.seriesNames);
+    }
     this.warnings.push(...this.data.warnings);
   }
 
@@ -483,6 +488,17 @@ export class BubbleChart {
       this.drawAxisTitleText(root, this.config.y, inWord, padding.left, drawing.y - 0.6 * em, "start");
     }
 
+    // A legend inside the plot stands in its top right corner, clear of the frame. No name is placed on it.
+    this.legendInside =
+      showLegend && this.config.legend.position === "inside"
+        ? {
+            x: Math.max(drawing.x, drawing.x + drawing.width - legendSize.width - 0.5 * em),
+            y: drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
+            width: legendSize.width,
+            height: legendSize.height,
+          }
+        : null;
+
     if (this.data.facets.length === 0) {
       this.drawPanel(
         root,
@@ -546,15 +562,8 @@ export class BubbleChart {
           drawing.y + legendOffset(this.config.legend, drawing.height - legendSize.height),
           "right",
         );
-      } else if (this.config.legend.position === "inside") {
-        // in the top right corner of the plot, clear of the frame
-        legend.draw(
-          root,
-          legendModel,
-          drawing.x + drawing.width - legendSize.width - 0.5 * em,
-          drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
-          "right",
-        );
+      } else if (this.legendInside !== null) {
+        legend.draw(root, legendModel, this.legendInside.x, this.legendInside.y, "right");
       } else {
         legend.draw(
           root,
@@ -703,11 +712,15 @@ export class BubbleChart {
       const origin = panel.frame.panelTitleOrigin();
       labeler.registerText(origin.x, origin.y - em, this.textWidth(panelTitle, true), 1.3 * em);
     }
+    if (this.legendInside !== null) {
+      labeler.registerText(this.legendInside.x, this.legendInside.y, this.legendInside.width, this.legendInside.height);
+    }
 
     // Draw order: descending size, so small bubbles stay visible on top.
     const ordered = [...facet.points].sort((a, b) => (b.size ?? 0) - (a.size ?? 0));
     const marks: BubbleMark[] = [];
     const compareMarks: BubbleMark[] = [];
+    const shareLabels: (() => void)[] = [];
 
     for (const point of ordered) {
       const seriesIndex = this.data.series.find((s) => s.key === point.seriesKey)?.index ?? 0;
@@ -740,7 +753,8 @@ export class BubbleChart {
         if (
           this.config.labels.values &&
           point.compare.size !== undefined &&
-          (cr >= 1.2 * em || this.config.labels.valuesAlways === true)
+          // a small one only with `always`, and then only when its middle is not behind its own bubble
+          (cr >= 1.2 * em || (this.config.labels.valuesAlways === true && Math.hypot(ccx - cx, ccy - cy) >= r))
         ) {
           this.drawValueLabel(compareGroup, labeler, ccx, ccy, cr, point.compare.size, compareTreatment);
         }
@@ -758,7 +772,8 @@ export class BubbleChart {
           dataPointAttributes(key),
         );
         if (this.hasShareLabel(point.name) && point.share > 0 && point.size !== undefined) {
-          this.drawShareLabel(primaryGroup, labeler, cx, cy, r, point.share, point.size, treatment);
+          const { share, size } = point;
+          shareLabels.push(() => this.drawShareLabel(shareGroup, labeler, cx, cy, r, share, size, treatment));
         }
       }
 
@@ -768,6 +783,10 @@ export class BubbleChart {
 
       marks.push({ point, cx, cy, r, seriesIndex, hue, treatment });
     }
+
+    // above all bubbles: a smaller bubble next to the slice must not cover the value
+    const shareGroup = group.group();
+    shareLabels.forEach((draw) => draw());
 
     this.drawNameLabels(group, labeler, marks, compareMarks, facet.key);
 
@@ -887,8 +906,10 @@ export class BubbleChart {
     const y = cy - reach * Math.cos(angle) + 0.35 * em * (1 - Math.cos(angle));
     const text = formatXYValue(size * share, this.valueDecimals(), this.styles.locale, this.sizePercent);
     const width = this.textWidth(text);
-    this.drawText(group, text, x, y, { color: treatment.textColor });
-    labeler.registerText(x, y - em, width, 1.1 * em);
+    // a full slice has its middle straight below the bubble
+    const below = Math.sin(angle) < 0.2 && Math.cos(angle) < 0;
+    this.drawText(group, text, x, y, { color: treatment.textColor, anchor: below ? "middle" : "start" });
+    labeler.registerText(below ? x - width / 2 : x, y - em, width, 1.1 * em);
   }
 
   /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. No name is placed on it. */
@@ -911,11 +932,20 @@ export class BubbleChart {
     if (!fits && this.config.labels.valuesAlways !== true) {
       return;
     }
-    // a value wider than its bubble is read on the page, not on the fill
-    this.drawText(group, text, cx, cy + 0.35 * this.em, {
+    const label = this.drawText(group, text, cx, cy + 0.35 * this.em, {
       anchor: "middle",
       color: treatment.textColor ?? (fits ? getContrastTextColor(shown) : undefined),
     });
+    if (!fits) {
+      // a value wider than its bubble lies partly on the fill and partly on the page:
+      // the font colour with a line in the colour of the page around it is read on both
+      label.attr({
+        stroke: this.styles.fontStyles.background || "#ffffff",
+        "stroke-width": 0.2 * this.em,
+        "stroke-linejoin": "round",
+        "paint-order": "stroke",
+      });
+    }
     labeler.registerText(cx - width / 2, cy - 0.65 * this.em, width, 1.1 * this.em);
   }
 

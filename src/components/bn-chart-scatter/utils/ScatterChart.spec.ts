@@ -435,3 +435,31 @@ describe("ScatterChart labels of a typed list", () => {
     expect(chart.getWarnings().some((w) => w.code === "xy-label-dropped")).toBe(false);
   });
 });
+
+describe("ScatterChart options shared with the bubble chart", () => {
+  const points = (): Record<string, unknown>[] => [
+    row({ subCategory: "A", subCategoryIndex: 1, ac1: 10, ac2: 10 }),
+    row({ category: "TX", categoryIndex: 2, subCategory: "B", subCategoryIndex: 2, ac1: 20, ac2: 20 }),
+  ];
+  const frameWidth = (svg: string): number => Number(/<rect width="([\d.]+)"[^>]*fill="none"/.exec(svg)![1]);
+
+  it("draws a legend inside the plot without room beside it", () => {
+    const inside = makeChart(points(), baseConfig({ legend: { show: true, position: "inside" } })).toString();
+    const none = makeChart(points(), baseConfig({ legend: { show: false, position: "right" } })).toString();
+    expect(inside).toContain(">RX<");
+    expect(frameWidth(inside)).toBeCloseTo(frameWidth(none), 3);
+  });
+
+  it("leaves a series out of the legend and prints ticks with typed decimals", () => {
+    const svg = makeChart(
+      points(),
+      baseConfig({
+        legend: { show: true, position: "right", exclude: ["TX"] },
+        x: { measure: "ac1", min: 0, max: 40, step: 20, decimals: 1 },
+      }),
+    ).toString();
+    expect(svg).toContain(">RX<");
+    expect(svg).not.toContain(">TX<");
+    expect(svg).toContain(">20,0<");
+  });
+});
