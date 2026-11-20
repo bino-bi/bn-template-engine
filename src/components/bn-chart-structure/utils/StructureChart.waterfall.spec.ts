@@ -33,9 +33,16 @@ const ROWS = [
   { operation: "+", category: "REST", categoryIndex: 3, ac1: 330, pp1: 300 },
 ];
 
-const buildChart = (options: Record<string, unknown>, rows: Record<string, unknown>[] = ROWS): StructureChart => {
+const buildChart = (
+  options: Record<string, unknown>,
+  rows: Record<string, unknown>[] = ROWS,
+  tables: Record<string, Record<string, unknown>[]> = {},
+): StructureChart => {
   const db = createScopedDb().db;
   db.tables[TABLE] = { data: rows };
+  for (const [name, data] of Object.entries(tables)) {
+    db.tables[name] = { data };
+  }
 
   const config = new StructureChartComponentConfigAdapter(
     new StructureChartDataRowAdapter(),
@@ -74,6 +81,7 @@ interface ChartInternals {
   dataModel: { category: string; sum?: string; scenario1: DataPoint; scenario2: DataPoint }[];
   variancesDataModel: { scenario1: DataPoint; sum?: string }[];
   bridge: { reference: DataPoint; total: DataPoint; steps: Step[]; variance: DataPoint | null } | null;
+  sumExtras: DataPoint[];
   highestDataPointValue: DataPoint;
   highestVarianceDataPointValue: DataPoint;
   smallestVarianceDataPointValue: DataPoint;
@@ -277,5 +285,56 @@ describe("structure chart reference label", () => {
   it("prints none next to the marker of a third scenario", () => {
     const rows = [{ operation: "+", category: "A", categoryIndex: 1, ac1: 100, pp1: 300, fc1: 310 }];
     expect(labels(buildChart({ scenarios: ["ac1", "pp1", "fc1"] }, rows))).toBe(0);
+  });
+});
+
+describe("structure chart scenarios at the total only", () => {
+  const WITH_PL = ROWS.map((row, index) => ({ ...row, pl1: [100, 500, 250][index] }));
+  const extras = (chart: StructureChart) =>
+    internals(chart).sumExtras.map((point) => ({ scenario: point.scenario, value: point.value }));
+
+  it("adds up a scenario of the list over the rows", () => {
+    const chart = buildChart({ sums: "total", sumScenarios: ["pl1"] }, WITH_PL);
+    expect(extras(chart)).toEqual([{ scenario: "pl1", value: 850 }]);
+    // its number stands in the total row
+    expect(chart.toString()).toContain('data-bn-scenario="pl1" data-bn-row="total"');
+  });
+
+  it("ignores a scenario the chart draws, and a chart without a total row", () => {
+    expect(extras(buildChart({ sums: "total", sumScenarios: ["pp1"] }, WITH_PL))).toEqual([]);
+    expect(extras(buildChart({ sumScenarios: ["pl1"] }, WITH_PL))).toEqual([]);
+  });
+
+  it("takes the total row from a dataset", () => {
+    const totals = [{ ac1: 950, pp1: 1000, pl1: 800, fc1: 990 }];
+    const chart = buildChart({ sums: "total", sumDataset: "totals" }, ROWS, { totals });
+    const total = internals(chart).dataModel.find((row) => row.sum === "total")!;
+    expect(total.scenario1.value).toBe(950);
+    expect(total.scenario2.value).toBe(1000);
+    expect(extras(chart)).toEqual([
+      { scenario: "fc1", value: 990 },
+      { scenario: "pl1", value: 800 },
+    ]);
+    const limited = buildChart({ sums: "total", sumDataset: "totals", sumScenarios: ["pl1"] }, ROWS, { totals });
+    expect(extras(limited)).toEqual([{ scenario: "pl1", value: 800 }]);
+  });
+
+  it("draws no bridge when the totals of a dataset do not match the rows", () => {
+    const totals = [{ ac1: 950, pp1: 1000 }];
+    const chart = buildChart({ ...BRIDGE, sumDataset: "totals" }, ROWS, { totals });
+    expect(internals(chart).bridge).toBeNull();
+    expect(chart.getBridgeFallback()).toBe("the reference total plus the variances is not the total of the series");
+  });
+
+  it("gives a bridge one more row above and below for it", () => {
+    const plain = internals(buildChart(BRIDGE, WITH_PL)).rowLayout()!;
+    const chart = buildChart({ ...BRIDGE, sumScenarios: ["pl1"] }, WITH_PL);
+    const layout = internals(chart).rowLayout()!;
+    expect(layout.start[0]).toBe(plain.start[0] + 1);
+    expect(layout.total).toBe(plain.total + 2);
+    const svg = chart.toString();
+    expect(svg).toContain('data-bn-scenario="pl1" data-bn-row="total"');
+    // 900 - 850
+    expect(svg).toContain('data-bn-scenario="dac1_pl1" data-bn-row="total"');
   });
 });

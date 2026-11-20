@@ -79,6 +79,7 @@ interface Step {
 }
 
 interface ChartInternals {
+  totalColumns: { total: number; extras: { scenario: string; value: number }[] }[];
   bridge: { reference: { scenario: string; value: number }; total: number; steps: Step[] } | null;
   variancesDataModel: { scenario1: DataPoint }[];
   highestVarianceDataPointValue: DataPoint;
@@ -303,5 +304,53 @@ describe("time chart reference column", () => {
   it("has no effect without a scenario switch", () => {
     const chart = buildChart({ referenceColumn: true, scenarioSwitch: false });
     expect(internals(chart).referenceColumnSlot()).toBeNull();
+  });
+});
+
+describe("time chart scenarios at the total only", () => {
+  // the previous year per month: 60 in sum
+  const WITH_PY = ROWS.map((row, index) => ({ ...row, pp1: [10, 20, 15, 15][index] }));
+  const listed = { ...TOTALS, scenarios: ["pp1"] };
+
+  it("adds up a scenario of the list over the periods of the total", () => {
+    const chart = buildChart({ totals: listed }, WITH_PY);
+    expect(internals(chart).totalColumns[0].extras).toEqual([{ scenario: "pp1", value: 60 }]);
+  });
+
+  it("gives a scenario with a gap no value, like a reference", () => {
+    const rows = WITH_PY.map((row, index) => (index === 1 ? { ...row, pp1: undefined } : row));
+    expect(internals(buildChart({ totals: listed }, rows)).totalColumns[0].extras).toEqual([]);
+  });
+
+  it("ignores a scenario the chart draws in its periods", () => {
+    const chart = buildChart({ totals: { ...TOTALS, scenarios: ["pl1", "ac1"] } }, WITH_PY);
+    expect(internals(chart).totalColumns[0].extras).toEqual([]);
+  });
+
+  it("takes the scenarios of a dataset that the chart does not draw", () => {
+    const totals = [{ date: "2025-01-01", ac1: 28, fc1: 48, pl1: 51, pp1: 60, pp2: 70 }];
+    const all = buildChart({ totals: { ...TOTALS, dataset: "totals" } }, ROWS, { totals });
+    expect(internals(all).totalColumns[0].extras).toEqual([
+      { scenario: "pp1", value: 60 },
+      { scenario: "pp2", value: 70 },
+    ]);
+    const limited = buildChart({ totals: { ...TOTALS, dataset: "totals", scenarios: ["pp2"] } }, ROWS, { totals });
+    expect(internals(limited).totalColumns[0].extras).toEqual([{ scenario: "pp2", value: 70 }]);
+  });
+
+  it("draws it before the reference total of a bridge, with its variance at the right", () => {
+    const plain = internals(buildChart(BRIDGE, WITH_PY)).leadRoom();
+    const chart = buildChart({ ...BRIDGE, totals: listed }, WITH_PY);
+    expect(internals(chart).leadRoom()).toBeGreaterThan(plain);
+    const svg = chart.toString();
+    expect(svg).toContain('data-bn-scenario="pp1" data-bn-row="total"');
+    // 76 - 60
+    expect(svg).toContain('data-bn-scenario="dac1_pp1" data-bn-row="total" data-bn-part="element" data-bn-value="16"');
+  });
+
+  it("draws it behind the total column of a chart without a bridge", () => {
+    const svg = buildChart({ totals: { ...listed, pixelPerUnit: 0.5 } }, WITH_PY).toString();
+    expect(svg).toContain('data-bn-scenario="pp1" data-bn-row="total"');
+    expect(svg).toContain('data-bn-scenario="dac1_pp1" data-bn-row="total"');
   });
 });

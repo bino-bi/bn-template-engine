@@ -2020,7 +2020,12 @@ export class StructureChart {
     if (data != null) {
       (["scenario1", "scenario2", "scenario3", "scenario4"] as const).forEach((slot, index) => {
         if (scenarios[index] === undefined) return;
-        totalRow[slot] = new DataPoint(data[scenarios[index]] ?? NaN, scenarios[index], this.pixelPerUnit, Scenario.NEU);
+        totalRow[slot] = new DataPoint(
+          data[scenarios[index]] ?? NaN,
+          scenarios[index],
+          this.pixelPerUnit,
+          Scenario.NEU,
+        );
       });
       Object.keys(data)
         .filter((name) => !this.scenarioPropOrder.includes(name))
@@ -2038,7 +2043,9 @@ export class StructureChart {
     try {
       result = this.db.exec<Record<string, unknown>[]>(
         `SELECT ${listed
-          .map((name) => `SUM(${name} * transformOperator(operation)) as ${name}, COUNT(ISNULL(${name})) as ${name}_cnt`)
+          .map(
+            (name) => `SUM(${name} * transformOperator(operation)) as ${name}, COUNT(ISNULL(${name})) as ${name}_cnt`,
+          )
           .join(",")} FROM ${this.fromExpr}`,
       );
     } catch (e) {

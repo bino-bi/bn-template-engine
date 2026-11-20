@@ -1683,9 +1683,7 @@ export class TimeChart {
     const margin = fontSize * this.styles.scaleFactors.scenarioOffset;
     // one place for the reference total, and one for each scenario that is drawn at the total only
     const places = 1 + (this.totalColumns[0]?.extras.length ?? 0);
-    return (
-      places * (this.totalColumnWidth() + 3 * margin) + fontSize * this.styles.scaleFactors.categoryWidth * 0.5
-    );
+    return places * (this.totalColumnWidth() + 3 * margin) + fontSize * this.styles.scaleFactors.categoryWidth * 0.5;
   }
 
   /**
@@ -1795,7 +1793,6 @@ export class TimeChart {
       }
     });
   }
-
 
   /** The variance of the total of a bridge: the series against the reference. */
   private bridgeVariance(): DataPoint | null {
