@@ -1122,7 +1122,7 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode.
+          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of the total must be positive.
           * @default ""
          */
         "totalColumn": string;
@@ -3834,7 +3834,7 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
-          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode.
+          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of the total must be positive.
           * @default ""
          */
         "totalColumn"?: string;

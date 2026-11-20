@@ -202,6 +202,7 @@ export class TimeChart {
   private totalColumn: TotalColumnConfig | null = null;
   private totalVariance: DataPoint | null = null;
   private highestColumnDataPointValue: DataPoint = new DataPoint(0, "default", 0, Scenario.NEU);
+  private highestPeriodVarianceDataPointValue: DataPoint = new DataPoint(0, "default", 0, Scenario.NEU);
   private scenarioSwitch: boolean = false;
   private axisTitlePosition: string = "left";
   /** Periods in which more than one variance of a shared row has a value. */
@@ -268,7 +269,9 @@ export class TimeChart {
   }
 
   private calculateOverflowConfig(availableHeight: number): OverflowConfig | null {
-    const highest = this.isVarianceChart() ? this.highestVarianceDataPointValue : this.highestColumnDataPointValue;
+    const highest = this.isVarianceChart()
+      ? this.highestPeriodVarianceDataPointValue
+      : this.highestColumnDataPointValue;
     const highestScaledUnit = highest.getScaledUnit();
     if (highestScaledUnit <= 0) return null;
 
@@ -387,7 +390,8 @@ export class TimeChart {
     // the highest column: a break mark is for a column that does not fit, not for the band
     this.highestColumnDataPointValue = this.highestDataPointValue;
 
-    // the total column and its variance count for the height of their tier
+    // the highest period variance: a break mark is for a variance of a period, the total has its own cut
+    this.highestPeriodVarianceDataPointValue = this.highestVarianceDataPointValue;
     this.totalVariance = this.totalVariancePoint();
     if (this.totalVariance != null && Number.isFinite(this.totalVariance.value)) {
       if (this.totalVariance.value > Number(this.highestVarianceDataPointValue.value)) {
@@ -397,20 +401,23 @@ export class TimeChart {
         this.smallestVarianceDataPointValue = this.totalVariance;
       }
     }
-    const totalParts = this.totalColumnParts();
-    if (totalParts != null && this.pixelPerUnit > 0) {
-      const units =
-        (Math.max(totalParts.height, totalParts.reference?.value ?? 0) * this.totalColumn!.pixelPerUnit) /
-        this.pixelPerUnit;
-      if (units > Number(this.highestDataPointValue.value)) {
-        const { scenario, variance } = this.highestDataPointValue;
-        this.highestDataPointValue = new DataPoint(units, scenario, this.pixelPerUnit, variance);
-      }
-    }
+
     if (this.hasScalingIndicator() && this.scalingIndicator > Number(this.highestDataPointValue.value)) {
       // the band is part of the chart: it can be higher than every column
       const { scenario, variance } = this.highestDataPointValue;
       this.highestDataPointValue = new DataPoint(this.scalingIndicator, scenario, this.pixelPerUnit, variance);
+    }
+
+    // the total column has its own scale: it counts for the height with the pixels it needs
+    const totalHeight = this.isVarianceChart() ? 0 : this.totalColumnHeight();
+    if (totalHeight > this.highestDataPointValue.getScaledUnit() && this.pixelPerUnit > 0) {
+      const { scenario, variance } = this.highestDataPointValue;
+      this.highestDataPointValue = new DataPoint(
+        totalHeight / this.pixelPerUnit,
+        scenario,
+        this.pixelPerUnit,
+        variance,
+      );
     }
 
     // the name of a shared variance row needs the scenarios of the series
@@ -522,7 +529,8 @@ export class TimeChart {
         font: this.styles.fontStyles.font,
         fontSize: this.styles.fontStyles.size + "px",
       }).width;
-      titleEnd = axisEnd + this.position.spacings.labelToColumn + titleWidth + this.styles.padding.right;
+      titleEnd =
+        (this.rightTitleX() ?? axisEnd + this.position.spacings.labelToColumn) + titleWidth + this.styles.padding.right;
     }
 
     const legendWidth = this.legendWidth("right");
@@ -794,6 +802,10 @@ export class TimeChart {
     const points = this.variancesDataModel
       .filter((entry) => entry.type === VarianceType.RELATIVE)
       .map((entry) => entry.scenario1);
+    if (points.length > 0 && this.totalVariance != null) {
+      // the pin of the total column is one of the row
+      points.push(this.totalVariance);
+    }
     if (points.length === 0 || !points.some((point) => point.isClipped())) {
       return;
     }
@@ -954,6 +966,13 @@ export class TimeChart {
     );
   }
 
+  private scalingIndicatorTextWidth(): number {
+    return CalculateSize(this.scalingIndicatorText(), {
+      font: this.styles.fontStyles.font,
+      fontSize: this.styles.fontStyles.size + "px",
+    }).width;
+  }
+
   /** Where the label of the scaling indicator starts: right of the last column, and of the series names there. */
   private scalingIndicatorLabelX(): number {
     const gap = this.position.spacings.labelToColumn;
@@ -1012,14 +1031,17 @@ export class TimeChart {
     ).forceStringTypeDraw();
   }
 
+  /** Where a title at the right starts when a total column stands there: behind the column and its texts. */
+  private rightTitleX(): number | undefined {
+    if (!this.hasTotalColumn()) {
+      return undefined;
+    }
+    return this.totalColumnGeometry().right + this.totalColumnTextWidth() + this.position.spacings.labelToColumn;
+  }
+
   /** True for a chart with a total column: plain columns, no stack, no line. */
   private hasTotalColumn(): boolean {
-    return (
-      this.totalColumn != null &&
-      this.stackConfig == null &&
-      this.dataModel.length > 0 &&
-      this.determineEffectiveChartMode() === ChartMode.BAR
-    );
+    return this.totalColumnParts() != null;
   }
 
   /** Place of the total column: right of the last period, with a gap. `left` and `right` are the ends of its axis. */
@@ -1029,14 +1051,19 @@ export class TimeChart {
     // one period of room between the last period and the column: the axis of the periods ends before it
     const center = this.position.getColumnCenterPositionX(this.dataModel.length + 1) + (width - columnWidth) / 2;
     const margin = this.position.spacings.scenarioOffset;
-    return { center, width, left: center - width / 2 - 2 * margin, right: center + width / 2 + margin };
+    // the value of the band of the periods stands in the gap: the column moves right by its width.
+    // Every tier of the chart knows the indicator, so the column has the same place in all of them.
+    const x = center + (this.scalingIndicator > 0 ? this.scalingIndicatorTextWidth() + margin : 0);
+    return { center: x, width, left: x - width / 2 - 2 * margin, right: x + width / 2 + margin };
   }
 
   /**
    * What the total column of the base chart shows: one part per scenario of the
    * series (the first scenario and the ones that follow it), from the sum of its
    * periods, and the sum of the first other scenario as the reference behind.
-   * Null without a total column, in a variance chart, or without a positive part.
+   * The variance rows read it too, for the same answer to "is there a total
+   * column". Null without one, and when a part is not positive: a stack cannot
+   * show a negative part, so such a chart has no total column at all.
    */
   private totalColumnParts(): {
     parts: { scenario: string; value: number }[];
@@ -1044,7 +1071,12 @@ export class TimeChart {
     total: number;
     reference: { scenario: string; value: number } | null;
   } | null {
-    if (!this.hasTotalColumn() || this.isVarianceChart()) {
+    if (
+      this.totalColumn == null ||
+      this.stackConfig != null ||
+      this.dataModel.length === 0 ||
+      this.determineEffectiveChartMode() !== ChartMode.BAR
+    ) {
       return null;
     }
     const followers = this.followerSlots();
@@ -1057,8 +1089,8 @@ export class TimeChart {
       sum.value += point.value;
       sums.set(slot, sum);
     }
-    const parts = [...sums.values()].filter((part) => part.value > 0);
-    if (parts.length === 0) {
+    const parts = [...sums.values()];
+    if (parts.length === 0 || parts.some((part) => !(part.value > 0))) {
       return null;
     }
     let reference: { scenario: string; value: number } | null = null;
@@ -1076,9 +1108,19 @@ export class TimeChart {
     return {
       parts,
       height: parts.reduce((sum, part) => sum + part.value, 0),
-      total: [...sums.values()].reduce((sum, part) => sum + part.value, 0),
+      total: parts.reduce((sum, part) => sum + part.value, 0),
       reference,
     };
+  }
+
+  /** Height of the total column in pixels: its parts, its reference and its band of the scaling indicator. 0 without one. */
+  private totalColumnHeight(): number {
+    const total = this.totalColumnParts();
+    if (total == null) {
+      return 0;
+    }
+    const band = this.hasScalingIndicator() ? this.scalingIndicator : 0;
+    return Math.max(total.height, total.reference?.value ?? 0, band) * this.totalColumn!.pixelPerUnit;
   }
 
   /**
@@ -1178,7 +1220,7 @@ export class TimeChart {
    * line links it to the band of the periods.
    */
   private drawTotalColumn(svgContainer: Svg): void {
-    const total = this.totalColumnParts();
+    const total = this.isVarianceChart() ? null : this.totalColumnParts();
     if (total == null) {
       return;
     }
@@ -1197,8 +1239,10 @@ export class TimeChart {
         .y(axisY - height)
         .fill(SCALING_INDICATOR_FILL);
       if (periods != null) {
+        // the line starts behind the value of the band of the periods
+        const from = this.scalingIndicatorLabelX() + this.scalingIndicatorTextWidth() + gap / 2;
         group
-          .line(periods.right, axisY - periods.height, left, axisY - height)
+          .line(Math.min(from, left), axisY - periods.height, left, axisY - height)
           .stroke({ color: SCALING_INDICATOR_LINE, width: 1 })
           .id("ScalingIndicatorLink");
       }
@@ -1213,7 +1257,8 @@ export class TimeChart {
         .y(axisY - height)
         .fill(look.fill)
         .stroke(look.stroke)
-        .attr(dataPointAttributes({ row: "total", scenario: total.reference.scenario }, "element"));
+        .attr(dataPointAttributes({ row: "total", scenario: total.reference.scenario }, "element"))
+        .attr("data-bn-value", total.reference.value);
     }
 
     let top = axisY;
@@ -1249,7 +1294,8 @@ export class TimeChart {
         new Label(
           labelGroup,
           center + width / 2 + gap,
-          top + height / 2,
+          // the name of a thin top part stays below the total above the column
+          Math.max(top + height / 2, axisY - total.height * scale + this.position.dataLabelHeight / 2),
           "TOTAL_NAME",
           this.scenarioName(part.scenario),
           this.styles,
@@ -1323,7 +1369,8 @@ export class TimeChart {
         .updateLabelGroup(labelGroup.group())
         .draw(this.dataFormatDigits);
     } else {
-      new Column(this.position, this.scenarioStyles(), point, index, true, group.group(), null, null)
+      // a row whose period variances are cut cuts the total the same way
+      new Column(this.position, this.scenarioStyles(), point, index, true, group.group(), null, this.overflowConfig)
         .updateLabelGroup(labelGroup.group())
         .setAsVariance()
         .draw(this.dataFormatDigits, this.measureScale);
@@ -1468,7 +1515,11 @@ export class TimeChart {
     // full (clipped) bar height.
     if (this.overflowConfig) {
       const { cutHeight, overdriveZoneHeight, breakGap } = this.overflowConfig;
-      const virtualHeight = cutHeight + overdriveZoneHeight + breakGap;
+      // the total column is not cut: it keeps its room above the cut columns
+      const virtualHeight = Math.max(
+        cutHeight + overdriveZoneHeight + breakGap,
+        this.isVarianceChart() ? 0 : this.totalColumnHeight(),
+      );
       // Create a virtual DataPoint with pixelPerUnit=1 so getScaledUnit() returns virtualHeight directly
       max = new DataPoint(virtualHeight, max.scenario, 1, max.variance);
     }
@@ -2128,6 +2179,7 @@ export class TimeChart {
         labelText: this.title,
         isRelative: isRelative,
         titlePosition: this.axisTitlePosition,
+        titleX: this.rightTitleX(),
       },
       this.position,
       axisLabelGroup,

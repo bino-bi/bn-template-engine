@@ -378,6 +378,47 @@ describe("time chart total column", () => {
     expect(internals(chart).totalVariance.notation).toBe("fc");
   });
 
+  it("has no total column when a part is not positive", () => {
+    const rows = ROWS.map((row, index) => (index === 1 ? { ...row, ac1: -300 } : row));
+    const options = { ...TOTAL, scenarios: ["ac1", "pp1"] };
+    expect(internals(buildChart(options, rows)).totalColumnParts()).toBeNull();
+    // the variance row and the width agree: no total anywhere
+    expect(internals(buildChart({ ...options, variances: ["dac1_pp1_pos"] }, rows)).totalVariance).toBeNull();
+    const plain = buildChart({ scenarios: ["ac1", "pp1"] }, rows);
+    const total = buildChart(options, rows);
+    plain.layout();
+    total.layout();
+    expect(total.getAllocatedCanvasWidth()).toBe(plain.getAllocatedCanvasWidth());
+  });
+
+  it("does not cut period variances for the variance of the total", () => {
+    const chart = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"] });
+    chart.setAvailableHeight(160);
+    // the period variances are 20 and 40, the total 60... the row has room for the periods
+    expect((chart as unknown as { overflowConfig: unknown }).overflowConfig).toBeNull();
+  });
+
+  it("lifts the cut of the total pin with the pins of the periods", () => {
+    const rows = [
+      { date: "2024-01-01", operation: "+", ac1: 100, pp1: 80 },
+      { date: "2025-01-01", operation: "+", ac1: 400, pp1: 80 },
+    ];
+    const chart = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], variances: ["drac1_pp1_pos"] }, rows);
+    expect(internals(chart).totalVariance.isClipped()).toBe(true);
+    chart.fitRelativeVariances(100000);
+    expect(internals(chart).totalVariance.isClipped()).toBe(false);
+  });
+
+  it("counts the band of the total column for the height", () => {
+    const options = { scenarios: ["ac1", "pp1"], totalColumn: { pixelPerUnit: 5, label: "", width: 1 } };
+    const plain = buildChart(options);
+    const band = buildChart({ ...options, scalingIndicator: 400 });
+    plain.layout();
+    band.layout();
+    // the reference of 320 is 1600 high, the band of 400 is 2000 high
+    expect(band.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(400);
+  });
+
   it("links the bands of the scaling indicator", () => {
     const svg = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], scalingIndicator: 100 }).toString();
     expect(svg).toContain('id="ScalingIndicatorLink"');

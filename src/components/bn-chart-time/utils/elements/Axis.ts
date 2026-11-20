@@ -21,9 +21,17 @@ export class Axis {
   private readonly CSS_AXIS_TITLE: string = "categories";
   private readonly isRelative: boolean;
   private readonly titlePosition: string;
+  private readonly titleX?: number;
 
   constructor(
-    axis: { scenarioType: Scenario; labelText?: string; isRelative?: boolean; titlePosition?: string },
+    axis: {
+      scenarioType: Scenario;
+      labelText?: string;
+      isRelative?: boolean;
+      titlePosition?: string;
+      /** Start of a title at the right, when something stands behind the end of the axis. */
+      titleX?: number;
+    },
     position: ElementPositions,
     svgParentGroup: G | Svg,
   ) {
@@ -31,6 +39,7 @@ export class Axis {
     this.labelText = axis.labelText || null;
     this.isRelative = axis.isRelative || false;
     this.titlePosition = axis.titlePosition || "left";
+    this.titleX = axis.titleX;
     this.position = position;
 
     this.svgGroup = svgParentGroup.group().id(this.ID_AXIS);
@@ -46,7 +55,7 @@ export class Axis {
         .text(text)
         .addClass(this.CSS_AXIS_TITLE)
         .move(
-          this.position.getAxisEndPositionX() + this.position.spacings.labelToColumn,
+          this.titleX ?? this.position.getAxisEndPositionX() + this.position.spacings.labelToColumn,
           this.position.getAxisTitlePositionY(true, this.isRelative),
         );
       return;
