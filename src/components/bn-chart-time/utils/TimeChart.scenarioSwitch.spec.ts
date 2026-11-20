@@ -34,9 +34,16 @@ const ROWS = [
   { date: "2027-01-01", operation: "+", pl1: 60, pp1: 80 },
 ];
 
-const buildChart = (options: Record<string, unknown>, rows: Record<string, unknown>[] = ROWS): TimeChart => {
+const buildChart = (
+  options: Record<string, unknown>,
+  rows: Record<string, unknown>[] = ROWS,
+  tables: Record<string, Record<string, unknown>[]> = {},
+): TimeChart => {
   const db = createScopedDb().db;
   db.tables[TABLE] = { data: rows };
+  for (const [name, data] of Object.entries(tables)) {
+    db.tables[name] = { data };
+  }
 
   const config = new TimeChartComponentConfigAdapter(
     new TimeChartDataRowAdapter(),
@@ -65,12 +72,15 @@ const buildChart = (options: Record<string, unknown>, rows: Record<string, unkno
 
 interface ChartInternals {
   title: string;
-  totalVariance: DataPoint | null;
-  totalColumnParts(): {
+  totalColumns: {
+    from: number;
+    to: number;
+    label: string;
     parts: { scenario: string; value: number }[];
     total: number;
     reference: { scenario: string; value: number } | null;
-  } | null;
+  }[];
+  totalVariances: (DataPoint | null)[];
   variancesDataModel: { scenario1: DataPoint }[];
   followerSlots(): string[];
   switchRuns(): { scenario: string; from: number; to: number }[];
@@ -308,24 +318,25 @@ describe("time chart scaling indicator", () => {
 });
 
 describe("time chart total column", () => {
-  const TOTAL = { totalColumn: { pixelPerUnit: 0.1, label: "All years", width: 1.5 } };
+  const TOTAL = { totals: { pixelPerUnit: 0.1, label: "All years", width: 1.5 } };
 
   it("has no total column by default, with a stack or in line mode", () => {
-    expect(internals(buildChart({})).totalColumnParts()).toBeNull();
+    expect(internals(buildChart({})).totalColumns[0] ?? null).toBeNull();
     expect(buildChart({}).toString()).not.toContain("TotalColumn");
     const stack = { by: "scenarios", mode: "absolute", order: "dataset", notation: "none", legend: "left" };
-    expect(internals(buildChart({ ...TOTAL, stackConfig: stack })).totalColumnParts()).toBeNull();
-    expect(internals(buildChart({ ...TOTAL, chartMode: "line" })).totalColumnParts()).toBeNull();
+    expect(internals(buildChart({ ...TOTAL, stackConfig: stack })).totalColumns[0] ?? null).toBeNull();
+    expect(internals(buildChart({ ...TOTAL, chartMode: "line" })).totalColumns[0] ?? null).toBeNull();
   });
 
   it("sums the first scenario, with the first other scenario as the reference", () => {
-    const total = internals(buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"] })).totalColumnParts();
+    const total = internals(buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"] })).totalColumns[0] ?? null;
     expect(total.parts).toEqual([{ scenario: "ac1", value: 220 }]);
-    expect(total.reference).toEqual({ scenario: "pp1", value: 320 });
+    // the reference counts in the periods of the series: 2024 and 2025
+    expect(total.reference).toEqual({ scenario: "pp1", value: 160 });
   });
 
   it("has one part per scenario of a switched series", () => {
-    const total = internals(buildChart({ ...TOTAL, scenarioSwitch: true })).totalColumnParts();
+    const total = internals(buildChart({ ...TOTAL, scenarioSwitch: true })).totalColumns[0] ?? null;
     expect(total.parts).toEqual([
       { scenario: "ac1", value: 220 },
       { scenario: "pl1", value: 460 },
@@ -347,26 +358,28 @@ describe("time chart total column", () => {
 
   it("counts for the height of the chart, and causes no break mark", () => {
     const plain = buildChart({ scenarios: ["ac1", "pp1"] });
-    const total = buildChart({ scenarios: ["ac1", "pp1"], totalColumn: { pixelPerUnit: 2, label: "", width: 1 } });
+    const total = buildChart({ scenarios: ["ac1", "pp1"], totals: { pixelPerUnit: 2, label: "", width: 1 } });
     plain.layout();
     total.layout();
-    // the reference of 320 at 2 px per unit is 640 high, the highest column 120
-    expect(total.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(520);
+    // the total of 220 at 2 px per unit is 440 high, the highest column 120
+    expect(total.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(320);
     total.setAvailableHeight(400);
     expect((total as unknown as { overflowConfig: unknown }).overflowConfig).toBeNull();
   });
 
   it("gives each variance row the variance of the totals", () => {
     const options = { ...TOTAL, scenarioSwitch: true };
-    const absolute = internals(buildChart({ ...options, variances: ["dac1_pp1_pos", "dpl1_pp1_pos"] })).totalVariance;
+    const absolute =
+      internals(buildChart({ ...options, variances: ["dac1_pp1_pos", "dpl1_pp1_pos"] })).totalVariances[0] ?? null;
     expect(absolute.value).toBe(360);
     expect(absolute.key).toEqual({ row: "total", scenario: "dac1_pp1_pos" });
     expect(absolute.notation).toBe("ac");
-    const relative = internals(buildChart({ ...options, variances: ["drac1_pp1_pos", "drpl1_pp1_pos"] })).totalVariance;
+    const relative =
+      internals(buildChart({ ...options, variances: ["drac1_pp1_pos", "drpl1_pp1_pos"] })).totalVariances[0] ?? null;
     expect(relative.value).toBeCloseTo(1.125);
     const svg = buildChart({ ...options, variances: ["dac1_pp1_pos", "dpl1_pp1_pos"] }).toString();
     expect(svg).toMatch(/data-bn-row="total"/);
-    expect(internals(buildChart({ variances: ["dac1_pp1_pos"] })).totalVariance).toBeNull();
+    expect(internals(buildChart({ variances: ["dac1_pp1_pos"] })).totalVariances[0] ?? null).toBeNull();
   });
 
   it("takes the notation of a forecast that is part of the total", () => {
@@ -375,15 +388,17 @@ describe("time chart total column", () => {
       { ...TOTAL, scenarios: ["ac1", "fc1", "pp1"], scenarioSwitch: true, variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] },
       rows,
     );
-    expect(internals(chart).totalVariance.notation).toBe("fc");
+    expect((internals(chart).totalVariances[0] ?? null).notation).toBe("fc");
   });
 
   it("has no total column when a part is not positive", () => {
     const rows = ROWS.map((row, index) => (index === 1 ? { ...row, ac1: -300 } : row));
     const options = { ...TOTAL, scenarios: ["ac1", "pp1"] };
-    expect(internals(buildChart(options, rows)).totalColumnParts()).toBeNull();
+    expect(internals(buildChart(options, rows)).totalColumns[0] ?? null).toBeNull();
     // the variance row and the width agree: no total anywhere
-    expect(internals(buildChart({ ...options, variances: ["dac1_pp1_pos"] }, rows)).totalVariance).toBeNull();
+    expect(
+      internals(buildChart({ ...options, variances: ["dac1_pp1_pos"] }, rows)).totalVariances[0] ?? null,
+    ).toBeNull();
     const plain = buildChart({ scenarios: ["ac1", "pp1"] }, rows);
     const total = buildChart(options, rows);
     plain.layout();
@@ -404,19 +419,19 @@ describe("time chart total column", () => {
       { date: "2025-01-01", operation: "+", ac1: 400, pp1: 80 },
     ];
     const chart = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], variances: ["drac1_pp1_pos"] }, rows);
-    expect(internals(chart).totalVariance.isClipped()).toBe(true);
+    expect((internals(chart).totalVariances[0] ?? null).isClipped()).toBe(true);
     chart.fitRelativeVariances(100000);
-    expect(internals(chart).totalVariance.isClipped()).toBe(false);
+    expect((internals(chart).totalVariances[0] ?? null).isClipped()).toBe(false);
   });
 
   it("counts the band of the total column for the height", () => {
-    const options = { scenarios: ["ac1", "pp1"], totalColumn: { pixelPerUnit: 5, label: "", width: 1 } };
+    const options = { scenarios: ["ac1", "pp1"], totals: { pixelPerUnit: 5, label: "", width: 1 } };
     const plain = buildChart(options);
     const band = buildChart({ ...options, scalingIndicator: 400 });
     plain.layout();
     band.layout();
-    // the reference of 320 is 1600 high, the band of 400 is 2000 high
-    expect(band.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(400);
+    // the total of 220 is 1100 high, the band of 400 is 2000 high
+    expect(band.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(900);
   });
 
   it("draws the variance of the total inside the group of the variances, for the height of the row", () => {
@@ -450,5 +465,224 @@ describe("time chart total column", () => {
     // 100 at 0.1 px per unit
     expect(svg).toMatch(/<g id="TotalColumn"><rect[^>]*height="10"/);
     expect(buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"] }).toString()).not.toContain("ScalingIndicatorLink");
+  });
+});
+
+describe("time chart totals by period", () => {
+  // six months of AC, then three of FC, with a reference in every month
+  const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((month) => ({
+    date: `2025-0${month}-01`,
+    operation: "+",
+    ...(month <= 6 ? { ac1: 10 * month } : { fc1: 10 * month }),
+    pp1: 50,
+  }));
+  const options = { scenarios: ["ac1", "fc1", "pp1"], scenarioSwitch: true, dateInterval: "month" };
+  const totals = (extra: Record<string, unknown> = {}) => ({
+    totals: { by: "quarter", aggregation: "sum", pixelPerUnit: 0.5, label: "", width: 1, dataset: "", ...extra },
+  });
+  const place = (chart: TimeChart, index: number): number =>
+    (
+      chart as unknown as { position: { getColumnCenterPositionX(i: number): number } }
+    ).position.getColumnCenterPositionX(index);
+
+  it("has one total per quarter, behind the last month of the quarter", () => {
+    const chart = buildChart({ ...options, ...totals() }, MONTHS);
+    const columns = internals(chart).totalColumns;
+    expect(columns.map((column) => [column.from, column.to])).toEqual([
+      [0, 2],
+      [3, 5],
+      [6, 8],
+    ]);
+    expect(columns.map((column) => column.total)).toEqual([60, 150, 240]);
+    expect(columns[2].parts).toEqual([{ scenario: "fc1", value: 240 }]);
+    expect(columns[0].reference).toEqual({ scenario: "pp1", value: 150 });
+    // March, the total of the first quarter, April: each one place further
+    const step = place(chart, 1) - place(chart, 0);
+    expect(place(chart, 10) - place(chart, 2)).toBeCloseTo(step);
+    expect(place(chart, 3) - place(chart, 10)).toBeCloseTo(step);
+  });
+
+  it("draws the line of the scenario switch behind the total between the two runs", () => {
+    const chart = buildChart({ ...options, ...totals() }, MONTHS);
+    const svg = chart.toString();
+    const x = Number(/<line[^>]*x1="([\d.]+)"[^>]*class="scenario-switch"/.exec(svg)?.[1]);
+    // June, the total of the second quarter, the line, July
+    expect(x).toBeGreaterThan(place(chart, 11));
+    expect(x).toBeLessThan(place(chart, 6));
+  });
+
+  it("names a total by its period and gives it the start of the period in its key", () => {
+    const chart = buildChart({ ...options, ...totals(), variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] }, MONTHS);
+    expect(internals(chart).totalColumns.map((column) => column.label)).toHaveLength(3);
+    expect(new Set(internals(chart).totalColumns.map((column) => column.label)).size).toBe(3);
+    const variances = internals(chart).totalVariances;
+    expect(variances.map((point) => point.value)).toEqual([-90, 0, 90]);
+    expect(variances.map((point) => point.key)).toEqual([
+      { row: "total", date: "2025-01-01", scenario: "dac1_pp1_pos" },
+      { row: "total", date: "2025-04-01", scenario: "dac1_pp1_pos" },
+      { row: "total", date: "2025-07-01", scenario: "dac1_pp1_pos" },
+    ]);
+    expect(variances.map((point) => point.notation)).toEqual(["ac", "ac", "fc"]);
+  });
+
+  it("keeps the periods in place without totals, and with one total at the end", () => {
+    const plain = buildChart(options, MONTHS);
+    const end = buildChart({ ...options, ...totals({ by: "all" }) }, MONTHS);
+    for (const index of [0, 4, 8]) {
+      expect(place(end, index)).toBeCloseTo(place(plain, index));
+    }
+    expect(internals(end).totalColumns).toHaveLength(1);
+    expect(internals(end).totalColumns[0].parts).toEqual([
+      { scenario: "ac1", value: 210 },
+      { scenario: "fc1", value: 240 },
+    ]);
+  });
+
+  it("takes the average as one column in the look of a forecast in it", () => {
+    const chart = buildChart({ ...options, ...totals({ by: "all", aggregation: "average" }) }, MONTHS);
+    const [column] = internals(chart).totalColumns;
+    expect(column.parts).toEqual([{ scenario: "fc1", value: 50 }]);
+    expect(column.reference).toEqual({ scenario: "pp1", value: 50 });
+    const actual = buildChart({ ...options, ...totals({ aggregation: "average" }) }, MONTHS);
+    expect(internals(actual).totalColumns[0].parts).toEqual([{ scenario: "ac1", value: 20 }]);
+  });
+
+  it("takes the last value of a group", () => {
+    const chart = buildChart(
+      { ...options, ...totals({ aggregation: "last" }), variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] },
+      MONTHS,
+    );
+    expect(internals(chart).totalColumns.map((column) => column.parts[0])).toEqual([
+      { scenario: "ac1", value: 30 },
+      { scenario: "ac1", value: 60 },
+      { scenario: "fc1", value: 90 },
+    ]);
+    expect(internals(chart).totalVariances.map((point) => point.value)).toEqual([-20, 10, 40]);
+  });
+
+  it("takes the values from a dataset", () => {
+    const year = [{ date: "2025-01-01", ac1: 400, fc1: 300, pp1: 650 }];
+    const chart = buildChart({ ...options, ...totals({ by: "all", dataset: "year" }) }, MONTHS, { year });
+    const [column] = internals(chart).totalColumns;
+    expect(column.parts).toEqual([
+      { scenario: "ac1", value: 400 },
+      { scenario: "fc1", value: 300 },
+    ]);
+    expect(column.total).toBe(700);
+    expect(column.reference).toEqual({ scenario: "pp1", value: 650 });
+    const variance = buildChart(
+      { ...options, ...totals({ by: "all", dataset: "year" }), variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] },
+      MONTHS,
+      { year },
+    );
+    expect(internals(variance).totalVariances[0].value).toBe(50);
+  });
+
+  it("matches the rows of a dataset to the groups by their date", () => {
+    const quarters = [
+      { date: "2025-01-01", ac1: 100, pp1: 90 },
+      { date: "2025-05-15", ac1: 200, pp1: 90 },
+      { date: "2025-07-01", fc1: 300, pp1: 90 },
+    ];
+    const chart = buildChart({ ...options, ...totals({ dataset: "quarters" }) }, MONTHS, { quarters });
+    expect(internals(chart).totalColumns.map((column) => column.total)).toEqual([100, 200, 300]);
+  });
+
+  it("has a total only where the dataset has a row, and takes a 0 or a text like the main dataset", () => {
+    const quarters = [{ date: "2025-01-01", ac1: "100", fc1: 0, pp1: 90 }];
+    const chart = buildChart({ ...options, ...totals({ dataset: "quarters" }) }, MONTHS, { quarters });
+    const columns = internals(chart).totalColumns;
+    expect(columns).toHaveLength(1);
+    expect(columns[0].parts).toEqual([{ scenario: "ac1", value: 100 }]);
+  });
+
+  it("has no total for a group where the series has no value", () => {
+    const rows = MONTHS.map((row, index) => (index < 3 ? row : { date: row.date, operation: "+", pp1: 50 }));
+    const chart = buildChart({ ...options, ...totals(), scenarios: ["ac1", "pp1"], scenarioSwitch: false }, rows);
+    expect(internals(chart).totalColumns.map((column) => [column.from, column.to])).toEqual([[0, 2]]);
+  });
+
+  it("takes the reference from the periods of the series", () => {
+    const rows = MONTHS.map((row, index) => (index < 3 ? row : { date: row.date, operation: "+", pp1: 50 }));
+    for (const aggregation of ["sum", "average", "last"]) {
+      const chart = buildChart(
+        {
+          ...options,
+          ...totals({ by: "all", aggregation }),
+          scenarios: ["ac1", "pp1"],
+          scenarioSwitch: false,
+          variances: ["dac1_pp1_pos"],
+        },
+        rows,
+      );
+      const [column] = internals(chart).totalColumns;
+      const variance = internals(chart).totalVariances[0].value;
+      expect(column.total - column.reference.value).toBeCloseTo(variance);
+    }
+  });
+
+  it("has no reference and no variance for a total when the reference has a gap in its periods", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", ac1: 100, pp1: 90 },
+      { date: "2025-02-01", operation: "+", ac1: 200 },
+      { date: "2025-03-01", operation: "+", ac1: 120 },
+    ];
+    for (const aggregation of ["sum", "average", "last"]) {
+      const chart = buildChart(
+        {
+          dateInterval: "month",
+          scenarios: ["ac1", "pp1"],
+          variances: ["dac1_pp1_pos"],
+          ...totals({ by: "all", aggregation }),
+        },
+        rows,
+      );
+      expect(internals(chart).totalColumns[0].reference).toBeNull();
+      expect(internals(chart).totalVariances[0]).toBeNull();
+    }
+  });
+
+  it("does not take the notation of a scenario that is 0 in the dataset", () => {
+    const year = [{ date: "2025-01-01", ac1: 300, fc1: 0, pp1: 500 }];
+    const chart = buildChart(
+      { ...options, ...totals({ by: "all", dataset: "year" }), variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] },
+      MONTHS,
+      { year },
+    );
+    expect(internals(chart).totalVariances[0].value).toBe(-200);
+    expect(internals(chart).totalVariances[0].notation).toBe("ac");
+  });
+
+  it("keeps room for a name right of the last period before its total", () => {
+    // the first scenario runs to the last period: its name stands there
+    const rows = MONTHS.map((row) => ({ date: row.date, operation: "+", ac1: 10, pp1: 5 }));
+    const named = buildChart({ ...options, ...totals(), scenarios: ["ac1", "pp1"], scenarioSwitch: false }, rows);
+    const switched = buildChart({ ...options, ...totals() }, MONTHS);
+    const step = place(named, 1) - place(named, 0);
+    // September is index 8, the total of the third quarter index 12
+    expect(place(named, 12) - place(named, 8)).toBeCloseTo(2 * step);
+    expect(place(switched, 12) - place(switched, 8)).toBeCloseTo(step);
+  });
+
+  it("has no totals when every period would get its own", () => {
+    const chart = buildChart({ ...options, ...totals({ by: "month" }) }, MONTHS);
+    expect(internals(chart).totalColumns).toEqual([]);
+  });
+
+  it("keeps the end of the average line behind the last period, and the bands of the totals free", () => {
+    const chart = buildChart({ ...options, ...totals(), scalingIndicator: 20, showOverlayAvg: true }, MONTHS);
+    // the index behind the last period is one place behind the last total, not the place of a total
+    expect(place(chart, 9)).toBeGreaterThan(place(chart, 12));
+    const svg = chart.toString();
+    const band = /<g id="ScalingIndicator">([\s\S]*?)<\/g>/.exec(svg)?.[1] ?? "";
+    // one piece per quarter
+    expect(band.match(/<rect/g)).toHaveLength(3);
+  });
+
+  it("draws one column per total and no own axis on the axis of the periods", () => {
+    const svg = buildChart({ ...options, ...totals(), scalingIndicator: 20 }, MONTHS).toString();
+    expect(svg.match(/id="[^"]*TOTAL_LABEL[^"]*"/g) ?? svg.match(/TOTAL_LABEL/g)).not.toBeNull();
+    expect(svg).not.toContain("ScalingIndicatorLink");
+    expect(svg).not.toMatch(/<g id="TotalColumn">[\s\S]*?<line[^>]*class="axis-/);
   });
 });

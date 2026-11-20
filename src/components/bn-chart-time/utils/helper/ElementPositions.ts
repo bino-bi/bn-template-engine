@@ -80,11 +80,34 @@ export class ElementPositions {
     return height * 1.1;
   }
 
+  /**
+   * Places on the axis in category widths, by index: the periods first, then
+   * the total columns. Without it the place of an index is the index itself.
+   */
+  private slots: number[] | null = null;
+
+  public setSlots(slots: number[] | null): void {
+    this.slots = slots;
+  }
+
+  /** The place of an index on the axis, in category widths. Between two indexes it lies between their places. */
+  private slotOf(index: number): number {
+    const slots = this.slots;
+    if (slots == null || slots.length === 0) {
+      return index;
+    }
+    const last = slots.length - 1;
+    if (index <= 0) return slots[0] + index;
+    if (index >= last) return slots[last] + (index - last);
+    const low = Math.floor(index);
+    return slots[low] + (slots[low + 1] - slots[low]) * (index - low);
+  }
+
   public getColumnCenterPositionX(index: number): number {
     return (
       this.categoryPosition.y +
       this.spacings.scenarioOffset +
-      index * this.spacings.categoryWidth +
+      this.slotOf(index) * this.spacings.categoryWidth +
       this.leftSideLabelLength +
       this.spacings.columnWidth * 0.5
     );

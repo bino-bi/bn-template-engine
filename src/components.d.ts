@@ -22,7 +22,7 @@ import { ReferenceLine, StackConfigParsed } from "./components/bn-chart-structur
 import { ParentDimensions } from "./utils/parentDimensions";
 import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 import { DateDistance } from "./utils/DateStringFactory";
-import { StackConfigParsed as StackConfigParsed1, TotalColumnConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+import { StackConfigParsed as StackConfigParsed1, TotalsConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 import { Notation } from "./utils/notation";
 import { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
@@ -52,7 +52,7 @@ export { ReferenceLine, StackConfigParsed } from "./components/bn-chart-structur
 export { ParentDimensions } from "./utils/parentDimensions";
 export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/TimeChartStyle";
 export { DateDistance } from "./utils/DateStringFactory";
-export { StackConfigParsed as StackConfigParsed1, TotalColumnConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
+export { StackConfigParsed as StackConfigParsed1, TotalsConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 export { Notation } from "./utils/notation";
 export { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
@@ -1122,10 +1122,10 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of the total must be positive.
+          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
           * @default ""
          */
-        "totalColumn": string;
+        "totals": string;
         /**
           * Data units displayed per 1 em of bar length (vertical bars) - map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container height        | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
           * @example unit-scaling="auto"
@@ -1267,7 +1267,7 @@ export namespace Components {
         /**
           * @default null
          */
-        "totalColumn": TotalColumnConfig | null;
+        "totals": TotalsConfig | null;
         /**
           * @default []
          */
@@ -3834,10 +3834,10 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
-          * A column right of the last period for the total of all periods, at its own scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `label` - text under the column. - `width` - width in widths of a period column, default 1.  The column stacks one part per scenario of the series: the first scenario, and with `scenario-switch` the ones that follow it. The first other scenario is the reference behind it. Each variance row gets the variance of the totals at the scale of the row. With `scaling-indicator` the column has its own band, and a line links the two bands. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of the total must be positive.
+          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
           * @default ""
          */
-        "totalColumn"?: string;
+        "totals"?: string;
         /**
           * Data units displayed per 1 em of bar length (vertical bars) - map-scale semantics: a larger value means smaller bars.  | Value              | Behavior                                                    | |--------------------|-------------------------------------------------------------| | `"auto"`           | Auto-fit bars to fill the available container height        | | not set / invalid  | Same as auto, but emits `AUTO_unitScaling` warning          | | `"250000"`, `"1M"` | Units per em; optional SI suffix `k`/`K`/`M`/`G`/`T`        | | group name         | References a `<bn-scaling-group>` for synchronized scaling  |
           * @example unit-scaling="auto"
@@ -3979,7 +3979,7 @@ declare namespace LocalJSX {
         /**
           * @default null
          */
-        "totalColumn"?: TotalColumnConfig | null;
+        "totals"?: TotalsConfig | null;
         /**
           * @default []
          */
@@ -5248,7 +5248,7 @@ declare namespace LocalJSX {
         "dataFormatPercentSign": boolean;
         "axisLabelsStep": number;
         "scalingIndicator": number;
-        "totalColumn": string;
+        "totals": string;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;
     }

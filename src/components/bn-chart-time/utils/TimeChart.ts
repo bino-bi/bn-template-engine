@@ -19,7 +19,7 @@ import { LabelCollisionManager, SCENARIO_PRIORITY } from "./helper";
 
 import CalculateSize from "calculate-size";
 
-import { StackConfigParsed, TimeChartComponentConfig, TotalColumnConfig } from "./model/TimeChartComponentConfig";
+import { StackConfigParsed, TimeChartComponentConfig, TotalsConfig } from "./model/TimeChartComponentConfig";
 import { TimeChartStyle } from "./model/styles/TimeChartStyle";
 import { ScaleFactorsTimeChart } from "./model/styles/ScaleFactorsTimeChart";
 import { DateTime } from "luxon";
@@ -83,6 +83,20 @@ type TimeChartResponseRow = {
   pl4: number | null;
   isEmpty: boolean;
 };
+
+/** One total column: the periods it covers, its name and its values. */
+interface TotalColumn {
+  from: number;
+  to: number;
+  /** Start of the group, null for one column over all periods. */
+  start: DateTime | null;
+  label: string;
+  parts: { scenario: string; value: number }[];
+  total: number;
+  reference: { scenario: string; value: number } | null;
+  /** The periods the computed value counts: the ones where the series has a value. Empty with a dataset. */
+  counted: number[];
+}
 
 /** Fill of the scaling indicator band, the light blue of the IBCS templates. */
 const SCALING_INDICATOR_FILL = "#c5dbf2";
@@ -199,8 +213,9 @@ export class TimeChart {
   private lastScenarios: string[] = [];
   private axisLabelsStep: number = 1;
   private scalingIndicator: number = 0;
-  private totalColumn: TotalColumnConfig | null = null;
-  private totalVariance: DataPoint | null = null;
+  private totals: TotalsConfig | null = null;
+  private totalColumns: TotalColumn[] = [];
+  private totalVariances: (DataPoint | null)[] = [];
   private highestColumnDataPointValue: DataPoint = new DataPoint(0, "default", 0, Scenario.NEU);
   private highestPeriodVarianceDataPointValue: DataPoint = new DataPoint(0, "default", 0, Scenario.NEU);
   private scenarioSwitch: boolean = false;
@@ -331,7 +346,7 @@ export class TimeChart {
     this.intervalSpanLimit = config.intervalSpanLimit;
     this.axisLabelsStep = config.axisLabelsStep ?? 1;
     this.scalingIndicator = config.scalingIndicator ?? 0;
-    this.totalColumn = config.totalColumn ?? null;
+    this.totals = config.totals ?? null;
     this.scenarioSwitch = config.scenarioSwitch ?? false;
     this.axisTitlePosition = config.axisTitlePosition ?? "left";
     this.dateInterval = this.findDateInterval(config.dateInterval);
@@ -392,13 +407,15 @@ export class TimeChart {
 
     // the highest period variance: a break mark is for a variance of a period, the total has its own cut
     this.highestPeriodVarianceDataPointValue = this.highestVarianceDataPointValue;
-    this.totalVariance = this.totalVariancePoint();
-    if (this.totalVariance != null && Number.isFinite(this.totalVariance.value)) {
-      if (this.totalVariance.value > Number(this.highestVarianceDataPointValue.value)) {
-        this.highestVarianceDataPointValue = this.totalVariance;
+    this.totalColumns = this.computeTotalColumns();
+    this.totalVariances = this.computeTotalVariances();
+    for (const point of this.totalVariances) {
+      if (point == null || !Number.isFinite(point.value)) continue;
+      if (point.value > Number(this.highestVarianceDataPointValue.value)) {
+        this.highestVarianceDataPointValue = point;
       }
-      if (this.totalVariance.value < Number(this.smallestVarianceDataPointValue.value)) {
-        this.smallestVarianceDataPointValue = this.totalVariance;
+      if (point.value < Number(this.smallestVarianceDataPointValue.value)) {
+        this.smallestVarianceDataPointValue = point;
       }
     }
 
@@ -409,7 +426,7 @@ export class TimeChart {
     }
 
     // the total column has its own scale: it counts for the height with the pixels it needs
-    const totalHeight = this.isVarianceChart() ? 0 : this.totalColumnHeight();
+    const totalHeight = this.isVarianceChart() ? 0 : this.totalsHeight();
     if (totalHeight > this.highestDataPointValue.getScaledUnit() && this.pixelPerUnit > 0) {
       const { scenario, variance } = this.highestDataPointValue;
       this.highestDataPointValue = new DataPoint(
@@ -546,8 +563,8 @@ export class TimeChart {
       indicatorEnd = this.scalingIndicatorLabelX() + textWidth + this.styles.padding.right;
     }
 
-    const totalEnd = this.hasTotalColumn()
-      ? this.totalColumnGeometry().right + this.totalColumnTextWidth() + this.styles.padding.right
+    const totalEnd = this.hasEndTotal()
+      ? this.totalGeometry(0).right + this.endTotalTextWidth() + this.styles.padding.right
       : 0;
 
     return Math.max(axisEnd + labelBuffer, bboxTotal, titleEnd, legendEnd, indicatorEnd, totalEnd);
@@ -802,9 +819,9 @@ export class TimeChart {
     const points = this.variancesDataModel
       .filter((entry) => entry.type === VarianceType.RELATIVE)
       .map((entry) => entry.scenario1);
-    if (points.length > 0 && this.totalVariance != null) {
-      // the pin of the total column is one of the row
-      points.push(this.totalVariance);
+    if (points.length > 0) {
+      // the pins of the total columns are pins of the row
+      points.push(...this.totalVariances.filter((point): point is DataPoint => point != null));
     }
     if (points.length === 0 || !points.some((point) => point.isClipped())) {
       return;
@@ -915,7 +932,7 @@ export class TimeChart {
     if (this.isVarianceChart()) {
       this.drawVarianceScenario(this.variancesDataModel, svgContainer);
       // before the axis: the line of a scenario switch runs over the full height of the row
-      this.drawTotalVariance(svgContainer);
+      this.drawTotalVariances(svgContainer);
       this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
     } else if (this.stackConfig != null) {
       const effectiveChartMode = this.determineEffectiveChartMode();
@@ -939,7 +956,7 @@ export class TimeChart {
         this.drawOverlayLayer(this.dataModel, svgContainer);
         this.drawAxisAndLabels(this.dataModel, svgContainer);
         this.drawScalingIndicator(svgContainer);
-        this.drawTotalColumn(svgContainer);
+        this.drawTotalColumns(svgContainer);
       }
     }
   }
@@ -980,7 +997,11 @@ export class TimeChart {
   private scalingIndicatorLabelX(): number {
     const gap = this.position.spacings.labelToColumn;
     const half = this.position.getColumnWidth() / 2 + this.position.spacings.scenarioOffset;
-    const right = this.position.getColumnCenterPositionX(Math.max(0, this.dataModel.length - 1)) + half;
+    let right = this.position.getColumnCenterPositionX(Math.max(0, this.dataModel.length - 1)) + half;
+    if (this.hasTotals() && !this.hasEndTotal()) {
+      // a total stands behind the last period: the value goes behind it
+      right = Math.max(right, this.totalGeometry(this.totalColumns.length - 1).right);
+    }
     const legendWidth = this.legendWidth("right");
     return right + gap + (legendWidth > 0 ? legendWidth + gap : 0);
   }
@@ -1016,11 +1037,22 @@ export class TimeChart {
     const axisY = this.position.getColumnPositionY();
 
     const group = svgContainer.group().id("ScalingIndicator");
-    group
-      .rect(right - left, height)
-      .x(left)
-      .y(axisY - height)
-      .fill(SCALING_INDICATOR_FILL);
+    // totals on the axis have their own band at their own scale: the band of the periods leaves their place free
+    const half = this.position.getColumnWidth() / 2 + this.position.spacings.scenarioOffset;
+    const runs =
+      this.hasTotals() && !this.hasEndTotal()
+        ? this.totalRuns().map((run) => ({
+            left: this.position.getColumnCenterPositionX(run.from) - half,
+            right: this.position.getColumnCenterPositionX(run.to) + half,
+          }))
+        : [{ left, right }];
+    for (const run of runs) {
+      group
+        .rect(run.right - run.left, height)
+        .x(run.left)
+        .y(axisY - height)
+        .fill(SCALING_INDICATOR_FILL);
+    }
     group.back();
     new Label(
       svgContainer.group().id("ScalingIndicatorLabel"),
@@ -1034,159 +1066,436 @@ export class TimeChart {
     ).forceStringTypeDraw();
   }
 
-  /** Where a title at the right starts when a total column stands there: behind the column and its texts. */
+  /** Where a title at the right starts when a total column stands at the end: behind the column and its texts. */
   private rightTitleX(): number | undefined {
-    if (!this.hasTotalColumn()) {
+    if (!this.hasEndTotal()) {
       return undefined;
     }
-    return this.totalColumnGeometry().right + this.totalColumnTextWidth() + this.position.spacings.labelToColumn;
+    return this.totalGeometry(0).right + this.endTotalTextWidth() + this.position.spacings.labelToColumn;
   }
 
-  /** True for a chart with a total column: plain columns, no stack, no line. */
-  private hasTotalColumn(): boolean {
-    return this.totalColumnParts() != null;
+  /** True for a chart with total columns. */
+  private hasTotals(): boolean {
+    return this.totalColumns.length > 0;
   }
 
-  /** Place of the total column: right of the last period, with a gap. `left` and `right` are the ends of its axis. */
-  private totalColumnGeometry(): { center: number; width: number; left: number; right: number } {
-    const columnWidth = this.position.getColumnWidth();
-    const width = columnWidth * (this.totalColumn?.width ?? 1);
-    // one period of room between the last period and the column: the axis of the periods ends before it
-    const center = this.position.getColumnCenterPositionX(this.dataModel.length + 1) + (width - columnWidth) / 2;
+  /** True for the one total column of `by: all`: it stands apart at the end, with its own axis and its names. */
+  private hasEndTotal(): boolean {
+    return this.hasTotals() && this.totals!.by === "all";
+  }
+
+  /** The index of a total column for the positions: the totals follow the periods. */
+  private totalIndex(total: number): number {
+    // the index behind the last period stays what it is without totals: the end of the overlay lines
+    return this.dataModel.length + 1 + total;
+  }
+
+  /** Place of a total column. `left` and `right` are the ends of its band, and of its own axis at the end. */
+  private totalGeometry(total: number): { center: number; width: number; left: number; right: number } {
+    const width = this.position.getColumnWidth() * (this.totals?.width ?? 1);
+    const center = this.position.getColumnCenterPositionX(this.totalIndex(total));
     const margin = this.position.spacings.scenarioOffset;
-    // the value of the band of the periods stands in the gap: the column moves right by its width.
-    // Every tier of the chart knows the indicator, so the column has the same place in all of them.
-    const x = center + (this.scalingIndicator > 0 ? this.scalingIndicatorTextWidth() + margin : 0);
-    return { center: x, width, left: x - width / 2 - 2 * margin, right: x + width / 2 + margin };
+    return { center, width, left: center - width / 2 - 2 * margin, right: center + width / 2 + margin };
   }
 
   /**
-   * What the total column of the base chart shows: one part per scenario of the
-   * series (the first scenario and the ones that follow it), from the sum of its
-   * periods, and the sum of the first other scenario as the reference behind.
-   * The variance rows read it too, for the same answer to "is there a total
-   * column". Null without one, and when a part is not positive: a stack cannot
-   * show a negative part, so such a chart has no total column at all.
+   * The places of the periods and of the total columns on the axis, in category
+   * widths, and the number of places the axis of the periods covers. A total of
+   * `by: all` stands one period behind the last one, with its own axis. The
+   * other totals stand right behind the last period of their group, and the
+   * periods after them move on.
    */
-  private totalColumnParts(): {
-    parts: { scenario: string; value: number }[];
-    height: number;
-    total: number;
-    reference: { scenario: string; value: number } | null;
-  } | null {
+  private totalSlots(columnWidth: number, categoryWidth: number, fontSize: number, scenarioOffset: number) {
+    const count = this.dataModel.length;
+    const extra = categoryWidth > 0 ? (((this.totals?.width ?? 1) - 1) * columnWidth) / categoryWidth : 0;
+    const slots: number[] = [];
+    const totals: number[] = [];
+    if (this.totals!.by === "all") {
+      for (let index = 0; index < count; index++) slots.push(index);
+      // the value of the band of the periods stands in the gap: the column moves right by its width.
+      // Every tier of the chart knows the indicator, so the column has the same place in all of them.
+      const shift =
+        this.scalingIndicator > 0 && categoryWidth > 0
+          ? (this.scalingIndicatorTextWidth() + scenarioOffset * fontSize) / (categoryWidth * fontSize)
+          : 0;
+      totals.push(count + 1 + extra / 2 + shift);
+      return { slots: [...slots, count, ...totals], axisColumns: count };
+    }
+    // the names of the scenarios stand right of the last period: its total keeps one place of room for them.
+    // A series with a scenario switch has its names under the axis.
+    const followers = this.followerSlots();
+    const lastRow = this.dataModel[count - 1];
+    const lastIsFollower = followers.includes(this.visibleSlot(lastRow, followers) ?? "scenario1");
+    // the second marker prints its name there too
+    const markerName =
+      !followers.includes("scenario4") && this.dataModel.some((row) => TimeChart.hasValue(row.scenario4));
+    const namesRoom = lastIsFollower && !markerName ? 0 : 1;
+    let offset = 0;
+    let next = 0;
+    for (let index = 0; index < count; index++) {
+      slots.push(index + offset);
+      const group = this.totalColumns[next];
+      if (group != null && group.to === index) {
+        const room = index === count - 1 ? namesRoom : 0;
+        totals.push(index + offset + room + 1 + extra / 2);
+        offset += room + 1 + extra;
+        next++;
+      }
+    }
+    return { slots: [...slots, count + offset, ...totals], axisColumns: count + offset };
+  }
+
+  /** The runs of periods between the total columns on the axis: each ends with the last period of a total, or of the chart. */
+  private totalRuns(): { from: number; to: number }[] {
+    const runs: { from: number; to: number }[] = [];
+    let from = 0;
+    for (const column of this.totalColumns) {
+      runs.push({ from, to: column.to });
+      from = column.to + 1;
+    }
+    if (from < this.dataModel.length) {
+      runs.push({ from, to: this.dataModel.length - 1 });
+    }
+    return runs;
+  }
+
+  /** The start of the group of a date, null for one group over all periods. */
+  private totalGroupStart(date: DateTime): DateTime | null {
+    const by = this.totals?.by ?? "all";
+    if (by === "all" || date == null || !date.isValid) {
+      return null;
+    }
+    return date.startOf(by);
+  }
+
+  /** The name of a total column under the axis: the text of the config at the end, else the name of its period. */
+  private totalLabel(start: DateTime | null): string {
+    if (start == null) {
+      return this.totals?.label ?? "";
+    }
+    const interval = {
+      year: DateDistance.YEAR,
+      quarter: DateDistance.QUARTER,
+      month: DateDistance.MONTH,
+      week: DateDistance.WEEK,
+    }[this.totals!.by as "year" | "quarter" | "month" | "week"];
+    return this.createDateFactory().getShortDateString(start, interval);
+  }
+
+  /** The scenarios of the series: the first one, and the ones that follow it. */
+  private seriesSlotKeys(): string[] {
+    return ["scenario1", ...this.followerSlots()];
+  }
+
+  /** The slot of the reference of a total: the first scenario with values that is not part of the series. */
+  private referenceSlot(): string | null {
+    const followers = this.followerSlots();
+    for (const slot of ["scenario2", "scenario3", "scenario4"]) {
+      if (followers.includes(slot)) continue;
+      if (this.dataModel.some((row) => Number.isFinite(row[slot]?.value))) {
+        return slot;
+      }
+    }
+    return null;
+  }
+
+  /** The look of one column for several scenarios: a forecast wins, then a plan, then the first one. */
+  private mixedScenario(scenarios: string[]): string {
+    return (
+      scenarios.find((scenario) => getScenarioPrefix(scenario) === "fc") ??
+      scenarios.find((scenario) => getScenarioPrefix(scenario) === "pl") ??
+      scenarios[0]
+    );
+  }
+
+  /** The rows of the totals dataset, one per group, with the scenario columns added up. */
+  private totalDatasetRows(): Map<string, Record<string, number>> | null {
+    const name = this.totals?.dataset;
+    if (!name) {
+      return null;
+    }
+    const from = sourceExpr(this.db, name, "");
+    const rows = new Map<string, Record<string, number>>();
+    if (!from) {
+      return rows;
+    }
+    let result: Record<string, unknown>[];
+    try {
+      result = this.db.exec<Record<string, unknown>[]>(`SELECT * FROM ${from}`);
+    } catch (e) {
+      this.failQuery(e);
+      return rows;
+    }
+    for (const row of result) {
+      const date = TimeChart.parseDate(row.date);
+      const start = date ? this.totalGroupStart(date) : null;
+      const key = start ? (start.toISODate() ?? "") : "";
+      if (this.totals!.by !== "all" && key === "") continue;
+      const sums = rows.get(key) ?? {};
+      for (const [column, raw] of Object.entries(row)) {
+        // a value can come as a text, like in the dataset of the chart
+        const value = typeof raw === "string" && raw.trim() !== "" ? Number(raw) : raw;
+        if (column !== "date" && typeof value === "number" && Number.isFinite(value)) {
+          sums[column] = (sums[column] ?? 0) + value;
+        }
+      }
+      rows.set(key, sums);
+    }
+    return rows;
+  }
+
+  private static parseDate(value: unknown): DateTime | null {
+    if (value instanceof Date) {
+      return DateTime.fromJSDate(value, { zone: "utc" });
+    }
+    if (typeof value === "string") {
+      const date = DateTime.fromISO(value, { zone: "utc" });
+      return date.isValid ? date : null;
+    }
+    if (typeof value === "number") {
+      return DateTime.fromMillis(value, { zone: "utc" });
+    }
+    return null;
+  }
+
+  /**
+   * The total columns of the chart. A group is the run of periods of one year,
+   * quarter, month or week, or all periods. With `sum` a column stacks one part
+   * per scenario of the series, else it is one column in the look of the
+   * scenarios in it. The first other scenario is the reference behind. The
+   * variance rows read the same list, for the same answer to "are there
+   * totals". Empty without the config, with a stack, in line mode, and when a
+   * part is not positive: a column cannot show that, so the chart has none.
+   */
+  private computeTotalColumns(): TotalColumn[] {
     if (
-      this.totalColumn == null ||
+      this.totals == null ||
       this.stackConfig != null ||
       this.dataModel.length === 0 ||
       this.determineEffectiveChartMode() !== ChartMode.BAR
     ) {
-      return null;
+      return [];
     }
     const followers = this.followerSlots();
-    const sums = new Map<string, { scenario: string; value: number }>();
-    for (const row of this.dataModel) {
-      const slot = this.visibleSlot(row, followers);
-      const point = slot ? row[slot] : null;
-      if (slot == null || !Number.isFinite(point?.value)) continue;
-      const sum = sums.get(slot) ?? { scenario: point.scenario as string, value: 0 };
-      sum.value += point.value;
-      sums.set(slot, sum);
-    }
-    const parts = [...sums.values()];
-    if (parts.length === 0 || parts.some((part) => !(part.value > 0))) {
-      return null;
-    }
-    let reference: { scenario: string; value: number } | null = null;
-    for (const slot of ["scenario2", "scenario3", "scenario4"]) {
-      if (followers.includes(slot)) continue;
-      const values = this.dataModel.map((row) => row[slot]).filter((point) => Number.isFinite(point?.value));
-      if (values.length > 0) {
-        reference = {
-          scenario: values[0].scenario as string,
-          value: values.reduce((sum, point) => sum + point.value, 0),
-        };
-        break;
+    const series = this.seriesSlotKeys();
+    const referenceSlot = this.referenceSlot();
+    const referenceScenario = referenceSlot
+      ? (this.dataModel.find((row) => row[referenceSlot]?.scenario != null)?.[referenceSlot].scenario as string)
+      : null;
+    const fromData = this.totalDatasetRows();
+
+    // the groups: runs of periods with the same start
+    const groups: { from: number; to: number; start: DateTime | null }[] = [];
+    this.dataModel.forEach((row, index) => {
+      const start = this.totalGroupStart(row.date);
+      const last = groups[groups.length - 1];
+      if (last != null && (start == null || (last.start != null && +last.start === +start))) {
+        last.to = index;
+      } else {
+        groups.push({ from: index, to: index, start });
       }
+    });
+
+    // a total per period would repeat every column: `by` is not coarser than the periods of the chart
+    if (this.totals.by !== "all" && groups.length === this.dataModel.length && groups.length > 1) {
+      return [];
     }
-    return {
-      parts,
-      height: parts.reduce((sum, part) => sum + part.value, 0),
-      total: parts.reduce((sum, part) => sum + part.value, 0),
-      reference,
-    };
+
+    const columns: TotalColumn[] = [];
+    for (const group of groups) {
+      const rows = this.dataModel.slice(group.from, group.to + 1);
+      let parts: { scenario: string; value: number }[] = [];
+      let reference: { scenario: string; value: number } | null = null;
+      let counted: number[] = [];
+
+      if (fromData != null) {
+        // the values as the dataset gives them: one part per scenario of the series
+        const data = fromData.get(group.start ? (group.start.toISODate() ?? "") : "") ?? {};
+        for (const slot of series) {
+          const scenario = this.dataModel.find((row) => row[slot]?.scenario != null)?.[slot].scenario as string;
+          // a 0 is a scenario without a value in this total
+          if (scenario != null && Number.isFinite(data[scenario]) && data[scenario] !== 0) {
+            parts.push({ scenario, value: data[scenario] });
+          }
+        }
+        if (referenceScenario != null && Number.isFinite(data[referenceScenario])) {
+          reference = { scenario: referenceScenario, value: data[referenceScenario] };
+        }
+      } else {
+        // the periods where the series has a value. The reference counts in the same periods only,
+        // as the variance of the total does: else the two would not tell the same.
+        const used = rows.filter((row) => {
+          const slot = this.visibleSlot(row, followers);
+          return slot != null && Number.isFinite(row[slot]?.value);
+        });
+        counted = used.map((row) => this.dataModel.indexOf(row));
+        const visible = used.map((row) => row[this.visibleSlot(row, followers)!]);
+        // with `last` the one period that gives the value counts. A reference with a gap in
+        // the counted periods is no reference: half a sum would stand against a full one.
+        const referenceRows = this.totals.aggregation === "last" ? used.slice(-1) : used;
+        const found = referenceSlot
+          ? referenceRows.map((row) => row[referenceSlot]).filter((point) => Number.isFinite(point?.value))
+          : [];
+        const references = found.length === referenceRows.length ? found : [];
+        const sum = (points: DataPoint[]): number => points.reduce((total, point) => total + point.value, 0);
+        if (this.totals.aggregation === "sum") {
+          const sums = new Map<string, number>();
+          for (const point of visible) {
+            sums.set(point.scenario as string, (sums.get(point.scenario as string) ?? 0) + point.value);
+          }
+          parts = [...sums.entries()].map(([scenario, value]) => ({ scenario, value }));
+          if (references.length > 0) {
+            reference = { scenario: referenceScenario!, value: sum(references) };
+          }
+        } else if (visible.length > 0) {
+          const last = this.totals.aggregation === "last";
+          parts = [
+            {
+              scenario: last
+                ? (visible[visible.length - 1].scenario as string)
+                : this.mixedScenario(visible.map((point) => point.scenario as string)),
+              value: last ? visible[visible.length - 1].value : sum(visible) / visible.length,
+            },
+          ];
+          if (references.length > 0) {
+            reference = {
+              scenario: referenceScenario!,
+              value: last ? references[references.length - 1].value : sum(references) / references.length,
+            };
+          }
+        }
+      }
+
+      if (parts.length === 0) {
+        // a group without a value of the series has no total, the others keep theirs
+        continue;
+      }
+      if (parts.some((part) => !(part.value > 0))) {
+        return [];
+      }
+      const total = parts.reduce((sum, part) => sum + part.value, 0);
+      columns.push({ ...group, label: this.totalLabel(group.start), parts, total, reference, counted });
+    }
+    return columns;
   }
 
-  /** Height of the total column in pixels: its parts, its reference and its band of the scaling indicator. 0 without one. */
-  private totalColumnHeight(): number {
-    const total = this.totalColumnParts();
-    if (total == null) {
+  /** Height of the highest total column in pixels: its parts, its reference and its band of the scaling indicator. */
+  private totalsHeight(): number {
+    if (!this.hasTotals()) {
       return 0;
     }
     const band = this.hasScalingIndicator() ? this.scalingIndicator : 0;
-    return Math.max(total.height, total.reference?.value ?? 0, band) * this.totalColumn!.pixelPerUnit;
+    const units = Math.max(...this.totalColumns.map((column) => Math.max(column.total, column.reference?.value ?? 0)));
+    return Math.max(units, band) * this.totals!.pixelPerUnit;
   }
 
   /**
-   * The variance of the total column in a variance chart: the sum of the series
-   * against the sum of the reference, over the periods where both have a value.
-   * It takes the notation of the forecast when a forecast is part of the sum.
+   * The variances of the total columns in a variance chart, one per column:
+   * the series against the reference, put together the way the total is. With
+   * a dataset the values come from its row. A total takes the notation of the
+   * forecast when a forecast is part of it.
    */
-  private totalVariancePoint(): DataPoint | null {
-    if (!this.hasTotalColumn() || !this.isVarianceChart()) {
-      return null;
+  private computeTotalVariances(): (DataPoint | null)[] {
+    if (!this.hasTotals() || !this.isVarianceChart()) {
+      return [];
     }
     const firstRow = this.dataModel[0] ?? null;
     const candidates = (this.configVariances ?? [])
       .map((name) => ({ name, variance: new VarianceScenario(name) }))
       .filter((entry) => entry.variance.isValid);
     if (candidates.length === 0) {
-      return null;
-    }
-    let base = 0;
-    let delta = 0;
-    const notations = new Set<string>();
-    for (const row of this.dataModel) {
-      for (const { variance } of candidates) {
-        const slots = this.mapScenarios(variance, firstRow);
-        const baseValue = row[slots.get(variance.base) ?? ""]?.value;
-        const deltaValue = row[slots.get(variance.delta) ?? ""]?.value;
-        if (Number.isFinite(baseValue) && Number.isFinite(deltaValue)) {
-          base += baseValue;
-          delta += deltaValue;
-          notations.add(variance.base.slice(0, 2));
-          break;
-        }
-      }
-    }
-    if (notations.size === 0) {
-      return null;
+      return [];
     }
     const first = candidates[0].variance;
     const relative = first.type === VarianceType.RELATIVE;
-    const point = new DataPoint(
-      relative ? relativeVariance(base - delta, delta) : base - delta,
-      first.delta,
-      relative ? this.pixelPerPercentage : this.pixelPerUnit,
-      first.direction,
-    );
-    if (this.scenarioSwitch) {
-      point.notation = notations.has("fc") ? "fc" : notations.size === 1 ? [...notations][0] : "ac";
-    }
-    point.key = { row: "total", scenario: candidates[0].name };
-    return point;
+    const fromData = this.totalDatasetRows();
+    const aggregation = this.totals!.aggregation;
+
+    return this.totalColumns.map((column) => {
+      let base: number;
+      let delta: number;
+      const notations = new Set<string>();
+      if (fromData != null) {
+        base = 0;
+        const data = fromData.get(column.start ? (column.start.toISODate() ?? "") : "") ?? {};
+        // the bases of the row are the scenarios of the series, each counts once
+        for (const name of new Set(candidates.map((entry) => entry.variance.base))) {
+          // a 0 is a scenario without a value in this total, as for the parts
+          if (Number.isFinite(data[name]) && data[name] !== 0) {
+            base += data[name];
+            notations.add(name.slice(0, 2));
+          }
+        }
+        if (notations.size === 0 || !Number.isFinite(data[first.delta])) {
+          return null;
+        }
+        delta = data[first.delta];
+      } else {
+        // the same periods as the column, so the two tell the same: with `last` the one
+        // period of the value. Without both values in each of them there is no variance.
+        const rows = (aggregation === "last" ? column.counted.slice(-1) : column.counted).map(
+          (index) => this.dataModel[index],
+        );
+        const pairs: { base: number; delta: number; notation: string }[] = [];
+        for (const row of rows) {
+          for (const { variance } of candidates) {
+            const slots = this.mapScenarios(variance, firstRow);
+            const baseValue = row[slots.get(variance.base) ?? ""]?.value;
+            const deltaValue = row[slots.get(variance.delta) ?? ""]?.value;
+            if (Number.isFinite(baseValue) && Number.isFinite(deltaValue)) {
+              pairs.push({ base: baseValue, delta: deltaValue, notation: variance.base.slice(0, 2) });
+              break;
+            }
+          }
+        }
+        if (pairs.length === 0 || pairs.length !== rows.length) {
+          return null;
+        }
+        const divisor = aggregation === "average" ? pairs.length : 1;
+        base = pairs.reduce((sum, pair) => sum + pair.base, 0) / divisor;
+        delta = pairs.reduce((sum, pair) => sum + pair.delta, 0) / divisor;
+        pairs.forEach((pair) => notations.add(pair.notation));
+      }
+      const point = new DataPoint(
+        relative ? relativeVariance(base - delta, delta) : base - delta,
+        first.delta,
+        relative ? this.pixelPerPercentage : this.pixelPerUnit,
+        first.direction,
+      );
+      if (this.scenarioSwitch) {
+        point.notation = notations.has("fc") ? "fc" : notations.size === 1 ? [...notations][0] : "ac";
+      }
+      point.key = this.totalKey(column, candidates[0].name);
+      return point;
+    });
   }
 
-  /** Width of the texts right of the total column: the names of its parts, and the value of the scaling indicator. */
-  private totalColumnTextWidth(): number {
+  /** The point key of an element of a total column: `row: total`, and the start of its group when there are several. */
+  private totalKey(column: TotalColumn, scenario?: string): DataPointKey {
+    const key: DataPointKey = { row: "total" };
+    if (column.start != null) {
+      key.date = TimeChart.pointDate(column.start);
+    }
+    if (scenario) {
+      key.scenario = scenario;
+    }
+    return key;
+  }
+
+  /** Width of the texts right of the total column at the end: the names of its parts, and the value of its band. */
+  private endTotalTextWidth(): number {
+    if (!this.hasEndTotal()) {
+      return 0;
+    }
     const width = (text: string): number =>
       CalculateSize(text, { font: this.styles.fontStyles.font, fontSize: this.styles.fontStyles.size + "px" }).width;
     const gap = this.position.spacings.labelToColumn;
-    const total = this.totalColumnParts();
-    let names = 0;
-    if (total != null && total.parts.length > 1) {
-      names = gap + Math.max(...total.parts.map((part) => width(this.scenarioName(part.scenario))));
-    }
-    const indicator = total != null && this.hasScalingIndicator() ? gap + width(this.scalingIndicatorText()) : 0;
+    const parts = this.totalColumns[0].parts;
+    const names =
+      !this.isVarianceChart() && parts.length > 1
+        ? gap + Math.max(...parts.map((part) => width(this.scenarioName(part.scenario))))
+        : 0;
+    const indicator = this.hasScalingIndicator() ? gap + width(this.scalingIndicatorText()) : 0;
     return names + indicator;
   }
 
@@ -1209,173 +1518,184 @@ export class TimeChart {
     };
   }
 
-  /** The axis of the total column: its own piece of line, in the look of the axis of the chart. */
+  /** The axis of the total column at the end: its own piece of line, in the look of the axis of the chart. */
   private drawTotalAxis(group: G, y: number): void {
-    const { left, right } = this.totalColumnGeometry();
+    const { left, right } = this.totalGeometry(0);
     const scenario = this.axisScenario == null ? "default" : `${this.axisScenario}`.slice(0, 2);
     group.line(left, y, right, y).addClass("axis-" + scenario);
   }
 
   /**
-   * The total column of the base chart: a stack of the parts at the scale of the
-   * column, the reference behind it, the total above and the names of the parts
-   * at the right. With a scaling indicator the column has its own band, and a
-   * line links it to the band of the periods.
+   * The total columns of the base chart, at their own scale: the parts, the
+   * reference behind, the total above and the name under the axis. With a
+   * scaling indicator a column has its own band. The column at the end has its
+   * own axis and the names of its parts at the right, and a line links its band
+   * to the band of the periods.
    */
-  private drawTotalColumn(svgContainer: Svg): void {
-    const total = this.isVarianceChart() ? null : this.totalColumnParts();
-    if (total == null) {
+  private drawTotalColumns(svgContainer: Svg): void {
+    if (!this.hasTotals() || this.isVarianceChart()) {
       return;
     }
-    const { center, width, left, right } = this.totalColumnGeometry();
-    const scale = this.totalColumn!.pixelPerUnit;
+    const scale = this.totals!.pixelPerUnit;
     const axisY = this.position.getColumnPositionY();
     const gap = this.position.spacings.labelToColumn;
+    const atEnd = this.hasEndTotal();
     const group = svgContainer.group().id("TotalColumn");
-
-    if (this.hasScalingIndicator()) {
-      const height = this.scalingIndicator * scale;
-      const periods = this.scalingIndicatorBand();
-      group
-        .rect(right - left, height)
-        .x(left)
-        .y(axisY - height)
-        .fill(SCALING_INDICATOR_FILL);
-      if (periods != null) {
-        // the line starts behind the value of the band of the periods
-        const from = this.scalingIndicatorLabelX() + this.scalingIndicatorTextWidth() + gap / 2;
-        group
-          .line(Math.min(from, left), axisY - periods.height, left, axisY - height)
-          .stroke({ color: SCALING_INDICATOR_LINE, width: 1 })
-          .id("ScalingIndicatorLink");
-      }
-    }
-
-    if (total.reference != null && total.reference.value > 0) {
-      const look = this.columnLook(total.reference.scenario);
-      const height = total.reference.value * scale;
-      group
-        .rect(width, height)
-        .cx(center - this.position.spacings.scenarioOffset)
-        .y(axisY - height)
-        .fill(look.fill)
-        .stroke(look.stroke)
-        .attr(dataPointAttributes({ row: "total", scenario: total.reference.scenario }, "element"))
-        .attr("data-bn-value", total.reference.value);
-    }
-
-    let top = axisY;
     const labelGroup = svgContainer.group().id("TotalColumnLabels");
-    for (const part of total.parts) {
-      const look = this.columnLook(part.scenario);
-      const height = part.value * scale;
-      top -= height;
-      const key: DataPointKey = { row: "total", scenario: part.scenario };
-      group
-        .rect(width, height)
-        .cx(center)
-        .y(top)
-        .fill(look.fill)
-        .stroke(look.stroke)
-        .attr(dataPointAttributes(key, "element"))
-        .attr("data-bn-value", part.value);
-      if (total.parts.length > 1) {
-        if (height >= this.position.dataLabelHeight) {
-          const label = new Label(
-            labelGroup,
-            center,
-            top + height / 2,
-            "TOTAL_PART",
-            part.value,
-            this.styles,
-            HookLocation.Center,
-            HookLocation.Center,
-          ).setPoint(key);
-          // a label on a hatching keeps the background of a plain label
-          (look.solid ? label.setSegmentFill(look.solid) : label).draw(true, this.dataFormatDigits, this.measureScale);
+
+    this.totalColumns.forEach((column, index) => {
+      const { center, width, left, right } = this.totalGeometry(index);
+
+      if (this.hasScalingIndicator()) {
+        const height = this.scalingIndicator * scale;
+        const periods = this.scalingIndicatorBand();
+        const band = group
+          .rect(right - left, height)
+          .x(left)
+          .y(axisY - height)
+          .fill(SCALING_INDICATOR_FILL);
+        // behind the columns of the periods that stand next to it
+        band.back();
+        if (atEnd && periods != null) {
+          // the line starts behind the value of the band of the periods
+          const from = this.scalingIndicatorLabelX() + this.scalingIndicatorTextWidth() + gap / 2;
+          group
+            .line(Math.min(from, left), axisY - periods.height, left, axisY - height)
+            .stroke({ color: SCALING_INDICATOR_LINE, width: 1 })
+            .id("ScalingIndicatorLink");
         }
+      }
+
+      if (column.reference != null && column.reference.value > 0) {
+        const look = this.columnLook(column.reference.scenario);
+        const height = column.reference.value * scale;
+        group
+          .rect(width, height)
+          .cx(center - this.position.spacings.scenarioOffset)
+          .y(axisY - height)
+          .fill(look.fill)
+          .stroke(look.stroke)
+          .attr(dataPointAttributes(this.totalKey(column, column.reference.scenario), "element"))
+          .attr("data-bn-value", column.reference.value);
+      }
+
+      let top = axisY;
+      for (const part of column.parts) {
+        const look = this.columnLook(part.scenario);
+        const height = part.value * scale;
+        top -= height;
+        const key = this.totalKey(column, part.scenario);
+        group
+          .rect(width, height)
+          .cx(center)
+          .y(top)
+          .fill(look.fill)
+          .stroke(look.stroke)
+          .attr(dataPointAttributes(key, "element"))
+          .attr("data-bn-value", part.value);
+        if (column.parts.length > 1) {
+          if (height >= this.position.dataLabelHeight) {
+            const label = new Label(
+              labelGroup,
+              center,
+              top + height / 2,
+              "TOTAL_PART",
+              part.value,
+              this.styles,
+              HookLocation.Center,
+              HookLocation.Center,
+            ).setPoint(key);
+            // a label on a hatching keeps the background of a plain label
+            (look.solid ? label.setSegmentFill(look.solid) : label).draw(
+              true,
+              this.dataFormatDigits,
+              this.measureScale,
+            );
+          }
+          if (atEnd) {
+            new Label(
+              labelGroup,
+              center + width / 2 + gap,
+              // the name of a thin top part stays below the total above the column
+              Math.max(top + height / 2, axisY - column.total * scale + this.position.dataLabelHeight / 2),
+              "TOTAL_NAME",
+              this.scenarioName(part.scenario),
+              this.styles,
+              HookLocation.Center,
+              HookLocation.Left,
+            ).forceStringTypeDraw();
+          }
+        }
+      }
+
+      new Label(
+        labelGroup,
+        center,
+        top - gap,
+        "TOTAL",
+        column.total,
+        this.styles,
+        HookLocation.Bottom,
+        HookLocation.Center,
+      )
+        .setPoint(this.totalKey(column), "total")
+        .draw(true, this.dataFormatDigits, this.measureScale);
+
+      if (this.hideAxisLabels === false && column.label) {
         new Label(
           labelGroup,
-          center + width / 2 + gap,
-          // the name of a thin top part stays below the total above the column
-          Math.max(top + height / 2, axisY - total.height * scale + this.position.dataLabelHeight / 2),
-          "TOTAL_NAME",
-          this.scenarioName(part.scenario),
+          center,
+          this.position.getAxisPositionY(false) + this.position.spacings.labelToAxis,
+          "TOTAL_LABEL",
+          column.label,
+          this.styles,
+          HookLocation.Top,
+          HookLocation.Center,
+        ).forceStringTypeDraw();
+      }
+    });
+
+    if (atEnd) {
+      this.drawTotalAxis(group, this.position.getAxisPositionY(false));
+      if (this.hasScalingIndicator()) {
+        new Label(
+          labelGroup,
+          this.totalGeometry(0).right + this.endTotalTextWidth() - this.scalingIndicatorTextWidth(),
+          axisY - this.scalingIndicator * scale,
+          "SCALING_INDICATOR_TOTAL",
+          this.scalingIndicatorText(),
           this.styles,
           HookLocation.Center,
           HookLocation.Left,
         ).forceStringTypeDraw();
       }
     }
-
-    new Label(
-      labelGroup,
-      center,
-      top - gap,
-      "TOTAL",
-      total.total,
-      this.styles,
-      HookLocation.Bottom,
-      HookLocation.Center,
-    )
-      .setPoint({ row: "total" }, "total")
-      .draw(true, this.dataFormatDigits, this.measureScale);
-
-    this.drawTotalAxis(group, this.position.getAxisPositionY(false));
-    if (this.hasScalingIndicator()) {
-      new Label(
-        labelGroup,
-        right +
-          this.totalColumnTextWidth() -
-          CalculateSize(this.scalingIndicatorText(), {
-            font: this.styles.fontStyles.font,
-            fontSize: this.styles.fontStyles.size + "px",
-          }).width,
-        axisY - this.scalingIndicator * scale,
-        "SCALING_INDICATOR_TOTAL",
-        this.scalingIndicatorText(),
-        this.styles,
-        HookLocation.Center,
-        HookLocation.Left,
-      ).forceStringTypeDraw();
-    }
-    if (this.hideAxisLabels === false && this.totalColumn!.label) {
-      new Label(
-        labelGroup,
-        center,
-        this.position.getAxisPositionY(false) + this.position.spacings.labelToAxis,
-        "TOTAL_LABEL",
-        this.totalColumn!.label,
-        this.styles,
-        HookLocation.Top,
-        HookLocation.Center,
-      ).forceStringTypeDraw();
-    }
   }
 
-  /** The variance of the total column, in the tier of its variance chart: a column or a pin like the others. */
-  private drawTotalVariance(svgContainer: Svg): void {
-    const point = this.totalVariance;
-    if (point == null) {
+  /** The variances of the total columns, in the tier of their variance chart: columns or pins like the others. */
+  private drawTotalVariances(svgContainer: Svg): void {
+    if (!this.totalVariances.some((point) => point != null)) {
       return;
     }
     // inside the group of the variances: its box is the height of the row, also below the axis
     const scenarios = (svgContainer.findOne("#Scenarios") as G | null) ?? svgContainer.group().id("Scenarios");
     const group = scenarios.group().id("TotalColumn");
     const labelGroup = scenarios.group().id("TotalColumnLabels");
-    const { center } = this.totalColumnGeometry();
-    // the elements take their place from an index: the one of the centre of the total column
-    const index =
-      (center - this.position.getColumnCenterPositionX(0)) /
-      (this.position.getColumnCenterPositionX(1) - this.position.getColumnCenterPositionX(0));
     const relative = this.variancesDataModel.some((entry) => entry.type === VarianceType.RELATIVE);
-    if (relative) {
-      new Needle(this.position, this.scenarioStyles(), point, index, group.group())
-        .updateLabelGroup(labelGroup.group())
-        .draw(this.dataFormatDigits);
-    } else {
+
+    this.totalVariances.forEach((point, total) => {
+      if (point == null) {
+        return;
+      }
+      const index = this.totalIndex(total);
+      if (relative) {
+        new Needle(this.position, this.scenarioStyles(), point, index, group.group())
+          .updateLabelGroup(labelGroup.group())
+          .draw(this.dataFormatDigits);
+        return;
+      }
       // a row whose period variances are cut cuts the total the same way. The part above the
-      // break is scaled by the largest overflow: that is the one of the total here.
+      // break is scaled by the largest overflow: that can be the one of the total.
       const overflow = this.overflowConfig
         ? {
             ...this.overflowConfig,
@@ -1389,8 +1709,10 @@ export class TimeChart {
         .updateLabelGroup(labelGroup.group())
         .setAsVariance()
         .draw(this.dataFormatDigits, this.measureScale);
+    });
+    if (this.hasEndTotal()) {
+      this.drawTotalAxis(group, this.position.getAxisPositionY(relative));
     }
-    this.drawTotalAxis(group, this.position.getAxisPositionY(relative));
 
     const box = scenarios.bbox();
     this.scenariosArea = {
@@ -1539,7 +1861,7 @@ export class TimeChart {
       // the total column is not cut: it keeps its room above the cut columns
       const virtualHeight = Math.max(
         cutHeight + overdriveZoneHeight + breakGap,
-        this.isVarianceChart() ? 0 : this.totalColumnHeight(),
+        this.isVarianceChart() ? 0 : this.totalsHeight(),
       );
       // Create a virtual DataPoint with pixelPerUnit=1 so getScaledUnit() returns virtualHeight directly
       max = new DataPoint(virtualHeight, max.scenario, 1, max.variance);
@@ -1581,15 +1903,26 @@ export class TimeChart {
       }
     }
 
-    return new ElementPositions(
+    // total columns take places on the axis: the periods behind them move on
+    const places = this.hasTotals()
+      ? this.totalSlots(
+          effectiveScaleFactors.columnWidth,
+          effectiveScaleFactors.categoryWidth,
+          this.styles.fontStyles.size,
+          effectiveScaleFactors.scenarioOffset,
+        )
+      : null;
+    const position = new ElementPositions(
       new Padding(this.styles.padding),
       effectiveScaleFactors,
       this.styles.fontStyles,
       min,
       max,
-      this.dataModel.length,
+      places?.axisColumns ?? this.dataModel.length,
       maxLabelLengthLeft,
     );
+    position.setSlots(places?.slots ?? null);
+    return position;
   }
 
   private calculateTitleLength(minWidth: number): number {
@@ -2234,8 +2567,8 @@ export class TimeChart {
     const lineWidth = Math.max(1, this.position.spacings.auxiliaryLineWidth);
 
     runs.slice(1).forEach((run) => {
-      const x =
-        (this.position.getColumnCenterPositionX(run.from - 1) + this.position.getColumnCenterPositionX(run.from)) / 2;
+      // half a period before the first period of the run: a total column can stand between the two runs
+      const x = this.position.getColumnCenterPositionX(run.from) - this.position.spacings.categoryWidth / 2;
       group
         .line(x, 0, x, bottom)
         .stroke({ color: this.styles.fontStyles.color || "#000000", width: lineWidth })
