@@ -168,6 +168,18 @@ export class BnChartStructureRenderer {
   @Prop() italicCategories: string[] = [];
 
   /** @internal */
+  @Prop() rowLines: number = 0;
+
+  /** @internal */
+  @Prop() orderMark: boolean = false;
+
+  /** @internal */
+  @Prop() tiers: boolean = false;
+
+  /** @internal The width this segment needs without break marks. The wrapper shares the free room with it. */
+  @Prop() reportWidth?: (width: number) => void;
+
+  /** @internal */
   @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
@@ -260,7 +272,7 @@ export class BnChartStructureRenderer {
     // estimate would falsely re-engage on it.
     const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.chart.setAvailableWidth(unitWasAuto ? 0 : this.parentDimensions?.width || 0);
+    this.fitWidth(unitWasAuto);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
     this.syncQueryError();
@@ -281,10 +293,27 @@ export class BnChartStructureRenderer {
     // See componentWillLoad: no broken-bar overdrive for auto-fitted scaling
     const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.chart.setAvailableWidth(unitWasAuto ? 0 : this.parentDimensions?.width || 0);
+    this.fitWidth(unitWasAuto);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
     this.syncQueryError();
+  }
+
+  /** Sets the room for the bars. Before, it reports the width the segment has when no bar is cut. */
+  private fitWidth(auto: boolean): void {
+    const room = auto ? 0 : this.parentDimensions?.width || 0;
+    if (!auto && this.reportWidth) {
+      this.chart.setAvailableWidth(0);
+      let natural = 0;
+      if (!this.chart.isBridgeTier() && !this.chart.hasNoData()) {
+        this.chart.layout();
+        natural = this.chart.getAllocatedCanvasWidth();
+      }
+      this.reportWidth(natural);
+      // the check for break marks keeps room for them: a segment that fits as it is needs none
+      if (natural <= room + 0.5) return;
+    }
+    this.chart.setAvailableWidth(room);
   }
 
   /**
@@ -485,6 +514,9 @@ export class BnChartStructureRenderer {
       hideScenarioName: this.hideScenarioName,
       referenceLine: this.referenceLine,
       italicCategories: this.italicCategories,
+      rowLines: this.rowLines,
+      orderMark: this.orderMark,
+      tiers: this.tiers,
     });
   }
 

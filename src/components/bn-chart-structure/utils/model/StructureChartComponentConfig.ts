@@ -81,6 +81,12 @@ export class StructureChartComponentConfig {
   public referenceLine: ReferenceLine | null = null;
   /** Values of the level column whose row is printed in italics. */
   public italicCategories: string[] = [];
+  /** A thin line after every n-th row. 0: none. */
+  public rowLines: number = 0;
+  /** An arrow marks the scenario or the variance the rows are sorted by. */
+  public orderMark: boolean = false;
+  /** The chart has more than one segment: a line of a row runs over all of them. */
+  public tiers: boolean = false;
 
   constructor(
     public data: StructureChartDataRow[],
@@ -219,6 +225,18 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isArray(data.italicCategories)) {
       config.italicCategories = AdapterUtils.adaptArray(data.italicCategories, this.stringAdapter);
+    }
+
+    if (CompareUtil.isNumber(data.rowLines) && data.rowLines >= 1) {
+      config.rowLines = Math.floor(data.rowLines);
+    }
+
+    if (CompareUtil.isBoolean(data.orderMark)) {
+      config.orderMark = data.orderMark;
+    }
+
+    if (CompareUtil.isBoolean(data.tiers)) {
+      config.tiers = data.tiers;
     }
 
     return config;

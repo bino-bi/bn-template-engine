@@ -28,6 +28,7 @@ import { RuleSetConfig } from "../../stores/ruleSets";
 import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
+import { segmentRooms } from "./utils/segmentRooms";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
@@ -559,6 +560,19 @@ export class Chart {
   @Prop() varianceWaterfall: boolean = false;
 
   /**
+   * Draws a thin line after every n-th row, over all segments of the chart
+   * (`row-lines="5"`). The count starts again behind a sum row. Default: no lines.
+   */
+  @Prop() rowLines: number = 0;
+
+  /**
+   * Marks the column the rows are sorted by with an arrow: beside the name of
+   * the scenario, or beside the title of the variance, that comes first in
+   * `order`. No mark for an order by a dimension, and none with `stack`.
+   */
+  @Prop() orderMark: boolean = false;
+
+  /**
    * `false` prints the labels of relative variances without the percent sign (`+22`).
    */
   @Prop() dataFormatPercentSign: boolean = true;
@@ -1024,11 +1038,53 @@ export class Chart {
     );
   }
 
-  prepareDimension(): ParentDimensions {
+  /** The width each segment has when no bar is cut, as its renderer reported it. */
+  private segmentWidths: (number | undefined)[] = [];
+  private widthUpdate = false;
+
+  /** With fixed scales the segments share the width: one that needs less than its share leaves room to the others. */
+  private sharesWidth(): boolean {
+    if (this.prepareSegments().length < 2) return false;
+    if (resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind !== "value") return false;
+    const relative = this.prepareVariances().some((variance) => variance.startsWith("dr"));
+    return !relative || resolveScalingValue(this.percentageScaling, this.pixelPerUnitGroupMap).kind === "value";
+  }
+
+  /** The room of each segment: its equal share, plus a part of what the segments below their share leave. */
+  private segmentRooms(total: number, count: number): number[] {
+    if (!this.sharesWidth()) return new Array(count).fill(total / count);
+    // each segment has the margin of its footer beside its chart: 0.4em of a font of 0.6em
+    const margin = this.getEffectiveFontPx() * 0.24 + 0.5;
+    return segmentRooms(
+      total,
+      Array.from({ length: count }, (_, index) => this.segmentWidths[index]),
+      margin,
+    );
+  }
+
+  private handleWidthReport(index: number, width: number): void {
+    const count = Math.max(1, this.prepareSegments().length);
+    const total = getParentDimensions(this.element).width;
+    const before = this.segmentRooms(total, count);
+    this.segmentWidths[index] = width;
+    const after = this.segmentRooms(total, count);
+    if (this.widthUpdate || after.every((room, at) => Math.abs(room - before[at]) <= 0.5)) return;
+    this.widthUpdate = true;
+    writeTask(() => {
+      this.widthUpdate = false;
+      forceUpdate(this);
+    });
+  }
+
+  prepareDimension(index: number = 0): ParentDimensions {
     const parent = getParentDimensions(this.element);
     const segmentCount = Math.max(1, this.prepareSegments().length);
     this.canvasWidthSegmented = parent.width / segmentCount;
-    return { width: this.canvasWidthSegmented, height: parent.height };
+    if (this.segmentWidths.length > segmentCount) this.segmentWidths.length = segmentCount;
+    return {
+      width: this.segmentRooms(parent.width, segmentCount)[index] ?? this.canvasWidthSegmented,
+      height: parent.height,
+    };
   }
 
   private prepareScenarios(): string[] {
@@ -1532,7 +1588,11 @@ export class Chart {
           decimal: this.dataFormatDigitsDecimal,
           percentSign: this.dataFormatPercentSign !== false,
         }}
-        parentDimensions={this.prepareDimension()}
+        rowLines={Number.isFinite(Number(this.rowLines)) ? Math.max(0, Math.floor(Number(this.rowLines))) : 0}
+        orderMark={this.orderMark === true}
+        tiers={this.prepareSegments().length > 1}
+        reportWidth={this.sharesWidth() ? (width: number) => this.handleWidthReport(idx, width) : undefined}
+        parentDimensions={this.prepareDimension(idx)}
         ruleSetConfig={this.ruleSetConfig()}
       ></bn-chart-structure-renderer>
     );
