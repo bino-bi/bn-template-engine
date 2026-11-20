@@ -7,6 +7,7 @@ import { errorText } from "../../../utils/queryError";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
 import { formatXYValue, xyTickDecimals } from "../../../utils/xy/formatXYValue";
+import { axisTitleLines, isTitleBeside, legendOffset } from "../../../utils/xy/AxisTitles";
 import { IsoCurves } from "../../../utils/xy/IsoCurves";
 import { NumericScale } from "../../../utils/xy/NumericScale";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
@@ -277,8 +278,17 @@ export class ScatterChart {
     const titleH = this.config.chartTitle !== "" ? 1.6 * em : 0;
     const yTitleText = this.axisTitle(this.config.y, inWord);
     const xTitleText = this.axisTitle(this.config.x, inWord);
-    const yTitleH = yTitleText !== "" ? 1.4 * em : 0.4 * em;
-    const xAxisH = 1.4 * em + (xTitleText !== "" ? 1.3 * em : 0);
+    // A title beside the end of its axis takes room left of the tick labels (y) or right of the plot (x).
+    const yBeside = isTitleBeside(this.config.y);
+    const xBeside = isTitleBeside(this.config.x);
+    const yLines = axisTitleLines(this.config.y, inWord);
+    const xLines = axisTitleLines(this.config.x, inWord);
+    const linesWidth = (lines: { label: string; suffix: string }): number =>
+      Math.max(this.textWidth(lines.label, true), this.textWidth(lines.suffix));
+    const yTitleW = yBeside ? linesWidth(yLines) + 0.5 * em : 0;
+    const xTitleW = xBeside ? linesWidth(xLines) : 0;
+    const yTitleH = yTitleText !== "" ? (yBeside ? 1.2 : 1.4) * em : 0.4 * em;
+    const xAxisH = 1.4 * em + (xBeside ? (xLines.suffix !== "" ? 1.15 * em : 0) : xTitleText !== "" ? 1.3 * em : 0);
 
     // First pass with an estimated left-axis reservation, refined below.
     let axisLeftW = 3 * em;
@@ -298,8 +308,22 @@ export class ScatterChart {
       max: this.config.y.max,
     });
 
+    // The last tick label is centred on the end of the x axis: a title beside it starts right of that label.
+    // The ticks are not known before the plot has its width, so the widest of a usual set stands in.
+    const likelyTicksX = new NumericScale(xDomain[0], xDomain[1], 0, 1).ticks(6, this.config.x.step);
+    const likelyLabel = formatXYValue(
+      likelyTicksX[likelyTicksX.length - 1],
+      xyTickDecimals(likelyTicksX, this.xPercent),
+      this.styles.locale,
+      this.xPercent,
+    );
+    const xTitleGap = xBeside ? Math.max(1.4 * em, this.textWidth(likelyLabel) / 2 + 0.7 * em) : 0;
+
     for (let pass = 0; pass < 2; pass++) {
-      const drawingW = Math.max(10, this.availableWidth - padding.left - padding.right - axisLeftW - rightReserve);
+      const drawingW = Math.max(
+        10,
+        this.availableWidth - padding.left - padding.right - axisLeftW - Math.max(rightReserve, xTitleGap + xTitleW),
+      );
       const drawingH = drawingW / this.config.aspect;
       drawing = {
         x: padding.left + axisLeftW,
@@ -319,7 +343,7 @@ export class ScatterChart {
         ...ticksY.map((tick) => this.textWidth(formatXYValue(tick, yDecimals, this.styles.locale, this.yPercent))),
         em,
       );
-      axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em;
+      axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em + yTitleW;
     }
 
     this.canvasHeight =
@@ -335,7 +359,14 @@ export class ScatterChart {
     }
 
     // Y axis title, top-left above the plot (template style).
-    if (yTitleText !== "") {
+    if (yBeside) {
+      // right-aligned left of the tick labels: the name above the top of the axis, the unit below it
+      const x = padding.left + yTitleW - 0.5 * em;
+      this.drawText(root, yLines.label, x, drawing.y - 0.3 * em, { anchor: "end", bold: true });
+      if (yLines.suffix !== "") {
+        this.drawText(root, yLines.suffix, x, drawing.y + 0.85 * em, { anchor: "end" });
+      }
+    } else if (yTitleText !== "") {
       this.drawAxisTitleText(root, this.config.y, inWord, padding.left, drawing.y - 0.6 * em, "start");
     }
 
@@ -389,7 +420,17 @@ export class ScatterChart {
     }
 
     // X axis title, right-aligned below the bottom-right panel.
-    if (xTitleText !== "") {
+    if (xBeside) {
+      // right of the last tick label: the name in the row of the tick labels, the unit below it.
+      // The last panel has the axis that ends last, also when the last row of a facet grid is not full.
+      const last = panels[panels.length - 1].rect;
+      const x = last.x + last.width + xTitleGap;
+      const y = last.y + last.height + (this.styles.scaleFactors.axisTickLength + 0.8) * em;
+      this.drawText(root, xLines.label, x, y, { bold: true });
+      if (xLines.suffix !== "") {
+        this.drawText(root, xLines.suffix, x, y + 1.15 * em, {});
+      }
+    } else if (xTitleText !== "") {
       this.drawAxisTitleText(
         root,
         this.config.x,
@@ -403,9 +444,21 @@ export class ScatterChart {
     // Legend (chart-level, once).
     if (showLegend) {
       if (this.config.legend.position === "right") {
-        legend.draw(root, legendModel, drawing.x + drawing.width + em, drawing.y, "right");
+        legend.draw(
+          root,
+          legendModel,
+          drawing.x + drawing.width + em,
+          drawing.y + legendOffset(this.config.legend, drawing.height - legendSize.height),
+          "right",
+        );
       } else {
-        legend.draw(root, legendModel, drawing.x, drawing.y + drawing.height + xAxisH, "bottom");
+        legend.draw(
+          root,
+          legendModel,
+          drawing.x + legendOffset(this.config.legend, drawing.width - legendSize.width),
+          drawing.y + drawing.height + xAxisH,
+          "bottom",
+        );
       }
     }
 

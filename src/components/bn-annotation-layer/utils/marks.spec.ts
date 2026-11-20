@@ -108,14 +108,24 @@ describe("buildMark", () => {
   });
 
   describe("frame", () => {
-    it("keeps the ellipse around two data points inside the layer", () => {
+    it("draws a frame close around two data points when the ellipse has no room in the layer", () => {
       const other = { x: 300, y: 140, width: 40, height: 20 };
       const mark = buildMark({ target: "t", mark: "frame" }, BOX, other, EM, {
         area: { width: 350, height: 170 },
-      }) as { x: number; y: number; width: number; height: number };
+      }) as { x: number; y: number; width: number; height: number; rx: number; ry: number };
+      // inside the layer
+      expect(mark.x).toBeGreaterThanOrEqual(1);
       expect(mark.x + mark.width).toBeLessThanOrEqual(349);
       expect(mark.y + mark.height).toBeLessThanOrEqual(169);
-      expect(mark.x).toBeGreaterThanOrEqual(1);
+      // and both boxes inside the frame
+      expect(mark.x).toBeLessThanOrEqual(100);
+      expect(mark.y).toBeLessThanOrEqual(100);
+      expect(mark.x + mark.width).toBeGreaterThanOrEqual(340);
+      expect(mark.y + mark.height).toBeGreaterThanOrEqual(160);
+      expect(mark.rx).toBe(mark.ry);
+      // the corner of the first box is inside the round corner of the frame
+      const centre = { x: mark.x + mark.rx, y: mark.y + mark.ry };
+      expect(Math.hypot(100 - centre.x, 100 - centre.y)).toBeLessThanOrEqual(mark.rx);
     });
 
     it("takes the text of a cell as the first end of a frame around two", () => {

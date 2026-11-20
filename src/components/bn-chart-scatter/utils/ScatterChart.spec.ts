@@ -231,6 +231,65 @@ describe("ScatterChart", () => {
     expect(circle).toContain('fill-opacity="0.8"');
   });
 
+  describe("titles beside the ends of the axes", () => {
+    const axes = (titlePosition?: "beside") => ({
+      x: { measure: "ac1", label: "Margin", unit: "%", min: 0, max: 40, titlePosition },
+      y: { measure: "ac2", label: "Net sales", unit: "mEUR", min: 0, max: 40, titlePosition },
+    });
+    const textOf = (svg: string, text: string): { x: number; y: number; anchor: string } => {
+      const tag = new RegExp(`<text[^>]*>(?:<tspan[^>]*>)?${text}<`).exec(svg)![0];
+      return {
+        x: Number(/\sx="([\d.]+)"/.exec(tag)![1]),
+        y: Number(/\sy="([\d.]+)"/.exec(tag)![1]),
+        anchor: /text-anchor="(\w+)"/.exec(tag)![1],
+      };
+    };
+    const frameOf = (svg: string): { x: number; y: number; width: number; height: number } => {
+      const tag = /<rect[^>]*data-bn-baseline[^>]*>/.exec(svg)![0];
+      const num = (name: string): number => Number(new RegExp(`\\s${name}="([\\d.]+)"`).exec(tag)![1]);
+      return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
+    };
+
+    it("puts the y title in two lines left of the top of the axis", () => {
+      const svg = makeChart(two, baseConfig(axes("beside"))).toString();
+      const frame = frameOf(svg);
+      const name = textOf(svg, "Net sales");
+      const unit = textOf(svg, "in mEUR");
+      expect(name.anchor).toBe("end");
+      expect(name.x).toBeLessThan(frame.x);
+      expect(unit.x).toBe(name.x);
+      expect(name.y).toBeLessThan(frame.y);
+      expect(unit.y).toBeGreaterThan(frame.y);
+    });
+
+    it("puts the x title in two lines right of the end of the axis", () => {
+      const svg = makeChart(two, baseConfig(axes("beside"))).toString();
+      const frame = frameOf(svg);
+      const name = textOf(svg, "Margin");
+      const unit = textOf(svg, "in %");
+      expect(name.x).toBeGreaterThan(frame.x + frame.width);
+      expect(unit.x).toBe(name.x);
+      expect(name.y).toBeGreaterThan(frame.y + frame.height);
+      expect(unit.y).toBeGreaterThan(name.y);
+    });
+
+    it("leaves the titles in their own rows by default", () => {
+      const svg = makeChart(two, baseConfig(axes())).toString();
+      const frame = frameOf(svg);
+      expect(textOf(svg, "Net sales").anchor).toBe("start");
+      expect(textOf(svg, "in %").x).toBeLessThanOrEqual(frame.x + frame.width);
+    });
+  });
+
+  it("moves the legend along its side with align", () => {
+    const legendY = (align?: "center" | "end"): number => {
+      const svg = makeChart(two, baseConfig({ legend: { show: true, position: "right", align } })).toString();
+      return Number(/<text[^>]*\sy="([\d.]+)"[^>]*>(?:<tspan[^>]*>)?RX</.exec(svg)![1]);
+    };
+    expect(legendY("center")).toBeGreaterThan(legendY());
+    expect(legendY("end")).toBeGreaterThan(legendY("center"));
+  });
+
   it("puts a label on the side that is typed for it", () => {
     const labelY = (side: "n" | "s"): number => {
       const svg = makeChart(
