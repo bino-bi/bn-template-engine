@@ -202,14 +202,30 @@ describe("structure chart mark of the order", () => {
     const header = (svg: string): number =>
       Number(/id="[^"]*SCENARIO_HEADER[^"]*"[\s\S]*?<text[^>]* x="([^"]+)"/.exec(svg)?.[1]);
     // a short reference bar: its name, the mark and the other name stand in a row
-    const rows = [{ operation: "+", category: "A", categoryIndex: 1, ac1: 3, pl1: 4 }];
-    const svg = buildChart({ orderMark: true, sortOrder: order("pl1"), scenarioLabelTop: true }, rows).toString();
-    expect(header(svg)).toBeGreaterThan(markBox(svg).right);
+    const rows = [
+      { operation: "+", category: "A", categoryIndex: 1, ac1: 3, pl1: 4 },
+      { operation: "+", category: "B", categoryIndex: 2, ac1: 300, pl1: 400 },
+    ];
+    const sorted = buildChart(
+      { orderMark: true, sortOrder: { hierarchy: ["pl1"], direction: "asc" }, scenarioLabelTop: true },
+      rows,
+    ).toString();
+    expect(header(sorted)).toBeGreaterThan(markBox(sorted).right);
   });
 
   it("draws none for an order by a dimension, and none without the switch", () => {
     expect(marks({})).toBe(0);
     expect(count(buildChart({ sortOrder: order("ac1") }).toString(), "order-mark")).toBe(0);
+  });
+
+  it("takes no room from the bars: a chart that fits gets no break marks from it", () => {
+    const rows = [{ operation: "+", category: "A", categoryIndex: 1, ac1: 200, pl1: 150 }];
+    const cut = (options: Record<string, unknown>): boolean => {
+      const chart = buildChart(options, rows);
+      const room = chart.getAllocatedCanvasWidth() + 40;
+      return chart.cutsAt(room);
+    };
+    expect(cut({ orderMark: true, sortOrder: order("ac1") })).toBe(cut({}));
   });
 
   it("counts for the width of the segment", () => {
@@ -250,6 +266,14 @@ describe("structure chart name of the first scenario on top", () => {
     expect(top.getAllocatedCanvasWidth()).toBeCloseTo(plain.getAllocatedCanvasWidth());
   });
 
+  it("stays at the axis when it would make the chart wider", () => {
+    // one row: the name at the end of the bar would stand behind the value label of the longest bar
+    const rows = [{ operation: "+", category: "A", categoryIndex: 1, ac1: 100, pl1: 300 }];
+    const plain = buildChart({}, rows).getAllocatedCanvasWidth();
+    const top = buildChart({ scenarioLabelTop: true }, rows);
+    expect(top.getAllocatedCanvasWidth()).toBeCloseTo(plain);
+  });
+
   it("stands at the axis in a chart with one scenario", () => {
     const one = buildChart({ scenarioLabelTop: true, scenarios: ["ac1"] });
     const two = buildChart({ scenarioLabelTop: true });
@@ -288,6 +312,15 @@ describe("structure chart value of a longer reference bar", () => {
 });
 
 describe("structure chart segments that cannot get break marks", () => {
+  it("is a segment with a long bar left of the axis: the cut does not make it narrower", () => {
+    const chart = buildChart({ variances: ["dac1_pl1_pos"], hideCategories: true });
+    const natural = chart.getAllocatedCanvasWidth();
+    expect(chart.canCut()).toBe(true);
+    expect(chart.cutsAt(natural - 40)).toBe(false);
+    // the bars right of the axis can be cut
+    expect(buildChart({}).cutsAt(300)).toBe(true);
+  });
+
   it("are the pins, a walk and a stack", () => {
     expect(buildChart({}).canCut()).toBe(true);
     expect(buildChart({ variances: ["dac1_pl1_pos"] }).canCut()).toBe(true);

@@ -632,6 +632,11 @@ export class StructureChart {
     return this.getVarianceType() !== VarianceType.RELATIVE;
   }
 
+  /** In a room of this width the bars of the segment get break marks. A room that is too small for them gives none. */
+  public cutsAt(availableWidth: number): boolean {
+    return this.canCut() && availableWidth > 0 && this.calculateOverflowConfig(availableWidth) != null;
+  }
+
   /**
    * The styles with each scenario on the bar style slot its colorIndex selects.
    * `this.styles` stays the theme: the hatch pattern is built from its `fc` slot.
@@ -1416,6 +1421,9 @@ export class StructureChart {
         referenceReach + gap,
         referenceReach / 2 + referenceName / 2 + gap + mark,
       );
+    // the name must not make the chart wider: else it stays at the axis
+    const end = x + width - this.position.getAxisPositionX();
+    if (end > this.baseRightSideWidth(VarianceType.NONE)) return null;
     const y = this.position.getBarPositionY(0, false) + this.position.getScenarioLabelPositionOffsetY(false);
     return { x, y, width };
   }
@@ -1510,7 +1518,13 @@ export class StructureChart {
     if (!point || point.scenario == null || !Number.isFinite(point.value)) return null;
     const name = this.textWidth(this.i18n.get(point.scenario as string) || (point.scenario as string));
     const axis = this.position.getBarPositionX();
-    const reach = this.barReach(point);
+    // the name is centred on the bar, on a bar with a break mark on the part before the mark
+    let reach = point.getScaledUnit();
+    const cut = this.overflowConfig;
+    if (cut) {
+      const part = point.getScenario() === "ac" ? cut.cutWidth : cut.cutWidth - cut.scenarioCutOffset;
+      if (Math.abs(reach) > part) reach = Math.sign(reach) * part;
+    }
     let x: number;
     if (this.position.isNameBelowBar()) {
       // the name starts at the axis. Left of the axis the mark would stand on it
@@ -1520,7 +1534,7 @@ export class StructureChart {
       x = axis + reach / 2 + name / 2 + gap;
     }
     const top = this.position.getBarPositionY(last, true) + this.position.getScenarioLabelPositionOffsetY(true);
-    return { x, bottom: top + this.styles.fontStyles.size * 1.15 };
+    return { x, bottom: top + this.styles.fontStyles.size };
   }
 
   private orderMarkWidth(): number {
@@ -1946,6 +1960,11 @@ export class StructureChart {
   }
 
   private calculateRightSideWidth(varianceType: VarianceType): number {
+    return Math.max(this.baseRightSideWidth(varianceType), this.orderMarkExtent());
+  }
+
+  /** The room right of the axis without the mark of the order. */
+  private baseRightSideWidth(varianceType: VarianceType): number {
     // Stacked charts: width based on the positive side of the stacks, not individual max
     if (this.isStacked()) {
       const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
@@ -2013,12 +2032,6 @@ export class StructureChart {
         width = Math.max(width, this.sumRowExtent(row));
       }
     }
-
-    if (VarianceType.NONE === varianceType) {
-      const name = this.topNamePlace();
-      if (name) width = Math.max(width, name.x + name.width - this.position.getAxisPositionX());
-    }
-    width = Math.max(width, this.orderMarkExtent());
 
     if (width <= this.titleLength) {
       return this.titleLength;
@@ -3035,10 +3048,8 @@ export class StructureChart {
 
     // Available space on the right side of the axis
     const axisX = this.position.getAxisPositionX();
-    // the mark of the order can stand behind the title or a name: keep its room free
-    const markRoom = this.orderMark && this.orderToken ? this.orderMarkWidth() + fontSize * 0.25 : 0;
     // Match getAllocatedCanvasWidth() which adds padding.left + padding.right on top of axisX
-    const rightSideAvailable = availableWidth - axisX - this.styles.padding.left - this.styles.padding.right - markRoom;
+    const rightSideAvailable = availableWidth - axisX - this.styles.padding.left - this.styles.padding.right;
 
     // Estimate the label width of the largest value
     const maxLabelWidth = this.calculateTextBoxWidth(highest.value || 0);

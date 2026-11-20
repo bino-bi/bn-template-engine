@@ -32,15 +32,18 @@ describe("segmentRooms", () => {
     expect(segmentRooms(900, [2000])).toEqual([900]);
   });
 
-  it("takes the width of a segment that cannot be cut off the rest", () => {
-    // the pins are 380 wide whatever room they get: the bars and the other variance share 520
+  it("counts the width of a segment that cannot be cut as used", () => {
+    // the pins are 380 wide whatever room they get: 70 are free for the bars
     const widths = [600, 150, 380];
     const rooms = segmentRooms(900, widths, [false, false, true]);
-    expect(rooms).toEqual([370, 260, 380]);
-    expect(used(widths, rooms)).toBeLessThanOrEqual(900);
+    expect(rooms[0]).toBe(370);
+    // the fixed segment draws its 380 whatever its room says
+    expect(used(widths, [rooms[0], rooms[1], 380])).toBeLessThanOrEqual(900);
   });
 
-  it("keeps the equal shares when the fixed segments alone fill the chart", () => {
+  it("gives no segment less than its equal share", () => {
+    // the fixed segments fill more than their shares: the bars keep theirs
     expect(segmentRooms(900, [600, 500, 500], [false, true, true])).toEqual([300, 300, 300]);
+    expect(segmentRooms(690, [664.6, 248.2, 203.8], [false, true, true])[0]).toBeCloseTo(238);
   });
 });

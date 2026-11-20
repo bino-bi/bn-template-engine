@@ -179,6 +179,9 @@ export class BnChartStructureRenderer {
   /** @internal The width this segment needs without break marks. The wrapper shares the free room with it. */
   @Prop() reportWidth?: (width: number, cuttable: boolean) => void;
 
+  /** @internal The equal share of the chart width for one segment. */
+  @Prop() equalShare: number = 0;
+
   /** @internal */
   @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
@@ -312,7 +315,9 @@ export class BnChartStructureRenderer {
       }
       // the footer stands beside the chart and takes a part of the room
       const footer = hidden ? 0 : this.chart.getFooterRoom();
-      this.reportWidth(natural + footer, !hidden && this.chart.canCut());
+      // a segment that is wider than its equal share and gets no break marks there is as wide as it is
+      const cuttable = !hidden && this.chart.cutsAt(this.equalShare - footer);
+      this.reportWidth(natural + footer, cuttable);
       room = Math.max(0, room - footer);
       // the check for break marks keeps room for them: a segment that fits as it is needs none
       if (natural <= room + 0.5) return;

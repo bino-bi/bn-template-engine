@@ -893,6 +893,10 @@ export namespace Components {
          */
         "dataVersion": number;
         /**
+          * @default 0
+         */
+        "equalShare": number;
+        /**
           * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
          */
         "errors"?: ErrorDispatcher;
@@ -3699,6 +3703,10 @@ declare namespace LocalJSX {
          */
         "dataVersion"?: number;
         /**
+          * @default 0
+         */
+        "equalShare"?: number;
+        /**
           * The wrapper's error dispatcher: a failed query is reported through it as `ERR_sql`. Not for end users.
          */
         "errors"?: ErrorDispatcher;
@@ -5397,6 +5405,7 @@ declare namespace LocalJSX {
         "rowLines": number;
         "orderMark": boolean;
         "tiers": boolean;
+        "equalShare": number;
     }
     interface BnChartTimeAttributes {
         "datasets": string;

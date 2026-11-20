@@ -1599,6 +1599,7 @@ export class Chart {
             : undefined
         }
         parentDimensions={this.prepareDimension(idx)}
+        equalShare={this.canvasWidthSegmented ?? 0}
         ruleSetConfig={this.ruleSetConfig()}
       ></bn-chart-structure-renderer>
     );
