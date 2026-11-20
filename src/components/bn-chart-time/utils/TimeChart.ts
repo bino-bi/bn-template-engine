@@ -161,6 +161,25 @@ type StackGroup = { prefix: string; segments: StackGroupSegment[]; layout: Stack
  *
  * Auto chart mode: when dataModel.length exceeds maxBars, switches from bar to line.
  */
+/** One step of a variance walk: the column of a period between two levels, in data units. */
+interface WalkStep {
+  index: number;
+  from: number;
+  to: number;
+  point: DataPoint;
+  /** Counts the total columns on the axis before the step: a walk starts again behind each of them. */
+  run: number;
+}
+
+/** The bridge between two totals: the reference, the steps of the walk and the total they end at. */
+interface Bridge {
+  reference: { scenario: string; value: number };
+  total: number;
+  steps: WalkStep[];
+}
+
+const WALK_LINE = "#808080";
+
 export class TimeChart {
   public styles: TimeChartStyle;
   readonly CSS_CATEGORIES: string = "categories";
@@ -222,6 +241,14 @@ export class TimeChart {
   private highestPeriodVarianceDataPointValue: DataPoint = new DataPoint(0, "default", 0, Scenario.NEU);
   private scenarioSwitch: boolean = false;
   private axisTitlePosition: string = "left";
+  private varianceWaterfall: boolean = false;
+  private bridgeVariances: string[] = [];
+  private referenceColumn: boolean = false;
+  private bridge: Bridge | null = null;
+  private bridgeFallback: string | null = null;
+  /** The steps of a variance row that is a walk, empty for every other chart. */
+  private walk: WalkStep[] = [];
+  private syncedLeft: boolean = false;
   /** Periods in which more than one variance of a shared row has a value. */
   private varianceOverlaps: number = 0;
 
@@ -268,6 +295,16 @@ export class TimeChart {
 
     if (this.stackConfig != null) {
       this.overflowConfig = null;
+      return;
+    }
+    // a walk has no break marks: a cut step would move every level behind it
+    if (this.isWalkTier()) {
+      const cut = this.overflowConfig != null;
+      this.overflowConfig = null;
+      if (cut) {
+        // the positions were built for the cut columns of the chart before
+        this.updatePosition(this.lastScenarios);
+      }
       return;
     }
 
@@ -350,6 +387,10 @@ export class TimeChart {
     this.scalingIndicator = config.scalingIndicator ?? 0;
     this.totals = config.totals ?? null;
     this.scenarioSwitch = config.scenarioSwitch ?? false;
+    this.varianceWaterfall = config.varianceWaterfall ?? false;
+    this.bridgeVariances = config.bridgeVariances ?? [];
+    this.referenceColumn = config.referenceColumn ?? false;
+    this.syncedLeft = config.syncedLeft ?? false;
     this.axisTitlePosition = config.axisTitlePosition ?? "left";
     this.dateInterval = this.findDateInterval(config.dateInterval);
     // the model of a stack by dimension holds the series
@@ -410,7 +451,23 @@ export class TimeChart {
     // the highest period variance: a break mark is for a variance of a period, the total has its own cut
     this.highestPeriodVarianceDataPointValue = this.highestVarianceDataPointValue;
     this.totalColumns = this.computeTotalColumns();
+    this.bridge = this.computeBridge();
     this.totalVariances = this.computeTotalVariances();
+    const walk = this.isWalkTier() ? this.walkSteps(this.variancesDataModel) : [];
+    this.walk = walk;
+    if (walk.length > 0) {
+      // a walk is as high as its levels, not as its largest step
+      const levels = walk.flatMap((step) => [step.from, step.to]);
+      const { scenario, variance } = this.highestVarianceDataPointValue;
+      this.highestVarianceDataPointValue = new DataPoint(Math.max(0, ...levels), scenario, this.pixelPerUnit, variance);
+      this.smallestVarianceDataPointValue = new DataPoint(
+        Math.min(0, ...levels),
+        scenario,
+        this.pixelPerUnit,
+        variance,
+      );
+      this.highestPeriodVarianceDataPointValue = this.highestVarianceDataPointValue;
+    }
     for (const point of this.totalVariances) {
       if (point == null || !Number.isFinite(point.value)) continue;
       if (point.value > Number(this.highestVarianceDataPointValue.value)) {
@@ -566,7 +623,7 @@ export class TimeChart {
     }
 
     const totalEnd = this.hasEndTotal()
-      ? this.totalGeometry(0).right + this.endTotalTextWidth() + this.styles.padding.right
+      ? this.totalGeometry(0).right + this.endTotalTextWidth() + this.bridgeEndWidth() + this.styles.padding.right
       : 0;
 
     return Math.max(axisEnd + labelBuffer, bboxTotal, titleEnd, legendEnd, indicatorEnd, totalEnd);
@@ -932,7 +989,11 @@ export class TimeChart {
     }
 
     if (this.isVarianceChart()) {
-      this.drawVarianceScenario(this.variancesDataModel, svgContainer);
+      if (this.isWalkTier()) {
+        this.drawVarianceWalk(svgContainer);
+      } else {
+        this.drawVarianceScenario(this.variancesDataModel, svgContainer);
+      }
       // before the axis: the line of a scenario switch runs over the full height of the row
       this.drawTotalVariances(svgContainer);
       this.drawAxisAndLabels(this.variancesDataModel, svgContainer);
@@ -959,6 +1020,7 @@ export class TimeChart {
         this.drawAxisAndLabels(this.dataModel, svgContainer);
         this.drawScalingIndicator(svgContainer);
         this.drawTotalColumns(svgContainer);
+        this.drawBridge(svgContainer);
       }
     }
   }
@@ -1396,6 +1458,360 @@ export class TimeChart {
     return columns;
   }
 
+  /** Pixels for one unit in a total column: its own scale, else the scale of the chart. */
+  private totalScale(): number {
+    return this.totals != null && this.totals.pixelPerUnit > 0 ? this.totals.pixelPerUnit : this.pixelPerUnit;
+  }
+
+  /**
+   * `referenceColumn`: the slot of the reference that is drawn as a column
+   * behind the series. Only where the second slot continues the series, so the
+   * place of the column behind is free. Null for the marker.
+   */
+  private referenceColumnSlot(): string | null {
+    if (!this.referenceColumn || !this.followerSlots().includes("scenario2")) {
+      return null;
+    }
+    const slot = this.referenceSlot();
+    return slot === "scenario3" || slot === "scenario4" ? slot : null;
+  }
+
+  /** True for a row of absolute variances that is drawn as a walk. */
+  private isWalkTier(): boolean {
+    return (
+      this.varianceWaterfall &&
+      this.isVarianceChart() &&
+      this.stackConfig == null &&
+      this.determineEffectiveChartMode() === ChartMode.BAR &&
+      this.variancesDataModel.every((entry) => entry.type === VarianceType.ABSOLUTE)
+    );
+  }
+
+  /** True for the row of variances the base chart draws as a bridge: the row itself is not drawn. */
+  public isBridgeTier(): boolean {
+    return (
+      this.bridge != null &&
+      this.isVarianceChart() &&
+      this.configVariances.length === this.bridgeVariances.length &&
+      this.configVariances.every((name, index) => name === this.bridgeVariances[index])
+    );
+  }
+
+  /** Why a chart with `varianceWaterfall` and totals draws no bridge, null when it does or when none is asked for. */
+  public getBridgeFallback(): string | null {
+    return this.bridgeFallback;
+  }
+
+  /**
+   * The steps of a walk: each starts at the level where the step before ended.
+   * A period without a value has no step. Behind a total column on the axis
+   * (`by` other than `all`) the walk starts again, so the walk of a group ends
+   * at the variance of its total.
+   */
+  private walkSteps(model: TimeChartDataModelEntry[], start: number = 0): WalkStep[] {
+    const steps: WalkStep[] = [];
+    const ends = new Set(this.hasTotals() && !this.hasEndTotal() ? this.totalColumns.map((column) => column.to) : []);
+    let level = start;
+    let run = 0;
+    model.forEach((entry, index) => {
+      const point = entry.scenario1;
+      if (point != null && Number.isFinite(point.value)) {
+        steps.push({ index, from: level, to: level + (point.value as number), point, run });
+        level += point.value as number;
+      }
+      if (ends.has(index)) {
+        level = start;
+        run++;
+      }
+    });
+    return steps;
+  }
+
+  /**
+   * The bridge of a chart with `varianceWaterfall` and one total over all
+   * periods at the scale of the chart: reference total, one step per period,
+   * total of the series. Null when the walk does not lead from one total to
+   * the other, with the reason in `bridgeFallback`.
+   */
+  private computeBridge(): Bridge | null {
+    this.bridgeFallback = null;
+    if (!this.varianceWaterfall || this.bridgeVariances.length === 0 || this.totals == null) {
+      return null;
+    }
+    const fail = (reason: string): null => {
+      this.bridgeFallback = reason;
+      return null;
+    };
+    if (!this.hasTotals()) {
+      // an empty chart has nothing to report
+      return this.dataModel.length === 0 ? null : fail("the chart draws no total columns");
+    }
+    const totals = this.totals!;
+    if (totals.by !== "all") return fail("totals.by is not all");
+    if (totals.aggregation !== "sum") return fail("totals.aggregation is not sum");
+    if (totals.pixelPerUnit > 0 && Math.abs(totals.pixelPerUnit - this.pixelPerUnit) > 1e-9) {
+      return fail("the totals have their own unitScaling");
+    }
+    const column = this.totalColumns[0];
+    if (column.reference == null || !(column.reference.value > 0)) return fail("the total has no reference");
+    // the walk must tell the same as the totals: the series against the reference of the total
+    const names = this.bridgeVariances.map((name) => new VarianceScenario(name)).filter((entry) => entry.isValid);
+    const referenceScenario = column.reference.scenario;
+    if (names.some((entry) => entry.delta !== referenceScenario || !column.scenarios.includes(entry.base))) {
+      return fail("the variances are not the series against the reference of the total");
+    }
+
+    // the variance model of the row, as its own tier would build it
+    const overlaps = this.varianceOverlaps;
+    const model = this.populateVarianceModel(this.bridgeVariances, this.dataModel);
+    this.varianceOverlaps = overlaps;
+    const steps = this.walkSteps(model, column.reference.value);
+    if (steps.length === 0) return fail("the variances have no value");
+    const end = steps[steps.length - 1].to;
+    const tolerance = Math.max(1e-6, Math.abs(column.total) * 1e-6);
+    if (Math.abs(end - column.total) > tolerance) {
+      return fail("the reference total plus the variances is not the total of the series");
+    }
+    // the walk hangs above the columns of the periods: a step needs room for its label
+    const room = this.styles.fontStyles.size * 2.5;
+    const followers = this.followerSlots();
+    for (const step of steps) {
+      const row = this.dataModel[step.index];
+      const slot = this.visibleSlot(row, followers);
+      const columnValue = Math.max(0, slot ? (row[slot]?.value as number) || 0 : 0);
+      const referenceSlot = this.referenceSlot();
+      const referenceValue = Math.max(0, referenceSlot ? (row[referenceSlot]?.value as number) || 0 : 0);
+      const low = Math.min(step.from, step.to);
+      if ((low - Math.max(columnValue, referenceValue)) * this.pixelPerUnit < room) {
+        return fail("the walk would cross the columns of the periods");
+      }
+    }
+    return { reference: column.reference, total: column.total, steps };
+  }
+
+  /** Width of the column of a total, in pixels, before the positions exist. */
+  private totalColumnWidth(): number {
+    return this.styles.fontStyles.size * this.styles.scaleFactors.columnWidth * (this.totals?.width ?? 1);
+  }
+
+  /** Room left of the names for the reference total of a bridge. */
+  private leadRoom(): number {
+    // `sync-space-left` is the room left of the axis for every chart that shares it: the reference total stands inside it
+    if (this.bridge == null || this.syncedLeft) {
+      return 0;
+    }
+    const fontSize = this.styles.fontStyles.size;
+    const margin = fontSize * this.styles.scaleFactors.scenarioOffset;
+    return this.totalColumnWidth() + 3 * margin + fontSize * this.styles.scaleFactors.categoryWidth * 0.5;
+  }
+
+  /** Place of the reference total of a bridge, left of the names of the chart. */
+  private leadGeometry(): { center: number; width: number; left: number; right: number } {
+    const width = this.totalColumnWidth();
+    const margin = this.position.spacings.scenarioOffset;
+    const left = this.styles.padding.left;
+    const center = left + 2 * margin + width / 2;
+    return { center, width, left, right: center + width / 2 + margin };
+  }
+
+  /** The variance of the total of a bridge: the series against the reference. */
+  private bridgeVariance(): DataPoint | null {
+    const first = this.bridge ? new VarianceScenario(this.bridgeVariances[0]) : null;
+    if (this.bridge == null || first == null || !first.isValid) {
+      return null;
+    }
+    const point = new DataPoint(
+      this.bridge.total - this.bridge.reference.value,
+      first.delta,
+      this.pixelPerUnit,
+      first.direction,
+    );
+    point.key = this.totalKey(this.totalColumns[0], this.bridgeVariances[0]);
+    return point;
+  }
+
+  /** x of the bar of the total variance of a bridge, right of the total column and its names. */
+  private bridgeVarianceX(): number {
+    return this.totalGeometry(0).right + this.endTotalTextWidth() + this.position.spacings.labelToColumn;
+  }
+
+  private bridgeBarWidth(): number {
+    return this.position.getColumnWidth() * 0.25;
+  }
+
+  /** Width of the bar of the total variance of a bridge and of its label. */
+  private bridgeEndWidth(): number {
+    const point = this.isVarianceChart() ? null : this.bridgeVariance();
+    if (point == null) {
+      return 0;
+    }
+    const gap = this.position.spacings.labelToColumn;
+    const digits = this.dataFormatDigits?.decimal ?? 1;
+    const text =
+      "+" +
+      Formatter.number(
+        Math.abs(point.value as number),
+        "decimal",
+        digits,
+        digits,
+        this.measureScale?.value || 1,
+        this.styles.locale,
+      );
+    const width = CalculateSize(text, {
+      font: this.styles.fontStyles.font,
+      fontSize: this.styles.fontStyles.size + "px",
+    }).width;
+    return gap + this.bridgeBarWidth() + gap + width;
+  }
+
+  /** The steps of a walk as columns that hang at their level, and the thin lines between them. */
+  private drawWalkSteps(steps: WalkStep[], scale: number, group: G, labelGroup: G, lineGroup: G): void {
+    const axisY = this.position.getColumnPositionY();
+    const half = this.position.getColumnWidth() / 2;
+    steps.forEach((step, at) => {
+      // named by the period, like the columns of a plain row
+      const columnGroup = group.group().id("" + step.index);
+      const labels = labelGroup.group().id("" + step.index);
+      new Column(this.position, this.scenarioStyles(), step.point, step.index, true, columnGroup, null, null)
+        .updateLabelGroup(labels)
+        .setAsVariance()
+        .draw(this.dataFormatDigits, this.measureScale);
+      // the column is drawn from the axis: it moves to the level where the step before ended
+      columnGroup.translate(0, -step.from * scale);
+      labels.translate(0, -step.from * scale);
+      const next = steps[at + 1];
+      if (next != null && next.run === step.run) {
+        const y = axisY - step.to * scale;
+        lineGroup
+          .line(
+            this.position.getColumnCenterPositionX(step.index) + half,
+            y,
+            this.position.getColumnCenterPositionX(next.index) - half,
+            y,
+          )
+          .stroke({ color: WALK_LINE, width: 1 });
+      }
+    });
+  }
+
+  /** A row of absolute variances as a walk from the axis of the row. */
+  private drawVarianceWalk(svgContainer: Svg): void {
+    const scenarios = svgContainer.group().id("Scenarios");
+    const lineGroup = scenarios.group().id("WalkLines");
+    const group = scenarios.group().id("Walk");
+    const labelGroup = scenarios.group().id("WalkLabels");
+    this.drawWalkSteps(this.walk, this.pixelPerUnit, group, labelGroup, lineGroup);
+
+    const box = scenarios.bbox();
+    this.scenariosArea = {
+      height: box.height + this.styles.padding.top + this.styles.padding.bottom,
+      width: box.width + this.position.spacings.columnWidth,
+    };
+  }
+
+  /**
+   * The bridge of the base chart: the reference total before the periods, the
+   * walk of the variances at the level of its end, thin lines from the two
+   * totals, and the variance of the total as a bar between the two levels.
+   */
+  private drawBridge(svgContainer: Svg): void {
+    const bridge = this.bridge;
+    if (bridge == null || this.isVarianceChart()) {
+      return;
+    }
+    const scale = this.pixelPerUnit;
+    const axisY = this.position.getColumnPositionY();
+    const gap = this.position.spacings.labelToColumn;
+    const column = this.totalColumns[0];
+    const lineGroup = svgContainer.group().id("BridgeLines");
+    const group = svgContainer.group().id("Bridge");
+    const labelGroup = svgContainer.group().id("BridgeLabels");
+    // behind the columns
+    lineGroup.back();
+
+    // the reference total, with its own piece of axis
+    const lead = this.leadGeometry();
+    const look = this.columnLook(bridge.reference.scenario);
+    const referenceHeight = bridge.reference.value * scale;
+    const referenceKey = this.totalKey(column, bridge.reference.scenario);
+    group
+      .rect(lead.width, referenceHeight)
+      .cx(lead.center)
+      .y(axisY - referenceHeight)
+      .fill(look.fill)
+      .stroke(look.stroke)
+      .attr(dataPointAttributes(referenceKey, "element"))
+      .attr("data-bn-value", bridge.reference.value);
+    new Label(
+      labelGroup,
+      lead.center,
+      axisY - referenceHeight - gap,
+      "BRIDGE_REFERENCE",
+      bridge.reference.value,
+      this.styles,
+      HookLocation.Bottom,
+      HookLocation.Center,
+    )
+      .setPoint(referenceKey)
+      .draw(true, this.dataFormatDigits, this.measureScale);
+    const axisLineY = this.position.getAxisPositionY(false);
+    const scenario = this.axisScenario == null ? "default" : `${this.axisScenario}`.slice(0, 2);
+    group.line(lead.left, axisLineY, lead.right, axisLineY).addClass("axis-" + scenario);
+    if (this.hideAxisLabels === false) {
+      new Label(
+        labelGroup,
+        lead.center,
+        axisLineY + this.position.spacings.labelToAxis,
+        "BRIDGE_REFERENCE_LABEL",
+        this.scenarioName(bridge.reference.scenario),
+        this.styles,
+        HookLocation.Top,
+        HookLocation.Center,
+      ).forceStringTypeDraw();
+    }
+
+    // the walk, and the lines of the two levels
+    const steps = bridge.steps;
+    const half = this.position.getColumnWidth() / 2;
+    const barX = this.bridgeVarianceX();
+    const referenceY = axisY - referenceHeight;
+    const totalY = axisY - bridge.total * scale;
+    const stroke = { color: WALK_LINE, width: 1 };
+    lineGroup.line(lead.center + lead.width / 2, referenceY, barX, referenceY).stroke(stroke);
+    lineGroup
+      .line(this.position.getColumnCenterPositionX(steps[steps.length - 1].index) + half, totalY, barX, totalY)
+      .stroke(stroke);
+    this.drawWalkSteps(steps, scale, group, labelGroup, lineGroup);
+
+    // the variance of the total: a thin bar between the two levels, with its value. It is a
+    // difference marker, not a column of the row: it stays solid, also with a forecast in the total
+    const point = this.bridgeVariance();
+    if (point != null && point.value !== 0) {
+      const style = this.styles.varianceStyles.getSVGStyle(point.getVarianceStyle());
+      const width = this.bridgeBarWidth();
+      group
+        .rect(width, Math.abs(referenceY - totalY))
+        .x(barX)
+        .y(Math.min(referenceY, totalY))
+        .fill(style?.fill || "#000000")
+        .attr(dataPointAttributes(point.key, "element"))
+        .attr("data-bn-value", point.value as number);
+      new Label(
+        labelGroup,
+        barX + width + gap,
+        (referenceY + totalY) / 2,
+        "BRIDGE_VARIANCE",
+        point.value,
+        this.styles,
+        HookLocation.Center,
+        HookLocation.Left,
+      )
+        .setPoint(point.key)
+        .setToVarianceLabel()
+        .draw(true, this.dataFormatDigits, this.measureScale);
+    }
+  }
+
   /** Height of the highest total column in pixels: its parts, its reference and its band of the scaling indicator. */
   private totalsHeight(): number {
     if (!this.hasTotals()) {
@@ -1403,7 +1819,8 @@ export class TimeChart {
     }
     const band = this.hasScalingIndicator() ? this.scalingIndicator : 0;
     const units = Math.max(...this.totalColumns.map((column) => Math.max(column.total, column.reference?.value ?? 0)));
-    return Math.max(units, band) * this.totals!.pixelPerUnit;
+    const levels = this.bridge ? this.bridge.steps.flatMap((step) => [step.from, step.to]) : [];
+    return Math.max(units, band, ...levels) * this.totalScale();
   }
 
   /**
@@ -1570,7 +1987,7 @@ export class TimeChart {
     if (!this.hasTotals() || this.isVarianceChart()) {
       return;
     }
-    const scale = this.totals!.pixelPerUnit;
+    const scale = this.totalScale();
     const axisY = this.position.getColumnPositionY();
     const gap = this.position.spacings.labelToColumn;
     const atEnd = this.hasEndTotal();
@@ -1600,7 +2017,8 @@ export class TimeChart {
         }
       }
 
-      if (column.reference != null && column.reference.value > 0) {
+      // the reference of a bridge stands before the periods
+      if (column.reference != null && column.reference.value > 0 && this.bridge == null) {
         const look = this.columnLook(column.reference.scenario);
         const height = column.reference.value * scale;
         group
@@ -1875,6 +2293,8 @@ export class TimeChart {
     }
     // the series names of a stack by dimension are not known to the component that hands in the offset
     maxLabelLengthLeft = Math.max(maxLabelLengthLeft, this.legendWidth("left"));
+    // the reference total of a bridge stands left of the names, in every tier of the chart
+    maxLabelLengthLeft += this.leadRoom();
 
     let min: DataPoint;
     let max: DataPoint;
@@ -2476,6 +2896,13 @@ export class TimeChart {
   private dateLabelPlace(elements: TimeChartDataModelEntry): { hookLocation: HookLocation; offset: number } {
     let flipped = elements["scenario1"]["value"] < 0;
     let offset = this.position.spacings.labelToAxis;
+    const step = this.walk.find((entry) => entry.index === elements.id);
+    if (step != null) {
+      // a step hangs at its level: the label stands opposite the side the column is on
+      const low = Math.min(step.from, step.to);
+      const high = Math.max(step.from, step.to);
+      flipped = high <= 0 ? low < 0 : low < 0 && flipped;
+    }
 
     if (this.stackConfig != null && !this.isVarianceChart()) {
       // a column stack prints its total behind its segments, a 100 % stack and the area print none
@@ -2645,6 +3072,7 @@ export class TimeChart {
 
     let hasValidPrim: boolean = false;
     const followers = this.followerSlots();
+    const referenceColumn = this.referenceColumnSlot();
 
     dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
       // a follower takes the place of the first scenario: full column with value label, named under the axis
@@ -2660,10 +3088,14 @@ export class TimeChart {
       if (visible !== "scenario2") {
         scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
       }
-      if (visible !== "scenario3") {
+      if (referenceColumn === "scenario3") {
+        scenarioFactory.createSecondaryBar(elements["scenario3"], index).draw();
+      } else if (visible !== "scenario3") {
         scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
       }
-      if (visible !== "scenario4") {
+      if (referenceColumn === "scenario4") {
+        scenarioFactory.createSecondaryBar(elements["scenario4"], index).draw();
+      } else if (visible !== "scenario4") {
         scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
       }
 

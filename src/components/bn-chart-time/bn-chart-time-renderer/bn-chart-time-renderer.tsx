@@ -175,6 +175,22 @@ export class BnChartTimeRenderer {
 
   /** @internal */
   @Prop()
+  varianceWaterfall: boolean = false;
+
+  /** @internal */
+  @Prop()
+  bridgeVariances: string[] = [];
+
+  /** @internal */
+  @Prop()
+  referenceColumn: boolean = false;
+
+  /** @internal */
+  @Prop()
+  syncedLeft: boolean = false;
+
+  /** @internal */
+  @Prop()
   parentDimensions: ParentDimensions = { width: 0, height: 0 };
 
   /** @internal */
@@ -212,6 +228,11 @@ export class BnChartTimeRenderer {
       return <Host />;
     }
 
+    if (this.chart.isBridgeTier()) {
+      // the base chart draws this row as the bridge between its total columns
+      return <Host class="bridge-tier" style={{ display: "none" }} />;
+    }
+
     if (this.chart.hasNoData()) {
       const errorMsg: string = this.i18n.get("no-data") ?? "No Data";
       return (
@@ -245,6 +266,16 @@ export class BnChartTimeRenderer {
 
     // the renderers of the variance rows share the error store: only the base chart reports
     if (this.variances.every((variance) => variance === "")) {
+      const fallback = this.chart?.getBridgeFallback() ?? null;
+      if (fallback) {
+        this.errors?.addOrReplace({
+          id: "WARN_varianceWaterfall_bridge",
+          type: "warning",
+          message: `varianceWaterfall: no bridge between the totals, ${fallback}. The variances are a walk in their own row.`,
+        });
+      } else {
+        this.errors?.remove("WARN_varianceWaterfall_bridge");
+      }
       const ignored = this.chart?.getIgnoredSwitchScenarios() ?? [];
       if (ignored.length > 0) {
         this.errors?.addOrReplace({
@@ -536,6 +567,10 @@ export class BnChartTimeRenderer {
       totals: this.totals,
       scenarioSwitch: this.scenarioSwitch,
       axisTitlePosition: this.axisTitlePosition,
+      varianceWaterfall: this.varianceWaterfall,
+      bridgeVariances: this.bridgeVariances,
+      referenceColumn: this.referenceColumn,
+      syncedLeft: this.syncedLeft,
       locale: this.stores?.context?.state?.locale || "de",
     });
   }

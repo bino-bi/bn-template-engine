@@ -38,7 +38,7 @@ export interface TotalsConfig {
   by: "all" | "year" | "quarter" | "month" | "week";
   /** How the periods become one value. Only `sum` stacks one part per scenario. */
   aggregation: "sum" | "average" | "last";
-  /** Pixels for one unit in a total column. */
+  /** Pixels for one unit in a total column. 0: the scale of the chart. */
   pixelPerUnit: number;
   /** Text under the column of `by: all`. The others take the name of their period. */
   label: string;
@@ -94,6 +94,14 @@ export class TimeChartComponentConfig {
   public scenarioSwitch: boolean = false;
   /** Side of the axis title: left, right or none. */
   public axisTitlePosition: string = "left";
+  /** Absolute variances as a walk: each column starts where the one before ended. */
+  public varianceWaterfall: boolean = false;
+  /** The variances of the first absolute row: with totals at the scale of the chart the base chart draws them as a bridge. */
+  public bridgeVariances: string[] = [];
+  /** With `scenarioSwitch`: the reference is a column behind the series, not a marker. */
+  public referenceColumn: boolean = false;
+  /** The left space comes from `sync-space-left`: the chart adds no room of its own to it. */
+  public syncedLeft: boolean = false;
   /** Locale used for date-axis labels and SQL date normalization; set from the bn-context locale. */
   public locale: string = "de";
   constructor(
@@ -218,7 +226,7 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     }
 
     const totals = data.totals as Partial<TotalsConfig> | null | undefined;
-    if (totals != null && CompareUtil.isNumber(totals.pixelPerUnit) && totals.pixelPerUnit > 0) {
+    if (totals != null && CompareUtil.isNumber(totals.pixelPerUnit) && totals.pixelPerUnit >= 0) {
       const by = ["all", "year", "quarter", "month", "week"].includes(totals.by as string) ? totals.by! : "all";
       const aggregation = ["sum", "average", "last"].includes(totals.aggregation as string)
         ? totals.aggregation!
@@ -239,6 +247,22 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isString(data.axisTitlePosition)) {
       config.axisTitlePosition = data.axisTitlePosition;
+    }
+
+    if (CompareUtil.isBoolean(data.varianceWaterfall)) {
+      config.varianceWaterfall = data.varianceWaterfall;
+    }
+
+    if (CompareUtil.isArray(data.bridgeVariances)) {
+      config.bridgeVariances = AdapterUtils.adaptArray(data.bridgeVariances, this.stringAdapter);
+    }
+
+    if (CompareUtil.isBoolean(data.referenceColumn)) {
+      config.referenceColumn = data.referenceColumn;
+    }
+
+    if (CompareUtil.isBoolean(data.syncedLeft)) {
+      config.syncedLeft = data.syncedLeft;
     }
 
     if (CompareUtil.isString(data.locale)) {
