@@ -153,7 +153,8 @@ export class ChartBubble {
    * two ticks, without it the chart picks one. `titlePosition` is `outside` (default: the title has a row of its own,
    * above the plot for y and below the tick labels for x) or `beside`: the
    * name and below it the unit, left of the top of the y axis and right of
-   * the end of the x axis.
+   * the end of the x axis. A line break in `label` starts a new line of
+   * such a title. `decimals` sets the decimals of the tick labels.
    */
   @Prop() x!: string;
   @Watch("x")
@@ -175,7 +176,8 @@ export class ChartBubble {
    * value; values must be >= 0. JSON object or bare token:
    * `{"measure":"ac3","label":"Net sales","unit":"mEUR",
    * "group":"netsales-area"}`. `group` references a `bn-scaling-group` for
-   * cross-chart value→area synchronization.
+   * cross-chart value→area synchronization. `decimals` sets the decimals
+   * of the values in the bubbles.
    */
   @Prop() size!: string;
   @Watch("size")
@@ -282,6 +284,7 @@ export class ChartBubble {
   /**
    * Legend (series colors, bubble size caption, comparison scenarios).
    * JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
+   * `exclude` lists the names of series that get no entry.
    */
   @Prop() legend: string = "";
   @Watch("legend")
@@ -854,6 +857,8 @@ export class ChartBubble {
         axisStyles: $["bn-chart-bubble"]["axisStyles"],
         seriesColors: $["bn-chart-bubble"]["seriesColors"],
         markStyles: $["bn-chart-bubble"]["markStyles"],
+        seriesFills: $["bn-chart-bubble"]["seriesFills"],
+        shareColors: $["bn-chart-bubble"]["shareColors"],
         padding: $["bn-chart-bubble"]["padding"],
       } as unknown as XYChartStyle;
     });

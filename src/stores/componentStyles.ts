@@ -155,6 +155,10 @@ export interface XYChartStyle {
   seriesColors: string[];
   /** The outline of a filled dot or bubble, and the opacity (0 to 1) of its fill. */
   markStyles: { stroke: string; opacity: number };
+  /** Fill per series, in the order of `seriesColors`: `solid` or `outline` (a line in the series colour around a nearly clear fill). */
+  seriesFills: string[];
+  /** Colour of the share slice of a bubble per series, in the order of `seriesColors`. Without an entry: a darker shade of the series colour. */
+  shareColors: string[];
   padding: {
     top: number;
     left: number;
@@ -183,6 +187,8 @@ const xyChartStyleDefaults = (): XYChartStyle => ({
   },
   seriesColors: [...XY_SERIES_PALETTE],
   markStyles: { stroke: "#ffffff", opacity: 1 },
+  seriesFills: [],
+  shareColors: [],
   padding: {
     top: 10,
     left: 10,

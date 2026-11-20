@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-scatter`, `bn-chart-bubble`: `seriesFills` in the component style, one entry per series in the order of `seriesColors`: `solid` (default) or `outline`. An outlined series is a line in its colour around a nearly clear fill, with its values in that colour. What is behind it stays visible, and a name may stand in it. For example a total drawn over its parts.
+- `bn-chart-bubble`: `shareColors` in the component style sets the colour of the share slice per series. Without an entry the slice is the darker shade of the series colour, as before.
+- `bn-chart-scatter`, `bn-chart-bubble`: `decimals` in `x` and `y` sets the decimals of the tick labels, `decimals` in `size` those of the values in the bubbles.
+- `bn-chart-scatter`, `bn-chart-bubble`: `exclude` in `legend` lists series that get no legend entry.
+- `bn-chart-scatter`, `bn-chart-bubble`: with `titlePosition: "beside"` a line break in `label` starts a new line of the axis title. In a title outside the plot it counts as a space.
+- `bn-chart-scatter`, `bn-chart-bubble`: `WARN_xy_label_dropped` names the labels of a typed `labels.points` list that found no place, with their panel. Nothing is reported for `all` and `auto`, which label what fits.
 - `bn-chart-scatter`, `bn-chart-bubble`: `titlePosition` in `x` and `y`. With `beside` the title stands in two lines beside the end of its axis, the name and below it the unit: left of the top of the y axis, right of the end of the x axis. The default `outside` is the place of before.
 - `bn-chart-scatter`, `bn-chart-bubble`: `align` in `legend` moves the legend along its side: `start` (default), `center` or `end`.
 - `bn-annotation-layer`: a `frame` around two data points whose ellipse has no room in the layer is drawn as a frame with round corners close around both. Before, the ellipse was cut to the layer and could cross its data points.
@@ -72,6 +78,11 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
+- `bn-chart-bubble`: with `compareWith` the comparison bubble of a named point carries the name too, unless it is fully behind its own bubble. A name that finds no free place stands on the side where the least of it covers a bubble. Before, such a name was left out. A name never stands on another name, on a value or on the title of a panel.
+- `bn-chart-bubble`: the share slice has the outline of its bubble. Before, it had none.
+- `bn-chart-bubble`: the chart is as high as its bubbles. A bubble that hangs below or above the plot is part of the height of the chart, so it is not cut at the edge of a card. The plot moves down by what a bubble hangs out at the top, and a legend below the chart moves below the lowest bubble.
+- `bn-chart-scatter`: with `facet`, a point label does not stand on the title of its panel. It takes another side, or is left out when no side is free.
+- `bn-chart-scatter`, `bn-chart-bubble`: in a facet row the first and the last tick label of the x axis stay inside their panel when a panel stands next to it. Before, the two labels at a gap ran into each other (`2,00,0`).
 - `bn-chart-structure`: with a fixed `unit-scaling` (and a fixed `percentage-scaling` when the chart has a relative variance) the segments share the width of the chart. A segment that needs less than its equal share leaves the rest to the others. Before, each segment had its share only, so long bars got break marks while the chart had room. A segment that fits its room as it is gets no break marks.
 - `bn-chart-structure`: the value of a longer reference bar is printed whenever the label of the front bar fits between the two bar ends. In a chart with break marks only the rows whose bars are cut lose it. Before, it needed more room, and one break mark in the chart removed all of them.
 - `bn-chart-structure`: with `scenario-label-position="top"` and a reference bar in the first row, the name of the first scenario stands at the end of its bar, on the line of the name of the reference. Before, it stood at the axis, on the start of the reference bar. A chart with one scenario keeps the name at the axis.
@@ -114,6 +125,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
+- Charts with an automatic `scale`: a chart whose parent had no box at the time of a render got the font size `NaNpx`, drew in the default size of the browser and kept that. The same page could so come out in two forms. Seen with bubble charts that use a `bn-scaling-group`. The chart now waits for a parent with a width.
+- `bn-chart-scatter`, `bn-chart-bubble`: with `facet`, a name of `labels.points` that only some panels have was reported as unknown. It is unknown now only when no panel has it.
 - `bn-chart-scatter`, `bn-chart-bubble`: text widths were measured in the font of the page and not in the font of the chart. Where the two differ, the bold name of an axis title ran into its unit (`Net salesin mEUR`), and the room for the legend and the tick labels was off. The widths are measured in the font of the chart now, so legends, labels and the plot can move by a few px.
 - `bn-chart-scatter`: the caption of the iso-lines stood directly on the highest value. It has half a line of distance now.
 

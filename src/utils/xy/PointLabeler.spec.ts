@@ -119,5 +119,30 @@ describe("PointLabeler", () => {
       );
       expect(intersects).toBe(false);
     });
+
+    it("drops a label that has no free side", () => {
+      const labeler = new PointLabeler(FRAME, 4);
+      labeler.registerMark(500, 300, 400);
+      expect(labeler.place([candidate({})])).toHaveLength(0);
+    });
+
+    it("puts a label on marks when that is allowed, on the side where the least of it is covered", () => {
+      const labeler = new PointLabeler(FRAME, 4, undefined, true);
+      // all above the point is covered, and a mark stands below it: no side is free
+      labeler.registerMark(500, -204, 500);
+      labeler.registerMark(500, 330, 20);
+      const placed = labeler.place([candidate({})]);
+      expect(placed).toHaveLength(1);
+      // below and to the right the label only touches the corner of the lower mark
+      expect(placed[0].anchor).toBe("se");
+    });
+
+    it("never puts a label on a registered text or on another label", () => {
+      const labeler = new PointLabeler(FRAME, 4, undefined, true);
+      const first = labeler.place([candidate({ name: "first" })])[0];
+      labeler.registerText(0, 0, FRAME.width, FRAME.height);
+      expect(first).toBeDefined();
+      expect(labeler.place([candidate({ name: "second", cx: 600 })])).toHaveLength(0);
+    });
   });
 });

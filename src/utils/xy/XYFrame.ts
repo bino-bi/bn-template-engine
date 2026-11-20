@@ -19,6 +19,9 @@ export interface TickRenderConfig {
   /** Outer-edge panels only (facet grids label outer edges, 10F/10G style). */
   showXLabels: boolean;
   showYLabels: boolean;
+  /** A panel stands left (right) of this one: a label on that edge of the x axis stays inside the panel. */
+  panelLeft?: boolean;
+  panelRight?: boolean;
 }
 
 /**
@@ -129,9 +132,12 @@ export class XYFrame {
     if (config.showXLabels) {
       for (const tick of config.ticksX) {
         const x = this.xScale.scale(tick);
+        // centred on the edge it would run into the label of the next panel
+        const atLeft = config.panelLeft === true && Math.abs(x - this.rect.x) < 0.5;
+        const atRight = config.panelRight === true && Math.abs(x - this.rect.x - this.rect.width) < 0.5;
         group
           .text(formatXYValue(tick, config.xDecimals, this.styles.locale, config.xPercent))
-          .font({ ...font, anchor: "middle" })
+          .font({ ...font, anchor: atLeft ? "start" : atRight ? "end" : "middle" })
           .fill(color)
           .attr({ x, y: this.rect.y + this.rect.height + gap + this.em * 0.8, "font-family": family });
       }
@@ -149,19 +155,21 @@ export class XYFrame {
     }
   }
 
+  /** Where the baseline of the panel title starts. */
+  public panelTitleOrigin(): { x: number; y: number } {
+    return { x: this.rect.x + 0.5 * this.em, y: this.rect.y + 1.2 * this.em };
+  }
+
   /** Facet panel title, top-left inside the panel, bold (10F "Europe"/"RoW"). */
   public drawPanelTitle(group: G, title: string): void {
     if (title === "") {
       return;
     }
+    const origin = this.panelTitleOrigin();
     group
       .text(title)
       .font({ size: this.styles.fontStyles.size, weight: "bold", anchor: "start" })
       .fill(this.styles.fontStyles.color)
-      .attr({
-        x: this.rect.x + 0.5 * this.em,
-        y: this.rect.y + 1.2 * this.em,
-        "font-family": this.fontFamily(),
-      });
+      .attr({ x: origin.x, y: origin.y, "font-family": this.fontFamily() });
   }
 }

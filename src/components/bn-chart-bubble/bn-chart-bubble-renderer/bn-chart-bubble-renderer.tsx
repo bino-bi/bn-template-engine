@@ -29,6 +29,7 @@ const BUBBLE_DATA_WARNING_CODES = [
   "xy-point-clipped",
   "xy-variance-nodata",
   "xy-label-unknown",
+  "xy-label-dropped",
   "xy-series-overflow",
   "xy-point-budget",
   "bubble-size-negative",

@@ -41,7 +41,8 @@ export function getParentDimensions(element: HTMLElement, debug = false): Parent
     );
   }
 
-  return { width: Math.max(0, width), height: Math.max(0, height) };
+  // A parent that is not laid out has no computed padding: the width is NaN then, and a caller that scales by it never recovers.
+  return { width: Number.isFinite(width) ? Math.max(0, width) : 0, height: Math.max(0, height) };
 }
 
 /**

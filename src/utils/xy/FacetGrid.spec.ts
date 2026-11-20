@@ -64,3 +64,12 @@ describe("FacetGrid", () => {
     expect(grid.columns).toBe(2);
   });
 });
+
+describe("FacetGrid neighbours in a row", () => {
+  it("tells which panels have one to the left and to the right", () => {
+    const grid = new FacetGrid(5, 3, { x: 0, y: 0, width: 900, height: 400 }, 20);
+    expect([0, 1, 2, 3, 4].map((i) => grid.hasLeftNeighbour(i))).toEqual([false, true, true, false, true]);
+    // the last row is not full: panel 4 is its last one
+    expect([0, 1, 2, 3, 4].map((i) => grid.hasRightNeighbour(i))).toEqual([true, true, false, true, false]);
+  });
+});

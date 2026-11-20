@@ -142,7 +142,8 @@ export class ChartScatter {
    * distance between two ticks, without it the chart picks one. `titlePosition` is `outside` (default: the title has a row of its own,
    * above the plot for y and below the tick labels for x) or `beside`: the
    * name and below it the unit, left of the top of the y axis and right of
-   * the end of the x axis. The measure is a
+   * the end of the x axis. A line break in `label` starts a new line of
+   * such a title. `decimals` sets the decimals of the tick labels. The measure is a
    * scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`,
    * sentiment suffix optional). A relative variance (`dr…`) gives an axis
    * in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and
@@ -244,6 +245,7 @@ export class ChartScatter {
   /**
    * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom",
    * "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
+   * `exclude` lists the names of series that get no entry.
    */
   @Prop() legend: string = "";
   @Watch("legend")
@@ -742,6 +744,7 @@ export class ChartScatter {
         axisStyles: $[tag]["axisStyles"],
         seriesColors: $[tag]["seriesColors"],
         markStyles: $[tag]["markStyles"],
+        seriesFills: $[tag]["seriesFills"],
         padding: $[tag]["padding"],
       } as unknown as XYChartStyle;
     });

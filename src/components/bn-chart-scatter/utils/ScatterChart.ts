@@ -6,12 +6,26 @@ import { AlaSQLDatabase } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
-import { formatXYValue, xyTickDecimals } from "../../../utils/xy/formatXYValue";
-import { axisTitleLines, isTitleBeside, legendOffset } from "../../../utils/xy/AxisTitles";
+import { formatXYValue } from "../../../utils/xy/formatXYValue";
+import {
+  axisDecimals,
+  axisLabel,
+  axisTitleLines,
+  AxisTitleLine,
+  isTitleBeside,
+  legendOffset,
+} from "../../../utils/xy/AxisTitles";
+import { LabelReport } from "../../../utils/xy/LabelReport";
 import { IsoCurves } from "../../../utils/xy/IsoCurves";
 import { NumericScale } from "../../../utils/xy/NumericScale";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
-import { markTreatment, MarkTreatment, resolveSeriesColor } from "../../../utils/xy/SeriesPalette";
+import {
+  isOutlinedSeries,
+  markTreatment,
+  MarkTreatment,
+  outlineTreatment,
+  resolveSeriesColor,
+} from "../../../utils/xy/SeriesPalette";
 import { axisInValueUnits, isRelativeMeasure, resolveMeasure } from "../../../utils/xy/VarianceMeasure";
 import { XYFrame } from "../../../utils/xy/XYFrame";
 import { LegendEntry, LegendModel, XYLegend } from "../../../utils/xy/XYLegend";
@@ -62,6 +76,7 @@ interface PanelContext {
 export class ScatterChart {
   private data: ResolvedXYData;
   private warnings: XYWarningRecord[] = [];
+  private labelReport: LabelReport = new LabelReport();
   /** Text of the query that failed. The component reports it as ERR_sql. */
   private queryError: string | undefined;
   private canvasHeight: number = 0;
@@ -174,7 +189,7 @@ export class ScatterChart {
 
   /** Axis title in the IBCS "Label in Unit" form. */
   private axisTitle(axis: AxisConfig, inWord: string): string {
-    const label = axis.label ?? "";
+    const label = axisLabel(axis);
     if (label === "") {
       return "";
     }
@@ -192,10 +207,13 @@ export class ScatterChart {
 
   /** Ordered legend entries: one per series, colored by the primary treatment. */
   private legendModel(): LegendModel {
-    const entries: LegendEntry[] = this.data.series.map((series) => ({
-      label: series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
-      treatment: this.seriesTreatment(series.index),
-    }));
+    const excluded = this.config.legend.exclude ?? [];
+    const entries: LegendEntry[] = this.data.series
+      .filter((series) => !excluded.includes(series.key))
+      .map((series) => ({
+        label: series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
+        treatment: this.seriesTreatment(series.index),
+      }));
 
     return {
       sizeCaption: [],
@@ -219,13 +237,11 @@ export class ScatterChart {
     if (overflowed) {
       this.addWarningOnce("xy-series-overflow", {});
     }
-    return markTreatment(
-      this.primaryColorIndex(),
-      color,
-      "dot",
-      this.styles.markStyles.stroke,
-      this.styles.markStyles.opacity,
-    );
+    const colorIndex = this.primaryColorIndex();
+    if (isOutlinedSeries(this.styles.seriesFills, seriesIndex) && colorIndex !== 30 && colorIndex !== 50) {
+      return outlineTreatment(color, "dot");
+    }
+    return markTreatment(colorIndex, color, "dot", this.styles.markStyles.stroke, this.styles.markStyles.opacity);
   }
 
   private addWarningOnce(code: string, data: Record<string, string>): void {
@@ -246,6 +262,7 @@ export class ScatterChart {
 
   private draw(container: Svg): void {
     this.warnings = this.data.warnings.slice();
+    this.labelReport = new LabelReport();
     const em = this.em;
     const padding = this.styles.padding;
     const inWord = this.i18nMap.get("axis.in") || "in";
@@ -283,12 +300,13 @@ export class ScatterChart {
     const xBeside = isTitleBeside(this.config.x);
     const yLines = axisTitleLines(this.config.y, inWord);
     const xLines = axisTitleLines(this.config.x, inWord);
-    const linesWidth = (lines: { label: string; suffix: string }): number =>
-      Math.max(this.textWidth(lines.label, true), this.textWidth(lines.suffix));
+    const linesWidth = (lines: AxisTitleLine[]): number =>
+      Math.max(0, ...lines.map((line) => this.textWidth(line.text, line.bold)));
+    const lineH = 1.15 * em;
     const yTitleW = yBeside ? linesWidth(yLines) + 0.5 * em : 0;
     const xTitleW = xBeside ? linesWidth(xLines) : 0;
     const yTitleH = yTitleText !== "" ? (yBeside ? 1.2 : 1.4) * em : 0.4 * em;
-    const xAxisH = 1.4 * em + (xBeside ? (xLines.suffix !== "" ? 1.15 * em : 0) : xTitleText !== "" ? 1.3 * em : 0);
+    const xAxisH = 1.4 * em + (xBeside ? (xLines.length - 1) * lineH : xTitleText !== "" ? 1.3 * em : 0);
 
     // First pass with an estimated left-axis reservation, refined below.
     let axisLeftW = 3 * em;
@@ -313,7 +331,7 @@ export class ScatterChart {
     const likelyTicksX = new NumericScale(xDomain[0], xDomain[1], 0, 1).ticks(6, this.config.x.step);
     const likelyLabel = formatXYValue(
       likelyTicksX[likelyTicksX.length - 1],
-      xyTickDecimals(likelyTicksX, this.xPercent),
+      axisDecimals(this.config.x, likelyTicksX, this.xPercent),
       this.styles.locale,
       this.xPercent,
     );
@@ -338,7 +356,7 @@ export class ScatterChart {
       const yScale = new NumericScale(yDomain[0], yDomain[1], panelH, 0);
       ticksY = yScale.ticks(targetY, this.config.y.step);
 
-      const yDecimals = xyTickDecimals(ticksY, this.yPercent);
+      const yDecimals = axisDecimals(this.config.y, ticksY, this.yPercent);
       const maxTickW = Math.max(
         ...ticksY.map((tick) => this.textWidth(formatXYValue(tick, yDecimals, this.styles.locale, this.yPercent))),
         em,
@@ -360,12 +378,11 @@ export class ScatterChart {
 
     // Y axis title, top-left above the plot (template style).
     if (yBeside) {
-      // right-aligned left of the tick labels: the name above the top of the axis, the unit below it
+      // right-aligned left of the tick labels: the first line above the top of the axis, the others below it
       const x = padding.left + yTitleW - 0.5 * em;
-      this.drawText(root, yLines.label, x, drawing.y - 0.3 * em, { anchor: "end", bold: true });
-      if (yLines.suffix !== "") {
-        this.drawText(root, yLines.suffix, x, drawing.y + 0.85 * em, { anchor: "end" });
-      }
+      yLines.forEach((line, index) => {
+        this.drawText(root, line.text, x, drawing.y - 0.3 * em + index * lineH, { anchor: "end", bold: line.bold });
+      });
     } else if (yTitleText !== "") {
       this.drawAxisTitleText(root, this.config.y, inWord, padding.left, drawing.y - 0.6 * em, "start");
     }
@@ -375,8 +392,8 @@ export class ScatterChart {
       Math.max(3, Math.min(8, Math.round(panels[0].rect.width / (7 * em)))),
       this.config.x.step,
     );
-    const xDecimals = xyTickDecimals(ticksX, this.xPercent);
-    const yDecimals = xyTickDecimals(ticksY, this.yPercent);
+    const xDecimals = axisDecimals(this.config.x, ticksX, this.xPercent);
+    const yDecimals = axisDecimals(this.config.y, ticksY, this.yPercent);
 
     // Iso guard: no axis may go below 0.
     let isoDrawable = false;
@@ -415,21 +432,23 @@ export class ScatterChart {
           grid!.isOuterBottom(index),
           isoDrawable,
           this.data.facets.length > 1 ? facet.key : "",
+          // a panel above the last row shows no x labels: nothing to run into
+          grid!.hasLeftNeighbour(index) && grid!.isOuterBottom(index - 1),
+          grid!.hasRightNeighbour(index),
         );
       });
     }
 
     // X axis title, right-aligned below the bottom-right panel.
     if (xBeside) {
-      // right of the last tick label: the name in the row of the tick labels, the unit below it.
+      // right of the last tick label: the first line in the row of the tick labels, the others below it.
       // The last panel has the axis that ends last, also when the last row of a facet grid is not full.
       const last = panels[panels.length - 1].rect;
       const x = last.x + last.width + xTitleGap;
       const y = last.y + last.height + (this.styles.scaleFactors.axisTickLength + 0.8) * em;
-      this.drawText(root, xLines.label, x, y, { bold: true });
-      if (xLines.suffix !== "") {
-        this.drawText(root, xLines.suffix, x, y + 1.15 * em, {});
-      }
+      xLines.forEach((line, index) => {
+        this.drawText(root, line.text, x, y + index * lineH, { bold: line.bold });
+      });
     } else if (xTitleText !== "") {
       this.drawAxisTitleText(
         root,
@@ -462,6 +481,13 @@ export class ScatterChart {
       }
     }
 
+    if (this.labelReport.unknownNames().length > 0) {
+      this.addWarningOnce("xy-label-unknown", { names: this.labelReport.unknownNames().join(", ") });
+    }
+    if (this.labelReport.droppedNames().length > 0) {
+      this.addWarningOnce("xy-label-dropped", { names: this.labelReport.droppedNames().join(", ") });
+    }
+
     // Stable, empty hook for a future annotation layer (spec §12).
     container.group().addClass("annotations");
   }
@@ -475,7 +501,7 @@ export class ScatterChart {
     y: number,
     anchor: "start" | "end",
   ): void {
-    const label = axis.label ?? "";
+    const label = axisLabel(axis);
     const suffix = axis.unit !== undefined && axis.unit !== "" ? `${inWord} ${axis.unit}` : "";
 
     // SVG collapses leading whitespace in text nodes - position the suffix
@@ -517,6 +543,8 @@ export class ScatterChart {
     isOuterBottom: boolean,
     isoDrawable: boolean,
     panelTitle: string = "",
+    panelLeft: boolean = false,
+    panelRight: boolean = false,
   ): void {
     const group = root.group();
     const em = this.em;
@@ -538,6 +566,10 @@ export class ScatterChart {
     // Marks: filled circles in data order, white separation stroke.
     const radius = this.styles.scaleFactors.pointRadius * em;
     const labeler = new PointLabeler(panel.rect, this.styles.scaleFactors.labelToMark * em);
+    if (panelTitle !== "") {
+      const origin = panel.frame.panelTitleOrigin();
+      labeler.registerText(origin.x, origin.y - em, this.textWidth(panelTitle, true), 1.3 * em);
+    }
     const marks: { point: XYPoint; cx: number; cy: number; treatment: MarkTreatment }[] = [];
 
     for (const point of facet.points) {
@@ -571,6 +603,8 @@ export class ScatterChart {
       yPercent: this.yPercent,
       showXLabels: isOuterBottom,
       showYLabels: isOuterLeft,
+      panelLeft,
+      panelRight,
     });
 
     if (panelTitle !== "") {
@@ -598,9 +632,6 @@ export class ScatterChart {
       this.config.labels.max,
       (mark) => mark.point.name,
     );
-    if (unknownNames.length > 0) {
-      this.addWarningOnce("xy-label-unknown", { names: unknownNames.join(", ") });
-    }
 
     const pointOf = new Map<LabelCandidate, XYPoint>();
     const candidates: LabelCandidate[] = selected.map((mark) => {
@@ -617,11 +648,19 @@ export class ScatterChart {
       return candidate;
     });
 
-    for (const placed of labeler.place(candidates)) {
+    const placedLabels = labeler.place(candidates);
+    for (const placed of placedLabels) {
       this.drawText(group, placed.candidate.name, placed.x, placed.y + 0.9 * placed.candidate.height, {}).attr(
         dataPointAttributes(xyPointKey(pointOf.get(placed.candidate)!, facetKey, this.config), "label"),
       );
     }
+
+    // only a typed list is a promise to the author: `all` and `auto` label what fits
+    const placedNames = new Set(placedLabels.map((placed) => placed.candidate));
+    const dropped = Array.isArray(this.config.labels.points)
+      ? candidates.filter((candidate) => !placedNames.has(candidate)).map((candidate) => candidate.name)
+      : [];
+    this.labelReport.addPanel(unknownNames, dropped, facetKey);
   }
 
   private drawIso(group: G, panel: PanelContext): void {

@@ -7,11 +7,27 @@ import { errorText } from "../../../utils/queryError";
 import { IBCSRuleSet } from "../../../utils/ibcsRuleSet";
 import { getContrastTextColor } from "../../../utils/stackColors";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
-import { formatXYValue, xyTickDecimals } from "../../../utils/xy/formatXYValue";
+import { formatXYValue } from "../../../utils/xy/formatXYValue";
 import { NumericScale } from "../../../utils/xy/NumericScale";
-import { axisTitleLines, isTitleBeside, legendOffset } from "../../../utils/xy/AxisTitles";
+import {
+  axisDecimals,
+  axisLabel,
+  axisTitleLines,
+  AxisTitleLine,
+  isTitleBeside,
+  legendOffset,
+} from "../../../utils/xy/AxisTitles";
+import { LabelReport } from "../../../utils/xy/LabelReport";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
-import { markTreatment, MarkTreatment, mixHex, resolveSeriesColor, shade } from "../../../utils/xy/SeriesPalette";
+import {
+  isOutlinedSeries,
+  markTreatment,
+  MarkTreatment,
+  mixHex,
+  outlineTreatment,
+  resolveSeriesColor,
+  shade,
+} from "../../../utils/xy/SeriesPalette";
 import { RadiusScale } from "../../../utils/xy/RadiusScale";
 import { axisInValueUnits, isRelativeMeasure, resolveMeasure } from "../../../utils/xy/VarianceMeasure";
 import { XYFrame } from "../../../utils/xy/XYFrame";
@@ -96,6 +112,7 @@ export class BubbleChart {
   private hatchPatterns: Set<number> = new Set();
   private scaleOverflowCount: number = 0;
   private svgRoot: Svg | null = null;
+  private labelReport: LabelReport = new LabelReport();
 
   constructor(
     private readonly ruleSet: IBCSRuleSet,
@@ -268,13 +285,16 @@ export class BubbleChart {
       compareEntries.push(this.legendEntry(this.familyDisplayName(primaryFamily), this.primaryColorIndex(), 0));
     }
 
-    const entries: LegendEntry[] = this.data.series.map((series) =>
-      this.legendEntry(
-        series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
-        this.primaryColorIndex(),
-        series.index,
-      ),
-    );
+    const excluded = this.config.legend.exclude ?? [];
+    const entries: LegendEntry[] = this.data.series
+      .filter((series) => !excluded.includes(series.key))
+      .map((series) =>
+        this.legendEntry(
+          series.key === "" ? (this.ruleSet.getScenario("").name ?? "Series") : series.key,
+          this.primaryColorIndex(),
+          series.index,
+        ),
+      );
 
     return {
       sizeCaption,
@@ -287,15 +307,17 @@ export class BubbleChart {
   /** A legend row whose swatch has the fill of the bubbles it stands for: hatched for forecast. */
   private legendEntry(label: string, colorIndex: number, seriesIndex: number): LegendEntry {
     const hue = this.seriesHue(seriesIndex);
-    const treatment = markTreatment(
-      colorIndex,
-      hue,
-      "bubble",
-      this.styles.markStyles.stroke,
-      this.styles.markStyles.opacity,
-    );
+    const treatment = this.bubbleTreatment(colorIndex, seriesIndex, hue);
 
     return { label, treatment, fill: this.treatmentFill(treatment, seriesIndex, hue) };
+  }
+
+  /** The look of a bubble: the scenario treatment, or the outline when the style asks for it and the scenario is a filled one. */
+  private bubbleTreatment(colorIndex: number, seriesIndex: number, hue: string): MarkTreatment {
+    if (isOutlinedSeries(this.styles.seriesFills, seriesIndex) && colorIndex !== 30 && colorIndex !== 50) {
+      return outlineTreatment(hue, "bubble");
+    }
+    return markTreatment(colorIndex, hue, "bubble", this.styles.markStyles.stroke, this.styles.markStyles.opacity);
   }
 
   public toString(): string {
@@ -310,7 +332,7 @@ export class BubbleChart {
 
   /** Axis title in the IBCS "Label in Unit" form. */
   private axisTitle(axis: AxisConfig, inWord: string): string {
-    const label = axis.label ?? "";
+    const label = axisLabel(axis);
     if (label === "") {
       return "";
     }
@@ -324,6 +346,7 @@ export class BubbleChart {
     this.warnings = this.data.warnings.slice();
     this.hatchPatterns.clear();
     this.scaleOverflowCount = 0;
+    this.labelReport = new LabelReport();
     this.svgRoot = container;
     const em = this.em;
     const padding = this.styles.padding;
@@ -346,12 +369,13 @@ export class BubbleChart {
     const xBeside = isTitleBeside(this.config.x);
     const yLines = axisTitleLines(this.config.y, inWord);
     const xLines = axisTitleLines(this.config.x, inWord);
-    const linesWidth = (lines: { label: string; suffix: string }): number =>
-      Math.max(this.textWidth(lines.label, true), this.textWidth(lines.suffix));
+    const linesWidth = (lines: AxisTitleLine[]): number =>
+      Math.max(0, ...lines.map((line) => this.textWidth(line.text, line.bold)));
+    const lineH = 1.15 * em;
     const yTitleW = yBeside ? linesWidth(yLines) + 0.5 * em : 0;
     const xTitleW = xBeside ? linesWidth(xLines) : 0;
     const yTitleH = yTitleText !== "" ? (yBeside ? 1.2 : 1.4) * em : 0.4 * em;
-    const xAxisH = 1.4 * em + (xBeside ? (xLines.suffix !== "" ? 1.15 * em : 0) : xTitleText !== "" ? 1.3 * em : 0);
+    const xAxisH = 1.4 * em + (xBeside ? (xLines.length - 1) * lineH : xTitleText !== "" ? 1.3 * em : 0);
 
     let axisLeftW = 3 * em;
     let drawing: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -375,7 +399,7 @@ export class BubbleChart {
     const likelyTicksX = new NumericScale(xDomain[0], xDomain[1], 0, 1).ticks(6, this.config.x.step);
     const likelyLabel = formatXYValue(
       likelyTicksX[likelyTicksX.length - 1],
-      xyTickDecimals(likelyTicksX, this.xPercent),
+      axisDecimals(this.config.x, likelyTicksX, this.xPercent),
       this.styles.locale,
       this.xPercent,
     );
@@ -400,7 +424,7 @@ export class BubbleChart {
       const yScale = new NumericScale(yDomain[0], yDomain[1], panelH, 0);
       ticksY = yScale.ticks(targetY, this.config.y.step);
 
-      const yDecimals = xyTickDecimals(ticksY, this.yPercent);
+      const yDecimals = axisDecimals(this.config.y, ticksY, this.yPercent);
       const maxTickW = Math.max(
         ...ticksY.map((tick) => this.textWidth(formatXYValue(tick, yDecimals, this.styles.locale, this.yPercent))),
         em,
@@ -408,35 +432,13 @@ export class BubbleChart {
       axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em + yTitleW;
     }
 
-    this.canvasHeight =
-      drawing.y +
-      drawing.height +
-      xAxisH +
-      (this.config.legend.position === "bottom" && showLegend ? legendSize.height + em : 0) +
-      padding.bottom;
-
-    if (this.config.chartTitle !== "") {
-      this.drawText(root, this.config.chartTitle, padding.left, padding.top + em, { bold: true });
-    }
-
-    if (yBeside) {
-      // right-aligned left of the tick labels: the name above the top of the axis, the unit below it
-      const x = padding.left + yTitleW - 0.5 * em;
-      this.drawText(root, yLines.label, x, drawing.y - 0.3 * em, { anchor: "end", bold: true });
-      if (yLines.suffix !== "") {
-        this.drawText(root, yLines.suffix, x, drawing.y + 0.85 * em, { anchor: "end" });
-      }
-    } else if (yTitleText !== "") {
-      this.drawAxisTitleText(root, this.config.y, inWord, padding.left, drawing.y - 0.6 * em, "start");
-    }
-
-    const panels = this.buildPanels(grid!, xDomain, yDomain);
+    let panels = this.buildPanels(grid!, xDomain, yDomain);
     const ticksX = panels[0].xScale.ticks(
       Math.max(3, Math.min(8, Math.round(panels[0].rect.width / (7 * em)))),
       this.config.x.step,
     );
-    const xDecimals = xyTickDecimals(ticksX, this.xPercent);
-    const yDecimals = xyTickDecimals(ticksY, this.yPercent);
+    const xDecimals = axisDecimals(this.config.x, ticksX, this.xPercent);
+    const yDecimals = axisDecimals(this.config.y, ticksY, this.yPercent);
 
     const radiusScale =
       this.config.sizeAreaPerUnit > 0
@@ -446,6 +448,35 @@ export class BubbleChart {
             this.styles.scaleFactors.bubbleMaxRadius * em,
             this.styles.scaleFactors.bubbleMinRadius * em,
           );
+
+    // A bubble may hang out of the plot. The chart is as high as its bubbles, so none is cut at its edge.
+    let reach = this.bubbleReach(panels, radiusScale);
+    // at the top a bubble stays below the chart title
+    const shiftDown = Math.max(0, padding.top + titleH - reach.top);
+    if (shiftDown > 0) {
+      drawing = { ...drawing, y: drawing.y + shiftDown };
+      grid = new FacetGrid(facetCount, columns, drawing, this.styles.scaleFactors.panelGap * em);
+      panels = this.buildPanels(grid, xDomain, yDomain);
+      reach = { top: reach.top + shiftDown, bottom: reach.bottom + shiftDown };
+    }
+    this.canvasHeight =
+      Math.max(drawing.y + drawing.height + xAxisH, reach.bottom) +
+      (this.config.legend.position === "bottom" && showLegend ? legendSize.height + em : 0) +
+      padding.bottom;
+
+    if (this.config.chartTitle !== "") {
+      this.drawText(root, this.config.chartTitle, padding.left, padding.top + em, { bold: true });
+    }
+
+    if (yBeside) {
+      // right-aligned left of the tick labels: the first line above the top of the axis, the others below it
+      const x = padding.left + yTitleW - 0.5 * em;
+      yLines.forEach((line, index) => {
+        this.drawText(root, line.text, x, drawing.y - 0.3 * em + index * lineH, { anchor: "end", bold: line.bold });
+      });
+    } else if (yTitleText !== "") {
+      this.drawAxisTitleText(root, this.config.y, inWord, padding.left, drawing.y - 0.6 * em, "start");
+    }
 
     if (this.data.facets.length === 0) {
       this.drawPanel(
@@ -474,20 +505,22 @@ export class BubbleChart {
           grid!.isOuterLeft(index),
           grid!.isOuterBottom(index),
           this.data.facets.length > 1 ? facet.key : "",
+          // a panel above the last row shows no x labels: nothing to run into
+          grid!.hasLeftNeighbour(index) && grid!.isOuterBottom(index - 1),
+          grid!.hasRightNeighbour(index),
         );
       });
     }
 
     if (xBeside) {
-      // right of the last tick label: the name in the row of the tick labels, the unit below it.
+      // right of the last tick label: the first line in the row of the tick labels, the others below it.
       // The last panel has the axis that ends last, also when the last row of a facet grid is not full.
       const last = panels[panels.length - 1].rect;
       const x = last.x + last.width + xTitleGap;
       const y = last.y + last.height + (this.styles.scaleFactors.axisTickLength + 0.8) * em;
-      this.drawText(root, xLines.label, x, y, { bold: true });
-      if (xLines.suffix !== "") {
-        this.drawText(root, xLines.suffix, x, y + 1.15 * em, {});
-      }
+      xLines.forEach((line, index) => {
+        this.drawText(root, line.text, x, y + index * lineH, { bold: line.bold });
+      });
     } else if (xTitleText !== "") {
       this.drawAxisTitleText(
         root,
@@ -513,7 +546,7 @@ export class BubbleChart {
           root,
           legendModel,
           drawing.x + legendOffset(this.config.legend, drawing.width - legendSize.width),
-          drawing.y + drawing.height + xAxisH,
+          Math.max(drawing.y + drawing.height + xAxisH, reach.bottom),
           "bottom",
         );
       }
@@ -521,6 +554,12 @@ export class BubbleChart {
 
     if (this.scaleOverflowCount > 0) {
       this.addWarningOnce("bubble-scale-overflow", { count: String(this.scaleOverflowCount) });
+    }
+    if (this.labelReport.unknownNames().length > 0) {
+      this.addWarningOnce("xy-label-unknown", { names: this.labelReport.unknownNames().join(", ") });
+    }
+    if (this.labelReport.droppedNames().length > 0) {
+      this.addWarningOnce("xy-label-dropped", { names: this.labelReport.droppedNames().join(", ") });
     }
 
     // Stable, empty hook for a future annotation layer (spec §12).
@@ -536,7 +575,7 @@ export class BubbleChart {
     y: number,
     anchor: "start" | "end",
   ): void {
-    const label = axis.label ?? "";
+    const label = axisLabel(axis);
     const suffix = axis.unit !== undefined && axis.unit !== "" ? `${inWord} ${axis.unit}` : "";
 
     // SVG collapses leading whitespace in text nodes - position the suffix
@@ -553,6 +592,27 @@ export class BubbleChart {
     } else {
       this.drawText(group, label, x, y, { anchor: "end", bold: true });
     }
+  }
+
+  /** The highest and the lowest pixel a bubble of the chart reaches, in the coordinates of the drawing. */
+  private bubbleReach(panels: PanelContext[], radiusScale: RadiusScale): { top: number; bottom: number } {
+    let top = Infinity;
+    let bottom = -Infinity;
+    this.data.facets.forEach((facet, index) => {
+      const panel = panels[index];
+      for (const point of facet.points) {
+        for (const bubble of [point, point.compare]) {
+          const r = bubble != null ? radiusScale.radius(bubble.size ?? 0) : 0;
+          if (bubble == null || r <= 0) {
+            continue;
+          }
+          const cy = panel.yScale.scale(bubble.y);
+          top = Math.min(top, cy - r);
+          bottom = Math.max(bottom, cy + r);
+        }
+      }
+    });
+    return { top, bottom };
   }
 
   private buildPanels(grid: FacetGrid, xDomain: [number, number], yDomain: [number, number]): PanelContext[] {
@@ -605,6 +665,8 @@ export class BubbleChart {
     isOuterLeft: boolean,
     isOuterBottom: boolean,
     panelTitle: string = "",
+    panelLeft: boolean = false,
+    panelRight: boolean = false,
   ): void {
     const group = root.group();
     const em = this.em;
@@ -621,22 +683,22 @@ export class BubbleChart {
     // the z-order is structural, independent of rule-set sort indices.
     const compareGroup = group.group().id("compare");
     const primaryGroup = group.group().id("primary");
-    const labeler = new PointLabeler(panel.rect, this.styles.scaleFactors.labelToMark * em);
+    // A name that finds no free place may stand on a bubble: it is still close to its own.
+    const labeler = new PointLabeler(panel.rect, this.styles.scaleFactors.labelToMark * em, undefined, true);
+    if (panelTitle !== "") {
+      const origin = panel.frame.panelTitleOrigin();
+      labeler.registerText(origin.x, origin.y - em, this.textWidth(panelTitle, true), 1.3 * em);
+    }
 
     // Draw order: descending size, so small bubbles stay visible on top.
     const ordered = [...facet.points].sort((a, b) => (b.size ?? 0) - (a.size ?? 0));
     const marks: BubbleMark[] = [];
+    const compareMarks: BubbleMark[] = [];
 
     for (const point of ordered) {
       const seriesIndex = this.data.series.find((s) => s.key === point.seriesKey)?.index ?? 0;
       const hue = this.seriesHue(seriesIndex);
-      const treatment = markTreatment(
-        this.primaryColorIndex(),
-        hue,
-        "bubble",
-        this.styles.markStyles.stroke,
-        this.styles.markStyles.opacity,
-      );
+      const treatment = this.bubbleTreatment(this.primaryColorIndex(), seriesIndex, hue);
       const cx = panel.xScale.scale(point.x);
       const cy = panel.yScale.scale(point.y);
       const r = radiusScale.radius(point.size ?? 0);
@@ -646,58 +708,47 @@ export class BubbleChart {
       }
 
       if (point.compare != null) {
-        const compareTreatment = markTreatment(
-          this.compareColorIndex(),
-          hue,
-          "bubble",
-          this.styles.markStyles.stroke,
-          this.styles.markStyles.opacity,
-        );
+        const compareTreatment = this.bubbleTreatment(this.compareColorIndex(), seriesIndex, hue);
         const ccx = panel.xScale.scale(point.compare.x);
         const ccy = panel.yScale.scale(point.compare.y);
         const cr = radiusScale.radius(point.compare.size ?? 0);
         this.drawBubble(compareGroup, ccx, ccy, cr, compareTreatment, seriesIndex, hue);
-        labeler.registerMark(ccx, ccy, cr);
+        // an outlined bubble is see-through: a name may stand in it
+        if (compareTreatment.textColor === undefined) {
+          labeler.registerMark(ccx, ccy, cr);
+        }
+        // a comparison bubble that is fully behind its own bubble needs no second name
+        if (cr > 0 && Math.hypot(ccx - cx, ccy - cy) + cr > r) {
+          compareMarks.push({ point, cx: ccx, cy: ccy, r: cr, seriesIndex, hue, treatment: compareTreatment });
+        }
 
         // Comparison bubbles carry a value label only when large enough - never a share slice.
         if (this.config.labels.values && point.compare.size !== undefined && cr >= 1.2 * em) {
-          this.drawValueLabel(
-            compareGroup,
-            ccx,
-            ccy,
-            cr,
-            point.compare.size,
-            compareTreatment.fill,
-            compareTreatment.fillOpacity,
-          );
+          this.drawValueLabel(compareGroup, labeler, ccx, ccy, cr, point.compare.size, compareTreatment);
         }
       }
 
       const key = xyPointKey(point, facet.key, this.config);
       this.drawBubble(primaryGroup, cx, cy, r, treatment, seriesIndex, hue)?.attr(dataPointAttributes(key, "element"));
-      labeler.registerMark(cx, cy, r);
+      if (treatment.textColor === undefined) {
+        labeler.registerMark(cx, cy, r);
+      }
 
       if (point.share !== undefined && r > 0) {
         // no part: the bubble is the one addressable mark of this point
-        this.drawShareSlice(primaryGroup, cx, cy, r, point.share, shade(hue))?.attr(dataPointAttributes(key));
+        this.drawShareSlice(primaryGroup, cx, cy, r, point.share, treatment, seriesIndex, hue)?.attr(
+          dataPointAttributes(key),
+        );
       }
 
       if (this.config.labels.values && point.size !== undefined) {
-        this.drawValueLabel(
-          primaryGroup,
-          cx,
-          cy,
-          r,
-          point.size,
-          treatment.hatch === true ? "#ffffff" : treatment.fill,
-          treatment.fillOpacity,
-        );
+        this.drawValueLabel(primaryGroup, labeler, cx, cy, r, point.size, treatment);
       }
 
       marks.push({ point, cx, cy, r, seriesIndex, hue, treatment });
     }
 
-    this.drawNameLabels(group, labeler, marks, facet.key);
+    this.drawNameLabels(group, labeler, marks, compareMarks, facet.key);
 
     panel.frame.drawTickLabels(group, {
       ticksX,
@@ -708,6 +759,8 @@ export class BubbleChart {
       yPercent: this.yPercent,
       showXLabels: isOuterBottom,
       showYLabels: isOuterLeft,
+      panelLeft,
+      panelRight,
     });
 
     if (panelTitle !== "") {
@@ -739,16 +792,38 @@ export class BubbleChart {
       .stroke({ color: treatment.stroke, width: treatment.strokeWidth });
   }
 
-  /** Pie sector from 12 o'clock, clockwise, angle = share·360° (10E). */
-  private drawShareSlice(group: G, cx: number, cy: number, r: number, share: number, fill: string): Shape | undefined {
+  /**
+   * Pie sector from 12 o'clock, clockwise, angle = share·360° (10E). Its colour is the entry of
+   * `shareColors` for the series, else a darker shade of the series colour, and for an outlined
+   * series a light fill of the series colour. Its outline is the one of its bubble.
+   */
+  private drawShareSlice(
+    group: G,
+    cx: number,
+    cy: number,
+    r: number,
+    share: number,
+    treatment: MarkTreatment,
+    seriesIndex: number,
+    hue: string,
+  ): Shape | undefined {
     if (share <= 0) {
       return undefined;
     }
+    const outlined = treatment.textColor !== undefined;
+    const entry: unknown = this.styles.shareColors?.[seriesIndex];
+    const own = typeof entry === "string" && entry !== "" ? entry : undefined;
+    const fill = own ?? (outlined ? hue : shade(hue));
+    const opacity = own === undefined && outlined ? 2 * (treatment.fillOpacity ?? 1) : 1;
+    const stroke = { color: treatment.stroke, width: treatment.strokeWidth };
+
     if (share >= 1) {
       return group
         .circle(r * 2)
         .center(cx, cy)
-        .fill(fill);
+        .fill(fill)
+        .attr("fill-opacity", opacity)
+        .stroke(stroke);
     }
 
     const angle = share * 2 * Math.PI;
@@ -759,19 +834,22 @@ export class BubbleChart {
     return group
       .path(`M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 ${largeArc} 1 ${endX} ${endY} Z`)
       .fill(fill)
-      .stroke("none");
+      .attr({ "fill-opacity": opacity, "stroke-linejoin": "round" })
+      .stroke(stroke);
   }
 
-  /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. */
+  /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. No name is placed on it. */
   private drawValueLabel(
     group: G,
+    labeler: PointLabeler,
     cx: number,
     cy: number,
     r: number,
     value: number,
-    fill: string,
-    fillOpacity: number = 1,
+    treatment: MarkTreatment,
   ): void {
+    const fill = treatment.hatch === true ? "#ffffff" : treatment.fill;
+    const fillOpacity = treatment.fillOpacity ?? 1;
     // a see-through fill is lighter on the page: the text colour follows what is seen
     const shown = fillOpacity < 1 && /^#[0-9a-f]{6}$/i.test(fill) ? mixHex(fill, "#ffffff", 1 - fillOpacity) : fill;
     const text = formatXYValue(value, this.valueDecimals(), this.styles.locale, this.sizePercent);
@@ -781,12 +859,19 @@ export class BubbleChart {
     }
     this.drawText(group, text, cx, cy + 0.35 * this.em, {
       anchor: "middle",
-      color: getContrastTextColor(shown),
+      color: treatment.textColor ?? getContrastTextColor(shown),
     });
+    labeler.registerText(cx - width / 2, cy - 0.65 * this.em, width, 1.1 * this.em);
   }
 
   /** Name labels - bubbles are few, named entities; labels prefer the spot above (10A). */
-  private drawNameLabels(group: G, labeler: PointLabeler, marks: BubbleMark[], facetKey: string): void {
+  private drawNameLabels(
+    group: G,
+    labeler: PointLabeler,
+    marks: BubbleMark[],
+    compareMarks: BubbleMark[],
+    facetKey: string,
+  ): void {
     // Rank by size descending: big bubbles claim their labels first.
     const ranked = [...marks].sort((a, b) => (b.point.size ?? 0) - (a.point.size ?? 0));
 
@@ -796,12 +881,8 @@ export class BubbleChart {
       this.config.labels.max,
       (mark) => mark.point.name,
     );
-    if (unknownNames.length > 0) {
-      this.addWarningOnce("xy-label-unknown", { names: unknownNames.join(", ") });
-    }
-
     const pointOf = new Map<LabelCandidate, XYPoint>();
-    const candidates: LabelCandidate[] = selected.map((mark) => {
+    const toCandidate = (mark: BubbleMark, primary: boolean): LabelCandidate => {
       const candidate: LabelCandidate = {
         name: mark.point.name,
         cx: mark.cx,
@@ -809,21 +890,44 @@ export class BubbleChart {
         r: mark.r,
         width: this.textWidth(mark.point.name),
         height: 1.1 * this.em,
-        side: this.config.labels.sides?.[mark.point.name],
+        // the typed side is the one of the bubble itself
+        side: primary ? this.config.labels.sides?.[mark.point.name] : undefined,
       };
-      pointOf.set(candidate, mark.point);
+      if (primary) {
+        pointOf.set(candidate, mark.point);
+      }
       return candidate;
-    });
+    };
 
-    for (const placed of labeler.place(candidates)) {
-      this.drawText(group, placed.candidate.name, placed.x, placed.y + 0.9 * placed.candidate.height, {}).attr(
-        dataPointAttributes(xyPointKey(pointOf.get(placed.candidate)!, facetKey, this.config), "label"),
-      );
+    // The comparison bubble of a named point carries the name too. Its name comes after all primary ones.
+    const named = new Set(selected.map((mark) => mark.point));
+    const candidates: LabelCandidate[] = [
+      ...selected.map((mark) => toCandidate(mark, true)),
+      ...compareMarks.filter((mark) => named.has(mark.point)).map((mark) => toCandidate(mark, false)),
+    ];
+
+    const placedLabels = labeler.place(candidates);
+    for (const placed of placedLabels) {
+      const label = this.drawText(group, placed.candidate.name, placed.x, placed.y + 0.9 * placed.candidate.height);
+      const point = pointOf.get(placed.candidate);
+      if (point !== undefined) {
+        label.attr(dataPointAttributes(xyPointKey(point, facetKey, this.config), "label"));
+      }
     }
+
+    // only a typed list is a promise to the author: `all` and `auto` label what fits
+    const placedPoints = new Set(placedLabels.map((placed) => pointOf.get(placed.candidate)));
+    const dropped = Array.isArray(this.config.labels.points)
+      ? selected.filter((mark) => !placedPoints.has(mark.point)).map((mark) => mark.point.name)
+      : [];
+    this.labelReport.addPanel(unknownNames, dropped, facetKey);
   }
 
   /** Decimals of the value labels: three significant digits of the largest value (32,0 and 0,0320). */
   private valueDecimals(): number {
+    if (this.config.size.decimals !== undefined) {
+      return this.config.size.decimals;
+    }
     let largest = 0;
     for (const facet of this.data.facets) {
       for (const point of facet.points) {

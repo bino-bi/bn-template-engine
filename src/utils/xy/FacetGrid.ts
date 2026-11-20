@@ -46,6 +46,16 @@ export class FacetGrid {
     return index % this.columns === 0;
   }
 
+  /** True when a panel stands left of this one in its row. */
+  public hasLeftNeighbour(index: number): boolean {
+    return index % this.columns > 0;
+  }
+
+  /** True when a panel stands right of this one in its row. */
+  public hasRightNeighbour(index: number): boolean {
+    return index % this.columns < this.columns - 1 && index + 1 < this.count;
+  }
+
   /** True when no panel renders below this one (carries x tick labels). */
   public isOuterBottom(index: number): boolean {
     return index + this.columns >= this.count;

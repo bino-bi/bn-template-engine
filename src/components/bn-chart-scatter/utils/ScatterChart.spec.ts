@@ -389,3 +389,49 @@ describe("ScatterChart data-point keys", () => {
     expect(svg).toMatch(/<text[^>]*data-bn-sub-category="RX-1"[^>]*data-bn-part="label"/);
   });
 });
+
+describe("ScatterChart labels of a typed list", () => {
+  const twoPanels = (): Record<string, unknown>[] => [
+    row({ rowGroup: "Europe", rowGroupIndex: 1, subCategory: "A", subCategoryIndex: 1 }),
+    row({ rowGroup: "RoW", rowGroupIndex: 2, subCategory: "B", subCategoryIndex: 2 }),
+  ];
+  const warningsFor = (points: string[]): { code: string; data: Record<string, string> }[] => {
+    const chart = makeChart(
+      twoPanels(),
+      baseConfig({ facet: { level: "rowgroup" }, labels: { points, values: false, max: 12 } }),
+    );
+    chart.toString();
+    return chart.getWarnings();
+  };
+
+  it("calls a name unknown only when no panel has it", () => {
+    expect(warningsFor(["A", "B"]).some((w) => w.code === "xy-label-unknown")).toBe(false);
+    expect(warningsFor(["A", "C"]).find((w) => w.code === "xy-label-unknown")?.data.names).toBe("C");
+  });
+
+  it("warns with the name and the panel of a label that found no place", () => {
+    // 40 points on one spot: the labels of most of them have no free side
+    const rows = Array.from({ length: 40 }, (_, i) =>
+      row({ rowGroup: "Europe", subCategory: `P${i}`, subCategoryIndex: i + 1, ac1: 10, ac2: 20 }),
+    );
+    rows.push(row({ rowGroup: "RoW", rowGroupIndex: 2, subCategory: "Q", subCategoryIndex: 99, ac1: 11, ac2: 21 }));
+    const chart = makeChart(
+      rows,
+      baseConfig({
+        facet: { level: "rowgroup" },
+        labels: { points: rows.map((r) => r.subCategory as string), values: false, max: 12 },
+      }),
+    );
+    chart.toString();
+    const names = chart.getWarnings().find((w) => w.code === "xy-label-dropped")?.data.names ?? "";
+    expect(names).toContain("(Europe)");
+    expect(names).not.toContain("Q");
+  });
+
+  it("does not warn for labels that are left out with points all", () => {
+    const rows = Array.from({ length: 40 }, (_, i) => row({ subCategory: `P${i}`, subCategoryIndex: i + 1 }));
+    const chart = makeChart(rows, baseConfig({ labels: { points: "all", values: false, max: 12 } }));
+    chart.toString();
+    expect(chart.getWarnings().some((w) => w.code === "xy-label-dropped")).toBe(false);
+  });
+});
