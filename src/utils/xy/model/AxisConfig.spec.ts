@@ -96,6 +96,15 @@ describe("toSizeConfig / toShareConfig", () => {
   });
 });
 
+describe("toAxisConfig titlePosition", () => {
+  it("reads the place of the title and rejects an unknown one", () => {
+    expect(toAxisConfig({ measure: "ac1", titlePosition: "beside" }).config!.titlePosition).toBe("beside");
+    const { config, invalidFields } = toAxisConfig({ measure: "ac1", titlePosition: "left" });
+    expect(config!.titlePosition).toBeUndefined();
+    expect(invalidFields).toContain("titlePosition");
+  });
+});
+
 describe("toAxisConfig step", () => {
   it("reads a positive step and rejects any other", () => {
     expect(toAxisConfig({ measure: "ac1", step: 10 }).config!.step).toBe(10);
@@ -197,5 +206,14 @@ describe("toLegendConfig", () => {
   it("accepts show/position and rejects unknown positions", () => {
     expect(toLegendConfig({ show: false, position: "bottom" }).config).toEqual({ show: false, position: "bottom" });
     expect(toLegendConfig({ position: "top" }).invalidFields).toContain("position");
+  });
+});
+
+describe("toLegendConfig align", () => {
+  it("reads the alignment and rejects an unknown one", () => {
+    expect(toLegendConfig({ align: "center" }).config!.align).toBe("center");
+    const { config, invalidFields } = toLegendConfig({ align: "middle" });
+    expect(config!.align).toBeUndefined();
+    expect(invalidFields).toContain("align");
   });
 });

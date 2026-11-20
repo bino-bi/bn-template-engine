@@ -26,6 +26,12 @@ export interface AxisConfig {
   highlight?: HighlightRange;
   /** Distance between two ticks. Default: a nice step for the size of the plot. */
   step?: number;
+  /**
+   * Where the title stands. `outside` (default): in a row of its own, above the plot for y and
+   * below the tick labels for x. `beside`: in two lines beside the end of the axis, left of the
+   * top of the y axis and right of the end of the x axis.
+   */
+  titlePosition?: "outside" | "beside";
 }
 
 /** Parsed `size` prop (bubble). */
@@ -80,6 +86,8 @@ export interface FacetConfig {
 export interface LegendConfig {
   show: boolean;
   position: "right" | "bottom";
+  /** Along its side: `start` (default) is the top of a right legend and the left of a bottom one. */
+  align?: "start" | "center" | "end";
 }
 
 /** Result of parsing a raw attribute string into an untyped record. */
@@ -186,7 +194,7 @@ function readHighlight(data: Record<string, unknown>, invalid: string[]): Highli
   return result;
 }
 
-const AXIS_KEYS = ["measure", "label", "unit", "min", "max", "refLine", "highlight", "step"];
+const AXIS_KEYS = ["measure", "label", "unit", "min", "max", "refLine", "highlight", "step", "titlePosition"];
 
 export function toAxisConfig(data: Record<string, unknown>): SpecResult<AxisConfig> {
   const invalidFields: string[] = [];
@@ -205,6 +213,13 @@ export function toAxisConfig(data: Record<string, unknown>): SpecResult<AxisConf
   config.refLine = readNumber(data, "refLine", invalidFields);
   config.highlight = readHighlight(data, invalidFields);
   config.step = readPositive(data, "step", invalidFields);
+  if (CompareUtil.isExisting(data.titlePosition)) {
+    if (data.titlePosition === "outside" || data.titlePosition === "beside") {
+      config.titlePosition = data.titlePosition;
+    } else {
+      invalidFields.push("titlePosition");
+    }
+  }
 
   return { config, unknownKeys: collectUnknownKeys(data, AXIS_KEYS), invalidFields };
 }
@@ -366,7 +381,7 @@ export function toFacetConfig(data: Record<string, unknown>): SpecResult<FacetCo
   return { config, unknownKeys: collectUnknownKeys(data, FACET_KEYS), invalidFields };
 }
 
-const LEGEND_KEYS = ["show", "position"];
+const LEGEND_KEYS = ["show", "position", "align"];
 
 export function toLegendConfig(data: Record<string, unknown>): SpecResult<LegendConfig> {
   const invalidFields: string[] = [];
@@ -385,6 +400,14 @@ export function toLegendConfig(data: Record<string, unknown>): SpecResult<Legend
       config.position = data.position;
     } else {
       invalidFields.push("position");
+    }
+  }
+
+  if (CompareUtil.isExisting(data.align)) {
+    if (data.align === "start" || data.align === "center" || data.align === "end") {
+      config.align = data.align;
+    } else {
+      invalidFields.push("align");
     }
   }
 

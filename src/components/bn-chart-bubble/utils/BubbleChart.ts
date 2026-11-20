@@ -9,6 +9,7 @@ import { getContrastTextColor } from "../../../utils/stackColors";
 import { FacetGrid, Rect } from "../../../utils/xy/FacetGrid";
 import { formatXYValue, xyTickDecimals } from "../../../utils/xy/formatXYValue";
 import { NumericScale } from "../../../utils/xy/NumericScale";
+import { axisTitleLines, isTitleBeside, legendOffset } from "../../../utils/xy/AxisTitles";
 import { LabelCandidate, PointLabeler } from "../../../utils/xy/PointLabeler";
 import { markTreatment, MarkTreatment, mixHex, resolveSeriesColor, shade } from "../../../utils/xy/SeriesPalette";
 import { RadiusScale } from "../../../utils/xy/RadiusScale";
@@ -340,8 +341,17 @@ export class BubbleChart {
     const titleH = this.config.chartTitle !== "" ? 1.6 * em : 0;
     const yTitleText = this.axisTitle(this.config.y, inWord);
     const xTitleText = this.axisTitle(this.config.x, inWord);
-    const yTitleH = yTitleText !== "" ? 1.4 * em : 0.4 * em;
-    const xAxisH = 1.4 * em + (xTitleText !== "" ? 1.3 * em : 0);
+    // A title beside the end of its axis takes room left of the tick labels (y) or right of the plot (x).
+    const yBeside = isTitleBeside(this.config.y);
+    const xBeside = isTitleBeside(this.config.x);
+    const yLines = axisTitleLines(this.config.y, inWord);
+    const xLines = axisTitleLines(this.config.x, inWord);
+    const linesWidth = (lines: { label: string; suffix: string }): number =>
+      Math.max(this.textWidth(lines.label, true), this.textWidth(lines.suffix));
+    const yTitleW = yBeside ? linesWidth(yLines) + 0.5 * em : 0;
+    const xTitleW = xBeside ? linesWidth(xLines) + 1.4 * em : 0;
+    const yTitleH = yTitleText !== "" ? (yBeside ? 1.2 : 1.4) * em : 0.4 * em;
+    const xAxisH = 1.4 * em + (xBeside ? (xLines.suffix !== "" ? 1.15 * em : 0) : xTitleText !== "" ? 1.3 * em : 0);
 
     let axisLeftW = 3 * em;
     let drawing: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -361,7 +371,10 @@ export class BubbleChart {
     });
 
     for (let pass = 0; pass < 2; pass++) {
-      const drawingW = Math.max(10, this.availableWidth - padding.left - padding.right - axisLeftW - rightReserve);
+      const drawingW = Math.max(
+        10,
+        this.availableWidth - padding.left - padding.right - axisLeftW - Math.max(rightReserve, xTitleW),
+      );
       const drawingH = drawingW / this.config.aspect;
       drawing = {
         x: padding.left + axisLeftW,
@@ -381,7 +394,7 @@ export class BubbleChart {
         ...ticksY.map((tick) => this.textWidth(formatXYValue(tick, yDecimals, this.styles.locale, this.yPercent))),
         em,
       );
-      axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em;
+      axisLeftW = maxTickW + this.styles.scaleFactors.axisTickLength * em + 0.4 * em + yTitleW;
     }
 
     this.canvasHeight =
@@ -395,7 +408,14 @@ export class BubbleChart {
       this.drawText(root, this.config.chartTitle, padding.left, padding.top + em, { bold: true });
     }
 
-    if (yTitleText !== "") {
+    if (yBeside) {
+      // right-aligned left of the tick labels: the name above the top of the axis, the unit below it
+      const x = padding.left + yTitleW - 0.5 * em;
+      this.drawText(root, yLines.label, x, drawing.y - 0.3 * em, { anchor: "end", bold: true });
+      if (yLines.suffix !== "") {
+        this.drawText(root, yLines.suffix, x, drawing.y + 0.85 * em, { anchor: "end" });
+      }
+    } else if (yTitleText !== "") {
       this.drawAxisTitleText(root, this.config.y, inWord, padding.left, drawing.y - 0.6 * em, "start");
     }
 
@@ -447,7 +467,15 @@ export class BubbleChart {
       });
     }
 
-    if (xTitleText !== "") {
+    if (xBeside) {
+      // right of the last tick label: the name in the row of the tick labels, the unit below it
+      const x = drawing.x + drawing.width + 1.4 * em;
+      const y = drawing.y + drawing.height + (this.styles.scaleFactors.axisTickLength + 0.8) * em;
+      this.drawText(root, xLines.label, x, y, { bold: true });
+      if (xLines.suffix !== "") {
+        this.drawText(root, xLines.suffix, x, y + 1.15 * em, {});
+      }
+    } else if (xTitleText !== "") {
       this.drawAxisTitleText(
         root,
         this.config.x,
@@ -460,9 +488,21 @@ export class BubbleChart {
 
     if (showLegend) {
       if (this.config.legend.position === "right") {
-        legend.draw(root, legendModel, drawing.x + drawing.width + em, drawing.y, "right");
+        legend.draw(
+          root,
+          legendModel,
+          drawing.x + drawing.width + em,
+          drawing.y + legendOffset(this.config.legend, drawing.height - legendSize.height),
+          "right",
+        );
       } else {
-        legend.draw(root, legendModel, drawing.x, drawing.y + drawing.height + xAxisH, "bottom");
+        legend.draw(
+          root,
+          legendModel,
+          drawing.x + legendOffset(this.config.legend, drawing.width - legendSize.width),
+          drawing.y + drawing.height + xAxisH,
+          "bottom",
+        );
       }
     }
 

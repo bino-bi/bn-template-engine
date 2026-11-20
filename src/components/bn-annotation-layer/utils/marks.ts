@@ -295,32 +295,46 @@ export function buildMark(
     // one oval around both ends: the ellipse through the corners of their common box, so what lies between is inside.
     // A text of its own is not drawn: it has no place that is free for sure.
     const first = text ?? box;
-    const midX = (Math.min(first.x, toBox.x) + Math.max(first.x + first.width, toBox.x + toBox.width)) / 2;
-    const midY = (Math.min(first.y, toBox.y) + Math.max(first.y + first.height, toBox.y + toBox.height)) / 2;
-    const halfWidth = (midX - Math.min(first.x, toBox.x)) * Math.SQRT2 + 0.2 * em;
-    const halfHeight = (midY - Math.min(first.y, toBox.y)) * Math.SQRT2 + 0.2 * em;
+    const boxLeft = Math.min(first.x, toBox.x);
+    const boxTop = Math.min(first.y, toBox.y);
+    const boxRight = Math.max(first.x + first.width, toBox.x + toBox.width);
+    const boxBottom = Math.max(first.y + first.height, toBox.y + toBox.height);
+    const cx = (boxLeft + boxRight) / 2;
+    const cy = (boxTop + boxBottom) / 2;
+    const pad = 0.2 * em;
+    let rx = ((boxRight - boxLeft) / 2) * Math.SQRT2 + pad;
+    let ry = ((boxBottom - boxTop) / 2) * Math.SQRT2 + pad;
+    let left = cx - rx;
+    let top = cy - ry;
+    let width = 2 * rx;
+    let height = 2 * ry;
     // half of the stroke stays inside the layer too
     const inset = 1;
-    const left = Math.max(area ? inset : -Infinity, midX - halfWidth);
-    const top = Math.max(area ? inset : -Infinity, midY - halfHeight);
-    const right = Math.min(area ? area.width - inset : Infinity, midX + halfWidth);
-    const bottom = Math.min(area ? area.height - inset : Infinity, midY + halfHeight);
-    const rx = (right - left) / 2;
-    const ry = (bottom - top) / 2;
-    const cx = (left + right) / 2;
-    const cy = (top + bottom) / 2;
+    if (
+      area &&
+      (left < inset || top < inset || left + width > area.width - inset || top + height > area.height - inset)
+    ) {
+      // no room for the ellipse: a frame with round ends close around the common box, which still holds both ends
+      left = Math.max(inset, boxLeft - pad);
+      top = Math.max(inset, boxTop - pad);
+      width = Math.min(area.width - inset, boxRight + pad) - left;
+      height = Math.min(area.height - inset, boxBottom + pad) - top;
+      rx = ry = Math.min(width, height) / 2;
+    }
+    // where the outline turns at its upper right: at 45 degrees on an ellipse, in the corner of a frame
+    const turn = 1 - Math.SQRT1_2;
     return {
       kind: "frame",
       color,
       x: left,
       y: top,
-      width: 2 * rx,
-      height: 2 * ry,
+      width,
+      height,
       rx,
       ry,
       badge:
         label != null
-          ? keepInside({ cx: cx + rx * Math.SQRT1_2, cy: cy - ry * Math.SQRT1_2, r: 0.65 * em, label }, area)
+          ? keepInside({ cx: left + width - rx * turn, cy: top + ry * turn, r: 0.65 * em, label }, area)
           : undefined,
     };
   }

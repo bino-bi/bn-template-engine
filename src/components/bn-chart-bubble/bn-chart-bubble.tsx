@@ -150,7 +150,10 @@ export class ChartBubble {
    * "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent:
    * the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are
    * written in percent too (`20` for 20 %). `step` is the distance between
-   * two ticks, without it the chart picks one.
+   * two ticks, without it the chart picks one. `titlePosition` is `outside` (default: the title has a row of its own,
+   * above the plot for y and below the tick labels for x) or `beside`: the
+   * name and below it the unit, left of the top of the y axis and right of
+   * the end of the x axis.
    */
   @Prop() x!: string;
   @Watch("x")
@@ -278,7 +281,7 @@ export class ChartBubble {
 
   /**
    * Legend (series colors, bubble size caption, comparison scenarios).
-   * JSON object: `{"show":true,"position":"right"|"bottom"}`.
+   * JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
    */
   @Prop() legend: string = "";
   @Watch("legend")

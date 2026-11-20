@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-scatter`, `bn-chart-bubble`: `titlePosition` in `x` and `y`. With `beside` the title stands in two lines beside the end of its axis, the name and below it the unit: left of the top of the y axis, right of the end of the x axis. The default `outside` is the place of before.
+- `bn-chart-scatter`, `bn-chart-bubble`: `align` in `legend` moves the legend along its side: `start` (default), `center` or `end`.
+- `bn-annotation-layer`: a `frame` around two data points whose ellipse has no room in the layer is drawn as a frame with round ends close around both. Before, the ellipse was cut to the layer and could cross its data points.
 - `bn-chart-scatter`: iso-lines are drawn on axes that start at 0. Before, both axes had to start above 0. An axis below 0 still gives no lines and `WARN_xy_iso_domain`.
 - `bn-chart-scatter`: `factor` in `iso` brings the product to the unit of the lines: a line with the value `v` runs where `x·y·factor = v`, and `highlight.from` and the automatic values are in that unit too. For example `0.01` for a margin in percent, `0.001` for millions from units and thousands.
 - `bn-chart-scatter`, `bn-chart-bubble`: `step` in `x` and `y` sets the distance between two ticks. A step that gives more than 50 ticks is not used, the chart then picks one as before.

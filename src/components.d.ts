@@ -193,7 +193,7 @@ export namespace Components {
          */
         "labels": string;
         /**
-          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom"}`.
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
           * @default ""
          */
         "legend": string;
@@ -234,7 +234,7 @@ export namespace Components {
          */
         "size": string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %). `step` is the distance between two ticks, without it the chart picks one.
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %). `step` is the distance between two ticks, without it the chart picks one. `titlePosition` is `outside` (default: the title has a row of its own, above the plot for y and below the tick labels for x) or `beside`: the name and below it the unit, left of the top of the y axis and right of the end of the x axis.
          */
         "x": string;
         /**
@@ -557,7 +557,7 @@ export namespace Components {
          */
         "labels": string;
         /**
-          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom"}`.
+          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
           * @default ""
          */
         "legend": string;
@@ -589,7 +589,7 @@ export namespace Components {
          */
         "seriesLevel": string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"step":5,"refLine":0.5,"highlight":{"from":30}}`. `step` is the distance between two ticks, without it the chart picks one. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"step":5,"refLine":0.5,"highlight":{"from":30}}`. `step` is the distance between two ticks, without it the chart picks one. `titlePosition` is `outside` (default: the title has a row of its own, above the plot for y and below the tick labels for x) or `beside`: the name and below it the unit, left of the top of the y axis and right of the end of the x axis. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
          */
         "x": string;
         /**
@@ -3052,7 +3052,7 @@ declare namespace LocalJSX {
          */
         "labels"?: string;
         /**
-          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom"}`.
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
           * @default ""
          */
         "legend"?: string;
@@ -3093,7 +3093,7 @@ declare namespace LocalJSX {
          */
         "size": string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %). `step` is the distance between two ticks, without it the chart picks one.
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Market attractiveness", "refLine":0.5}`. A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %). `step` is the distance between two ticks, without it the chart picks one. `titlePosition` is `outside` (default: the title has a row of its own, above the plot for y and below the tick labels for x) or `beside`: the name and below it the unit, left of the top of the y axis and right of the end of the x axis.
          */
         "x": string;
         /**
@@ -3398,7 +3398,7 @@ declare namespace LocalJSX {
          */
         "labels"?: string;
         /**
-          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom"}`.
+          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
           * @default ""
          */
         "legend"?: string;
@@ -3430,7 +3430,7 @@ declare namespace LocalJSX {
          */
         "seriesLevel"?: string;
         /**
-          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"step":5,"refLine":0.5,"highlight":{"from":30}}`. `step` is the distance between two ticks, without it the chart picks one. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
+          * X axis mapping. JSON object (`AxisSpec`) or a bare measure token as shorthand: `{"measure":"ac1","label":"Margin","unit":"%","min":0, "max":40,"step":5,"refLine":0.5,"highlight":{"from":30}}`. `step` is the distance between two ticks, without it the chart picks one. `titlePosition` is `outside` (default: the title has a row of its own, above the plot for y and below the tick labels for x) or `beside`: the name and below it the unit, left of the top of the y axis and right of the end of the x axis. The measure is a scenario column (`ac1`…`pl4`) or a variance token (`d…`/`dr…`, sentiment suffix optional). A relative variance (`dr…`) gives an axis in percent: the ticks print `20%`, and `min`, `max`, `step`, `refLine` and `highlight` are written in percent too (`20` for 20 %).
          */
         "x": string;
         /**
