@@ -217,3 +217,20 @@ describe("toLegendConfig align", () => {
     expect(invalidFields).toContain("align");
   });
 });
+
+describe("decimals and legend exclude", () => {
+  it("reads decimals of an axis and of the size, and rejects what is no whole number from 0 to 10", () => {
+    expect(toAxisConfig({ measure: "ac1", decimals: 2 }).config!.decimals).toBe(2);
+    expect(toSizeConfig({ measure: "ac3", decimals: 0 }).config!.decimals).toBe(0);
+    for (const decimals of [-1, 1.5, 11, "2"]) {
+      const { config, invalidFields } = toAxisConfig({ measure: "ac1", decimals });
+      expect(config!.decimals).toBeUndefined();
+      expect(invalidFields).toContain("decimals");
+    }
+  });
+
+  it("reads the series a legend leaves out", () => {
+    expect(toLegendConfig({ exclude: ["A", "B"] }).config!.exclude).toEqual(["A", "B"]);
+    expect(toLegendConfig({ exclude: "A" }).invalidFields).toContain("exclude");
+  });
+});

@@ -49,17 +49,31 @@ const DIAGONAL = Math.SQRT1_2;
  * Placement tries eight anchors clockwise from north and rejects positions
  * that leave the frame or collide with marks or other labels; unplaceable
  * labels are dropped (IBCS wants proximate labels - no leader lines).
+ * With `onMarks` a label that finds no free place may stand on a mark,
+ * but never on another label.
  */
 export class PointLabeler {
+  /** Placed labels and fixed text. A label never stands on one of these. */
+  private readonly texts = new LabelCollisionManager();
+  /** The boxes of the marks, to tell how much of a label would stand on them. */
+  private readonly markBoxes: Rect[] = [];
+
   constructor(
     private readonly frame: Rect,
     private readonly gapPx: number,
     private readonly manager: LabelCollisionManager = new LabelCollisionManager(),
+    private readonly onMarks: boolean = false,
   ) {}
 
   /** Registers a mark so labels avoid it (bounding-square approximation). */
   public registerMark(cx: number, cy: number, r: number): void {
     this.manager.register(this.bounds(cx - r, cy - r, 2 * r, 2 * r));
+    this.markBoxes.push({ x: cx - r, y: cy - r, width: 2 * r, height: 2 * r });
+  }
+
+  /** Registers a text that is drawn by someone else (a panel title), so no label stands on it. */
+  public registerText(x: number, y: number, width: number, height: number): void {
+    this.texts.register(this.bounds(x, y, width, height));
   }
 
   /**
@@ -99,7 +113,7 @@ export class PointLabeler {
         continue;
       }
       const box = this.anchorBox(candidate, candidate.side);
-      this.manager.register(this.bounds(box.x, box.y, candidate.width, candidate.height));
+      this.texts.register(this.bounds(box.x, box.y, candidate.width, candidate.height));
       placed.push({ candidate, x: box.x, y: box.y, anchor: candidate.side });
     }
 
@@ -107,22 +121,63 @@ export class PointLabeler {
       if (candidate.side !== undefined) {
         continue;
       }
-      for (const anchor of ANCHORS) {
-        const box = this.anchorBox(candidate, anchor);
-        if (!this.insideFrame(box.x, box.y, candidate.width, candidate.height)) {
-          continue;
-        }
-        const bounds = this.bounds(box.x, box.y, candidate.width, candidate.height);
-        if (this.manager.hasCollision(bounds)) {
-          continue;
-        }
-        this.manager.register(bounds);
-        placed.push({ candidate, x: box.x, y: box.y, anchor });
-        break;
+      const label = this.freePlace(candidate) ?? (this.onMarks ? this.placeOnMarks(candidate) : null);
+      if (label !== null) {
+        this.texts.register(this.bounds(label.x, label.y, candidate.width, candidate.height));
+        placed.push(label);
       }
     }
 
     return placed;
+  }
+
+  /** The first side where the label is inside the frame and on no text and no mark. */
+  private freePlace(candidate: LabelCandidate): PlacedLabel | null {
+    for (const anchor of ANCHORS) {
+      const box = this.anchorBox(candidate, anchor);
+      if (!this.insideFrame(box.x, box.y, candidate.width, candidate.height)) {
+        continue;
+      }
+      const bounds = this.bounds(box.x, box.y, candidate.width, candidate.height);
+      if (this.texts.hasCollision(bounds) || this.manager.hasCollision(bounds)) {
+        continue;
+      }
+      return { candidate, x: box.x, y: box.y, anchor };
+    }
+    return null;
+  }
+
+  /** The side where the least of the label stands on marks, inside the frame and on no text. */
+  private placeOnMarks(candidate: LabelCandidate): PlacedLabel | null {
+    let best: PlacedLabel | null = null;
+    let bestCovered = Infinity;
+    for (const anchor of ANCHORS) {
+      const box = this.anchorBox(candidate, anchor);
+      if (!this.insideFrame(box.x, box.y, candidate.width, candidate.height)) {
+        continue;
+      }
+      if (this.texts.hasCollision(this.bounds(box.x, box.y, candidate.width, candidate.height))) {
+        continue;
+      }
+      const covered = this.coveredByMarks(box.x, box.y, candidate.width, candidate.height);
+      if (covered < bestCovered) {
+        best = { candidate, x: box.x, y: box.y, anchor };
+        bestCovered = covered;
+      }
+    }
+    return best;
+  }
+
+  private coveredByMarks(x: number, y: number, width: number, height: number): number {
+    let covered = 0;
+    for (const mark of this.markBoxes) {
+      const w = Math.min(x + width, mark.x + mark.width) - Math.max(x, mark.x);
+      const h = Math.min(y + height, mark.y + mark.height) - Math.max(y, mark.y);
+      if (w > 0 && h > 0) {
+        covered += w * h;
+      }
+    }
+    return covered;
   }
 
   private anchorBox(c: LabelCandidate, anchor: LabelAnchor): { x: number; y: number } {

@@ -70,6 +70,30 @@ export interface MarkTreatment {
   hatch?: boolean;
   /** Opacity of the fill of a filled mark. Outlined and hatched marks keep a solid fill. */
   fillOpacity?: number;
+  /** Colour of a value label on the mark. Default: the contrast colour of the fill. */
+  textColor?: string;
+}
+
+/** Opacity of the fill of a series that is drawn as an outline. */
+const OUTLINE_FILL_OPACITY = 0.08;
+
+/**
+ * The look of a series with the fill `outline` in the style: a line in the series colour around
+ * a nearly clear fill, with its values in the series colour. What is behind the mark stays visible.
+ */
+export function outlineTreatment(hue: string, kind: "dot" | "bubble"): MarkTreatment {
+  return {
+    fill: hue,
+    stroke: hue,
+    strokeWidth: kind === "dot" ? 0.75 : 1,
+    fillOpacity: OUTLINE_FILL_OPACITY,
+    textColor: hue,
+  };
+}
+
+/** The style gives this series the fill `outline`. */
+export function isOutlinedSeries(seriesFills: string[] | undefined, seriesIndex: number): boolean {
+  return seriesFills?.[seriesIndex] === "outline";
 }
 
 /**

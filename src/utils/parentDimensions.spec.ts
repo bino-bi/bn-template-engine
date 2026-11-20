@@ -176,6 +176,22 @@ describe("getParentDimensions height", () => {
     (global as any).getComputedStyle = original;
   });
 
+  it("has the width 0, not NaN, under a parent that is not laid out", () => {
+    const original = (global as any).getComputedStyle;
+    // a parent without a box has no computed padding
+    (global as any).getComputedStyle = () => ({
+      overflowY: "visible",
+      maxHeight: "none",
+      paddingLeft: "",
+      paddingRight: "",
+    });
+    const parent = node("visible", 0, null);
+    const width = getParentDimensions({ parentElement: parent, assignedSlot: null } as unknown as HTMLElement).width;
+    (global as any).getComputedStyle = original;
+
+    expect(width).toBe(0);
+  });
+
   it("is the height of the nearest ancestor that hides its overflow", () => {
     const pageCell = node("hidden", 600, null);
     const cardSlot = node("hidden", 300, node("visible", 300, pageCell));

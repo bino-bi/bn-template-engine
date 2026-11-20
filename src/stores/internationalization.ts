@@ -64,6 +64,7 @@ const xyChartKeysDe = {
   "xy-point-clipped": "{{count}} Punkt(e) außerhalb des expliziten min/max ausgeschlossen.",
   "xy-variance-nodata": "{{count}} Zeile(n) ohne Varianzdaten ausgeschlossen.",
   "xy-label-unknown": "Unbekannte Label-Namen: {{names}}.",
+  "xy-label-dropped": "Kein Platz für das Label von: {{names}}.",
   "xy-series-overflow": "Mehr Serien als Palettenfarben; Farben wiederholen sich aufgehellt.",
   "xy-point-budget": "{{count}} Punkte überschreiten das Budget von 5000 Punkten; 'limit' erwägen.",
 };
@@ -81,6 +82,7 @@ const xyChartKeysEn = {
   "xy-point-clipped": "{{count}} point(s) outside the explicit min/max excluded.",
   "xy-variance-nodata": "{{count}} row(s) without variance data excluded.",
   "xy-label-unknown": "Unknown label name(s): {{names}}.",
+  "xy-label-dropped": "No room for the label of: {{names}}.",
   "xy-series-overflow": "More series than palette colors; colors repeat with a tint step.",
   "xy-point-budget": "{{count}} points exceed the 5000-point budget; consider 'limit'.",
 };

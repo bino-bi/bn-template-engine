@@ -23,6 +23,7 @@ const SCATTER_DATA_WARNING_CODES = [
   "xy-variance-nodata",
   "xy-iso-domain",
   "xy-label-unknown",
+  "xy-label-dropped",
   "xy-series-overflow",
   "xy-point-budget",
 ];

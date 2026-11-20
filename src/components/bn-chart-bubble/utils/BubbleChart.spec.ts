@@ -296,4 +296,150 @@ describe("BubbleChart options shared with the scatter chart", () => {
     };
     expect(labelY("n")).toBeLessThan(labelY("s"));
   });
+
+  it("prints tick labels and bubble values with the typed decimals", () => {
+    const svg = chartWith(
+      baseConfig({
+        x: { measure: "ac1", min: 0, max: 40, step: 20, decimals: 2 },
+        y: { measure: "ac2", min: 0, max: 40 },
+        size: { measure: "ac3", decimals: 0 },
+      }),
+    );
+    expect(svg).toContain(">20,00<");
+    expect(svg).toContain(">60<");
+    expect(svg).not.toContain(">60,0<");
+  });
+
+  it("draws a title beside the axis with one line per line of the label", () => {
+    const svg = chartWith(
+      baseConfig({ y: { measure: "ac2", label: "Relative\nmarket share", unit: "%", titlePosition: "beside" } }),
+    );
+    const lineY = (text: string): number =>
+      Number(new RegExp(`<text[^>]*\\sy="([\\d.]+)"[^>]*>(?:<tspan[^>]*>)?${text}<`).exec(svg)![1]);
+    expect(lineY("Relative")).toBeLessThan(lineY("market share"));
+    expect(lineY("market share")).toBeLessThan(lineY("in %"));
+  });
+
+  it("reads a line break in the label of a title outside the plot as a space", () => {
+    const svg = chartWith(baseConfig({ y: { measure: "ac2", label: "Relative\nmarket share" } }));
+    expect(svg).toContain(">Relative market share<");
+  });
+
+  it("leaves a series out of the legend", () => {
+    const withLegend = chartWith(baseConfig());
+    const without = chartWith(baseConfig({ legend: { show: true, position: "right", exclude: ["Core Business"] } }));
+    expect(withLegend).toContain(">Core Business<");
+    expect(without).not.toContain(">Core Business<");
+  });
+
+  it("draws a series with the fill outline as a line in its colour, with its value in that colour", () => {
+    const svg = chartWith(baseConfig(), (styles) => {
+      styles.seriesColors = ["#ff0000"];
+      styles.seriesFills = ["outline"];
+    });
+    const circle = /<circle[^>]*>/.exec(svg)![0];
+    expect(circle).toContain('stroke="#ff0000"');
+    expect(Number(/fill-opacity="([\d.]+)"/.exec(circle)![1])).toBeLessThan(0.2);
+    expect(/<text[^>]*fill="#ff0000"[^>]*>(?:<tspan[^>]*>)?60,0</.test(svg)).toBe(true);
+  });
+
+  it("takes the colour of the share slice from the style and gives it the outline of the bubble", () => {
+    const db = createScopedDb().db;
+    db.tables["bubbleData"] = { data: [row({ ac4: 0.25 })] };
+    const styles = defaultStyles();
+    styles.shareColors = ["#123456"];
+    styles.markStyles = { stroke: "#404040", opacity: 1 };
+    const svg = new BubbleChart(
+      new IBCSRuleSet(),
+      db,
+      "`bubbleData`",
+      baseConfig({ share: { measure: "ac4" } }),
+      styles,
+      1000,
+    ).toString();
+    const slice = /<path[^>]*>/.exec(svg)![0];
+    expect(slice).toContain('fill="#123456"');
+    expect(slice).toContain('stroke="#404040"');
+  });
+
+  it("names the comparison bubble too, but not when it is hidden behind its own bubble", () => {
+    const names = (pp: Record<string, number>): number => {
+      const db = createScopedDb().db;
+      db.tables["bubbleData"] = { data: [row({ ac1: 0.3, ac2: 0.3, ac3: 30, ...pp })] };
+      const svg = new BubbleChart(
+        new IBCSRuleSet(),
+        db,
+        "`bubbleData`",
+        baseConfig({
+          compareFamily: "pp",
+          x: { measure: "ac1", min: 0, max: 1 },
+          y: { measure: "ac2", min: 0, max: 1 },
+        }),
+        defaultStyles(),
+        1000,
+      ).toString();
+      return [...svg.matchAll(/>VAB</g)].length;
+    };
+    expect(names({ pp1: 0.7, pp2: 0.7, pp3: 30 })).toBe(2);
+    expect(names({ pp1: 0.3, pp2: 0.3, pp3: 10 })).toBe(1);
+  });
+
+  it("is as high as a bubble that hangs below the plot", () => {
+    const heightWith = (size: number): number => {
+      const db = createScopedDb().db;
+      db.tables["bubbleData"] = { data: [row({ ac1: 0.5, ac2: 0, ac3: size })] };
+      const chart = new BubbleChart(
+        new IBCSRuleSet(),
+        db,
+        "`bubbleData`",
+        baseConfig({
+          x: { measure: "ac1", min: 0, max: 1 },
+          y: { measure: "ac2", min: 0, max: 1 },
+          sizeAreaPerUnit: 100,
+        }),
+        defaultStyles(),
+        1000,
+      );
+      chart.toString();
+      return chart.getAllocatedCanvasHeight();
+    };
+    // radius 5.6 px and 178 px: the small one fits in the row of the tick labels
+    expect(heightWith(1000)).toBeGreaterThan(heightWith(1) + 100);
+  });
+
+  describe("labels in facet panels", () => {
+    const facetRows = (): Record<string, unknown>[] => [
+      row({ rowGroup: "North", rowGroupIndex: 1, subCategory: "A", subCategoryIndex: 1, ac1: 10, ac2: 10, ac3: 5 }),
+      row({ rowGroup: "South", rowGroupIndex: 2, subCategory: "B", subCategoryIndex: 2, ac1: 10, ac2: 10, ac3: 5 }),
+    ];
+    const facetChart = (points: string[]): BubbleChart => {
+      const db = createScopedDb().db;
+      db.tables["bubbleData"] = { data: facetRows() };
+      const chart = new BubbleChart(
+        new IBCSRuleSet(),
+        db,
+        "`bubbleData`",
+        baseConfig({ facet: { level: "rowgroup" }, labels: { points, values: false, max: 12 } }),
+        defaultStyles(),
+        1000,
+      );
+      chart.toString();
+      return chart;
+    };
+
+    it("does not call a name unknown that one panel has", () => {
+      expect(
+        facetChart(["A", "B"])
+          .getWarnings()
+          .some((w) => w.code === "xy-label-unknown"),
+      ).toBe(false);
+    });
+
+    it("calls a name unknown that no panel has", () => {
+      const warning = facetChart(["A", "C"])
+        .getWarnings()
+        .find((w) => w.code === "xy-label-unknown");
+      expect(warning?.data.names).toBe("C");
+    });
+  });
 });

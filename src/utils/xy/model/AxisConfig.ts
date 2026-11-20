@@ -32,6 +32,8 @@ export interface AxisConfig {
    * top of the y axis and right of the end of the x axis.
    */
   titlePosition?: "outside" | "beside";
+  /** Decimals of the tick labels. Default: what the ticks need. */
+  decimals?: number;
 }
 
 /** Parsed `size` prop (bubble). */
@@ -41,6 +43,8 @@ export interface SizeConfig {
   unit?: string;
   /** `bn-scaling-group` name for cross-chart value→area sync. */
   group?: string;
+  /** Decimals of the value labels. Default: three significant digits of the largest value. */
+  decimals?: number;
 }
 
 /** Parsed `share` prop (bubble). */
@@ -88,6 +92,8 @@ export interface LegendConfig {
   position: "right" | "bottom";
   /** Along its side: `start` (default) is the top of a right legend and the left of a bottom one. */
   align?: "start" | "center" | "end";
+  /** Series that get no legend entry, by name. */
+  exclude?: string[];
 }
 
 /** Result of parsing a raw attribute string into an untyped record. */
@@ -173,6 +179,16 @@ function readPositive(data: Record<string, unknown>, key: string, invalid: strin
   return value;
 }
 
+/** A whole number of decimals from 0 to 10. */
+function readDecimals(data: Record<string, unknown>, invalid: string[]): number | undefined {
+  const value = readNumber(data, "decimals", invalid);
+  if (value !== undefined && (!Number.isInteger(value) || value < 0 || value > 10)) {
+    invalid.push("decimals");
+    return undefined;
+  }
+  return value;
+}
+
 function readHighlight(data: Record<string, unknown>, invalid: string[]): HighlightRange | undefined {
   if (!CompareUtil.isExisting(data.highlight)) {
     return undefined;
@@ -194,7 +210,18 @@ function readHighlight(data: Record<string, unknown>, invalid: string[]): Highli
   return result;
 }
 
-const AXIS_KEYS = ["measure", "label", "unit", "min", "max", "refLine", "highlight", "step", "titlePosition"];
+const AXIS_KEYS = [
+  "measure",
+  "label",
+  "unit",
+  "min",
+  "max",
+  "refLine",
+  "highlight",
+  "step",
+  "titlePosition",
+  "decimals",
+];
 
 export function toAxisConfig(data: Record<string, unknown>): SpecResult<AxisConfig> {
   const invalidFields: string[] = [];
@@ -213,6 +240,7 @@ export function toAxisConfig(data: Record<string, unknown>): SpecResult<AxisConf
   config.refLine = readNumber(data, "refLine", invalidFields);
   config.highlight = readHighlight(data, invalidFields);
   config.step = readPositive(data, "step", invalidFields);
+  config.decimals = readDecimals(data, invalidFields);
   if (CompareUtil.isExisting(data.titlePosition)) {
     if (data.titlePosition === "outside" || data.titlePosition === "beside") {
       config.titlePosition = data.titlePosition;
@@ -224,7 +252,7 @@ export function toAxisConfig(data: Record<string, unknown>): SpecResult<AxisConf
   return { config, unknownKeys: collectUnknownKeys(data, AXIS_KEYS), invalidFields };
 }
 
-const SIZE_KEYS = ["measure", "label", "unit", "group"];
+const SIZE_KEYS = ["measure", "label", "unit", "group", "decimals"];
 
 export function toSizeConfig(data: Record<string, unknown>): SpecResult<SizeConfig> {
   const invalidFields: string[] = [];
@@ -239,6 +267,7 @@ export function toSizeConfig(data: Record<string, unknown>): SpecResult<SizeConf
   config.label = readString(data, "label", invalidFields);
   config.unit = readString(data, "unit", invalidFields);
   config.group = readString(data, "group", invalidFields);
+  config.decimals = readDecimals(data, invalidFields);
 
   return { config, unknownKeys: collectUnknownKeys(data, SIZE_KEYS), invalidFields };
 }
@@ -381,7 +410,7 @@ export function toFacetConfig(data: Record<string, unknown>): SpecResult<FacetCo
   return { config, unknownKeys: collectUnknownKeys(data, FACET_KEYS), invalidFields };
 }
 
-const LEGEND_KEYS = ["show", "position", "align"];
+const LEGEND_KEYS = ["show", "position", "align", "exclude"];
 
 export function toLegendConfig(data: Record<string, unknown>): SpecResult<LegendConfig> {
   const invalidFields: string[] = [];
@@ -408,6 +437,14 @@ export function toLegendConfig(data: Record<string, unknown>): SpecResult<Legend
       config.align = data.align;
     } else {
       invalidFields.push("align");
+    }
+  }
+
+  if (CompareUtil.isExisting(data.exclude)) {
+    if (CompareUtil.isArray(data.exclude) && (data.exclude as unknown[]).every((name) => CompareUtil.isString(name))) {
+      config.exclude = data.exclude as string[];
+    } else {
+      invalidFields.push("exclude");
     }
   }
 
