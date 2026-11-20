@@ -65,6 +65,10 @@ export class StructureChartComponentConfig {
   public sums: SumRows = "none";
   /** Label of the row over all rows. Empty: the `SUM_TOTAL` text. */
   public sumTitle: string = "";
+  /** Absolute variances as a walk down the rows: each bar starts where the one before ended. */
+  public varianceWaterfall: boolean = false;
+  /** The first absolute variance: with `sums: total` the base chart draws it as a bridge between its total bars. */
+  public bridgeVariances: string[] = [];
   public valueSuffix: string = "";
   /** The name of the scenario stands above the first bar and not below the last one. */
   public scenarioLabelTop: boolean = false;
@@ -171,6 +175,16 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isString(data.sumTitle)) {
       config.sumTitle = data.sumTitle;
+    }
+
+    if (CompareUtil.isBoolean(data.varianceWaterfall)) {
+      config.varianceWaterfall = data.varianceWaterfall;
+    }
+
+    if (CompareUtil.isArray(data.bridgeVariances)) {
+      config.bridgeVariances = (data.bridgeVariances as unknown[]).filter(
+        (entry): entry is string => typeof entry === "string",
+      );
     }
 
     if (CompareUtil.isString(data.valueSuffix)) {

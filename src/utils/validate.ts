@@ -122,6 +122,22 @@ export function validateOrderList(value: string): string[] {
   return validateVariancesList(invalidScenarios.toString());
 }
 
+/** bn-chart-structure order: dims, scenarios and variances (`dac1_pp1`, with or without a sentiment). */
+export function validateStructureOrderList(value: string): string[] {
+  if (isBlankInput(value)) {
+    return [];
+  }
+
+  if (value.trim().toLowerCase() === "auto") {
+    return [];
+  }
+
+  return value.split(",").filter((element) => {
+    const token = parseOrderToken(element);
+    return token == null || token.bucket !== undefined;
+  });
+}
+
 /** bn-table order: dims, scenarios and variances, the last two optionally with `@<setname>`. */
 export function validateTableOrderList(value: string): string[] {
   if (isBlankInput(value)) {

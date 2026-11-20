@@ -369,7 +369,10 @@ export class AnnotationLayer {
       if (!visual || !state || !item.point) return undefined;
       const host = visual.getBoundingClientRect();
       const { rowGroup: _r, category: _c, subCategory: _s, date: _d, ...series } = item.point;
-      const bars = matchPoint(state, { ...series, part: "element" }).filter((bar) => bar.value != null);
+      // the bar of a sum row holds the rows again: it is no part of the whole
+      const bars = matchPoint(state, { ...series, part: "element" }).filter(
+        (bar) => bar.value != null && (bar.row == null || series.row != null),
+      );
       const all = bars.reduce((sum, bar) => sum + bar.value!, 0);
       const inside = bars
         .filter((bar) => {

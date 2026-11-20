@@ -67,16 +67,23 @@ export class ScenarioFactory {
     this.elementCnt = elementCnt;
   }
 
+  private names: boolean = true;
+
+  /** The bars and markers get no scenario name: the chart names its scenarios elsewhere. */
+  public hideNames(): void {
+    this.names = false;
+  }
+
   public setOverflowConfig(config: OverflowConfig | null): void {
     this.overflowConfig = config;
   }
 
   private isLastDataPoint(index: number): boolean {
-    return this.elementCnt - 1 === index;
+    return this.names && this.elementCnt - 1 === index;
   }
 
   private isFirsttDataPoint(index: number): boolean {
-    return 0 === index;
+    return this.names && 0 === index;
   }
 
   public createPrimaryBar(dataPoint: DataPoint, index: number): Bar {
@@ -203,6 +210,6 @@ export class ScenarioFactory {
   }
 
   private isFirstDataPoint(index: number): boolean {
-    return 0 === index;
+    return this.names && 0 === index;
   }
 }

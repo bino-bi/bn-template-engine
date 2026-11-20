@@ -157,10 +157,24 @@ export class Label {
         type = "decimal";
       }
 
-      valueStr = Formatter.number(Number(value), type, digits, digitsMin, scale, this.styles.locale);
+      // without the percent sign the share prints as a plain number: the same in every locale
+      const plain = this.isRelativeLabel && this.isVarianceLabel && dataFormatDigits.percentSign === false;
+      const print = (number: number): string =>
+        plain
+          ? // 0.145 * 100 is 14.499999999999998: cut the noise, so the label rounds like the percent format
+            Formatter.number(
+              Number((number * 100).toPrecision(15)),
+              "decimal",
+              digits,
+              digitsMin,
+              1,
+              this.styles.locale,
+            )
+          : Formatter.number(number, type, digits, digitsMin, scale, this.styles.locale);
+      valueStr = print(Number(value));
 
       // a value that rounds to zero prints without a sign
-      const zeroStr = Formatter.number(0, type, digits, digitsMin, scale, this.styles.locale);
+      const zeroStr = print(0);
       if (this.isVarianceLabel && Number(this.value) > 0 && valueStr !== zeroStr) {
         prefix = "+";
       }

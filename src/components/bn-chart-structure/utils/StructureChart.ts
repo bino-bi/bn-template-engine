@@ -14,7 +14,7 @@ import {
 } from "./model";
 
 // @ts-ignore
-import { Axis, HookLocation, Label, StackedBar } from "./elements";
+import { Axis, Bar, HookLocation, Label, StackedBar } from "./elements";
 import { ScenarioFactory } from "./factories";
 
 import CalculateSize from "calculate-size";
@@ -26,13 +26,13 @@ import { layoutStack, stackExtent, stackLabelSide, StackLayout } from "../../../
 import { IBCSRuleSet, styleSlot, stylesBySlot } from "../../../utils/ibcsRuleSet";
 import { relativeVariance } from "../../../utils/relativeVariance";
 import { SVGPolgonPattern, VarianceScenario } from "../../../utils/model";
-import { Order, OrderColumn } from "../../../utils/model/Order";
+import { Order, OrderColumn, OrderDirection, OrderToken, parseOrderToken } from "../../../utils/model/Order";
 import { SiPrefix } from "../../../utils/model/SiPrefix";
 import { VisualisationRuleSet } from "../../bn-table/utils/model";
 import { DataFormatDigits } from "../../../utils/model/DataFormatDigits";
 import { AlaSQLDatabase, sourceExpr } from "../../../context/scopedDb";
 import { errorText } from "../../../utils/queryError";
-import { levelKey } from "../../../utils/layoutState/dataPoint";
+import { dataPointAttributes, levelKey } from "../../../utils/layoutState/dataPoint";
 import { SYSTEM_STYLE_DEFAULTS } from "../../../stores/componentStyles";
 
 /** Internal data model entry: one category with up to 4 scenario DataPoints and optional stack segments. */
@@ -84,6 +84,37 @@ type StackGroup = { prefix: string; segments: StackGroupSegment[]; layout: Stack
  * Overflow handling: setAvailableWidth() can enable broken-bar rendering
  * when bars exceed the container width.
  */
+/** One step of a variance walk: the bar of a row between two levels, in data units. `run` counts the sum rows before it. */
+interface WalkStep {
+  index: number;
+  from: number;
+  to: number;
+  point: DataPoint;
+  run: number;
+}
+
+/** The bridge between the two total bars: the reference, the steps, the total of the series and its variance. */
+interface Bridge {
+  reference: DataPoint;
+  total: DataPoint;
+  steps: WalkStep[];
+  variance: DataPoint | null;
+}
+
+const WALK_LINE = "#808080";
+/** Rows of room above the first row for the reference total of a bridge. */
+const BRIDGE_LEAD_ROWS = 1.25;
+/** Gap before the total row of a bridge, in rows. */
+const BRIDGE_SUM_GAP = 0.25;
+/** Rows of room below the total row of a bridge for the variance of the total. */
+const BRIDGE_TAIL_ROWS = 1.5;
+
+/** The `row` of the point key of a sum row: `total` for the row over all rows, `subtotal` for the row of a group. */
+function sumKey(row: { sum?: "group" | "total" }): { row?: "subtotal" | "total" } {
+  if (!row.sum) return {};
+  return { row: row.sum === "total" ? "total" : "subtotal" };
+}
+
 export class StructureChart {
   private dataModel: StructureChartDataModelEntry[] = [];
   private variancesDataModel: StructureChartDataModelEntry[] = [];
@@ -136,6 +167,10 @@ export class StructureChart {
   private hideScenarioName: boolean = false;
   private referenceLine: ReferenceLine | null = null;
   private italicCategories: string[] = [];
+  private varianceWaterfall: boolean = false;
+  private bridgeVariances: string[] = [];
+  private bridge: Bridge | null = null;
+  private bridgeFallback: string | null = null;
 
   constructor(
     ruleSet: VisualisationRuleSet,
@@ -206,6 +241,9 @@ export class StructureChart {
     this.hideScenarioName = config.hideScenarioName;
     this.referenceLine = config.referenceLine;
     this.italicCategories = config.italicCategories;
+    this.varianceWaterfall = config.varianceWaterfall ?? false;
+    this.bridgeVariances = config.bridgeVariances ?? [];
+    this.stackConfig = config.stackConfig;
     this.dataModel = this.populateModel(scenarios, config.level, config.sortOrder);
 
     // Populate per-dimension stack segments when stacking by a data dimension
@@ -218,7 +256,11 @@ export class StructureChart {
       for (const dataPoint of [row.scenario1, row.scenario2, row.scenario3, row.scenario4]) {
         // a category without a value has no bar: nothing an annotation can point at
         if (dataPoint.value != null && !Number.isNaN(dataPoint.value)) {
-          dataPoint.key = { ...levelKey(this.level, row.category), scenario: dataPoint.scenario ?? undefined };
+          dataPoint.key = {
+            ...levelKey(this.level, row.category),
+            scenario: dataPoint.scenario ?? undefined,
+            ...sumKey(row),
+          };
         }
       }
     }
@@ -236,6 +278,39 @@ export class StructureChart {
     this.highestDataPointValue = this.findHighestDataPointValue(bars);
     this.highestVarianceDataPointValue = this.findHighestDataPointValue(this.variancesDataModel);
     this.axisScenario = this.setAxisScenario(config.variances);
+
+    this.bridge = this.computeBridge();
+    if (this.bridge && this.variancesDataModel.length === 0) {
+      // the total bars and the walk are part of the chart: they count for its width
+      const levels = this.bridge.steps.flatMap((step) => [step.from, step.to]);
+      const { scenario, variance } = this.highestDataPointValue;
+      this.highestDataPointValue = new DataPoint(
+        Math.max(this.bridge.reference.value, this.bridge.total.value, ...levels),
+        scenario,
+        this.pixelPerUnit,
+        variance,
+      );
+    }
+    if (this.isWalkTier()) {
+      // a walk is as wide as its levels, and as the bars of its sum rows
+      const levels = this.walkSteps(this.variancesDataModel).flatMap((step) => [step.from, step.to]);
+      const sums = this.variancesDataModel
+        .filter((entry) => entry.sum && Number.isFinite(entry.scenario1.value))
+        .map((entry) => entry.scenario1.value as number);
+      const { scenario, variance } = this.highestVarianceDataPointValue;
+      this.highestVarianceDataPointValue = new DataPoint(
+        Math.max(0, ...levels, ...sums),
+        scenario,
+        this.pixelPerUnit,
+        variance,
+      );
+      this.smallestVarianceDataPointValue = new DataPoint(
+        Math.min(0, ...levels, ...sums),
+        scenario,
+        this.pixelPerUnit,
+        variance,
+      );
+    }
 
     this.measureScale = config.measureScale;
     this.measureUnit = config.measureUnit;
@@ -486,6 +561,7 @@ export class StructureChart {
     } else {
       this.drawScenarios(this.dataModel, svgContainer);
       this.drawAxisAndLabels(this.dataModel, svgContainer);
+      this.drawBridge(svgContainer);
     }
     if (this.variancesDataModel.length === 0) {
       this.drawReferenceLine(svgContainer);
@@ -562,13 +638,20 @@ export class StructureChart {
     const orderStr = this.createOrderStr(level, sortOrder);
     const select = this.createSelectString(level, sortOrder);
     const groupByStr = this.createGroupByStr(level, sortOrder);
+    const orderVariances = sortOrder.hierarchy
+      .map((column) => parseOrderToken(column))
+      .filter((token): token is OrderToken => token?.kind === "variance");
+    // the scenarios of an order by a variance are read too, they need not be drawn
+    const queried = [
+      ...new Set([...selectedScenarios, ...orderVariances.flatMap((token) => [token.base!, token.delta!])]),
+    ];
     let result: Record<string, unknown>[];
     try {
       result = this.db.exec<Record<string, unknown>[]>(
         `SELECT ${select} ${
-          selectedScenarios.length > 0
+          queried.length > 0
             ? "," +
-              selectedScenarios
+              queried
                 .map((scenario: string) => {
                   return `SUM(${scenario} * transformOperator(operation)) as ${scenario}, COUNT(ISNULL(${scenario})) as ${scenario}_cnt`;
                 })
@@ -584,12 +667,48 @@ export class StructureChart {
       return [];
     }
 
-    this.detectNaNCells(selectedScenarios, result);
+    this.detectNaNCells(queried, result);
+    result = this.sortByVariances(result, orderVariances, sortOrder.direction);
 
     this.createDataRows(this.limit > 0 ? result.slice(0, this.limit) : result, dataModel, selectedScenarios);
     this.crateRESTRow(result, selectedScenarios, dataModel);
 
     return dataModel;
+  }
+
+  /**
+   * Sorts the rows by the variances of the order, the first one first. Rows
+   * with the same variances keep the order of the query, and a row without a
+   * value comes after the others. A row with the category `REST` stays last
+   * under every order.
+   */
+  private sortByVariances(
+    rows: Record<string, unknown>[],
+    variances: OrderToken[],
+    direction: OrderDirection,
+  ): Record<string, unknown>[] {
+    const value = (row: Record<string, unknown>, token: OrderToken): number => {
+      const base = Number(row[token.base!]);
+      const delta = Number(row[token.delta!]);
+      if (row[token.base!] == null || row[token.delta!] == null) return NaN;
+      return token.type === "dr" ? (relativeVariance(base - delta, delta) ?? NaN) : base - delta;
+    };
+    const sign = direction === OrderDirection.DESC ? -1 : 1;
+    const sorted = rows
+      .map((row, index) => ({ row, index }))
+      .sort((a, b) => {
+        for (const token of variances) {
+          const left = value(a.row, token);
+          const right = value(b.row, token);
+          const leftSet = Number.isFinite(left);
+          const rightSet = Number.isFinite(right);
+          if (leftSet !== rightSet) return leftSet ? -1 : 1;
+          if (leftSet && left !== right) return (left - right) * sign;
+        }
+        return a.index - b.index;
+      })
+      .map((entry) => entry.row);
+    return [...sorted.filter((row) => row.category !== "REST"), ...sorted.filter((row) => row.category === "REST")];
   }
 
   private detectNaNCells(scenarios: string[], res: Record<string, unknown>[]) {
@@ -715,8 +834,10 @@ export class StructureChart {
 
   private createOrderStr(level: AggregationLevel, sortOrder: Order) {
     let orderStr = `${level.toLowerCase()}`;
-    if (sortOrder.hierarchy.length >= 1) {
-      orderStr = sortOrder.hierarchy.map((column) => `${column} ${sortOrder.direction}`).toString();
+    // a variance is no column of the query: the rows are sorted by it afterwards
+    const columns = sortOrder.hierarchy.filter((column) => parseOrderToken(column)?.kind !== "variance");
+    if (columns.length >= 1) {
+      orderStr = columns.map((column) => `${column} ${sortOrder.direction}`).toString();
     }
     return orderStr;
   }
@@ -965,6 +1086,7 @@ export class StructureChart {
             point.key = {
               ...levelKey(this.level, dataModel[index].category),
               scenario: variancesConfig[varianceScenario],
+              ...sumKey(dataModel[index]),
             };
           }
           varianceModel.push({
@@ -1086,6 +1208,9 @@ export class StructureChart {
           const side = this.stackLabelPlace(elements);
           isPositive = !side.flipped;
           clearance = side.clearance * this.pixelPerUnit * (side.flipped ? 1 : -1);
+        } else if (this.isWalkTier()) {
+          // the bars hang at their levels on both sides of the axis: the names stand left of all of them
+          clearance = -this.walkExtent().left;
         } else if (elements["scenario1"].value < 0 && !this.hasSumNumbers(this.dataModel[index])) {
           isPositive = false;
         }
@@ -1099,7 +1224,7 @@ export class StructureChart {
           "",
           // Category labels come from the data, but the synthetic "REST"
           // overflow bucket is engine-generated and translatable, as in bn-table.
-          this.i18n.get(elements.category) || elements.category,
+          this.bridgeTotalName(this.dataModel[index]) ?? (this.i18n.get(elements.category) || elements.category),
           this.styles,
           HookLocation.Center,
           textHook,
@@ -1112,7 +1237,7 @@ export class StructureChart {
     // a thin line above a sum row, from the labels to the end of the row
     dataModel.forEach((_elements, index) => {
       const row = this.dataModel[index];
-      if (!row?.sum) return;
+      if (!row?.sum || this.bridge) return;
       const y = this.position.getBarCenterPositionY(index) - this.position.spacings.categoryWidth / 2;
       const left = this.hideCategories ? this.position.getAxisPositionX() : this.styles.padding.left;
       axisLabelGroup
@@ -1150,14 +1275,26 @@ export class StructureChart {
       this.i18n,
     );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
+    if (this.bridge) {
+      // the total bars carry the names of the scenarios
+      scenarioFactory.hideNames();
+    }
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       if (elements.sum) {
+        if (this.bridge) {
+          // the total of the series is a bar at the scale of the rows, with a bold number
+          const bar = scenarioFactory.createPrimaryBar(this.bridge.total, index);
+          bar.emphasize();
+          bar.draw(this.dataFormatDigits, this.measureScale);
+          return;
+        }
         this.drawSumValue(elements, index, barsGroup);
         return;
       }
       scenarioFactory.createPrimaryBar(elements["scenario1"], index).draw(this.dataFormatDigits, this.measureScale);
       scenarioFactory.createSecondaryBar(elements["scenario2"], index).draw();
+      this.drawReferenceLabel(elements, index, barsGroup);
       scenarioFactory.createPrimaryMarker(elements["scenario3"], index).draw();
       scenarioFactory.createSecondaryMarker(elements["scenario4"], index).draw();
     });
@@ -1177,6 +1314,43 @@ export class StructureChart {
         HookLocation.Left,
       ).draw();
     }
+  }
+
+  /**
+   * The value of a reference bar that is much longer than the bar in front of
+   * it: printed at its end, when it has room behind the label of the front bar.
+   */
+  private drawReferenceLabel(row: StructureChartDataModelEntry, index: number, group: G): void {
+    const front = row.scenario1;
+    const reference = row.scenario2;
+    if (this.overflowConfig != null || !Number.isFinite(front?.value) || !Number.isFinite(reference?.value)) {
+      return;
+    }
+    const frontValue = front.value as number;
+    const referenceValue = reference.value as number;
+    if (frontValue < 0 || referenceValue <= frontValue) {
+      return;
+    }
+    // a marker of a further scenario stands at the bar ends: the label would cover it
+    if ([row.scenario3, row.scenario4].some((point) => Number.isFinite(point?.value))) {
+      return;
+    }
+    const labelToBar = this.position.spacings.labelToBar;
+    const room = (referenceValue - frontValue) * this.pixelPerUnit;
+    if (room < this.valueLabelWidth(frontValue) + 3 * labelToBar) {
+      return;
+    }
+    new Label(
+      group,
+      this.position.getLabelPositionX(referenceValue * this.pixelPerUnit),
+      this.position.getBarCenterPositionY(index),
+      `REFERENCE_${index}`,
+      referenceValue,
+      this.styles,
+      HookLocation.Center,
+      HookLocation.Left,
+      // no point key: a label point without a scenario stays the label of the front bar
+    ).draw(this.dataFormatDigits, this.measureScale);
   }
 
   /** The scenarios of a sum row of a chart with plain bars that have a value, in the order of the `scenarios` prop. */
@@ -1263,6 +1437,7 @@ export class StructureChart {
       this.i18n,
     );
     scenarioFactory.setOverflowConfig(this.overflowConfig);
+    const walk = this.isWalkTier();
 
     dataModel.forEach((elements: StructureChartDataModelEntry, index: number) => {
       // the variance of a sum row is a bar like the others, with a bold number
@@ -1270,12 +1445,19 @@ export class StructureChart {
         const needle = scenarioFactory.createRelativeVarianceBar(elements["scenario1"], index);
         if (elements.sum) needle.emphasize();
         needle.draw(this.dataFormatDigits);
+      } else if (walk && !elements.sum) {
+        // drawn with the steps below
       } else {
         const bar = scenarioFactory.createVarianceBar(elements["scenario1"], index);
         if (elements.sum) bar.emphasize();
         bar.draw(this.dataFormatDigits, this.measureScale);
       }
     });
+    if (walk) {
+      const lineGroup = barsGroup.group().id("WalkLines");
+      lineGroup.back();
+      this.drawWalkSteps(this.walkSteps(dataModel), barsGroup.group().id("Walk"), lineGroup);
+    }
 
     return barsGroup;
   }
@@ -1492,6 +1674,14 @@ export class StructureChart {
       const sizeLabelValue = this.calculateTextBoxWidth(this.smallestVarianceDataPointValue.value, true);
       width = Math.abs(this.smallestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
+    if (this.isWalkTier()) {
+      // a bar hangs at its level: its label can stand anywhere, also next to the axis
+      width = this.walkExtent().left;
+      if (!this.hideCategories) {
+        // the names stand left of the walk
+        width += this.calculateCategoryWidth() + this.styles.fontStyles.size * this.styles.scaleFactors.labelToAxis;
+      }
+    }
 
     if (width <= this.titleLength) {
       return this.titleLength;
@@ -1557,6 +1747,9 @@ export class StructureChart {
       width = Math.abs(this.highestVarianceDataPointValue.getScaledUnit()) + labelToBar + sizeLabelValue;
     }
 
+    if (this.isWalkTier()) {
+      width = this.walkExtent().right;
+    }
     width = Math.max(width, this.referenceLineExtent());
 
     // the bold number of a sum row stands at the axis
@@ -1784,9 +1977,315 @@ export class StructureChart {
     return groups;
   }
 
+  /** Width of a value label as it is printed, with the digits of the chart. */
+  private valueLabelWidth(value: number, variance = false): number {
+    const digits = this.dataFormatDigits?.decimal ?? 1;
+    const text =
+      (variance && value > 0 ? "+" : "") +
+      Formatter.number(value, "decimal", digits, digits, this.measureScale?.value || 1, this.styles.locale) +
+      (variance ? "" : (this.styles.valueSuffix ?? ""));
+    return CalculateSize(text, {
+      font: this.styles.fontStyles.font,
+      fontSize: this.styles.fontStyles.size + "px",
+    }).width;
+  }
+
+  /**
+   * Room a walk needs left and right of its axis, in pixels: each bar at its
+   * level with its label behind its end, and the bars of the sum rows.
+   */
+  private walkExtent(): { left: number; right: number } {
+    const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
+    const bars = [
+      ...this.walkSteps(this.variancesDataModel).map((step) => ({ ...step, value: step.point.value as number })),
+      ...this.variancesDataModel
+        .filter((entry) => entry.sum && Number.isFinite(entry.scenario1.value))
+        .map((entry) => ({ from: 0, to: entry.scenario1.value as number, value: entry.scenario1.value as number })),
+    ];
+    let left = 0;
+    let right = 0;
+    for (const bar of bars) {
+      const label = labelToBar + this.valueLabelWidth(bar.value, true);
+      const low = Math.min(bar.from, bar.to) * this.pixelPerUnit;
+      const high = Math.max(bar.from, bar.to) * this.pixelPerUnit;
+      left = Math.max(left, -low + (bar.value < 0 ? label : 0));
+      right = Math.max(right, high + (bar.value < 0 ? 0 : label));
+    }
+    return { left, right };
+  }
+
+  /** The total row of a bridge without a `sum-title` takes the name of its scenario: the bars carry no names. */
+  private bridgeTotalName(row: StructureChartDataModelEntry | undefined): string | null {
+    if (this.bridge == null || row?.sum !== "total" || this.sumTitle) {
+      return null;
+    }
+    const scenario = this.bridge.total.scenario as string;
+    return (this.i18n.get(scenario) as string) || scenario;
+  }
+
+  /** True for an absolute variance that is drawn as a walk down the rows. */
+  private isWalkTier(): boolean {
+    return (
+      this.varianceWaterfall &&
+      this.stackConfig == null &&
+      this.variancesDataModel.length > 0 &&
+      this.variancesDataModel.every((entry) => entry.type === VarianceType.ABSOLUTE)
+    );
+  }
+
+  /** True for the variance the base chart draws as a bridge: its own segment is not drawn. */
+  public isBridgeTier(): boolean {
+    return (
+      this.bridge != null &&
+      this.variancesDataModel.length > 0 &&
+      this.configVariances.length === this.bridgeVariances.length &&
+      this.configVariances.every((name, index) => name === this.bridgeVariances[index])
+    );
+  }
+
+  /** Why a chart with `varianceWaterfall` and a total row draws no bridge, null when it does or when none is asked for. */
+  public getBridgeFallback(): string | null {
+    return this.bridgeFallback;
+  }
+
+  /**
+   * The steps of a walk: each starts at the level where the step before ended.
+   * A row without a value has no step. A sum row has none, and the rows after
+   * the sum row of a group start again at the start level.
+   */
+  private walkSteps(model: StructureChartDataModelEntry[], start: number = 0): WalkStep[] {
+    const steps: WalkStep[] = [];
+    let level = start;
+    let run = 0;
+    model.forEach((entry, index) => {
+      if (entry.sum) {
+        level = start;
+        run++;
+        return;
+      }
+      const point = entry.scenario1;
+      if (point == null || !Number.isFinite(point.value)) {
+        return;
+      }
+      steps.push({ index, from: level, to: level + (point.value as number), point, run });
+      level += point.value as number;
+    });
+    return steps;
+  }
+
+  /**
+   * The bridge of a chart with `varianceWaterfall` and `sums: total`: the
+   * reference total, one step per row and the total of the series. Null when
+   * the walk does not lead from one total to the other, with the reason in
+   * `bridgeFallback`.
+   */
+  private computeBridge(): Bridge | null {
+    this.bridgeFallback = null;
+    if (!this.varianceWaterfall || this.bridgeVariances.length === 0 || this.stackConfig != null) {
+      return null;
+    }
+    if (this.sums === "none" || this.dataModel.length === 0) {
+      return null;
+    }
+    const fail = (reason: string): null => {
+      this.bridgeFallback = reason;
+      return null;
+    };
+    if (this.sums !== "total") return fail("sums is not total");
+    const name = this.bridgeVariances[0];
+    const variance = new VarianceScenario(name);
+    const totalRow = this.dataModel.find((row) => row.sum === "total");
+    if (!variance.isValid || totalRow == null) return fail("the chart has no total row");
+    const slots = this.mapScenarios(variance, this.dataModel[0]);
+    const series = totalRow[slots.get(variance.base) ?? ""] as DataPoint | undefined;
+    const reference = totalRow[slots.get(variance.delta) ?? ""] as DataPoint | undefined;
+    if (
+      series == null ||
+      reference == null ||
+      !(Number(series.value) > 0) ||
+      !(Number(reference.value) > 0) ||
+      slots.get(variance.base) !== "scenario1"
+    ) {
+      return fail("the total row has no bar for the series and its reference");
+    }
+    // the bridge shows the series and its reference: a further scenario would lose its total and its name
+    const others = (["scenario2", "scenario3", "scenario4"] as const).filter(
+      (slot) => slot !== slots.get(variance.delta) && this.dataModel.some((row) => Number.isFinite(row[slot]?.value)),
+    );
+    if (slots.get(variance.delta) !== "scenario2" || others.length > 0) {
+      return fail("the chart has more scenarios than the series and its reference");
+    }
+
+    const model = this.populateVarianceModel([name], this.dataModel);
+    const steps = this.walkSteps(model, reference.value as number);
+    if (steps.length === 0) return fail("the variance has no value");
+    const end = steps[steps.length - 1].to;
+    const tolerance = Math.max(1e-6, Math.abs(series.value as number) * 1e-6);
+    if (Math.abs(end - (series.value as number)) > tolerance) {
+      return fail("the reference total plus the variances is not the total of the series");
+    }
+    // the walk hangs right of the bars of the rows: a step needs room for its label and theirs
+    const labelToBar = this.styles.fontStyles.size * this.styles.scaleFactors.labelToBar;
+    for (const step of steps) {
+      const row = this.dataModel[step.index];
+      const bars = [row.scenario1, row.scenario2]
+        .map((point) => Number(point?.value))
+        .filter((value) => Number.isFinite(value));
+      const longest = Math.max(0, ...bars);
+      const room =
+        this.valueLabelWidth(longest) + this.valueLabelWidth(step.point.value as number, true) + 3 * labelToBar;
+      if ((Math.min(step.from, step.to) - longest) * this.pixelPerUnit < room) {
+        return fail("the walk would cross the bars of the rows");
+      }
+    }
+    const totalVariance = model.find((entry) => entry.sum === "total")?.scenario1 ?? null;
+    return { reference, total: series, steps, variance: totalVariance };
+  }
+
+  /** The steps of a walk as bars that hang at their level, and the thin lines between them. */
+  private drawWalkSteps(steps: WalkStep[], group: G, lineGroup: G): void {
+    const axisX = this.position.getBarPositionX();
+    const half = this.position.getBarWidth() / 2;
+    steps.forEach((step, at) => {
+      const barGroup = group.group().id("" + step.index);
+      const labelGroup = group.group().id("label" + step.index);
+      new Bar(this.position, this.scenarioStyles(), step.point, step.index, true, barGroup, null, null)
+        .updateLabelGroup(labelGroup)
+        .setAsVariance()
+        .draw(this.dataFormatDigits, this.measureScale);
+      // the bar is drawn from the axis: it moves to the level where the step before ended
+      barGroup.translate(step.from * this.pixelPerUnit, 0);
+      labelGroup.translate(step.from * this.pixelPerUnit, 0);
+      const next = steps[at + 1];
+      if (next != null && next.run === step.run) {
+        const x = axisX + step.to * this.pixelPerUnit;
+        lineGroup
+          .line(
+            x,
+            this.position.getBarCenterPositionY(step.index) + half,
+            x,
+            this.position.getBarCenterPositionY(next.index) - half,
+          )
+          .stroke({ color: WALK_LINE, width: 1 });
+      }
+    });
+  }
+
+  /**
+   * The bridge of the base chart: the reference total as a bar above the first
+   * row, the walk of the variances between its end and the end of the total of
+   * the series, thin lines from the two totals, and the variance of the total
+   * as a bar between the two levels below the total row.
+   */
+  private drawBridge(svgContainer: Svg): void {
+    const bridge = this.bridge;
+    if (bridge == null || this.variancesDataModel.length > 0) {
+      return;
+    }
+    const scale = this.pixelPerUnit;
+    const axisX = this.position.getBarPositionX();
+    const pitch = this.position.spacings.categoryWidth;
+    const barWidth = this.position.getBarWidth();
+    const labelToBar = this.position.spacings.labelToBar;
+    const lineGroup = svgContainer.group().id("BridgeLines");
+    const group = svgContainer.group().id("Bridge");
+    lineGroup.back();
+
+    const sumIndex = this.dataModel.findIndex((row) => row.sum === "total");
+    const referenceY = this.position.getBarCenterPositionY(0) - BRIDGE_LEAD_ROWS * pitch;
+    const sumY = this.position.getBarCenterPositionY(sumIndex);
+    const varianceY = sumY + pitch;
+
+    // the reference total: a bar in the look of its scenario, with a bold value and its name
+    const referenceScenario = bridge.reference.scenario as string;
+    const style = this.scenarioStyles().barStyles.getSVGStyle(bridge.reference.getScenario());
+    const referenceLength = (bridge.reference.value as number) * scale;
+    const referenceKey = { scenario: referenceScenario, row: "total" as const };
+    group
+      .rect(referenceLength, barWidth)
+      .x(axisX)
+      .cy(referenceY)
+      .fill(style?.fill || "#000000")
+      .stroke({ color: style?.stroke || style?.fill || "#000000", width: Number(style?.width) || 0 })
+      .attr(dataPointAttributes(referenceKey, "element"))
+      .attr("data-bn-value", bridge.reference.value as number);
+    new Label(
+      group,
+      axisX + referenceLength + labelToBar,
+      referenceY,
+      "BRIDGE_REFERENCE",
+      bridge.reference.value as number,
+      this.styles,
+      HookLocation.Center,
+      HookLocation.Left,
+    )
+      .setEmphasis(true, false)
+      .setPoint(referenceKey)
+      .draw(this.dataFormatDigits, this.measureScale);
+    if (!this.hideCategories) {
+      new Label(
+        group,
+        this.position.getCategoryPositionX(true),
+        referenceY,
+        "BRIDGE_REFERENCE_NAME",
+        this.i18n.get(referenceScenario) || referenceScenario,
+        this.styles,
+        HookLocation.Center,
+        HookLocation.Right,
+      )
+        .setEmphasis(true, false)
+        .draw();
+    }
+
+    // the lines of the two levels, down to the variance of the total
+    const referenceX = axisX + referenceLength;
+    const totalX = axisX + (bridge.total.value as number) * scale;
+    const stroke = { color: WALK_LINE, width: 1 };
+    const last = bridge.steps[bridge.steps.length - 1];
+    lineGroup.line(referenceX, referenceY + barWidth / 2, referenceX, varianceY).stroke(stroke);
+    lineGroup
+      .line(totalX, this.position.getBarCenterPositionY(last.index) + barWidth / 2, totalX, varianceY)
+      .stroke(stroke);
+    this.drawWalkSteps(bridge.steps, group.group().id("Walk"), lineGroup);
+
+    // the variance of the total: a thin bar between the two levels, with its value below
+    const point = bridge.variance;
+    if (point != null && Number.isFinite(point.value) && point.value !== 0) {
+      const varianceStyle = this.styles.varianceStyles.getSVGStyle(point.getVarianceStyle());
+      const height = barWidth * 0.25;
+      group
+        .rect(Math.abs(totalX - referenceX), height)
+        .x(Math.min(totalX, referenceX))
+        .cy(varianceY)
+        .fill(varianceStyle?.fill || "#000000")
+        .attr(dataPointAttributes(point.key, "element"));
+      new Label(
+        group,
+        (totalX + referenceX) / 2,
+        varianceY + height / 2 + labelToBar,
+        "BRIDGE_VARIANCE",
+        point.value as number,
+        this.styles,
+        HookLocation.Top,
+        HookLocation.Center,
+      )
+        .setEmphasis(true, false)
+        .setPoint(point.key)
+        .setToVarianceLabel()
+        .draw(this.dataFormatDigits, this.measureScale);
+    }
+  }
+
   /** Rows of different height (`stack.thickness: total`) and the room below a group. Null: all rows are equal. */
   private rowLayout(): RowLayout | null {
     const rows = this.dataModel;
+    if (this.bridge) {
+      // room above the first row for the reference total, a gap before the total of the
+      // series, and room below it for the variance of the total. The same in every tier.
+      const start = rows.map((row, index) => BRIDGE_LEAD_ROWS + index + (row.sum ? BRIDGE_SUM_GAP : 0));
+      const total = BRIDGE_LEAD_ROWS + rows.length + BRIDGE_SUM_GAP + BRIDGE_TAIL_ROWS;
+      return { start, weight: rows.map(() => 1), total };
+    }
     // the component does not set it together with variances: a variance bar has one thickness
     const byTotal = this.stackConfig?.thickness === "total";
     // the name of the scenario stands below the last bar: it needs room when a sum row follows
@@ -2049,7 +2548,8 @@ export class StructureChart {
       this.overflowConfig = null;
       return;
     }
-    if (this.stackConfig != null) {
+    // a walk and a bridge have no break marks: a cut bar would move every level behind it
+    if (this.stackConfig != null || this.isWalkTier() || (this.bridge && this.variancesDataModel.length === 0)) {
       this.overflowConfig = null;
       return;
     }
