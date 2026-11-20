@@ -672,6 +672,56 @@ export class Chart {
    */
   @Prop() scalingIndicator?: number;
 
+  /**
+   * A column right of the last period for the total of all periods, at its own
+   * scale, as JSON: `{"unitScaling":280,"label":"2025","width":1.6}`.
+   *
+   * - `unitScaling` - data units per em of column height, like `unit-scaling`. Required.
+   * - `label` - text under the column.
+   * - `width` - width in widths of a period column, default 1.
+   *
+   * The column stacks one part per scenario of the series: the first scenario,
+   * and with `scenario-switch` the ones that follow it. The first other
+   * scenario is the reference behind it. Each variance row gets the variance
+   * of the totals at the scale of the row. With `scaling-indicator` the column
+   * has its own band, and a line links the two bands. Plain columns only: not
+   * with `stack` and not in line mode.
+   */
+  @Prop() totalColumn: string = "";
+
+  @Watch("totalColumn")
+  validateTotalColumn(newValue: string) {
+    const errId = "WARN_totalColumn";
+    if (isBlankInput(newValue) || this.parseTotalColumn(newValue) != null) {
+      this.errors.remove(errId);
+    } else {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: 'totalColumn: needs JSON with a unitScaling greater than 0, for example {"unitScaling":280}.',
+      });
+    }
+  }
+
+  private parseTotalColumn(value: string): { unitScaling: number; label: string; width: number } | null {
+    try {
+      const parsed = JSON.parse(value);
+      const unitScaling = Number(parsed?.unitScaling);
+      if (!(unitScaling > 0)) return null;
+      const width = Number(parsed.width);
+      return { unitScaling, label: typeof parsed.label === "string" ? parsed.label : "", width: width > 0 ? width : 1 };
+    } catch {
+      return null;
+    }
+  }
+
+  /** The total column in the units of the inner chart: pixels for one data unit. */
+  private prepareTotalColumn(): { pixelPerUnit: number; label: string; width: number } | null {
+    const parsed = isBlankInput(this.totalColumn) ? null : this.parseTotalColumn(this.totalColumn);
+    if (parsed == null) return null;
+    return { pixelPerUnit: this.getEffectiveFontPx() / parsed.unitScaling, label: parsed.label, width: parsed.width };
+  }
+
   @Watch("axisLabelsStep")
   validateAxisLabelsStep(newValue: number) {
     const errId = "WARN_axisLabelsStep";
@@ -768,6 +818,7 @@ export class Chart {
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDataFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateAxisLabelsStep(this.axisLabelsStep);
+    this.validateTotalColumn(this.totalColumn);
     this.validateAxisTitlePosition(this.axisTitlePosition);
   }
 
@@ -1600,6 +1651,7 @@ export class Chart {
         }}
         axisLabelsStep={Math.max(1, Math.floor(Number(this.axisLabelsStep) || 1))}
         scalingIndicator={isBase ? Number(this.scalingIndicator) || 0 : 0}
+        totalColumn={this.prepareTotalColumn()}
         scenarioSwitch={this.scenarioSwitch}
         axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}

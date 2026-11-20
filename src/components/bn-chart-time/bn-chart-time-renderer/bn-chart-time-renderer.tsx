@@ -6,6 +6,7 @@ import {
   StackConfigParsed,
   TimeChartComponentConfig,
   TimeChartComponentConfigAdapter,
+  TotalColumnConfig,
 } from "../utils/model/TimeChartComponentConfig";
 import { TimeChartDataRowAdapter } from "../utils/model/TimeChartDataRow";
 import { getStores, ScopedStores } from "../../../context/context-protocol";
@@ -159,6 +160,10 @@ export class BnChartTimeRenderer {
   /** @internal */
   @Prop()
   scalingIndicator: number = 0;
+
+  /** @internal */
+  @Prop()
+  totalColumn: TotalColumnConfig | null = null;
 
   /** @internal */
   @Prop()
@@ -528,6 +533,7 @@ export class BnChartTimeRenderer {
       lineFullWidth: this.lineFullWidth,
       axisLabelsStep: this.axisLabelsStep,
       scalingIndicator: this.scalingIndicator,
+      totalColumn: this.totalColumn,
       scenarioSwitch: this.scenarioSwitch,
       axisTitlePosition: this.axisTitlePosition,
       locale: this.stores?.context?.state?.locale || "de",
