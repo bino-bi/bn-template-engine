@@ -1715,11 +1715,11 @@ export class Chart {
     }
   }
 
-  /** The first row of absolute variances: the candidates for the bridge between the totals. */
+  /**
+   * The first row of absolute variances: the candidates for the bridge between
+   * the totals, and the sentiment of the variances the base chart draws at its totals.
+   */
   private prepareBridgeVariances(): string[] {
-    if (this.varianceWaterfall !== true) {
-      return [];
-    }
     const isAbsolute = (name: string): boolean => {
       const parsed = new VarianceScenario(name);
       return parsed.isValid && parsed.type !== "dr";

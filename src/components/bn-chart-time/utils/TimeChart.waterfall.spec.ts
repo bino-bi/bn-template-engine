@@ -348,6 +348,16 @@ describe("time chart scenarios at the total only", () => {
     expect(svg).toContain('data-bn-scenario="dac1_pp1" data-bn-row="total" data-bn-part="element" data-bn-value="16"');
   });
 
+  it("colours its variance by the sentiment of the variances of the chart", () => {
+    // more is bad: 76 against 60 is red, also without a waterfall
+    const svg = buildChart(
+      { totals: { ...listed, pixelPerUnit: 0.5 }, bridgeVariances: ["dac1_pl1_neg", "dfc1_pl1_neg"] },
+      WITH_PY,
+    ).toString();
+    const bar = /<rect[^>]*fill="(#[0-9a-f]+)"[^>]*data-bn-scenario="dac1_pp1"/.exec(svg);
+    expect(bar?.[1]).toBe("#ff0000");
+  });
+
   it("draws it behind the total column of a chart without a bridge", () => {
     const svg = buildChart({ totals: { ...listed, pixelPerUnit: 0.5 } }, WITH_PY).toString();
     expect(svg).toContain('data-bn-scenario="pp1" data-bn-row="total"');
