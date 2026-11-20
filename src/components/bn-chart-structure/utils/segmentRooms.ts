@@ -8,8 +8,14 @@
  * @param total - width of the chart
  * @param widths - what each segment needs when no bar is cut, with the room beside it
  * @param fixed - segments that are drawn at their width whatever room they get
+ * @param reserve - a part of the free room that is given to no segment
  */
-export function segmentRooms(total: number, widths: (number | undefined)[], fixed: boolean[] = []): number[] {
+export function segmentRooms(
+  total: number,
+  widths: (number | undefined)[],
+  fixed: boolean[] = [],
+  reserve: number = 0,
+): number[] {
   const count = widths.length;
   const share = total / count;
   const rooms: number[] = new Array(count).fill(share);
@@ -17,7 +23,7 @@ export function segmentRooms(total: number, widths: (number | undefined)[], fixe
 
   const width = (index: number): number => widths[index] ?? share;
   // what is free when every segment that can be cut is at its share at most
-  let free = total;
+  let free = total - reserve;
   const needy: number[] = [];
   for (let index = 0; index < count; index++) {
     if (fixed[index]) {

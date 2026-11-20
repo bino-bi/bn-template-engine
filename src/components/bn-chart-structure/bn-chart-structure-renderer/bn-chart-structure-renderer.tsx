@@ -313,12 +313,13 @@ export class BnChartStructureRenderer {
         this.chart.layout();
         natural = this.chart.getAllocatedCanvasWidth();
       }
-      // the footer stands beside the chart and takes a part of the room
+      // the footer stands beside the chart: it is a part of what the segment needs
       const footer = hidden ? 0 : this.chart.getFooterRoom();
       // a segment that is wider than its equal share and gets no break marks there is as wide as it is
-      const cuttable = !hidden && this.chart.cutsAt(this.equalShare - footer);
+      const cuttable = !hidden && this.chart.cutsAt(this.equalShare);
       this.reportWidth(natural + footer, cuttable);
-      room = Math.max(0, room - footer);
+      // at its equal share a segment is cut as before. More room is room for the chart and its footer
+      if (room > this.equalShare + 0.5) room = Math.max(this.equalShare, room - footer);
       // the check for break marks keeps room for them: a segment that fits as it is needs none
       if (natural <= room + 0.5) return;
     }

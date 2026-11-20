@@ -41,6 +41,11 @@ describe("segmentRooms", () => {
     expect(used(widths, [rooms[0], rooms[1], 380])).toBeLessThanOrEqual(900);
   });
 
+  it("keeps a reserve of the free room back", () => {
+    expect(segmentRooms(900, [400, 200, 100], [], 250)).toEqual([350, 300, 300]);
+    expect(segmentRooms(900, [400, 200, 100], [], 500)).toEqual([300, 300, 300]);
+  });
+
   it("gives no segment less than its equal share", () => {
     // the fixed segments fill more than their shares: the bars keep theirs
     expect(segmentRooms(900, [600, 500, 500], [false, true, true])).toEqual([300, 300, 300]);

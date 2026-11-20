@@ -1002,6 +1002,23 @@ export class Chart {
    */
   private checkOverflow(): void {
     const parent = getParentDimensions(this.element);
+    const tooWide = this.sharedTooWide(parent.width);
+    if (tooWide > 0) {
+      // a segment with break marks can be wider than its room: keep that much of the free room back
+      const key = this.shareKey();
+      if (this.shareReserve.key !== key) this.shareReserve = { key, width: 0, tries: 0 };
+      if (this.shareReserve.tries < 3) {
+        this.shareReserve.width += tooWide + 2;
+        this.shareReserve.tries += 1;
+      } else {
+        // it still does not fit: equal shares, as a chart without the split
+        this.shareOff = key;
+        this.segmentWidths = [];
+        this.segmentFixed = [];
+      }
+      writeTask(() => forceUpdate(this));
+      return;
+    }
     const contentWidth = this.measureContentWidth();
     const contentHeight = this.element.scrollHeight;
     const widthOver = parent.width > 0 && contentWidth > parent.width + 1;
@@ -1044,9 +1061,46 @@ export class Chart {
   private segmentFixed: boolean[] = [];
   private widthUpdate = false;
 
+  /** What the split of the width depends on. A split that made the chart too wide stays off while this is the same. */
+  private shareKey(): string {
+    return [
+      getParentDimensions(this.element).width,
+      this.unitScaling,
+      this.percentageScaling,
+      this.dataVersion,
+      this.getEffectiveFontPx(),
+      this.prepareSegments().join(","),
+    ].join("|");
+  }
+
+  private shareOff: string | null = null;
+  /** Free room that is kept back, because a segment with break marks was wider than its room. */
+  private shareReserve = { key: "", width: 0, tries: 0 };
+
+  /** By how much the chart with its footers is wider than its room though the segments share the width. */
+  private sharedTooWide(parentWidth: number): number {
+    if (parentWidth <= 0 || !this.sharesWidth()) return 0;
+    // only a split that gave a segment more than its equal share can be the cause
+    const count = Math.max(1, this.prepareSegments().length);
+    if (this.segmentRooms(parentWidth, count).every((room) => room <= parentWidth / count + 0.5)) return 0;
+    let total = 0;
+    this.element.shadowRoot?.querySelectorAll("bn-chart-structure-renderer").forEach((inner) => {
+      const width = parseFloat(inner.shadowRoot?.querySelector("svg#drawCanvas")?.getAttribute("width") ?? "");
+      if (Number.isNaN(width)) return;
+      total += width;
+      const footer = inner.shadowRoot?.querySelector(".footer, .footer-hide") as HTMLElement | null;
+      if (footer) {
+        const style = getComputedStyle(footer);
+        total += footer.getBoundingClientRect().width + parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+      }
+    });
+    return Number.isFinite(total) && total > parentWidth + 1 ? total - parentWidth : 0;
+  }
+
   /** With fixed scales the segments share the width: one that needs less than its share leaves room to the others. */
   private sharesWidth(): boolean {
     if (this.prepareSegments().length < 2) return false;
+    if (this.shareOff === this.shareKey()) return false;
     if (resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind !== "value") return false;
     const relative = this.prepareVariances().some((variance) => variance.startsWith("dr"));
     return !relative || resolveScalingValue(this.percentageScaling, this.pixelPerUnitGroupMap).kind === "value";
@@ -1059,6 +1113,7 @@ export class Chart {
       total,
       Array.from({ length: count }, (_, index) => this.segmentWidths[index]),
       Array.from({ length: count }, (_, index) => this.segmentFixed[index] === true),
+      this.shareReserve.key === this.shareKey() ? this.shareReserve.width : 0,
     );
   }
 
