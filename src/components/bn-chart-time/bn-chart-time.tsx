@@ -677,7 +677,8 @@ export class Chart {
    * Total columns at their own scale, as JSON:
    * `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.
    *
-   * - `unitScaling` - data units per em of column height, like `unit-scaling`. Required.
+   * - `unitScaling` - data units per em of column height, like `unit-scaling`.
+   *   Left out, the totals use the scale of the chart.
    * - `by` - what a total covers. `all` (default): one column right of the last
    *   period for all periods. `year`, `quarter`, `month`, `week`: one column
    *   behind the periods of each of them, on the axis.
@@ -710,7 +711,7 @@ export class Chart {
         id: errId,
         type: "warning",
         message:
-          'totals: needs JSON with a unitScaling greater than 0, by one of all, year, quarter, month, week, and aggregation one of sum, average, last. For example {"unitScaling":280}.',
+          'totals: needs JSON with by one of all, year, quarter, month, week, and aggregation one of sum, average, last. A unitScaling must be greater than 0. For example {"unitScaling":280}.',
       });
     }
     this.bindTotalsDataset();
@@ -720,8 +721,12 @@ export class Chart {
     try {
       const parsed = JSON.parse(value);
       // the same values as `unit-scaling`: a number, with an SI suffix, or the name of a scaling group
-      const scaling = resolveScalingValue(parsed?.unitScaling, this.pixelPerUnitGroupMap);
-      if (scaling.kind !== "value" || !(scaling.value > 0)) return null;
+      // left out: the totals take the scale of the chart
+      const ownScale = parsed?.unitScaling != null && parsed.unitScaling !== "";
+      const scaling = ownScale
+        ? resolveScalingValue(parsed.unitScaling, this.pixelPerUnitGroupMap)
+        : { kind: "value" as const, value: 0 };
+      if (scaling.kind !== "value" || (ownScale && !(scaling.value > 0))) return null;
       const by = parsed.by ?? "all";
       const aggregation = parsed.aggregation ?? "sum";
       if (!["all", "year", "quarter", "month", "week"].includes(by)) return null;
@@ -795,7 +800,7 @@ export class Chart {
     }
     this.errors.remove(errId);
     const { unitScaling, ...rest } = parsed;
-    return { ...rest, pixelPerUnit: this.getEffectiveFontPx() / unitScaling };
+    return { ...rest, pixelPerUnit: unitScaling > 0 ? this.getEffectiveFontPx() / unitScaling : 0 };
   }
 
   @Watch("axisLabelsStep")
@@ -822,6 +827,26 @@ export class Chart {
    * the axis. Bar mode, without a stack or with a stack by dimensions.
    */
   @Prop() scenarioSwitch: boolean = false;
+
+  /**
+   * Draws each row of absolute variances as a walk: a column starts where the
+   * column before ended, and thin lines join them. A period without a value
+   * keeps the level. Relative variances stay pins. With `totals` of `by: all`
+   * at the scale of the chart (no `unitScaling` in `totals`, aggregation
+   * `sum`) the first row of absolute variances becomes a bridge: the reference
+   * total stands before the first period, the total of the series behind the
+   * last one, and the walk runs between their ends. Bar mode, plain columns:
+   * no effect in line mode and with `stack`.
+   */
+  @Prop() varianceWaterfall: boolean = false;
+
+  /**
+   * With `scenario-switch`: draws the reference (the first scenario that is
+   * not part of the series) as a column behind the series in every period, in
+   * place of the marker. Further scenarios stay markers. Without
+   * `scenario-switch` it has no effect.
+   */
+  @Prop() referenceColumn: boolean = false;
 
   /**
    * Where the axis title stands (the chart title, or the name of a variance).
@@ -1169,7 +1194,12 @@ export class Chart {
       const renderers = Array.from(this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer") ?? []);
       measured = measureHeightBonus(
         this.segmentShare(this._lastAppliedHeight, segments.length),
-        renderers.slice(1).map((renderer) => (renderer as HTMLElement).offsetHeight),
+        // the row of the bridge is not drawn: it leaves its whole share
+        renderers
+          .slice(1)
+          .map((renderer) =>
+            renderer.classList.contains("bridge-tier") ? 0.01 : (renderer as HTMLElement).offsetHeight,
+          ),
       );
     }
     const bonus = settleHeightBonus(this._baseHeightBonus, measured);
@@ -1669,6 +1699,18 @@ export class Chart {
     }
   }
 
+  /** The first row of absolute variances: the candidates for the bridge between the totals. */
+  private prepareBridgeVariances(): string[] {
+    if (this.varianceWaterfall !== true) {
+      return [];
+    }
+    const isAbsolute = (name: string): boolean => {
+      const parsed = new VarianceScenario(name);
+      return parsed.isValid && parsed.type !== "dr";
+    };
+    return this.prepareSegments().find((row) => row.length > 0 && isAbsolute(row[0])) ?? [];
+  }
+
   private prepareLineFullWidth(): boolean {
     return this.lineFullWidth;
   }
@@ -1737,6 +1779,9 @@ export class Chart {
         scalingIndicator={Number(this.scalingIndicator) || 0}
         totals={this.prepareTotals()}
         scenarioSwitch={this.scenarioSwitch}
+        varianceWaterfall={this.varianceWaterfall === true}
+        bridgeVariances={this.prepareBridgeVariances()}
+        referenceColumn={this.referenceColumn === true}
         axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension(isBase)}

@@ -1069,6 +1069,11 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
+          * With `scenario-switch`: draws the reference (the first scenario that is not part of the series) as a column behind the series in every period, in place of the marker. Further scenarios stay markers. Without `scenario-switch` it has no effect.
+          * @default false
+         */
+        "referenceColumn": boolean;
+        /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
         "ruleset"?: string;
@@ -1122,7 +1127,7 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
+          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`.   Left out, the totals use the scale of the chart. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
           * @default ""
          */
         "totals": string;
@@ -1133,6 +1138,11 @@ export namespace Components {
           * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
+        /**
+          * Draws each row of absolute variances as a walk: a column starts where the column before ended, and thin lines join them. A period without a value keeps the level. Relative variances stay pins. With `totals` of `by: all` at the scale of the chart (no `unitScaling` in `totals`, aggregation `sum`) the first row of absolute variances becomes a bridge: the reference total stands before the first period, the total of the series behind the last one, and the walk runs between their ends. Bar mode, plain columns: no effect in line mode and with `stack`.
+          * @default false
+         */
+        "varianceWaterfall": boolean;
         /**
           * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value.   op and opinv are accepted for pages that share variances with   tables. Chart values carry their operation sign, so op acts like pos   and opinv like neg. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
          */
@@ -1151,6 +1161,10 @@ export namespace Components {
           * @default "left"
          */
         "axisTitlePosition": string;
+        /**
+          * @default []
+         */
+        "bridgeVariances": string[];
         /**
           * @default ChartMode.BAR
          */
@@ -1226,6 +1240,10 @@ export namespace Components {
          */
         "pixelPerUnit": number;
         /**
+          * @default false
+         */
+        "referenceColumn": boolean;
+        /**
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
@@ -1268,6 +1286,10 @@ export namespace Components {
           * @default null
          */
         "totals": TotalsConfig | null;
+        /**
+          * @default false
+         */
+        "varianceWaterfall": boolean;
         /**
           * @default []
          */
@@ -3781,6 +3803,11 @@ declare namespace LocalJSX {
          */
         "percentageScaling": string | number;
         /**
+          * With `scenario-switch`: draws the reference (the first scenario that is not part of the series) as a column behind the series in every period, in place of the marker. Further scenarios stay markers. Without `scenario-switch` it has no effect.
+          * @default false
+         */
+        "referenceColumn"?: boolean;
+        /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
         "ruleset"?: string;
@@ -3834,7 +3861,7 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
-          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`. Required. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
+          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`.   Left out, the totals use the scale of the chart. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
           * @default ""
          */
         "totals"?: string;
@@ -3845,6 +3872,11 @@ declare namespace LocalJSX {
           * @example unit-scaling="revenue-scale"
          */
         "unitScaling": string | number;
+        /**
+          * Draws each row of absolute variances as a walk: a column starts where the column before ended, and thin lines join them. A period without a value keeps the level. Relative variances stay pins. With `totals` of `by: all` at the scale of the chart (no `unitScaling` in `totals`, aggregation `sum`) the first row of absolute variances becomes a bridge: the reference total stands before the first period, the total of the series behind the last one, and the walk runs between their ends. Bar mode, plain columns: no effect in line mode and with `stack`.
+          * @default false
+         */
+        "varianceWaterfall"?: boolean;
         /**
           * List of Variance Map. <br /> <br />   Variance chart can be added by seperating the scenarios   of each chart with ```;```<br />   The additonal variances which   are calculated form the given scenarios.   the scenarios used in the variances have also   be defined in the *scenarios* property. <br /> <br />   the variance is defiend as  (Scenario A -  ScenarioB)   neu. neg and pos post fix defines which value is *good*   a negative or a positive value.   op and opinv are accepted for pages that share variances with   tables. Chart values carry their operation sign, so op acts like pos   and opinv like neg. <br /> <br />   if empty variance charts are hidden <br /> <br />   each variance creates a chart <br /> <br />   pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```     example: <br />```'dpp1_ac1_neg,dfc1_ac1_neg'```
          */
@@ -3863,6 +3895,10 @@ declare namespace LocalJSX {
           * @default "left"
          */
         "axisTitlePosition"?: string;
+        /**
+          * @default []
+         */
+        "bridgeVariances"?: string[];
         /**
           * @default ChartMode.BAR
          */
@@ -3938,6 +3974,10 @@ declare namespace LocalJSX {
          */
         "pixelPerUnit"?: number;
         /**
+          * @default false
+         */
+        "referenceColumn"?: boolean;
+        /**
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
@@ -3980,6 +4020,10 @@ declare namespace LocalJSX {
           * @default null
          */
         "totals"?: TotalsConfig | null;
+        /**
+          * @default false
+         */
+        "varianceWaterfall"?: boolean;
         /**
           * @default []
          */
@@ -5250,6 +5294,8 @@ declare namespace LocalJSX {
         "scalingIndicator": number;
         "totals": string;
         "scenarioSwitch": boolean;
+        "varianceWaterfall": boolean;
+        "referenceColumn": boolean;
         "axisTitlePosition": string;
     }
     interface BnChartTimeRendererAttributes {
@@ -5277,6 +5323,8 @@ declare namespace LocalJSX {
         "scalingIndicator": number;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;
+        "varianceWaterfall": boolean;
+        "referenceColumn": boolean;
     }
     interface BnComponentStyleAttributes {
         "name": string;
