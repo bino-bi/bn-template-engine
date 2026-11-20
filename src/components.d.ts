@@ -1157,7 +1157,7 @@ export namespace Components {
          */
         "unitScaling": string | number;
         /**
-          * Draws each row of absolute variances as a walk: a column starts where the column before ended, and thin lines join them. A period without a value keeps the level. Relative variances stay pins. With `totals` of `by: all` at the scale of the chart (no `unitScaling` in `totals`, aggregation `sum`) the first row of absolute variances becomes a bridge: the reference total stands before the first period, the total of the series behind the last one, and the walk runs between their ends. With `sync-space-left` the reference total stands inside that space, so the space must have room for it. Behind a total column on the axis (`by` other than `all`) a walk starts again. Bar mode, plain columns: no effect in line mode and with `stack`.
+          * Draws each row of absolute variances as a walk: a column starts where the column before ended, and thin lines join them. A period without a value keeps the level. Relative variances stay pins. With `totals` of `by: all` at the scale of the chart (no `unitScaling` in `totals`, aggregation `sum`) the first row of absolute variances becomes a bridge: the reference total stands before the first period, the total of the series behind the last one, and the walk runs between their ends. With `sync-space-left` there is no bridge, the reference total has no room in a synced space. Behind a total column on the axis (`by` other than `all`) a walk starts again. Bar mode, plain columns: no effect in line mode and with `stack`.
           * @default false
          */
         "varianceWaterfall": boolean;
@@ -3913,7 +3913,7 @@ declare namespace LocalJSX {
          */
         "unitScaling": string | number;
         /**
-          * Draws each row of absolute variances as a walk: a column starts where the column before ended, and thin lines join them. A period without a value keeps the level. Relative variances stay pins. With `totals` of `by: all` at the scale of the chart (no `unitScaling` in `totals`, aggregation `sum`) the first row of absolute variances becomes a bridge: the reference total stands before the first period, the total of the series behind the last one, and the walk runs between their ends. With `sync-space-left` the reference total stands inside that space, so the space must have room for it. Behind a total column on the axis (`by` other than `all`) a walk starts again. Bar mode, plain columns: no effect in line mode and with `stack`.
+          * Draws each row of absolute variances as a walk: a column starts where the column before ended, and thin lines join them. A period without a value keeps the level. Relative variances stay pins. With `totals` of `by: all` at the scale of the chart (no `unitScaling` in `totals`, aggregation `sum`) the first row of absolute variances becomes a bridge: the reference total stands before the first period, the total of the series behind the last one, and the walk runs between their ends. With `sync-space-left` there is no bridge, the reference total has no room in a synced space. Behind a total column on the axis (`by` other than `all`) a walk starts again. Bar mode, plain columns: no effect in line mode and with `stack`.
           * @default false
          */
         "varianceWaterfall"?: boolean;
