@@ -1007,6 +1007,11 @@ export namespace Components {
          */
         "dataFormatDigitsPercent": number;
         /**
+          * `false` prints the labels of relative variances without the percent sign (`+11.6`). The title of the row (`ΔPY%`) still names the unit.
+          * @default true
+         */
+        "dataFormatPercentSign": boolean;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -1071,6 +1076,10 @@ export namespace Components {
           * Controls proportional scaling of the chart to fit the available parent width.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor  | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                              | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                      |
          */
         "scale"?: string;
+        /**
+          * Scaling indicator: a light band behind the columns, from the axis up to this value, with the value at its right end. Two charts with different scales show the same value, so the reader sees the difference. Bar mode only.
+         */
+        "scalingIndicator"?: number;
         /**
           * For a series that changes its scenario along the time axis, for example AC up to this year and PL after it. In a period where the first scenario has no value, the next scenario with a value is drawn in its place with its value label. A vertical line marks the change, and the scenario names stand under the axis. Variances with the same reference and type share one row. A chart with one scenario gets the name of that scenario under the axis. Bar mode, without a stack or with a stack by dimensions.
           * @default false
@@ -1216,6 +1225,10 @@ export namespace Components {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default 0
+         */
+        "scalingIndicator": number;
         /**
           * @default false
          */
@@ -3706,6 +3719,11 @@ declare namespace LocalJSX {
          */
         "dataFormatDigitsPercent"?: number;
         /**
+          * `false` prints the labels of relative variances without the percent sign (`+11.6`). The title of the row (`ΔPY%`) still names the unit.
+          * @default true
+         */
+        "dataFormatPercentSign"?: boolean;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -3761,6 +3779,10 @@ declare namespace LocalJSX {
           * Controls proportional scaling of the chart to fit the available parent width.  | Value               | Behavior                                                                          | |---------------------|-----------------------------------------------------------------------------------| | not set / `""`      | Auto-scale to fit parent width; emit `AUTO_scale` warning with the applied factor  | | `"none"`            | No scaling (render at base font size regardless of available space)                | | `"auto"`            | Auto-scale to fit parent width silently (no warning)                              | | `"0.5"`, `"1.2"`, … | Fixed factor - apply `baseFontSize × factor`                                      |
          */
         "scale"?: string;
+        /**
+          * Scaling indicator: a light band behind the columns, from the axis up to this value, with the value at its right end. Two charts with different scales show the same value, so the reader sees the difference. Bar mode only.
+         */
+        "scalingIndicator"?: number;
         /**
           * For a series that changes its scenario along the time axis, for example AC up to this year and PL after it. In a period where the first scenario has no value, the next scenario with a value is drawn in its place with its value label. A vertical line marks the change, and the scenario names stand under the axis. Variances with the same reference and type share one row. A chart with one scenario gets the name of that scenario under the axis. Bar mode, without a stack or with a stack by dimensions.
           * @default false
@@ -3906,6 +3928,10 @@ declare namespace LocalJSX {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "ruleSetConfig"?: RuleSetConfig;
+        /**
+          * @default 0
+         */
+        "scalingIndicator"?: number;
         /**
           * @default false
          */
@@ -5201,7 +5227,9 @@ declare namespace LocalJSX {
         "measureUnit": string;
         "dataFormatDigitsDecimal": number;
         "dataFormatDigitsPercent": number;
+        "dataFormatPercentSign": boolean;
         "axisLabelsStep": number;
+        "scalingIndicator": number;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;
     }
@@ -5227,6 +5255,7 @@ declare namespace LocalJSX {
         "lineFullWidth": boolean;
         "containerWidth": number;
         "axisLabelsStep": number;
+        "scalingIndicator": number;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;
     }

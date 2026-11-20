@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-time`: `scaling-indicator` draws a light band behind the columns from the axis up to a value, and prints the value at its right end. Two charts with different scales that show the same value make the difference visible. Bar mode only, not in a 100 % stack.
+- `bn-chart-time`: `data-format-percent-sign="false"` prints the labels of relative variances without the percent sign (`+11.6`).
+- `bn-chart-time`: a stack by dimensions with `scenario-switch` can mix scenarios in one period. A series without a value in the scenario of the period takes the scenario that has its value, for example a forecast part on top of an actual part, in the look of that scenario with `"notation":"scenario"`. A scenario that has values for the same series as the visible one is the reference: it is drawn as a column behind the stack, from the total of its period. Before, such scenarios were not drawn and the chart warned. A 100 % stack has no reference.
+- `bn-chart-time`: with `scenario-switch`, the variances of a forecast are hatched in the colour of the variance, and the head of a forecast pin is hatched. A single variance takes the notation of its scenario too, not only variances that share a row.
 - `bn-chart-structure`: `value-suffix` prints a text right after every value label, for example `%` when each row shows the unit. Variance labels do not get it.
 - Component style `bn-annotation`: `markerStyle: "outlined"` draws the numbered circles of `bn-annotation-layer` and `bn-annotation-list` as a white circle with a ring and a number in the colour. The default `"filled"` is the look so far.
 - Component style `bn-chart-structure`: `titleBold: true` prints the title above the axis in bold: the chart title, and the name of the variance in a variance chart.
@@ -39,6 +43,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
+- `bn-chart-time`: with `scenario-switch`, the row of a variance is named by its reference only (`ΔPY`), also when the first variance of the row is not one of the actual values. Before, a row that started with a forecast was named `Δ(FC - PY)`.
 - `bn-chart-structure`: the triangle of the `100%` mark of a stack is larger.
 - `bn-annotation-layer`: a mark on a value label of a chart takes the box of the text, not of the group with its background. A frame around a total is as wide as the number now.
 - `bn-annotation-layer`: the text of a `bracket` stands beside the rows at half their height. It stood above the first row.
@@ -73,6 +78,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
+- `bn-chart-time`: a column got a break mark although the chart had room. With a fixed `unit-scaling`, the columns and each variance row got the same share of the height, and a column was cut when it did not fit into its share. Now the columns also get the height that the variance rows do not use.
 - `bn-chart-structure`: a 100 % stack kept room behind its bars for a total that it does not print. It now keeps half the width of the `100%` mark with `percentMark`, and nothing without it. The same holds for the room of `totalTitle` and for the total of a negative stack on the left side. The chart keeps room for a series name that is wider than its segment at the end of the bar. Such a chart gets narrower, so a chart next to it moves closer.
 - `bn-chart-structure`: a label was measured in the default font of the browser (16 px) and not in the font of the chart when the chart was drawn before it was in the page. With a small chart font the number of a narrow stack segment was dropped although it fits, and label room was too wide. A label now carries the font of the chart itself. Charts with a scale below 1 can show more segment labels and get a little narrower.
 - `bn-table` relative variance pins: the pin line now lies over the square head and ends visibly in its centre, and the axis lies over both, as in `bn-chart-time` and `bn-chart-structure`. Before, the head covered the end of the line, and a head near zero covered the axis. This also holds for the white PL head, which no longer hides the line.

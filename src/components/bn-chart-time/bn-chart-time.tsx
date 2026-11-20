@@ -634,6 +634,12 @@ export class Chart {
    */
   @Prop() dataFormatDigitsPercent: number = 2;
 
+  /**
+   * `false` prints the labels of relative variances without the percent sign (`+11.6`).
+   * The title of the row (`ΔPY%`) still names the unit.
+   */
+  @Prop() dataFormatPercentSign: boolean = true;
+
   @Watch("dataFormatDigitsPercent")
   validateDataFormatDigitsPercent(newValue: number) {
     this.validateDigits("dataFormatDigitsPercent", newValue);
@@ -657,6 +663,13 @@ export class Chart {
    * 2 labels every second period. Bar mode only.
    */
   @Prop() axisLabelsStep: number = 1;
+
+  /**
+   * Scaling indicator: a light band behind the columns, from the axis up to this
+   * value, with the value at its right end. Two charts with different scales
+   * show the same value, so the reader sees the difference. Bar mode only.
+   */
+  @Prop() scalingIndicator?: number;
 
   @Watch("axisLabelsStep")
   validateAxisLabelsStep(newValue: number) {
@@ -850,6 +863,10 @@ export class Chart {
   componentDidRender() {
     syncEmptyState(this.element, "bn-chart-time-renderer");
 
+    if (this.updateBaseHeightBonus() && !this._autoScaleGuard) {
+      forceUpdate(this);
+    }
+
     const { mode } = parseScaling(this.scale);
 
     if (mode !== "auto" && mode !== "empty") {
@@ -995,7 +1012,38 @@ export class Chart {
 
   private _lastAppliedHeight = 0;
 
-  prepareDimension(): ParentDimensions {
+  /**
+   * Height that the variance segments leave of their shares. With a fixed
+   * `unitScaling` the base segment gets it on top of its own share, so a
+   * column is cut only when the whole chart has no room for it.
+   */
+  private _baseHeightBonus = 0;
+
+  /** Measures the drawn variance segments. True when the bonus of the base segment changed. */
+  private updateBaseHeightBonus(): boolean {
+    const segments = this.prepareSegments();
+    const fixedUnit = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind === "value";
+    let bonus = 0;
+    if (fixedUnit && segments.length > 1 && segments[0].length === 0) {
+      const share = this._lastAppliedHeight / segments.length;
+      const renderers = Array.from(this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer") ?? []);
+      for (const renderer of renderers.slice(1)) {
+        const height = (renderer as HTMLElement).offsetHeight;
+        // a segment that is not drawn yet has no height: it keeps its share
+        if (height > 0) {
+          bonus += Math.max(0, share - height);
+        }
+      }
+    }
+    // same threshold as the height settle check: small jitter must not cause re-renders
+    if (Math.abs(bonus - this._baseHeightBonus) <= 8) {
+      return false;
+    }
+    this._baseHeightBonus = bonus;
+    return true;
+  }
+
+  prepareDimension(isBase: boolean = false): ParentDimensions {
     const parent = getParentDimensions(this.element);
     const scenariosList = this.prepareScenarios();
     const segments = this.prepareSegments();
@@ -1007,7 +1055,8 @@ export class Chart {
     // reserve roughly one em for it so the fitted charts leave it room.
     const segmentCount = Math.max(1, segments.length);
     const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
-    return { width: this.canvasWidthSegmented, height: Math.max(0, parent.height - footerAllowance) / segmentCount };
+    const share = Math.max(0, parent.height - footerAllowance) / segmentCount;
+    return { width: this.canvasWidthSegmented, height: share + (isBase ? this._baseHeightBonus : 0) };
   }
 
   private prepareScenarios(): string[] {
@@ -1537,12 +1586,17 @@ export class Chart {
         maxBars={this.prepareMaxBars()}
         stackConfig={stackConfig}
         lineFullWidth={this.prepareLineFullWidth()}
-        dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}
+        dataFormatDigits={{
+          percent: this.dataFormatDigitsPercent,
+          decimal: this.dataFormatDigitsDecimal,
+          percentSign: this.dataFormatPercentSign !== false,
+        }}
         axisLabelsStep={Math.max(1, Math.floor(Number(this.axisLabelsStep) || 1))}
+        scalingIndicator={isBase ? Number(this.scalingIndicator) || 0 : 0}
         scenarioSwitch={this.scenarioSwitch}
         axisTitlePosition={this.prepareAxisTitlePosition()}
         containerWidth={fullParentWidth}
-        parentDimensions={this.prepareDimension()}
+        parentDimensions={this.prepareDimension(isBase)}
         ruleSetConfig={this.ruleSetConfig()}
       ></bn-chart-time-renderer>
     );

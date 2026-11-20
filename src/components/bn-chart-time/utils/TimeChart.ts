@@ -81,6 +81,9 @@ type TimeChartResponseRow = {
   isEmpty: boolean;
 };
 
+/** Fill of the scaling indicator band, the light blue of the IBCS templates. */
+const SCALING_INDICATOR_FILL = "#c5dbf2";
+
 /** Internal data model entry: one time period with up to 4 scenario DataPoints and a variance type. */
 type TimeChartDataModelEntry = {
   id: number;
@@ -190,6 +193,7 @@ export class TimeChart {
   private overflowConfig: OverflowConfig | null = null;
   private lastScenarios: string[] = [];
   private axisLabelsStep: number = 1;
+  private scalingIndicator: number = 0;
   private scenarioSwitch: boolean = false;
   private axisTitlePosition: string = "left";
   /** Periods in which more than one variance of a shared row has a value. */
@@ -315,6 +319,7 @@ export class TimeChart {
     this.axisLabelsMode = config.axisLabelsMode;
     this.intervalSpanLimit = config.intervalSpanLimit;
     this.axisLabelsStep = config.axisLabelsStep ?? 1;
+    this.scalingIndicator = config.scalingIndicator ?? 0;
     this.scenarioSwitch = config.scenarioSwitch ?? false;
     this.axisTitlePosition = config.axisTitlePosition ?? "left";
     this.dateInterval = this.findDateInterval(config.dateInterval);
@@ -355,6 +360,14 @@ export class TimeChart {
         layouts.push(...this.stackGroups(row).map((group) => group.layout));
       }
       const sides = stackExtent(layouts);
+      const { reference } = this.seriesSlots();
+      if (reference) {
+        // the column behind the stack can be the highest element
+        for (const row of this.dataModel) {
+          const value = row[reference]?.value;
+          if (Number.isFinite(value)) sides.positive = Math.max(sides.positive, value);
+        }
+      }
       const { scenario, variance } = this.highestDataPointValue;
       this.highestDataPointValue = new DataPoint(sides.positive, scenario, this.pixelPerUnit, variance);
       this.smallestDataPointValue = new DataPoint(0 - sides.negative, scenario, this.pixelPerUnit, variance);
@@ -404,7 +417,14 @@ export class TimeChart {
   /** Derives the variance title from the stored config and the current i18n map. */
   private updateTitle() {
     // variances that share a row have the same reference: the first one names the row
-    const variance = this.scenarioSwitch ? this.configVariances?.[0] : this.configVariances?.toString();
+    let variance = this.scenarioSwitch ? this.configVariances?.[0] : this.configVariances?.toString();
+    if (this.scenarioSwitch && variance) {
+      // the row holds the variances of every scenario of the series, so its name is the reference only
+      const parsed = new VarianceScenario(variance);
+      if (parsed.isValid) {
+        variance = `${parsed.type}ac1_${parsed.delta}_${parsed.direction}`;
+      }
+    }
     this.title = this.configTitle || Formatter.translateScenarioLabel(variance, this.i18n);
   }
 
@@ -635,6 +655,50 @@ export class TimeChart {
   }
 
   /**
+   * Stack by dimensions with `scenarioSwitch`: the roles of the scenarios that
+   * have values in the periods of the first one. A `fill` scenario has values
+   * only for series where the visible scenario has none, so it fills these
+   * segments (the forecast part on top of the actual part). The first other
+   * scenario is the `reference`: the column behind the stack, from the total
+   * of its period.
+   */
+  private seriesSlots(): { fill: string[]; reference: string | null } {
+    const none = { fill: [], reference: null };
+    if (
+      !this.scenarioSwitch ||
+      this.stackConfig?.by !== StackBy.DIMENSIONS ||
+      this.determineEffectiveChartMode() !== ChartMode.BAR
+    ) {
+      return none;
+    }
+    const followers = this.followerSlots();
+    const finite = (point: DataPoint | undefined): boolean => point != null && Number.isFinite(point.value);
+    const fill: string[] = [];
+    let reference: string | null = null;
+    for (const slot of ["scenario2", "scenario3", "scenario4"]) {
+      if (followers.includes(slot)) continue;
+      let values = 0;
+      let shared = false;
+      for (const row of this.dataModel) {
+        const visible = this.visibleSlot(row, followers) ?? "scenario1";
+        for (const entry of row.series ?? []) {
+          if (finite(entry.points[slot])) {
+            values++;
+            shared = shared || finite(entry.points[visible]);
+          }
+        }
+      }
+      if (values === 0) continue;
+      if (!shared) {
+        fill.push(slot);
+      } else if (reference == null && this.stackConfig.mode !== StackMode.RELATIVE) {
+        reference = slot;
+      }
+    }
+    return { fill, reference };
+  }
+
+  /**
    * Stack by dimensions with `scenarioSwitch`: the scenarios with values that
    * are not drawn, because they have values in periods of the first scenario
    * or because the chart is a stacked area. The component warns about them.
@@ -644,8 +708,10 @@ export class TimeChart {
       return [];
     }
     const followers = this.followerSlots();
+    const { fill, reference } = this.seriesSlots();
+    const drawn = [...followers, ...fill, reference];
     return ["scenario2", "scenario3", "scenario4"]
-      .filter((slot) => !followers.includes(slot) && this.dataModel.some((row) => TimeChart.hasValue(row[slot])))
+      .filter((slot) => !drawn.includes(slot) && this.dataModel.some((row) => TimeChart.hasValue(row[slot])))
       .map((slot) => this.dataModel.find((row) => row[slot]?.scenario != null)?.[slot].scenario as string);
   }
 
@@ -781,6 +847,7 @@ export class TimeChart {
         this.drawStackedScenarios(this.dataModel, svgContainer);
         this.drawStackedHeaders(this.dataModel, svgContainer);
         this.drawAxisAndLabels(this.dataModel, svgContainer);
+        this.drawScalingIndicator(svgContainer);
       }
     } else {
       const effectiveChartMode = this.determineEffectiveChartMode();
@@ -792,8 +859,44 @@ export class TimeChart {
         this.drawScenarios(this.dataModel, svgContainer);
         this.drawOverlayLayer(this.dataModel, svgContainer);
         this.drawAxisAndLabels(this.dataModel, svgContainer);
+        this.drawScalingIndicator(svgContainer);
       }
     }
+  }
+
+  /**
+   * The scaling indicator: a band behind the columns from the axis up to the
+   * value, and the value at its right end. Nothing for a 100 % stack, where
+   * the height is a share.
+   */
+  private drawScalingIndicator(svgContainer: Svg): void {
+    if (!(this.scalingIndicator > 0) || this.dataModel.length === 0 || this.stackConfig?.mode === StackMode.RELATIVE) {
+      return;
+    }
+    const half = this.position.getColumnWidth() / 2 + this.position.spacings.scenarioOffset;
+    const left = this.position.getColumnCenterPositionX(0) - half;
+    const right = this.position.getColumnCenterPositionX(this.dataModel.length - 1) + half;
+    const axisY = this.position.getColumnPositionY();
+    const height = this.scalingIndicator * this.pixelPerUnit;
+
+    const group = svgContainer.group().id("ScalingIndicator");
+    group
+      .rect(right - left, height)
+      .x(left)
+      .y(axisY - height)
+      .fill(SCALING_INDICATOR_FILL);
+    group.back();
+    const text = Formatter.number(this.scalingIndicator, "decimal", 2, 0, 1, this.styles.locale);
+    new Label(
+      svgContainer.group().id("ScalingIndicatorLabel"),
+      right + this.position.spacings.labelToColumn,
+      axisY - height,
+      "SCALING_INDICATOR",
+      text,
+      this.styles,
+      HookLocation.Center,
+      HookLocation.Left,
+    ).forceStringTypeDraw();
   }
 
   private determineEffectiveChartMode(): ChartMode {
@@ -1357,6 +1460,10 @@ export class TimeChart {
             pixelPerUnit,
             directon,
           );
+          if (this.scenarioSwitch) {
+            // as in a shared row: the variance takes the notation of its scenario
+            point.notation = scenarios.base.slice(0, 2);
+          }
           if (point.value !== null && !Number.isNaN(point.value)) {
             point.key = {
               date: TimeChart.pointDate(dataModel[index].date),
@@ -1988,9 +2095,14 @@ export class TimeChart {
     if (!isScenarioStack && !isArea && row.series) {
       // one stack of the scenario that is visible in this period
       const slot = this.visibleSlot(row, this.followerSlots()) ?? "scenario1";
+      const { fill } = this.seriesSlots();
       const series: StackGroupSegment[] = [];
       row.series.forEach((entry, index) => {
-        const dataPoint = entry.points[slot];
+        // a series without a value in the visible scenario takes the scenario that fills it
+        const filling = Number.isFinite(entry.points[slot]?.value)
+          ? undefined
+          : fill.find((other) => Number.isFinite(entry.points[other]?.value));
+        const dataPoint = entry.points[filling ?? slot];
         if (dataPoint) {
           series.push({
             value: dataPoint.value as number,
@@ -2083,6 +2195,19 @@ export class TimeChart {
    */
   private drawStackedScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg): void {
     if (!this.stackConfig) return;
+
+    const { reference } = this.seriesSlots();
+    if (reference) {
+      // the reference of each period as a column behind its stack
+      const factory = new ScenarioFactory(
+        this.position,
+        svgContainer.group().id("StackReference"),
+        this.scenarioStyles(),
+        dataModel.length,
+        this.i18n,
+      );
+      dataModel.forEach((elements, index) => factory.createSecondaryBar(elements[reference], index).draw());
+    }
 
     const stackGroup: G = svgContainer.group().id("StackedScenarios");
     const isScenarioStack = this.stackConfig.by === StackBy.SCENARIOS;

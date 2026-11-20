@@ -145,6 +145,10 @@ export class Label {
       // displayLabel = false;
     }
 
+    if (this.isRelativeLabel && this.isVarianceLabel && dataFormatDigits.percentSign === false) {
+      valueStr = valueStr.replace(/\s*%/, "");
+    }
+
     const labelStr = prefix + valueStr;
 
     const text = this.drawLabel(label, labelStr);

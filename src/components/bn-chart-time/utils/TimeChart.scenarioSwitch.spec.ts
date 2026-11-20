@@ -64,6 +64,7 @@ const buildChart = (options: Record<string, unknown>, rows: Record<string, unkno
 };
 
 interface ChartInternals {
+  title: string;
   variancesDataModel: { scenario1: DataPoint }[];
   followerSlots(): string[];
   switchRuns(): { scenario: string; from: number; to: number }[];
@@ -120,6 +121,41 @@ describe("time chart scenarioSwitch", () => {
     const points = internals(chart).variancesDataModel.map((entry) => entry.scenario1);
     expect(points).toHaveLength(4);
     expect(points[0].notation).toBeUndefined();
+  });
+
+  it("gives a single variance the notation of its scenario, and names the row by the reference", () => {
+    const chart = buildChart({ scenarioSwitch: true, variances: ["dpl1_pp1_pos"] });
+    const points = internals(chart).variancesDataModel.map((entry) => entry.scenario1);
+    expect(points[2].notation).toBe("pl");
+    const actual = buildChart({ scenarioSwitch: true, variances: ["dac1_pp1_pos"] });
+    expect(internals(chart).title).toBe(internals(actual).title);
+    expect(internals(buildChart({ variances: ["dpl1_pp1_pos"] })).title).not.toBe(internals(actual).title);
+  });
+
+  it("hatches the variances and the pin heads of a forecast", () => {
+    const rows = ROWS.map((row) => ("pl1" in row ? { date: row.date, operation: "+", fc1: row.pl1, pp1: 80 } : row));
+    const options = { scenarios: ["ac1", "fc1", "pp1"], scenarioSwitch: true };
+    const hatched = (variances: string[]): number =>
+      buildChart({ ...options, variances }, rows)
+        .toString()
+        .match(/fill="url\(#pattern-hatch-/g).length;
+    expect(hatched(["dac1_pp1_pos", "dfc1_pp1_pos"])).toBe(2);
+    // the pin of 2026 is cut and has an arrow, not a head
+    expect(hatched(["drac1_pp1_pos", "drfc1_pp1_pos"])).toBe(1);
+    const plain = buildChart({ ...options, variances: ["dac1_pp1_pos"] }, rows).toString();
+    expect(plain).not.toContain("pattern-hatch-");
+  });
+
+  it("prints relative variances without the percent sign on request", () => {
+    const labels = (svg: string): string[] => Array.from(svg.matchAll(/>([^<>]*\d[^<>]*)<\/tspan>/g)).map((m) => m[1]);
+    const options = { variances: ["drac1_pp1_pos"], scenarios: ["ac1", "pp1"] };
+    const signed = labels(buildChart(options).toString());
+    expect(signed.some((text) => text.includes("%"))).toBe(true);
+    const plain = labels(
+      buildChart({ ...options, dataFormatDigits: { percent: 1, decimal: 1, percentSign: false } }).toString(),
+    );
+    expect(plain.some((text) => text.includes("%"))).toBe(false);
+    expect(plain).toEqual(expect.arrayContaining(["+25,0", "+50,0"]));
   });
 
   it("counts the periods where shared variances overlap", () => {
@@ -195,5 +231,24 @@ describe("time chart category labels", () => {
     // Sep 2024 to Feb 2025: January has index 4, February index 5
     const svg = buildChart({ scenarios: ["pp1"], dateInterval: "month", axisLabelsStep: 5 }, rows).toString();
     expect(svg).toContain("2025");
+  });
+});
+
+describe("time chart scaling indicator", () => {
+  it("draws no band by default", () => {
+    expect(buildChart({ scenarios: ["ac1", "pp1"] }).toString()).not.toContain("ScalingIndicator");
+  });
+
+  it("draws a band up to the value behind the columns, and the value", () => {
+    const svg = buildChart({ scenarios: ["ac1", "pp1"], scalingIndicator: 100 }).toString();
+    // pixelPerUnit is 1: the band is 100 high
+    expect(svg).toMatch(/<g id="ScalingIndicator"><rect[^>]*height="100"/);
+    expect(svg.indexOf('id="ScalingIndicator"')).toBeLessThan(svg.indexOf('id="Scenarios"'));
+    expect(svg).toMatch(/SCALING_INDICATOR[\s\S]*>100<\/tspan>/);
+  });
+
+  it("draws no band in a variance chart", () => {
+    const svg = buildChart({ scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"], scalingIndicator: 100 });
+    expect(svg.toString()).not.toContain("ScalingIndicator");
   });
 });
