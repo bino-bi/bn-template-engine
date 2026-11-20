@@ -560,10 +560,39 @@ export class Chart {
   @Prop() varianceWaterfall: boolean = false;
 
   /**
-   * Draws a thin line after every n-th row, over all segments of the chart
-   * (`row-lines="5"`). The count starts again behind a sum row. Default: no lines.
+   * Draws thin lines between the rows, over all segments of the chart. A
+   * number is a line after every n-th row (`row-lines="5"`). A list is a line
+   * after each of these rows, counted from the first row
+   * (`row-lines="4,9,14"`, or a JSON array). The count starts again behind a
+   * sum row. Default: no lines.
    */
-  @Prop() rowLines: number = 0;
+  @Prop() rowLines: number | string = 0;
+
+  @Watch("rowLines")
+  validateRowLines(newValue: number | string) {
+    this.warnUnless(
+      "rowLines",
+      isBlankInput(String(newValue ?? "")) || this.prepareRowLines() !== null,
+      String(newValue),
+    );
+  }
+
+  /** `step` for a number, `after` for a list. Null: not valid. */
+  private prepareRowLines(): { step: number; after: number[] } | null {
+    const raw = String(this.rowLines ?? "").trim();
+    if (raw === "" || raw === "0") return { step: 0, after: [] };
+    const whole = (value: unknown): value is number =>
+      typeof value === "number" && Number.isInteger(value) && value >= 1;
+    if (/^\d+$/.test(raw)) return { step: Number(raw), after: [] };
+    let list: unknown;
+    try {
+      list = raw.startsWith("[") ? JSON.parse(raw) : raw.split(",").map((entry) => Number(entry.trim()));
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(list) || list.length === 0 || !list.every(whole)) return null;
+    return { step: 0, after: list as number[] };
+  }
 
   /**
    * Marks the column the rows are sorted by with an arrow: beside the name of
@@ -844,6 +873,7 @@ export class Chart {
     this.validateScenarioLabelPosition(this.scenarioLabelPosition);
     this.validateReferenceLine(this.referenceLine);
     this.validateItalicCategories(this.italicCategories);
+    this.validateRowLines(this.rowLines);
     this.validateScaling(this.scale);
   }
 
@@ -1645,7 +1675,8 @@ export class Chart {
           decimal: this.dataFormatDigitsDecimal,
           percentSign: this.dataFormatPercentSign !== false,
         }}
-        rowLines={Number.isFinite(Number(this.rowLines)) ? Math.max(0, Math.floor(Number(this.rowLines))) : 0}
+        rowLines={this.prepareRowLines()?.step ?? 0}
+        rowLinesAfter={this.prepareRowLines()?.after ?? []}
         orderMark={this.orderMark === true}
         tiers={this.prepareSegments().length > 1}
         reportWidth={
