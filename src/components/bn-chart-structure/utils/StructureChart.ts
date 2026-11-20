@@ -2231,6 +2231,10 @@ export class StructureChart {
     if (others.length > 0) {
       return fail("the chart has more scenarios than the series and its reference");
     }
+    // the reference must be the bar behind the series: a marker would stand in the room of the walk
+    if (slots.get(variance.delta) !== "scenario2") {
+      return fail("the reference of the variance is not the second scenario of the chart");
+    }
 
     // a scenario at the total only is a bar above the reference: without a positive total it has none
     if (this.sumExtras.some((point) => !((point.value as number) > 0))) {

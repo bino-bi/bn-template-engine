@@ -228,6 +228,13 @@ describe("structure chart bridge", () => {
     expect(chart.getBridgeFallback()).toBe("the chart has more scenarios than the series and its reference");
   });
 
+  it("falls back when the reference is a marker and not the bar behind the series", () => {
+    // an empty forecast takes the second slot: the previous year is the marker of the third one
+    const chart = buildChart({ ...BRIDGE, scenarios: ["ac1", "pp1", "fc1"] });
+    expect(internals(chart).bridge).toBeNull();
+    expect(chart.getBridgeFallback()).toBe("the reference of the variance is not the second scenario of the chart");
+  });
+
   it("names an untitled total row by its scenario", () => {
     const svg = buildChart({ ...BRIDGE, sumTitle: "" }).toString();
     expect(svg).toContain(">AC<");
