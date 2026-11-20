@@ -419,6 +419,31 @@ describe("time chart total column", () => {
     expect(band.getAllocatedCanvasHeight() - plain.getAllocatedCanvasHeight()).toBeCloseTo(400);
   });
 
+  it("draws the variance of the total inside the group of the variances, for the height of the row", () => {
+    const svg = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"] }).toString();
+    expect(svg).toMatch(/<g id="Scenarios">[\s\S]*<g id="TotalColumn">/);
+    expect(svg.indexOf('id="TotalColumn"')).toBeLessThan(svg.indexOf('id="AxisAndDateLables"'));
+  });
+
+  it("keeps the part above the break of a cut total variance inside its zone", () => {
+    const rows = [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027].map((year) => ({
+      date: `${year}-01-01`,
+      operation: "+",
+      ac1: 300,
+      pp1: 100,
+    }));
+    const chart = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], variances: ["dac1_pp1_pos"] }, rows);
+    chart.setAvailableHeight(150);
+    const heights = Array.from(chart.toString().matchAll(/<rect[^>]*height="([\d.]+)"/g)).map((m) => Number(m[1]));
+    // the total of 1600 is cut like the periods: no rect is higher than the room of the row
+    expect(Math.max(...heights)).toBeLessThan(150);
+  });
+
+  it("draws no band in the segment of a variance that is not valid", () => {
+    const svg = buildChart({ scenarios: ["ac1", "pp1"], variances: ["dfoo"], scalingIndicator: 50 }).toString();
+    expect(svg).not.toContain("ScalingIndicator");
+  });
+
   it("links the bands of the scaling indicator", () => {
     const svg = buildChart({ ...TOTAL, scenarios: ["ac1", "pp1"], scalingIndicator: 100 }).toString();
     expect(svg).toContain('id="ScalingIndicatorLink"');
