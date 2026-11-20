@@ -141,6 +141,12 @@ export class BnChartStructureRenderer {
   @Prop() sumTitle: string = "";
 
   /** @internal */
+  @Prop() varianceWaterfall: boolean = false;
+
+  /** @internal */
+  @Prop() bridgeVariances: string[] = [];
+
+  /** @internal */
   @Prop() valueSuffix: string = "";
 
   /** @internal */
@@ -183,6 +189,11 @@ export class BnChartStructureRenderer {
       return <Host />;
     }
 
+    if (this.chart.isBridgeTier()) {
+      // the base chart draws this variance as the bridge between its total bars
+      return <Host class="bridge-tier" style={{ display: "none" }} />;
+    }
+
     if (this.chart.hasNoData()) {
       const errorMsg: string = this.i18n.get("no-data") ?? "No Data";
       return (
@@ -213,6 +224,20 @@ export class BnChartStructureRenderer {
   private syncQueryError(): void {
     this.queryError = this.measureScaleError ?? this.chart?.getQueryError();
     reportQueryError(this.errors, this.queryError);
+
+    // the renderers of the variances share the error store: only the base chart reports
+    if (this.variances.every((variance) => variance === "")) {
+      const fallback = this.chart?.getBridgeFallback() ?? null;
+      if (fallback) {
+        this.errors?.addOrReplace({
+          id: "WARN_varianceWaterfall_bridge",
+          type: "warning",
+          message: `varianceWaterfall: no bridge between the totals, ${fallback}. The variances are a walk in their own segment.`,
+        });
+      } else {
+        this.errors?.remove("WARN_varianceWaterfall_bridge");
+      }
+    }
   }
 
   public async componentWillLoad() {
@@ -419,7 +444,7 @@ export class BnChartStructureRenderer {
     this.measureScaleError = undefined;
     return new StructureChartComponentConfigAdapter(
       new StructureChartDataRowAdapter(),
-      new OrderAdapter(new StringAdapter()),
+      new OrderAdapter(new StringAdapter(), true),
       new StringAdapter(),
       new DataFormatDigitsAdapter(),
       db,
@@ -445,6 +470,8 @@ export class BnChartStructureRenderer {
       stackConfig: this.stackConfig,
       sums: this.sums,
       sumTitle: this.sumTitle,
+      varianceWaterfall: this.varianceWaterfall,
+      bridgeVariances: this.bridgeVariances,
       valueSuffix: this.valueSuffix,
       scenarioLabelTop: this.scenarioLabelTop,
       hideScenarioName: this.hideScenarioName,

@@ -7,13 +7,13 @@ import {
   isValidInteger,
   isValidLevel,
   isValidMeasureScale,
-  validateOrderList,
+  validateStructureOrderList,
   validateScenarioList,
   validateStackConfig,
   validateVariancesList,
 } from "../../utils/validate";
 
-import { variancesScenarios } from "../../utils/model/VarianceScenario";
+import { VarianceScenario, variancesScenarios } from "../../utils/model/VarianceScenario";
 import withDataset from "../../utils/withDataset";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withTranslation from "../../utils/withTranslation";
@@ -33,7 +33,7 @@ import { DatasetMeta } from "../../utils/model/DatasetMeta";
 import { Style } from "../../stores/componentStyles";
 import { AggregationLevel, StackBy, StackMode, StackOrder } from "../../utils/constants";
 import { StackConfigParsed } from "./utils/model/StructureChartComponentConfig";
-import { Order, OrderColumn, OrderDirection } from "../../utils/model/Order";
+import { normalizeOrderToken, Order, OrderColumn, OrderDirection, parseOrderToken } from "../../utils/model/Order";
 import {
   ComponentLayoutState,
   LAYOUT_STATE_VERSION,
@@ -339,7 +339,10 @@ export class Chart {
    * When ordering by a scenario column, that scenario must also be listed in `scenarios`.
    *
    * Valid values: `category`, `categoryIndex`, `rowGroup`, `rowGroupIndex`,
-   * `subCategory`, `subCategoryIndex`, `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.
+   * `subCategory`, `subCategoryIndex`, `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`,
+   * and a variance like `dac1_pp1` or `drac1_pp1` (its scenarios need not be in
+   * `scenarios`). A variance sorts before the other columns of the list. A row
+   * with the category `REST` stays last under every order.
    *
    * | Value          | Behavior                                            |
    * |----------------|-----------------------------------------------------|
@@ -359,7 +362,7 @@ export class Chart {
       this.errors.remove(errId);
       return;
     }
-    const invalidElements: string[] = validateOrderList(newValue);
+    const invalidElements: string[] = validateStructureOrderList(newValue);
 
     if (invalidElements.length > 0) {
       this.errors.addOrReplace({
@@ -540,6 +543,24 @@ export class Chart {
    * @example sum-title="World"
    */
   @Prop() sumTitle: string = "";
+
+  /**
+   * Draws each absolute variance as a walk down the rows: a bar starts where
+   * the bar of the row before ended, and thin lines join them. A sum row is a
+   * bar from the axis, and the rows after the sum row of a group start again.
+   * Relative variances stay pins. With `sums="total"` and a fixed
+   * `unit-scaling` the first absolute variance becomes a bridge in the base
+   * chart: the reference total is a bar above the first row, the total of the
+   * series a bar below the last one, both at the scale of the rows, the walk
+   * runs between their ends, and the variance of the total is a thin bar below
+   * the total row. No effect with `stack`.
+   */
+  @Prop() varianceWaterfall: boolean = false;
+
+  /**
+   * `false` prints the labels of relative variances without the percent sign (`+22`).
+   */
+  @Prop() dataFormatPercentSign: boolean = true;
 
   /**
    * Text printed right after every value label, for example a unit that IBCS repeats in each row.
@@ -994,6 +1015,34 @@ export class Chart {
   }
 
   /** The segments side by side: `""` is the base chart, else one variance. */
+  /** The first absolute variance: the candidate for the bridge between the total bars. */
+  private prepareBridgeVariances(): string[] {
+    const errId = "WARN_varianceWaterfall_unitScaling";
+    const wanted = this.varianceWaterfall === true && this.sums === "total" && !this.hidesScenarios();
+    const first = wanted
+      ? this.prepareVariances().find((name) => {
+          const parsed = new VarianceScenario(name);
+          return parsed.isValid && parsed.type !== "dr";
+        })
+      : undefined;
+    if (first == null) {
+      this.errors.remove(errId);
+      return [];
+    }
+    // the bridge depends on the room of the labels: with an automatic scale it would change while the scale is fitted
+    if (resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind !== "value") {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message:
+          "varianceWaterfall: the bridge between the totals needs a fixed unitScaling. The variances are a walk in their own segment.",
+      });
+      return [];
+    }
+    this.errors.remove(errId);
+    return [first];
+  }
+
   private prepareSegments(): string[] {
     return this.hidesScenarios() ? this.prepareVariances() : ["", ...this.prepareVariances()];
   }
@@ -1174,7 +1223,14 @@ export class Chart {
     }
 
     const tableOrder: Order = {
-      hierarchy: orderStr?.split(",").map((entry) => OrderColumn[entry?.toUpperCase() as keyof typeof OrderColumn]),
+      // a dimension or a scenario by its column, a variance in its normal form (`dac1_pp1`)
+      hierarchy: orderStr
+        ?.split(",")
+        .map(
+          (entry) =>
+            OrderColumn[entry?.trim().toUpperCase() as keyof typeof OrderColumn] ??
+            (parseOrderToken(entry)?.kind === "variance" ? normalizeOrderToken(entry) : undefined),
+        ) as string[],
       direction: OrderDirection[effectiveDirection?.toUpperCase() as keyof typeof OrderDirection],
     };
 
@@ -1405,7 +1461,13 @@ export class Chart {
         hideScenarioName={this.hidesScenarios()}
         referenceLine={isBase ? this.prepareReferenceLine() : null}
         italicCategories={this.prepareItalicCategories() ?? []}
-        dataFormatDigits={{ percent: this.dataFormatDigitsPercent, decimal: this.dataFormatDigitsDecimal }}
+        varianceWaterfall={this.varianceWaterfall === true}
+        bridgeVariances={this.prepareBridgeVariances()}
+        dataFormatDigits={{
+          percent: this.dataFormatDigitsPercent,
+          decimal: this.dataFormatDigitsDecimal,
+          percentSign: this.dataFormatPercentSign !== false,
+        }}
         parentDimensions={this.prepareDimension()}
         ruleSetConfig={this.ruleSetConfig()}
       ></bn-chart-structure-renderer>

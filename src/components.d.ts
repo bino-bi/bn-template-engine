@@ -696,6 +696,11 @@ export namespace Components {
          */
         "dataFormatDigitsPercent": number;
         /**
+          * `false` prints the labels of relative variances without the percent sign (`+22`).
+          * @default true
+         */
+        "dataFormatPercentSign": boolean;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -748,7 +753,7 @@ export namespace Components {
          */
         "measureUnit": string;
         /**
-          * Comma-separated list of columns that define the sort order of bars. When ordering by a scenario column, that scenario must also be listed in `scenarios`.  Valid values: `category`, `categoryIndex`, `rowGroup`, `rowGroupIndex`, `subCategory`, `subCategoryIndex`, `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value          | Behavior                                            | |----------------|-----------------------------------------------------| | `"ac1"`        | Sort bars by the ac1 scenario values                | | `"category"`   | Sort bars alphabetically by category name           | | `"auto"`       | Auto-detect from dataset metadata (no warning)      | | not set / `""` | Auto-detect with `AUTO_order` warning               |
+          * Comma-separated list of columns that define the sort order of bars. When ordering by a scenario column, that scenario must also be listed in `scenarios`.  Valid values: `category`, `categoryIndex`, `rowGroup`, `rowGroupIndex`, `subCategory`, `subCategoryIndex`, `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`, and a variance like `dac1_pp1` or `drac1_pp1` (its scenarios need not be in `scenarios`). A variance sorts before the other columns of the list. A row with the category `REST` stays last under every order.  | Value          | Behavior                                            | |----------------|-----------------------------------------------------| | `"ac1"`        | Sort bars by the ac1 scenario values                | | `"category"`   | Sort bars alphabetically by category name           | | `"auto"`       | Auto-detect from dataset metadata (no warning)      | | not set / `""` | Auto-detect with `AUTO_order` warning               |
           * @example order="ac1"
          */
         "order": string;
@@ -838,6 +843,11 @@ export namespace Components {
          */
         "valueSuffix": string;
         /**
+          * Draws each absolute variance as a walk down the rows: a bar starts where the bar of the row before ended, and thin lines join them. A sum row is a bar from the axis, and the rows after the sum row of a group start again. Relative variances stay pins. With `sums="total"` and a fixed `unit-scaling` the first absolute variance becomes a bridge in the base chart: the reference total is a bar above the first row, the total of the series a bar below the last one, both at the scale of the rows, the walk runs between their ends, and the variance of the total is a thin bar below the total row. No effect with `stack`.
+          * @default false
+         */
+        "varianceWaterfall": boolean;
+        /**
           * Comma-separated list of variance definitions. Each variance adds a separate sub-chart next to the main bar chart.  **Pattern:** `d<base>_<comparison>_<sentiment>` (absolute) or `dr<base>_<comparison>_<sentiment>` (relative / percentage).  - `base` / `comparison`: scenario names that must also appear in `scenarios`. - `sentiment`: `pos` (positive is good), `neg` (negative is good), `neu` (neutral).   `op` acts like `pos` and `opinv` like `neg`, because chart values carry their operation sign.  When empty, no variance charts are shown.
           * @example variances="dpp1_ac1_neg,dfc1_ac1_neg"
           * @example variances="drac1_pl1_pos"
@@ -845,6 +855,10 @@ export namespace Components {
         "variances": string;
     }
     interface BnChartStructureRenderer {
+        /**
+          * @default []
+         */
+        "bridgeVariances": string[];
         /**
           * @default ""
          */
@@ -957,6 +971,10 @@ export namespace Components {
           * @default ""
          */
         "valueSuffix": string;
+        /**
+          * @default false
+         */
+        "varianceWaterfall": boolean;
         /**
           * @default []
          */
@@ -3452,6 +3470,11 @@ declare namespace LocalJSX {
          */
         "dataFormatDigitsPercent"?: number;
         /**
+          * `false` prints the labels of relative variances without the percent sign (`+22`).
+          * @default true
+         */
+        "dataFormatPercentSign"?: boolean;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
@@ -3495,7 +3518,7 @@ declare namespace LocalJSX {
          */
         "measureUnit"?: string;
         /**
-          * Comma-separated list of columns that define the sort order of bars. When ordering by a scenario column, that scenario must also be listed in `scenarios`.  Valid values: `category`, `categoryIndex`, `rowGroup`, `rowGroupIndex`, `subCategory`, `subCategoryIndex`, `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`.  | Value          | Behavior                                            | |----------------|-----------------------------------------------------| | `"ac1"`        | Sort bars by the ac1 scenario values                | | `"category"`   | Sort bars alphabetically by category name           | | `"auto"`       | Auto-detect from dataset metadata (no warning)      | | not set / `""` | Auto-detect with `AUTO_order` warning               |
+          * Comma-separated list of columns that define the sort order of bars. When ordering by a scenario column, that scenario must also be listed in `scenarios`.  Valid values: `category`, `categoryIndex`, `rowGroup`, `rowGroupIndex`, `subCategory`, `subCategoryIndex`, `ac1`-`ac4`, `fc1`-`fc4`, `pp1`-`pp4`, `pl1`-`pl4`, and a variance like `dac1_pp1` or `drac1_pp1` (its scenarios need not be in `scenarios`). A variance sorts before the other columns of the list. A row with the category `REST` stays last under every order.  | Value          | Behavior                                            | |----------------|-----------------------------------------------------| | `"ac1"`        | Sort bars by the ac1 scenario values                | | `"category"`   | Sort bars alphabetically by category name           | | `"auto"`       | Auto-detect from dataset metadata (no warning)      | | not set / `""` | Auto-detect with `AUTO_order` warning               |
           * @example order="ac1"
          */
         "order": string;
@@ -3585,6 +3608,11 @@ declare namespace LocalJSX {
          */
         "valueSuffix"?: string;
         /**
+          * Draws each absolute variance as a walk down the rows: a bar starts where the bar of the row before ended, and thin lines join them. A sum row is a bar from the axis, and the rows after the sum row of a group start again. Relative variances stay pins. With `sums="total"` and a fixed `unit-scaling` the first absolute variance becomes a bridge in the base chart: the reference total is a bar above the first row, the total of the series a bar below the last one, both at the scale of the rows, the walk runs between their ends, and the variance of the total is a thin bar below the total row. No effect with `stack`.
+          * @default false
+         */
+        "varianceWaterfall"?: boolean;
+        /**
           * Comma-separated list of variance definitions. Each variance adds a separate sub-chart next to the main bar chart.  **Pattern:** `d<base>_<comparison>_<sentiment>` (absolute) or `dr<base>_<comparison>_<sentiment>` (relative / percentage).  - `base` / `comparison`: scenario names that must also appear in `scenarios`. - `sentiment`: `pos` (positive is good), `neg` (negative is good), `neu` (neutral).   `op` acts like `pos` and `opinv` like `neg`, because chart values carry their operation sign.  When empty, no variance charts are shown.
           * @example variances="dpp1_ac1_neg,dfc1_ac1_neg"
           * @example variances="drac1_pl1_pos"
@@ -3592,6 +3620,10 @@ declare namespace LocalJSX {
         "variances": string;
     }
     interface BnChartStructureRenderer {
+        /**
+          * @default []
+         */
+        "bridgeVariances"?: string[];
         /**
           * @default ""
          */
@@ -3704,6 +3736,10 @@ declare namespace LocalJSX {
           * @default ""
          */
         "valueSuffix"?: string;
+        /**
+          * @default false
+         */
+        "varianceWaterfall"?: boolean;
         /**
           * @default []
          */
@@ -5243,6 +5279,8 @@ declare namespace LocalJSX {
         "dataFormatDigitsPercent": number;
         "sums": "none" | "groups" | "total" | "all";
         "sumTitle": string;
+        "varianceWaterfall": boolean;
+        "dataFormatPercentSign": boolean;
         "valueSuffix": string;
         "scenarioLabelPosition": "bottom" | "top";
         "referenceLine": string;
@@ -5265,6 +5303,7 @@ declare namespace LocalJSX {
         "showMeasureScale": boolean;
         "sums": string;
         "sumTitle": string;
+        "varianceWaterfall": boolean;
         "valueSuffix": string;
         "scenarioLabelTop": boolean;
         "hideScenarioName": boolean;
