@@ -171,6 +171,10 @@ export class StructureChart {
   private bridgeVariances: string[] = [];
   private bridge: Bridge | null = null;
   private bridgeFallback: string | null = null;
+  private sumScenarios: string[] = [];
+  private sumDataset: string = "";
+  /** The scenarios that are shown at the total row only, with their totals. */
+  private sumExtras: DataPoint[] = [];
 
   constructor(
     ruleSet: VisualisationRuleSet,
@@ -243,6 +247,8 @@ export class StructureChart {
     this.italicCategories = config.italicCategories;
     this.varianceWaterfall = config.varianceWaterfall ?? false;
     this.bridgeVariances = config.bridgeVariances ?? [];
+    this.sumScenarios = config.sumScenarios ?? [];
+    this.sumDataset = config.sumDataset ?? "";
     this.stackConfig = config.stackConfig;
     this.dataModel = this.populateModel(scenarios, config.level, config.sortOrder);
 
@@ -251,6 +257,7 @@ export class StructureChart {
       this.populateDimensionStackSegments(scenarios, config.stackConfig, config.level);
     }
     this.addSumRows(scenarios);
+    this.applySumSources(scenarios);
 
     for (const row of this.dataModel) {
       for (const dataPoint of [row.scenario1, row.scenario2, row.scenario3, row.scenario4]) {
@@ -285,7 +292,12 @@ export class StructureChart {
       const levels = this.bridge.steps.flatMap((step) => [step.from, step.to]);
       const { scenario, variance } = this.highestDataPointValue;
       this.highestDataPointValue = new DataPoint(
-        Math.max(this.bridge.reference.value, this.bridge.total.value, ...levels),
+        Math.max(
+          this.bridge.reference.value,
+          this.bridge.total.value,
+          ...levels,
+          ...this.bridgeExtras().map((point) => point.value as number),
+        ),
         scenario,
         this.pixelPerUnit,
         variance,
@@ -1363,7 +1375,9 @@ export class StructureChart {
       const index = order.indexOf(point.scenario as string);
       return index === -1 ? order.length : index;
     };
-    return points.sort((a, b) => place(a) - place(b));
+    points.sort((a, b) => place(a) - place(b));
+    // the scenarios that are shown at the total only stand behind the others
+    return row.sum === "total" ? [...points, ...this.sumExtras] : points;
   }
 
   /** A sum row of the base chart that prints several numbers right of the axis: its title stays left of it. */
@@ -1950,6 +1964,94 @@ export class StructureChart {
     this.dataModel = result;
   }
 
+  /** The scenario columns of the dataset of the totals, added up over its rows. Null without such a dataset. */
+  private sumDatasetValues(): Record<string, number> | null {
+    if (!this.sumDataset) {
+      return null;
+    }
+    const from = sourceExpr(this.db, this.sumDataset, "");
+    const values: Record<string, number> = {};
+    if (!from) {
+      return values;
+    }
+    let result: Record<string, unknown>[];
+    try {
+      result = this.db.exec<Record<string, unknown>[]>(`SELECT * FROM ${from}`);
+    } catch (e) {
+      this.failQuery(e);
+      return values;
+    }
+    for (const row of result) {
+      for (const [column, raw] of Object.entries(row)) {
+        // a value can come as a text, like in the dataset of the chart
+        const value = typeof raw === "string" && raw.trim() !== "" ? Number(raw) : raw;
+        if (/^(ac|fc|pp|pl)[1-4]$/.test(column) && typeof value === "number" && Number.isFinite(value)) {
+          values[column] = (values[column] ?? 0) + value;
+        }
+      }
+    }
+    return values;
+  }
+
+  /**
+   * The total row from its sources. With a dataset the row takes its values
+   * from it and the chart adds up none. The scenarios that are shown at the
+   * total only are the ones of the list, added up over the dataset of the
+   * chart, or with a dataset its scenario columns that the chart does not draw.
+   */
+  private applySumSources(scenarios: string[]): void {
+    this.sumExtras = [];
+    const totalRow = this.dataModel.find((row) => row.sum === "total");
+    if (totalRow == null || this.stackConfig != null) {
+      return;
+    }
+    const key = (scenario: string) => ({
+      ...levelKey(this.level, totalRow.category),
+      scenario,
+      row: "total" as const,
+    });
+    const extra = (scenario: string, value: number): void => {
+      if (!Number.isFinite(value)) return;
+      const point = new DataPoint(value, scenario, this.pixelPerUnit, Scenario.NEU);
+      point.key = key(scenario);
+      this.sumExtras.push(point);
+    };
+    const data = this.sumDatasetValues();
+    if (data != null) {
+      (["scenario1", "scenario2", "scenario3", "scenario4"] as const).forEach((slot, index) => {
+        if (scenarios[index] === undefined) return;
+        totalRow[slot] = new DataPoint(data[scenarios[index]] ?? NaN, scenarios[index], this.pixelPerUnit, Scenario.NEU);
+      });
+      Object.keys(data)
+        .filter((name) => !this.scenarioPropOrder.includes(name))
+        .filter((name) => this.sumScenarios.length === 0 || this.sumScenarios.includes(name))
+        .sort()
+        .slice(0, 4)
+        .forEach((name) => extra(name, data[name]));
+      return;
+    }
+    const listed = [...new Set(this.sumScenarios)].filter((name) => !this.scenarioPropOrder.includes(name)).slice(0, 4);
+    if (listed.length === 0 || !this.fromExpr) {
+      return;
+    }
+    let result: Record<string, unknown>[];
+    try {
+      result = this.db.exec<Record<string, unknown>[]>(
+        `SELECT ${listed
+          .map((name) => `SUM(${name} * transformOperator(operation)) as ${name}, COUNT(ISNULL(${name})) as ${name}_cnt`)
+          .join(",")} FROM ${this.fromExpr}`,
+      );
+    } catch (e) {
+      this.failQuery(e);
+      return;
+    }
+    for (const name of listed) {
+      if (Number(result[0]?.[`${name}_cnt`]) > 0) {
+        extra(name, Number(result[0]?.[name]));
+      }
+    }
+  }
+
   /** The `rowGroup` of each row of a chart at level `category`, with the place of the group. */
   private rowGroups(): Map<string, { name: string; index: number }> {
     const groups = new Map<string, { name: string; index: number }>();
@@ -2142,6 +2244,16 @@ export class StructureChart {
     return { reference, total: series, steps, variance: totalVariance };
   }
 
+  /** The scenarios at the total only that a bridge draws as bars: the ones with a positive total. */
+  private bridgeExtras(): DataPoint[] {
+    return this.sumExtras.filter((point) => (point.value as number) > 0);
+  }
+
+  /** Rows of room above the first row of a bridge: the reference total, and the totals above it. */
+  private bridgeLeadRows(): number {
+    return BRIDGE_LEAD_ROWS + this.bridgeExtras().length;
+  }
+
   /** The steps of a walk as bars that hang at their level, and the thin lines between them. */
   private drawWalkSteps(steps: WalkStep[], group: G, lineGroup: G): void {
     const axisX = this.position.getBarPositionX();
@@ -2195,47 +2307,54 @@ export class StructureChart {
     const referenceY = this.position.getBarCenterPositionY(0) - BRIDGE_LEAD_ROWS * pitch;
     const sumY = this.position.getBarCenterPositionY(sumIndex);
     const varianceY = sumY + pitch;
+    const extras = this.bridgeExtras();
 
-    // the reference total: a bar in the look of its scenario, with a bold value and its name
-    const referenceScenario = bridge.reference.scenario as string;
-    const style = this.scenarioStyles().barStyles.getSVGStyle(bridge.reference.getScenario());
-    const referenceLength = (bridge.reference.value as number) * scale;
-    const referenceKey = { scenario: referenceScenario, row: "total" as const };
-    group
-      .rect(referenceLength, barWidth)
-      .x(axisX)
-      .cy(referenceY)
-      .fill(style?.fill || "#000000")
-      .stroke({ color: style?.stroke || style?.fill || "#000000", width: Number(style?.width) || 0 })
-      .attr(dataPointAttributes(referenceKey, "element"))
-      .attr("data-bn-value", bridge.reference.value as number);
-    new Label(
-      group,
-      axisX + referenceLength + labelToBar,
-      referenceY,
-      "BRIDGE_REFERENCE",
-      bridge.reference.value as number,
-      this.styles,
-      HookLocation.Center,
-      HookLocation.Left,
-    )
-      .setEmphasis(true, false)
-      .setPoint(referenceKey)
-      .draw(this.dataFormatDigits, this.measureScale);
-    if (!this.hideCategories) {
+    // a total above the rows: a bar in the look of its scenario, with a bold value and its name
+    const totalBar = (point: DataPoint, y: number): number => {
+      const scenario = point.scenario as string;
+      const style = this.scenarioStyles().barStyles.getSVGStyle(point.getScenario());
+      const length = (point.value as number) * scale;
+      const key = { scenario, row: "total" as const };
+      group
+        .rect(length, barWidth)
+        .x(axisX)
+        .cy(y)
+        .fill(style?.fill || "#000000")
+        .stroke({ color: style?.stroke || style?.fill || "#000000", width: Number(style?.width) || 0 })
+        .attr(dataPointAttributes(key, "element"))
+        .attr("data-bn-value", point.value as number);
       new Label(
         group,
-        this.position.getCategoryPositionX(true),
-        referenceY,
-        "BRIDGE_REFERENCE_NAME",
-        this.i18n.get(referenceScenario) || referenceScenario,
+        axisX + length + labelToBar,
+        y,
+        "BRIDGE_REFERENCE",
+        point.value as number,
         this.styles,
         HookLocation.Center,
-        HookLocation.Right,
+        HookLocation.Left,
       )
         .setEmphasis(true, false)
-        .draw();
-    }
+        .setPoint(key)
+        .draw(this.dataFormatDigits, this.measureScale);
+      if (!this.hideCategories) {
+        new Label(
+          group,
+          this.position.getCategoryPositionX(true),
+          y,
+          "BRIDGE_REFERENCE_NAME",
+          this.i18n.get(scenario) || scenario,
+          this.styles,
+          HookLocation.Center,
+          HookLocation.Right,
+        )
+          .setEmphasis(true, false)
+          .draw();
+      }
+      return length;
+    };
+    const referenceLength = totalBar(bridge.reference, referenceY);
+    // the scenarios at the total only stand above the reference, the first one next to it
+    const extraLengths = extras.map((point, at) => totalBar(point, referenceY - (at + 1) * pitch));
 
     // the lines of the two levels, down to the variance of the total
     const referenceX = axisX + referenceLength;
@@ -2248,21 +2367,20 @@ export class StructureChart {
       .stroke(stroke);
     this.drawWalkSteps(bridge.steps, group.group().id("Walk"), lineGroup);
 
-    // the variance of the total: a thin bar between the two levels, with its value below
-    const point = bridge.variance;
-    if (point != null && Number.isFinite(point.value) && point.value !== 0) {
+    // a thin bar between two levels below the total row, with its value below: the variance of a total
+    const varianceBar = (point: DataPoint, fromX: number, y: number): void => {
       const varianceStyle = this.styles.varianceStyles.getSVGStyle(point.getVarianceStyle());
       const height = barWidth * 0.25;
       group
-        .rect(Math.abs(totalX - referenceX), height)
-        .x(Math.min(totalX, referenceX))
-        .cy(varianceY)
+        .rect(Math.abs(totalX - fromX), height)
+        .x(Math.min(totalX, fromX))
+        .cy(y)
         .fill(varianceStyle?.fill || "#000000")
         .attr(dataPointAttributes(point.key, "element"));
       new Label(
         group,
-        (totalX + referenceX) / 2,
-        varianceY + height / 2 + labelToBar,
+        (totalX + fromX) / 2,
+        y + height / 2 + labelToBar,
         "BRIDGE_VARIANCE",
         point.value as number,
         this.styles,
@@ -2273,7 +2391,26 @@ export class StructureChart {
         .setPoint(point.key)
         .setToVarianceLabel()
         .draw(this.dataFormatDigits, this.measureScale);
+    };
+    const point = bridge.variance;
+    if (point != null && Number.isFinite(point.value) && point.value !== 0) {
+      varianceBar(point, referenceX, varianceY);
     }
+    // the variance to a scenario at the total only: one row further down each, with a line from its total
+    extras.forEach((extra, at) => {
+      const value = (bridge.total.value as number) - (extra.value as number);
+      if (value === 0) return;
+      const y = varianceY + (at + 1) * pitch;
+      const extraX = axisX + extraLengths[at];
+      const variance = new DataPoint(value, bridge.total.scenario, this.pixelPerUnit, "pos");
+      variance.key = {
+        scenario: `d${bridge.total.scenario}_${extra.scenario}`,
+        row: "total" as const,
+      };
+      lineGroup.line(extraX, referenceY - (at + 1) * pitch + barWidth / 2, extraX, y).stroke(stroke);
+      lineGroup.line(totalX, varianceY, totalX, y).stroke(stroke);
+      varianceBar(variance, extraX, y);
+    });
   }
 
   /** Rows of different height (`stack.thickness: total`) and the room below a group. Null: all rows are equal. */
@@ -2282,8 +2419,10 @@ export class StructureChart {
     if (this.bridge) {
       // room above the first row for the reference total, a gap before the total of the
       // series, and room below it for the variance of the total. The same in every tier.
-      const start = rows.map((row, index) => BRIDGE_LEAD_ROWS + index + (row.sum ? BRIDGE_SUM_GAP : 0));
-      const total = BRIDGE_LEAD_ROWS + rows.length + BRIDGE_SUM_GAP + BRIDGE_TAIL_ROWS;
+      // one more row above and below for each scenario that is shown at the total only
+      const lead = this.bridgeLeadRows();
+      const start = rows.map((row, index) => lead + index + (row.sum ? BRIDGE_SUM_GAP : 0));
+      const total = lead + rows.length + BRIDGE_SUM_GAP + BRIDGE_TAIL_ROWS + this.bridgeExtras().length;
       return { start, weight: rows.map(() => 1), total };
     }
     // the component does not set it together with variances: a variance bar has one thickness

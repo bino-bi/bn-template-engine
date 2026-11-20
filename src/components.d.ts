@@ -818,6 +818,16 @@ export namespace Components {
          */
         "stack": string;
         /**
+          * Name of a dataset with the values of the total row: the scenario columns, in one row or added up over its rows. The chart then computes no total. Every scenario column that the chart does not draw is shown at the total only, and `sum-scenarios` limits them.
+          * @default ""
+         */
+        "sumDataset": string;
+        /**
+          * Scenarios that are shown at the total row only, comma separated, for example `pl1`. The chart adds them up from its dataset. Such a scenario must not be in `scenarios`. Needs `sums` with a total row. In a bridge it is a bar above the reference total, and its variance to the total of the series is a thin bar below the variance of the total. Else its value stands in the total row with the others.
+          * @default ""
+         */
+        "sumScenarios": string;
+        /**
           * Label of the sum row over all rows.
           * @default "" (the `SUM_TOTAL` text)
           * @example sum-title="World"
@@ -954,6 +964,14 @@ export namespace Components {
          */
         "stackConfig": StackConfigParsed | null;
         "styles": StructureChartStyle | undefined;
+        /**
+          * @default ""
+         */
+        "sumDataset": string;
+        /**
+          * @default []
+         */
+        "sumScenarios": string[];
         /**
           * @default ""
          */
@@ -1145,7 +1163,7 @@ export namespace Components {
          */
         "syncSpaceLeft": number;
         /**
-          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`.   Left out, the totals use the scale of the chart. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
+          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`.   Left out, the totals use the scale of the chart. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `scenarios` - scenarios that are drawn at a total only, not in the periods,   for example `["pp1"]`. The chart adds them up from its dataset. Such a   scenario must not be in `scenarios` of the chart. It is a column next to   the reference of the total, and with `by: all` its variance to the total   of the series is a thin bar at the right. With `dataset` every scenario of   a row that the chart does not draw is such a scenario, and the list   limits them. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
           * @default ""
          */
         "totals": string;
@@ -3583,6 +3601,16 @@ declare namespace LocalJSX {
          */
         "stack"?: string;
         /**
+          * Name of a dataset with the values of the total row: the scenario columns, in one row or added up over its rows. The chart then computes no total. Every scenario column that the chart does not draw is shown at the total only, and `sum-scenarios` limits them.
+          * @default ""
+         */
+        "sumDataset"?: string;
+        /**
+          * Scenarios that are shown at the total row only, comma separated, for example `pl1`. The chart adds them up from its dataset. Such a scenario must not be in `scenarios`. Needs `sums` with a total row. In a bridge it is a bar above the reference total, and its variance to the total of the series is a thin bar below the variance of the total. Else its value stands in the total row with the others.
+          * @default ""
+         */
+        "sumScenarios"?: string;
+        /**
           * Label of the sum row over all rows.
           * @default "" (the `SUM_TOTAL` text)
           * @example sum-title="World"
@@ -3719,6 +3747,14 @@ declare namespace LocalJSX {
          */
         "stackConfig"?: StackConfigParsed | null;
         "styles"?: StructureChartStyle | undefined;
+        /**
+          * @default ""
+         */
+        "sumDataset"?: string;
+        /**
+          * @default []
+         */
+        "sumScenarios"?: string[];
         /**
           * @default ""
          */
@@ -3901,7 +3937,7 @@ declare namespace LocalJSX {
          */
         "syncSpaceLeft"?: number;
         /**
-          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`.   Left out, the totals use the scale of the chart. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
+          * Total columns at their own scale, as JSON: `{"by":"all","aggregation":"sum","unitScaling":280,"label":"2025","width":1.6}`.  - `unitScaling` - data units per em of column height, like `unit-scaling`.   Left out, the totals use the scale of the chart. - `by` - what a total covers. `all` (default): one column right of the last   period for all periods. `year`, `quarter`, `month`, `week`: one column   behind the periods of each of them, on the axis. - `aggregation` - `sum` (default), `average` or `last`. With `sum` a column   stacks one part per scenario of the series: the first scenario, and with   `scenario-switch` the ones that follow it. Else it is one column, hatched   when a forecast is in its value and outlined for a plan. - `dataset` - name of a dataset with one row per total (`date` and the   scenario columns). The chart takes the values from it and computes none.   With `average` or `last` the values of a row are one column. - `scenarios` - scenarios that are drawn at a total only, not in the periods,   for example `["pp1"]`. The chart adds them up from its dataset. Such a   scenario must not be in `scenarios` of the chart. It is a column next to   the reference of the total, and with `by: all` its variance to the total   of the series is a thin bar at the right. With `dataset` every scenario of   a row that the chart does not draw is such a scenario, and the list   limits them. - `label` - text under the column of `by: all`. The other columns take the name of their period. - `width` - width in widths of a period column, default 1.  The first other scenario is the reference behind a column. Each variance row gets the variance of each total at the scale of the row. With `scaling-indicator` a column has its own band, and with `by: all` a line links it to the band of the periods. Plain columns only: not with `stack` and not in line mode. The chart needs a fixed `unit-scaling`, and every part of a total must be positive.
           * @default ""
          */
         "totals"?: string;
@@ -5281,6 +5317,8 @@ declare namespace LocalJSX {
         "sumTitle": string;
         "varianceWaterfall": boolean;
         "dataFormatPercentSign": boolean;
+        "sumScenarios": string;
+        "sumDataset": string;
         "valueSuffix": string;
         "scenarioLabelPosition": "bottom" | "top";
         "referenceLine": string;
@@ -5304,6 +5342,7 @@ declare namespace LocalJSX {
         "sums": string;
         "sumTitle": string;
         "varianceWaterfall": boolean;
+        "sumDataset": string;
         "valueSuffix": string;
         "scenarioLabelTop": boolean;
         "hideScenarioName": boolean;

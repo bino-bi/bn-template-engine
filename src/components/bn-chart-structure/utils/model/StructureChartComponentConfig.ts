@@ -69,6 +69,10 @@ export class StructureChartComponentConfig {
   public varianceWaterfall: boolean = false;
   /** The first absolute variance: with `sums: total` the base chart draws it as a bridge between its total bars. */
   public bridgeVariances: string[] = [];
+  /** Scenarios that are shown at the total row only. */
+  public sumScenarios: string[] = [];
+  /** Name of a dataset with the values of the total row. Empty: the chart adds up its rows. */
+  public sumDataset: string = "";
   public valueSuffix: string = "";
   /** The name of the scenario stands above the first bar and not below the last one. */
   public scenarioLabelTop: boolean = false;
@@ -179,6 +183,16 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isBoolean(data.varianceWaterfall)) {
       config.varianceWaterfall = data.varianceWaterfall;
+    }
+
+    if (CompareUtil.isArray(data.sumScenarios)) {
+      config.sumScenarios = (data.sumScenarios as unknown[]).filter(
+        (entry): entry is string => typeof entry === "string",
+      );
+    }
+
+    if (CompareUtil.isString(data.sumDataset)) {
+      config.sumDataset = data.sumDataset;
     }
 
     if (CompareUtil.isArray(data.bridgeVariances)) {

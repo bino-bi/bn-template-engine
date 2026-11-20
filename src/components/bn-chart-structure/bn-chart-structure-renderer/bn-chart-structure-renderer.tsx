@@ -147,6 +147,12 @@ export class BnChartStructureRenderer {
   @Prop() bridgeVariances: string[] = [];
 
   /** @internal */
+  @Prop() sumScenarios: string[] = [];
+
+  /** @internal */
+  @Prop() sumDataset: string = "";
+
+  /** @internal */
   @Prop() valueSuffix: string = "";
 
   /** @internal */
@@ -472,6 +478,8 @@ export class BnChartStructureRenderer {
       sumTitle: this.sumTitle,
       varianceWaterfall: this.varianceWaterfall,
       bridgeVariances: this.bridgeVariances,
+      sumScenarios: this.sumScenarios,
+      sumDataset: this.sumDataset,
       valueSuffix: this.valueSuffix,
       scenarioLabelTop: this.scenarioLabelTop,
       hideScenarioName: this.hideScenarioName,
