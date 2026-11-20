@@ -24,12 +24,20 @@ import {
   markTreatment,
   MarkTreatment,
   outlineTreatment,
+  pinSeries,
   resolveSeriesColor,
 } from "../../../utils/xy/SeriesPalette";
 import { axisInValueUnits, isRelativeMeasure, resolveMeasure } from "../../../utils/xy/VarianceMeasure";
 import { XYFrame } from "../../../utils/xy/XYFrame";
 import { LegendEntry, LegendModel, XYLegend } from "../../../utils/xy/XYLegend";
-import { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig } from "../../../utils/xy/model/AxisConfig";
+import {
+  AxisConfig,
+  FacetConfig,
+  IsoConfig,
+  LabelConfig,
+  labelSide,
+  LegendConfig,
+} from "../../../utils/xy/model/AxisConfig";
 import {
   GroupLevel,
   PointLevel,
@@ -116,6 +124,7 @@ export class ScatterChart {
       limit: config.limit,
       limitBy: "order",
     });
+    this.data.series = pinSeries(this.data.series, styles.seriesNames);
     this.warnings.push(...this.data.warnings);
   }
 
@@ -271,7 +280,9 @@ export class ScatterChart {
     const legend = new XYLegend(this.styles);
     const legendModel = this.legendModel();
     const showLegend = this.config.legend.show && legendModel.entries.length > 0;
-    const legendSize = showLegend ? legend.measure(legendModel, this.config.legend.position) : { width: 0, height: 0 };
+    const legendSize = showLegend
+      ? legend.measure(legendModel, this.config.legend.position === "bottom" ? "bottom" : "right")
+      : { width: 0, height: 0 };
 
     // Reserved column right of the frame: legend and/or iso exit labels.
     const isoActive = this.config.iso !== null;
@@ -470,6 +481,15 @@ export class ScatterChart {
           drawing.y + legendOffset(this.config.legend, drawing.height - legendSize.height),
           "right",
         );
+      } else if (this.config.legend.position === "inside") {
+        // in the top right corner of the plot, clear of the frame
+        legend.draw(
+          root,
+          legendModel,
+          drawing.x + drawing.width - legendSize.width - 0.5 * em,
+          drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
+          "right",
+        );
       } else {
         legend.draw(
           root,
@@ -642,7 +662,7 @@ export class ScatterChart {
         r: radius,
         width: this.textWidth(mark.point.name),
         height: 1.1 * this.em,
-        side: this.config.labels.sides?.[mark.point.name],
+        side: labelSide(this.config.labels, mark.point.name, facetKey),
       };
       pointOf.set(candidate, mark.point);
       return candidate;

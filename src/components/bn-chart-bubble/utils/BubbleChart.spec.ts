@@ -488,6 +488,93 @@ describe("BubbleChart options shared with the scatter chart", () => {
     expect(Math.abs(name.y - value.y) > 10 || Math.abs(name.x - value.x) > 40).toBe(true);
   });
 
+  describe("value of the share slice", () => {
+    const shareChart = (labels: "none" | "all" | string[] | undefined): string => {
+      const db = createScopedDb().db;
+      db.tables["bubbleData"] = {
+        data: [
+          row({ subCategory: "A", subCategoryIndex: 1, ac1: 0.3, ac2: 0.3, ac3: 200, ac4: 0.25 }),
+          row({ subCategory: "B", subCategoryIndex: 2, ac1: 0.7, ac2: 0.7, ac3: 80, ac4: 0.5 }),
+        ],
+      };
+      return new BubbleChart(
+        new IBCSRuleSet(),
+        db,
+        "`bubbleData`",
+        baseConfig({ share: { measure: "ac4", labels }, labels: { points: "none", values: false, max: 12 } }),
+        defaultStyles(),
+        1000,
+      ).toString();
+    };
+
+    it("prints none by default", () => {
+      expect(shareChart(undefined)).not.toContain(">50<");
+    });
+
+    it("prints size times share for the named bubbles", () => {
+      const svg = shareChart(["A"]);
+      expect(svg).toContain(">50<");
+      expect(svg).not.toContain(">40<");
+    });
+
+    it("prints it for all bubbles", () => {
+      const svg = shareChart("all");
+      expect(svg).toContain(">50<");
+      expect(svg).toContain(">40<");
+    });
+  });
+
+  it("prints a value that is wider than its bubble only with values always", () => {
+    const valueShown = (valuesAlways: boolean): boolean => {
+      const db = createScopedDb().db;
+      db.tables["bubbleData"] = {
+        data: [
+          row({ subCategory: "Big", subCategoryIndex: 1, ac1: 0.3, ac2: 0.3, ac3: 900 }),
+          row({ subCategory: "Small", subCategoryIndex: 2, ac1: 0.7, ac2: 0.7, ac3: 1 }),
+        ],
+      };
+      const svg = new BubbleChart(
+        new IBCSRuleSet(),
+        db,
+        "`bubbleData`",
+        baseConfig({ sizeAreaPerUnit: 20, labels: { points: "none", values: true, valuesAlways, max: 12 } }),
+        defaultStyles(),
+        1000,
+      ).toString();
+      return svg.includes(">1<");
+    };
+    expect(valueShown(false)).toBe(false);
+    expect(valueShown(true)).toBe(true);
+  });
+
+  it("draws a legend inside the plot and keeps the plot as wide as without a legend", () => {
+    const frameWidth = (legend: BubbleChartConfig["legend"]): number =>
+      Number(/<rect width="([\d.]+)"[^>]*fill="none"/.exec(chartWith(baseConfig({ legend })))![1]);
+    const inside = frameWidth({ show: true, position: "inside" });
+    expect(inside).toBeCloseTo(frameWidth({ show: false, position: "right" }), 3);
+    expect(inside).toBeGreaterThan(frameWidth({ show: true, position: "right" }));
+    expect(chartWith(baseConfig({ legend: { show: true, position: "inside" } }))).toContain(">Core Business<");
+  });
+
+  it("leaves out tick labels of the x axis that would run into each other, and keeps both ends", () => {
+    const svg = chartWith(
+      baseConfig({ x: { measure: "ac1", min: 0, max: 900, step: 20 }, y: { measure: "ac2", min: 0, max: 40 } }),
+    );
+    const ticks = [...svg.matchAll(/text-anchor="middle"[^>]*>(?:<tspan[^>]*>)?(\d+)</g)].map((m) => Number(m[1]));
+    expect(ticks).toContain(0);
+    expect(ticks).toContain(900);
+    // 46 ticks on less than 1000 px: three digits need more than the 21 px between two of them
+    expect(ticks.length).toBeLessThan(46);
+  });
+
+  it("gives a series the colour that the style names for it", () => {
+    const svg = chartWith(baseConfig(), (styles) => {
+      styles.seriesColors = ["#111111", "#222222", "#333333"];
+      styles.seriesNames = ["Other", "Third", "Core Business"];
+    });
+    expect(/<circle[^>]*>/.exec(svg)![0]).toContain('fill="#333333"');
+  });
+
   describe("labels in facet panels", () => {
     const facetRows = (): Record<string, unknown>[] => [
       row({ rowGroup: "North", rowGroupIndex: 1, subCategory: "A", subCategoryIndex: 1, ac1: 10, ac2: 10, ac3: 5 }),

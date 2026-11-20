@@ -25,6 +25,7 @@ import {
   MarkTreatment,
   mixHex,
   outlineTreatment,
+  pinSeries,
   resolveSeriesColor,
   shade,
 } from "../../../utils/xy/SeriesPalette";
@@ -36,6 +37,7 @@ import {
   AxisConfig,
   FacetConfig,
   LabelConfig,
+  labelSide,
   LegendConfig,
   ShareConfig,
   SizeConfig,
@@ -152,6 +154,7 @@ export class BubbleChart {
       limit: config.limit,
       limitBy: "size",
     });
+    this.data.series = pinSeries(this.data.series, styles.seriesNames);
     this.warnings.push(...this.data.warnings);
   }
 
@@ -357,7 +360,9 @@ export class BubbleChart {
     const legendModel = this.legendModel();
     const showLegend =
       this.config.legend.show && (legendModel.entries.length > 0 || legendModel.sizeCaption.length > 0);
-    const legendSize = showLegend ? legend.measure(legendModel, this.config.legend.position) : { width: 0, height: 0 };
+    const legendSize = showLegend
+      ? legend.measure(legendModel, this.config.legend.position === "bottom" ? "bottom" : "right")
+      : { width: 0, height: 0 };
 
     const rightReserve = this.config.legend.position === "right" && showLegend ? legendSize.width + em : 0;
 
@@ -539,6 +544,15 @@ export class BubbleChart {
           legendModel,
           drawing.x + drawing.width + em,
           drawing.y + legendOffset(this.config.legend, drawing.height - legendSize.height),
+          "right",
+        );
+      } else if (this.config.legend.position === "inside") {
+        // in the top right corner of the plot, clear of the frame
+        legend.draw(
+          root,
+          legendModel,
+          drawing.x + drawing.width - legendSize.width - 0.5 * em,
+          drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
           "right",
         );
       } else {
@@ -723,7 +737,11 @@ export class BubbleChart {
         }
 
         // Comparison bubbles carry a value label only when large enough - never a share slice.
-        if (this.config.labels.values && point.compare.size !== undefined && cr >= 1.2 * em) {
+        if (
+          this.config.labels.values &&
+          point.compare.size !== undefined &&
+          (cr >= 1.2 * em || this.config.labels.valuesAlways === true)
+        ) {
           this.drawValueLabel(compareGroup, labeler, ccx, ccy, cr, point.compare.size, compareTreatment);
         }
       }
@@ -739,6 +757,9 @@ export class BubbleChart {
         this.drawShareSlice(primaryGroup, cx, cy, r, point.share, treatment, seriesIndex, hue)?.attr(
           dataPointAttributes(key),
         );
+        if (this.hasShareLabel(point.name) && point.share > 0 && point.size !== undefined) {
+          this.drawShareLabel(primaryGroup, labeler, cx, cy, r, point.share, point.size, treatment);
+        }
       }
 
       if (this.config.labels.values && point.size !== undefined) {
@@ -838,6 +859,38 @@ export class BubbleChart {
       .stroke(stroke);
   }
 
+  /** `share.labels` asks for the value of the slice of this point. */
+  private hasShareLabel(name: string): boolean {
+    const labels = this.config.share?.labels ?? "none";
+    return labels === "all" || (Array.isArray(labels) && labels.includes(name));
+  }
+
+  /**
+   * The value of the slice (size times share), outside the bubble at the middle of the arc of the slice.
+   * In the colour of the values of an outlined bubble, else in the font colour. No name is placed on it.
+   */
+  private drawShareLabel(
+    group: G,
+    labeler: PointLabeler,
+    cx: number,
+    cy: number,
+    r: number,
+    share: number,
+    size: number,
+    treatment: MarkTreatment,
+  ): void {
+    const em = this.em;
+    const angle = Math.min(share, 1) * Math.PI;
+    const reach = r + 0.3 * em;
+    const x = cx + reach * Math.sin(angle);
+    // the text hangs on its baseline: above the bubble it stands on the point, below it hangs under it
+    const y = cy - reach * Math.cos(angle) + 0.35 * em * (1 - Math.cos(angle));
+    const text = formatXYValue(size * share, this.valueDecimals(), this.styles.locale, this.sizePercent);
+    const width = this.textWidth(text);
+    this.drawText(group, text, x, y, { color: treatment.textColor });
+    labeler.registerText(x, y - em, width, 1.1 * em);
+  }
+
   /** Value inside the bubble, contrast-colored; hidden when it doesn't fit. No name is placed on it. */
   private drawValueLabel(
     group: G,
@@ -854,12 +907,14 @@ export class BubbleChart {
     const shown = fillOpacity < 1 && /^#[0-9a-f]{6}$/i.test(fill) ? mixHex(fill, "#ffffff", 1 - fillOpacity) : fill;
     const text = formatXYValue(value, this.valueDecimals(), this.styles.locale, this.sizePercent);
     const width = this.textWidth(text);
-    if (width + 0.4 * this.em > 2 * r) {
+    const fits = width + 0.4 * this.em <= 2 * r;
+    if (!fits && this.config.labels.valuesAlways !== true) {
       return;
     }
+    // a value wider than its bubble is read on the page, not on the fill
     this.drawText(group, text, cx, cy + 0.35 * this.em, {
       anchor: "middle",
-      color: treatment.textColor ?? getContrastTextColor(shown),
+      color: treatment.textColor ?? (fits ? getContrastTextColor(shown) : undefined),
     });
     labeler.registerText(cx - width / 2, cy - 0.65 * this.em, width, 1.1 * this.em);
   }
@@ -891,7 +946,7 @@ export class BubbleChart {
         width: this.textWidth(mark.point.name),
         height: 1.1 * this.em,
         // the typed side is the one of the bubble itself
-        side: primary ? this.config.labels.sides?.[mark.point.name] : undefined,
+        side: primary ? labelSide(this.config.labels, mark.point.name, facetKey) : undefined,
       };
       if (primary) {
         pointOf.set(candidate, mark.point);

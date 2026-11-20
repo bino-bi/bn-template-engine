@@ -854,7 +854,7 @@ export class Grid {
                 "grid-row": track(startRow + rowIndex, rowSpan),
                 "border-left": isNotFirstCol ? borderStyle : "none",
                 "border-top": isNotFirstRow ? borderStyle : "none",
-                "padding-left": isNotFirstCol ? `${style.cellPadding + 4}px` : "0",
+                ...this.cellSidePadding(colIndex, columnSpan, style.cellPadding + 4),
                 "padding-top": isNotFirstRow ? `${style.cellPadding + 4}px` : "0",
                 ...this.cellAlignStyle(),
                 ...(background ? { "background-color": background } : {}),
@@ -868,6 +868,24 @@ export class Grid {
     }
 
     return cells;
+  }
+
+  /**
+   * The room between two columns. With columns of their own width it is all on the left of the
+   * right cell. With equal columns that would leave the first column more room for its content
+   * than the others, so one unit of a chart would be longer there. Each cell then gives up the
+   * same share, split so that two neighbours are still `gap` apart.
+   */
+  private cellSidePadding(colIndex: number, columnSpan: number, gap: number): { [key: string]: string } {
+    const count = this.gridConfig.columns.length;
+    if (this.resolvedWidth !== "equal" || count < 2) {
+      return { "padding-left": colIndex > 0 ? `${gap}px` : "0" };
+    }
+    const lastColumn = Math.min(count - 1, colIndex + Math.max(1, columnSpan) - 1);
+    return {
+      "padding-left": `${(gap * colIndex) / count}px`,
+      "padding-right": `${(gap * (count - 1 - lastColumn)) / count}px`,
+    };
   }
 
   /** Flex column only when the content is not at the default top left: a block cell stays a block. */

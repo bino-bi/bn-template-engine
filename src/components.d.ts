@@ -188,12 +188,12 @@ export namespace Components {
          */
         "i18nNamespace"?: string;
         /**
-          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble. An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark.
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble. An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark. With `"panel":"India"` the side holds for that facet panel only. `"values":"always"` prints a value also when it is wider than its bubble.
           * @default ""
          */
         "labels": string;
         /**
-          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry.
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
           * @default ""
          */
         "legend": string;
@@ -225,7 +225,7 @@ export namespace Components {
          */
         "seriesLevel": string;
         /**
-          * Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare token; the measure holds a fraction 0..1 of the bubble.
+          * Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare token; the measure holds a fraction 0..1 of the bubble. `labels` prints the value of the slice (size times share) next to it: `"all"`, or a list of point names, `{"measure":"ac4","labels":["Total"]}`.
           * @default ""
          */
         "share": string;
@@ -557,7 +557,7 @@ export namespace Components {
          */
         "labels": string;
         /**
-          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry.
+          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
           * @default ""
          */
         "legend": string;
@@ -3047,12 +3047,12 @@ declare namespace LocalJSX {
          */
         "i18nNamespace"?: string;
         /**
-          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble. An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark.
+          * Point labeling. JSON object: `{"points":"auto"|"none"|"all"|["VAB"], "values":true,"max":12}`. Bubble charts label every point by default; `values` renders the value inside the bubble. An entry of the list can be `{"name":"VAB","side":"n"}`: the label then stands on that side of its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside the plot or on another mark. With `"panel":"India"` the side holds for that facet panel only. `"values":"always"` prints a value also when it is wider than its bubble.
           * @default ""
          */
         "labels"?: string;
         /**
-          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry.
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
           * @default ""
          */
         "legend"?: string;
@@ -3084,7 +3084,7 @@ declare namespace LocalJSX {
          */
         "seriesLevel"?: string;
         /**
-          * Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare token; the measure holds a fraction 0..1 of the bubble.
+          * Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare token; the measure holds a fraction 0..1 of the bubble. `labels` prints the value of the slice (size times share) next to it: `"all"`, or a list of point names, `{"measure":"ac4","labels":["Total"]}`.
           * @default ""
          */
         "share"?: string;
@@ -3398,7 +3398,7 @@ declare namespace LocalJSX {
          */
         "labels"?: string;
         /**
-          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry.
+          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
           * @default ""
          */
         "legend"?: string;

@@ -188,7 +188,9 @@ export class ChartBubble {
 
   /**
    * Pie-share slices inside the bubbles (IBCS 10E). JSON object or bare
-   * token; the measure holds a fraction 0..1 of the bubble.
+   * token; the measure holds a fraction 0..1 of the bubble. `labels` prints
+   * the value of the slice (size times share) next to it: `"all"`, or a list
+   * of point names, `{"measure":"ac4","labels":["Total"]}`.
    */
   @Prop() share: string = "";
   @Watch("share")
@@ -273,7 +275,9 @@ export class ChartBubble {
    * `values` renders the value inside the bubble. An entry of the list can
    * be `{"name":"VAB","side":"n"}`: the label then stands on that side of
    * its bubble (`n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`), also outside
-   * the plot or on another mark.
+   * the plot or on another mark. With `"panel":"India"` the side holds for
+   * that facet panel only. `"values":"always"` prints a value also when it
+   * is wider than its bubble.
    */
   @Prop() labels: string = "";
   @Watch("labels")
@@ -284,7 +288,8 @@ export class ChartBubble {
   /**
    * Legend (series colors, bubble size caption, comparison scenarios).
    * JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
-   * `exclude` lists the names of series that get no entry.
+   * `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend
+   * into the top right corner of the plot.
    */
   @Prop() legend: string = "";
   @Watch("legend")
@@ -857,6 +862,7 @@ export class ChartBubble {
         axisStyles: $["bn-chart-bubble"]["axisStyles"],
         seriesColors: $["bn-chart-bubble"]["seriesColors"],
         markStyles: $["bn-chart-bubble"]["markStyles"],
+        seriesNames: $["bn-chart-bubble"]["seriesNames"],
         seriesFills: $["bn-chart-bubble"]["seriesFills"],
         shareColors: $["bn-chart-bubble"]["shareColors"],
         padding: $["bn-chart-bubble"]["padding"],

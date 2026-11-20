@@ -1,4 +1,5 @@
 import { G } from "@svgdotjs/svg.js";
+import CalculateSize from "calculate-size";
 import { Rect } from "./FacetGrid";
 import { formatXYValue } from "./formatXYValue";
 import { NumericScale } from "./NumericScale";
@@ -46,6 +47,16 @@ export class XYFrame {
 
   private fontFamily(): string {
     return this.styles.fontStyles.font.replace(/^[\d.]+px\s*/, "");
+  }
+
+  private textWidth(text: string): number {
+    const width = CalculateSize(text, {
+      font: this.fontFamily(),
+      fontSize: this.styles.fontStyles.size + "px",
+      fontWeight: "normal",
+    }).width;
+    // calculate-size needs a live DOM; fall back to an estimate in test environments.
+    return Number.isFinite(width) && width > 0 ? width : text.length * 0.6 * this.em;
   }
 
   /** Shaded bands behind everything; open ends run to the domain edge. */
@@ -130,16 +141,36 @@ export class XYFrame {
     const color = this.styles.fontStyles.color;
 
     if (config.showXLabels) {
-      for (const tick of config.ticksX) {
+      const labels = config.ticksX.map((tick) => {
         const x = this.xScale.scale(tick);
+        const text = formatXYValue(tick, config.xDecimals, this.styles.locale, config.xPercent);
+        const width = this.textWidth(text);
         // centred on the edge it would run into the label of the next panel
         const atLeft = config.panelLeft === true && Math.abs(x - this.rect.x) < 0.5;
         const atRight = config.panelRight === true && Math.abs(x - this.rect.x - this.rect.width) < 0.5;
+        const anchor = atLeft ? "start" : atRight ? "end" : "middle";
+        const left = atLeft ? x : atRight ? x - width : x - width / 2;
+        return { x, text, anchor, left, right: left + width };
+      });
+
+      // No label runs into another one: the two ends of the axis come first, then the others in their order.
+      const minGap = 0.3 * this.em;
+      const kept: typeof labels = [];
+      const ordered = [labels[0], labels[labels.length - 1], ...labels.slice(1, -1)].filter(
+        (label, index, list) => label !== undefined && list.indexOf(label) === index,
+      );
+      for (const label of ordered) {
+        if (kept.every((other) => label.left >= other.right + minGap || label.right <= other.left - minGap)) {
+          kept.push(label);
+        }
+      }
+
+      for (const label of kept) {
         group
-          .text(formatXYValue(tick, config.xDecimals, this.styles.locale, config.xPercent))
-          .font({ ...font, anchor: atLeft ? "start" : atRight ? "end" : "middle" })
+          .text(label.text)
+          .font({ ...font, anchor: label.anchor })
           .fill(color)
-          .attr({ x, y: this.rect.y + this.rect.height + gap + this.em * 0.8, "font-family": family });
+          .attr({ x: label.x, y: this.rect.y + this.rect.height + gap + this.em * 0.8, "font-family": family });
       }
     }
 
