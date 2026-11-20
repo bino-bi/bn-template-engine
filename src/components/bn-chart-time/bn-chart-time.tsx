@@ -25,6 +25,7 @@ import withRuleSet from "../../utils/withRuleSet";
 import { RuleSetConfig } from "../../stores/ruleSets";
 import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
+import { measureHeightBonus, settleHeightBonus } from "./utils/helper/heightBonus";
 import { getParentDimensions, ParentDimensions } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
@@ -863,7 +864,8 @@ export class Chart {
   componentDidRender() {
     syncEmptyState(this.element, "bn-chart-time-renderer");
 
-    if (this.updateBaseHeightBonus() && !this._autoScaleGuard) {
+    const bonusChanged = this.updateBaseHeightBonus();
+    if (bonusChanged && !this._autoScaleGuard) {
       forceUpdate(this);
     }
 
@@ -878,6 +880,10 @@ export class Chart {
     if (this._autoScaleGuard) {
       this._autoScaleGuard = false;
       this.checkOverflow();
+      if (bonusChanged) {
+        // the guard render did not use the new bonus yet
+        forceUpdate(this);
+      }
       return;
     }
 
@@ -1023,24 +1029,31 @@ export class Chart {
   private updateBaseHeightBonus(): boolean {
     const segments = this.prepareSegments();
     const fixedUnit = resolveScalingValue(this.unitScaling, this.pixelPerUnitGroupMap).kind === "value";
-    let bonus = 0;
+    let measured = 0;
     if (fixedUnit && segments.length > 1 && segments[0].length === 0) {
-      const share = this._lastAppliedHeight / segments.length;
       const renderers = Array.from(this.element.shadowRoot?.querySelectorAll("bn-chart-time-renderer") ?? []);
-      for (const renderer of renderers.slice(1)) {
-        const height = (renderer as HTMLElement).offsetHeight;
-        // a segment that is not drawn yet has no height: it keeps its share
-        if (height > 0) {
-          bonus += Math.max(0, share - height);
-        }
-      }
+      measured = measureHeightBonus(
+        this.segmentShare(this._lastAppliedHeight, segments.length),
+        renderers.slice(1).map((renderer) => (renderer as HTMLElement).offsetHeight),
+      );
     }
-    // same threshold as the height settle check: small jitter must not cause re-renders
-    if (Math.abs(bonus - this._baseHeightBonus) <= 8) {
+    const bonus = settleHeightBonus(this._baseHeightBonus, measured);
+    if (bonus === this._baseHeightBonus) {
       return false;
     }
     this._baseHeightBonus = bonus;
     return true;
+  }
+
+  /**
+   * The base chart and each variance render as vertically stacked segments
+   * (see render()), so each one may only claim its share of the height.
+   * The measure-scale footer (first segment only) renders below its SVG:
+   * reserve roughly one em for it so the fitted charts leave it room.
+   */
+  private segmentShare(parentHeight: number, segmentCount: number): number {
+    const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
+    return Math.max(0, parentHeight - footerAllowance) / Math.max(1, segmentCount);
   }
 
   prepareDimension(isBase: boolean = false): ParentDimensions {
@@ -1049,13 +1062,7 @@ export class Chart {
     const segments = this.prepareSegments();
     this.canvasWidthSegmented = parent.width / (scenariosList.length + this.prepareVariances().length || 1);
     this._lastAppliedHeight = parent.height;
-    // The base chart and each variance render as vertically stacked segments
-    // (see render()), so each one may only claim its share of the height.
-    // The measure-scale footer (first segment only) renders below its SVG:
-    // reserve roughly one em for it so the fitted charts leave it room.
-    const segmentCount = Math.max(1, segments.length);
-    const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
-    const share = Math.max(0, parent.height - footerAllowance) / segmentCount;
+    const share = this.segmentShare(parent.height, segments.length);
     return { width: this.canvasWidthSegmented, height: share + (isBase ? this._baseHeightBonus : 0) };
   }
 

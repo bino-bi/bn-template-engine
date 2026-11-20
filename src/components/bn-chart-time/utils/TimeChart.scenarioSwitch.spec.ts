@@ -132,6 +132,13 @@ describe("time chart scenarioSwitch", () => {
     expect(internals(buildChart({ variances: ["dpl1_pp1_pos"] })).title).not.toBe(internals(actual).title);
   });
 
+  it("keeps the full name of a variance that is not one of the series", () => {
+    // pp1 has values in every year: it is the reference, not a part of the series
+    const chart = buildChart({ scenarioSwitch: true, variances: ["dpp1_ac1_pos"] });
+    const plain = buildChart({ variances: ["dpp1_ac1_pos"] });
+    expect(internals(chart).title).toBe(internals(plain).title);
+  });
+
   it("hatches the variances and the pin heads of a forecast", () => {
     const rows = ROWS.map((row) => ("pl1" in row ? { date: row.date, operation: "+", fc1: row.pl1, pp1: 80 } : row));
     const options = { scenarios: ["ac1", "fc1", "pp1"], scenarioSwitch: true };
@@ -244,7 +251,30 @@ describe("time chart scaling indicator", () => {
     // pixelPerUnit is 1: the band is 100 high
     expect(svg).toMatch(/<g id="ScalingIndicator"><rect[^>]*height="100"/);
     expect(svg.indexOf('id="ScalingIndicator"')).toBeLessThan(svg.indexOf('id="Scenarios"'));
-    expect(svg).toMatch(/SCALING_INDICATOR[\s\S]*>100<\/tspan>/);
+    expect(svg).toMatch(/SCALING_INDICATOR[\s\S]*>100,0<\/tspan>/);
+  });
+
+  it("counts the band for the height of the chart", () => {
+    const low = buildChart({ scenarios: ["ac1", "pp1"], scalingIndicator: 100 });
+    const high = buildChart({ scenarios: ["ac1", "pp1"], scalingIndicator: 1000 });
+    low.layout();
+    high.layout();
+    // the highest column is 120
+    expect(high.getAllocatedCanvasHeight() - low.getAllocatedCanvasHeight()).toBeCloseTo(880);
+  });
+
+  it("prints the value like a value label", () => {
+    const rows = ROWS.map((row) => ("ac1" in row ? { ...row, ac1: 1200000 } : row));
+    const svg = buildChart(
+      {
+        scenarios: ["ac1"],
+        scalingIndicator: 1000000,
+        measureScale: "k",
+        dataFormatDigits: { percent: 1, decimal: 0 },
+      },
+      rows,
+    ).toString();
+    expect(svg).toMatch(/SCALING_INDICATOR[\s\S]*>1\.000<\/tspan>/);
   });
 
   it("draws no band in a variance chart", () => {

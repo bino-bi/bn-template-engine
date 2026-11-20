@@ -87,6 +87,7 @@ interface Segment {
 interface ChartInternals {
   dataModel: Record<string, unknown>[];
   highestDataPointValue: { value: number };
+  smallestDataPointValue: { value: number };
   stackGroups(row: unknown): { segments: Segment[]; layout: { total: number } }[];
   switchRuns(): { scenario: string; from: number; to: number }[];
   contextRow(): { from: number; text: string }[];
@@ -193,6 +194,43 @@ describe("time chart stack by dimension", () => {
     expect(fills[1].startsWith("url(#pattern-stack-fc-")).toBe(true);
     // pp1 is the column behind
     expect(svg.node.querySelectorAll("#StackReference #Scenario2 > g").length).toBe(1);
+  });
+
+  it("takes a 0 as no value when it finds the roles", () => {
+    // a dataset often has 0 where a scenario has no value
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "AC", categoryIndex: 1, ac1: 100, fc1: 0 },
+      { date: "2025-01-01", operation: "+", category: "FC", categoryIndex: 2, ac1: 0, fc1: 40 },
+    ];
+    const chart = buildChart({ scenarios: ["ac1", "fc1"] }, rows);
+    const [group] = internals(chart).stackGroups(internals(chart).dataModel[0]);
+    expect(group.segments.map((segment) => segment.scenario)).toEqual(["ac1", "fc1"]);
+    expect(group.layout.total).toBe(140);
+    expect(draw(chart).node.querySelector("#StackReference")).toBeNull();
+  });
+
+  it("keeps room below the axis for a negative reference", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "A", categoryIndex: 1, ac1: 100, pp1: -200 },
+      { date: "2025-01-01", operation: "+", category: "B", categoryIndex: 2, ac1: 50, pp1: -100 },
+    ];
+    const chart = internals(buildChart({ scenarios: ["ac1", "pp1"] }, rows));
+    expect(chart.smallestDataPointValue.value).toBe(-300);
+  });
+
+  it("names the reference only when the series names stand at the right", () => {
+    const rows = [
+      { date: "2025-01-01", operation: "+", category: "A", categoryIndex: 1, ac1: 100, pp1: 90 },
+      { date: "2025-01-01", operation: "+", category: "B", categoryIndex: 2, ac1: 50, pp1: 40 },
+    ];
+    const names = (legend: string): string[] =>
+      texts(
+        draw(buildChart({ scenarios: ["ac1", "pp1"], stackConfig: { ...STACK, legend } }, rows)),
+        "#StackReference text",
+      );
+    expect(names("left")).not.toContain("PY");
+    expect(names("both")).not.toContain("PY");
+    expect(names("right")).toContain("PY");
   });
 
   it("does not fill without the switch", () => {
