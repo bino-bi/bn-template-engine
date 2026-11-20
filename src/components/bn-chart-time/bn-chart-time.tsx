@@ -837,8 +837,7 @@ export class Chart {
    * `sum`) the first row of absolute variances becomes a bridge: the reference
    * total stands before the first period, the total of the series behind the
    * last one, and the walk runs between their ends. With `sync-space-left`
-   * the reference total stands inside that space, so the space must have room
-   * for it. Behind a total column on the axis (`by` other than `all`) a walk
+   * there is no bridge, the reference total has no room in a synced space. Behind a total column on the axis (`by` other than `all`) a walk
    * starts again. Bar mode, plain columns: no effect in line mode and with
    * `stack`.
    */
