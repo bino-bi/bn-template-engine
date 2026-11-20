@@ -137,7 +137,15 @@ export class Label {
       const plain = this.isRelativeLabel && this.isVarianceLabel && dataFormatDigits.percentSign === false;
       const print = (number: number): string =>
         plain
-          ? Formatter.number(number * 100, "decimal", digits, digitsMin, 1, this.styles.locale)
+          ? // 0.145 * 100 is 14.499999999999998: cut the noise, so the label rounds like the percent format
+            Formatter.number(
+              Number((number * 100).toPrecision(15)),
+              "decimal",
+              digits,
+              digitsMin,
+              1,
+              this.styles.locale,
+            )
           : Formatter.number(number, type, digits, digitsMin, scale, this.styles.locale);
       valueStr = print(Number(value));
 

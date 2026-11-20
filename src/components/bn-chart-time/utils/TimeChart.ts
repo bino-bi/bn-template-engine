@@ -194,6 +194,7 @@ export class TimeChart {
   private lastScenarios: string[] = [];
   private axisLabelsStep: number = 1;
   private scalingIndicator: number = 0;
+  private highestColumnDataPointValue: DataPoint = new DataPoint(0, "default", 0, Scenario.NEU);
   private scenarioSwitch: boolean = false;
   private axisTitlePosition: string = "left";
   /** Periods in which more than one variance of a shared row has a value. */
@@ -260,7 +261,7 @@ export class TimeChart {
   }
 
   private calculateOverflowConfig(availableHeight: number): OverflowConfig | null {
-    const highest = this.isVarianceChart() ? this.highestVarianceDataPointValue : this.highestDataPointValue;
+    const highest = this.isVarianceChart() ? this.highestVarianceDataPointValue : this.highestColumnDataPointValue;
     const highestScaledUnit = highest.getScaledUnit();
     if (highestScaledUnit <= 0) return null;
 
@@ -375,6 +376,8 @@ export class TimeChart {
       this.smallestDataPointValue = new DataPoint(0 - sides.negative, scenario, this.pixelPerUnit, variance);
     }
 
+    // the highest column: a break mark is for a column that does not fit, not for the band
+    this.highestColumnDataPointValue = this.highestDataPointValue;
     if (this.hasScalingIndicator() && this.scalingIndicator > Number(this.highestDataPointValue.value)) {
       // the band is part of the chart: it can be higher than every column
       const { scenario, variance } = this.highestDataPointValue;
@@ -937,11 +940,11 @@ export class TimeChart {
     const left = this.position.getColumnCenterPositionX(0) - half;
     const right = this.position.getColumnCenterPositionX(this.dataModel.length - 1) + half;
     const axisY = this.position.getColumnPositionY();
-    // columns that are cut end at the cut height: the band does not go higher
-    const height = Math.min(
-      this.scalingIndicator * this.pixelPerUnit,
-      this.overflowConfig?.cutHeight ?? Number.POSITIVE_INFINITY,
-    );
+    const height = this.scalingIndicator * this.pixelPerUnit;
+    // columns are cut below the band: a shorter band would show a wrong scale, so there is none
+    if (this.overflowConfig && height > this.overflowConfig.cutHeight) {
+      return;
+    }
 
     const group = svgContainer.group().id("ScalingIndicator");
     group

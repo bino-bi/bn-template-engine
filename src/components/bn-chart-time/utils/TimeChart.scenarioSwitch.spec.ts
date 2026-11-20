@@ -163,6 +163,10 @@ describe("time chart scenarioSwitch", () => {
     );
     expect(plain.some((text) => text.includes("%"))).toBe(false);
     expect(plain).toEqual(expect.arrayContaining(["+25,0", "+50,0"]));
+    // 14.5 % rounds up, as with the sign
+    const rows = [{ date: "2024-01-01", operation: "+", ac1: 114.5, pp1: 100 }];
+    const whole = { ...options, dataFormatDigits: { percent: 0, decimal: 1, percentSign: false } };
+    expect(labels(buildChart(whole, rows).toString())).toContain("+15");
   });
 
   it("counts the periods where shared variances overlap", () => {
@@ -261,6 +265,20 @@ describe("time chart scaling indicator", () => {
     high.layout();
     // the highest column is 120
     expect(high.getAllocatedCanvasHeight() - low.getAllocatedCanvasHeight()).toBeCloseTo(880);
+  });
+
+  it("does not cut columns for a band that does not fit", () => {
+    const chart = buildChart({ scenarios: ["ac1", "pp1"], scalingIndicator: 1000 });
+    chart.setAvailableHeight(400);
+    // the columns fit: no break mark
+    expect((chart as unknown as { overflowConfig: unknown }).overflowConfig).toBeNull();
+  });
+
+  it("draws no band above columns that are cut", () => {
+    const rows = ROWS.map((row) => ("ac1" in row ? { ...row, ac1: 900 } : row));
+    const chart = buildChart({ scenarios: ["ac1", "pp1"], scalingIndicator: 800 }, rows);
+    chart.setAvailableHeight(400);
+    expect(chart.toString()).not.toContain("ScalingIndicator");
   });
 
   it("prints the value like a value label", () => {
