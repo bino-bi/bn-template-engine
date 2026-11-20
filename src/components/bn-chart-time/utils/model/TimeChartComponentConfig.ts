@@ -88,6 +88,10 @@ export class TimeChartComponentConfig {
   public lineFullWidth: boolean = true;
   /** Print every n-th category label only. */
   public axisLabelsStep: number = 1;
+  /** Stacked area: a thin line at every n-th period, 0 for none. */
+  public periodLines: number = 0;
+  /** Stacked area: `end` puts a point on the right border of its period. */
+  public pointPosition: string = "center";
   /** Value of the scaling indicator band, 0 for none. */
   public scalingIndicator: number = 0;
   /** The total columns, null for none. */
@@ -221,6 +225,14 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
 
     if (CompareUtil.isNumber(data.axisLabelsStep) && data.axisLabelsStep >= 1) {
       config.axisLabelsStep = data.axisLabelsStep;
+    }
+
+    if (CompareUtil.isNumber(data.periodLines) && data.periodLines >= 1) {
+      config.periodLines = Math.floor(data.periodLines);
+    }
+
+    if (data.pointPosition === "end") {
+      config.pointPosition = "end";
     }
 
     if (CompareUtil.isNumber(data.scalingIndicator) && data.scalingIndicator > 0) {

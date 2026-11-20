@@ -204,14 +204,19 @@ export function collectChartSegmentElements(svgRoot: Element, segment: string, o
 export function countPrimaryDataPoints(svgRoot: Element): number {
   const scenario1 = svgRoot.querySelector('g[id="Scenario1"]');
   if (scenario1) {
-    return Array.from(scenario1.children).filter((child) => /^\d+$/.test(child.id ?? "")).length;
+    const count = Array.from(scenario1.children).filter((child) => /^\d+$/.test(child.id ?? "")).length;
+    // a line chart has the group too, but draws its points elsewhere
+    if (count > 0 || !svgRoot.querySelector("[data-bn-periods]")) return count;
   }
   const stacks = new Set<string>();
   svgRoot.querySelectorAll(STACK_SEGMENTS).forEach((group) => {
     const match = STACK_SEGMENT_RE.exec(group.id);
     if (match && group.querySelector("rect")) stacks.add(match[1]);
   });
-  return stacks.size;
+  if (stacks.size > 0) return stacks.size;
+  // a line or an area has no columns: the chart writes the number of its periods
+  const periods = Number(svgRoot.querySelector("[data-bn-periods]")?.getAttribute("data-bn-periods"));
+  return Number.isFinite(periods) ? periods : 0;
 }
 
 export interface ChartFacadeLayout {
