@@ -1439,15 +1439,19 @@ export class TimeChart {
         const series = new Set(column.scenarios);
         const bases = [...new Set(candidates.map((entry) => entry.variance.base))];
         const deltas = [...new Set(candidates.map((entry) => entry.variance.delta))];
-        // a row for a part of the series only has no total: the reference of the dataset is the one of the whole total
-        const covered = new Set([...bases, ...deltas].filter((name) => series.has(name))).size;
-        if (covered > 0 && covered < series.size) {
+        // a total needs the whole series on one side and none of it on the other: a row for a part
+        // of the series, or one that sets parts of the series against each other, has no total
+        const inBases = bases.filter((name) => series.has(name)).length;
+        const inDeltas = deltas.filter((name) => series.has(name)).length;
+        if ((inBases > 0 && inDeltas > 0) || (inBases + inDeltas > 0 && inBases + inDeltas < series.size)) {
           return null;
         }
         // a 0 is a scenario without a value in this total, as for the parts
         const has = (name: string): boolean => Number.isFinite(data[name]) && data[name] !== 0;
         const side = (names: string[]): number | null => {
-          const used = names.some((name) => series.has(name)) ? names.filter(has) : names.slice(0, 1).filter(has);
+          // of the side with the series only the series counts, of the other side the first name
+          const ofSeries = names.filter((name) => series.has(name));
+          const used = (ofSeries.length > 0 ? ofSeries : names.slice(0, 1)).filter(has);
           return used.length > 0 ? used.reduce((sum, name) => sum + data[name], 0) : null;
         };
         const baseSide = side(bases);
