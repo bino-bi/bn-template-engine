@@ -193,12 +193,49 @@ describe("stacked area by dimension", () => {
     expect(Number(marker.getAttribute("y")) + 4).toBeCloseTo(Math.max(...fillYs), 5);
   });
 
-  it("has no total and still all names for a period without a value", () => {
+  it("has no total for a period without a value, and the names stand at the last period with one", () => {
     const rows = [...ROWS, { date: "2025-03-01", operation: "+", category: "Priority 1", categoryIndex: 0, pl1: 5 }];
     const svg = draw(buildChart({}, rows));
-    expect(all(svg, "#StackedAreaTotal .area-total-marker")).toHaveLength(MONTHS.length);
+    const markers = all(svg, "#StackedAreaTotal .area-total-marker");
+    expect(markers).toHaveLength(MONTHS.length);
     expect(all(svg, '#StackedAreaLabels [data-bn-part="total"]')).toHaveLength(MONTHS.length);
-    expect(texts(svg, "#StackedAreaLabels text").filter((text) => text.startsWith("Priority"))).toEqual(SERIES);
+    const names = all(svg, "#StackedAreaLabels text").filter((text) => text.textContent?.startsWith("Priority"));
+    expect(names.map((text) => text.textContent)).toEqual(SERIES);
+
+    // right of the last marker, and left of the empty period after it
+    const lastMarker = Number(markers[markers.length - 1].getAttribute("x")) + 4;
+    const period = lastMarker - (Number(markers[markers.length - 2].getAttribute("x")) + 4);
+    const nameX = Number(names[0].getAttribute("x"));
+    expect(nameX).toBeGreaterThan(lastMarker);
+    expect(nameX).toBeLessThan(lastMarker + period);
+  });
+
+  it("prints no name for a series without a value at the edge", () => {
+    const rows = ROWS.filter((row) => !(row.date === MONTHS[MONTHS.length - 1] && row.category === "Priority 2"));
+    const svg = draw(buildChart({}, rows));
+    expect(texts(svg, "#StackedAreaLabels text").filter((text) => text.startsWith("Priority"))).toEqual([
+      "Priority 1",
+      "Priority 3",
+    ]);
+  });
+
+  it("keeps the line of a new year where axisLabelsStep skips the label", () => {
+    // the year changes at the third period, which the step skips
+    const short = draw(buildChart({ axisLabelsMode: "short", axisLabelsStep: 4 }));
+    expect(texts(short, "#AxisAndDateLabelsLine text").filter((text) => text !== "")).toHaveLength(1);
+    expect(all(short, "#YearSeparators line")).toHaveLength(1);
+
+    // in smart mode the label of the new year carries the year and stays
+    const smart = draw(buildChart({ axisLabelsMode: "smart", axisLabelsStep: 4 }));
+    expect(texts(smart, "#AxisAndDateLabelsLine text").filter((text) => text !== "")).toHaveLength(2);
+  });
+
+  it("ends the area at the last period with a value", () => {
+    const rows = [...ROWS, { date: "2025-03-01", operation: "+", category: "Priority 1", categoryIndex: 0, pl1: 5 }];
+    const svg = draw(buildChart({}, rows));
+    const path = all(svg, "#area_fill_0 path")[0].getAttribute("d") ?? "";
+    // upper and lower edge, one point per period with a value
+    expect(path.match(/[ML] /g)).toHaveLength(MONTHS.length * 2);
   });
 
   it("prints the shares of a 100 % stack with the percent sign, also with percentMark", () => {

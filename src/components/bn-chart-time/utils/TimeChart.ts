@@ -3422,8 +3422,21 @@ export class TimeChart {
 
     if (this.hideAxisLabels === false) {
       dataModel.forEach((elements: TimeChartDataModelEntry, index: number) => {
+        // Draw vertical dashed separator line at year transitions (except for first and last), also where
+        // `axisLabelsStep` skips the label. The period lines of a stacked area take its place.
+        // Its own group: it is as high as the chart and must not count as axis height
+        const replaced = this.periodLines >= 1 && this.stackConfig != null;
+        if (!replaced && index > 0 && index < lastIndex && this.isYearChange(dataModel, index)) {
+          this.drawYearSeparatorLine(separatorGroup, index, isRelative);
+        }
+
+        // as in bar mode: in smart mode a period that starts a year or month carries that part alone, so it is never skipped
+        const carriesBoundary =
+          this.axisLabelsMode === AxisLabelsMode.SMART &&
+          this.axisLabelsStep > 1 &&
+          dateStringFactory.isSmartBoundary(elements.date, this.dateInterval);
         // Only show labels for first, last, and year change points
-        if (!this.shouldShowLineChartAxisLabel(dataModel, index)) {
+        if (!this.shouldShowLineChartAxisLabel(dataModel, index) && !carriesBoundary) {
           return;
         }
 
@@ -3460,13 +3473,6 @@ export class TimeChart {
           hookLocation,
           HookLocation.Center,
         ).forceStringTypeDraw();
-
-        // Draw vertical dashed separator line at year transitions (except for first and last).
-        // The period lines of a stacked area take its place. Its own group: it is as high as the chart and must not count as axis height
-        const replaced = this.periodLines >= 1 && this.stackConfig != null;
-        if (!replaced && index > 0 && index < lastIndex && this.isYearChange(dataModel, index)) {
-          this.drawYearSeparatorLine(separatorGroup, index, isRelative);
-        }
       });
     }
 
@@ -4092,8 +4098,17 @@ export class TimeChart {
   private areaLegendX(side: "left" | "right"): number {
     const half = Math.max(this.position.getColumnWidth() / 2, this.areaLabelHalfWidth());
     const gap = this.position.spacings.labelToColumn;
-    const lastIndex = Math.max(0, this.dataModel.length - 1);
-    return side === "left" ? this.areaPointX(0) - half - gap : this.areaPointX(lastIndex) + half + gap;
+    const index = this.areaEdgeIndex(side);
+    return side === "left" ? this.areaPointX(index) - half - gap : this.areaPointX(index) + half + gap;
+  }
+
+  /** The first (left) or the last (right) period of a stacked area by series where a series has a value. */
+  private areaEdgeIndex(side: "left" | "right"): number {
+    const filled = this.dataModel.map(
+      (row) => row.series?.some((entry) => Number.isFinite(entry.points["scenario1"]?.value)) ?? false,
+    );
+    const index = side === "left" ? filled.indexOf(true) : filled.lastIndexOf(true);
+    return index >= 0 ? index : side === "left" ? 0 : Math.max(0, this.dataModel.length - 1);
   }
 
   /** Thin lines at every n-th period of a stacked area, over the height of the stack. */
@@ -4147,8 +4162,13 @@ export class TimeChart {
     const xs = dataModel.map((_, index) => this.areaPointX(index));
     const colors = this.styles.stackColors;
     const colorOf = (layer: number): string => colors[layer % colors.length];
+    // the area ends at the first and the last period with a value: the names stand beside it there
+    const from = this.areaEdgeIndex("left");
+    const to = this.areaEdgeIndex("right");
     const edge = (layer: number, side: "start" | "end"): AreaPoint[] =>
-      layouts.map((layout, index) => ({ x: xs[index], y: axisY - layout.segments[layer][side] * pixelPerUnit }));
+      layouts
+        .map((layout, index) => ({ x: xs[index], y: axisY - layout.segments[layer][side] * pixelPerUnit }))
+        .slice(from, to + 1);
 
     names.forEach((_, layer) => {
       new AreaFill(areaGroup, edge(layer, "end"), edge(layer, "start"), null, layer, false, colorOf(layer)).draw();
@@ -4261,13 +4281,14 @@ export class TimeChart {
       });
     }
 
-    // the names of the series, each at half the height its layer has in the first or the last period with a value
+    // the names of the series next to the first or the last period with a value, each at half the height of its layer
     const legend = this.stackConfig.legend ?? "left";
     const drawNames = (side: "left" | "right"): void => {
-      const index = side === "left" ? filled.indexOf(true) : filled.lastIndexOf(true);
-      if (index < 0) return;
+      const index = this.areaEdgeIndex(side);
       const layout = layouts[index];
       names.forEach((entry, layer) => {
+        // a series without a value in this period has no layer to stand next to
+        if (!Number.isFinite(pointOf(dataModel[index], layer)?.value)) return;
         const segment = layout.segments[layer];
         new Label(
           labelGroup,
