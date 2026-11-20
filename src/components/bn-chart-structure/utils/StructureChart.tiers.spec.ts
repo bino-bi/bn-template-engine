@@ -79,6 +79,13 @@ describe("structure chart row lines", () => {
     expect(count(buildChart({}).toString(), "row-line")).toBe(0);
   });
 
+  it("draws a line after each row of a list", () => {
+    // after the first and the third of five rows, not after the last one
+    expect(count(buildChart({ rowLinesAfter: [1, 3, 5] }).toString(), "row-line")).toBe(2);
+    // the list wins over the step
+    expect(count(buildChart({ rowLines: 2, rowLinesAfter: [4] }).toString(), "row-line")).toBe(1);
+  });
+
   it("draws none where the line of a sum row stands", () => {
     // four rows and the total: the line after the fourth row is the line of the total
     const svg = buildChart({ rowLines: 2, sums: "total" }, ROWS.slice(0, 4)).toString();

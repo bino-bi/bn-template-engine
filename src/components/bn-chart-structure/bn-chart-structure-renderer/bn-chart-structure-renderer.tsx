@@ -171,6 +171,9 @@ export class BnChartStructureRenderer {
   @Prop() rowLines: number = 0;
 
   /** @internal */
+  @Prop() rowLinesAfter: number[] = [];
+
+  /** @internal */
   @Prop() orderMark: boolean = false;
 
   /** @internal */
@@ -275,7 +278,7 @@ export class BnChartStructureRenderer {
     // estimate would falsely re-engage on it.
     const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.fitWidth(unitWasAuto);
+    this.fitWidth(unitWasAuto, config, styles);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
     this.syncQueryError();
@@ -296,27 +299,50 @@ export class BnChartStructureRenderer {
     // See componentWillLoad: no broken-bar overdrive for auto-fitted scaling
     const unitWasAuto = config.pixelPerUnit <= 0;
     this.autoFitScaling(config, styles);
-    this.fitWidth(unitWasAuto);
+    this.fitWidth(unitWasAuto, config, styles);
     this.pattern = new CustomPattern(this.chart.styles);
     this.chart.setPattern("hatched", this.pattern.getFCPolygonPattern());
     this.syncQueryError();
   }
 
-  /** Sets the room for the bars. Before, it reports the width the segment has when no bar is cut. */
-  private fitWidth(auto: boolean): void {
+  /** What the last measurement of this segment gave, and what it was made from. */
+  private measured?: { key: string; natural: number; footer: number; cuttable: boolean };
+
+  /**
+   * Sets the room for the bars. Before, it reports the width the segment has
+   * when no bar is cut. The chart is drawn once more to measure that, so the
+   * result is kept as long as nothing it depends on changes.
+   */
+  private fitWidth(auto: boolean, config: StructureChartComponentConfig, styles: StructureChartStyle): void {
     let room = auto ? 0 : this.parentDimensions?.width || 0;
     if (!auto && this.reportWidth) {
       this.chart.setAvailableWidth(0);
-      const hidden = this.chart.isBridgeTier() || this.chart.hasNoData();
-      let natural = 0;
-      if (!hidden) {
-        this.chart.layout();
-        natural = this.chart.getAllocatedCanvasWidth();
+      const key = JSON.stringify([
+        config,
+        styles,
+        [...(this.i18n?.entries() ?? [])],
+        this.ruleSetConfig,
+        this.dataVersion,
+        this.tableName,
+        this.equalShare,
+      ]);
+      if (this.measured?.key !== key) {
+        const hidden = this.chart.isBridgeTier() || this.chart.hasNoData();
+        let natural = 0;
+        if (!hidden) {
+          this.chart.layout();
+          natural = this.chart.getAllocatedCanvasWidth();
+        }
+        this.measured = {
+          key,
+          natural,
+          // the footer stands beside the chart: it is a part of what the segment needs
+          footer: hidden ? 0 : this.chart.getFooterRoom(),
+          // a segment that is wider than its equal share and gets no break marks there is as wide as it is
+          cuttable: !hidden && this.chart.cutsAt(this.equalShare),
+        };
       }
-      // the footer stands beside the chart: it is a part of what the segment needs
-      const footer = hidden ? 0 : this.chart.getFooterRoom();
-      // a segment that is wider than its equal share and gets no break marks there is as wide as it is
-      const cuttable = !hidden && this.chart.cutsAt(this.equalShare);
+      const { natural, footer, cuttable } = this.measured;
       this.reportWidth(natural + footer, cuttable);
       // at its equal share a segment is cut as before. More room is room for the chart and its footer
       if (room > this.equalShare + 0.5) room = Math.max(this.equalShare, room - footer);
@@ -525,6 +551,7 @@ export class BnChartStructureRenderer {
       referenceLine: this.referenceLine,
       italicCategories: this.italicCategories,
       rowLines: this.rowLines,
+      rowLinesAfter: this.rowLinesAfter,
       orderMark: this.orderMark,
       tiers: this.tiers,
     });

@@ -781,10 +781,10 @@ export namespace Components {
          */
         "referenceLine": string;
         /**
-          * Draws a thin line after every n-th row, over all segments of the chart (`row-lines="5"`). The count starts again behind a sum row. Default: no lines.
+          * Draws thin lines between the rows, over all segments of the chart. A number is a line after every n-th row (`row-lines="5"`). A list is a line after each of these rows, counted from the first row (`row-lines="4,9,14"`, or a JSON array). The count starts again behind a sum row. Default: no lines.
           * @default 0
          */
-        "rowLines": number;
+        "rowLines": number | string;
         /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
@@ -969,6 +969,10 @@ export namespace Components {
           * @default 0
          */
         "rowLines": number;
+        /**
+          * @default []
+         */
+        "rowLinesAfter": number[];
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default false
@@ -3591,10 +3595,10 @@ declare namespace LocalJSX {
          */
         "referenceLine"?: string;
         /**
-          * Draws a thin line after every n-th row, over all segments of the chart (`row-lines="5"`). The count starts again behind a sum row. Default: no lines.
+          * Draws thin lines between the rows, over all segments of the chart. A number is a line after every n-th row (`row-lines="5"`). A list is a line after each of these rows, counted from the first row (`row-lines="4,9,14"`, or a JSON array). The count starts again behind a sum row. Default: no lines.
           * @default 0
          */
-        "rowLines"?: number;
+        "rowLines"?: number | string;
         /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
@@ -3779,6 +3783,10 @@ declare namespace LocalJSX {
           * @default 0
          */
         "rowLines"?: number;
+        /**
+          * @default []
+         */
+        "rowLinesAfter"?: number[];
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default false
@@ -5370,7 +5378,7 @@ declare namespace LocalJSX {
         "sums": "none" | "groups" | "total" | "all";
         "sumTitle": string;
         "varianceWaterfall": boolean;
-        "rowLines": number;
+        "rowLines": string;
         "orderMark": boolean;
         "dataFormatPercentSign": boolean;
         "sumScenarios": string;

@@ -83,6 +83,8 @@ export class StructureChartComponentConfig {
   public italicCategories: string[] = [];
   /** A thin line after every n-th row. 0: none. */
   public rowLines: number = 0;
+  /** A thin line after these rows, counted from the first row of a block. In place of `rowLines`. */
+  public rowLinesAfter: number[] = [];
   /** An arrow marks the scenario or the variance the rows are sorted by. */
   public orderMark: boolean = false;
   /** The chart has more than one segment: a line of a row runs over all of them. */
@@ -229,6 +231,12 @@ export class StructureChartComponentConfigAdapter implements IAdapter<StructureC
 
     if (CompareUtil.isNumber(data.rowLines) && data.rowLines >= 1) {
       config.rowLines = Math.floor(data.rowLines);
+    }
+
+    if (CompareUtil.isArray(data.rowLinesAfter)) {
+      config.rowLinesAfter = (data.rowLinesAfter as unknown[])
+        .filter((entry): entry is number => typeof entry === "number" && Number.isFinite(entry) && entry >= 1)
+        .map((entry) => Math.floor(entry));
     }
 
     if (CompareUtil.isBoolean(data.orderMark)) {

@@ -168,6 +168,7 @@ export class StructureChart {
   private referenceLine: ReferenceLine | null = null;
   private italicCategories: string[] = [];
   private rowLines: number = 0;
+  private rowLinesAfter: number[] = [];
   private orderMark: boolean = false;
   private tiers: boolean = false;
   /** The first column of the order: the mark of the order points at it. */
@@ -251,6 +252,7 @@ export class StructureChart {
     this.referenceLine = config.referenceLine;
     this.italicCategories = config.italicCategories;
     this.rowLines = config.rowLines ?? 0;
+    this.rowLinesAfter = config.rowLinesAfter ?? [];
     this.orderMark = config.orderMark ?? false;
     this.tiers = config.tiers ?? false;
     this.orderToken = parseOrderToken(config.sortOrder?.hierarchy?.[0]);
@@ -1437,7 +1439,8 @@ export class StructureChart {
 
   /** A thin line after every n-th row. The count starts again behind a sum row, and a sum row has its own line. */
   private drawRowLines(dataModel: StructureChartDataModelEntry[], group: G): void {
-    if (this.rowLines < 1) return;
+    const after = this.rowLinesAfter;
+    if (this.rowLines < 1 && after.length === 0) return;
     const [left, right] = this.rowLineSpan();
     let count = 0;
     dataModel.forEach((_elements, index) => {
@@ -1448,7 +1451,8 @@ export class StructureChart {
       }
       count += 1;
       const next = this.dataModel[index + 1];
-      if (count % this.rowLines !== 0 || !next || next.sum) return;
+      const marked = after.length > 0 ? after.includes(count) : count % this.rowLines === 0;
+      if (!marked || !next || next.sum) return;
       // half way between the two rows: rows of a stack can have their own thickness
       const above = this.position.getBarCenterPositionY(index) + this.position.getBarWidthAt(index) / 2;
       const below = this.position.getBarCenterPositionY(index + 1) - this.position.getBarWidthAt(index + 1) / 2;
