@@ -699,6 +699,19 @@ describe("time chart totals by period", () => {
     expect(build(["dac1_pp1_pos", "dpp1_fc1_neg"])).toBeNull();
   });
 
+  it("takes the notation of a dataset total from the scenarios in its value", () => {
+    // the forecast has a value in every month here, so it is no part of the series
+    const rows = MONTHS.map((row) => ({ date: row.date, operation: "+", ac1: 10, fc1: 12, pp1: 5 }));
+    const year = [{ date: "2025-01-01", ac1: 400, fc1: 700, pp1: 650 }];
+    const chart = buildChart(
+      { ...options, ...totals({ by: "all", dataset: "year" }), variances: ["dac1_pp1_pos", "dfc1_pp1_pos"] },
+      rows,
+      { year },
+    );
+    expect(internals(chart).totalVariances[0].value).toBe(-250);
+    expect(internals(chart).totalVariances[0].notation).toBe("ac");
+  });
+
   it("puts a dataset row with the date of a week into the total of that week", () => {
     const weeks = ["2025-12-15", "2025-12-22", "2025-12-29", "2026-01-05"].map((date) => ({
       date,
