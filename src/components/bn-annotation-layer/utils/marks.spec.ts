@@ -123,6 +123,9 @@ describe("buildMark", () => {
       expect(mark.x + mark.width).toBeGreaterThanOrEqual(340);
       expect(mark.y + mark.height).toBeGreaterThanOrEqual(160);
       expect(mark.rx).toBe(mark.ry);
+      // the corner of the first box is inside the round corner of the frame
+      const centre = { x: mark.x + mark.rx, y: mark.y + mark.ry };
+      expect(Math.hypot(100 - centre.x, 100 - centre.y)).toBeLessThanOrEqual(mark.rx);
     });
 
     it("takes the text of a cell as the first end of a frame around two", () => {

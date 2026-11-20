@@ -314,12 +314,13 @@ export function buildMark(
       area &&
       (left < inset || top < inset || left + width > area.width - inset || top + height > area.height - inset)
     ) {
-      // no room for the ellipse: a frame with round ends close around the common box, which still holds both ends
+      // no room for the ellipse: a frame close around the common box. Its corners are round only so far that the
+      // corners of the box, where the two ends lie, stay inside.
       left = Math.max(inset, boxLeft - pad);
       top = Math.max(inset, boxTop - pad);
       width = Math.min(area.width - inset, boxRight + pad) - left;
       height = Math.min(area.height - inset, boxBottom + pad) - top;
-      rx = ry = Math.min(width, height) / 2;
+      rx = ry = Math.min(3 * pad, width / 2, height / 2);
     }
     // where the outline turns at its upper right: at 45 degrees on an ellipse, in the corner of a frame
     const turn = 1 - Math.SQRT1_2;

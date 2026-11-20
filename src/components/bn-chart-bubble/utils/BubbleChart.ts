@@ -349,7 +349,7 @@ export class BubbleChart {
     const linesWidth = (lines: { label: string; suffix: string }): number =>
       Math.max(this.textWidth(lines.label, true), this.textWidth(lines.suffix));
     const yTitleW = yBeside ? linesWidth(yLines) + 0.5 * em : 0;
-    const xTitleW = xBeside ? linesWidth(xLines) + 1.4 * em : 0;
+    const xTitleW = xBeside ? linesWidth(xLines) : 0;
     const yTitleH = yTitleText !== "" ? (yBeside ? 1.2 : 1.4) * em : 0.4 * em;
     const xAxisH = 1.4 * em + (xBeside ? (xLines.suffix !== "" ? 1.15 * em : 0) : xTitleText !== "" ? 1.3 * em : 0);
 
@@ -370,10 +370,21 @@ export class BubbleChart {
       max: this.config.y.max,
     });
 
+    // The last tick label is centred on the end of the x axis: a title beside it starts right of that label.
+    // The ticks are not known before the plot has its width, so the widest of a usual set stands in.
+    const likelyTicksX = new NumericScale(xDomain[0], xDomain[1], 0, 1).ticks(6, this.config.x.step);
+    const likelyLabel = formatXYValue(
+      likelyTicksX[likelyTicksX.length - 1],
+      xyTickDecimals(likelyTicksX, this.xPercent),
+      this.styles.locale,
+      this.xPercent,
+    );
+    const xTitleGap = xBeside ? Math.max(1.4 * em, this.textWidth(likelyLabel) / 2 + 0.7 * em) : 0;
+
     for (let pass = 0; pass < 2; pass++) {
       const drawingW = Math.max(
         10,
-        this.availableWidth - padding.left - padding.right - axisLeftW - Math.max(rightReserve, xTitleW),
+        this.availableWidth - padding.left - padding.right - axisLeftW - Math.max(rightReserve, xTitleGap + xTitleW),
       );
       const drawingH = drawingW / this.config.aspect;
       drawing = {
@@ -468,9 +479,11 @@ export class BubbleChart {
     }
 
     if (xBeside) {
-      // right of the last tick label: the name in the row of the tick labels, the unit below it
-      const x = drawing.x + drawing.width + 1.4 * em;
-      const y = drawing.y + drawing.height + (this.styles.scaleFactors.axisTickLength + 0.8) * em;
+      // right of the last tick label: the name in the row of the tick labels, the unit below it.
+      // The last panel has the axis that ends last, also when the last row of a facet grid is not full.
+      const last = panels[panels.length - 1].rect;
+      const x = last.x + last.width + xTitleGap;
+      const y = last.y + last.height + (this.styles.scaleFactors.axisTickLength + 0.8) * em;
       this.drawText(root, xLines.label, x, y, { bold: true });
       if (xLines.suffix !== "") {
         this.drawText(root, xLines.suffix, x, y + 1.15 * em, {});
