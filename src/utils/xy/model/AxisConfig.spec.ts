@@ -151,6 +151,11 @@ describe("toLabelConfig", () => {
     expect(config!.sides).toEqual({ RS6: "nw" });
   });
 
+  it("has no side for a point that is named like a property of an object", () => {
+    const { config } = toLabelConfig({ points: ["constructor", { name: "RS6", side: "n" }] }, defaults);
+    expect(config!.sides!["constructor"]).toBeUndefined();
+  });
+
   it("rejects a list with an unknown side", () => {
     const { config, invalidFields } = toLabelConfig({ points: [{ name: "RS6", side: "up" }] }, defaults);
     expect(invalidFields).toContain("points");

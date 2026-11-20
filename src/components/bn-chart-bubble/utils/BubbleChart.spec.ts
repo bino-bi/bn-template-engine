@@ -259,3 +259,41 @@ describe("BubbleChart", () => {
     });
   });
 });
+
+describe("BubbleChart options shared with the scatter chart", () => {
+  const rows = (): Record<string, unknown>[] => [
+    row({ subCategory: "P1", subCategoryIndex: 1, ac1: 10, ac2: 20, ac3: 30 }),
+    row({ subCategory: "P2", subCategoryIndex: 2, ac1: 30, ac2: 15, ac3: 60 }),
+  ];
+  const chartWith = (config: BubbleChartConfig, style?: (styles: ReturnType<typeof defaultStyles>) => void): string => {
+    const db = createScopedDb().db;
+    db.tables["bubbleData"] = { data: rows() };
+    const styles = defaultStyles();
+    style?.(styles);
+    return new BubbleChart(new IBCSRuleSet(), db, "`bubbleData`", config, styles, 1000).toString();
+  };
+
+  it("puts ticks at a typed step", () => {
+    const svg = chartWith(
+      baseConfig({ x: { measure: "ac1", min: 0, max: 40, step: 8 }, y: { measure: "ac2", min: 0, max: 40 } }),
+    );
+    for (const tick of ["8", "16", "24", "32", "40"]) {
+      expect(svg).toContain(`>${tick}<`);
+    }
+  });
+
+  it("takes the outline and the opacity of a bubble from the style", () => {
+    const svg = chartWith(baseConfig(), (styles) => (styles.markStyles = { stroke: "#404040", opacity: 0.5 }));
+    const circle = /<circle[^>]*>/.exec(svg)![0];
+    expect(circle).toContain('stroke="#404040"');
+    expect(circle).toContain('fill-opacity="0.5"');
+  });
+
+  it("puts a name label on the side that is typed for it", () => {
+    const labelY = (side: "n" | "s"): number => {
+      const svg = chartWith(baseConfig({ labels: { points: ["P2"], values: false, max: 12, sides: { P2: side } } }));
+      return Number(/<text[^>]*\sy="([\d.]+)"[^>]*>(?:<tspan[^>]*>)?P2</.exec(svg)![1]);
+    };
+    expect(labelY("n")).toBeLessThan(labelY("s"));
+  });
+});

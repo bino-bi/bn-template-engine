@@ -95,6 +95,12 @@ describe("NumericScale", () => {
       expect(new NumericScale(0, 1, 0, 100).ticks(4, 0.25)).toEqual([0, 0.25, 0.5, 0.75, 1]);
     });
 
+    it("keeps the tick on the start of the domain in spite of float noise", () => {
+      // 0.07 / 0.01 is 7.000000000000001
+      expect(new NumericScale(0.07, 0.12, 0, 100).ticks(4, 0.01)[0]).toBe(0.07);
+      expect(new NumericScale(-0.3, 0.3, 0, 100).ticks(4, 0.1)[0]).toBe(-0.3);
+    });
+
     it("ignores a typed step that gives too many ticks, or none", () => {
       const nice = new NumericScale(0, 150, 0, 100).ticks(4);
       expect(new NumericScale(0, 150, 0, 100).ticks(4, 0.01)).toEqual(nice);

@@ -94,7 +94,8 @@ export class NumericScale {
       fixedStep !== undefined && fixedStep > 0 && span / fixedStep <= MAX_FIXED_TICKS
         ? fixedStep
         : NumericScale.niceStep(span, targetCount);
-    const first = Math.ceil(this.domainMin / step) * step;
+    // 0.07 / 0.01 is 7.000000000000001: without the tolerance the tick on the domain start is lost
+    const first = Math.ceil(this.domainMin / step - 1e-9) * step;
     // One tick when a second one cannot be told from the first: the span is below the float
     // resolution of its values, or the step is finer than the decimals a label can show.
     if (first + step === first || step < Math.pow(10, -MAX_DECIMALS)) {

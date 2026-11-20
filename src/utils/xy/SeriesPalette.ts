@@ -68,6 +68,8 @@ export interface MarkTreatment {
   dasharray?: string;
   /** Bubble FC treatment: fill with a 45° series-hue hatch pattern instead of `fill`. */
   hatch?: boolean;
+  /** Opacity of the fill of a filled mark. Outlined and hatched marks keep a solid fill. */
+  fillOpacity?: number;
 }
 
 /**
@@ -85,12 +87,13 @@ export function markTreatment(
   hue: string,
   kind: "dot" | "bubble",
   outline: string = "#ffffff",
+  opacity: number = 1,
 ): MarkTreatment {
   const strokeWidth = kind === "dot" ? 0.75 : 1;
 
   switch (colorIndex) {
     case 20:
-      return { fill: tint(hue), stroke: outline, strokeWidth };
+      return { fill: tint(hue), stroke: outline, strokeWidth, fillOpacity: opacity };
     case 30:
       if (kind === "bubble") {
         return { fill: "#ffffff", stroke: hue, strokeWidth, hatch: true };
@@ -100,6 +103,6 @@ export function markTreatment(
       return { fill: "#ffffff", stroke: hue, strokeWidth };
     case 10:
     default:
-      return { fill: hue, stroke: outline, strokeWidth };
+      return { fill: hue, stroke: outline, strokeWidth, fillOpacity: opacity };
   }
 }

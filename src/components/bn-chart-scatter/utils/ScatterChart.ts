@@ -218,7 +218,13 @@ export class ScatterChart {
     if (overflowed) {
       this.addWarningOnce("xy-series-overflow", {});
     }
-    return markTreatment(this.primaryColorIndex(), color, "dot", this.styles.markStyles.stroke);
+    return markTreatment(
+      this.primaryColorIndex(),
+      color,
+      "dot",
+      this.styles.markStyles.stroke,
+      this.styles.markStyles.opacity,
+    );
   }
 
   private addWarningOnce(code: string, data: Record<string, string>): void {
@@ -492,7 +498,7 @@ export class ScatterChart {
         .circle(radius * 2)
         .center(cx, cy)
         .fill(treatment.fill)
-        .attr("fill-opacity", this.styles.markStyles.opacity)
+        .attr("fill-opacity", treatment.fillOpacity ?? 1)
         .stroke({ color: treatment.stroke, width: treatment.strokeWidth })
         .attr(dataPointAttributes(xyPointKey(point, facet.key, this.config), "element"));
       if (treatment.dasharray !== undefined) {

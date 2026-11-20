@@ -304,7 +304,8 @@ export function toLabelConfig(
       config.points = data.points;
     } else if (CompareUtil.isArray(data.points) && (data.points as unknown[]).every(isPointEntry)) {
       // an entry is a name, or `{ name, side }` for a label on a fixed side of its mark
-      const sides: Record<string, LabelSide> = {};
+      // no prototype: a point may be named `constructor`
+      const sides: Record<string, LabelSide> = Object.create(null);
       config.points = (data.points as (string | { name: string; side?: LabelSide })[]).map((entry) => {
         if (typeof entry === "string") {
           return entry;

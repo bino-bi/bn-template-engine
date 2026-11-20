@@ -141,7 +141,7 @@ export class AnnotationLayer {
    * data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`)
    * and a `part` (`element`, `label`, `total`). Without a field they mean the
    * component as a whole. A `frame` with `to` or `toPoint` is one oval around
-   * both data points.
+   * both data points. Both ends must be data points then, and a `text` is not drawn.
    */
   @Prop() items?: string;
 
@@ -505,8 +505,14 @@ export class AnnotationLayer {
         label?: boolean;
         horizontal?: boolean;
       };
-      const end = to as { box: Box } | undefined;
-      const mark = buildMark(item, toLocal(start.box), end && toLocal(end.box), em, {
+      const end = to as { box: Box; whole?: boolean; text?: CellText } | undefined;
+      if (framesTwo && (start.whole || end?.whole)) {
+        problems.push({ item, problem: "a frame around two needs a data point at both ends" });
+        continue;
+      }
+      // a frame goes around the text of a cell, at both ends
+      const endBox = end && (framesTwo && end.text ? textToLocal(end.text) : toLocal(end.box));
+      const mark = buildMark(item, toLocal(start.box), endBox, em, {
         whole: start.whole,
         area,
         text: start.text && textToLocal(start.text),

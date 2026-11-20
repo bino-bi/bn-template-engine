@@ -51,7 +51,7 @@ export class XYLegend {
 
   private textWidth(text: string, bold: boolean = false): number {
     const width = CalculateSize(text, {
-      font: this.styles.fontStyles.font.replace(/^[\d.]+px\s*/, ""),
+      font: this.fontFamily(),
       fontSize: this.styles.fontStyles.size + "px",
       fontWeight: bold ? "bold" : "normal",
     }).width;
@@ -115,7 +115,7 @@ export class XYLegend {
           .circle(this.swatchSize)
           .move(cursorX, cursorY + (this.rowHeight - this.swatchSize) / 2)
           .fill(row.fill ?? (row.treatment.hatch ? "#ffffff" : row.treatment.fill))
-          .attr("fill-opacity", this.styles.markStyles.opacity)
+          .attr("fill-opacity", row.treatment.fillOpacity ?? 1)
           .stroke({
             color: row.treatment.stroke === "#ffffff" ? row.treatment.fill : row.treatment.stroke,
             width: row.treatment.strokeWidth,

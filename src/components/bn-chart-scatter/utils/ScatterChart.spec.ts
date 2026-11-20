@@ -231,6 +231,17 @@ describe("ScatterChart", () => {
     expect(circle).toContain('fill-opacity="0.8"');
   });
 
+  it("puts a label on the side that is typed for it", () => {
+    const labelY = (side: "n" | "s"): number => {
+      const svg = makeChart(
+        two,
+        baseConfig({ labels: { points: ["B"], values: false, max: 12, sides: { B: side } } }),
+      ).toString();
+      return Number(/<text[^>]*\sy="([\d.]+)"[^>]*>(?:<tspan[^>]*>)?B</.exec(svg)![1]);
+    };
+    expect(labelY("n")).toBeLessThan(labelY("s"));
+  });
+
   it("skips iso-curves on non-positive domains with xy-iso-domain", () => {
     const chart = makeChart(
       [row({ ac1: -5, ac2: 20 }), row({ subCategory: "B", subCategoryIndex: 2, ac1: 30, ac2: 15 })],
