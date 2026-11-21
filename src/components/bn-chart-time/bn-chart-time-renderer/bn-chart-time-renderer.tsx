@@ -259,11 +259,38 @@ export class BnChartTimeRenderer {
           style={{ width: "0", height: "0", overflow: "hidden" }}
         />
 
-        <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
+        {this.axisTitlePosition === "top" ? (
+          this.renderTitleTop()
+        ) : (
+          <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
+        )}
         {/* <svg ref={(el) => this.drawElement = el} id="drawCanvas" width={this.chart?.getAllocatedCanvasWidth()}
           height={this.chart?.getAllocatedCanvasHeight()}></svg> */}
         <div innerHTML={this.chart?.toString()}></div>
       </Host>
+    );
+  }
+
+  /** `axisTitlePosition: top`: the bold title and the unit in one line above the chart. */
+  private renderTitleTop() {
+    const unit = this.showMeasureScale ? (this.chart?.getFooter().trim() ?? "") : "";
+    if (!this.chartTitle && !unit) {
+      return null;
+    }
+    const font = this.styles?.fontStyles;
+    return (
+      <div
+        class="title-top"
+        style={{
+          fontSize: `${font?.size}px`,
+          color: font?.color,
+          paddingLeft: `${this.styles?.padding?.left ?? 0}px`,
+        }}
+      >
+        {this.chartTitle ? <span class="measure">{this.chartTitle}</span> : null}
+        {this.chartTitle && unit ? " " : null}
+        {unit}
+      </div>
     );
   }
 
@@ -551,7 +578,7 @@ export class BnChartTimeRenderer {
     ).adapt({
       scenarios: this.scenarios,
       variances: this.variances,
-      title: this.chartTitle,
+      title: this.axisTitlePosition === "top" ? "" : this.chartTitle,
       hideAxisLabels: this.hideAxisLabels,
       pixelPerUnit: this.pixelPerUnit,
       pixelPerPercentage: this.pixelPerPercentage,
@@ -576,7 +603,7 @@ export class BnChartTimeRenderer {
       scalingIndicator: this.scalingIndicator,
       totals: this.totals,
       scenarioSwitch: this.scenarioSwitch,
-      axisTitlePosition: this.axisTitlePosition,
+      axisTitlePosition: this.axisTitlePosition === "top" ? "none" : this.axisTitlePosition,
       varianceWaterfall: this.varianceWaterfall,
       bridgeVariances: this.bridgeVariances,
       referenceColumn: this.referenceColumn,

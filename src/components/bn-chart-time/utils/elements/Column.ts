@@ -10,6 +10,7 @@ import { TimeChartStyle } from "../model/styles/TimeChartStyle";
 import { DataFormatDigits } from "../../../../components";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { SVGStyle } from "../../../../utils/model";
+import { styleForValue } from "../../../../utils/model/styles/SVGStyle";
 import { OverflowConfig } from "../model/OverflowConfig";
 import { dataPointAttributes } from "../../../../utils/layoutState/dataPoint";
 // import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
@@ -119,7 +120,9 @@ export class Column {
       return this;
     }
 
-    const scenarioStyle: SVGStyle | undefined = this.getScenarioStyle();
+    const scenarioStyle: SVGStyle | undefined = this.isVarianceColumn
+      ? this.getScenarioStyle()
+      : styleForValue(this.getScenarioStyle(), this.dataPoint.value);
     let strokeStyle = this.convertToSVGStyle(scenarioStyle, "stroke");
     let fillStyle = this.getFillStyle(scenarioStyle);
 

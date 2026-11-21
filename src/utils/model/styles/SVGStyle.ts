@@ -11,9 +11,29 @@ export function normalizeFillPattern(value: unknown): FillPattern | undefined {
   return undefined;
 }
 
+/**
+ * The scenario style for a value: below 0 `negativeFill` takes the place of
+ * the fill, and of the stroke where the stroke has the colour of the fill.
+ */
+export function styleForValue<T extends { stroke: string; fill: string; negativeFill?: string } | undefined>(
+  style: T,
+  value: unknown,
+): T {
+  if (!style?.negativeFill || typeof value !== "number" || !(value < 0)) {
+    return style;
+  }
+  return {
+    ...style,
+    fill: style.negativeFill,
+    stroke: style.stroke === style.fill ? style.negativeFill : style.stroke,
+  };
+}
+
 export class SVGStyle {
   public fillpattern: FillPattern | undefined;
   public dasharray: string | undefined;
+  /** Fill of a column or bar with a value below 0. Not set: the fill of the scenario. */
+  public negativeFill: string | undefined;
 
   constructor(
     public stroke: string = "#000000",
@@ -31,6 +51,9 @@ export class SVGStyleAdapter implements IAdapter<SVGStyle> {
 
     if (CompareUtil.isString(data.dasharray)) {
       style.dasharray = data.dasharray;
+    }
+    if (CompareUtil.isString(data.negativeFill) && data.negativeFill !== "") {
+      style.negativeFill = data.negativeFill;
     }
 
     return style;

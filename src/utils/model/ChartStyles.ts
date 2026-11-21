@@ -64,4 +64,6 @@ export interface SVGStyle {
   width: number;
   dasharray?: string;
   fillpattern?: FillPattern;
+  /** Fill of a column or bar with a value below 0. */
+  negativeFill?: string;
 }

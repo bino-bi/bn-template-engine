@@ -118,6 +118,37 @@ describe("time chart scenarioSwitch", () => {
     expect(switched.getAllocatedCanvasHeight()).toBeGreaterThan(plain.getAllocatedCanvasHeight());
   });
 
+  it("moves the names up under the category labels when nothing stands below the axis there", () => {
+    // 2025 is negative: the centred name of AC would stand under its column
+    const rows = ROWS.map((row) => (row.date === "2025-01-01" ? { ...row, ac1: -120 } : row));
+    const centred = buildChart({ scenarios: ["ac1", "pl1"], scenarioSwitch: true }, rows);
+    const underFirst = buildChart({ scenarios: ["ac1", "pl1"], scenarioSwitch: true, axisLabelsMode: "two-row" }, rows);
+    centred.layout();
+    underFirst.layout();
+    const rowY = (chart: TimeChart, leftAligned: boolean) =>
+      (
+        chart as unknown as {
+          contextRow(): { from: number; to: number; text: string }[];
+          switchNamesRowY(entries: unknown[], leftAligned: boolean): number | null;
+        }
+      ).switchNamesRowY((chart as unknown as { contextRow(): unknown[] }).contextRow(), leftAligned);
+
+    expect(rowY(centred, false)).toBeNull();
+    expect(rowY(underFirst, true)).not.toBeNull();
+    // no extra row below the lowest value
+    expect(underFirst.getAllocatedCanvasHeight()).toBeLessThan(centred.getAllocatedCanvasHeight());
+  });
+
+  it("keeps the names row of a chart without values below the axis", () => {
+    const chart = buildChart({ scenarios: ["ac1", "pl1"], scenarioSwitch: true });
+    chart.layout();
+    const internal = chart as unknown as {
+      contextRow(): unknown[];
+      switchNamesRowY(entries: unknown[], leftAligned: boolean): number | null;
+    };
+    expect(internal.switchNamesRowY(internal.contextRow(), false)).toBeNull();
+  });
+
   it("draws the separator and the names", () => {
     const svg = buildChart({ scenarioSwitch: true }).toString();
     expect(svg).toContain('id="ScenarioSwitch"');

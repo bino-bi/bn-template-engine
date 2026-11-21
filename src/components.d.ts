@@ -1049,7 +1049,7 @@ export namespace Components {
          */
         "axisLabelsStep": number;
         /**
-          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // none```
+          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // top // none``` <br /> `top`: the chart title in bold above the chart, with the unit behind it when `show-measure-scale` is set. The rows of variances keep their name at the axis.
           * @default "left"
          */
         "axisTitlePosition": string;
@@ -2475,6 +2475,10 @@ export namespace Components {
          */
         "nodeSpacing": number;
         /**
+          * Scale of the whole tree: the node components that set no `scale` of their own, the spacings and the operators. - a positive number: fixed factor - `"auto"`: 1, and smaller when the tree does not fit its parent - not set: the nodes keep their own scaling
+         */
+        "scale"?: string;
+        /**
           * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
          */
         "selectedStyle"?: string;
@@ -3881,7 +3885,7 @@ declare namespace LocalJSX {
          */
         "axisLabelsStep"?: number;
         /**
-          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // none```
+          * Where the axis title stands (the chart title, or the name of a variance). <br /><br /> values:<br /> ```left // right // top // none``` <br /> `top`: the chart title in bold above the chart, with the unit behind it when `show-measure-scale` is set. The rows of variances keep their name at the axis.
           * @default "left"
          */
         "axisTitlePosition"?: string;
@@ -5269,6 +5273,10 @@ declare namespace LocalJSX {
          */
         "nodeSpacing"?: number;
         /**
+          * Scale of the whole tree: the node components that set no `scale` of their own, the spacings and the operators. - a positive number: fixed factor - `"auto"`: 1, and smaller when the tree does not fit its parent - not set: the nodes keep their own scaling
+         */
+        "scale"?: string;
+        /**
           * Name of the component style to use (the `name` of a `<bn-component-style>`). Its values go on top of the default style.
          */
         "selectedStyle"?: string;
@@ -5768,6 +5776,7 @@ declare namespace LocalJSX {
         "edgeStyle": EdgeStyleType;
         "i18nNamespace": string;
         "showOperators": boolean;
+        "scale": string;
     }
 
     interface IntrinsicElements {

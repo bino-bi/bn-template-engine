@@ -781,7 +781,11 @@ export class ChartScatter {
       this.element,
       "bn-chart-scatter-renderer",
       this.chartTitle || undefined,
-      { fontSizePx, appliedScaleFactor: factor },
+      {
+        fontSizePx,
+        appliedScaleFactor: factor,
+        scaleMode: parseScaling(this.scale).mode === "factor" ? "fixed" : "auto",
+      },
       origins,
       detail,
     );

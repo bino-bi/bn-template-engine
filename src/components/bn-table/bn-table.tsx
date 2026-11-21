@@ -1750,7 +1750,11 @@ export class Table {
       id: resolveStandaloneId(this.element),
       slot: this.element.getAttribute("slot") ?? undefined,
       rect: measure(this.element, origins),
-      em: { fontSizePx, appliedScaleFactor: effectiveFactor },
+      em: {
+        fontSizePx,
+        appliedScaleFactor: effectiveFactor,
+        scaleMode: parseScaling(this.scale).mode === "factor" ? "fixed" : "auto",
+      },
       regions: [],
       metadata: {},
       diagnostics: readDiagnostics(this.element),

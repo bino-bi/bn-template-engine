@@ -43,6 +43,8 @@ export interface EmContext {
   fontSizePx: number;
   /** Font auto-fit scale factor applied by the component (1 = none). */
   appliedScaleFactor: number;
+  /** `fixed`: the factor is the `scale` the author set. `auto`: the component fitted itself. */
+  scaleMode?: "auto" | "fixed";
 }
 
 /** Mirrors `ErrorItem` from `src/utils/withHasError.tsx`. */

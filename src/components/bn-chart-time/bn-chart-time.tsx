@@ -918,14 +918,18 @@ export class Chart {
    * Where the axis title stands (the chart title, or the name of a variance).
    * <br /><br />
    * values:<br />
-   * ```left // right // none```
+   * ```left // right // top // none```
+   * <br />
+   * `top`: the chart title in bold above the chart, with the unit behind it
+   * when `show-measure-scale` is set. The rows of variances keep their name
+   * at the axis.
    */
   @Prop() axisTitlePosition: string = "left";
 
   @Watch("axisTitlePosition")
   validateAxisTitlePosition(newValue: string) {
     const errId = "WARN_axisTitlePosition";
-    if (!isBlankInput(newValue) && !["left", "right", "none"].includes(newValue.trim().toLowerCase())) {
+    if (!isBlankInput(newValue) && !["left", "right", "top", "none"].includes(newValue.trim().toLowerCase())) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
@@ -1285,7 +1289,12 @@ export class Chart {
    * reserve roughly one em for it so the fitted charts leave it room.
    */
   private segmentShare(parentHeight: number, segmentCount: number): number {
-    const footerAllowance = this.showMeasureScale ? this.getEffectiveFontPx() : 0;
+    // the title line above the chart is 1.5 em high and holds the unit
+    const footerAllowance = this.titleIsTop()
+      ? this.getEffectiveFontPx() * 1.5
+      : this.showMeasureScale
+        ? this.getEffectiveFontPx()
+        : 0;
     return Math.max(0, parentHeight - footerAllowance) / Math.max(1, segmentCount);
   }
 
@@ -1361,9 +1370,17 @@ export class Chart {
     return rows;
   }
 
-  private prepareAxisTitlePosition(): string {
+  private prepareAxisTitlePosition(idx: number): string {
     const position = this.axisTitlePosition?.trim().toLowerCase();
+    if (position === "top") {
+      // one title line for the chart: the rows below keep their name at the axis
+      return idx === 0 && !this.hidesScenarios() ? "top" : "left";
+    }
     return position === "right" || position === "none" ? position : "left";
+  }
+
+  private titleIsTop(): boolean {
+    return this.axisTitlePosition?.trim().toLowerCase() === "top";
   }
 
   private prepareAvg(): boolean {
@@ -1588,7 +1605,13 @@ export class Chart {
     }
 
     // without a title on the left only the scenario names stand there
-    const titles = this.prepareAxisTitlePosition() === "left" ? [...this.prepareVariances(), this.chartTitle] : [];
+    const position = this.prepareAxisTitlePosition(0);
+    const titles =
+      position === "left"
+        ? [...this.prepareVariances(), this.chartTitle]
+        : position === "top"
+          ? this.prepareVariances()
+          : [];
     const leftSideOffset: number = Formatter.getMaxWidthOfArrayItems(
       [...titles, ...this.prepareScenarios()],
       preparedI18n,
@@ -1853,7 +1876,7 @@ export class Chart {
         bridgeVariances={this.prepareBridgeVariances()}
         referenceColumn={this.referenceColumn === true}
         syncedLeft={this.syncSpaceLeft > -1}
-        axisTitlePosition={this.prepareAxisTitlePosition()}
+        axisTitlePosition={this.prepareAxisTitlePosition(idx)}
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension(isBase)}
         ruleSetConfig={this.ruleSetConfig()}
@@ -1905,7 +1928,11 @@ export class Chart {
       id: resolveStandaloneId(this.element),
       slot: this.element.getAttribute("slot") ?? undefined,
       rect: measure(this.element, origins),
-      em: { fontSizePx, appliedScaleFactor: factor },
+      em: {
+        fontSizePx,
+        appliedScaleFactor: factor,
+        scaleMode: parseScaling(this.scale).mode === "factor" ? "fixed" : "auto",
+      },
       regions: layout.regions,
       metadata: {
         title: this.chartTitle || undefined,

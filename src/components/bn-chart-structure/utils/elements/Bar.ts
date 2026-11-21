@@ -4,6 +4,7 @@ import { HookLocation, Label } from "./Label";
 import { G } from "@svgdotjs/svg.js";
 import { ElementPositions } from "../helper";
 import { SVGPolgonPattern, SVGStyle } from "../../../../utils/model";
+import { styleForValue } from "../../../../utils/model/styles/SVGStyle";
 import { DataFormatDigits } from "../../../../utils/model/DataFormatDigits";
 import { SiPrefix } from "../../../../utils/model/SiPrefix";
 import { SVGStyleGroup } from "../../../../utils/model/styles/SVGStyleGroup";
@@ -142,7 +143,10 @@ export class Bar {
     }
 
     // Bars default to barStyles (falls back to 'ac'); variance bars switch to varianceStyles below
-    let scenarioStyle: SVGStyle = this.barStyles.getSVGStyle(this.dataPoint.getScenario());
+    let scenarioStyle: SVGStyle = styleForValue(
+      this.barStyles.getSVGStyle(this.dataPoint.getScenario()),
+      this.dataPoint.value,
+    );
 
     if (this.isVarianceBar) {
       scenarioStyle = this.styles.varianceStyles.getSVGStyle(this.dataPoint.getVarianceStyle());
