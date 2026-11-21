@@ -424,6 +424,34 @@ export class Table {
    */
   @Prop() barColumnWidth: string = "w10";
 
+  /**
+   *  The width of single bar columns, by column, in the values of `barColumnWidth`. A
+   *  column without an entry takes `barColumnWidth`. Use it to give a long waterfall
+   *  more room than a short one, for example the year beside the previous year.
+   *  <br /><br />
+   *  example:<br />
+   *  ```{"fc1": "w20", "drfc1_pp1_op": "w10"}```
+   */
+  @Prop() barColumnWidths: string | Record<string, string>;
+
+  @Watch("barColumnWidths")
+  validateBarColumnWidths(newValue: string | Record<string, string>) {
+    const errId = "WARN_barColumnWidths";
+    const { invalid } = parseBarColumnWidths(newValue);
+    if (invalid.length === 0) {
+      this.errors.remove(errId);
+      return;
+    }
+    this.errors.addOrReplace({
+      id: errId,
+      type: "warning",
+      message:
+        "barColumnWidths: invalid entries " +
+        JSON.stringify(invalid) +
+        " are not used. Map a column of barColumns to a width such as 'w20'.",
+    });
+  }
+
   @Watch("barColumnWidth")
   validateBarColumnWidth(newValue: string) {
     const errId = "WARN_barColumnWidth";
@@ -1206,6 +1234,7 @@ export class Table {
     this.validateUnitScaling(this.unitScaling);
     this.validateWaterfallScaling(this.waterfallScaling);
     this.validateBarColumnParts(this.barColumnParts);
+    this.validateBarColumnWidths(this.barColumnWidths);
     this.validateRatios(this.ratios);
     this.validatePercentageScaling(this.percentageScaling);
     this.validateScaling(this.scale);
@@ -2059,6 +2088,7 @@ export class Table {
             interval={this.prepareInterval()}
             categoryIntervalPosition={this.prepareCategoryIntervalPosition()}
             barColumnMaxWidth={this.prepareBarColumnWidth()}
+            barColumnWidths={parseBarColumnWidths(this.barColumnWidths).widths}
             unitScaling={this.prepareUnitScaling()}
             percentageScaling={this.preparePercentageScaling()}
             reportAutoScaling={this.handleAutoScalingReport}
@@ -2124,4 +2154,37 @@ function parseBarColumnParts(value: string | Record<string, string> | undefined)
     }
   }
   return { parts, invalid };
+}
+
+/** The valid entries of `barColumnWidths` (JSON text or object) in em, and the ones that are not. */
+function parseBarColumnWidths(value: string | Record<string, string> | undefined): {
+  widths: Record<string, number>;
+  invalid: string[];
+} {
+  const widths: Record<string, number> = {};
+  const invalid: string[] = [];
+  if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) {
+    return { widths, invalid };
+  }
+  let entries: unknown;
+  try {
+    entries = typeof value === "string" ? JSON.parse(value) : value;
+  } catch {
+    return { widths, invalid: [String(value)] };
+  }
+  if (entries === null || typeof entries !== "object" || Array.isArray(entries)) {
+    return { widths, invalid: [String(value)] };
+  }
+  for (const [column, width] of Object.entries(entries as Record<string, unknown>)) {
+    const preset =
+      typeof width === "string"
+        ? TableBarColumnWidth[width.toUpperCase().trim() as keyof typeof TableBarColumnWidth]
+        : undefined;
+    if (column.trim() !== "" && preset) {
+      widths[column.trim()] = BAR_COLUMN_WIDTH_EM[preset];
+    } else {
+      invalid.push(`${column}: ${String(width)}`);
+    }
+  }
+  return { widths, invalid };
 }
