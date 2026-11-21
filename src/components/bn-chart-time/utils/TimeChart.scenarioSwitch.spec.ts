@@ -149,6 +149,44 @@ describe("time chart scenarioSwitch", () => {
     expect(internal.switchNamesRowY(internal.contextRow(), false)).toBeNull();
   });
 
+  it("starts the line of a plain column chart at the higher of the two columns beside it", () => {
+    const lineTop = (chart: TimeChart): number => {
+      const match =
+        /<line[^>]*y1="([\d.-]+)"[^>]*class="scenario-switch"|class="scenario-switch"[^>]*y1="([\d.-]+)"/.exec(
+          chart.toString(),
+        );
+      return Number(match?.[1] ?? match?.[2]);
+    };
+    const plain = buildChart({ scenarios: ["ac1", "pl1"], scenarioSwitch: true });
+    // 2025 (120) and 2026 (400) stand beside the line: the line starts above the label of 400, not at the top
+    const high = buildChart({ scenarios: ["ac1", "pl1"], scenarioSwitch: true }, [
+      ...ROWS.slice(0, 3),
+      { date: "2027-01-01", operation: "+", pl1: 900, pp1: 80 },
+    ]);
+    expect(lineTop(plain)).toBeGreaterThanOrEqual(0);
+    expect(lineTop(high)).toBeGreaterThan(lineTop(plain) + 400);
+  });
+
+  it("starts the line above a reference that is higher than the column of the series", () => {
+    const lineTop = (rows: Record<string, unknown>[]): number => {
+      const svg = buildChart({ scenarios: ["ac1", "pl1", "pp1"], scenarioSwitch: true }, rows).toString();
+      const match =
+        /<line[^>]*y1="([\d.-]+)"[^>]*class="scenario-switch"|class="scenario-switch"[^>]*y1="([\d.-]+)"/.exec(svg);
+      return Number(match?.[1] ?? match?.[2]);
+    };
+    const far = { date: "2027-01-01", operation: "+", pl1: 900, pp1: 80 };
+    const low = [...ROWS.slice(0, 3), far];
+    // the reference of 2025 is far higher than its column
+    const high = [ROWS[0], { ...ROWS[1], pp1: 700 }, ROWS[2], far];
+    expect(lineTop(high)).toBeLessThan(lineTop(low) - 200);
+  });
+
+  it("keeps the line from the top with rows of variances above the chart", () => {
+    const rows = [...ROWS.slice(0, 3), { date: "2027-01-01", operation: "+", pl1: 900, pp1: 80 }];
+    const svg = buildChart({ scenarios: ["ac1", "pl1"], scenarioSwitch: true, rowsAbove: true }, rows).toString();
+    expect(/<line[^>]*y1="0"[^>]*class="scenario-switch"|class="scenario-switch"[^>]*y1="0"/.test(svg)).toBe(true);
+  });
+
   it("draws the separator and the names", () => {
     const svg = buildChart({ scenarioSwitch: true }).toString();
     expect(svg).toContain('id="ScenarioSwitch"');
@@ -254,6 +292,17 @@ describe("time chart relative variance cut", () => {
 
 describe("time chart category labels", () => {
   const labels = (svg: string): string[] => Array.from(svg.matchAll(/>(\D?\d\d)<\/tspan>/g)).map((match) => match[1]);
+
+  it("leaves out the periods of axisLabelsHide, by year or by date", () => {
+    const base = { axisLabelsMode: "short", scenarios: ["pp1"] };
+    const byYear = labels(buildChart({ ...base, axisLabelsHide: ["2025"] }).toString());
+    expect(byYear).toEqual(expect.arrayContaining(["24", "26", "27"]));
+    expect(byYear).not.toContain("25");
+
+    const byDate = labels(buildChart({ ...base, axisLabelsHide: ["2026-01-01", "2030"] }).toString());
+    expect(byDate).toEqual(expect.arrayContaining(["24", "25", "27"]));
+    expect(byDate).not.toContain("26");
+  });
 
   it("prints every label by default", () => {
     const svg = buildChart({ axisLabelsMode: "short", scenarios: ["pp1"] }).toString();

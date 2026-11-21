@@ -88,6 +88,10 @@ export class TimeChartComponentConfig {
   public lineFullWidth: boolean = true;
   /** Print every n-th category label only. */
   public axisLabelsStep: number = 1;
+  /** Periods without a category label: the start of an ISO date each, "2022" or "2022-03-01". */
+  public axisLabelsHide: string[] = [];
+  /** True for the base chart when rows of variances stand above it. */
+  public rowsAbove: boolean = false;
   /** Stacked area: a thin line at every n-th period, 0 for none. */
   public periodLines: number = 0;
   /** Stacked area: `end` puts a point on the right border of its period. */
@@ -226,6 +230,10 @@ export class TimeChartComponentConfigAdapter implements IAdapter<TimeChartCompon
     if (CompareUtil.isNumber(data.axisLabelsStep) && data.axisLabelsStep >= 1) {
       config.axisLabelsStep = data.axisLabelsStep;
     }
+    if (Array.isArray(data.axisLabelsHide)) {
+      config.axisLabelsHide = data.axisLabelsHide.filter((entry: unknown) => typeof entry === "string" && entry !== "");
+    }
+    config.rowsAbove = data.rowsAbove === true;
 
     if (CompareUtil.isNumber(data.periodLines) && data.periodLines >= 1) {
       config.periodLines = Math.floor(data.periodLines);
