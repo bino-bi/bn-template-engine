@@ -251,3 +251,56 @@ describe("bn-chart-time: scenarios none", () => {
     ]);
   });
 });
+
+describe("bn-chart-time: axis-title-position top", () => {
+  const renderers = (page: SpecPage): Element[] =>
+    Array.from(page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer"));
+  const titleLine = (page: SpecPage): Element | null => page.root!.shadowRoot!.querySelector(".title-top");
+
+  it("accepts top", async () => {
+    const page = await renderChart(`axis-title-position="top"`);
+    expect(errorIds(page)).not.toContain("WARN_axisTitlePosition");
+  });
+
+  it("prints the title in a line above all rows, and none at the axis of the base", async () => {
+    const page = await renderChart(
+      `axis-title-position="top" chart-title="Net sales" scenarios="ac1,pp1" variances="dac1_pp1_pos" show-measure-scale`,
+    );
+    const [base, variance] = renderers(page);
+
+    expect(titleLine(page)!.textContent).toContain("Net sales");
+    // the line is no part of a row: a row that is not drawn cannot take it away
+    expect(titleLine(page)!.nextElementSibling!.classList.contains("container")).toBe(true);
+    expect(base.getAttribute("axisTitlePosition")).toBe("none");
+    expect(base.getAttribute("chartTitle") ?? "").toBe("");
+    // the tiny unit of the base is replaced by the unit in the title line
+    expect(base.hasAttribute("showMeasureScale")).toBe(false);
+    expect(variance.getAttribute("axisTitlePosition")).toBe("left");
+  });
+
+  it("prints the unit the first row reports", async () => {
+    const page = await renderChart(
+      `axis-title-position="top" chart-title="Net sales" scenarios="ac1" show-measure-scale`,
+    );
+    (page.rootInstance as unknown as { handleUnitReport(text: string): void }).handleUnitReport("in kEUR");
+    await page.waitForChanges();
+
+    expect(titleLine(page)!.textContent).toBe("Net sales in kEUR");
+  });
+
+  it("prints no unit without show-measure-scale, and no line without a text", async () => {
+    const titled = await renderChart(`axis-title-position="top" chart-title="Net sales" scenarios="ac1"`);
+    (titled.rootInstance as unknown as { handleUnitReport(text: string): void }).handleUnitReport("in kEUR");
+    await titled.waitForChanges();
+    expect(titleLine(titled)!.textContent).toBe("Net sales");
+
+    const empty = await renderChart(`axis-title-position="top" scenarios="ac1"`);
+    expect(titleLine(empty)).toBeNull();
+  });
+
+  it("has no title line without top", async () => {
+    const page = await renderChart(`chart-title="Net sales" scenarios="ac1"`);
+    expect(titleLine(page)).toBeNull();
+    expect(renderers(page)[0].getAttribute("chartTitle")).toBe("Net sales");
+  });
+});

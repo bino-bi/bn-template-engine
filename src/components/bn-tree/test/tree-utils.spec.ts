@@ -486,3 +486,42 @@ describe("EdgeRenderer", () => {
     });
   });
 });
+
+describe("separate", () => {
+  const { separate } = require("../utils/TreeLayout");
+  const box = (top: number, height = 100) => ({ top, height });
+
+  it("leaves boxes alone that have the spacing", () => {
+    expect(separate([box(0), box(120), box(300)], 20)).toEqual([0, 0, 0]);
+  });
+
+  it("moves two boxes that touch apart by the same amount", () => {
+    expect(separate([box(50), box(150)], 20)).toEqual([-10, 10]);
+  });
+
+  it("does not move a box above the top of the tree", () => {
+    expect(separate([box(0), box(100)], 20)).toEqual([0, 20]);
+  });
+
+  it("keeps the spacing in a run of three", () => {
+    const shifts = separate([box(100), box(190), box(280)], 20);
+    const tops = [100, 190, 280].map((top, i) => top + shifts[i]);
+    expect(tops[1] - tops[0]).toBe(120);
+    expect(tops[2] - tops[1]).toBe(120);
+    // the run stays centred
+    expect(shifts[0]).toBe(-shifts[2]);
+  });
+
+  it("pushes a box that had its distance when the box before it was moved onto it", () => {
+    const shifts = separate([box(0), box(100), box(230)], 20);
+    expect(shifts).toEqual([0, 20, 10]);
+  });
+
+  it("does not move a run up into the box above it", () => {
+    // the first box has its distance to the second, the second and third overlap
+    const shifts = separate([box(0), box(125), box(200)], 20);
+    expect(shifts[0]).toBe(0);
+    expect(125 + shifts[1]).toBeGreaterThanOrEqual(120);
+    expect(200 + shifts[2] - (125 + shifts[1])).toBe(120);
+  });
+});

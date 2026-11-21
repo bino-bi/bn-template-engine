@@ -20,6 +20,7 @@ import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
 import { Style } from "../../stores/componentStyles";
 import { getClippedHeight, getParentDimensions } from "../../utils/parentDimensions";
 import { LayoutObserverHandle, observeParentResize } from "../../utils/layoutObserver";
+import { parseScaling } from "../../utils/scaling";
 
 import { TreeConfig, parseTreeConfig, validateEdges, getOperatorSymbol, getEdgeForChild } from "./utils/TreeParser";
 
@@ -31,6 +32,7 @@ import {
   getActualGridColumnSpan,
   getActualGridRow,
   getActualGridRowSpan,
+  separate,
 } from "./utils/TreeLayout";
 
 import {
@@ -44,6 +46,15 @@ import {
   calculateOperatorPosition,
   getEdgeSvgStyle,
 } from "./utils/EdgeRenderer";
+
+/** The components that take a `scale`. */
+const SCALED_NODES =
+  "bn-chart-time, bn-chart-structure, bn-chart-scatter, bn-chart-bubble, bn-chart-bullet, bn-table, bn-text, bn-tree";
+/** Marks a `scale` the tree has set, so a scale of the node itself is told apart. */
+const INHERITED_SCALE = "data-bn-tree-scale";
+const MAX_FIT_STEPS = 12;
+const FIT_SETTLE_MS = 150;
+const MIN_FIT_FACTOR = 0.2;
 
 /** True when both maps hold the same nodes at the same place with the same size. */
 function sameNodeRects(a: Map<string, NodeRect>, b: Map<string, NodeRect>): boolean {
@@ -84,6 +95,8 @@ export class ChartTree {
   @State() private treeConfig: TreeConfig | null = null;
   @State() private layout: LayoutResult | null = null;
   @State() private nodeRects: Map<string, NodeRect> = new Map();
+  /** How far a node is moved along the node axis to keep its distance, in px. */
+  @State() private nodeShifts: Map<string, number> = new Map();
   @State() private svgWidth: number = 0;
   @State() private svgHeight: number = 0;
 
@@ -132,6 +145,7 @@ export class ChartTree {
       this.treeConfig = parseTreeConfig(newValue);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -159,6 +173,7 @@ export class ChartTree {
       this.errors.remove(errId);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -181,6 +196,7 @@ export class ChartTree {
       this.errors.remove(errId);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -203,6 +219,7 @@ export class ChartTree {
       this.errors.remove(errId);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -244,9 +261,55 @@ export class ChartTree {
    */
   @Prop({ attribute: "show-operators" }) showOperators: boolean = true;
 
+  /**
+   * Scale of the whole tree: the node components that set no `scale` of their
+   * own, the spacings and the operators.
+   * - a positive number: fixed factor
+   * - `"auto"`: 1, and smaller when the tree does not fit its parent
+   * - not set: the nodes keep their own scaling
+   */
+  @Prop() scale?: string;
+
+  @Watch("scale")
+  validateScale(newValue: string | undefined) {
+    const errId = "WARN_scale";
+    if (newValue != null && newValue !== "" && !["factor", "auto"].includes(parseScaling(newValue).mode)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: `scale: invalid value '${newValue}', use "auto" or a positive number`,
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+    this.resetFit();
+    this.applyScale();
+    this.recalculateLayout();
+  }
+
+  /** A tree that changed is fitted anew, from 1. */
+  private resetFit() {
+    this.cancelFit();
+    this.fitSteps = 0;
+    this.fitSample = undefined;
+    if (this.fitFactor !== 1) {
+      this.fitFactor = 1;
+      this.applyScale();
+    }
+  }
+
+  /** The factor `scale: auto` has reached. It only goes down until the tree itself changes, so the fit cannot swing. */
+  @State() private fitFactor: number = 1;
+  private fitSteps = 0;
+  /** The size the tree had at the factor before, to tell what of it follows the factor. */
+  private fitSample: { factor: number; width: number; height: number } | undefined;
+  private fitTimer: number | undefined;
+  private fitDone: (() => void) | undefined;
+  private readonly holdStatus: (work: Promise<unknown>) => void;
+
   constructor() {
     withStyled(this);
-    withComponentStatus(this);
+    this.holdStatus = withComponentStatus(this);
     this.errors = withHasError(this);
     this.componentStyle = withComponentStyle(this);
   }
@@ -271,7 +334,11 @@ export class ChartTree {
       id: resolveStandaloneId(this.element),
       slot: this.element.getAttribute("slot") ?? undefined,
       rect: measure(this.element, origins),
-      em: { fontSizePx, appliedScaleFactor: 1 },
+      em: {
+        fontSizePx,
+        appliedScaleFactor: this.scaleFactor() ?? 1,
+        scaleMode: parseScaling(this.scale).mode === "factor" ? "fixed" : "auto",
+      },
       regions: [],
       metadata: {
         nodeCount: this.treeConfig?.allNodes.size ?? 0,
@@ -330,11 +397,12 @@ export class ChartTree {
    */
   private getTreeStyle() {
     return this.componentStyle(($) => {
-      const baseFontSize = $["global"].fontSizePx;
+      const factor = this.scaleFactor() ?? 1;
+      const baseFontSize = $["global"].fontSizePx * factor;
       return {
         edgeColor: $["bn-tree"].edgeColor,
         edgeWidth: $["bn-tree"].edgeWidth,
-        operatorCircleRadius: $["bn-tree"].operatorCircleRadius,
+        operatorCircleRadius: $["bn-tree"].operatorCircleRadius * factor,
         operatorFontSize: baseFontSize * $["bn-tree"].operatorFontSizeScale,
         operatorColor: $["bn-tree"].operatorColor,
       };
@@ -347,6 +415,7 @@ export class ChartTree {
     this.validateLevelSpacing(this.levelSpacing);
     this.validateNodeSpacing(this.nodeSpacing);
     this.validateEdgeStyle(this.edgeStyle);
+    this.validateScale(this.scale);
   }
 
   connectedCallback() {
@@ -358,6 +427,7 @@ export class ChartTree {
   componentDidLoad() {
     // a node that is slotted in later changes no size the tree observes
     this.element.shadowRoot?.addEventListener("slotchange", () => {
+      this.applyScale();
       this.observeLayout();
       this.updateNodeRects();
     });
@@ -384,6 +454,7 @@ export class ChartTree {
     this.observed.clear();
     this.parentObserver?.disconnect();
     this.parentObserver = null;
+    this.cancelFit();
   }
 
   /** Looks up the grid of this render and observes it and every node that is not observed yet. */
@@ -426,12 +497,154 @@ export class ChartTree {
       return;
     }
 
-    this.layout = calculateLayout(this.treeConfig, this.direction, this.levelSpacing, this.nodeSpacing);
+    const factor = this.scaleFactor() ?? 1;
+    this.layout = calculateLayout(
+      this.treeConfig,
+      this.direction,
+      this.levelSpacing * factor,
+      this.nodeSpacing * factor,
+    );
+  }
+
+  /** The factor of the tree, or undefined when `scale` is not set. */
+  private scaleFactor(): number | undefined {
+    const { mode, factor } = parseScaling(this.scale);
+    if (mode === "factor") {
+      return factor;
+    }
+    return mode === "auto" ? this.fitFactor : undefined;
+  }
+
+  /** Hands the factor to every node component that takes a `scale` and has none of its own. */
+  private applyScale() {
+    const factor = this.scaleFactor();
+    for (const node of Array.from(this.element.querySelectorAll(SCALED_NODES))) {
+      // a tree in a node hands the factor on to its own nodes
+      if (node.parentElement?.closest("bn-tree") !== this.element) {
+        continue;
+      }
+      const inherited = node.hasAttribute(INHERITED_SCALE);
+      if (node.hasAttribute("scale") && !inherited) {
+        continue;
+      }
+      if (factor === undefined) {
+        if (inherited) {
+          node.removeAttribute("scale");
+          node.removeAttribute(INHERITED_SCALE);
+        }
+        continue;
+      }
+      node.setAttribute("scale", String(factor));
+      node.setAttribute(INHERITED_SCALE, "");
+    }
+  }
+
+  /** What of the tree does not fit: the sizes, and the px an ancestor cuts off at the bottom. */
+  private measureOverflow() {
+    const parent = getParentDimensions(this.element);
+    const width = this.gridContainer?.scrollWidth || 0;
+    const height = this.gridContainer?.scrollHeight || 0;
+    // the tree does not adapt to the height it has: only what an ancestor really cuts off counts
+    const clipped = getClippedHeight(this.element, height);
+    return {
+      parentWidth: parent.width,
+      width,
+      height,
+      clipped,
+      wide: parent.width > 0 && width > parent.width + 1,
+      high: clipped > 1,
+    };
+  }
+
+  /**
+   * `scale: auto`: plans a smaller factor when the tree is larger than its room.
+   * The step waits until the nodes have stopped changing their size: a node that
+   * still draws with the factor before would make the tree too small. The tree
+   * counts as rendering until then. True while a step is planned.
+   */
+  private planFit(wide: boolean, high: boolean): boolean {
+    if (parseScaling(this.scale).mode !== "auto" || this.fitSteps >= MAX_FIT_STEPS || !(wide || high)) {
+      this.cancelFit();
+      return false;
+    }
+    if (this.fitTimer === undefined) {
+      this.holdStatus(new Promise<void>((resolve) => (this.fitDone = resolve)));
+    } else {
+      window.clearTimeout(this.fitTimer);
+    }
+    this.fitTimer = window.setTimeout(() => {
+      this.fitTimer = undefined;
+      const done = this.fitDone;
+      this.fitDone = undefined;
+      this.fitStep();
+      done?.();
+    }, FIT_SETTLE_MS);
+    return true;
+  }
+
+  private cancelFit() {
+    if (this.fitTimer !== undefined) {
+      window.clearTimeout(this.fitTimer);
+      this.fitTimer = undefined;
+    }
+    this.fitDone?.();
+    this.fitDone = undefined;
+  }
+
+  private fitStep() {
+    const { parentWidth, width, height, clipped, wide, high } = this.measureOverflow();
+    if (!wide && !high) {
+      return; // the overflow went away while the step waited
+    }
+    const room = { width: parentWidth, height: height - clipped };
+    const now = { factor: this.fitFactor, width, height };
+    const before = this.fitSample;
+    let next = Infinity;
+    let stuck = false;
+    for (const side of ["width", "height"] as const) {
+      if (side === "width" ? !wide : !high) {
+        continue;
+      }
+      // the size is a part that follows the factor plus a part that does not: a node with its own scale, an image
+      let fixed = 0;
+      let perFactor = now[side] / now.factor;
+      // a tree that is larger at the smaller factor has changed in between: the sample says nothing then
+      if (before && before.factor > now.factor && before[side] - now[side] > -1) {
+        perFactor = (before[side] - now[side]) / (before.factor - now.factor);
+        fixed = now[side] - perFactor * now.factor;
+      }
+      if (perFactor <= 0 || fixed >= room[side]) {
+        stuck = true;
+        break;
+      }
+      next = Math.min(next, (room[side] - fixed) / perFactor);
+    }
+    // two digits, rounded down: the same input gives the same factor in every build
+    next = Math.floor(next * 100 + 1e-6) / 100;
+    if (stuck || next < MIN_FIT_FACTOR || !(next < this.fitFactor)) {
+      // no factor makes it fit: small nodes in a tree that is cut off anyway help nobody
+      this.fitSteps = MAX_FIT_STEPS;
+      this.fitSample = undefined;
+      if (this.fitFactor !== 1) {
+        this.fitFactor = 1;
+        this.applyScale();
+        this.recalculateLayout();
+      } else {
+        this.checkOverflow();
+      }
+      return;
+    }
+    this.fitSteps++;
+    this.fitSample = now;
+    this.fitFactor = next;
+    this.applyScale();
+    this.recalculateLayout();
   }
 
   private updateNodeRects() {
     if (!this.treeConfig || !this.gridContainer) {
       // no tree is drawn, so nothing is cut off
+      this.cancelFit();
       this.errors?.remove("WARN_overflow");
       return;
     }
@@ -446,6 +659,8 @@ export class ChartTree {
       }
     }
 
+    this.separateNodes();
+
     // only a real change is written: every write renders, and every render measures
     if (!sameNodeRects(this.nodeRects, newRects)) {
       this.nodeRects = newRects;
@@ -456,20 +671,71 @@ export class ChartTree {
     this.checkOverflow();
   }
 
+  /**
+   * Two parents that share a child span rows that overlap, and each is centred
+   * in its rows. Tall parents then touch or cover each other. The nodes of
+   * such a level are moved apart until the node spacing is between them. Left
+   * to right and right to left only: in the other directions such a parent
+   * keeps one column.
+   */
+  private separateNodes() {
+    const shifts = new Map<string, number>();
+    const horizontal = this.direction === "ltr" || this.direction === "rtl";
+    if (horizontal && this.layout) {
+      const spacing = this.nodeSpacing * (this.scaleFactor() ?? 1);
+      // offsetTop: the place in the grid, without the shift, which is a transform
+      const boxes = new Map<string, { top: number; height: number }>();
+      this.element.shadowRoot?.querySelectorAll<HTMLElement>(".tree-node[data-node]").forEach((node) => {
+        boxes.set(node.dataset.node!, { top: node.offsetTop || 0, height: node.offsetHeight || 0 });
+      });
+      const levels = new Map<number, string[]>();
+      for (const [nodeId, position] of this.layout.positions) {
+        if ((boxes.get(nodeId)?.height ?? 0) > 0) {
+          levels.set(position.level, [...(levels.get(position.level) ?? []), nodeId]);
+        }
+      }
+      for (const nodes of levels.values()) {
+        nodes.sort((a, b) => boxes.get(a)!.top - boxes.get(b)!.top);
+        // a level where every node has rows of its own keeps its spacing by the grid
+        const positions = nodes.map((nodeId) => this.layout!.positions.get(nodeId)!);
+        if (
+          !positions.some(
+            (lower, i) => i > 0 && lower.gridRow < positions[i - 1].gridRow + positions[i - 1].gridRowSpan,
+          )
+        ) {
+          continue;
+        }
+        const sized = nodes.map((nodeId) => boxes.get(nodeId)!);
+        separate(sized, spacing).forEach((shift, index) => {
+          if (Math.abs(shift) > 0.5) {
+            shifts.set(nodes[index], shift);
+          }
+        });
+      }
+    }
+    const same =
+      shifts.size === this.nodeShifts.size &&
+      Array.from(shifts).every(([nodeId, shift]) => Math.abs((this.nodeShifts.get(nodeId) ?? NaN) - shift) < 0.5);
+    if (!same) {
+      this.nodeShifts = shifts;
+    }
+  }
+
   /** Sets WARN_overflow when the tree is larger than its parent: the layout cell would cut it off silently. */
   private checkOverflow() {
     const errId = "WARN_overflow";
-    const parent = getParentDimensions(this.element);
-    const width = this.gridContainer?.scrollWidth || 0;
-    const height = this.gridContainer?.scrollHeight || 0;
+    const { parentWidth, width, height, clipped, wide, high } = this.measureOverflow();
+
+    if (this.planFit(wide, high)) {
+      this.errors.remove(errId);
+      return;
+    }
 
     const dims: string[] = [];
-    if (parent.width > 0 && width > parent.width + 1) {
-      dims.push(`width (${Math.round(width)}px > ${Math.round(parent.width)}px)`);
+    if (wide) {
+      dims.push(`width (${Math.round(width)}px > ${Math.round(parentWidth)}px)`);
     }
-    // the tree does not adapt to the height it has: only what an ancestor really cuts off counts
-    const clipped = getClippedHeight(this.element, height);
-    if (clipped > 1) {
+    if (high) {
       dims.push(`height (${Math.round(height)}px > ${Math.round(height - clipped)}px)`);
     }
 
@@ -502,6 +768,7 @@ export class ChartTree {
         "grid-column": String(getActualGridColumn(position.gridColumn)),
         "grid-row": `${getActualGridRow(position.gridRow)} / span ${getActualGridRowSpan(position.gridRowSpan)}`,
         "align-self": "center",
+        transform: this.nodeShifts.has(nodeId) ? `translateY(${this.nodeShifts.get(nodeId)}px)` : "none",
       };
     } else {
       return {
@@ -653,7 +920,7 @@ export class ChartTree {
     return Array.from(this.treeConfig.allNodes).map((nodeId) => (
       // data-bn-fit-content: a node is as high as its content, so no height in it is a limit
       // for that content (see findConstrainedHeight in utils/parentDimensions)
-      <div key={nodeId} class="tree-node" data-bn-fit-content="" style={this.getSlotStyle(nodeId)}>
+      <div key={nodeId} class="tree-node" data-node={nodeId} data-bn-fit-content="" style={this.getSlotStyle(nodeId)}>
         <slot name={nodeId} />
       </div>
     ));

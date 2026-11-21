@@ -1737,7 +1737,11 @@ export class Chart {
       id: resolveStandaloneId(this.element),
       slot: this.element.getAttribute("slot") ?? undefined,
       rect: measure(this.element, origins),
-      em: { fontSizePx, appliedScaleFactor: factor },
+      em: {
+        fontSizePx,
+        appliedScaleFactor: factor,
+        scaleMode: parseScaling(this.scale).mode === "factor" ? "fixed" : "auto",
+      },
       regions: layout.regions,
       metadata: {
         title: this.chartTitle || undefined,

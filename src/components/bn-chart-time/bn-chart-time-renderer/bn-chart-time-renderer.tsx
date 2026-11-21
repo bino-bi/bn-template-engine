@@ -181,6 +181,9 @@ export class BnChartTimeRenderer {
   @Prop()
   axisTitlePosition: string = "left";
 
+  /** @internal Tells the chart the unit text of this segment ("in kEUR"), for the title line above the chart. */
+  @Prop() reportUnit?: (text: string) => void;
+
   /** @internal */
   @Prop()
   varianceWaterfall: boolean = false;
@@ -265,6 +268,12 @@ export class BnChartTimeRenderer {
         <div innerHTML={this.chart?.toString()}></div>
       </Host>
     );
+  }
+
+  componentDidRender() {
+    if (this.chart && this.reportUnit) {
+      this.reportUnit(this.chart.getFooter().trim());
+    }
   }
 
   /** Reports a failed query as the wrapper's `ERR_sql` item. Without it the chart would only show "No Data". */

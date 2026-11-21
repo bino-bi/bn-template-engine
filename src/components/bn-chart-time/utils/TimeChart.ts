@@ -671,7 +671,14 @@ export class TimeChart {
       ? this.axisCategoryArea.height + this.scenariosArea.height
       : this.scenariosArea.height;
 
-    return Math.max(analyticalHeight, bboxHeight) + this.switchNamesHeight();
+    const height = Math.max(analyticalHeight, bboxHeight);
+    const namesHeight = this.switchNamesHeight();
+    if (namesHeight === 0) {
+      return height;
+    }
+    // a second row directly under the category labels needs room only where nothing else reaches as low
+    const rowY = this.switchNamesRowY(this.contextRow(), this.axisLabelsMode === AxisLabelsMode.TWO_ROW);
+    return rowY != null ? Math.max(height, rowY + namesHeight + this.styles.padding.bottom) : height + namesHeight;
   }
 
   /**
@@ -3227,7 +3234,10 @@ export class TimeChart {
     const group: G = svgContainer.group().id("ScenarioSwitch");
     const namesHeight = this.switchNamesHeight();
     const height = this.getAllocatedCanvasHeight();
-    const bottom = namesHeight > 0 ? height - this.styles.padding.bottom : height;
+    // in two-row mode a text starts at the left edge of its period, like the parent period it carries
+    const leftAligned = this.axisLabelsMode === AxisLabelsMode.TWO_ROW;
+    const rowY = namesHeight > 0 ? this.switchNamesRowY(entries, leftAligned) : null;
+    const bottom = rowY != null ? rowY + namesHeight : namesHeight > 0 ? height - this.styles.padding.bottom : height;
     const lineWidth = Math.max(1, this.position.spacings.auxiliaryLineWidth);
 
     runs.slice(1).forEach((run) => {
@@ -3242,8 +3252,6 @@ export class TimeChart {
     if (namesHeight === 0) {
       return;
     }
-    // in two-row mode a text starts at the left edge of its period, like the parent period it carries
-    const leftAligned = this.axisLabelsMode === AxisLabelsMode.TWO_ROW;
     entries.forEach((entry) => {
       const x = leftAligned
         ? this.position.getColumnCenterPositionX(entry.from) - this.position.getColumnWidth() / 2
@@ -3259,6 +3267,60 @@ export class TimeChart {
         leftAligned ? HookLocation.Left : HookLocation.Center,
       ).forceStringTypeDraw();
     });
+  }
+
+  /** Left edge of a text of the second row under the category labels. */
+  private switchNameStart(entry: { from: number; to: number; text: string }, leftAligned: boolean): number {
+    if (leftAligned) {
+      return this.position.getColumnCenterPositionX(entry.from) - this.position.getColumnWidth() / 2;
+    }
+    const width = CalculateSize(entry.text, {
+      font: this.styles.fontStyles.font,
+      fontSize: this.styles.fontStyles.size + "px",
+    }).width;
+    const middle =
+      (this.position.getColumnCenterPositionX(entry.from) + this.position.getColumnCenterPositionX(entry.to)) / 2;
+    return middle - width / 2;
+  }
+
+  /**
+   * With columns below the axis the second row has its room under the lowest
+   * value. Where every text of the row stands under periods without anything
+   * below the axis, the row moves up, directly under the category labels.
+   * Null when it stays at the bottom.
+   */
+  private switchNamesRowY(entries: { from: number; to: number; text: string }[], leftAligned: boolean): number | null {
+    // only for a switched series: the second row of a plain two-row chart stays where it was
+    if (this.isVarianceChart() || this.isOnSameAxisSide() || entries.length === 0 || this.switchRuns().length === 0) {
+      return null;
+    }
+    const half = this.position.spacings.categoryWidth / 2;
+    let offset = 0;
+    for (const entry of entries) {
+      const start = this.switchNameStart(entry, leftAligned);
+      const end =
+        start +
+        CalculateSize(entry.text, {
+          font: this.styles.fontStyles.font,
+          fontSize: this.styles.fontStyles.size + "px",
+        }).width;
+      for (let index = 0; index < this.dataModel.length; index++) {
+        const center = this.position.getColumnCenterPositionX(index);
+        if (center + half <= start || center - half >= end) {
+          continue;
+        }
+        const row = this.dataModel[index];
+        const place = this.dateLabelPlace(row);
+        const below = ["scenario1", "scenario2", "scenario3", "scenario4"].some(
+          (slot) => TimeChart.hasValue(row[slot]) && row[slot].value < 0,
+        );
+        if (place.hookLocation !== HookLocation.Top || below) {
+          return null;
+        }
+        offset = Math.max(offset, place.offset);
+      }
+    }
+    return this.position.getAxisPositionY(false) + offset + this.position.dataLabelHeight;
   }
 
   private drawScenarios(dataModel: TimeChartDataModelEntry[], svgContainer: Svg) {
