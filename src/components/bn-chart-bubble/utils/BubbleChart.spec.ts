@@ -240,6 +240,13 @@ describe("BubbleChart", () => {
       expect(match).toBe(true);
     });
 
+    it("does not warn for a bubble that only hangs out of the plot", () => {
+      const axes = { x: { measure: "ac1", min: 0, max: 1 }, y: { measure: "ac2", min: 0, max: 1 } };
+      const chart = makeChart([row({ ac1: 1, ac2: 1, ac3: 30 })], baseConfig({ ...axes, sizeAreaPerUnit: 12 }));
+      chart.toString();
+      expect(chart.getWarnings().map((w) => w.code)).not.toContain("bubble-scale-overflow");
+    });
+
     it("renders overflowing bubbles true-size with bubble-scale-overflow", () => {
       const chart = makeChart([row({ ac3: 1000000 })], baseConfig({ sizeAreaPerUnit: 1000 }));
       chart.toString();
@@ -585,6 +592,26 @@ describe("BubbleChart options shared with the scatter chart", () => {
     expect(compareValue(false, away)).toBe(false);
     expect(compareValue(true, away)).toBe(true);
     expect(compareValue(true, { pp1: 0.3, pp2: 0.3 })).toBe(false);
+  });
+
+  it("moves a legend inside the plot out of the way of the bubbles, unless it is aligned", () => {
+    const axes = { x: { measure: "ac1", min: 0, max: 1 }, y: { measure: "ac2", min: 0, max: 1 } };
+    // the y of the text of the legend entry
+    const legendY = (rows: Record<string, unknown>[], legend: BubbleChartConfig["legend"]): number => {
+      const svg = makeChart(
+        rows,
+        baseConfig({ ...axes, legend, labels: { points: [], values: false, max: 12 } }),
+      ).toString();
+      const at = svg.indexOf(">Core Business<");
+      const tag = svg.slice(svg.lastIndexOf("<text", at), at);
+      return Number(/ y="([-\d.]+)"/.exec(tag)![1]);
+    };
+    const inside = { show: true, position: "inside" as const };
+    const clear = [row({ ac1: 0.1, ac2: 0.1 })];
+    const topRight = [row({ ac1: 0.9, ac2: 0.95 }), row({ subCategory: "VAC", ac1: 0.1, ac2: 0.1 })];
+    expect(legendY(topRight, inside)).toBeGreaterThan(legendY(clear, inside));
+    // an aligned legend keeps its place at the top, over the bubble
+    expect(legendY(topRight, { ...inside, align: "start" })).toBeLessThan(legendY(topRight, inside));
   });
 
   it("draws a legend inside the plot and keeps the plot as wide as without a legend", () => {

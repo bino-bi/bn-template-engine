@@ -246,7 +246,9 @@ export class ChartScatter {
    * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom",
    * "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
    * `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend
-   * into the top right corner of the plot.
+   * into the top right corner of the plot. When a point or a panel title is there and no
+   * `align` is set, it takes the highest free place on the right edge of its panel, then on
+   * the left edge.
    */
   @Prop() legend: string = "";
   @Watch("legend")

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-scatter`, `bn-chart-bubble`: a legend inside the plot moves out of the way. When a point, a bubble or a panel title is in the top right corner and the legend has no `align`, it takes the highest free place on the right edge of its panel, then on the left edge. With no free place, or with `align`, it stays in the corner.
+
 - `bn-table`: `waterfall-scaling="unit"` draws all waterfall columns and the absolute variance bars of the table at one scale, the one of `unit-scaling`. With `auto` it is the largest scale at which every walk fits its column and every variance bar its cut. A fixed value or scaling group at which a walk does not fit is made coarser for the whole table, with `WARN_waterfallScaling`. Default `column`: each waterfall fits its own column, as before.
 - `bn-table`: `sum-bars` draws the absolute variance bars and the relative variance pins of `bar-columns` on the sum rows too, and counts the sum rows for their scale. Before, these rows printed the variance as a number. Plain scenario bars stay off the sum rows.
 - `bn-table`: `bar-column-parts` draws a second scenario inside the bars of a scenario waterfall column, from the start of each bar, in its own look and with its value inside when it fits: `{"fc1": "ac1"}` for a year forecast with the actual year to date in it. The header names the part over the start of the column. The part is read from the data like a scenario and gets no column of its own.
@@ -154,6 +156,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
+- `bn-chart-bubble`: `bubble-scale-overflow` was reported for every bubble of a scaling group that hung out of its panel, also when the bubble was small and only stood near the edge. A bubble may leave the plot. The warning now names only bubbles that are wider or higher than their panel, where the scale of the group is too large.
 - `bn-chart-time` and the other charts with `varianceStyles`: a `neu` entry was only read when the style also had a `pp` key. It is read on its own now.
 - Charts with an automatic `scale`: a chart whose parent had no box at the time of a render got the font size `NaNpx`, drew in the default size of the browser and kept that. The same page could so come out in two forms. Seen with bubble charts that use a `bn-scaling-group`. The chart now waits for a parent with a width.
 - `bn-chart-scatter`, `bn-chart-bubble`: with `facet`, a name of `labels.points` that only some panels have was reported as unknown. It is unknown now only when no panel has it.

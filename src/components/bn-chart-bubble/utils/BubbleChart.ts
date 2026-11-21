@@ -15,6 +15,7 @@ import {
   axisTitleLines,
   AxisTitleLine,
   isTitleBeside,
+  freeLegendPlace,
   legendOffset,
 } from "../../../utils/xy/AxisTitles";
 import { LabelReport } from "../../../utils/xy/LabelReport";
@@ -491,12 +492,19 @@ export class BubbleChart {
     // A legend inside the plot stands in its top right corner, clear of the frame. No name is placed on it.
     this.legendInside =
       showLegend && this.config.legend.position === "inside"
-        ? {
-            x: Math.max(drawing.x, drawing.x + drawing.width - legendSize.width - 0.5 * em),
-            y: drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
-            width: legendSize.width,
-            height: legendSize.height,
-          }
+        ? freeLegendPlace(
+            this.config.legend,
+            {
+              x: Math.max(drawing.x, drawing.x + drawing.width - legendSize.width - 0.5 * em),
+              y: drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
+              width: legendSize.width,
+              height: legendSize.height,
+            },
+            legendPanel(panels, drawing),
+            this.bubbleCircles(panels, radiusScale),
+            em,
+            this.panelTitleBoxes(panels, em),
+          )
         : null;
 
     if (this.data.facets.length === 0) {
@@ -617,6 +625,31 @@ export class BubbleChart {
     }
   }
 
+  /** The boxes of the panel titles of a facet chart. */
+  private panelTitleBoxes(panels: PanelContext[], em: number): Rect[] {
+    if (this.data.facets.length < 2) return [];
+    return this.data.facets.map((facet, index) => {
+      const origin = panels[index].frame.panelTitleOrigin();
+      return { x: origin.x, y: origin.y - em, width: this.textWidth(facet.key, true), height: 1.3 * em };
+    });
+  }
+
+  /** The bubbles of all panels as circles, for the place of an inside legend. */
+  private bubbleCircles(panels: PanelContext[], radiusScale: RadiusScale): { cx: number; cy: number; r: number }[] {
+    const circles: { cx: number; cy: number; r: number }[] = [];
+    this.data.facets.forEach((facet, index) => {
+      const panel = panels[index];
+      for (const point of facet.points) {
+        for (const bubble of [point, point.compare]) {
+          const r = bubble != null ? radiusScale.radius(bubble.size ?? 0) : 0;
+          if (bubble == null || r <= 0) continue;
+          circles.push({ cx: panel.xScale.scale(bubble.x), cy: panel.yScale.scale(bubble.y), r });
+        }
+      }
+    });
+    return circles;
+  }
+
   /** The highest and the lowest pixel a bubble of the chart reaches, in the coordinates of the drawing. */
   private bubbleReach(panels: PanelContext[], radiusScale: RadiusScale): { top: number; bottom: number } {
     let top = Infinity;
@@ -730,7 +763,8 @@ export class BubbleChart {
       const cy = panel.yScale.scale(point.y);
       const r = radiusScale.radius(point.size ?? 0);
 
-      if (this.config.sizeAreaPerUnit > 0 && this.bubbleExceedsPanel(panel.rect, cx, cy, r)) {
+      // a bubble may hang out of the plot; only one larger than the panel is a problem of the scale
+      if (this.config.sizeAreaPerUnit > 0 && this.bubbleExceedsPanel(panel.rect, r)) {
         this.scaleOverflowCount++;
       }
 
@@ -808,8 +842,9 @@ export class BubbleChart {
     }
   }
 
-  private bubbleExceedsPanel(rect: Rect, cx: number, cy: number, r: number): boolean {
-    return cx - r < rect.x || cx + r > rect.x + rect.width || cy - r < rect.y || cy + r > rect.y + rect.height;
+  /** A bubble wider or higher than its panel: the scale of its group is too large for the panel. */
+  private bubbleExceedsPanel(rect: Rect, r: number): boolean {
+    return 2 * r > rect.width || 2 * r > rect.height;
   }
 
   private drawBubble(
@@ -1027,4 +1062,12 @@ export class BubbleChart {
     }
     return NumericScale.stepDecimals(Math.pow(10, Math.floor(Math.log10(largest)) - 2));
   }
+}
+
+/** The rect of the panel that holds the top right corner of the drawing: the one an inside legend stands in. */
+function legendPanel(panels: { rect: Rect }[], drawing: Rect): Rect {
+  const right = drawing.x + drawing.width;
+  const column = panels.filter(({ rect }) => Math.abs(rect.x + rect.width - right) <= 1);
+  if (column.length === 0) return drawing;
+  return column.reduce((top, panel) => (panel.rect.y < top.rect.y ? panel : top)).rect;
 }
