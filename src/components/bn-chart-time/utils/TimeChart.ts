@@ -235,6 +235,8 @@ export class TimeChart {
   private overflowConfig: OverflowConfig | null = null;
   private lastScenarios: string[] = [];
   private axisLabelsStep: number = 1;
+  private axisLabelsHide: string[] = [];
+  private rowsAbove: boolean = false;
   private periodLines: number = 0;
   private pointPosition: string = "center";
   private scalingIndicator: number = 0;
@@ -388,6 +390,8 @@ export class TimeChart {
     this.axisLabelsMode = config.axisLabelsMode;
     this.intervalSpanLimit = config.intervalSpanLimit;
     this.axisLabelsStep = config.axisLabelsStep ?? 1;
+    this.axisLabelsHide = config.axisLabelsHide ?? [];
+    this.rowsAbove = config.rowsAbove ?? false;
     this.periodLines = config.periodLines ?? 0;
     this.pointPosition = config.pointPosition ?? "center";
     this.scalingIndicator = config.scalingIndicator ?? 0;
@@ -3161,7 +3165,7 @@ export class TimeChart {
         const carriesBoundary =
           this.axisLabelsMode === AxisLabelsMode.SMART &&
           dateStringFactory.isSmartBoundary(elements.date, this.dateInterval);
-        if (index % this.axisLabelsStep !== 0 && !carriesBoundary) {
+        if ((index % this.axisLabelsStep !== 0 && !carriesBoundary) || this.labelHidden(elements.date)) {
           return;
         }
 
@@ -3244,7 +3248,7 @@ export class TimeChart {
       // half a period before the first period of the run: a total column can stand between the two runs
       const x = this.position.getColumnCenterPositionX(run.from) - this.position.spacings.categoryWidth / 2;
       group
-        .line(x, 0, x, bottom)
+        .line(x, this.switchLineTop(run.from), x, bottom)
         .stroke({ color: this.styles.fontStyles.color || "#000000", width: lineWidth })
         .addClass("scenario-switch");
     });
@@ -3267,6 +3271,36 @@ export class TimeChart {
         leftAligned ? HookLocation.Left : HookLocation.Center,
       ).forceStringTypeDraw();
     });
+  }
+
+  /**
+   * Where the line before the period `index` starts. A plain column chart: a
+   * bit above the higher of the two columns beside it and its value. With rows
+   * of variances above, a stack, totals or a walk the line runs from the top,
+   * so it joins what belongs to the change.
+   */
+  private switchLineTop(index: number): number {
+    const plain =
+      !this.rowsAbove &&
+      !this.isVarianceChart() &&
+      this.stackConfig == null &&
+      this.walk.length === 0 &&
+      this.totalColumns.length === 0 &&
+      this.scalingIndicator <= 0;
+    if (!plain || index < 1) {
+      return 0;
+    }
+    const followers = this.followerSlots();
+    const tops = [index - 1, index].map((i) => {
+      const row = this.dataModel[i];
+      const slot = row ? this.visibleSlot(row, followers) : null;
+      const scaled = slot ? row[slot].getScaledUnit() : 0;
+      // the value label of a column above the axis stands on it
+      return scaled > 0
+        ? this.position.getColumnDataLabelPositionY(scaled) - this.position.dataLabelHeight
+        : this.position.getAxisPositionY(false);
+    });
+    return Math.max(0, Math.min(...tops) - this.position.spacings.labelToColumn);
   }
 
   /** Left edge of a text of the second row under the category labels. */
@@ -3498,7 +3532,10 @@ export class TimeChart {
           this.axisLabelsStep > 1 &&
           dateStringFactory.isSmartBoundary(elements.date, this.dateInterval);
         // Only show labels for first, last, and year change points
-        if (!this.shouldShowLineChartAxisLabel(dataModel, index) && !carriesBoundary) {
+        if (
+          (!this.shouldShowLineChartAxisLabel(dataModel, index) && !carriesBoundary) ||
+          this.labelHidden(elements.date)
+        ) {
           return;
         }
 
@@ -3558,6 +3595,15 @@ export class TimeChart {
 
     // the second row of `two-row` mode
     this.drawScenarioSwitch(svgContainer);
+  }
+
+  /** True for a period that `axisLabelsHide` names: by its date, or by the start of it (a year, a month). */
+  private labelHidden(date: DateTime): boolean {
+    if (this.axisLabelsHide.length === 0 || date == null || !date.isValid) {
+      return false;
+    }
+    const iso = date.toISODate() ?? "";
+    return this.axisLabelsHide.some((entry) => iso.startsWith(entry));
   }
 
   private shouldShowLineChartAxisLabel(dataModel: TimeChartDataModelEntry[], index: number): boolean {

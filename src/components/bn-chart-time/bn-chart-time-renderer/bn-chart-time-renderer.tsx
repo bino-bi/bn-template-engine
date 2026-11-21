@@ -159,6 +159,14 @@ export class BnChartTimeRenderer {
 
   /** @internal */
   @Prop()
+  axisLabelsHide: string[] = [];
+
+  /** @internal True for the base chart when rows of variances stand above it. */
+  @Prop()
+  rowsAbove: boolean = false;
+
+  /** @internal */
+  @Prop()
   periodLines: number = 0;
 
   /** @internal */
@@ -580,6 +588,8 @@ export class BnChartTimeRenderer {
       stackConfig: this.stackConfig,
       lineFullWidth: this.lineFullWidth,
       axisLabelsStep: this.axisLabelsStep,
+      axisLabelsHide: this.axisLabelsHide,
+      rowsAbove: this.rowsAbove,
       periodLines: this.periodLines,
       pointPosition: this.pointPosition,
       scalingIndicator: this.scalingIndicator,

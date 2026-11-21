@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-chart-time`: `axis-labels-hide` lists periods that get no category label, as a JSON array or a comma separated list. An entry is a date or the start of one: `2022` for every period of that year, `2022-03` for those of the month, `2022-03-01` for the period that starts on that day.
+- `bn-chart-time`: with `scenario-switch`, the line between two scenarios of a plain column chart starts a bit above the higher of the two columns beside it and its value. Before, it started at the top of the chart. With rows of variances above the chart, a stack, total columns, a variance walk or a scaling indicator it still runs from the top.
 - `bn-tree`: `scale` scales the whole tree: the node components that set no `scale` of their own, the spacings and the operators. A positive number is a fixed factor. `auto` starts at 1 and gets smaller until the tree fits its parent, after the nodes have stopped changing their size. A tree that cannot fit at any factor, for example with a node that sets its own `scale`, stays at 1 and reports `WARN_overflow`. A tree in a node takes the factor and hands it on. Without `scale` nothing changes.
 - `bn-tree`: the nodes of a level are moved apart when two parents that share a child would touch or cover each other, so the node spacing stays between them. No node moves above the top of the tree. Trees from left to right and from right to left.
 - `bn-chart-time`: `axis-title-position="top"` prints the chart title in bold in a line above the chart, with the unit behind it when `show-measure-scale` is set. The line stands above the uppermost row. Rows of variances keep their name at the axis.

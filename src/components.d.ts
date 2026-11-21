@@ -1029,16 +1029,12 @@ export namespace Components {
          */
         "variances": string[];
     }
-    /**
-     * SVG time-series chart following IBCS standards.
-     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
-     * line charts with up to four scenario layers, optional variance sub-charts,
-     * stacking, and proportional auto-scaling. Date normalization and interval
-     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-     * is performed by the inner `bn-chart-time-renderer` element; this outer component
-     * validates props, resolves auto-detected metadata, and computes styles.
-     */
     interface BnChartTime {
+        /**
+          * Periods that get no category label, as a JSON array or a comma separated list. An entry is a date or the start of one: `2022` leaves out every period of that year, `2022-03` those of the month, `2022-03-01` the period that starts on that day.
+          * @example axis-labels-hide='["2022","2023"]'
+         */
+        "axisLabelsHide"?: string;
         /**
           * Axis Labels Mode defines in which mode the labels are rendered. long, and short mode uses the long an short styles for the date smart only displays relevant information if a change/ transition occured (eg.  only on 1.Jan  the year is displayed) two-row prints short labels and puts the parent period (the year of a month, quarter or week) in a second row, under the first period and where it changes. With scenario-switch the scenario names stand in the same row. <br /><br /> values:<br /> ```smart // long // short // two-row```
          */
@@ -1227,6 +1223,10 @@ export namespace Components {
     }
     interface BnChartTimeRenderer {
         /**
+          * @default []
+         */
+        "axisLabelsHide": string[];
+        /**
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode": AxisLabelsMode;
@@ -1333,6 +1333,10 @@ export namespace Components {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "reportUnit"?: (text: string) => void;
+        /**
+          * @default false
+         */
+        "rowsAbove": boolean;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 0
@@ -2659,15 +2663,6 @@ declare global {
         prototype: HTMLBnChartStructureRendererElement;
         new (): HTMLBnChartStructureRendererElement;
     };
-    /**
-     * SVG time-series chart following IBCS standards.
-     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
-     * line charts with up to four scenario layers, optional variance sub-charts,
-     * stacking, and proportional auto-scaling. Date normalization and interval
-     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-     * is performed by the inner `bn-chart-time-renderer` element; this outer component
-     * validates props, resolves auto-detected metadata, and computes styles.
-     */
     interface HTMLBnChartTimeElement extends Components.BnChartTime, HTMLStencilElement {
     }
     var HTMLBnChartTimeElement: {
@@ -3866,16 +3861,12 @@ declare namespace LocalJSX {
          */
         "variances"?: string[];
     }
-    /**
-     * SVG time-series chart following IBCS standards.
-     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
-     * line charts with up to four scenario layers, optional variance sub-charts,
-     * stacking, and proportional auto-scaling. Date normalization and interval
-     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-     * is performed by the inner `bn-chart-time-renderer` element; this outer component
-     * validates props, resolves auto-detected metadata, and computes styles.
-     */
     interface BnChartTime {
+        /**
+          * Periods that get no category label, as a JSON array or a comma separated list. An entry is a date or the start of one: `2022` leaves out every period of that year, `2022-03` those of the month, `2022-03-01` the period that starts on that day.
+          * @example axis-labels-hide='["2022","2023"]'
+         */
+        "axisLabelsHide"?: string;
         /**
           * Axis Labels Mode defines in which mode the labels are rendered. long, and short mode uses the long an short styles for the date smart only displays relevant information if a change/ transition occured (eg.  only on 1.Jan  the year is displayed) two-row prints short labels and puts the parent period (the year of a month, quarter or week) in a second row, under the first period and where it changes. With scenario-switch the scenario names stand in the same row. <br /><br /> values:<br /> ```smart // long // short // two-row```
          */
@@ -4055,6 +4046,10 @@ declare namespace LocalJSX {
     }
     interface BnChartTimeRenderer {
         /**
+          * @default []
+         */
+        "axisLabelsHide"?: string[];
+        /**
           * @default AxisLabelsMode.SMART
          */
         "axisLabelsMode"?: AxisLabelsMode;
@@ -4161,6 +4156,10 @@ declare namespace LocalJSX {
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
         "reportUnit"?: (text: string) => void;
+        /**
+          * @default false
+         */
+        "rowsAbove"?: boolean;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 0
@@ -5491,6 +5490,7 @@ declare namespace LocalJSX {
         "dataFormatDigitsPercent": number;
         "dataFormatPercentSign": boolean;
         "axisLabelsStep": number;
+        "axisLabelsHide": string;
         "periodLines": number;
         "pointPosition": "center" | "end";
         "scalingIndicator": number;
@@ -5522,6 +5522,7 @@ declare namespace LocalJSX {
         "lineFullWidth": boolean;
         "containerWidth": number;
         "axisLabelsStep": number;
+        "rowsAbove": boolean;
         "periodLines": number;
         "pointPosition": string;
         "scalingIndicator": number;
@@ -5922,15 +5923,6 @@ declare module "@stencil/core" {
              */
             "bn-chart-structure": LocalJSX.IntrinsicElements["bn-chart-structure"] & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;
             "bn-chart-structure-renderer": LocalJSX.IntrinsicElements["bn-chart-structure-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartStructureRendererElement>;
-            /**
-             * SVG time-series chart following IBCS standards.
-             * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
-             * line charts with up to four scenario layers, optional variance sub-charts,
-             * stacking, and proportional auto-scaling. Date normalization and interval
-             * detection are delegated to `DateStringFactory`. The heavy SVG rendering
-             * is performed by the inner `bn-chart-time-renderer` element; this outer component
-             * validates props, resolves auto-detected metadata, and computes styles.
-             */
             "bn-chart-time": LocalJSX.IntrinsicElements["bn-chart-time"] & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
             "bn-chart-time-renderer": LocalJSX.IntrinsicElements["bn-chart-time-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartTimeRendererElement>;
             "bn-component-style": LocalJSX.IntrinsicElements["bn-component-style"] & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;

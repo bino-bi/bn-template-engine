@@ -62,6 +62,24 @@ import { syncEmptyState } from "../../utils/emptyState";
  * is performed by the inner `bn-chart-time-renderer` element; this outer component
  * validates props, resolves auto-detected metadata, and computes styles.
  */
+/** The entries of `axis-labels-hide`: a JSON array or a comma separated list. */
+function parseLabelsHide(value: string | undefined): string[] {
+  const text = (value ?? "").trim();
+  if (text === "") {
+    return [];
+  }
+  let entries: unknown[] = text.split(",");
+  if (text.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(text);
+      entries = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      entries = [text];
+    }
+  }
+  return entries.map((entry) => String(entry).trim()).filter((entry) => entry !== "");
+}
+
 @Component({
   tag: "bn-chart-time",
   styleUrl: "bn-chart-time.scss",
@@ -675,6 +693,31 @@ export class Chart {
   @Prop() axisLabelsStep: number = 1;
 
   /**
+   * Periods that get no category label, as a JSON array or a comma separated
+   * list. An entry is a date or the start of one: `2022` leaves out every
+   * period of that year, `2022-03` those of the month, `2022-03-01` the period
+   * that starts on that day.
+   *
+   * @example axis-labels-hide='["2022","2023"]'
+   */
+  @Prop() axisLabelsHide?: string;
+
+  @Watch("axisLabelsHide")
+  validateAxisLabelsHide(newValue: string | undefined) {
+    const errId = "WARN_axisLabelsHide";
+    const invalid = parseLabelsHide(newValue).filter((entry) => !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(entry));
+    if (invalid.length > 0) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: `axisLabelsHide: '${invalid.join("', '")}' is no date. Use 2022, 2022-03 or 2022-03-01.`,
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
    * Stacked area: a thin line at every n-th period, from the axis to the top
    * of the stack. 1 draws one at every period. With it the dashed line at the
    * change of the year is not drawn. Default 0: no lines.
@@ -989,6 +1032,7 @@ export class Chart {
     this.validateDataFormatDigitsDecimal(this.dataFormatDigitsDecimal);
     this.validateDataFormatDigitsPercent(this.dataFormatDigitsPercent);
     this.validateAxisLabelsStep(this.axisLabelsStep);
+    this.validateAxisLabelsHide(this.axisLabelsHide);
     this.validatePeriodLines(this.periodLines);
     this.validatePointPosition(this.pointPosition);
     this.validateTotals(this.totals);
@@ -1378,6 +1422,18 @@ export class Chart {
       return idx === 0 && !this.hidesScenarios() ? "none" : "left";
     }
     return position === "right" || position === "none" ? position : "left";
+  }
+
+  private labelsHideKey = "";
+  private labelsHide: string[] = [];
+
+  /** The same array for the same value, so the inner chart does not draw again for it. */
+  private prepareAxisLabelsHide(): string[] {
+    if ((this.axisLabelsHide ?? "") !== this.labelsHideKey) {
+      this.labelsHideKey = this.axisLabelsHide ?? "";
+      this.labelsHide = parseLabelsHide(this.axisLabelsHide);
+    }
+    return this.labelsHide;
   }
 
   private titleIsTop(): boolean {
@@ -1897,6 +1953,8 @@ export class Chart {
           percentSign: this.dataFormatPercentSign !== false,
         }}
         axisLabelsStep={Math.max(1, Math.floor(Number(this.axisLabelsStep) || 1))}
+        axisLabelsHide={this.prepareAxisLabelsHide()}
+        rowsAbove={isBase && this.prepareSegments().length > 1}
         periodLines={Math.max(0, Math.floor(Number(this.periodLines) || 0))}
         pointPosition={this.pointPosition === "end" ? "end" : "center"}
         scalingIndicator={Number(this.scalingIndicator) || 0}

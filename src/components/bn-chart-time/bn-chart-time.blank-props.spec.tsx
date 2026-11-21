@@ -304,3 +304,25 @@ describe("bn-chart-time: axis-title-position top", () => {
     expect(renderers(page)[0].getAttribute("chartTitle")).toBe("Net sales");
   });
 });
+
+describe("bn-chart-time: axis-labels-hide", () => {
+  it.each([`axis-labels-hide='["2022","2023-03"]'`, `axis-labels-hide="2022, 2023-03-01"`, ""])(
+    "accepts %s",
+    async (attrs) => {
+      const page = await renderChart(attrs);
+      expect(errorIds(page)).not.toContain("WARN_axisLabelsHide");
+    },
+  );
+
+  it("warns about an entry that is no date", async () => {
+    const page = await renderChart(`axis-labels-hide="2022, March"`);
+    expect(errorIds(page)).toContain("WARN_axisLabelsHide");
+  });
+
+  it("tells the base chart when rows of variances stand above it", async () => {
+    const page = await renderChart(`scenarios="ac1,pp1" variances="dac1_pp1_pos"`);
+    const renderers = Array.from(page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer"));
+    expect(renderers[0].hasAttribute("rowsAbove")).toBe(true);
+    expect(renderers[1].hasAttribute("rowsAbove")).toBe(false);
+  });
+});
