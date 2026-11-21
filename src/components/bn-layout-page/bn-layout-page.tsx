@@ -451,7 +451,8 @@ export class LayoutPage {
     const style = this.getLayoutStyle();
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
     const rotation = this.rotation();
-    const beside = this.messagePosition === "beside";
+    // without a message there is nothing to stand beside the title: the title keeps the full width
+    const beside = this.messagePosition === "beside" && Boolean(this.messageText || this.messageImage);
 
     return (
       <Host style={rotation?.host}>

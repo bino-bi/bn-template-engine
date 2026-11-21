@@ -341,6 +341,14 @@ describe("bn-layout-page title block", () => {
     expect(header(page).querySelector("bn-message")!.getAttribute("text")).toBe("Hello");
   });
 
+  it("keeps the title at full width in beside mode without a message", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      html: `<bn-layout-page message-position="beside"></bn-layout-page>`,
+    });
+    expect(header(page).classList.contains("message-beside")).toBe(false);
+  });
+
   it("prints the id of the page at the end of the title block", async () => {
     const page = await render(`title-id="11A"`);
     expect(header(page).lastElementChild!.textContent).toBe("11A");
