@@ -39,7 +39,7 @@ export class LayoutPage {
   /**
    * Name of a registered component style (see `bn-component-style`) passed
    * through to the inner `<bn-page>` element as its `selected-style`
-   * attribute.
+   * attribute, and to the title, message and footer of the page.
    */
   @Prop() selectedStyle?: string;
 
@@ -463,9 +463,16 @@ export class LayoutPage {
           orientation={this.pageOrientation}
           style={rotation?.page}
         >
-          {beside ? null : <bn-message text={this.messageText} image={this.messageImage}></bn-message>}
+          {beside ? null : (
+            <bn-message
+              selected-style={this.selectedStyle}
+              text={this.messageText}
+              image={this.messageImage}
+            ></bn-message>
+          )}
           <div class={{ "page-header": true, "message-beside": beside, "with-id": this.titleId !== "" }}>
             <bn-title // @ts-ignore
+              selected-style={this.selectedStyle}
               i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
               ruleset={this.ruleset}
               business-unit={this.titleBusinessUnit}
@@ -479,7 +486,13 @@ export class LayoutPage {
               date-format={this.titleDateFormat}
               date-link={this.titleDateLink}
             ></bn-title>
-            {beside ? <bn-message text={this.messageText} image={this.messageImage}></bn-message> : null}
+            {beside ? (
+              <bn-message
+                selected-style={this.selectedStyle}
+                text={this.messageText}
+                image={this.messageImage}
+              ></bn-message>
+            ) : null}
             {this.titleId ? <div class="page-id">{this.titleId}</div> : null}
           </div>
           <bn-body>
@@ -497,6 +510,7 @@ export class LayoutPage {
             <slot name="annotations"></slot>
           </bn-body>
           <bn-footer
+            selected-style={this.selectedStyle}
             text={this.footerText}
             page-number={this.pageNumber}
             display-page-number={this.footerDisplayPageNumber}

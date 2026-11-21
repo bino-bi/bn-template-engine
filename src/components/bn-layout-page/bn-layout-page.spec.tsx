@@ -34,6 +34,36 @@ describe("bn-layout-page selected-style forwarding", () => {
     expect(inner).not.toBeNull();
     expect(inner.hasAttribute("selected-style")).toBe(false);
   });
+
+  it("forwards selected-style to the title, message and footer", async () => {
+    for (const position of ["top", "beside"]) {
+      const page = await newSpecPage({
+        components: [LayoutPage],
+        template: () => (
+          <bn-layout-page
+            selected-style="corporate-style"
+            message-text="m"
+            message-position={position}
+          ></bn-layout-page>
+        ),
+      });
+      for (const tag of ["bn-title", "bn-message", "bn-footer"]) {
+        const el = page.root.shadowRoot.querySelector(tag);
+        expect(el).not.toBeNull();
+        expect(el.getAttribute("selected-style")).toBe("corporate-style");
+      }
+    }
+  });
+
+  it("omits selected-style on the title, message and footer when not set", async () => {
+    const page = await newSpecPage({
+      components: [LayoutPage],
+      template: () => <bn-layout-page message-text="m"></bn-layout-page>,
+    });
+    for (const tag of ["bn-title", "bn-message", "bn-footer"]) {
+      expect(page.root.shadowRoot.querySelector(tag).hasAttribute("selected-style")).toBe(false);
+    }
+  });
 });
 
 describe("bn-layout-page ruleset forwarding", () => {
