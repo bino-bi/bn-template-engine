@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-layout-page`: `message-position="beside"` puts the message right of the title block, in one row with it. The title block then takes 30 % of the width, so the message starts at the same place on every page. Default `top`: a row of its own above the title block, as before.
+- `bn-layout-page`: `title-id` prints a short id of the page large at the top right of the title block, for example the number of a report page.
 - `bn-chart-time`: `axis-labels-hide` lists periods that get no category label, as a JSON array or a comma separated list. An entry is a date or the start of one: `2022` for every period of that year, `2022-03` for those of the month, `2022-03-01` for the period that starts on that day.
 - `bn-chart-time`: with `scenario-switch`, the line between two scenarios of a plain column chart starts a bit above the higher of the two columns beside it and its value. Before, it started at the top of the chart. With rows of variances above the chart, a stack, total columns, a variance walk or a scaling indicator it still runs from the top.
 - `bn-tree`: `scale` scales the whole tree: the node components that set no `scale` of their own, the spacings and the operators. A positive number is a fixed factor. `auto` starts at 1 and gets smaller until the tree fits its parent, after the nodes have stopped changing their size. A tree that cannot fit at any factor, for example with a node that sets its own `scale`, stays at 1 and reports `WARN_overflow`. A tree in a node takes the factor and hands it on. Without `scale` nothing changes.

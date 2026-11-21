@@ -1,4 +1,4 @@
-import { Component, h, Host, Element, Prop, Fragment } from "@stencil/core";
+import { Component, h, Host, Element, Prop, Fragment, Watch } from "@stencil/core";
 import { sheetGeometry } from "../bn-page/pageFormats";
 import withComponentStatus from "../../utils/withComponentStatus";
 import withHasError, { ErrorDispatcher } from "../../utils/withHasError";
@@ -61,6 +61,33 @@ export class LayoutPage {
    * <bn-layout-page message-text="Revenue <b>above plan</b><br />Q3 2026"></bn-layout-page>
    */
   @Prop() messageText: string = "";
+
+  /**
+   * Where the message stands.
+   * - `top` (default): in a row of its own above the title block
+   * - `beside`: right of the title block, in one row with it
+   */
+  @Prop() messagePosition: string = "top";
+
+  @Watch("messagePosition")
+  validateMessagePosition(newValue: string) {
+    const errId = "WARN_messagePosition";
+    if (newValue != null && newValue !== "" && !["top", "beside"].includes(newValue)) {
+      this.errors.addOrReplace({
+        id: errId,
+        type: "warning",
+        message: `messagePosition: invalid value '${newValue}', use "top" or "beside"`,
+      });
+    } else {
+      this.errors.remove(errId);
+    }
+  }
+
+  /**
+   * A short id of the page, printed large at the top right of the title
+   * block, for example the number of a report page (`11A`). Empty: none.
+   */
+  @Prop() titleId: string = "";
 
   /**
    * URL or asset name of the image displayed in the message row.
@@ -415,10 +442,17 @@ export class LayoutPage {
     };
   }
 
+  componentWillLoad() {
+    // the watcher only sees a later change
+    this.validateMessagePosition(this.messagePosition);
+  }
+
   render() {
     const style = this.getLayoutStyle();
     const arrOfSlots: string[] = this.extractSlotNames(style["grid-template-areas"]);
     const rotation = this.rotation();
+    // without a message there is nothing to stand beside the title: the title keeps the full width
+    const beside = this.messagePosition === "beside" && Boolean(this.messageText || this.messageImage);
 
     return (
       <Host style={rotation?.host}>
@@ -429,21 +463,25 @@ export class LayoutPage {
           orientation={this.pageOrientation}
           style={rotation?.page}
         >
-          <bn-message text={this.messageText} image={this.messageImage}></bn-message>
-          <bn-title // @ts-ignore
-            i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
-            ruleset={this.ruleset}
-            business-unit={this.titleBusinessUnit}
-            scenarios={this.titleScenarios}
-            variances={this.titleVariances}
-            order={this.titleOrder}
-            order-direction={this.titleOrderDirection}
-            measures={this.titleMeasures}
-            date-start={this.titleDateStart}
-            date-end={this.titleDateEnd}
-            date-format={this.titleDateFormat}
-            date-link={this.titleDateLink}
-          ></bn-title>
+          {beside ? null : <bn-message text={this.messageText} image={this.messageImage}></bn-message>}
+          <div class={{ "page-header": true, "message-beside": beside, "with-id": this.titleId !== "" }}>
+            <bn-title // @ts-ignore
+              i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
+              ruleset={this.ruleset}
+              business-unit={this.titleBusinessUnit}
+              scenarios={this.titleScenarios}
+              variances={this.titleVariances}
+              order={this.titleOrder}
+              order-direction={this.titleOrderDirection}
+              measures={this.titleMeasures}
+              date-start={this.titleDateStart}
+              date-end={this.titleDateEnd}
+              date-format={this.titleDateFormat}
+              date-link={this.titleDateLink}
+            ></bn-title>
+            {beside ? <bn-message text={this.messageText} image={this.messageImage}></bn-message> : null}
+            {this.titleId ? <div class="page-id">{this.titleId}</div> : null}
+          </div>
           <bn-body>
             {/* data-bn-fit-content: tells auto-scaling components that heights
               inside this grid are content-driven and unusable as a scaling
