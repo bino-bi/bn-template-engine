@@ -84,12 +84,6 @@ export class LayoutPage {
   }
 
   /**
-   * A short id of the page, printed large at the top right of the title
-   * block, for example the number of a report page (`11A`). Empty: none.
-   */
-  @Prop() titleId: string = "";
-
-  /**
    * URL or asset name of the image displayed in the message row.
    * If the value is not an HTTP URL it is looked up in the asset store.
    * If empty, the image is omitted.
@@ -470,7 +464,7 @@ export class LayoutPage {
               image={this.messageImage}
             ></bn-message>
           )}
-          <div class={{ "page-header": true, "message-beside": beside, "with-id": this.titleId !== "" }}>
+          <div class={{ "page-header": true, "message-beside": beside }}>
             <bn-title // @ts-ignore
               selected-style={this.selectedStyle}
               i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
@@ -493,7 +487,6 @@ export class LayoutPage {
                 image={this.messageImage}
               ></bn-message>
             ) : null}
-            {this.titleId ? <div class="page-id">{this.titleId}</div> : null}
           </div>
           <bn-body selected-style={this.selectedStyle}>
             {/* data-bn-fit-content: tells auto-scaling components that heights
