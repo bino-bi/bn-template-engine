@@ -1875,11 +1875,6 @@ export namespace Components {
          */
         "titleDateStart"?: string;
         /**
-          * A short id of the page, printed large at the top right of the title block, for example the number of a report page (`11A`). Empty: none.
-          * @default ""
-         */
-        "titleId": string;
-        /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
          */
@@ -4777,11 +4772,6 @@ declare namespace LocalJSX {
          */
         "titleDateStart"?: string;
         /**
-          * A short id of the page, printed large at the top right of the title block, for example the number of a report page (`11A`). Empty: none.
-          * @default ""
-         */
-        "titleId"?: string;
-        /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
          */
@@ -5800,7 +5790,6 @@ declare namespace LocalJSX {
         "ruleset": string;
         "messageText": string;
         "messagePosition": string;
-        "titleId": string;
         "messageImage": string;
         "titleBusinessUnit": string;
         "titleScenarios": string;

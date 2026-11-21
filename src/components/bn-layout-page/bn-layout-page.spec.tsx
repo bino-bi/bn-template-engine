@@ -358,7 +358,6 @@ describe("bn-layout-page title block", () => {
     expect(order(page).slice(0, 2)).toEqual(["bn-message", "div"]);
     expect(Array.from(header(page).children).map((child) => child.tagName.toLowerCase())).toEqual(["bn-title"]);
     expect(header(page).classList.contains("message-beside")).toBe(false);
-    expect(header(page).classList.contains("with-id")).toBe(false);
   });
 
   it("puts the message right of the title with message-position beside", async () => {
@@ -377,14 +376,6 @@ describe("bn-layout-page title block", () => {
       html: `<bn-layout-page message-position="beside"></bn-layout-page>`,
     });
     expect(header(page).classList.contains("message-beside")).toBe(false);
-  });
-
-  it("prints the id of the page at the end of the title block", async () => {
-    const page = await render(`title-id="11A"`);
-    expect(header(page).lastElementChild!.textContent).toBe("11A");
-    expect(header(page).classList.contains("with-id")).toBe(true);
-    // the message stays above
-    expect(order(page)[0]).toBe("bn-message");
   });
 
   it("warns about a position it does not know", async () => {
