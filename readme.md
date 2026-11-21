@@ -1,8 +1,17 @@
 # bn-template-engine
 
+> [!NOTE]
+> **About the history and the license of this repository.**
+>
+> All commits up to and including [`9629c1b`](https://github.com/bino-bi/bn-template-engine/commit/9629c1b534b70bb37305695e2565b1170eecb8da) come from an older, private project. That code is source available and free to use. It was not written for the public, so please read it with a grain of salt.
+>
+> The current code is also source available and free to use. With version 1.0 the project moves to an open source license.
+>
+> See [LICENSE](LICENSE) for the terms.
+
 IBCS-compliant web components for business intelligence visualizations.
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![License: Source Available](https://img.shields.io/badge/License-Source_Available-orange.svg)](LICENSE)
 [![npm version](https://img.shields.io/npm/v/@bino-bi/bn-template-engine)](https://www.npmjs.com/package/@bino-bi/bn-template-engine)
 
 **bn-template-engine** is a [Stencil.js](https://stenciljs.com/) web component library that renders tables and charts following [IBCS (International Business Communication Standards)](https://www.ibcs.com/). It supports multi-scenario comparisons (actual, forecast, plan, previous period), variance calculations, hierarchical data grouping, and more - all as standard Web Components that work in any HTML page or framework.
@@ -173,4 +182,4 @@ bn-template-engine uses standard [Web Components](https://developer.mozilla.org/
 
 ## License
 
-[Apache 2.0](LICENSE)
+Source available and free to use, see [LICENSE](LICENSE). The project moves to an open source license with version 1.0.
