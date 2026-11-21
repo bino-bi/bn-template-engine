@@ -43,6 +43,12 @@ export interface GridStyle {
   captionGap: number;
 }
 
+/** Optional overrides for `bn-table`. */
+export interface TableStyle {
+  /** False prints the relative variances upright: the number cells and the labels of the pins. Default true (italic). */
+  relativeItalic?: boolean;
+}
+
 /** Optional overrides for `bn-layout-card`. */
 export interface LayoutCardStyle {
   /** Font size of the card title in px. Without it the title has the font size of `global.fontSizePx`. */
@@ -62,6 +68,7 @@ export interface Style {
   "bn-grid": GridStyle;
   "bn-layout-card": LayoutCardStyle;
   "bn-annotation": AnnotationStyle;
+  "bn-table": TableStyle;
 }
 
 /** Colours of the marks of `bn-annotation-layer` and the circles of `bn-annotation-list`. */
@@ -354,6 +361,7 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
     captionGap: 2,
   },
   "bn-layout-card": {} as LayoutCardStyle,
+  "bn-table": {} as TableStyle,
   "bn-annotation": {
     color: "#0070c0",
     colors: { negative: "#ff0000", positive: "#008f96" },
@@ -365,6 +373,7 @@ export const SYSTEM_STYLE_DEFAULTS: Style = {
 const OPTIONAL_KEYS: Record<string, string[]> = {
   "bn-text": ["fontFamily", "fontSizePx", "fontColor", "fontBackgroundColor", "leading"],
   "bn-layout-card": ["titleFontSize"],
+  "bn-table": ["relativeItalic"],
 };
 // The keys of these groups are checked too. The style groups (`axisStyles.ac`, ...) are not: their keys differ per scenario.
 const CHECKED_GROUPS = ["scaleFactors", "padding"];

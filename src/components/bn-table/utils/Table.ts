@@ -15,6 +15,7 @@ import {
   resolveIntervalGranularity,
 } from "./helper";
 import { parseOrderToken } from "../../../utils/model/Order";
+import { Formatter } from "../../../utils";
 
 /**
  * High-level controller for IBCS table generation.
@@ -68,6 +69,11 @@ export class Table {
    * ```
    * @param i18n
    */
+  /** The header name of a scenario, as the columns print it. */
+  public scenarioLabel(scenario: string): string {
+    return Formatter.translateScenarioLabel(scenario, this.i18n);
+  }
+
   public setI18n(i18n: Map<string, string>) {
     this.i18n = this.initI18n(i18n);
   }

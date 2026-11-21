@@ -11,7 +11,7 @@ import {
 } from "../helper";
 
 import { TableAttribute } from "../model/TableAttribute";
-import { TableComponentConfig } from "../model/TableComponentConfig";
+import { BAR_PART_SCENARIO, TableComponentConfig } from "../model/TableComponentConfig";
 import { Formatter } from "../../../../utils";
 import { I18nMode, DataFormat, Scenarios, TableCategoryWidth } from "../../../../utils/constants";
 import { QueryColumnNames, VarianceScenario } from "../../../../utils/model";
@@ -278,6 +278,7 @@ export class TableDataSetFactory {
       queryData,
       config.barColumns,
       config.interval !== INTERVAL_NONE,
+      config.sumBars,
     );
 
     // Scenario bar columns render as a waterfall when grouping structure is present,
@@ -292,7 +293,14 @@ export class TableDataSetFactory {
     ];
     const waterfallResult =
       waterfallColumns.length > 0 && config.interval === INTERVAL_NONE && config.categoryThereOf.size === 0
-        ? computeWaterfall(queryData, waterfallColumns, config.type, dataQuery.hasRunningSum(), thereOfAbove)
+        ? computeWaterfall(
+            queryData,
+            waterfallColumns,
+            config.type,
+            dataQuery.hasRunningSum(),
+            thereOfAbove,
+            config.barColumnParts,
+          )
         : undefined;
 
     for (const groupData of queryData) {
@@ -317,7 +325,52 @@ export class TableDataSetFactory {
       );
     }
 
-    return bodyRows;
+    return this.withRatioRows(bodyRows, config);
+  }
+
+  /**
+   * Puts a row after the result of each ratio's numerator: per scenario column the
+   * numerator divided by the denominator, in percent. Variance cells stay empty. In a
+   * waterfall column the line of the walk runs through the row.
+   */
+  private withRatioRows(rows: TableRow[], config: TableComponentConfig): TableRow[] {
+    if (config.ratios.length === 0) return rows;
+    const resultRow = (rowGroup: string) =>
+      rows.find((row) => row.type === TableRowType.SUM && row.key?.row === "subtotal" && row.key.rowGroup === rowGroup);
+    const result = [...rows];
+    for (const ratio of config.ratios) {
+      const numerator = resultRow(ratio.numerator);
+      const denominator = resultRow(ratio.denominator);
+      if (!numerator || !denominator) continue;
+      const row = new TableRow(numerator.index, numerator.groupindex, TableRowType.STANDARD);
+      row.cssStyle = "ratio";
+      for (const cell of numerator.getCells()) {
+        const below = denominator.getCells().find((other) => other.key === cell.key);
+        const plain = BAR_PART_SCENARIO.test(cell.key);
+        const value =
+          cell.key === QueryColumnNames.CATEGORY
+            ? ratio.name
+            : plain && typeof cell.value === "number" && typeof below?.value === "number" && below.value !== 0
+              ? cell.value / below.value
+              : "";
+        // an empty cell is not formatted: it would print 0%
+        const cellType = typeof value === "number" ? "percent" : null;
+        row.createElement(value, cell.key, null, cellType, null, "", false, config.categoryWidth, null);
+        const made = row.elements[row.elements.length - 1];
+        if (cell.waterfall) {
+          const { end, min, max } = cell.waterfall;
+          made.ratioLine = { at: end, min, max };
+        } else if (cell.isBarChart && cell.columnStats) {
+          made.axisOnly = true;
+          made.columnStats = cell.columnStats;
+        }
+      }
+      // after the result and after the ratio rows that came before for the same result
+      let at = result.indexOf(numerator) + 1;
+      while (result[at]?.cssStyle === "ratio") at += 1;
+      result.splice(at, 0, row);
+    }
+    return result;
   }
 
   /**
@@ -327,6 +380,7 @@ export class TableDataSetFactory {
     queryData: DataQueryResultRow[][],
     barColumns: string[],
     intervalActive: boolean = false,
+    sumBars: boolean = false,
   ): Map<string, ColumnStats> {
     const statsMap = new Map<string, ColumnStats>();
 
@@ -344,10 +398,12 @@ export class TableDataSetFactory {
     // Iterate through all groups and rows
     for (const groupData of queryData) {
       for (const row of groupData) {
-        // sum rows draw no bar (a waterfall takes its extent from WaterfallBarData), so they must not stretch the scale
+        // sum rows draw no bar unless sumBars (a waterfall takes its extent from WaterfallBarData), so they must not stretch the scale
         const type = row[QueryColumnNames.TYPE];
-        if (type === TableRowType.SUM || type === TableRowType.GROUPSUM) continue;
+        const isSum = type === TableRowType.SUM || type === TableRowType.GROUPSUM;
         for (const column of barColumns) {
+          // sumBars draws the bars and pins of the variances on sum rows, not plain scenario bars
+          if (isSum && !(sumBars && new VarianceScenario(column).isValid)) continue;
           // with an active interval the rendered values live under the
           // `column##bucket` keys; the plain column would hold the (larger)
           // un-bucketed aggregate and skew the bar scaling

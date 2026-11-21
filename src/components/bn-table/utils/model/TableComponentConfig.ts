@@ -26,6 +26,18 @@ import { AlaSQLDatabase } from "../../../../context/scopedDb";
  *   (e.g. `"Revenue##Product A"`) to expand a single category column into detail sub-columns.
  *   The Map key is the parent category, values are the detail records.
  */
+/** A plain scenario column (`ac1` to `pl4`): the only kind a bar part can be or have. */
+export const BAR_PART_SCENARIO = /^(ac|pp|fc|pl)[1-4]$/;
+
+/** A row with the ratio of two results, for example a margin: `numerator / denominator` in percent. */
+export interface TableRatio {
+  name: string;
+  /** rowGroup of the result above the ratio row. */
+  numerator: string;
+  /** rowGroup of the result it is divided by. */
+  denominator: string;
+}
+
 export class TableComponentConfig {
   public title: string = "";
   /** Active scenario column names (e.g. `["ac1", "pl1"]`). */
@@ -39,6 +51,12 @@ export class TableComponentConfig {
   public runningSum: boolean = false;
   /** When true, absolute variance bar columns are drawn as a waterfall (see bn-table `varianceWaterfall` prop). */
   public varianceWaterfall: boolean = false;
+  /** When true, the variance bars and pins are drawn on the sum rows too (see bn-table `sumBars` prop). */
+  public sumBars: boolean = false;
+  /** Waterfall column to the scenario drawn inside its bars from their start (see bn-table `barColumnParts` prop). */
+  public barColumnParts: Map<string, string> = new Map();
+  /** Ratio rows after a result row (see bn-table `ratios` prop). */
+  public ratios: TableRatio[] = [];
   /** Drill-down sub-row definitions -- "thereof" breakdowns within a category. */
   public thereOf: TableDrillGroup[] = [];
   /** Thereof rows below or above their parent row (see bn-table `thereofPosition` prop). */
@@ -120,6 +138,26 @@ export class TableComponentConfigAdapter implements IAdapter<TableComponentConfi
 
     if (CompareUtil.isBoolean(data.varianceWaterfall)) {
       config.varianceWaterfall = data.varianceWaterfall;
+    }
+    if (CompareUtil.isBoolean(data.sumBars)) {
+      config.sumBars = data.sumBars;
+    }
+    if (Array.isArray(data.ratios)) {
+      config.ratios = (data.ratios as unknown[]).filter(
+        (entry): entry is TableRatio =>
+          entry !== null &&
+          typeof entry === "object" &&
+          typeof (entry as TableRatio).name === "string" &&
+          typeof (entry as TableRatio).numerator === "string" &&
+          typeof (entry as TableRatio).denominator === "string",
+      );
+    }
+    if (data.barColumnParts && typeof data.barColumnParts === "object") {
+      for (const [column, part] of Object.entries(data.barColumnParts as Record<string, unknown>)) {
+        if (BAR_PART_SCENARIO.test(column) && typeof part === "string" && BAR_PART_SCENARIO.test(part)) {
+          config.barColumnParts.set(column, part);
+        }
+      }
     }
 
     if (data.thereOfPosition === ThereofPosition.ABOVE) {

@@ -57,6 +57,8 @@ All lengths are plain numbers. Which unit a number has depends on where it stand
 
 `fillpattern` in `barStyles` and `varianceStyles` is `solid`, `hatched` or `outlined`. The old value `fc` still works and means `hatched`.
 
+`negativeFill` in an entry of `barStyles` is the fill of a column or bar below 0, and in `bn-table` of a waterfall step that goes down. `outlineFill` and `outlineStroke` in an entry of `varianceStyles` are the fill and the edge of an outlined variance, the variance of a plan, in `bn-chart-time` and `bn-table`. Without them a chart fills it with the background and a table leaves it empty, and the edge has the colour of the variance.
+
 The keys `ac`, `pp`, `fc` and `pl` of `barStyles` are style slots. A scenario uses the slot of its own name, unless a [`<bn-ruleset>`](../src/components/bn-ruleset/readme.md) gives it another `colorIndex`. The hatch pattern always takes its colours from the `fc` slot.
 
 ### Global
@@ -164,6 +166,10 @@ Customize `<bn-chart-structure>` appearance. It has the same sections as the tim
   }
 }
 ```
+
+### Table
+
+`bn-table` takes the colours of its bars, waterfalls and pins from `bn-chart-time` (`barStyles`, `varianceStyles`). Its own section has one key: `relativeItalic: false` prints the relative variances upright, the number cells and the pin labels.
 
 ### Other charts
 

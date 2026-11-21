@@ -36,7 +36,7 @@ import { Style } from "../../stores/componentStyles";
 
 import withHasError, { ErrorDispatcher, reportOverflow } from "../../utils/withHasError";
 import withInheritedProps, { InheritedResolver, isInheritedValue } from "../../utils/withInheritedProps";
-import { getParentDimensions } from "../../utils/parentDimensions";
+import { getParentDimensions, roomInParent } from "../../utils/parentDimensions";
 import { AutoScalingReport, formatScalingValue, parseScaling, resolveScalingValue } from "../../utils/scaling";
 import { observeParentResize, LayoutObserverHandle } from "../../utils/layoutObserver";
 import { DatasetMeta } from "../../utils/model/DatasetMeta";
@@ -54,6 +54,7 @@ import { TableDrillGroup } from "./utils/model/TableDrillGroup";
 import { parseTableAttributeExpression, TableAttribute } from "./utils/model/TableAttribute";
 import { normalizeOrderToken, Order, OrderDirection } from "../../utils/model/Order";
 import { DataFormatDigits } from "../../utils/model/DataFormatDigits";
+import { BAR_PART_SCENARIO, TableRatio } from "./utils/model/TableComponentConfig";
 import {
   ComponentLayoutState,
   LAYOUT_STATE_VERSION,
@@ -100,6 +101,11 @@ export class Table {
   @State() private dataVersion: number = 0;
   @State() private datasetMeta: DatasetMeta | null = null;
   @State() private appliedScaleFactor: number = 1;
+  /** Space between two rows in px that `fillHeight` gives the table. */
+  @State() private rowGap: number = 0;
+  private rowGapKey = "";
+  private rowGapSteps = 0;
+  private _lastFilledParentHeight = 0;
   /** True when the active dataset contains rows with a blank `setname` (relevant for `interval='setname'`). */
   @State() private hasBlankSetnames: boolean = false;
   /** True when the active dataset contains rows with a `setnameIndex` but a blank `setname`. */
@@ -379,9 +385,9 @@ export class Table {
    * Scenario columns (ac1..pl4) render as horizontal bar charts; when the table
    * contains grouping structure (sum rows, thereof, or partof) they automatically
    * render as an IBCS waterfall - data rows cascade from the running total and
-   * sum rows anchor at zero. Waterfall columns auto-scale to fit the bar column
-   * width (unit-scaling does not apply) and are not supported in combination
-   * with `interval` or `columnthereof`.
+   * sum rows anchor at zero. Thin lines join the bars. Waterfall columns auto-scale
+   * to fit the bar column width, see `waterfallScaling` for one scale in the table.
+   * They are not supported in combination with `interval` or `columnthereof`.
    * <br /><br />
    * example:<br />
    * ```dac1_pp1_pos,drac1_pp1_pos,ac1```
@@ -580,14 +586,124 @@ export class Table {
    *  tables a "-" row with a positive variance moves to the left. Sum rows are
    *  bars from the axis. Thin lines join the bars. Each row group starts at the
    *  axis again, with ```runningSum``` the walk goes on from the sum row.
-   *  The column scales to fit the whole walk (unit-scaling does not apply).
-   *  Relative variance columns (dr_*) stay pins.
+   *  The column scales to fit the whole walk, see `waterfallScaling` for one scale
+   *  in the table. Relative variance columns (dr_*) stay pins.
    *  Has no effect together with ```interval``` or ```columnthereof```.
    *  <br /><br />
    *  values: <br />
    *  ```true // false```
    */
   @Prop() varianceWaterfall: boolean = false;
+
+  /**
+   *  How the waterfall columns of ```barColumns``` are scaled.
+   *  <br /><br />
+   *  | Value    | Behavior |
+   *  |----------|----------|
+   *  | `column` | Each waterfall column fits its own walk to its width (default). |
+   *  | `unit`   | All waterfall columns and the absolute variance bars share one scale: `unitScaling`. With `auto` it is the largest scale at which every walk fits its column and every variance bar its cut. A fixed `unitScaling` (or a scaling group) at which a walk does not fit is made coarser for all bars of the table, with the warning `WARN_waterfallScaling`. |
+   *  <br /><br />
+   *  IBCS shows values of the same unit at the same scale, so a table with a PY and an AC
+   *  waterfall and a ΔPY column uses `unit`.
+   */
+  @Prop() waterfallScaling: string = "column";
+
+  @Watch("waterfallScaling")
+  validateWaterfallScaling(newValue: string) {
+    const errId = "WARN_waterfallScaling_value";
+    if (newValue === undefined || newValue === null || newValue === "column" || newValue === "unit") {
+      this.errors.remove(errId);
+      return;
+    }
+    this.errors.addOrReplace({
+      id: errId,
+      type: "warning",
+      message: "waterfallScaling: invalid value '" + newValue + "' is not supported. Use 'column' or 'unit'.",
+    });
+  }
+
+  /**
+   *  Draws the absolute variance bars and the relative variance pins of ```barColumns```
+   *  on the sum rows too: group sums, running results and the total. Without it these
+   *  rows print the variance as a number. The sum rows then count for the scale of the
+   *  bars and pins. Has no effect on a variance column drawn as a ```varianceWaterfall```,
+   *  which draws its sum rows anyway.
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
+   */
+  @Prop() sumBars: boolean = false;
+
+  /**
+   *  Draws a second scenario inside the bars of a scenario waterfall column, from the
+   *  start of each bar, in its own look and with its value inside when it fits. The
+   *  header names the part over the start of the column. Use it for a year forecast
+   *  with the actual year to date in it: ```{"fc1": "ac1"}```. The part is read from the
+   *  data like a scenario, but gets no column of its own. A part longer than its bar ends
+   *  at the end of the bar. Only waterfall columns draw parts.
+   *  <br /><br />
+   *  example:<br />
+   *  ```{"fc1": "ac1"}```
+   */
+  @Prop() barColumnParts: string | Record<string, string>;
+
+  /**
+   *  Rows with the ratio of two results, for example a margin. Each row stands after the
+   *  result of its `numerator` and shows, per scenario column, that result divided by the
+   *  result of its `denominator`, in percent and in italics. Its variance cells stay empty.
+   *  `numerator` and `denominator` name the `rowGroup` of a sum row, so the table needs
+   *  `grouped` and a type with group sums. In a waterfall column the value stands left of
+   *  the line of the walk, which runs through the row.
+   *  <br /><br />
+   *  example:<br />
+   *  ```[{"name": "Gross margin", "numerator": "Operating result", "denominator": "Sales revenue"}]```
+   */
+  @Prop() ratios: string | TableRatio[];
+
+  /**
+   *  Spreads the rows over the height of the layout cell: the space the table does not
+   *  need is put between the rows, at most 1 em per row. The lines of the bar and pin
+   *  columns run through the space. Without a height of its own (a cell that grows with
+   *  its content) the table keeps its height. A table that is too high is not made
+   *  smaller: see `scale`.
+   *  <br /><br />
+   *  values: <br />
+   *  ```true // false```
+   */
+  @Prop() fillHeight: boolean = false;
+
+  @Watch("ratios")
+  validateRatios(newValue: string | TableRatio[]) {
+    const errId = "WARN_ratios";
+    const { invalid } = parseRatios(newValue);
+    if (invalid === undefined) {
+      this.errors.remove(errId);
+      return;
+    }
+    this.errors.addOrReplace({
+      id: errId,
+      type: "warning",
+      message: "ratios: " + invalid + " Each entry needs 'name', 'numerator' and 'denominator' as text.",
+    });
+  }
+
+  @Watch("barColumnParts")
+  validateBarColumnParts(newValue: string | Record<string, string>) {
+    const errId = "WARN_barColumnParts";
+    const { invalid } = parseBarColumnParts(newValue);
+    if (invalid.length === 0) {
+      this.errors.remove(errId);
+      return;
+    }
+    this.errors.addOrReplace({
+      id: errId,
+      type: "warning",
+      message:
+        "barColumnParts: invalid entries " +
+        JSON.stringify(invalid) +
+        " are not used. Map a scenario column such as 'fc1' to a scenario such as 'ac1'.",
+    });
+  }
 
   /**
    *  Set the table type
@@ -893,6 +1009,13 @@ export class Table {
    */
   @Prop() dataFormatDigitsPercent: number = 2;
 
+  /**
+   * `false` prints the labels of the relative variance pins without the percent sign
+   * (`+26`). The header of the column (`ΔPY%`) still names the unit. The number cells
+   * of a relative variance keep their sign.
+   */
+  @Prop() dataFormatPercentSign: boolean = true;
+
   @Watch("dataFormatDigitsPercent")
   validateDateFormatDigitsPercent(newValue: number) {
     const errId = "WARN_dataFormatDigitsPercent";
@@ -1081,6 +1204,9 @@ export class Table {
     this.validateBarColumns(this.barColumns);
     this.validateBarColumnWidth(this.barColumnWidth);
     this.validateUnitScaling(this.unitScaling);
+    this.validateWaterfallScaling(this.waterfallScaling);
+    this.validateBarColumnParts(this.barColumnParts);
+    this.validateRatios(this.ratios);
     this.validatePercentageScaling(this.percentageScaling);
     this.validateScaling(this.scale);
   }
@@ -1097,6 +1223,15 @@ export class Table {
       if (width > 0 && Math.abs(width - this._lastScaledParentWidth) > 2) {
         this._lastScaledParentWidth = width;
         forceUpdate(this);
+        return;
+      }
+      // fillHeight follows the height of the cell too. A cell that grows with the table gives no room, so no loop
+      if (this.fillHeight === true) {
+        const room = roomInParent(this.element);
+        if (room > 0 && Math.abs(room - this._lastFilledParentHeight) > 2) {
+          this._lastFilledParentHeight = room;
+          forceUpdate(this);
+        }
       }
     });
   }
@@ -1189,6 +1324,49 @@ export class Table {
   }
 
   /**
+   * `fillHeight`: puts the height the table does not use between its rows. The table
+   * grows by one gap per row and one more, so one step finds the gap.
+   */
+  private fitRowGap(): void {
+    if (this.fillHeight !== true) return;
+    // the room in the cell, not in a higher ancestor: a cell that grows with its content gives no room
+    const parentHeight = roomInParent(this.element);
+    if (parentHeight <= 0) return;
+    const table = (this.element.shadowRoot ?? this.element)
+      .querySelector("bn-table-renderer")
+      ?.shadowRoot?.querySelector("table");
+    const rows = table?.rows.length ?? 0;
+    if (!table || rows === 0) return;
+    // a new cell height or a new table starts the search again
+    const factor = this.getEffectiveScaleFactor();
+    const key = `${Math.round(parentHeight)}|${rows}|${factor.toFixed(4)}`;
+    if (key !== this.rowGapKey) {
+      this.rowGapKey = key;
+      this.rowGapSteps = 0;
+    }
+    // the height grows by one gap per row and one more, so a step or two finds it; more steps mean a loop
+    if (this.rowGapSteps >= 3) return;
+    // lines that stick out of the last row count like the overflow check counts them
+    const used = Math.max(
+      table.getBoundingClientRect().bottom - this.element.getBoundingClientRect().top,
+      this.element.scrollHeight,
+    );
+    const em = this.componentStyle(($) => $["global"]?.["fontSizePx"] || 13.3333) * factor;
+    // one px of room for rounding
+    const slack = parentHeight - 1 - used;
+    const next = Math.max(0, Math.min(em, this.rowGap + slack / (rows + 1)));
+    if (Math.abs(next - this.rowGap) > 0.5 || (slack < 0 && next < this.rowGap)) {
+      this.rowGapSteps += 1;
+      writeTask(() => {
+        this.rowGap = next;
+      });
+    } else {
+      // settled: a later change of the content may fit again
+      this.rowGapSteps = 0;
+    }
+  }
+
+  /**
    * Reports an overflow item when the rendered table exceeds its
    * container. The table only auto-fits its WIDTH, so nothing prevents it
    * from growing taller than the layout cell, which clips the bottom rows
@@ -1198,6 +1376,7 @@ export class Table {
    */
   private checkOverflow(): void {
     const parent = getParentDimensions(this.element);
+    this.fitRowGap();
     const contentWidth = this.element.scrollWidth;
     const contentHeight = this.element.scrollHeight;
     const widthOver = parent.width > 0 && contentWidth > parent.width + 1;
@@ -1317,6 +1496,7 @@ export class Table {
     const formatDigits: DataFormatDigits = {
       percent: this.dataFormatDigitsPercent,
       decimal: this.dataFormatDigitsDecimal,
+      percentSign: this.dataFormatPercentSign !== false,
     };
 
     return formatDigits;
@@ -1854,6 +2034,11 @@ export class Table {
             showGroupTitle={this.prepareShowGroupTitle()}
             runningSum={this.runningSum}
             varianceWaterfall={this.varianceWaterfall}
+            sumBars={this.sumBars === true}
+            barColumnParts={parseBarColumnParts(this.barColumnParts).parts}
+            ratios={parseRatios(this.ratios).ratios}
+            rowGap={this.fillHeight === true ? this.rowGap : 0}
+            waterfallScaling={this.waterfallScaling === "unit" ? "unit" : "column"}
             thereof={this.prepareThereOf()}
             thereofPosition={this.prepareThereofPosition()}
             partof={this.preparePartOf()}
@@ -1886,4 +2071,57 @@ export class Table {
       </Host>
     );
   }
+}
+
+/** The valid entries of `ratios` (JSON text or array) and a message for the ones that are not. */
+function parseRatios(value: string | TableRatio[] | undefined): { ratios: TableRatio[]; invalid?: string } {
+  if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) {
+    return { ratios: [] };
+  }
+  let entries: unknown;
+  try {
+    entries = typeof value === "string" ? JSON.parse(value) : value;
+  } catch {
+    return { ratios: [], invalid: "not valid JSON." };
+  }
+  if (!Array.isArray(entries)) return { ratios: [], invalid: "not a list." };
+  const valid = (entry: unknown): entry is TableRatio =>
+    entry !== null &&
+    typeof entry === "object" &&
+    ["name", "numerator", "denominator"].every(
+      (key) =>
+        typeof (entry as Record<string, unknown>)[key] === "string" && (entry as Record<string, string>)[key] !== "",
+    );
+  const ratios = entries.filter(valid);
+  const dropped = entries.length - ratios.length;
+  return { ratios, invalid: dropped > 0 ? `${dropped} entries are not used.` : undefined };
+}
+
+/** The valid entries of `barColumnParts` (JSON text or object) and the ones that are not. */
+function parseBarColumnParts(value: string | Record<string, string> | undefined): {
+  parts: Record<string, string>;
+  invalid: string[];
+} {
+  const parts: Record<string, string> = {};
+  const invalid: string[] = [];
+  if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) {
+    return { parts, invalid };
+  }
+  let entries: Record<string, unknown>;
+  try {
+    entries = typeof value === "string" ? JSON.parse(value) : value;
+  } catch {
+    return { parts, invalid: [String(value)] };
+  }
+  if (entries === null || typeof entries !== "object" || Array.isArray(entries)) {
+    return { parts, invalid: [String(value)] };
+  }
+  for (const [column, part] of Object.entries(entries)) {
+    if (BAR_PART_SCENARIO.test(column) && typeof part === "string" && BAR_PART_SCENARIO.test(part) && part !== column) {
+      parts[column] = part;
+    } else {
+      invalid.push(`${column}: ${String(part)}`);
+    }
+  }
+  return { parts, invalid };
 }

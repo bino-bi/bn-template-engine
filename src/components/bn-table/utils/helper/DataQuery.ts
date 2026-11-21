@@ -75,7 +75,11 @@ export class DataQuery {
     this.fromExpr = fromExpr;
 
     // these names are written into the SQL text as column names
-    for (const name of [...this.config.scenarios, ...this.config.categoryThereOf.keys()]) {
+    for (const name of [
+      ...this.config.scenarios,
+      ...this.config.categoryThereOf.keys(),
+      ...this.config.barColumnParts.values(),
+    ]) {
       if (!FIELD_IDENTIFIER_REGEX.test(name)) {
         throw new Error(`invalid identifier "${name}"`);
       }
@@ -305,8 +309,9 @@ export class DataQuery {
         .join(", ");
       // a REST row of only "-" rows counts as "-" for the op sentiment; not named operation, so it stays hidden
       // the row prints the unsigned sum; the walk of a waterfall needs the signed sum of its bar columns
+      const parts = [...this.config.barColumnParts.values()];
       const restSigned = this.exctractScenarioNames(scenarios)
-        .filter((name) => this.config.barColumns?.includes(name))
+        .filter((name) => this.config.barColumns?.includes(name) || parts.includes(name))
         .map((name) => `, SUM(${name} * transformOperator(operation)) as ${restSignedAlias(name)}`)
         .join("");
       const restOperation =
@@ -1019,23 +1024,28 @@ export class DataQuery {
 
   /**
    * The select list of the scenarios. A partof row needs both sides of every variance, also when they
-   * are not shown. Those come without their `_cnt`, so the NaN detection of the other rows does not change.
+   * are not shown, and a bar column needs the scenario of its `barColumnParts`. Those come without
+   * their `_cnt`, so the NaN detection of the other rows does not change.
    */
   private scenariosSQL(isSumRow: boolean): string {
     const shown = this.config.scenarios;
     const sql = shown.map((s) => this.translateScenarioSQL(s, isSumRow, this.config.type));
+    const hidden = new Set<string>();
+    // the part drawn inside a bar is read like a scenario, without a column of its own
+    for (const [column, part] of this.config.barColumnParts) {
+      if (shown.includes(column)) hidden.add(part);
+    }
     if (this.checkConfigForPartOf() && this.config.type !== TableType.LIST) {
-      const hidden = new Set<string>();
       for (const scenario of shown) {
         const variance = new VarianceScenario(scenario);
         if (variance.isValid) {
           hidden.add(variance.base).add(variance.delta);
         }
       }
-      for (const scenario of hidden) {
-        if (!shown.includes(scenario)) {
-          sql.push(this.translateScenarioSQL(scenario, isSumRow, this.config.type).split(", COUNT(")[0]);
-        }
+    }
+    for (const scenario of hidden) {
+      if (!shown.includes(scenario)) {
+        sql.push(this.translateScenarioSQL(scenario, isSumRow, this.config.type).split(", COUNT(")[0]);
       }
     }
     return sql.toString();

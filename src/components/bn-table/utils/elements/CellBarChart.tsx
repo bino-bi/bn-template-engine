@@ -1,7 +1,7 @@
 import { h, FunctionalComponent } from "@stencil/core";
 import { ColumnStats } from "./Cell";
 import { Formatter } from "../../../../utils";
-import { FillPattern } from "../../../../utils/model/styles/SVGStyle";
+import { FillPattern, styleForValue } from "../../../../utils/model/styles/SVGStyle";
 import { VarianceScenario } from "../../../../utils/model/VarianceScenario";
 import {
   absoluteBarGeometry,
@@ -21,6 +21,12 @@ export interface VarianceStyle {
   stroke: string;
   fill: string;
   fillpattern?: FillPattern;
+  /** Scenario columns: the fill of a bar below 0, or of a waterfall step that goes down. */
+  negativeFill?: string;
+  /** Variance styles: fill of an outlined variance (minuend PL). Not set: no fill. */
+  outlineFill?: string;
+  /** Variance styles: edge of an outlined variance. Not set: `stroke`. */
+  outlineStroke?: string;
 }
 
 export interface ScenarioStyles {
@@ -50,6 +56,14 @@ export interface CellBarChartStyles {
   unitScaling: number; // Em per data unit for absolute variance bars (bar px = |value| × unitScaling × fontSize)
   percentageScaling: number; // Em per percentage point for relative variance pins
   scaleFactor: number; // Proportional scaling factor for all pixel constants
+  /** False: the labels of relative variance pins are upright. */
+  relativeItalic?: boolean;
+}
+
+/** How far the axis of a bar cell runs out of the svg, in px: up through the row gap, down through the padding of a sum row. */
+export interface AxisReach {
+  top: number;
+  bottom: number;
 }
 
 export interface CellBarChartProps {
@@ -76,6 +90,9 @@ export interface CellBarChartProps {
   /** The row prints bold, so the label is measured bold. */
   bold?: boolean;
   styles?: CellBarChartStyles;
+  axisReach?: AxisReach;
+  /** Draws only the axis of the column, no bar and no label. */
+  axisOnly?: boolean;
 }
 
 // Default fallback colors (should come from componentStyle)
@@ -386,7 +403,7 @@ export function getBarStyle(
   styles: CellBarChartStyles,
 ): VarianceStyle {
   if (isScenarioColumn(scenario)) {
-    return getScenarioStyle(scenario, styles);
+    return styleForValue(getScenarioStyle(scenario, styles), value);
   }
   return getVarianceStyle(value, isPositiveGood, styles);
 }
@@ -402,7 +419,7 @@ export function getBarFill(varianceStyle: VarianceStyle, patternPrefix: string):
   }
 
   if (pattern === "outlined") {
-    return "transparent";
+    return varianceStyle.outlineFill ?? "transparent";
   }
 
   // Default: solid fill
@@ -416,12 +433,28 @@ export function getBarStroke(varianceStyle: VarianceStyle): { stroke: string; st
   const pattern = varianceStyle.fillpattern;
 
   if (pattern === "outlined") {
-    return { stroke: varianceStyle.stroke, strokeWidth: 1.5 }; // scaled by caller via * s
+    return { stroke: varianceStyle.outlineStroke ?? varianceStyle.stroke, strokeWidth: 1.5 }; // scaled by caller via * s
   }
 
   // Solid and hatched bars don't need visible stroke
   return { stroke: "none", strokeWidth: 0 };
 }
+
+/** The variance axis of a row, out of the svg as far as `reach` says. */
+const RowAxis: FunctionalComponent<{
+  x: number;
+  height: number;
+  look: VarianceLook;
+  styles: CellBarChartStyles;
+  reach: AxisReach;
+}> = ({ x, height, look, styles, reach }) => {
+  if (reach.top <= 0 && reach.bottom <= 0) return <VarianceAxis x={x} height={height} look={look} styles={styles} />;
+  return (
+    <g transform={`translate(0,${-reach.top})`}>
+      <VarianceAxis x={x} height={height + reach.top + reach.bottom} look={look} styles={styles} />
+    </g>
+  );
+};
 
 /**
  * Renders a zigzag break indicator at a given x position, matching the structure chart style.
@@ -480,6 +513,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
     sideMax,
     bold,
     styles = DEFAULT_STYLES,
+    axisReach: reach = { top: 0, bottom: 0 },
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
@@ -508,6 +542,25 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
 
   // Get style based on column type (scenario vs variance)
   const look = getVarianceLook(scenario, styles);
+  // a row without a value of this column, for example a ratio row: only the axis, so the line of the column goes on
+  if (props.axisOnly) {
+    return (
+      <svg width={totalWidth} height={height} class="cell-bar-chart axis-only" style={{ overflow: "visible" }}>
+        {look ? (
+          <RowAxis x={axisX} height={height} look={look} styles={styles} reach={reach} />
+        ) : (
+          <line
+            x1={axisX}
+            y1={-reach.top}
+            x2={axisX}
+            y2={height + reach.bottom}
+            stroke={AXIS_COLOR}
+            stroke-width={1 * s}
+          />
+        )}
+      </svg>
+    );
+  }
   const sentimentStyle = getBarStyle(scenario, value, isPositiveGood, styles);
   const minuendPattern = look?.minuend.fillpattern;
   // the colour stays the sentiment, the pattern follows the minuend (AC solid, FC hatched, PL outlined)
@@ -546,7 +599,16 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
       <PatternDefs styles={styles} />
 
       {/* Center axis line */}
-      {!look && <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />}
+      {!look && (
+        <line
+          x1={axisX}
+          y1={-reach.top}
+          x2={axisX}
+          y2={height + reach.bottom}
+          stroke={AXIS_COLOR}
+          stroke-width={1 * s}
+        />
+      )}
 
       {/* Base bar */}
       {baseBarWidth > 0 && (
@@ -579,7 +641,7 @@ const AbsoluteVarianceBar: FunctionalComponent<CellBarChartProps> = (props) => {
         renderZigzagBreak(isPositive ? rootX + cutWidth : rootX - cutWidth - breakGap, breakGap, barY, barHeight, s)}
 
       {/* Variance axis on top, so no bar outline covers it */}
-      {look && <VarianceAxis x={axisX} height={height} look={look} styles={styles} />}
+      {look && <RowAxis x={axisX} height={height} look={look} styles={styles} reach={reach} />}
 
       {/* Value label */}
       <text
@@ -625,6 +687,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
     sideMax,
     bold,
     styles = DEFAULT_STYLES,
+    axisReach: reach = { top: 0, bottom: 0 },
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
@@ -632,7 +695,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   const pinPx = 100 * styles.percentageScaling * fs;
 
   const displayValue = formattedValue || formatValue(value, true, measureScale, locale, percentDigits, percentSign);
-  const ownWidth = labelWidth(displayValue, fs, styles.fontFamily, true, bold);
+  const ownWidth = labelWidth(displayValue, fs, styles.fontFamily, styles.relativeItalic !== false, bold);
   const sides = labelWidths ?? ownLabelWidths(columnStats, ownWidth);
   const { neg = Math.max(0, -columnStats.min), pos = Math.max(0, columnStats.max) } = sideMax ?? {};
   const { totalWidth, negPinLength, posPinLength, axisX, labelGap } = relativePinGeometry(
@@ -659,6 +722,25 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
   // Get style based on column type (scenario vs variance)
   const barStyle = getBarStyle(scenario, value, isPositiveGood, styles);
   const look = getVarianceLook(scenario, styles);
+  // a row without a value of this column, for example a ratio row: only the axis, so the line of the column goes on
+  if (props.axisOnly) {
+    return (
+      <svg width={totalWidth} height={height} class="cell-bar-chart axis-only" style={{ overflow: "visible" }}>
+        {look ? (
+          <RowAxis x={axisX} height={height} look={look} styles={styles} reach={reach} />
+        ) : (
+          <line
+            x1={axisX}
+            y1={-reach.top}
+            x2={axisX}
+            y2={height + reach.bottom}
+            stroke={AXIS_COLOR}
+            stroke-width={1 * s}
+          />
+        )}
+      </svg>
+    );
+  }
   const headStyle = look?.minuend ?? styles.scenarios.ac;
 
   // the arrow tip lands on the outer edge of a full-length head, so the label after it stays in the cell
@@ -728,12 +810,19 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
 
       {/* Axis on top, so a head near zero does not cover it */}
       {look ? (
-        <VarianceAxis x={axisX} height={height} look={look} styles={styles} />
+        <RowAxis x={axisX} height={height} look={look} styles={styles} reach={reach} />
       ) : (
-        <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
+        <line
+          x1={axisX}
+          y1={-reach.top}
+          x2={axisX}
+          y2={height + reach.bottom}
+          stroke={AXIS_COLOR}
+          stroke-width={1 * s}
+        />
       )}
 
-      {/* Value label - uses fontColor from styles, italics per IBCS for relative variance */}
+      {/* Value label - uses fontColor from styles, italic unless the style says otherwise */}
       <text
         x={labelX}
         y={height / 2}
@@ -741,7 +830,7 @@ const RelativeVariancePin: FunctionalComponent<CellBarChartProps> = (props) => {
         text-anchor={labelOnShaft ? "middle" : isPositive ? "start" : "end"}
         fill={styles.fontColor}
         font-size={fs}
-        font-style="italic"
+        font-style={styles.relativeItalic === false ? "normal" : "italic"}
         font-family={styles.fontFamily}
       >
         {displayValue}

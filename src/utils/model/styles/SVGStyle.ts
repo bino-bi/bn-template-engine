@@ -34,6 +34,10 @@ export class SVGStyle {
   public dasharray: string | undefined;
   /** Fill of a column or bar with a value below 0. Not set: the fill of the scenario. */
   public negativeFill: string | undefined;
+  /** Variance styles: fill of an outlined variance (a variance of a plan). Not set: the background. */
+  public outlineFill: string | undefined;
+  /** Variance styles: edge of an outlined variance. Not set: the colour of the variance. */
+  public outlineStroke: string | undefined;
 
   constructor(
     public stroke: string = "#000000",
@@ -54,6 +58,12 @@ export class SVGStyleAdapter implements IAdapter<SVGStyle> {
     }
     if (CompareUtil.isString(data.negativeFill) && data.negativeFill !== "") {
       style.negativeFill = data.negativeFill;
+    }
+    if (CompareUtil.isString(data.outlineFill) && data.outlineFill !== "") {
+      style.outlineFill = data.outlineFill;
+    }
+    if (CompareUtil.isString(data.outlineStroke) && data.outlineStroke !== "") {
+      style.outlineStroke = data.outlineStroke;
     }
 
     return style;
