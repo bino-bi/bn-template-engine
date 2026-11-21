@@ -20,7 +20,7 @@ import {
 import { TableRow } from "../utils/elements";
 import { Table } from "../utils/Table";
 
-import { TableComponentConfig, TableComponentConfigAdapter } from "../utils/model/TableComponentConfig";
+import { TableComponentConfig, TableComponentConfigAdapter, TableRatio } from "../utils/model/TableComponentConfig";
 import { TableDrillGroup, TableDrillGroupAdapter } from "../utils/model/TableDrillGroup";
 import { TableAttribute } from "../utils/model/TableAttribute";
 import { DataFormat, I18nMode, MeasureType, TableCategoryWidth } from "../../../utils/constants";
@@ -31,6 +31,7 @@ import { RuleSetConfig } from "../../../stores/ruleSets";
 import { DataFormatDigits, DataFormatDigitsAdapter } from "../../../utils/model/DataFormatDigits";
 import { Order, OrderAdapter } from "../../../utils/model/Order";
 import {
+  AXIS_COLOR,
   CellBarChart,
   CellBarChartStyles,
   formatValue,
@@ -42,7 +43,7 @@ import { Cell } from "../utils/elements/Cell";
 import withComponentStatus from "../../../utils/withComponentStatus";
 import withComponentStyle from "../../../utils/withComponentStyle";
 import { Style } from "../../../stores/componentStyles";
-import { AutoScalingReport } from "../../../utils/scaling";
+import { AutoScalingReport, formatScalingValue } from "../../../utils/scaling";
 import { getStores, ScopedStores } from "../../../context/context-protocol";
 import { sourceExpr } from "../../../context/scopedDb";
 import { ErrorDispatcher } from "../../../utils/withHasError";
@@ -57,6 +58,7 @@ import {
   WaterfallColumnLabels,
   waterfallGeometry,
   WaterfallGeometry,
+  waterfallGeometryAt,
 } from "../utils/helper/barColumnGeometry";
 import { NOT_AVAILABLE } from "../../../utils/relativeVariance";
 import { normalizeFillPattern } from "../../../utils/model/styles/SVGStyle";
@@ -268,6 +270,42 @@ export class BnTableRenderer {
   percentageScaling: number = 0.5;
 
   /**
+   * `column`: each waterfall column fits its walk to its own width. `unit`: the waterfall
+   * columns and the absolute variance bars share the scale of `unitScaling`.
+   * @internal
+   */
+  @Prop()
+  waterfallScaling: "column" | "unit" = "column";
+
+  /**
+   * Variance bars and pins also on the sum rows.
+   * @internal
+   */
+  @Prop()
+  sumBars: boolean = false;
+
+  /**
+   * Waterfall column to the scenario drawn inside its bars, for example `{ fc1: "ac1" }`.
+   * @internal
+   */
+  @Prop()
+  barColumnParts: Record<string, string> = {};
+
+  /**
+   * Ratio rows after a result row, for example `[{ name: "Gross margin", numerator: "Operating result", denominator: "Sales revenue" }]`.
+   * @internal
+   */
+  @Prop()
+  ratios: TableRatio[] = [];
+
+  /**
+   * Space between two rows in px, set by `fillHeight` of the wrapper.
+   * @internal
+   */
+  @Prop()
+  rowGap: number = 0;
+
+  /**
    * Internal wrapper channel: called with the auto-fitted scaling values
    * (em per unit / em per percentage point) whenever one of them was
    * auto-resolved, so the outer `bn-table` can surface them in its AUTO_*
@@ -294,6 +332,7 @@ export class BnTableRenderer {
   private blockStarts = new Set<number>();
   private barColumnLayouts = new Map<string, BarColumnLayout>();
   private waterfallGeometries = new Map<string, WaterfallGeometry>();
+  private waterfallColumns = new Map<string, WaterfallColumnLabels>();
   private stores: ScopedStores | undefined;
 
   constructor() {
@@ -438,8 +477,11 @@ export class BnTableRenderer {
 
       return (
         <table
-          class={{ "grouped-list": this.groupedList() }}
-          style={{ "--bn-block-gap": `${BLOCK_GAP_EM * this.emPx()}px` }}
+          class={{ "grouped-list": this.groupedList(), "relative-upright": !this.relativeItalic() }}
+          style={{
+            "--bn-block-gap": `${BLOCK_GAP_EM * this.emPx()}px`,
+            ...(this.rowGap > 0 ? { "--bn-row-gap": `${this.rowGap}px` } : {}),
+          }}
         >
           <thead>
             {this.table.getHeader().map((row: TableRow) => (
@@ -447,8 +489,9 @@ export class BnTableRenderer {
                 {row.getCells().map((cell, i, cells) => (
                   <th
                     colSpan={cell.colSpan}
-                    class={`${cell.cssStyle}${this.isBarColumn(cell.key) ? " barColumn" : ""}${this.blockStartClass(cells, i)}`}
+                    class={`${cell.cssStyle}${this.isBarColumn(cell.key) ? " barColumn" : ""}${this.barPartName(cell) ? " has-bar-part" : ""}${this.blockStartClass(cells, i)}`}
                   >
+                    {this.barPartName(cell) && <span class="bar-part-name">{this.barPartName(cell)}</span>}
                     {cell.getAsHeaderList().map((line, i, arr) => (
                       <span>
                         {i === arr.length - 1 ? (
@@ -494,7 +537,9 @@ export class BnTableRenderer {
                     cell.value !== NOT_AVAILABLE &&
                     // an untitled group head is only a gap between list groups, a bar cell would print "-" in it
                     (this.showGroupTitle || row.type !== TableRowType.HEADER) &&
-                    (cell.waterfall !== undefined || row.type !== TableRowType.SUM) &&
+                    (cell.waterfall !== undefined ||
+                      row.type !== TableRowType.SUM ||
+                      (this.sumBars && cell.direction !== undefined)) &&
                     // a variance walk where every step is zero has no extent: the rows print their zero
                     !(cell.direction !== undefined && cell.waterfall && cell.waterfall.max === cell.waterfall.min) ? (
                       cell.waterfall !== undefined ? (
@@ -514,6 +559,7 @@ export class BnTableRenderer {
                           geometry={this.waterfallGeometries.get(cell.key)}
                           bold={isBoldRow(row)}
                           connectorReach={this.connectorReach(row)}
+                          axisReach={this.axisReach(row)}
                         />
                       ) : (
                         <CellBarChart
@@ -535,8 +581,26 @@ export class BnTableRenderer {
                           sideMax={this.barColumnLayouts.get(cell.key)?.sideMax}
                           bold={isBoldRow(row)}
                           styles={this.barChartStyles}
+                          axisReach={this.axisReach(row)}
                         />
                       )
+                    ) : cell.ratioLine ? (
+                      this.ratioCell(cell, row, locale)
+                    ) : cell.axisOnly && cell.columnStats ? (
+                      <CellBarChart
+                        value={0}
+                        scenario={cell.key}
+                        columnStats={cell.columnStats}
+                        height={18 * this.scaleFactor}
+                        isRelative={cell.key.startsWith("dr")}
+                        isPositiveGood={true}
+                        columnWidthEm={this.barColumnMaxWidth}
+                        labelWidths={this.barColumnLayouts.get(cell.key)?.labels}
+                        sideMax={this.barColumnLayouts.get(cell.key)?.sideMax}
+                        styles={this.barChartStyles}
+                        axisReach={this.connectorReach(row)}
+                        axisOnly={true}
+                      />
                     ) : (
                       cell.draw(this.componentDataFormatDigits, locale)
                     )}
@@ -639,6 +703,71 @@ export class BnTableRenderer {
     return this.grouped === true && this.type !== TableType.OPT && this.type !== TableType.OPTNOTOTAL;
   }
 
+  /**
+   * The value of a ratio row in a waterfall column: left of the line of the walk, which
+   * runs through the row with the zero axis. Without the column geometry the plain value.
+   */
+  private ratioCell(cell: Cell, row: TableRow, locale?: string) {
+    const text = cell.draw(this.componentDataFormatDigits, locale);
+    const geometry = this.waterfallGeometries.get(cell.key);
+    const { at, min, max } = cell.ratioLine!;
+    if (!geometry || !(max > min)) return text;
+    const height = 18 * this.scaleFactor;
+    const xOf = (value: number) => geometry.labelAreaLeft + (value - min) * (geometry.barAreaWidth / (max - min));
+    const x = xOf(at);
+    const zeroX = xOf(0);
+    const reach = this.connectorReach(row);
+    const styles = this.barChartStyles;
+    return (
+      <svg
+        width={geometry.totalWidth}
+        height={height}
+        class="cell-bar-chart ratio-line"
+        style={{ overflow: "visible" }}
+      >
+        {min <= 0 && max >= 0 && (
+          <line
+            x1={zeroX}
+            y1={-reach.top}
+            x2={zeroX}
+            y2={height + reach.bottom}
+            stroke={AXIS_COLOR}
+            stroke-width={1 * this.scaleFactor}
+          />
+        )}
+        <line
+          x1={x}
+          y1={-reach.top}
+          x2={x}
+          y2={height + reach.bottom}
+          stroke={AXIS_COLOR}
+          stroke-width={1 * this.scaleFactor}
+        />
+        <text
+          x={x - geometry.labelGap}
+          y={height / 2}
+          dy="0.35em"
+          text-anchor="end"
+          fill={styles.fontColor}
+          font-size={styles.fontSize}
+          font-family={styles.fontFamily}
+          font-style="italic"
+        >
+          {text}
+        </text>
+      </svg>
+    );
+  }
+
+  /** The name of the scenario drawn inside the bars of a waterfall column, for the header cell with its name. */
+  private barPartName(cell: Cell): string | undefined {
+    const part = this.barColumnParts?.[cell.key];
+    if (!part || !this.waterfallColumns.has(cell.key)) return undefined;
+    // a column has a header cell in every header row, only the one with a name gets the part
+    if (!cell.getAsHeaderList().some((line) => String(line ?? "").trim() !== "")) return undefined;
+    return this.table?.scenarioLabel(part);
+  }
+
   private isBarColumn(key: string): boolean {
     return this.barColumns.includes(key);
   }
@@ -672,6 +801,9 @@ export class BnTableRenderer {
       showGroupTitle: this.showGroupTitle,
       runningSum: this.runningSum,
       varianceWaterfall: this.varianceWaterfall,
+      sumBars: this.sumBars,
+      barColumnParts: this.barColumnParts,
+      ratios: this.ratios,
       thereOf: this.thereof,
       thereOfPosition: this.thereofPosition,
       partOf: this.partof,
@@ -705,7 +837,31 @@ export class BnTableRenderer {
   private prepareBarChartStyles(): CellBarChartStyles {
     const autoUnit = !(this.unitScaling > 0);
     const autoPercent = !(this.percentageScaling > 0);
-    const resolvedUnit = autoUnit ? this.autoUnitScaling() : this.unitScaling;
+    const fittedUnit = autoUnit ? this.autoUnitScaling() : undefined;
+    let resolvedUnit = autoUnit ? (fittedUnit ?? 0.01) : this.unitScaling;
+    const walkUnit = this.waterfallScaling === "unit" ? this.waterfallUnitScaling() : undefined;
+    let walkTooLong = false;
+    if (walkUnit !== undefined) {
+      if (autoUnit) {
+        resolvedUnit = Math.min(fittedUnit ?? Infinity, walkUnit);
+      } else if (resolvedUnit > walkUnit * (1 + 1e-9)) {
+        // a walk cannot be cut like a single bar, so the whole table gets smaller
+        walkTooLong = true;
+        this.errors?.addOrReplace({
+          id: "WARN_waterfallScaling",
+          type: "warning",
+          message: `waterfallScaling: at unit-scaling 1 em = ${formatScalingValue(1 / this.unitScaling)} units a waterfall does not fit its column. All bars of the table use 1 em ≈ ${formatScalingValue(1 / walkUnit)} units.`,
+        });
+        resolvedUnit = walkUnit;
+      }
+      const px = resolvedUnit * this.emPx() * BAR_LABEL_FONT_RATIO;
+      for (const [key, column] of this.waterfallColumns) {
+        if (column.max - column.min > 0) {
+          this.waterfallGeometries.set(key, waterfallGeometryAt(this.barColumnMaxWidth, this.emPx(), column, px));
+        }
+      }
+    }
+    if (!walkTooLong) this.errors?.remove("WARN_waterfallScaling");
     const resolvedPercent = autoPercent ? this.autoPercentageScaling() : this.percentageScaling;
     if (autoUnit || autoPercent) {
       this.reportAutoScaling?.({
@@ -714,6 +870,10 @@ export class BnTableRenderer {
       });
     }
 
+    return this.barStylesFromStore(resolvedUnit, resolvedPercent);
+  }
+
+  private barStylesFromStore(resolvedUnit: number, resolvedPercent: number): CellBarChartStyles {
     return this.componentStyle(($) => {
       const varianceStyles = $["bn-chart-time"]?.["varianceStyles"];
       const barStyles = $["bn-chart-time"]?.["barStyles"];
@@ -734,16 +894,22 @@ export class BnTableRenderer {
           stroke: varianceStyles?.pos?.stroke || defaultPos.stroke,
           fill: varianceStyles?.pos?.fill || defaultPos.fill,
           fillpattern: normalizeFillPattern(varianceStyles?.pos?.fillpattern) || defaultPos.fillpattern,
+          outlineFill: varianceStyles?.pos?.outlineFill || undefined,
+          outlineStroke: varianceStyles?.pos?.outlineStroke || undefined,
         },
         negative: {
           stroke: varianceStyles?.neg?.stroke || defaultNeg.stroke,
           fill: varianceStyles?.neg?.fill || defaultNeg.fill,
           fillpattern: normalizeFillPattern(varianceStyles?.neg?.fillpattern) || defaultNeg.fillpattern,
+          outlineFill: varianceStyles?.neg?.outlineFill || undefined,
+          outlineStroke: varianceStyles?.neg?.outlineStroke || undefined,
         },
         neutral: {
           stroke: varianceStyles?.neu?.stroke || defaultNeu.stroke,
           fill: varianceStyles?.neu?.fill || defaultNeu.fill,
           fillpattern: normalizeFillPattern(varianceStyles?.neu?.fillpattern) || defaultNeu.fillpattern,
+          outlineFill: varianceStyles?.neu?.outlineFill || undefined,
+          outlineStroke: varianceStyles?.neu?.outlineStroke || undefined,
         },
         // each scenario is drawn in the style slot its colorIndex selects
         scenarios: stylesBySlot(
@@ -752,21 +918,25 @@ export class BnTableRenderer {
               stroke: barStyles?.ac?.stroke || defaultAc.stroke,
               fill: barStyles?.ac?.fill || defaultAc.fill,
               fillpattern: normalizeFillPattern(barStyles?.ac?.fillpattern) || defaultAc.fillpattern,
+              negativeFill: barStyles?.ac?.negativeFill || undefined,
             },
             pp: {
               stroke: barStyles?.pp?.stroke || defaultPp.stroke,
               fill: barStyles?.pp?.fill || defaultPp.fill,
               fillpattern: normalizeFillPattern(barStyles?.pp?.fillpattern) || defaultPp.fillpattern,
+              negativeFill: barStyles?.pp?.negativeFill || undefined,
             },
             fc: {
               stroke: barStyles?.fc?.stroke || defaultFc.stroke,
               fill: barStyles?.fc?.fill || defaultFc.fill,
               fillpattern: normalizeFillPattern(barStyles?.fc?.fillpattern) || defaultFc.fillpattern,
+              negativeFill: barStyles?.fc?.negativeFill || undefined,
             },
             pl: {
               stroke: barStyles?.pl?.stroke || defaultPl.stroke,
               fill: barStyles?.pl?.fill || defaultPl.fill,
               fillpattern: normalizeFillPattern(barStyles?.pl?.fillpattern) || defaultPl.fillpattern,
+              negativeFill: barStyles?.pl?.negativeFill || undefined,
             },
           },
           new IBCSRuleSet(this.ruleSetConfig),
@@ -778,8 +948,14 @@ export class BnTableRenderer {
         unitScaling: resolvedUnit,
         percentageScaling: resolvedPercent,
         scaleFactor: this.scaleFactor,
+        relativeItalic: this.relativeItalic(),
       };
     });
+  }
+
+  /** False when the style prints relative variances upright. */
+  private relativeItalic(): boolean {
+    return this.componentStyle(($) => $["bn-table"]?.relativeItalic) !== false;
   }
 
   /** Font family of the bar and pin labels, also used to measure them. */
@@ -797,7 +973,7 @@ export class BnTableRenderer {
    * fills ~80% of its side of the bar area, without tripping the overdrive break.
    * One scaling for all columns, so it is the smallest that fits every column.
    */
-  private autoUnitScaling(): number {
+  private autoUnitScaling(): number | undefined {
     const emPx = this.emPx();
     const fs = emPx * BAR_LABEL_FONT_RATIO;
     let scaling = Infinity;
@@ -811,7 +987,23 @@ export class BnTableRenderer {
         scaling = Math.min(scaling, Math.min(maxBarWidth * 0.8, cutWidth) / (max * fs));
       }
     }
-    return Number.isFinite(scaling) && fs > 0 ? scaling : 0.01;
+    return Number.isFinite(scaling) && fs > 0 ? scaling : undefined;
+  }
+
+  /**
+   * The largest unitScaling at which every waterfall walk fits its column: the smallest
+   * scale of the columns. Undefined without a waterfall column.
+   */
+  private waterfallUnitScaling(): number | undefined {
+    const fs = this.emPx() * BAR_LABEL_FONT_RATIO;
+    let scaling = Infinity;
+    for (const [key, column] of this.waterfallColumns) {
+      const range = column.max - column.min;
+      const geometry = this.waterfallGeometries.get(key);
+      if (range <= 0 || !geometry) continue;
+      scaling = Math.min(scaling, geometry.barAreaWidth / (range * fs));
+    }
+    return Number.isFinite(scaling) && fs > 0 ? scaling : undefined;
   }
 
   /**
@@ -845,8 +1037,9 @@ export class BnTableRenderer {
     // a cell with the weight its row prints in
     const cellsByKey = new Map<string, { cell: Cell; bold: boolean }[]>();
     for (const row of this.table.getBody()) {
-      if (row.type === TableRowType.SUM) continue;
       for (const cell of row.getCells()) {
+        // a sum row draws the bars and pins of its variances with sumBars, else none
+        if (row.type === TableRowType.SUM && !(this.sumBars && cell.direction !== undefined)) continue;
         // waterfall cells scale independently
         if (!cell.isBarChart || !cell.columnStats || cell.waterfall !== undefined) continue;
         if (typeof cell.value !== "number" || isNaN(cell.value)) continue;
@@ -880,14 +1073,17 @@ export class BnTableRenderer {
             percentSign,
             barLabelDigits(cell, this.componentDataFormatDigits),
           );
-          labels[side] = Math.max(labels[side] ?? 0, labelWidth(text, fs, fontFamily, isRelative, bold));
+          labels[side] = Math.max(
+            labels[side] ?? 0,
+            labelWidth(text, fs, fontFamily, isRelative && this.relativeItalic(), bold),
+          );
         }
         return labels;
       };
 
       // a narrow pin column drops percent digits, then the %, so every label keeps its sign
       let percentDigits = Math.min(20, Math.max(0, Math.trunc(this.componentDataFormatDigits.percent) || 0));
-      let percentSign = true;
+      let percentSign = this.componentDataFormatDigits.percentSign !== false;
       let labels = measure(percentDigits, percentSign);
       while (isRelative && (percentDigits > 0 || percentSign)) {
         if (pinLabelsFit(this.barColumnMaxWidth, emPx, labels, headSize)) break;
@@ -914,7 +1110,17 @@ export class BnTableRenderer {
     const emPx = this.emPx();
     // tr.sum td { padding-bottom }, larger in a grouped list
     const sumPadding = this.groupedList() ? 1 : 0.5;
-    return { top: 0.1 * emPx, bottom: row.type === TableRowType.SUM ? sumPadding * emPx : 0 };
+    return { top: 0.1 * emPx + this.rowGap, bottom: row.type === TableRowType.SUM ? sumPadding * emPx : 0 };
+  }
+
+  /**
+   * How far the axis of a bar cell runs out of its svg: up through the gap of `fillHeight`,
+   * down through the padding of a sum row. Without a gap and on other rows it stays in the svg.
+   */
+  private axisReach(row: TableRow): { top: number; bottom: number } {
+    if (this.rowGap <= 0) return { top: 0, bottom: 0 };
+    const reach = this.connectorReach(row);
+    return { top: reach.top, bottom: reach.bottom };
   }
 
   /**
@@ -923,6 +1129,7 @@ export class BnTableRenderer {
    */
   private collectWaterfallGeometries(): Map<string, WaterfallGeometry> {
     const geometries = new Map<string, WaterfallGeometry>();
+    this.waterfallColumns = new Map();
     if (!this.table || this.table.hasNoData()) return geometries;
 
     const emPx = this.emPx();
@@ -955,6 +1162,7 @@ export class BnTableRenderer {
     for (const [key, column] of columns) {
       geometries.set(key, waterfallGeometry(this.barColumnMaxWidth, emPx, column));
     }
+    this.waterfallColumns = columns;
     return geometries;
   }
 }

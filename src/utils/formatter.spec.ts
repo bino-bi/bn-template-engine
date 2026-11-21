@@ -76,6 +76,14 @@ describe("Formatter Test", () => {
       expect(Formatter.translateScenarioLabel("dfc1_ac1_neg", i18n)).toEqual("Δ(FC - AC)");
     });
 
+    it("names the reference alone with {ref} and the minuend with {base}", () => {
+      const short = new Map(i18n);
+      short.set("ibcssymbol_delta_generic", "Δ{ref}");
+      short.set("ibcssymbol_delta_generic_relative", "Δ{ref}% of {base}");
+      expect(Formatter.translateScenarioLabel("dfc1_pp1_op", short)).toEqual("ΔPY");
+      expect(Formatter.translateScenarioLabel("drpl1_pp1_op", short)).toEqual("ΔPY% of PL");
+    });
+
     it("should return detailed relative variance labe;", () => {
       expect(Formatter.translateScenarioLabel("drfc1_ac1_neg", i18n)).toEqual("Δ(FC - AC)%");
     });

@@ -133,10 +133,22 @@ describe("IBCS Table waterfall bar columns", () => {
       (rect) => (rect.parentNode as Element).tagName?.toLowerCase() === "svg",
     );
 
+  const isConnector = (el: Element): boolean => (el.getAttribute("class") || "").includes("waterfall-connector");
+
+  // the axis (solid) and dashed lines of a row, without the connectors of the walk
   const linesOf = (svg: Element, dashed: boolean): number[] =>
     Array.from(svg.children)
-      .filter((el) => el.tagName.toLowerCase() === "line" && (el.getAttribute("stroke-dasharray") !== null) === dashed)
+      .filter(
+        (el) =>
+          el.tagName.toLowerCase() === "line" &&
+          !isConnector(el) &&
+          (el.getAttribute("stroke-dasharray") !== null) === dashed,
+      )
       .map((line) => parseFloat(line.getAttribute("x1")));
+
+  const connectorLines = (svg: Element): Element[] => Array.from(svg.children).filter(isConnector);
+  const connectorsOf = (svg: Element): number[] =>
+    connectorLines(svg).map((line) => parseFloat(line.getAttribute("x1")));
 
   const LABEL_FONT = 13.3333 * 0.85;
   /** From and to of the value label in svg px; the spec has no canvas, so the width is the estimate. */
@@ -175,7 +187,7 @@ describe("IBCS Table waterfall bar columns", () => {
     expect(widthOf(summe)).toBeCloseTo(widthOf(alpha) * 1.5, 3);
   });
 
-  it("sub-cascades thereof rows across the parent bar with dashed extent guides", async () => {
+  it("sub-cascades thereof rows across the parent bar and joins them with connectors", async () => {
     const page = await renderTable({
       tableName: "thereofData",
       thereof: [{ rowGroup: "", category: "Alpha", subCategory: "A1", partOf: "" }],
@@ -191,12 +203,11 @@ describe("IBCS Table waterfall bar columns", () => {
     expect(xOf(drill)).toBeCloseTo(xOf(alpha), 3);
     expect(widthOf(drill)).toBeCloseTo(widthOf(alpha) * 0.6, 3);
 
-    // at the default width the label of A1 ends before the end of Alpha: both guides stay
-    const [start, end] = linesOf(drillSvg, true);
-    expect(linesOf(drillSvg, true).length).toBe(2);
-    expect(start).toBeCloseTo(xOf(alpha), 3);
-    expect(end).toBeCloseTo(xOf(alpha) + widthOf(alpha), 3);
-    expect(end).toBeGreaterThan(labelSpan(drillSvg)[1]);
+    // no dashed guides: a line from the start of Alpha into A1, and the walk from the end of Alpha on to Beta beside A1
+    expect(linesOf(drillSvg, true).length).toBe(0);
+    const joins = connectorsOf(drillSvg);
+    expect(joins.some((x) => Math.abs(x - xOf(alpha)) < 1e-3)).toBe(true);
+    expect(joins.some((x) => Math.abs(x - (xOf(alpha) + widthOf(alpha))) < 1e-3)).toBe(true);
   });
 
   const drillSvgs = (page: SpecPage): Element[] =>
@@ -204,53 +215,38 @@ describe("IBCS Table waterfall bar columns", () => {
       .filter((row) => (row.getAttribute("class") || "").includes("ofit"))
       .map((row) => waterfallSvg(row));
 
-  it("leaves out the parent-end guide in a row where it would meet the label", async () => {
-    const page = await renderTable({
-      tableName: "thereofData",
-      thereof: [
-        { rowGroup: "", category: "Alpha", subCategory: "A1", partOf: "" },
-        { rowGroup: "", category: "Alpha", subCategory: "A2", partOf: "" },
-      ],
-      barColumnMaxWidth: 5,
-    });
-
-    // A1 [0,6] of Alpha [0,10]: the label of A1 reaches over 10, only the start guide is left
-    const [a1, a2] = drillSvgs(page);
-    const alpha = barRect(waterfallSvg(findRowByFirstCell(page, "Alpha")));
-    const parentEnd = xOf(alpha) + widthOf(alpha);
-    expect(labelSpan(a1)[1]).toBeGreaterThan(parentEnd);
-    expect(linesOf(a1, true).length).toBe(1);
-    expect(linesOf(a1, true)[0]).toBeCloseTo(xOf(alpha), 3);
-
-    // A2 [6,10] is the last child: it ends on the guide and its label starts after it
-    expect(linesOf(a2, true).length).toBe(2);
-    expect(linesOf(a2, true)[1]).toBeCloseTo(parentEnd, 3);
-  });
-
-  it("leaves out the parent-end guide left of a subtracting thereof bar", async () => {
-    const page = await renderTable({
-      tableName: "optThereofData",
-      type: TableType.OPT,
-      thereof: [
-        { rowGroup: "", category: "Beta", subCategory: "B1", partOf: "" },
-        { rowGroup: "", category: "Beta", subCategory: "B2", partOf: "" },
-      ],
-      barColumnMaxWidth: 5,
-    });
-
-    // Beta [10,5], B1 [10,7], B2 [7,5]: the label of B1 sits left of its bar, over the end of Beta
-    const beta = barRect(waterfallSvg(findRowByCell(page, "Beta")));
-    const [b1, b2] = drillSvgs(page);
-    const [from, to] = labelSpan(b1);
-    expect(from).toBeLessThan(xOf(beta));
-    expect(to).toBeGreaterThan(xOf(beta));
-    expect(linesOf(b1, true).length).toBe(1);
-    expect(linesOf(b1, true)[0]).toBeCloseTo(xOf(beta) + widthOf(beta), 3);
-    for (const svg of [b1, b2]) {
-      const [labelFrom, labelTo] = labelSpan(svg);
-      for (const x of linesOf(svg, true)) expect(x <= labelFrom || x >= labelTo).toBe(true);
+  it("interrupts a connector where it would run through a label", async () => {
+    for (const props of [
+      {
+        tableName: "thereofData",
+        thereof: [
+          { rowGroup: "", category: "Alpha", subCategory: "A1", partOf: "" },
+          { rowGroup: "", category: "Alpha", subCategory: "A2", partOf: "" },
+        ],
+      },
+      {
+        tableName: "optThereofData",
+        type: TableType.OPT,
+        thereof: [
+          { rowGroup: "", category: "Beta", subCategory: "B1", partOf: "" },
+          { rowGroup: "", category: "Beta", subCategory: "B2", partOf: "" },
+        ],
+      },
+    ]) {
+      const page = await renderTable({ ...props, barColumnMaxWidth: 5 });
+      for (const svg of drillSvgs(page)) {
+        const [from, to] = labelSpan(svg);
+        const height = parseFloat(svg.getAttribute("height"));
+        const fontSize = parseFloat(svg.querySelector("text").getAttribute("font-size"));
+        for (const line of connectorLines(svg)) {
+          const x = parseFloat(line.getAttribute("x1"));
+          if (x <= from || x >= to) continue;
+          const [y1, y2] = [parseFloat(line.getAttribute("y1")), parseFloat(line.getAttribute("y2"))];
+          // the part over the label text is left out
+          expect(y2 <= height / 2 - fontSize / 2 + 1e-6 || y1 >= height / 2 + fontSize / 2 - 1e-6).toBe(true);
+        }
+      }
     }
-    expect(linesOf(b2, true).length).toBe(2);
   });
 
   it("leaves out the zero axis in a row where it would meet the label", async () => {

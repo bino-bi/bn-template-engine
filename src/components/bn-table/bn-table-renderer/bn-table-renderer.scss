@@ -10,7 +10,7 @@ table {
   font-size: var(--bn-font-size, 1em);
   color: var(--bn-font-color, black);
   font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
-  border-spacing: 0.3em 0;
+  border-spacing: 0.3em var(--bn-row-gap, 0);
 }
 
 thead {
@@ -169,6 +169,15 @@ th.barColumn {
   text-align: center;
 }
 
+/* a waterfall with a part: the part name over the start, the column name over the end */
+th.barColumn.has-bar-part {
+  text-align: right;
+}
+
+th.barColumn.has-bar-part .bar-part-name {
+  float: left;
+}
+
 /* the first column of a block: a wider gap, in which no row line and no header line is drawn */
 td.block-start,
 th.block-start {
@@ -216,6 +225,15 @@ td.variance:after {
 }
 
 td.relative_variance {
+  font-style: italic;
+}
+
+table.relative-upright td.relative_variance {
+  font-style: normal;
+}
+
+/* a ratio of two results, for example a margin */
+tr.ratio td {
   font-style: italic;
 }
 
@@ -375,8 +393,8 @@ td {
   color: #999;
 }
 
-/* the connectors of a variance waterfall run over the row border into the row above */
-td:has(.variance-waterfall) {
+/* the axes and the connectors of the bar columns run over the row border into the row above */
+td:has(.cell-bar-chart) {
   overflow: visible;
 }
 

@@ -13,6 +13,7 @@ import {
   VarianceAxis,
 } from "./CellBarChart";
 import { WaterfallBarData, WaterfallRowKind } from "../helper/WaterfallCalculator";
+import { getContrastTextColor } from "../../../../utils/stackColors";
 import {
   barBox,
   labelWidth,
@@ -51,20 +52,21 @@ export function waterfallLabelText(
  * All rows of a column share the same coordinate system: the geometry's
  * min/max extents (value units, always including zero) are mapped onto the
  * bar area, so bars always fit and the zero axis sits at the same x position
- * in every row. Fixed unit scaling is deliberately not applied - a clipped
- * bar would break the start position of every subsequent bar.
+ * in every row. The bar area is the column's own fit, or with
+ * `waterfall-scaling="unit"` the one scale of the table at which every walk
+ * fits. A bar is never cut: that would break the start of every bar after it.
  *
  * Layout: [left label area][bar area][right label area]
  * The value label sits at the bar's free end (right of rightward bars,
- * left of leftward bars). thereof/partof rows additionally get dashed
- * guides marking their parent bar's extent. A guide or axis line that would
- * run through the label is left out in that row.
+ * left of leftward bars). Thin connectors join the bar to the rows above and below.
+ * The connectors join the rows, so where one meets the label it is only interrupted over
+ * the height of the text. The zero axis of a scenario column is left out in a row where it
+ * would run through the label.
  *
  * An absolute variance column is drawn as a variance waterfall: the bar in the color of
  * the sentiment and the pattern of the minuend, the axis in the look of the reference
- * scenario in every row, a signed label, and thin connectors to the rows above and below
- * in place of the dashed guides. The axis and the connectors join the rows, so where one
- * meets the label it is only interrupted over the height of the text.
+ * scenario in every row, and a signed label. Its axis is interrupted at the label like the
+ * connectors.
  */
 export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const {
@@ -81,6 +83,7 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
     geometry,
     bold,
     connectorReach = { top: 0, bottom: 0 },
+    axisReach = { top: 0, bottom: 0 },
   } = props;
   const s = styles.scaleFactor;
   const fs = styles.fontSize;
@@ -110,7 +113,8 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
 
   // null for a scenario column, which ignores the sentiment
   const look = getVarianceLook(scenario, styles);
-  const sentimentStyle = getBarStyle(scenario, value, isPositiveGood, styles);
+  // a scenario step takes its look from the way it goes, a variance from its sentiment
+  const sentimentStyle = getBarStyle(scenario, look ? value : waterfall.end - waterfall.start, isPositiveGood, styles);
   const minuendPattern = look?.minuend.fillpattern;
   const barStyle =
     minuendPattern === "hatched" || minuendPattern === "outlined"
@@ -123,6 +127,27 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
 
   const displayValue = waterfallLabelText(value, waterfall.kind, measureScale, locale, decimalDigits, look !== null);
 
+  // the part of another scenario (barColumnParts): its look, and its value inside when it fits with a small pad
+  const partGeometry = (p: NonNullable<WaterfallBarData["part"]>, fromX: number, toX: number) => {
+    const width = Math.abs(toX - fromX);
+    if (!(width > 0)) return undefined;
+    const partStyle = getBarStyle(p.scenario, waterfall.end - waterfall.start, isPositiveGood, styles);
+    const { stroke, strokeWidth } = getBarStroke(partStyle);
+    const text = waterfallLabelText(p.value, waterfall.kind, measureScale, locale, decimalDigits);
+    const fits = labelWidth(text, fs, styles.fontFamily, false, bold) + labelGap <= width;
+    const color =
+      partStyle.fillpattern === "hatched" || partStyle.fillpattern === "outlined"
+        ? styles.fontColor
+        : getContrastTextColor(partStyle.fill);
+    return {
+      x: Math.min(fromX, toX),
+      width,
+      look: { fill: getBarFill(partStyle, getScenarioType(p.scenario)), stroke, "stroke-width": strokeWidth * s },
+      label: fits ? { text, color } : undefined,
+    };
+  };
+  const part = waterfall.part && partGeometry(waterfall.part, startX, xOf(waterfall.part.end));
+
   const pointsLeft = endX < startX;
   const labelX = pointsLeft ? barX - labelGap : barX + barWidth + labelGap;
   const labelAnchor = pointsLeft ? "end" : "start";
@@ -133,7 +158,6 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
   const labelFrom = (pointsLeft ? labelX - labelSize : labelX) - labelPad;
   const labelTo = (pointsLeft ? labelX : labelX + labelSize) + labelPad;
   const meetsLabel = (x: number) => x > labelFrom && x < labelTo;
-  const parentEndX = waterfall.parentEnd !== undefined ? xOf(waterfall.parentEnd) : undefined;
   // the parts of a vertical line of a variance waterfall that stay clear of the label text
   const labelTop = height / 2 - fs / 2;
   const labelBottom = height / 2 + fs / 2;
@@ -157,30 +181,13 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
 
       {/* Zero axis line, drawn in the rows so the column reads as one chart */}
       {!look && !meetsLabel(axisX) && (
-        <line x1={axisX} y1={0} x2={axisX} y2={height} stroke={AXIS_COLOR} stroke-width={1 * s} />
-      )}
-
-      {/* Dashed guides marking the parent bar extent of a sub-cascade */}
-      {waterfall.parentStart !== undefined && waterfall.parentEnd !== undefined && (
         <line
-          x1={xOf(waterfall.parentStart)}
-          y1={0}
-          x2={xOf(waterfall.parentStart)}
-          y2={height}
+          x1={axisX}
+          y1={-axisReach.top}
+          x2={axisX}
+          y2={height + axisReach.bottom}
           stroke={AXIS_COLOR}
           stroke-width={1 * s}
-          stroke-dasharray={`${2 * s},${2 * s}`}
-        />
-      )}
-      {waterfall.parentStart !== undefined && parentEndX !== undefined && !meetsLabel(parentEndX) && (
-        <line
-          x1={parentEndX}
-          y1={0}
-          x2={parentEndX}
-          y2={height}
-          stroke={AXIS_COLOR}
-          stroke-width={1 * s}
-          stroke-dasharray={`${2 * s},${2 * s}`}
         />
       )}
 
@@ -212,6 +219,24 @@ export const WaterfallBar: FunctionalComponent<WaterfallBarProps> = (props) => {
           stroke={barStroke}
           stroke-width={barStrokeWidth * s}
         />
+      )}
+
+      {/* The part of another scenario from the start of the bar, with its value inside when it fits */}
+      {part && <rect class="waterfall-part" x={part.x} y={barY} width={part.width} height={barHeight} {...part.look} />}
+      {part?.label && (
+        <text
+          class="waterfall-part-label"
+          x={part.x + part.width / 2}
+          y={height / 2}
+          dy="0.35em"
+          text-anchor="middle"
+          fill={part.label.color}
+          font-size={fs}
+          font-family={styles.fontFamily}
+          font-weight={bold ? "bold" : undefined}
+        >
+          {part.label.text}
+        </text>
       )}
 
       {/* Variance axis on top, so no bar outline covers it; it runs out of the svg like the connectors */}

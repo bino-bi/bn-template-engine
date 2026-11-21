@@ -66,4 +66,8 @@ export interface SVGStyle {
   fillpattern?: FillPattern;
   /** Fill of a column or bar with a value below 0. */
   negativeFill?: string;
+  /** Variance styles: fill of an outlined variance (a variance of a plan). Not set: the background. */
+  outlineFill?: string;
+  /** Variance styles: edge of an outlined variance. Not set: the colour of the variance. */
+  outlineStroke?: string;
 }

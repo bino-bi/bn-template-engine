@@ -24,6 +24,7 @@ import { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/Ti
 import { DateDistance } from "./utils/DateStringFactory";
 import { StackConfigParsed as StackConfigParsed1, TotalsConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 import { Notation } from "./utils/notation";
+import { TableRatio } from "./components/bn-table/utils/model/TableComponentConfig";
 import { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 import { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 import { TableType, ThereofPosition } from "./components/bn-table/utils/model";
@@ -54,6 +55,7 @@ export { TimeChartStyle } from "./components/bn-chart-time/utils/model/styles/Ti
 export { DateDistance } from "./utils/DateStringFactory";
 export { StackConfigParsed as StackConfigParsed1, TotalsConfig } from "./components/bn-chart-time/utils/model/TimeChartComponentConfig";
 export { Notation } from "./utils/notation";
+export { TableRatio } from "./components/bn-table/utils/model/TableComponentConfig";
 export { TableLayoutDetail } from "./components/bn-table/bn-table-renderer/bn-table-renderer";
 export { TableDrillGroup } from "./components/bn-table/utils/model/TableDrillGroup";
 export { TableType, ThereofPosition } from "./components/bn-table/utils/model";
@@ -1972,12 +1974,16 @@ export namespace Components {
      */
     interface BnTable {
         /**
+          * Draws a second scenario inside the bars of a scenario waterfall column, from the start of each bar, in its own look and with its value inside when it fits. The header names the part over the start of the column. Use it for a year forecast with the actual year to date in it: ```{"fc1": "ac1"}```. The part is read from the data like a scenario, but gets no column of its own. A part longer than its bar ends at the end of the bar. Only waterfall columns draw parts. <br /><br /> example:<br /> ```{"fc1": "ac1"}```
+         */
+        "barColumnParts": string | Record<string, string>;
+        /**
           * Set the total width of bar chart columns, in em of the table font - the same unit and vocabulary as ```categoryWidth```, so ```bar-column-width="w15"``` renders exactly as wide as ```category-width="w15"```. The bar/pin drawing area is that width minus the value-label gutters. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
           * @default "w10"
          */
         "barColumnWidth": string;
         /**
-          * List of column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin charts with a square head. Bars take the pattern of the minuend (FC hatched, PL outlined) in the colour of the sentiment; pin heads take the look of the minuend scenario (AC solid dark, PY solid grey, FC hatched, PL outlined); the axis takes the look of the reference scenario. Scenario columns (ac1..pl4) render as horizontal bar charts; when the table contains grouping structure (sum rows, thereof, or partof) they automatically render as an IBCS waterfall - data rows cascade from the running total and sum rows anchor at zero. Waterfall columns auto-scale to fit the bar column width (unit-scaling does not apply) and are not supported in combination with `interval` or `columnthereof`. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos,ac1```
+          * List of column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin charts with a square head. Bars take the pattern of the minuend (FC hatched, PL outlined) in the colour of the sentiment; pin heads take the look of the minuend scenario (AC solid dark, PY solid grey, FC hatched, PL outlined); the axis takes the look of the reference scenario. Scenario columns (ac1..pl4) render as horizontal bar charts; when the table contains grouping structure (sum rows, thereof, or partof) they automatically render as an IBCS waterfall - data rows cascade from the running total and sum rows anchor at zero. Thin lines join the bars. Waterfall columns auto-scale to fit the bar column width, see `waterfallScaling` for one scale in the table. They are not supported in combination with `interval` or `columnthereof`. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos,ac1```
          */
         "barColumns": string;
         /**
@@ -2011,9 +2017,19 @@ export namespace Components {
          */
         "dataFormatDigitsPercent": number;
         /**
+          * `false` prints the labels of the relative variance pins without the percent sign (`+26`). The header of the column (`ΔPY%`) still names the unit. The number cells of a relative variance keep their sign.
+          * @default true
+         */
+        "dataFormatPercentSign": boolean;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
+        /**
+          * Spreads the rows over the height of the layout cell: the space the table does not need is put between the rows, at most 1 em per row. The lines of the bar and pin columns run through the space. Without a height of its own (a cell that grows with its content) the table keeps its height. A table that is too high is not made smaller: see `scale`. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "fillHeight": boolean;
         /**
           * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"category = 'Sales'"`).
           * @default ""
@@ -2085,6 +2101,10 @@ export namespace Components {
          */
         "percentageScaling": string | number;
         /**
+          * Rows with the ratio of two results, for example a margin. Each row stands after the result of its `numerator` and shows, per scenario column, that result divided by the result of its `denominator`, in percent and in italics. Its variance cells stay empty. `numerator` and `denominator` name the `rowGroup` of a sum row, so the table needs `grouped` and a type with group sums. In a waterfall column the value stands left of the line of the walk, which runs through the row. <br /><br /> example:<br /> ```[{"name": "Gross margin", "numerator": "Operating result", "denominator": "Sales revenue"}]```
+         */
+        "ratios": string | TableRatio[];
+        /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
         "ruleset"?: string;
@@ -2116,6 +2136,11 @@ export namespace Components {
           * @default false
          */
         "showMeasureScale": boolean;
+        /**
+          * Draws the absolute variance bars and the relative variance pins of ```barColumns``` on the sum rows too: group sums, running results and the total. Without it these rows print the variance as a number. The sum rows then count for the scale of the bars and pins. Has no effect on a variance column drawn as a ```varianceWaterfall```, which draws its sum rows anyway. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "sumBars": boolean;
         /**
           * Label of the grand-total row at the bottom of the table. Only rendered for `type="sum"` and `type="opt"`; the other table types have no total row. When empty, the IBCS total symbol (❖) is used.
           * @default ""
@@ -2149,7 +2174,7 @@ export namespace Components {
          */
         "unitScaling": string | number;
         /**
-          * Draws every absolute variance column (d_*) listed in ```barColumns``` as a variance waterfall down the rows instead of single bars from the axis. A row starts where the row above ended; on ```opt``` and ```optnototal``` tables a "-" row with a positive variance moves to the left. Sum rows are bars from the axis. Thin lines join the bars. Each row group starts at the axis again, with ```runningSum``` the walk goes on from the sum row. The column scales to fit the whole walk (unit-scaling does not apply). Relative variance columns (dr_*) stay pins. Has no effect together with ```interval``` or ```columnthereof```. <br /><br /> values: <br /> ```true // false```
+          * Draws every absolute variance column (d_*) listed in ```barColumns``` as a variance waterfall down the rows instead of single bars from the axis. A row starts where the row above ended; on ```opt``` and ```optnototal``` tables a "-" row with a positive variance moves to the left. Sum rows are bars from the axis. Thin lines join the bars. Each row group starts at the axis again, with ```runningSum``` the walk goes on from the sum row. The column scales to fit the whole walk, see `waterfallScaling` for one scale in the table. Relative variance columns (dr_*) stay pins. Has no effect together with ```interval``` or ```columnthereof```. <br /><br /> values: <br /> ```true // false```
           * @default false
          */
         "varianceWaterfall": boolean;
@@ -2157,6 +2182,11 @@ export namespace Components {
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. op follows the row operation: in an opt/optnototal table a "-" row acts like neg, "+" and sum rows act like pos (a rising cost is red). opinv is the inverse of op. In other table types op acts like pos. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances": string;
+        /**
+          * How the waterfall columns of ```barColumns``` are scaled. <br /><br /> | Value    | Behavior | |----------|----------| | `column` | Each waterfall column fits its own walk to its width (default). | | `unit`   | All waterfall columns and the absolute variance bars share one scale: `unitScaling`. With `auto` it is the largest scale at which every walk fits its column and every variance bar its cut. A fixed `unitScaling` (or a scaling group) at which a walk does not fit is made coarser for all bars of the table, with the warning `WARN_waterfallScaling`. | <br /><br /> IBCS shows values of the same unit at the same scale, so a table with a PY and an AC waterfall and a ΔPY column uses `unit`.
+          * @default "column"
+         */
+        "waterfallScaling": string;
     }
     /**
      * Internal rendering engine for `bn-table`.
@@ -2176,6 +2206,11 @@ export namespace Components {
           * @default 30
          */
         "barColumnMaxWidth": number;
+        /**
+          * Waterfall column to the scenario drawn inside its bars, for example `{ fc1: "ac1" }`.
+          * @default {}
+         */
+        "barColumnParts": Record<string, string>;
         /**
           * @default []
          */
@@ -2258,9 +2293,19 @@ export namespace Components {
          */
         "percentageScaling": number;
         /**
+          * Ratio rows after a result row, for example `[{ name: "Gross margin", numerator: "Operating result", denominator: "Sales revenue" }]`.
+          * @default []
+         */
+        "ratios": TableRatio[];
+        /**
           * Internal wrapper channel: called with the auto-fitted scaling values (em per unit / em per percentage point) whenever one of them was auto-resolved, so the outer `bn-table` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
+        /**
+          * Space between two rows in px, set by `fillHeight` of the wrapper.
+          * @default 0
+         */
+        "rowGap": number;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default false
@@ -2291,6 +2336,11 @@ export namespace Components {
          */
         "showMeasureScale": boolean;
         /**
+          * Variance bars and pins also on the sum rows.
+          * @default false
+         */
+        "sumBars": boolean;
+        /**
           * Label of the grand-total row (`sum` / `opt` types only). The default `SUM_TOTAL` is an i18n key that resolves to the IBCS total symbol (❖).
           * @default "SUM_TOTAL"
          */
@@ -2320,6 +2370,11 @@ export namespace Components {
           * @default false
          */
         "varianceWaterfall": boolean;
+        /**
+          * `column`: each waterfall column fits its walk to its own width. `unit`: the waterfall columns and the absolute variance bars share the scale of `unitScaling`.
+          * @default "column"
+         */
+        "waterfallScaling": "column" | "unit";
     }
     /**
      * Renders a text block from a template with dataset and translation
@@ -4812,12 +4867,16 @@ declare namespace LocalJSX {
      */
     interface BnTable {
         /**
+          * Draws a second scenario inside the bars of a scenario waterfall column, from the start of each bar, in its own look and with its value inside when it fits. The header names the part over the start of the column. Use it for a year forecast with the actual year to date in it: ```{"fc1": "ac1"}```. The part is read from the data like a scenario, but gets no column of its own. A part longer than its bar ends at the end of the bar. Only waterfall columns draw parts. <br /><br /> example:<br /> ```{"fc1": "ac1"}```
+         */
+        "barColumnParts"?: string | Record<string, string>;
+        /**
           * Set the total width of bar chart columns, in em of the table font - the same unit and vocabulary as ```categoryWidth```, so ```bar-column-width="w15"``` renders exactly as wide as ```category-width="w15"```. The bar/pin drawing area is that width minus the value-label gutters. <br /><br /> values:<br /> ``` w5 // w10 // w15 // w20 // w25 // w30 // w40 // w60 // w80 // w100 ```
           * @default "w10"
          */
         "barColumnWidth"?: string;
         /**
-          * List of column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin charts with a square head. Bars take the pattern of the minuend (FC hatched, PL outlined) in the colour of the sentiment; pin heads take the look of the minuend scenario (AC solid dark, PY solid grey, FC hatched, PL outlined); the axis takes the look of the reference scenario. Scenario columns (ac1..pl4) render as horizontal bar charts; when the table contains grouping structure (sum rows, thereof, or partof) they automatically render as an IBCS waterfall - data rows cascade from the running total and sum rows anchor at zero. Waterfall columns auto-scale to fit the bar column width (unit-scaling does not apply) and are not supported in combination with `interval` or `columnthereof`. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos,ac1```
+          * List of column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin charts with a square head. Bars take the pattern of the minuend (FC hatched, PL outlined) in the colour of the sentiment; pin heads take the look of the minuend scenario (AC solid dark, PY solid grey, FC hatched, PL outlined); the axis takes the look of the reference scenario. Scenario columns (ac1..pl4) render as horizontal bar charts; when the table contains grouping structure (sum rows, thereof, or partof) they automatically render as an IBCS waterfall - data rows cascade from the running total and sum rows anchor at zero. Thin lines join the bars. Waterfall columns auto-scale to fit the bar column width, see `waterfallScaling` for one scale in the table. They are not supported in combination with `interval` or `columnthereof`. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos,ac1```
          */
         "barColumns"?: string;
         /**
@@ -4851,9 +4910,19 @@ declare namespace LocalJSX {
          */
         "dataFormatDigitsPercent"?: number;
         /**
+          * `false` prints the labels of the relative variance pins without the percent sign (`+26`). The header of the column (`ΔPY%`) still names the unit. The number cells of a relative variance keep their sign.
+          * @default true
+         */
+        "dataFormatPercentSign"?: boolean;
+        /**
           * Name of the dataset to render (the `name` of a `<bn-dataset>`). A name that starts with `$` reads a `<bn-datasource>` directly, which gives a warning.
          */
         "datasets"?: string;
+        /**
+          * Spreads the rows over the height of the layout cell: the space the table does not need is put between the rows, at most 1 em per row. The lines of the bar and pin columns run through the space. Without a height of its own (a cell that grows with its content) the table keeps its height. A table that is too high is not made smaller: see `scale`. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "fillHeight"?: boolean;
         /**
           * AlaSQL WHERE clause fragment injected into the data query to filter rows before rendering (e.g. `"category = 'Sales'"`).
           * @default ""
@@ -4916,6 +4985,10 @@ declare namespace LocalJSX {
          */
         "percentageScaling"?: string | number;
         /**
+          * Rows with the ratio of two results, for example a margin. Each row stands after the result of its `numerator` and shows, per scenario column, that result divided by the result of its `denominator`, in percent and in italics. Its variance cells stay empty. `numerator` and `denominator` name the `rowGroup` of a sum row, so the table needs `grouped` and a type with group sums. In a waterfall column the value stands left of the line of the walk, which runs through the row. <br /><br /> example:<br /> ```[{"name": "Gross margin", "numerator": "Operating result", "denominator": "Sales revenue"}]```
+         */
+        "ratios"?: string | TableRatio[];
+        /**
           * Name of a registered IBCS rule set (see `bn-ruleset`) used for scenario ordering, look and names. Supports `"inherited-closest"` / `"inherited-page"` to take over the value from an ancestor `bn-layout-card` / `bn-layout-page`.
          */
         "ruleset"?: string;
@@ -4947,6 +5020,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "showMeasureScale"?: boolean;
+        /**
+          * Draws the absolute variance bars and the relative variance pins of ```barColumns``` on the sum rows too: group sums, running results and the total. Without it these rows print the variance as a number. The sum rows then count for the scale of the bars and pins. Has no effect on a variance column drawn as a ```varianceWaterfall```, which draws its sum rows anyway. <br /><br /> values: <br /> ```true // false```
+          * @default false
+         */
+        "sumBars"?: boolean;
         /**
           * Label of the grand-total row at the bottom of the table. Only rendered for `type="sum"` and `type="opt"`; the other table types have no total row. When empty, the IBCS total symbol (❖) is used.
           * @default ""
@@ -4980,7 +5058,7 @@ declare namespace LocalJSX {
          */
         "unitScaling"?: string | number;
         /**
-          * Draws every absolute variance column (d_*) listed in ```barColumns``` as a variance waterfall down the rows instead of single bars from the axis. A row starts where the row above ended; on ```opt``` and ```optnototal``` tables a "-" row with a positive variance moves to the left. Sum rows are bars from the axis. Thin lines join the bars. Each row group starts at the axis again, with ```runningSum``` the walk goes on from the sum row. The column scales to fit the whole walk (unit-scaling does not apply). Relative variance columns (dr_*) stay pins. Has no effect together with ```interval``` or ```columnthereof```. <br /><br /> values: <br /> ```true // false```
+          * Draws every absolute variance column (d_*) listed in ```barColumns``` as a variance waterfall down the rows instead of single bars from the axis. A row starts where the row above ended; on ```opt``` and ```optnototal``` tables a "-" row with a positive variance moves to the left. Sum rows are bars from the axis. Thin lines join the bars. Each row group starts at the axis again, with ```runningSum``` the walk goes on from the sum row. The column scales to fit the whole walk, see `waterfallScaling` for one scale in the table. Relative variance columns (dr_*) stay pins. Has no effect together with ```interval``` or ```columnthereof```. <br /><br /> values: <br /> ```true // false```
           * @default false
          */
         "varianceWaterfall"?: boolean;
@@ -4988,6 +5066,11 @@ declare namespace LocalJSX {
           * <br /> <br /> List of Variances The additonal variances which are calculated form the given scenarios. the scenarios used in the variances have also be defined in the *scenarios* property. <br /> <br /> the variance is defiend as  (Scenario A -  ScenarioB) neu. neg and pos post fix defines which value is *good* a negative or a positive value. op follows the row operation: in an opt/optnototal table a "-" row acts like neg, "+" and sum rows act like pos (a rising cost is red). opinv is the inverse of op. In other table types op acts like pos. <br /> <br /> if empty variance charts are hidden <br /> <br /> each variance creates a chart <br /> <br /> pattern:<br />  ```d<scenarioB>_<scenarioA>_[pos/neg/neu/op/opinv]```
          */
         "variances"?: string;
+        /**
+          * How the waterfall columns of ```barColumns``` are scaled. <br /><br /> | Value    | Behavior | |----------|----------| | `column` | Each waterfall column fits its own walk to its width (default). | | `unit`   | All waterfall columns and the absolute variance bars share one scale: `unitScaling`. With `auto` it is the largest scale at which every walk fits its column and every variance bar its cut. A fixed `unitScaling` (or a scaling group) at which a walk does not fit is made coarser for all bars of the table, with the warning `WARN_waterfallScaling`. | <br /><br /> IBCS shows values of the same unit at the same scale, so a table with a PY and an AC waterfall and a ΔPY column uses `unit`.
+          * @default "column"
+         */
+        "waterfallScaling"?: string;
     }
     /**
      * Internal rendering engine for `bn-table`.
@@ -5007,6 +5090,11 @@ declare namespace LocalJSX {
           * @default 30
          */
         "barColumnMaxWidth"?: number;
+        /**
+          * Waterfall column to the scenario drawn inside its bars, for example `{ fc1: "ac1" }`.
+          * @default {}
+         */
+        "barColumnParts"?: Record<string, string>;
         /**
           * @default []
          */
@@ -5085,9 +5173,19 @@ declare namespace LocalJSX {
          */
         "percentageScaling"?: number;
         /**
+          * Ratio rows after a result row, for example `[{ name: "Gross margin", numerator: "Operating result", denominator: "Sales revenue" }]`.
+          * @default []
+         */
+        "ratios"?: TableRatio[];
+        /**
           * Internal wrapper channel: called with the auto-fitted scaling values (em per unit / em per percentage point) whenever one of them was auto-resolved, so the outer `bn-table` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
+        /**
+          * Space between two rows in px, set by `fillHeight` of the wrapper.
+          * @default 0
+         */
+        "rowGap"?: number;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default false
@@ -5118,6 +5216,11 @@ declare namespace LocalJSX {
          */
         "showMeasureScale"?: boolean;
         /**
+          * Variance bars and pins also on the sum rows.
+          * @default false
+         */
+        "sumBars"?: boolean;
+        /**
           * Label of the grand-total row (`sum` / `opt` types only). The default `SUM_TOTAL` is an i18n key that resolves to the IBCS total symbol (❖).
           * @default "SUM_TOTAL"
          */
@@ -5147,6 +5250,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "varianceWaterfall"?: boolean;
+        /**
+          * `column`: each waterfall column fits its walk to its own width. `unit`: the waterfall columns and the absolute variance bars share the scale of `unitScaling`.
+          * @default "column"
+         */
+        "waterfallScaling"?: "column" | "unit";
     }
     /**
      * Renders a text block from a template with dataset and translation
@@ -5746,6 +5854,11 @@ declare namespace LocalJSX {
         "showGroupTitle": boolean;
         "runningSum": boolean;
         "varianceWaterfall": boolean;
+        "waterfallScaling": string;
+        "sumBars": boolean;
+        "barColumnParts": string | Record<string, string>;
+        "ratios": string | TableRatio[];
+        "fillHeight": boolean;
         "type": string;
         "limit": number;
         "thereof": string;
@@ -5757,6 +5870,7 @@ declare namespace LocalJSX {
         "measureScale": string;
         "dataFormatDigitsDecimal": number;
         "dataFormatDigitsPercent": number;
+        "dataFormatPercentSign": boolean;
         "categoryWidth": string;
         "columnthereof": string | null;
         "interval": string;
@@ -5788,6 +5902,9 @@ declare namespace LocalJSX {
         "barColumnMaxWidth": number;
         "unitScaling": number;
         "percentageScaling": number;
+        "waterfallScaling": "column" | "unit";
+        "sumBars": boolean;
+        "rowGap": number;
         "scaleFactor": number;
     }
     interface BnTextAttributes {

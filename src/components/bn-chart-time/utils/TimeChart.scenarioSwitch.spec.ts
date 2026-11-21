@@ -38,6 +38,7 @@ const buildChart = (
   options: Record<string, unknown>,
   rows: Record<string, unknown>[] = ROWS,
   tables: Record<string, Record<string, unknown>[]> = {},
+  styleData: Record<string, unknown> = {},
 ): TimeChart => {
   const db = createScopedDb().db;
   db.tables[TABLE] = { data: rows };
@@ -65,7 +66,7 @@ const buildChart = (
     new SVGStyleGroupAdapter(new SVGStyleAdapter()),
     new SVGVariancesStyleGroupAdapter(new SVGStyleAdapter()),
     new PaddingAdapter(),
-  ).adapt({});
+  ).adapt(styleData);
 
   return new TimeChart(new IBCSRuleSet(), db, TABLE, config, styles);
 };
@@ -236,6 +237,25 @@ describe("time chart scenarioSwitch", () => {
     expect(hatched(["drac1_pp1_pos", "drfc1_pp1_pos"])).toBe(1);
     const plain = buildChart({ ...options, variances: ["dac1_pp1_pos"] }, rows).toString();
     expect(plain).not.toContain("pattern-hatch-");
+  });
+
+  it("draws a variance of a plan with the outline fill and edge of the style", () => {
+    const options = { scenarioSwitch: true, variances: ["dac1_pp1_pos", "dpl1_pp1_pos"] };
+    const plain = buildChart(options).toString();
+    expect(plain).not.toContain("#cce9ea");
+    const styled = buildChart(
+      options,
+      ROWS,
+      {},
+      {
+        varianceStyles: {
+          pos: { stroke: "#008f96", fill: "#008f96", outlineFill: "#cce9ea", outlineStroke: "#404040" },
+        },
+      },
+    ).toString();
+    // of the PL years only 2026 is above the reference, 2027 is a negative variance
+    expect(styled.match(/fill="#cce9ea"/g)?.length).toBe(1);
+    expect(styled).toContain('stroke="#404040"');
   });
 
   it("prints relative variances without the percent sign on request", () => {

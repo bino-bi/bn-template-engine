@@ -32,21 +32,22 @@ export interface WaterfallBarData {
   /** Column-wide maximum coordinate (>= 0), shared by all rows of the column. */
   max: number;
   kind: WaterfallRowKind;
-  /** Parent bar start, only set for thereof/partof rows (dashed extent guides). */
-  parentStart?: number;
-  /** Parent bar end, only set for thereof/partof rows (dashed extent guides). */
-  parentEnd?: number;
-  /** Lines that join this bar to the bars of the rows printed above and below; variance columns only. */
+  /** Lines that join this bar to the bars of the rows printed above and below. */
   connectors?: WaterfallConnector[];
+  /** A scenario drawn inside the bar from its start (`barColumnParts`), in value units. */
+  part?: { scenario: string; value: number; end: number };
 }
 
-/** A row of a variance walk with the thereof rows printed beside it. */
+/** A row of a walk with the thereof and partof rows printed beside it. */
 interface WalkUnit {
   main: WaterfallBarData;
-  children: WaterfallBarData[];
-  /** A thereof row without a bar is printed above the row, so no line can come in from above. */
+  /** Thereof rows printed above the row (`thereofPosition: above`). */
+  above: WaterfallBarData[];
+  /** Thereof rows printed below the row, and partof rows. */
+  below: WaterfallBarData[];
+  /** A row without a bar is printed above the row, so no line can come in from above. */
   gapAbove: boolean;
-  /** A thereof or partof row without a bar is printed below the row, so no line can go on below. */
+  /** A row without a bar is printed below the row, so no line can go on below. */
   gapBelow: boolean;
 }
 
@@ -55,11 +56,11 @@ function sameCoordinate(a: number, b: number): boolean {
 }
 
 /**
- * Sets the connectors of a variance walk in print order. A null unit is a printed row
+ * Sets the connectors of a walk in print order. A null unit is a printed row
  * without a bar. Two rows are joined only where the walk goes on: a group that restarts
  * at zero gets no line from the sum row above it.
  */
-function connectWalk(units: (WalkUnit | null)[], thereofAbove: boolean): void {
+function connectWalk(units: (WalkUnit | null)[]): void {
   const add = (bar: WaterfallBarData, at: number, part: WaterfallConnector["part"]) => {
     bar.connectors = [...(bar.connectors ?? []), { at, part }];
   };
@@ -75,24 +76,24 @@ function connectWalk(units: (WalkUnit | null)[], thereofAbove: boolean): void {
       previous = null;
       continue;
     }
-    const { main, children } = unit;
+    const { main, above, below } = unit;
+    const chain = (rows: WaterfallBarData[]) =>
+      rows.forEach((row, index) => {
+        if (index > 0) link(rows[index - 1], [], row, row.start);
+      });
     const entry = main.kind === "anchor" ? main.end : main.start;
     if (previous && !unit.gapAbove && sameCoordinate(previous.main.end, entry)) {
-      // the line runs beside the thereof rows printed between the two rows
-      link(previous.main, thereofAbove ? children : previous.children, main, entry);
+      // the line runs beside the rows printed between the two rows
+      link(previous.main, [...previous.below, ...above], main, entry);
     }
-    if (!unit.gapAbove && !unit.gapBelow) {
-      children.forEach((child, index) => {
-        if (index > 0) link(children[index - 1], [], child, child.start);
-      });
-      if (children.length > 0) {
-        const last = children[children.length - 1];
-        if (!thereofAbove) {
-          link(main, [], children[0], main.start);
-        } else if (sameCoordinate(last.end, main.end)) {
-          link(last, [], main, main.end);
-        }
-      }
+    if (!unit.gapAbove && above.length > 0) {
+      chain(above);
+      const last = above[above.length - 1];
+      if (sameCoordinate(last.end, main.end)) link(last, [], main, main.end);
+    }
+    if (!unit.gapBelow && below.length > 0) {
+      chain(below);
+      link(main, [], below[0], main.start);
     }
     previous = unit.gapBelow ? null : unit;
   }
@@ -206,16 +207,18 @@ function signedValue(row: DataQueryResultRow, column: string, tableType: TableTy
  *   cascade goes on from its value and no GROUPHEAD restarts it.
  * - NaN rows get no bar; a NaN parent orphans its drill children.
  *
- * An absolute variance column walks the same way with three differences: a thereof row
+ * An absolute variance column walks the same way with two differences: a thereof row
  * steps by its signed value times the operation sign of its parent, so its siblings can
- * go both ways and leave the parent bar; a partof row gets no bar; and the bars carry
- * connectors to the rows printed above and below.
+ * go both ways and leave the parent bar; and a partof row gets no bar.
+ *
+ * The bars of every column carry connectors to the rows printed above and below.
  *
  * @param queryData - Segmented result rows from DataQuery.execute().
  * @param columns - Plain scenario (ac1..pl4) or absolute variance column keys; no `##` composite keys.
  * @param tableType - Table aggregation mode, needed for OPT sign handling.
  * @param runningSum - True when the GROUP_SUM rows are running results.
  * @param thereofAbove - True when thereof rows are printed above their parent; only the connectors depend on it.
+ * @param parts - Scenario column to the scenario drawn inside its bars (`barColumnParts`).
  */
 export function computeWaterfall(
   queryData: DataQueryResultRow[][],
@@ -223,6 +226,7 @@ export function computeWaterfall(
   tableType: TableType,
   runningSum: boolean = false,
   thereofAbove: boolean = false,
+  parts: Map<string, string> = new Map(),
 ): WaterfallResult {
   const result = new WaterfallResult();
   const isOpt = tableType === TableType.OPT || tableType === TableType.OPTNOTOTAL;
@@ -236,13 +240,22 @@ export function computeWaterfall(
     const units: (WalkUnit | null)[] = [];
     let unit: WalkUnit | null = null;
 
+    const partScenario = variance ? undefined : parts.get(column);
     const emit = (row: DataQueryResultRow, data: WaterfallBarData) => {
+      const partValue = partScenario === undefined ? null : signedValue(row, partScenario, tableType);
+      // a partof row holds shares, not values: it gets no part
+      if (partScenario !== undefined && partValue !== null && data.kind !== "partof") {
+        // the part goes the way of its bar and never beyond its end
+        const direction = Math.sign(data.end - data.start) || 1;
+        const length = Math.min(Math.abs(partValue), Math.abs(data.end - data.start));
+        data.part = { scenario: partScenario, value: Number(row[partScenario]), end: data.start + direction * length };
+      }
       emitted.push(data);
       result.set(row, column, data);
       return data;
     };
     const startUnit = (main: WaterfallBarData | null) => {
-      unit = main && { main, children: [], gapAbove: false, gapBelow: false };
+      unit = main && { main, above: [], below: [], gapAbove: false, gapBelow: false };
       units.push(unit);
     };
 
@@ -288,7 +301,9 @@ export function computeWaterfall(
         } else if (variance && (type === TableRowType.DRILLELEMENT || type === TableRowType.PARTELEMENT)) {
           if (type === TableRowType.DRILLELEMENT && value !== null && lastParent !== undefined && unit) {
             const end: number = subCursor + lastParent.sign * value;
-            unit.children.push(emit(row, { start: subCursor, end, min: 0, max: 0, kind: "thereof" }));
+            (thereofAbove ? unit.above : unit.below).push(
+              emit(row, { start: subCursor, end, min: 0, max: 0, kind: "thereof" }),
+            );
             subCursor = end;
           } else if (unit) {
             // only thereof rows move above the parent
@@ -297,42 +312,33 @@ export function computeWaterfall(
           }
         } else if (type === TableRowType.DRILLELEMENT) {
           if (value === null || lastParent === undefined) {
+            // a printed row without a bar: no line runs through it
+            if (unit) {
+              if (thereofAbove) unit.gapAbove = true;
+              else unit.gapBelow = true;
+            }
             continue;
           }
           const direction = Math.sign(lastParent.end - lastParent.start) || 1;
           const end = subCursor + direction * Math.abs(value);
-          emit(row, {
-            start: subCursor,
-            end,
-            min: 0,
-            max: 0,
-            kind: "thereof",
-            parentStart: lastParent.start,
-            parentEnd: lastParent.end,
-          });
+          const data = emit(row, { start: subCursor, end, min: 0, max: 0, kind: "thereof" });
+          if (unit) (thereofAbove ? unit.above : unit.below).push(data);
           subCursor = end;
         } else if (type === TableRowType.PARTELEMENT) {
           if (value === null || lastParent === undefined) {
+            if (unit) unit.gapBelow = true;
             continue;
           }
           const end = subCursor + value * (lastParent.end - lastParent.start);
-          emit(row, {
-            start: subCursor,
-            end,
-            min: 0,
-            max: 0,
-            kind: "partof",
-            parentStart: lastParent.start,
-            parentEnd: lastParent.end,
-          });
+          // partof rows always print below their parent
+          const data = emit(row, { start: subCursor, end, min: 0, max: 0, kind: "partof" });
+          if (unit) unit.below.push(data);
           subCursor = end;
         }
       }
     }
 
-    if (variance) {
-      connectWalk(units, thereofAbove);
-    }
+    connectWalk(units);
 
     // All rows of a column share one coordinate system including zero
     let min = 0;

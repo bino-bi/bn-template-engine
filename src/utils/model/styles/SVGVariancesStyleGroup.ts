@@ -46,7 +46,7 @@ export class SVGVariancesStyleGroupAdapter implements IAdapter<SVGVariancesStyle
       styleGroup.neg = this.svgStyleAdapter.adapt(data.neg as Record<string, unknown>);
     }
 
-    if (CompareUtil.isExisting(data.pp)) {
+    if (CompareUtil.isExisting(data.neu)) {
       styleGroup.neu = this.svgStyleAdapter.adapt(data.neu as Record<string, unknown>);
     }
 

@@ -40,6 +40,10 @@ export class Cell {
   isBarChart: boolean = false;
   columnStats?: ColumnStats;
   waterfall?: WaterfallBarData;
+  /** A ratio row in a waterfall column: where the line of the walk runs through the row, in value units. */
+  ratioLine?: { at: number; min: number; max: number };
+  /** A ratio row in a variance bar or pin column: the cell draws only the axis of the column. */
+  axisOnly?: boolean;
   /** Resolved variance sentiment of this cell (`pos`, `neg` or `neu`), set for variance columns only. */
   direction?: string;
   measureScale: number;

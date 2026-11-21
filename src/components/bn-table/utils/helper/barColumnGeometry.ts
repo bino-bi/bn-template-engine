@@ -325,6 +325,18 @@ export interface WaterfallColumnLabels {
   labels: WaterfallLabel[];
 }
 
+/** What the labels of one side stick out of the bar area at the given scale, in px. */
+function labelRoom(column: WaterfallColumnLabels, pointsLeft: boolean, pxPerUnit: number, labelGap: number): number {
+  return Math.max(
+    0,
+    ...column.labels
+      .filter((label) => label.pointsLeft === pointsLeft)
+      .map(
+        (label) => label.width + labelGap - (pointsLeft ? label.end - column.min : column.max - label.end) * pxPerUnit,
+      ),
+  );
+}
+
 /**
  * Without `column` both sides get the fixed gutter. With it each side gets the room its
  * labels need beyond the bar area at the scale of the bars. The bar area keeps at least
@@ -340,17 +352,7 @@ export function waterfallGeometry(widthEm: number, emPx: number, column?: Waterf
 
   const range = column ? column.max - column.min : 0;
   if (column && range > 0) {
-    // what the labels of one side stick out of the bar area at the given scale
-    const room = (pointsLeft: boolean, pxPerUnit: number) =>
-      Math.max(
-        0,
-        ...column.labels
-          .filter((label) => label.pointsLeft === pointsLeft)
-          .map(
-            (label) =>
-              label.width + labelGap - (pointsLeft ? label.end - column.min : column.max - label.end) * pxPerUnit,
-          ),
-      );
+    const room = (pointsLeft: boolean, pxPerUnit: number) => labelRoom(column, pointsLeft, pxPerUnit, labelGap);
     left = room(true, 0);
     right = room(false, 0);
     const budget = totalWidth / 2;
@@ -383,6 +385,31 @@ export function waterfallGeometry(widthEm: number, emPx: number, column?: Waterf
     labelAreaLeft: left,
     labelAreaRight: right,
     barAreaWidth: totalWidth - left - right,
+    labelGap,
+  };
+}
+
+/**
+ * The geometry of a waterfall column at a scale given from outside, for example the one
+ * scale of all waterfalls of a table. The bars start after the room of the labels on the
+ * left; what is left of the width stays empty on the right. Pass a scale at or below the
+ * one of `waterfallGeometry()` for the column, else labels can leave the column.
+ */
+export function waterfallGeometryAt(
+  widthEm: number,
+  emPx: number,
+  column: WaterfallColumnLabels,
+  pxPerUnit: number,
+): WaterfallGeometry {
+  const totalWidth = contentWidth(widthEm, emPx);
+  const labelGap = LABEL_GAP_EM * emPx;
+  const barAreaWidth = Math.max(0, (column.max - column.min) * pxPerUnit);
+  const left = Math.max(0, Math.min(labelRoom(column, true, pxPerUnit, labelGap), totalWidth - barAreaWidth));
+  return {
+    totalWidth,
+    labelAreaLeft: left,
+    labelAreaRight: totalWidth - left - barAreaWidth,
+    barAreaWidth,
     labelGap,
   };
 }

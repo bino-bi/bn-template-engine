@@ -77,6 +77,9 @@ export class Formatter {
    * - Non-AC relative variance: `ibcssymbol_delta_generic_relative`
    *
    * The `{%}` placeholder in the i18n token is replaced with the translated scenario name(s).
+   * `{ref}` is the name of the reference alone and `{base}` the name of the minuend, so a
+   * token `Δ{ref}` labels a variance of a forecast `ΔPY`, as IBCS does when the minuend is
+   * clear from the page.
    * Non-variance scenarios are looked up directly in the i18n map.
    */
   static translateScenarioLabel(scenario: string | undefined, i18n: Map<string | number, string>): string {
@@ -113,7 +116,11 @@ export class Formatter {
       token = "{%}";
     }
 
-    return `${token.replace("{%}", scenarioLabel)}`;
+    const name = (scenario: string) => i18n.get(scenario) || scenario;
+    return token
+      .replace("{%}", scenarioLabel)
+      .replace("{ref}", name(scenarios.delta))
+      .replace("{base}", name(scenarios.base));
   }
 
   static getMaxWidthOfArrayItems(

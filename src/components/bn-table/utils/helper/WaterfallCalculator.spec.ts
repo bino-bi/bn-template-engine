@@ -81,7 +81,7 @@ describe("computeWaterfall", () => {
 
       expect(bar(result, groupA[head.length + 2])).toMatchObject({ start: 0, end: 15, kind: "anchor" });
       expect(bar(result, expense)).toMatchObject({ start: 15, end: 11, kind: "cascade" });
-      expect(bar(result, part)).toMatchObject({ start: 15, end: 12, kind: "thereof", parentStart: 15, parentEnd: 11 });
+      expect(bar(result, part)).toMatchObject({ start: 15, end: 12, kind: "thereof" });
       expect(bar(result, running)).toMatchObject({ start: 0, end: 11, kind: "anchor" });
       expect(bar(result, groupC[head.length])).toMatchObject({ start: 11, end: 13, kind: "cascade" });
     }
@@ -117,7 +117,7 @@ describe("computeWaterfall", () => {
     const rows = [entry(10), entry(15), drill(6), drill(4), entry(2)];
     const result = computeWaterfall([rows], ["ac1"], TableType.SUM);
 
-    expect(bar(result, rows[2])).toMatchObject({ start: 10, end: 16, kind: "thereof", parentStart: 10, parentEnd: 25 });
+    expect(bar(result, rows[2])).toMatchObject({ start: 10, end: 16, kind: "thereof" });
     expect(bar(result, rows[3])).toMatchObject({ start: 16, end: 20, kind: "thereof" });
     expect(bar(result, rows[4])).toMatchObject({ start: 25, end: 27 });
   });
@@ -127,7 +127,7 @@ describe("computeWaterfall", () => {
     const result = computeWaterfall([rows], ["ac1"], TableType.SUM);
 
     expect(bar(result, rows[1])).toMatchObject({ start: 15, end: 10 });
-    expect(bar(result, rows[2])).toMatchObject({ start: 15, end: 13, parentStart: 15, parentEnd: 10 });
+    expect(bar(result, rows[2])).toMatchObject({ start: 15, end: 13 });
   });
 
   it("scales partof segments by their share of the parent width", () => {
@@ -138,8 +138,6 @@ describe("computeWaterfall", () => {
       start: 10,
       end: 12.5,
       kind: "partof",
-      parentStart: 10,
-      parentEnd: 20,
     });
   });
 
@@ -293,7 +291,7 @@ describe("computeWaterfall on an absolute variance column", () => {
     expect(bar(rows[1])).toMatchObject({ start: 10, end: 6 });
     expect(bar(rows[2])).toMatchObject({ start: 10, end: 4, kind: "thereof" });
     expect(bar(rows[3])).toMatchObject({ start: 4, end: 6, kind: "thereof" });
-    expect(bar(rows[2])!.parentStart).toBeUndefined();
+    expect(bar(rows[2])).toBeDefined();
     // the first child leaves the parent bar, the running total is the parent end
     expect(bar(rows[4])).toMatchObject({ start: 6, end: 7, min: 0, max: 10 });
   });
@@ -413,7 +411,7 @@ describe("computeWaterfall on an absolute variance column", () => {
     expect(bar(rows[2])).toMatchObject({ start: 5, end: 7, connectors: [{ at: 7, part: "bottom" }] });
   });
 
-  it("leaves a scenario column in the same call without connectors", () => {
+  it("gives a scenario column in the same call its own connectors", () => {
     const rows = [
       { type: "ENTRY", operation: "+", ac1: 10, [column]: 1 },
       { type: "ENTRY", operation: "-", ac1: 4, [column]: 2 },
@@ -421,10 +419,51 @@ describe("computeWaterfall on an absolute variance column", () => {
     ];
     const result = computeWaterfall([rows], ["ac1", column], TableType.OPT);
 
-    expect(result.get(rows[1], "ac1")!.connectors).toBeUndefined();
-    expect(result.get(rows[2], "ac1")).toMatchObject({ start: 10, end: 7, parentStart: 10, parentEnd: 6 });
+    // the scenario walk: 0 to 10, back to 6; the thereof row from 10 to 7 beside it
+    expect(result.get(rows[1], "ac1")!.connectors).toEqual([
+      { at: 10, part: "top" },
+      { at: 10, part: "bottom" },
+    ]);
+    expect(result.get(rows[2], "ac1")).toMatchObject({ start: 10, end: 7 });
     expect(result.get(rows[2], column)).toMatchObject({ start: 1, end: 2 });
     expect(result.has("ac1") && result.has(column)).toBe(true);
     expect(result.has("pl1")).toBe(false);
+  });
+});
+
+describe("computeWaterfall on a scenario column: connectors and parts", () => {
+  it("draws no line past a printed thereof row without a value", () => {
+    const rows = [entry(10), { type: "DRILLELEMENT", operation: null, ac1: null }, drill(4), entry(2)];
+    const result = computeWaterfall([rows], ["ac1"], TableType.SUM);
+    // the parent does not join the thereof row below the gap, and the walk stops there
+    expect(bar(result, rows[0]).connectors).toBeUndefined();
+    expect(bar(result, rows[3]).connectors).toBeUndefined();
+  });
+
+  it("joins partof rows below their parent also when thereof rows print above", () => {
+    const parent = entry(10);
+    const share = drill(0.4, "PARTELEMENT");
+    const result = computeWaterfall([[parent, share]], ["ac1"], TableType.SUM, false, true);
+    expect(bar(result, parent).connectors).toEqual([{ at: 0, part: "bottom" }]);
+    expect(bar(result, share).connectors).toEqual([{ at: 0, part: "top" }]);
+  });
+
+  it("draws the part inside the bar from its start, never on a partof row", () => {
+    const rows = [
+      { type: "ENTRY", operation: "+", ac1: 4, fc1: 10 },
+      { type: "ENTRY", operation: "-", ac1: 2, fc1: 5 },
+      { type: "PARTELEMENT", operation: null, ac1: 0.3, fc1: 0.5 },
+    ];
+    const result = computeWaterfall([rows], ["fc1"], TableType.OPT, false, false, new Map([["fc1", "ac1"]]));
+    expect(result.get(rows[0], "fc1")!.part).toEqual({ scenario: "ac1", value: 4, end: 4 });
+    // the cost goes left from 10: its part too
+    expect(result.get(rows[1], "fc1")!.part).toEqual({ scenario: "ac1", value: 2, end: 8 });
+    expect(result.get(rows[2], "fc1")!.part).toBeUndefined();
+  });
+
+  it("takes the signed sum of the part on a REST row", () => {
+    const rest = { type: "ENTRY", restOperation: "+", ac1: 175, ac1__signed: 5, fc1: 20, fc1__signed: 20 };
+    const result = computeWaterfall([[rest]], ["fc1"], TableType.OPT, false, false, new Map([["fc1", "ac1"]]));
+    expect(result.get(rest, "fc1")!.part!.end).toBe(5);
   });
 });

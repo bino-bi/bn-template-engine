@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-table`: `waterfall-scaling="unit"` draws all waterfall columns and the absolute variance bars of the table at one scale, the one of `unit-scaling`. With `auto` it is the largest scale at which every walk fits its column and every variance bar its cut. A fixed value or scaling group at which a walk does not fit is made coarser for the whole table, with `WARN_waterfallScaling`. Default `column`: each waterfall fits its own column, as before.
+- `bn-table`: `sum-bars` draws the absolute variance bars and the relative variance pins of `bar-columns` on the sum rows too, and counts the sum rows for their scale. Before, these rows printed the variance as a number. Plain scenario bars stay off the sum rows.
+- `bn-table`: `bar-column-parts` draws a second scenario inside the bars of a scenario waterfall column, from the start of each bar, in its own look and with its value inside when it fits: `{"fc1": "ac1"}` for a year forecast with the actual year to date in it. The header names the part over the start of the column. The part is read from the data like a scenario and gets no column of its own.
+- `bn-table`: `ratios` puts a row with the ratio of two results after the result of its numerator, for example a gross margin: `[{"name": "Gross margin", "numerator": "Operating result", "denominator": "Sales revenue"}]`. The row prints the ratio per scenario column in percent and in italics, its variance cells stay empty. In a waterfall column the line of the walk runs through it.
+- `bn-table`: `fill-height` spreads the rows over the height of the layout cell. The space the table does not need goes between the rows, at most 1 em per row, and the axes and connectors of the bar columns run through it.
+- `bn-table`: `data-format-percent-sign="false"` prints the labels of the relative variance pins without the percent sign, as on the charts.
+- `bn-table`: `negativeFill` of `barStyles` sets the fill of a scenario bar below 0 and of a waterfall step that goes down, for example the costs of a calculation scheme.
+- `bn-table`: the component style `bn-table.relativeItalic: false` prints the relative variances upright: the number cells and the pin labels. Default italic, as before.
+- `bn-chart-time`, `bn-table`: `outlineFill` and `outlineStroke` in an entry of `varianceStyles` set the fill and the edge of an outlined variance, the variance of a plan. Not set: as before, the background (chart) or no fill (table), and the colour of the variance on the edge.
+- Translations: the variance symbols take `{ref}` for the name of the reference and `{base}` for the name of the minuend, next to `{%}`. `ibcssymbol_delta_generic: "Δ{ref}"` labels a variance of a forecast or a plan against PY `ΔPY`, as IBCS does when the minuend is clear from the page.
+
 - `bn-layout-page`: `message-position="beside"` puts the message right of the title block, in one row with it. The title block then takes 30 % of the width, so the message starts at the same place on every page. Default `top`: a row of its own above the title block, as before.
 - `bn-layout-page`: `title-id` prints a short id of the page large at the top right of the title block, for example the number of a report page.
 - `bn-chart-time`: `axis-labels-hide` lists periods that get no category label, as a JSON array or a comma separated list. An entry is a date or the start of one: `2022` for every period of that year, `2022-03` for those of the month, `2022-03-01` for the period that starts on that day.
@@ -93,6 +104,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
+- `bn-table` scenario waterfall columns join their bars with thin connectors, as the variance walk does: from the end of a bar to the start of the next one, also beside thereof rows and from a result to the next step. They take the place of the dashed guides that marked the parent of thereof rows. Every table with a scenario waterfall changes a little.
 - `bn-chart-scatter`, `bn-chart-bubble`: tick labels of the x axis that would run into each other are left out: the chart then prints every second, third, ... label from the start of the axis, and the last one when it has room.
 - `bn-grid` with `cell-width="equal"`: every cell has the same width for its content. Before, the room between two columns was taken from the right cell only, so the first column had 8 px more than the others and a chart in it was wider. Now each cell gives up the same share, and a column header starts where the content of its column starts. Content moves by a few px. With `show-borders` the line between two columns is no longer at the left edge of the room between them.
 - `bn-chart-bubble`: with `compareWith` the comparison bubble of a named point carries the name too, unless it is fully behind its own bubble. A name that finds no free place stands on the side where the least of it covers a bubble. Before, such a name was left out. A name never stands on another name, on a value or on the title of a panel.
@@ -142,6 +154,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
+- `bn-chart-time` and the other charts with `varianceStyles`: a `neu` entry was only read when the style also had a `pp` key. It is read on its own now.
 - Charts with an automatic `scale`: a chart whose parent had no box at the time of a render got the font size `NaNpx`, drew in the default size of the browser and kept that. The same page could so come out in two forms. Seen with bubble charts that use a `bn-scaling-group`. The chart now waits for a parent with a width.
 - `bn-chart-scatter`, `bn-chart-bubble`: with `facet`, a name of `labels.points` that only some panels have was reported as unknown. It is unknown now only when no panel has it.
 - `bn-chart-scatter`, `bn-chart-bubble`: text widths were measured in the font of the page and not in the font of the chart. Where the two differ, the bold name of an axis title ran into its unit (`Net salesin mEUR`), and the room for the legend and the tick labels was off. The widths are measured in the font of the chart now, so legends, labels and the plot can move by a few px.

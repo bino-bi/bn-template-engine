@@ -43,14 +43,14 @@ describe("bn-component-style body", () => {
   it("reports unknown keys as an error and still stores the style", async () => {
     const page = await render(
       "typo",
-      `{"global": {"fontSizePx": 11}, "bn-chart-time": {"scaleFactors": {"labelToColum": 0.5}}, "bn-table": {}}`,
+      `{"global": {"fontSizePx": 11}, "bn-chart-time": {"scaleFactors": {"labelToColum": 0.5}}, "bn-tabel": {}}`,
     );
 
     expect(items(page.root)).toEqual([
       {
         id: "ERR_keys",
         type: "error",
-        message: "Unknown style keys, they are ignored: bn-chart-time.scaleFactors.labelToColum, bn-table",
+        message: "Unknown style keys, they are ignored: bn-chart-time.scaleFactors.labelToColum, bn-tabel",
       },
     ]);
     expect((getStores(null).componentStyles.get("typo") as any).global.fontSizePx).toBe(11);

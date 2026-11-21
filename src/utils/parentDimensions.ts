@@ -199,3 +199,19 @@ export function getClippedHeight(element: HTMLElement, contentHeight: number): n
 
   return clipped / scale;
 }
+
+/**
+ * The height from the top of the element down to the bottom of the content box of its
+ * visual parent, in px: the room the element may fill. A parent that grows with its
+ * content gives just the height of its content. 0 without a parent.
+ */
+export function roomInParent(element: HTMLElement): number {
+  const parent = getVisualParent(element);
+  if (!parent) return 0;
+  const style = getComputedStyle(parent);
+  const bottom =
+    parent.getBoundingClientRect().bottom -
+    (parseFloat(style.paddingBottom) || 0) -
+    (parseFloat(style.borderBottomWidth) || 0);
+  return Math.max(0, bottom - element.getBoundingClientRect().top);
+}

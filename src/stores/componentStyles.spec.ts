@@ -22,14 +22,16 @@ describe("unknownStyleKeys", () => {
   it("names an unknown section, an unknown key of a section and a misspelled scale factor", () => {
     expect(
       unknownStyleKeys({
-        "bn-table": { fontSizePx: 10 },
+        "bn-tabel": { fontSizePx: 10 },
+        "bn-table": { relativeItalic: false, fontSizePx: 10 },
         global: { fontSize: 12 },
         "bn-text": { color: "#000000" },
         "bn-layout-card": { titleSize: 16 },
         "bn-chart-time": { scaleFactors: { labelToColum: 0.5 }, padding: { up: 1 } },
       }),
     ).toEqual([
-      "bn-table",
+      "bn-tabel",
+      "bn-table.fontSizePx",
       "global.fontSize",
       "bn-text.color",
       "bn-layout-card.titleSize",

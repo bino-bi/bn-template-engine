@@ -127,10 +127,13 @@ export class Column {
     let fillStyle = this.getFillStyle(scenarioStyle);
 
     if (this.isVarianceColumn && this.dataPoint.notation === "pl") {
-      // outlined like a plan column: the colour of the variance on the edge only
+      // outlined like a plan column: by default the colour of the variance on the edge only
       const planWidth = Number(this.columnBarStyles?.pl?.width);
-      strokeStyle = { color: scenarioStyle?.fill || this.FALLBACK_COLOUR, width: planWidth > 0 ? planWidth : 1 };
-      fillStyle = this.styles.fontStyles.background || "#ffffff";
+      strokeStyle = {
+        color: scenarioStyle?.outlineStroke || scenarioStyle?.fill || this.FALLBACK_COLOUR,
+        width: planWidth > 0 ? planWidth : 1,
+      };
+      fillStyle = scenarioStyle?.outlineFill || this.styles.fontStyles.background || "#ffffff";
     }
     if (this.isVarianceColumn && this.dataPoint.notation === "fc") {
       // hatched like a forecast column, in the colour of the variance
