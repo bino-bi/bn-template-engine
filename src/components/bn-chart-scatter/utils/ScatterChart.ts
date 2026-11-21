@@ -13,6 +13,7 @@ import {
   axisTitleLines,
   AxisTitleLine,
   isTitleBeside,
+  freeLegendPlace,
   legendOffset,
 } from "../../../utils/xy/AxisTitles";
 import { LabelReport } from "../../../utils/xy/LabelReport";
@@ -424,12 +425,19 @@ export class ScatterChart {
     // A legend inside the plot stands in its top right corner, clear of the frame. No name is placed on it.
     this.legendInside =
       showLegend && this.config.legend.position === "inside"
-        ? {
-            x: Math.max(drawing.x, drawing.x + drawing.width - legendSize.width - 0.5 * em),
-            y: drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
-            width: legendSize.width,
-            height: legendSize.height,
-          }
+        ? freeLegendPlace(
+            this.config.legend,
+            {
+              x: Math.max(drawing.x, drawing.x + drawing.width - legendSize.width - 0.5 * em),
+              y: drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
+              width: legendSize.width,
+              height: legendSize.height,
+            },
+            legendPanel(panels, drawing),
+            this.pointCircles(panels, em),
+            em,
+            this.panelTitleBoxes(panels, em),
+          )
         : null;
 
     if (this.data.facets.length === 0) {
@@ -547,6 +555,27 @@ export class ScatterChart {
     } else {
       this.drawText(group, label, x, y, { anchor: "end", bold: true });
     }
+  }
+
+  /** The boxes of the panel titles of a facet chart. */
+  private panelTitleBoxes(panels: PanelContext[], em: number): Rect[] {
+    if (this.data.facets.length < 2) return [];
+    return this.data.facets.map((facet, index) => {
+      const origin = panels[index].frame.panelTitleOrigin();
+      return { x: origin.x, y: origin.y - em, width: this.textWidth(facet.key, true), height: 1.3 * em };
+    });
+  }
+
+  /** The points of all panels as circles, for the place of an inside legend. */
+  private pointCircles(panels: PanelContext[], em: number): { cx: number; cy: number; r: number }[] {
+    const r = this.styles.scaleFactors.pointRadius * em;
+    return this.data.facets.flatMap((facet, index) =>
+      facet.points.map((point) => ({
+        cx: panels[index].xScale.scale(point.x),
+        cy: panels[index].yScale.scale(point.y),
+        r,
+      })),
+    );
   }
 
   private buildPanels(grid: FacetGrid, xDomain: [number, number], yDomain: [number, number]): PanelContext[] {
@@ -769,4 +798,12 @@ export class ScatterChart {
     const decimals = Math.max(0, ...ks.map((k) => NumericScale.stepDecimals(Math.abs(k))));
     return ks.map((k) => formatXYValue(k, decimals, this.styles.locale));
   }
+}
+
+/** The rect of the panel that holds the top right corner of the drawing: the one an inside legend stands in. */
+function legendPanel(panels: { rect: Rect }[], drawing: Rect): Rect {
+  const right = drawing.x + drawing.width;
+  const column = panels.filter(({ rect }) => Math.abs(rect.x + rect.width - right) <= 1);
+  if (column.length === 0) return drawing;
+  return column.reduce((top, panel) => (panel.rect.y < top.rect.y ? panel : top)).rect;
 }
