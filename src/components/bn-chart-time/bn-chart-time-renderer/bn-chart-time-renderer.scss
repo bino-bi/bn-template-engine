@@ -87,12 +87,6 @@ span {
   font-size: 0.6em;
 }
 
-.title-top {
-  font-family: var(--bn-font-family, "Noto Sans", "Helvetica Neue", Helvetica, sans-serif);
-  line-height: 1.5;
-  white-space: nowrap;
-}
-
 .footer-hide {
   /* Fully removed from layout: an invisible footer must not consume height
      that the height-fitted chart was given to fill. */

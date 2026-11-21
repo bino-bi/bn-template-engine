@@ -1332,6 +1332,7 @@ export namespace Components {
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
+        "reportUnit"?: (text: string) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 0
@@ -1371,11 +1372,6 @@ export namespace Components {
           * @default ""
          */
         "tableName": string;
-        "titleTop"?: string;
-        /**
-          * @default false
-         */
-        "titleTopUnit": boolean;
         /**
           * @default null
          */
@@ -4164,6 +4160,7 @@ declare namespace LocalJSX {
           * Internal wrapper channel: called with the auto-fitted values (px for one data unit / px per 1.0 fraction) whenever one of them was auto-resolved, so the outer `bn-chart-time` can surface them in its AUTO_* warnings. Not for end users.
          */
         "reportAutoScaling"?: (report: AutoScalingReport) => void;
+        "reportUnit"?: (text: string) => void;
         "ruleSetConfig"?: RuleSetConfig;
         /**
           * @default 0
@@ -4203,11 +4200,6 @@ declare namespace LocalJSX {
           * @default ""
          */
         "tableName"?: string;
-        "titleTop"?: string;
-        /**
-          * @default false
-         */
-        "titleTopUnit"?: boolean;
         /**
           * @default null
          */
@@ -5535,8 +5527,6 @@ declare namespace LocalJSX {
         "scalingIndicator": number;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;
-        "titleTop": string;
-        "titleTopUnit": boolean;
         "varianceWaterfall": boolean;
         "referenceColumn": boolean;
         "syncedLeft": boolean;

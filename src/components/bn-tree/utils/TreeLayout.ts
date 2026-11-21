@@ -364,7 +364,8 @@ export function separate(boxes: { top: number; height: number }[], spacing: numb
   for (let i = 1; i < boxes.length; i++) {
     const end = boxes[i - 1].top + shifts[i - 1] + boxes[i - 1].height;
     const missing = end + spacing - boxes[i].top;
-    if (missing > 0.5) {
+    // offsetTop and offsetHeight are whole px: up to 1 px is rounding
+    if (missing > 1) {
       shifts[i] = missing;
     } else {
       if (shifts[i - 1] > 0) {

@@ -181,13 +181,8 @@ export class BnChartTimeRenderer {
   @Prop()
   axisTitlePosition: string = "left";
 
-  /** @internal The chart title for a line above this segment, with `axis-title-position="top"` on the chart. Undefined: no line. */
-  @Prop()
-  titleTop?: string;
-
-  /** @internal Print the unit behind `titleTop`. */
-  @Prop()
-  titleTopUnit: boolean = false;
+  /** @internal Tells the chart the unit text of this segment ("in kEUR"), for the title line above the chart. */
+  @Prop() reportUnit?: (text: string) => void;
 
   /** @internal */
   @Prop()
@@ -267,7 +262,6 @@ export class BnChartTimeRenderer {
           style={{ width: "0", height: "0", overflow: "hidden" }}
         />
 
-        {this.titleTop !== undefined ? this.renderTitleTop() : null}
         <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
         {/* <svg ref={(el) => this.drawElement = el} id="drawCanvas" width={this.chart?.getAllocatedCanvasWidth()}
           height={this.chart?.getAllocatedCanvasHeight()}></svg> */}
@@ -276,28 +270,10 @@ export class BnChartTimeRenderer {
     );
   }
 
-  /** `axisTitlePosition: top`: the bold title and the unit in one line above the chart. */
-  private renderTitleTop() {
-    const title = this.titleTop;
-    const unit = this.titleTopUnit ? (this.chart?.getFooter().trim() ?? "") : "";
-    if (!title && !unit) {
-      return null;
+  componentDidRender() {
+    if (this.chart && this.reportUnit) {
+      this.reportUnit(this.chart.getFooter().trim());
     }
-    const font = this.styles?.fontStyles;
-    return (
-      <div
-        class="title-top"
-        style={{
-          fontSize: `${font?.size}px`,
-          color: font?.color,
-          paddingLeft: `${this.styles?.padding?.left ?? 0}px`,
-        }}
-      >
-        {title ? <span class="measure">{title}</span> : null}
-        {title && unit ? " " : null}
-        {unit}
-      </div>
-    );
   }
 
   /** Reports a failed query as the wrapper's `ERR_sql` item. Without it the chart would only show "No Data". */

@@ -1384,9 +1384,32 @@ export class Chart {
     return this.axisTitlePosition?.trim().toLowerCase() === "top";
   }
 
-  /** `axisTitlePosition: top`: the title for the line above the uppermost segment, undefined for the others. */
-  private prepareTitleTop(idx: number): string | undefined {
-    return this.titleIsTop() && idx === this.prepareSegments().length - 1 ? (this.chartTitle ?? "") : undefined;
+  /** The unit text the first segment reports ("in kEUR"), for the title line above the chart. */
+  @State() private topUnit: string = "";
+
+  private handleUnitReport = (text: string): void => {
+    if (text !== this.topUnit) {
+      this.topUnit = text;
+    }
+  };
+
+  /** `axisTitlePosition: top`: the bold title and the unit in a line above all rows of the chart. */
+  private renderTitleTop() {
+    if (!this.titleIsTop()) {
+      return null;
+    }
+    const unit = this.showMeasureScale ? this.topUnit : "";
+    if (!this.chartTitle && !unit) {
+      return null;
+    }
+    const paddingLeft = this.componentStyle(($) => $["bn-chart-time"]?.["padding"]?.["left"] ?? 0);
+    return (
+      <div class="title-top" style={{ fontSize: `${this.getEffectiveFontPx()}px`, paddingLeft: `${paddingLeft}px` }}>
+        {this.chartTitle ? <span class="measure">{this.chartTitle}</span> : null}
+        {this.chartTitle && unit ? " " : null}
+        {unit}
+      </div>
+    );
   }
 
   private prepareAvg(): boolean {
@@ -1884,8 +1907,7 @@ export class Chart {
         referenceColumn={this.referenceColumn === true}
         syncedLeft={this.syncSpaceLeft > -1}
         axisTitlePosition={this.prepareAxisTitlePosition(idx)}
-        titleTop={this.prepareTitleTop(idx)}
-        titleTopUnit={this.showMeasureScale}
+        reportUnit={idx === 0 && this.titleIsTop() ? this.handleUnitReport : undefined}
         containerWidth={fullParentWidth}
         parentDimensions={this.prepareDimension(isBase)}
         ruleSetConfig={this.ruleSetConfig()}
@@ -2038,6 +2060,7 @@ export class Chart {
 
     return (
       <Host style={fontStyles}>
+        {this.renderTitleTop()}
         <div class="container">{segments.map(this.chartTemplate)}</div>
       </Host>
     );

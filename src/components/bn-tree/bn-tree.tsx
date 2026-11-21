@@ -608,7 +608,8 @@ export class ChartTree {
       // the size is a part that follows the factor plus a part that does not: a node with its own scale, an image
       let fixed = 0;
       let perFactor = now[side] / now.factor;
-      if (before && before.factor > now.factor) {
+      // a tree that is larger at the smaller factor has changed in between: the sample says nothing then
+      if (before && before.factor > now.factor && before[side] - now[side] > -1) {
         perFactor = (before[side] - now[side]) / (before.factor - now.factor);
         fixed = now[side] - perFactor * now.factor;
       }
@@ -695,6 +696,15 @@ export class ChartTree {
       }
       for (const nodes of levels.values()) {
         nodes.sort((a, b) => boxes.get(a)!.top - boxes.get(b)!.top);
+        // a level where every node has rows of its own keeps its spacing by the grid
+        const positions = nodes.map((nodeId) => this.layout!.positions.get(nodeId)!);
+        if (
+          !positions.some(
+            (lower, i) => i > 0 && lower.gridRow < positions[i - 1].gridRow + positions[i - 1].gridRowSpan,
+          )
+        ) {
+          continue;
+        }
         const sized = nodes.map((nodeId) => boxes.get(nodeId)!);
         separate(sized, spacing).forEach((shift, index) => {
           if (Math.abs(shift) > 0.5) {

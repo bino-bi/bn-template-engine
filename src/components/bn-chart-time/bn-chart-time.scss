@@ -20,3 +20,12 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
+.title-top {
+  line-height: 1.5;
+  white-space: nowrap;
+
+  .measure {
+    font-weight: bold;
+  }
+}
