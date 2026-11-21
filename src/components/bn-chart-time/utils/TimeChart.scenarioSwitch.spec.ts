@@ -167,6 +167,20 @@ describe("time chart scenarioSwitch", () => {
     expect(lineTop(high)).toBeGreaterThan(lineTop(plain) + 400);
   });
 
+  it("starts the line above a reference that is higher than the column of the series", () => {
+    const lineTop = (rows: Record<string, unknown>[]): number => {
+      const svg = buildChart({ scenarios: ["ac1", "pl1", "pp1"], scenarioSwitch: true }, rows).toString();
+      const match =
+        /<line[^>]*y1="([\d.-]+)"[^>]*class="scenario-switch"|class="scenario-switch"[^>]*y1="([\d.-]+)"/.exec(svg);
+      return Number(match?.[1] ?? match?.[2]);
+    };
+    const far = { date: "2027-01-01", operation: "+", pl1: 900, pp1: 80 };
+    const low = [...ROWS.slice(0, 3), far];
+    // the reference of 2025 is far higher than its column
+    const high = [ROWS[0], { ...ROWS[1], pp1: 700 }, ROWS[2], far];
+    expect(lineTop(high)).toBeLessThan(lineTop(low) - 200);
+  });
+
   it("keeps the line from the top with rows of variances above the chart", () => {
     const rows = [...ROWS.slice(0, 3), { date: "2027-01-01", operation: "+", pl1: 900, pp1: 80 }];
     const svg = buildChart({ scenarios: ["ac1", "pl1"], scenarioSwitch: true, rowsAbove: true }, rows).toString();

@@ -52,16 +52,6 @@ import {
 } from "../../utils/layoutState";
 import { syncEmptyState } from "../../utils/emptyState";
 
-/**
- * SVG time-series chart following IBCS standards.
- *
- * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
- * line charts with up to four scenario layers, optional variance sub-charts,
- * stacking, and proportional auto-scaling. Date normalization and interval
- * detection are delegated to `DateStringFactory`. The heavy SVG rendering
- * is performed by the inner `bn-chart-time-renderer` element; this outer component
- * validates props, resolves auto-detected metadata, and computes styles.
- */
 /** The entries of `axis-labels-hide`: a JSON array or a comma separated list. */
 function parseLabelsHide(value: string | undefined): string[] {
   const text = (value ?? "").trim();
@@ -80,6 +70,23 @@ function parseLabelsHide(value: string | undefined): string[] {
   return entries.map((entry) => String(entry).trim()).filter((entry) => entry !== "");
 }
 
+const LABELS_HIDE_ENTRY = /^\d{4}(-\d{2}(-\d{2})?)?$/;
+
+/** The entries the chart uses: an entry that is no date hides nothing. */
+function validLabelsHide(value: string | undefined): string[] {
+  return parseLabelsHide(value).filter((entry) => LABELS_HIDE_ENTRY.test(entry));
+}
+
+/**
+ * SVG time-series chart following IBCS standards.
+ *
+ * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+ * line charts with up to four scenario layers, optional variance sub-charts,
+ * stacking, and proportional auto-scaling. Date normalization and interval
+ * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+ * is performed by the inner `bn-chart-time-renderer` element; this outer component
+ * validates props, resolves auto-detected metadata, and computes styles.
+ */
 @Component({
   tag: "bn-chart-time",
   styleUrl: "bn-chart-time.scss",
@@ -705,12 +712,12 @@ export class Chart {
   @Watch("axisLabelsHide")
   validateAxisLabelsHide(newValue: string | undefined) {
     const errId = "WARN_axisLabelsHide";
-    const invalid = parseLabelsHide(newValue).filter((entry) => !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(entry));
+    const invalid = parseLabelsHide(newValue).filter((entry) => !LABELS_HIDE_ENTRY.test(entry));
     if (invalid.length > 0) {
       this.errors.addOrReplace({
         id: errId,
         type: "warning",
-        message: `axisLabelsHide: '${invalid.join("', '")}' is no date. Use 2022, 2022-03 or 2022-03-01.`,
+        message: `axisLabelsHide: '${invalid.join("', '")}' is no date and is not used. Use 2022, 2022-03 or 2022-03-01.`,
       });
     } else {
       this.errors.remove(errId);
@@ -1431,7 +1438,7 @@ export class Chart {
   private prepareAxisLabelsHide(): string[] {
     if ((this.axisLabelsHide ?? "") !== this.labelsHideKey) {
       this.labelsHideKey = this.axisLabelsHide ?? "";
-      this.labelsHide = parseLabelsHide(this.axisLabelsHide);
+      this.labelsHide = validLabelsHide(this.axisLabelsHide);
     }
     return this.labelsHide;
   }

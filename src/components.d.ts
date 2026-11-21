@@ -1029,6 +1029,15 @@ export namespace Components {
          */
         "variances": string[];
     }
+    /**
+     * SVG time-series chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+     * line charts with up to four scenario layers, optional variance sub-charts,
+     * stacking, and proportional auto-scaling. Date normalization and interval
+     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+     * is performed by the inner `bn-chart-time-renderer` element; this outer component
+     * validates props, resolves auto-detected metadata, and computes styles.
+     */
     interface BnChartTime {
         /**
           * Periods that get no category label, as a JSON array or a comma separated list. An entry is a date or the start of one: `2022` leaves out every period of that year, `2022-03` those of the month, `2022-03-01` the period that starts on that day.
@@ -2663,6 +2672,15 @@ declare global {
         prototype: HTMLBnChartStructureRendererElement;
         new (): HTMLBnChartStructureRendererElement;
     };
+    /**
+     * SVG time-series chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+     * line charts with up to four scenario layers, optional variance sub-charts,
+     * stacking, and proportional auto-scaling. Date normalization and interval
+     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+     * is performed by the inner `bn-chart-time-renderer` element; this outer component
+     * validates props, resolves auto-detected metadata, and computes styles.
+     */
     interface HTMLBnChartTimeElement extends Components.BnChartTime, HTMLStencilElement {
     }
     var HTMLBnChartTimeElement: {
@@ -3861,6 +3879,15 @@ declare namespace LocalJSX {
          */
         "variances"?: string[];
     }
+    /**
+     * SVG time-series chart following IBCS standards.
+     * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+     * line charts with up to four scenario layers, optional variance sub-charts,
+     * stacking, and proportional auto-scaling. Date normalization and interval
+     * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+     * is performed by the inner `bn-chart-time-renderer` element; this outer component
+     * validates props, resolves auto-detected metadata, and computes styles.
+     */
     interface BnChartTime {
         /**
           * Periods that get no category label, as a JSON array or a comma separated list. An entry is a date or the start of one: `2022` leaves out every period of that year, `2022-03` those of the month, `2022-03-01` the period that starts on that day.
@@ -5923,6 +5950,15 @@ declare module "@stencil/core" {
              */
             "bn-chart-structure": LocalJSX.IntrinsicElements["bn-chart-structure"] & JSXBase.HTMLAttributes<HTMLBnChartStructureElement>;
             "bn-chart-structure-renderer": LocalJSX.IntrinsicElements["bn-chart-structure-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartStructureRendererElement>;
+            /**
+             * SVG time-series chart following IBCS standards.
+             * Subscribes to a dataset (via `withDataset`) and renders date-axis bar or
+             * line charts with up to four scenario layers, optional variance sub-charts,
+             * stacking, and proportional auto-scaling. Date normalization and interval
+             * detection are delegated to `DateStringFactory`. The heavy SVG rendering
+             * is performed by the inner `bn-chart-time-renderer` element; this outer component
+             * validates props, resolves auto-detected metadata, and computes styles.
+             */
             "bn-chart-time": LocalJSX.IntrinsicElements["bn-chart-time"] & JSXBase.HTMLAttributes<HTMLBnChartTimeElement>;
             "bn-chart-time-renderer": LocalJSX.IntrinsicElements["bn-chart-time-renderer"] & JSXBase.HTMLAttributes<HTMLBnChartTimeRendererElement>;
             "bn-component-style": LocalJSX.IntrinsicElements["bn-component-style"] & JSXBase.HTMLAttributes<HTMLBnComponentStyleElement>;

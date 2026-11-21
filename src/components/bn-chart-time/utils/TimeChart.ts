@@ -3290,15 +3290,26 @@ export class TimeChart {
     if (!plain || index < 1) {
       return 0;
     }
-    const followers = this.followerSlots();
+    const axisY = this.position.getAxisPositionY(false);
     const tops = [index - 1, index].map((i) => {
       const row = this.dataModel[i];
-      const slot = row ? this.visibleSlot(row, followers) : null;
-      const scaled = slot ? row[slot].getScaledUnit() : 0;
-      // the value label of a column above the axis stands on it
-      return scaled > 0
-        ? this.position.getColumnDataLabelPositionY(scaled) - this.position.dataLabelHeight
-        : this.position.getAxisPositionY(false);
+      if (!row) {
+        return axisY;
+      }
+      // every scenario of the period: a reference column or a marker can be higher than the column of the series
+      const scaled = Math.max(
+        0,
+        ...["scenario1", "scenario2", "scenario3", "scenario4"].map((slot) =>
+          TimeChart.hasValue(row[slot]) ? row[slot].getScaledUnit() : 0,
+        ),
+      );
+      if (scaled > 0) {
+        // the value label of a column above the axis stands on it
+        return this.position.getColumnDataLabelPositionY(scaled) - this.position.dataLabelHeight;
+      }
+      // nothing above the axis but perhaps the category label of a negative column
+      const place = this.dateLabelPlace(row);
+      return place.hookLocation === HookLocation.Bottom ? axisY + place.offset - this.position.dataLabelHeight : axisY;
     });
     return Math.max(0, Math.min(...tops) - this.position.spacings.labelToColumn);
   }
@@ -3603,7 +3614,11 @@ export class TimeChart {
       return false;
     }
     const iso = date.toISODate() ?? "";
-    return this.axisLabelsHide.some((entry) => iso.startsWith(entry));
+    // a week belongs to the year its label shows: week 1 can start in December
+    const weekYear = this.dateInterval === DateDistance.WEEK ? String(date.weekYear) : null;
+    return this.axisLabelsHide.some((entry) =>
+      weekYear != null && entry.length === 4 ? entry === weekYear : iso.startsWith(entry),
+    );
   }
 
   private shouldShowLineChartAxisLabel(dataModel: TimeChartDataModelEntry[], index: number): boolean {

@@ -319,6 +319,13 @@ describe("bn-chart-time: axis-labels-hide", () => {
     expect(errorIds(page)).toContain("WARN_axisLabelsHide");
   });
 
+  it("does not use an entry that is no date", async () => {
+    const page = await renderChart(`axis-labels-hide="202, 2023"`);
+    const hide = (page.rootInstance as unknown as { prepareAxisLabelsHide(): string[] }).prepareAxisLabelsHide();
+    // "202" would hide every label of the 2020s
+    expect(hide).toEqual(["2023"]);
+  });
+
   it("tells the base chart when rows of variances stand above it", async () => {
     const page = await renderChart(`scenarios="ac1,pp1" variances="dac1_pp1_pos"`);
     const renderers = Array.from(page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer"));
