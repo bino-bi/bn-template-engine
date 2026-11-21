@@ -50,6 +50,8 @@ export interface SizeConfig {
 /** Parsed `share` prop (bubble). */
 export interface ShareConfig {
   measure: string;
+  /** Which bubbles print the value of their slice (size times share) next to it. Default `none`. */
+  labels?: "none" | "all" | string[];
 }
 
 /** Parsed `iso` prop (scatter). */
@@ -73,8 +75,12 @@ export interface LabelConfig {
   points: "auto" | "none" | "all" | string[];
   /** The side of its mark a named label stands on, by point name. Such a label may leave the plot. */
   sides?: Record<string, LabelSide>;
+  /** The side of a named label in one facet panel, by `labelSideKey(name, panel)`. It wins over `sides`. */
+  panelSides?: Record<string, LabelSide>;
   /** Bubble only: render the value inside the bubble. */
   values: boolean;
+  /** Bubble only: render the value also when it is wider than its bubble. */
+  valuesAlways?: boolean;
   /** Candidate cap for `points: "auto"`. */
   max: number;
 }
@@ -89,7 +95,8 @@ export interface FacetConfig {
 /** Parsed `legend` prop. */
 export interface LegendConfig {
   show: boolean;
-  position: "right" | "bottom";
+  /** `inside` is the top right corner of the plot: the legend takes no room beside it. */
+  position: "right" | "bottom" | "inside";
   /** Along its side: `start` (default) is the top of a right legend and the left of a bottom one. */
   align?: "start" | "center" | "end";
   /** Series that get no legend entry, by name. */
@@ -272,7 +279,7 @@ export function toSizeConfig(data: Record<string, unknown>): SpecResult<SizeConf
   return { config, unknownKeys: collectUnknownKeys(data, SIZE_KEYS), invalidFields };
 }
 
-const SHARE_KEYS = ["measure"];
+const SHARE_KEYS = ["measure", "labels"];
 
 export function toShareConfig(data: Record<string, unknown>): SpecResult<ShareConfig> {
   const invalidFields: string[] = [];
@@ -283,7 +290,18 @@ export function toShareConfig(data: Record<string, unknown>): SpecResult<ShareCo
     return { config: null, unknownKeys: collectUnknownKeys(data, SHARE_KEYS), invalidFields };
   }
 
-  return { config: { measure: measure.trim() }, unknownKeys: collectUnknownKeys(data, SHARE_KEYS), invalidFields };
+  const config: ShareConfig = { measure: measure.trim() };
+  if (CompareUtil.isExisting(data.labels)) {
+    if (data.labels === "none" || data.labels === "all") {
+      config.labels = data.labels;
+    } else if (CompareUtil.isArray(data.labels) && (data.labels as unknown[]).every((n) => CompareUtil.isString(n))) {
+      config.labels = data.labels as string[];
+    } else {
+      invalidFields.push("labels");
+    }
+  }
+
+  return { config, unknownKeys: collectUnknownKeys(data, SHARE_KEYS), invalidFields };
 }
 
 const ISO_KEYS = ["values", "label", "unit", "highlight", "factor"];
@@ -332,8 +350,22 @@ function isPointEntry(entry: unknown): boolean {
   if (!CompareUtil.isObject(entry) || Array.isArray(entry)) {
     return false;
   }
-  const { name, side } = entry as Record<string, unknown>;
-  return CompareUtil.isString(name) && (side === undefined || LABEL_SIDES.includes(side as string));
+  const { name, side, panel } = entry as Record<string, unknown>;
+  return (
+    CompareUtil.isString(name) &&
+    (side === undefined || LABEL_SIDES.includes(side as string)) &&
+    (panel === undefined || CompareUtil.isString(panel))
+  );
+}
+
+/** Key of `LabelConfig.panelSides`. A name cannot hold the separator. */
+export function labelSideKey(name: string, panel: string): string {
+  return `${panel}\u0000${name}`;
+}
+
+/** The typed side of a named label in a panel: the entry for that panel, else the entry for all panels. */
+export function labelSide(labels: LabelConfig, name: string, panel: string): LabelSide | undefined {
+  return labels.panelSides?.[labelSideKey(name, panel)] ?? labels.sides?.[name];
 }
 
 export function toLabelConfig(
@@ -350,17 +382,25 @@ export function toLabelConfig(
       // an entry is a name, or `{ name, side }` for a label on a fixed side of its mark
       // no prototype: a point may be named `constructor`
       const sides: Record<string, LabelSide> = Object.create(null);
-      config.points = (data.points as (string | { name: string; side?: LabelSide })[]).map((entry) => {
+      const panelSides: Record<string, LabelSide> = Object.create(null);
+      const names = (data.points as (string | { name: string; side?: LabelSide; panel?: string })[]).map((entry) => {
         if (typeof entry === "string") {
           return entry;
         }
-        if (entry.side !== undefined) {
+        if (entry.side !== undefined && entry.panel !== undefined) {
+          panelSides[labelSideKey(entry.name, entry.panel)] = entry.side;
+        } else if (entry.side !== undefined) {
           sides[entry.name] = entry.side;
         }
         return entry.name;
       });
+      // a name with a side per panel is listed once per panel
+      config.points = [...new Set(names)];
       if (Object.keys(sides).length > 0) {
         config.sides = sides;
+      }
+      if (Object.keys(panelSides).length > 0) {
+        config.panelSides = panelSides;
       }
     } else {
       invalidFields.push("points");
@@ -370,6 +410,9 @@ export function toLabelConfig(
   if (CompareUtil.isExisting(data.values)) {
     if (CompareUtil.isBoolean(data.values)) {
       config.values = data.values;
+    } else if (data.values === "always") {
+      config.values = true;
+      config.valuesAlways = true;
     } else {
       invalidFields.push("values");
     }
@@ -425,7 +468,7 @@ export function toLegendConfig(data: Record<string, unknown>): SpecResult<Legend
   }
 
   if (CompareUtil.isExisting(data.position)) {
-    if (data.position === "right" || data.position === "bottom") {
+    if (data.position === "right" || data.position === "bottom" || data.position === "inside") {
       config.position = data.position;
     } else {
       invalidFields.push("position");

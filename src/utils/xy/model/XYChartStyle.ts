@@ -24,6 +24,8 @@ export class XYChartStyle {
   public seriesColors: string[] = [...XY_SERIES_PALETTE];
   /** Look of a filled mark: the line around it and how solid its fill is. */
   public markStyles: XYMarkStyle = { stroke: "#ffffff", opacity: 1 };
+  /** Names of the series the entries of `seriesColors` are for. A named series has its place, whatever the data holds. */
+  public seriesNames: string[] = [];
   /** Fill per series, in the order of `seriesColors`: `solid` (default) or `outline`. */
   public seriesFills: string[] = [];
   /** Colour of the share slice per series, in the order of `seriesColors`. Default: a darker shade of the series colour. */
@@ -80,6 +82,10 @@ export class XYChartStylesAdapter implements IAdapter<XYChartStyle> {
 
       if (Array.isArray(data.seriesColors) && data.seriesColors.length > 0) {
         styles.seriesColors = data.seriesColors as string[];
+      }
+
+      if (Array.isArray(data.seriesNames)) {
+        styles.seriesNames = data.seriesNames as string[];
       }
 
       if (Array.isArray(data.seriesFills)) {

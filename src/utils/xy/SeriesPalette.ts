@@ -91,6 +91,25 @@ export function outlineTreatment(hue: string, kind: "dot" | "bubble"): MarkTreat
   };
 }
 
+/**
+ * Gives the series the places that `seriesNames` of the style reserves for them: a named series
+ * has the index of its name, the others follow after the names in their own order. So a series
+ * keeps its colour in every chart, also when the data of a chart misses some series.
+ */
+export function pinSeries<T extends { key: string; index: number }>(series: T[], names: unknown): T[] {
+  const list = Array.isArray(names) ? names.filter((name): name is string => typeof name === "string") : [];
+  if (list.length === 0) {
+    return series;
+  }
+  let next = list.length;
+  return series
+    .map((entry) => {
+      const place = list.indexOf(entry.key);
+      return { ...entry, index: place >= 0 ? place : next++ };
+    })
+    .sort((a, b) => a.index - b.index);
+}
+
 /** The style gives this series the fill `outline`. */
 export function isOutlinedSeries(seriesFills: string[] | undefined, seriesIndex: number): boolean {
   return seriesFills?.[seriesIndex] === "outline";

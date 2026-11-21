@@ -245,7 +245,8 @@ export class ChartScatter {
   /**
    * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom",
    * "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`.
-   * `exclude` lists the names of series that get no entry.
+   * `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend
+   * into the top right corner of the plot.
    */
   @Prop() legend: string = "";
   @Watch("legend")
@@ -744,6 +745,7 @@ export class ChartScatter {
         axisStyles: $[tag]["axisStyles"],
         seriesColors: $[tag]["seriesColors"],
         markStyles: $[tag]["markStyles"],
+        seriesNames: $[tag]["seriesNames"],
         seriesFills: $[tag]["seriesFills"],
         padding: $[tag]["padding"],
       } as unknown as XYChartStyle;

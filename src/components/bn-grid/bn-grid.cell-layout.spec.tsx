@@ -447,3 +447,37 @@ describe("bn-grid baseline", () => {
     expect(padding(page, "0-0")).toEqual({ top: "", left: "", right: "", marginTop: "auto" });
   });
 });
+
+describe("bn-grid room between columns", () => {
+  const sidePadding = (cell: HTMLElement): number =>
+    (parseFloat(cell.style.getPropertyValue("padding-left")) || 0) +
+    (parseFloat(cell.style.getPropertyValue("padding-right")) || 0);
+
+  it("leaves every cell of equal columns the same width for its content", async () => {
+    const page = await newSpecPage({
+      components: [Grid],
+      html: `<bn-grid row-headers='["North"]' column-headers='["A","B","C"]' show-column-headers="false" show-row-headers="false" cell-width="equal"></bn-grid>`,
+    });
+    const [first, second, third] = cells(page);
+
+    expect(sidePadding(first)).toBeCloseTo(sidePadding(second), 5);
+    expect(sidePadding(second)).toBeCloseTo(sidePadding(third), 5);
+    // two neighbours are as far apart as before: the room of the style plus 4 px
+    const gap = (left: HTMLElement, right: HTMLElement): number =>
+      parseFloat(left.style.getPropertyValue("padding-right")) +
+      parseFloat(right.style.getPropertyValue("padding-left"));
+    expect(gap(first, second)).toBeCloseTo(8, 5);
+    expect(gap(second, third)).toBeCloseTo(8, 5);
+    expect(parseFloat(first.style.getPropertyValue("padding-left"))).toBe(0);
+    expect(parseFloat(third.style.getPropertyValue("padding-right"))).toBe(0);
+  });
+
+  it("keeps the room on the left of a cell when the columns have their own width", async () => {
+    const page = await renderGrid("");
+    const [first, second] = cells(page);
+
+    expect(first.style.getPropertyValue("padding-left")).toBe("0");
+    expect(second.style.getPropertyValue("padding-left")).toBe("8px");
+    expect(second.style.getPropertyValue("padding-right")).toBe("");
+  });
+});

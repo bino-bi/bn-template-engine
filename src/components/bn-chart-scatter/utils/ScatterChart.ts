@@ -24,12 +24,20 @@ import {
   markTreatment,
   MarkTreatment,
   outlineTreatment,
+  pinSeries,
   resolveSeriesColor,
 } from "../../../utils/xy/SeriesPalette";
 import { axisInValueUnits, isRelativeMeasure, resolveMeasure } from "../../../utils/xy/VarianceMeasure";
 import { XYFrame } from "../../../utils/xy/XYFrame";
 import { LegendEntry, LegendModel, XYLegend } from "../../../utils/xy/XYLegend";
-import { AxisConfig, FacetConfig, IsoConfig, LabelConfig, LegendConfig } from "../../../utils/xy/model/AxisConfig";
+import {
+  AxisConfig,
+  FacetConfig,
+  IsoConfig,
+  LabelConfig,
+  labelSide,
+  LegendConfig,
+} from "../../../utils/xy/model/AxisConfig";
 import {
   GroupLevel,
   PointLevel,
@@ -77,6 +85,8 @@ export class ScatterChart {
   private data: ResolvedXYData;
   private warnings: XYWarningRecord[] = [];
   private labelReport: LabelReport = new LabelReport();
+  /** The box of a legend that stands inside the plot. */
+  private legendInside: Rect | null = null;
   /** Text of the query that failed. The component reports it as ERR_sql. */
   private queryError: string | undefined;
   private canvasHeight: number = 0;
@@ -116,6 +126,10 @@ export class ScatterChart {
       limit: config.limit,
       limitBy: "order",
     });
+    // a chart without a series level has one series without a name: there is nothing to pin
+    if (config.seriesLevel !== null) {
+      this.data.series = pinSeries(this.data.series, styles.seriesNames);
+    }
     this.warnings.push(...this.data.warnings);
   }
 
@@ -271,7 +285,9 @@ export class ScatterChart {
     const legend = new XYLegend(this.styles);
     const legendModel = this.legendModel();
     const showLegend = this.config.legend.show && legendModel.entries.length > 0;
-    const legendSize = showLegend ? legend.measure(legendModel, this.config.legend.position) : { width: 0, height: 0 };
+    const legendSize = showLegend
+      ? legend.measure(legendModel, this.config.legend.position === "bottom" ? "bottom" : "right")
+      : { width: 0, height: 0 };
 
     // Reserved column right of the frame: legend and/or iso exit labels.
     const isoActive = this.config.iso !== null;
@@ -405,6 +421,17 @@ export class ScatterChart {
       }
     }
 
+    // A legend inside the plot stands in its top right corner, clear of the frame. No name is placed on it.
+    this.legendInside =
+      showLegend && this.config.legend.position === "inside"
+        ? {
+            x: Math.max(drawing.x, drawing.x + drawing.width - legendSize.width - 0.5 * em),
+            y: drawing.y + 0.3 * em + legendOffset(this.config.legend, drawing.height - legendSize.height - 0.6 * em),
+            width: legendSize.width,
+            height: legendSize.height,
+          }
+        : null;
+
     if (this.data.facets.length === 0) {
       this.drawPanel(
         root,
@@ -470,6 +497,8 @@ export class ScatterChart {
           drawing.y + legendOffset(this.config.legend, drawing.height - legendSize.height),
           "right",
         );
+      } else if (this.legendInside !== null) {
+        legend.draw(root, legendModel, this.legendInside.x, this.legendInside.y, "right");
       } else {
         legend.draw(
           root,
@@ -570,6 +599,9 @@ export class ScatterChart {
       const origin = panel.frame.panelTitleOrigin();
       labeler.registerText(origin.x, origin.y - em, this.textWidth(panelTitle, true), 1.3 * em);
     }
+    if (this.legendInside !== null) {
+      labeler.registerText(this.legendInside.x, this.legendInside.y, this.legendInside.width, this.legendInside.height);
+    }
     const marks: { point: XYPoint; cx: number; cy: number; treatment: MarkTreatment }[] = [];
 
     for (const point of facet.points) {
@@ -642,7 +674,7 @@ export class ScatterChart {
         r: radius,
         width: this.textWidth(mark.point.name),
         height: 1.1 * this.em,
-        side: this.config.labels.sides?.[mark.point.name],
+        side: labelSide(this.config.labels, mark.point.name, facetKey),
       };
       pointOf.set(candidate, mark.point);
       return candidate;

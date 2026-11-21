@@ -1,4 +1,4 @@
-import { markTreatment, mixHex, resolveSeriesColor, shade, tint, XY_SERIES_PALETTE } from "./SeriesPalette";
+import { markTreatment, mixHex, pinSeries, resolveSeriesColor, shade, tint, XY_SERIES_PALETTE } from "./SeriesPalette";
 
 describe("SeriesPalette", () => {
   describe("mixHex", () => {
@@ -78,5 +78,29 @@ describe("SeriesPalette", () => {
     it("unknown color indices fall back to the solid treatment", () => {
       expect(markTreatment(99, hue, "bubble").fill).toBe(hue);
     });
+  });
+});
+
+describe("pinSeries", () => {
+  const series = [
+    { key: "Cons.", index: 0 },
+    { key: "Other", index: 1 },
+    { key: "Ret.", index: 2 },
+  ];
+
+  it("leaves the series as they are without names", () => {
+    expect(pinSeries(series, [])).toBe(series);
+    expect(pinSeries(series, undefined)).toBe(series);
+  });
+
+  it("gives a named series the place of its name, also when other names have no series", () => {
+    const pinned = pinSeries(series, ["IT", "Cons.", "Transp.", "En.", "Ret."]);
+    expect(pinned.find((s) => s.key === "Cons.")!.index).toBe(1);
+    expect(pinned.find((s) => s.key === "Ret.")!.index).toBe(4);
+  });
+
+  it("puts a series without a name behind the names, and sorts by the new place", () => {
+    const pinned = pinSeries(series, ["Ret.", "Cons."]);
+    expect(pinned.map((s) => `${s.key}:${s.index}`)).toEqual(["Ret.:0", "Cons.:1", "Other:2"]);
   });
 });

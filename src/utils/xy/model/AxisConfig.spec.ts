@@ -1,4 +1,5 @@
 import {
+  labelSide,
   parseSpec,
   toAxisConfig,
   toFacetConfig,
@@ -232,5 +233,42 @@ describe("decimals and legend exclude", () => {
   it("reads the series a legend leaves out", () => {
     expect(toLegendConfig({ exclude: ["A", "B"] }).config!.exclude).toEqual(["A", "B"]);
     expect(toLegendConfig({ exclude: "A" }).invalidFields).toContain("exclude");
+  });
+});
+
+describe("share labels, values always, side per panel and legend inside", () => {
+  it("reads which bubbles print the value of their slice", () => {
+    expect(toShareConfig({ measure: "ac4" }).config!.labels).toBeUndefined();
+    expect(toShareConfig({ measure: "ac4", labels: "all" }).config!.labels).toBe("all");
+    expect(toShareConfig({ measure: "ac4", labels: ["Total"] }).config!.labels).toEqual(["Total"]);
+    expect(toShareConfig({ measure: "ac4", labels: true }).invalidFields).toContain("labels");
+  });
+
+  it("reads values always", () => {
+    const defaults = { points: "all" as const, values: true, max: 12 };
+    expect(toLabelConfig({ values: "always" }, defaults).config).toMatchObject({ values: true, valuesAlways: true });
+    expect(toLabelConfig({ values: false }, defaults).config!.valuesAlways).toBeUndefined();
+    expect(toLabelConfig({ values: "often" }, defaults).invalidFields).toContain("values");
+  });
+
+  it("keeps a side per panel apart from the side for all panels, and lists the name once", () => {
+    const defaults = { points: "all" as const, values: true, max: 12 };
+    const config = toLabelConfig(
+      {
+        points: [
+          { name: "IT", side: "e" },
+          { name: "IT", side: "s", panel: "India" },
+        ],
+      },
+      defaults,
+    ).config!;
+    expect(config.points).toEqual(["IT"]);
+    expect(labelSide(config, "IT", "India")).toBe("s");
+    expect(labelSide(config, "IT", "Germany")).toBe("e");
+    expect(labelSide(config, "Cons.", "India")).toBeUndefined();
+  });
+
+  it("takes the legend position inside", () => {
+    expect(toLegendConfig({ position: "inside" }).config!.position).toBe("inside");
   });
 });

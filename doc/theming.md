@@ -167,7 +167,7 @@ Customize `<bn-chart-structure>` appearance. It has the same sections as the tim
 
 ### Other charts
 
-`bn-chart-bullet`, `bn-chart-scatter` and `bn-chart-bubble` have a section of their own under their tag name, with `scaleFactors`, `axisStyles` and `padding`. The bullet chart also has `barStyles`, `varianceStyles` and `rangeColors`, the scatter and the bubble chart have `seriesColors` and `markStyles`: `{ "stroke": "#ffffff", "opacity": 1 }` is the line around a filled point or bubble and the opacity of its fill. `seriesFills` gives a series the fill `solid` or `outline`, one entry per series in the order of `seriesColors`: an outlined series is a line in its colour around a nearly clear fill. `shareColors` (bubble chart) sets the colour of the share slice per series.
+`bn-chart-bullet`, `bn-chart-scatter` and `bn-chart-bubble` have a section of their own under their tag name, with `scaleFactors`, `axisStyles` and `padding`. The bullet chart also has `barStyles`, `varianceStyles` and `rangeColors`, the scatter and the bubble chart have `seriesColors` and `markStyles`: `{ "stroke": "#ffffff", "opacity": 1 }` is the line around a filled point or bubble and the opacity of its fill. `seriesNames` names the series the entries of the three lists are for, so a series keeps its colour in every chart. `seriesFills` gives a series the fill `solid` or `outline`, one entry per series in the order of `seriesColors`: an outlined series is a line in its colour around a nearly clear fill. `shareColors` (bubble chart) sets the colour of the share slice per series.
 
 ### Tree
 
