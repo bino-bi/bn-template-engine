@@ -195,7 +195,7 @@ export namespace Components {
          */
         "labels": string;
         /**
-          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot. When a bubble or a panel title is there and no `align` is set, it takes the highest free place on the right edge of its panel, then on the left edge.
           * @default ""
          */
         "legend": string;
@@ -559,7 +559,7 @@ export namespace Components {
          */
         "labels": string;
         /**
-          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
+          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot. When a point or a panel title is there and no `align` is set, it takes the highest free place on the right edge of its panel, then on the left edge.
           * @default ""
          */
         "legend": string;
@@ -1983,6 +1983,10 @@ export namespace Components {
          */
         "barColumnWidth": string;
         /**
+          * The width of single bar columns, by column, in the values of `barColumnWidth`. A column without an entry takes `barColumnWidth`. Use it to give a long waterfall more room than a short one, for example the year beside the previous year. <br /><br /> example:<br /> ```{"fc1": "w20", "drfc1_pp1_op": "w10"}```
+         */
+        "barColumnWidths": string | Record<string, string>;
+        /**
           * List of column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin charts with a square head. Bars take the pattern of the minuend (FC hatched, PL outlined) in the colour of the sentiment; pin heads take the look of the minuend scenario (AC solid dark, PY solid grey, FC hatched, PL outlined); the axis takes the look of the reference scenario. Scenario columns (ac1..pl4) render as horizontal bar charts; when the table contains grouping structure (sum rows, thereof, or partof) they automatically render as an IBCS waterfall - data rows cascade from the running total and sum rows anchor at zero. Thin lines join the bars. Waterfall columns auto-scale to fit the bar column width, see `waterfallScaling` for one scale in the table. They are not supported in combination with `interval` or `columnthereof`. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos,ac1```
          */
         "barColumns": string;
@@ -2211,6 +2215,11 @@ export namespace Components {
           * @default {}
          */
         "barColumnParts": Record<string, string>;
+        /**
+          * Width of single bar columns in em, by column key. A column without an entry takes `barColumnMaxWidth`.
+          * @default {}
+         */
+        "barColumnWidths": Record<string, number>;
         /**
           * @default []
          */
@@ -3135,7 +3144,7 @@ declare namespace LocalJSX {
          */
         "labels"?: string;
         /**
-          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
+          * Legend (series colors, bubble size caption, comparison scenarios). JSON object: `{"show":true,"position":"right"|"bottom","align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot. When a bubble or a panel title is there and no `align` is set, it takes the highest free place on the right edge of its panel, then on the left edge.
           * @default ""
          */
         "legend"?: string;
@@ -3481,7 +3490,7 @@ declare namespace LocalJSX {
          */
         "labels"?: string;
         /**
-          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot.
+          * Series-color legend. JSON object: `{"show":true,"position":"right"|"bottom", "align":"start"}`. `align` moves it along its side: `start` (default), `center` or `end`. `exclude` lists the names of series that get no entry. `"position":"inside"` puts the legend into the top right corner of the plot. When a point or a panel title is there and no `align` is set, it takes the highest free place on the right edge of its panel, then on the left edge.
           * @default ""
          */
         "legend"?: string;
@@ -4876,6 +4885,10 @@ declare namespace LocalJSX {
          */
         "barColumnWidth"?: string;
         /**
+          * The width of single bar columns, by column, in the values of `barColumnWidth`. A column without an entry takes `barColumnWidth`. Use it to give a long waterfall more room than a short one, for example the year beside the previous year. <br /><br /> example:<br /> ```{"fc1": "w20", "drfc1_pp1_op": "w10"}```
+         */
+        "barColumnWidths"?: string | Record<string, string>;
+        /**
           * List of column names to render as bar charts instead of numbers. <br /><br /> Absolute variances (d_*) render as horizontal bar charts. Relative variances (dr_*) render as pin charts with a square head. Bars take the pattern of the minuend (FC hatched, PL outlined) in the colour of the sentiment; pin heads take the look of the minuend scenario (AC solid dark, PY solid grey, FC hatched, PL outlined); the axis takes the look of the reference scenario. Scenario columns (ac1..pl4) render as horizontal bar charts; when the table contains grouping structure (sum rows, thereof, or partof) they automatically render as an IBCS waterfall - data rows cascade from the running total and sum rows anchor at zero. Thin lines join the bars. Waterfall columns auto-scale to fit the bar column width, see `waterfallScaling` for one scale in the table. They are not supported in combination with `interval` or `columnthereof`. <br /><br /> example:<br /> ```dac1_pp1_pos,drac1_pp1_pos,ac1```
          */
         "barColumns"?: string;
@@ -5095,6 +5108,11 @@ declare namespace LocalJSX {
           * @default {}
          */
         "barColumnParts"?: Record<string, string>;
+        /**
+          * Width of single bar columns in em, by column key. A column without an entry takes `barColumnMaxWidth`.
+          * @default {}
+         */
+        "barColumnWidths"?: Record<string, number>;
         /**
           * @default []
          */
@@ -5846,6 +5864,7 @@ declare namespace LocalJSX {
         "variances": string;
         "barColumns": string;
         "barColumnWidth": string;
+        "barColumnWidths": string | Record<string, string>;
         "unitScaling": string;
         "percentageScaling": string;
         "dataFormat": string;

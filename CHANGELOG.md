@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-table`: `bar-column-widths` sets the width of single bar columns by column, in the values of `bar-column-width`: `{"fc1": "w25", "dfc1_pp1_op": "w20"}`. The other columns keep `bar-column-width`. A long walk or a long variance bar gets the room it needs, so the one scale of `waterfall-scaling="unit"` can be larger.
+
 - `bn-chart-scatter`, `bn-chart-bubble`: a legend inside the plot moves out of the way. When a point, a bubble or a panel title is in the top right corner and the legend has no `align`, it takes the highest free place on the right edge of its panel, then on the left edge. With no free place, or with `align`, it stays in the corner.
 
 - `bn-table`: `waterfall-scaling="unit"` draws all waterfall columns and the absolute variance bars of the table at one scale, the one of `unit-scaling`. With `auto` it is the largest scale at which every walk fits its column and every variance bar its cut. A fixed value or scaling group at which a walk does not fit is made coarser for the whole table, with `WARN_waterfallScaling`. Default `column`: each waterfall fits its own column, as before.

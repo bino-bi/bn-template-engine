@@ -171,6 +171,16 @@ describe("IBCS Table calculation scheme: one scale, sum bars, parts and ratios",
     expect(bar.getAttribute("stroke")).toBe("#404040");
   });
 
+  it("gives a bar column its own width with barColumnWidths", async () => {
+    const page = await renderTable({ barColumnMaxWidth: 10, barColumnWidths: { ac1: 20 } });
+    const a = rowOf(page, "A");
+    const width = (svg: Element) => parseFloat(svg.getAttribute("width"));
+    // the cell padding is the same in both, so the drawing is a bit more than twice as wide
+    const ratio = width(svgOf(a, "ac1")) / width(svgOf(a, "pp1"));
+    expect(ratio).toBeGreaterThan(2);
+    expect(ratio).toBeLessThan(2.1);
+  });
+
   it("draws a part of another scenario inside the bars and names it in the header", async () => {
     const page = await renderTable({
       scenarios: ["pp1", "fc1"],

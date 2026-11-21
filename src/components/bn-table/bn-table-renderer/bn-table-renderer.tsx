@@ -261,6 +261,14 @@ export class BnTableRenderer {
   @Prop()
   barColumnMaxWidth: number = 30;
 
+  /**
+   * Width of single bar columns in em, by column key. A column without an entry takes
+   * `barColumnMaxWidth`.
+   * @internal
+   */
+  @Prop()
+  barColumnWidths: Record<string, number> = {};
+
   /** @internal */
   @Prop()
   unitScaling: number = 0.01;
@@ -553,7 +561,7 @@ export class BnTableRenderer {
                           measureScale={barLabelMeasureScale(cell)}
                           locale={locale}
                           decimalDigits={barLabelDigits(cell, this.componentDataFormatDigits)}
-                          columnWidthEm={this.barColumnMaxWidth}
+                          columnWidthEm={this.barWidthOf(cell.key)}
                           styles={this.barChartStyles}
                           waterfall={cell.waterfall}
                           geometry={this.waterfallGeometries.get(cell.key)}
@@ -576,7 +584,7 @@ export class BnTableRenderer {
                             this.barColumnLayouts.get(cell.key)?.percentDigits ?? this.componentDataFormatDigits.percent
                           }
                           percentSign={this.barColumnLayouts.get(cell.key)?.percentSign}
-                          columnWidthEm={this.barColumnMaxWidth}
+                          columnWidthEm={this.barWidthOf(cell.key)}
                           labelWidths={this.barColumnLayouts.get(cell.key)?.labels}
                           sideMax={this.barColumnLayouts.get(cell.key)?.sideMax}
                           bold={isBoldRow(row)}
@@ -594,7 +602,7 @@ export class BnTableRenderer {
                         height={18 * this.scaleFactor}
                         isRelative={cell.key.startsWith("dr")}
                         isPositiveGood={true}
-                        columnWidthEm={this.barColumnMaxWidth}
+                        columnWidthEm={this.barWidthOf(cell.key)}
                         labelWidths={this.barColumnLayouts.get(cell.key)?.labels}
                         sideMax={this.barColumnLayouts.get(cell.key)?.sideMax}
                         styles={this.barChartStyles}
@@ -768,6 +776,11 @@ export class BnTableRenderer {
     return this.table?.scenarioLabel(part);
   }
 
+  /** The width of a bar column in em: its own entry of `barColumnWidths`, else the common width. */
+  private barWidthOf(key: string): number {
+    return this.barColumnWidths?.[key] ?? this.barColumnMaxWidth;
+  }
+
   private isBarColumn(key: string): boolean {
     return this.barColumns.includes(key);
   }
@@ -857,7 +870,7 @@ export class BnTableRenderer {
       const px = resolvedUnit * this.emPx() * BAR_LABEL_FONT_RATIO;
       for (const [key, column] of this.waterfallColumns) {
         if (column.max - column.min > 0) {
-          this.waterfallGeometries.set(key, waterfallGeometryAt(this.barColumnMaxWidth, this.emPx(), column, px));
+          this.waterfallGeometries.set(key, waterfallGeometryAt(this.barWidthOf(key), this.emPx(), column, px));
         }
       }
     }
@@ -977,9 +990,9 @@ export class BnTableRenderer {
     const emPx = this.emPx();
     const fs = emPx * BAR_LABEL_FONT_RATIO;
     let scaling = Infinity;
-    for (const { isRelative, absMax, labels, sideMax } of this.barColumnLayouts.values()) {
+    for (const [key, { isRelative, absMax, labels, sideMax }] of this.barColumnLayouts) {
       if (isRelative || absMax <= 0) continue;
-      const geometry = absoluteBarGeometry(this.barColumnMaxWidth, emPx, labels, sideMax);
+      const geometry = absoluteBarGeometry(this.barWidthOf(key), emPx, labels, sideMax);
       for (const side of ["neg", "pos"] as const) {
         const max = sideMax[side] ?? 0;
         if (max <= 0) continue;
@@ -1014,11 +1027,11 @@ export class BnTableRenderer {
     const emPx = this.emPx();
     const fs = emPx * BAR_LABEL_FONT_RATIO;
     let scaling = Infinity;
-    for (const { isRelative, absMax, labels, sideMax } of this.barColumnLayouts.values()) {
+    for (const [key, { isRelative, absMax, labels, sideMax }] of this.barColumnLayouts) {
       if (!isRelative || absMax <= 0) continue;
       const headSize = PIN_HEAD_SIZE * this.scaleFactor;
       // the longest pins of both sides share the room, each side takes what its pins need
-      const { negPinLength, posPinLength } = relativePinGeometry(this.barColumnMaxWidth, emPx, labels, headSize);
+      const { negPinLength, posPinLength } = relativePinGeometry(this.barWidthOf(key), emPx, labels, headSize);
       const percent = ((sideMax.neg ?? 0) + (sideMax.pos ?? 0)) * 100;
       scaling = Math.min(scaling, (negPinLength + posPinLength) / (percent * fs));
     }
@@ -1086,7 +1099,7 @@ export class BnTableRenderer {
       let percentSign = this.componentDataFormatDigits.percentSign !== false;
       let labels = measure(percentDigits, percentSign);
       while (isRelative && (percentDigits > 0 || percentSign)) {
-        if (pinLabelsFit(this.barColumnMaxWidth, emPx, labels, headSize)) break;
+        if (pinLabelsFit(this.barWidthOf(key), emPx, labels, headSize)) break;
         if (percentDigits > 0) percentDigits--;
         else percentSign = false;
         labels = measure(percentDigits, percentSign);
@@ -1160,7 +1173,7 @@ export class BnTableRenderer {
       }
     }
     for (const [key, column] of columns) {
-      geometries.set(key, waterfallGeometry(this.barColumnMaxWidth, emPx, column));
+      geometries.set(key, waterfallGeometry(this.barWidthOf(key), emPx, column));
     }
     this.waterfallColumns = columns;
     return geometries;
