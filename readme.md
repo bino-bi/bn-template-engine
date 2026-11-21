@@ -3,11 +3,22 @@
 > [!NOTE]
 > **About the history and the license of this repository.**
 >
-> All commits up to and including [`9629c1b`](https://github.com/bino-bi/bn-template-engine/commit/9629c1b534b70bb37305695e2565b1170eecb8da) come from an older, private project. That code is source available and free to use. It was not written for the public, so please read it with a grain of salt.
+> All commits up to and including [`9629c1b`](https://github.com/bino-bi/bn-template-engine/commit/9629c1b534b70bb37305695e2565b1170eecb8da) come from an older, private project. That code was not written for the public, so please read it with a grain of salt.
 >
-> The current code is also source available and free to use. With version 1.0 the project moves to an open source license.
+> The code in this repository, old and current, is **source available**, not open source. You are welcome to:
 >
-> See [LICENSE](LICENSE) for the terms.
+> - read and study the code,
+> - use the published library unchanged, for example from a CDN or from npm, for non-commercial purposes.
+>
+> Without our explicit written permission, you may not:
+>
+> - use the library or the code commercially,
+> - modify the code or build your own version of it,
+> - copy the code, in full or in parts, into other projects or products.
+>
+> If you would like to do any of this, just ask us at <sven@bino.bi>. With version 1.0 the project moves to an open source license.
+>
+> See [LICENSE](LICENSE) for the full terms.
 
 IBCS-compliant web components for business intelligence visualizations.
 
@@ -182,4 +193,4 @@ bn-template-engine uses standard [Web Components](https://developer.mozilla.org/
 
 ## License
 
-Source available and free to use, see [LICENSE](LICENSE). The project moves to an open source license with version 1.0.
+Source available: free to read, and free to use unchanged for non-commercial purposes. Commercial use, changes and reuse of the code need our explicit written permission. See [LICENSE](LICENSE). The project moves to an open source license with version 1.0.

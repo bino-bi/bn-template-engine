@@ -2,15 +2,26 @@ bn-template-engine Source Available License
 
 Copyright 2018-2026 Bino Bi
 
-1. Permission
+This software is source available. It is not open source software.
 
-You may use, copy, modify and distribute this software, in source or
-binary form, for any purpose, including commercial use, free of charge.
+1. What you may do
 
-2. Conditions
+a) Read and study the source code.
+b) Use the software unchanged, as published by the copyright holder
+   (for example from a CDN or from npm), for non-commercial purposes,
+   free of charge.
 
-Copies and substantial portions of the software must keep this license
-and the copyright notice above.
+2. What needs explicit written permission
+
+Without explicit written permission from the copyright holder you may
+not:
+
+a) use the software, in whole or in part, for commercial purposes;
+b) modify the software, or create derivative works of it;
+c) copy, include or distribute the source code, in whole or in parts,
+   in other projects or products.
+
+To ask for permission, contact sven@bino.bi.
 
 3. History
 
