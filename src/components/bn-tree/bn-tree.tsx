@@ -32,6 +32,7 @@ import {
   getActualGridColumnSpan,
   getActualGridRow,
   getActualGridRowSpan,
+  separate,
 } from "./utils/TreeLayout";
 
 import {
@@ -48,7 +49,7 @@ import {
 
 /** The components that take a `scale`. */
 const SCALED_NODES =
-  "bn-chart-time, bn-chart-structure, bn-chart-scatter, bn-chart-bubble, bn-chart-bullet, bn-table, bn-text";
+  "bn-chart-time, bn-chart-structure, bn-chart-scatter, bn-chart-bubble, bn-chart-bullet, bn-table, bn-text, bn-tree";
 /** Marks a `scale` the tree has set, so a scale of the node itself is told apart. */
 const INHERITED_SCALE = "data-bn-tree-scale";
 const MAX_FIT_STEPS = 12;
@@ -144,6 +145,7 @@ export class ChartTree {
       this.treeConfig = parseTreeConfig(newValue);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -171,6 +173,7 @@ export class ChartTree {
       this.errors.remove(errId);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -193,6 +196,7 @@ export class ChartTree {
       this.errors.remove(errId);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -215,6 +219,7 @@ export class ChartTree {
       this.errors.remove(errId);
     }
 
+    this.resetFit();
     this.recalculateLayout();
   }
 
@@ -277,15 +282,27 @@ export class ChartTree {
     } else {
       this.errors.remove(errId);
     }
-    this.fitFactor = 1;
-    this.fitSteps = 0;
+    this.resetFit();
     this.applyScale();
     this.recalculateLayout();
   }
 
-  /** The factor `scale: auto` has reached. It only goes down, so the fit cannot swing. */
+  /** A tree that changed is fitted anew, from 1. */
+  private resetFit() {
+    this.cancelFit();
+    this.fitSteps = 0;
+    this.fitSample = undefined;
+    if (this.fitFactor !== 1) {
+      this.fitFactor = 1;
+      this.applyScale();
+    }
+  }
+
+  /** The factor `scale: auto` has reached. It only goes down until the tree itself changes, so the fit cannot swing. */
   @State() private fitFactor: number = 1;
   private fitSteps = 0;
+  /** The size the tree had at the factor before, to tell what of it follows the factor. */
+  private fitSample: { factor: number; width: number; height: number } | undefined;
   private fitTimer: number | undefined;
   private fitDone: (() => void) | undefined;
   private readonly holdStatus: (work: Promise<unknown>) => void;
@@ -502,6 +519,10 @@ export class ChartTree {
   private applyScale() {
     const factor = this.scaleFactor();
     for (const node of Array.from(this.element.querySelectorAll(SCALED_NODES))) {
+      // a tree in a node hands the factor on to its own nodes
+      if (node.parentElement?.closest("bn-tree") !== this.element) {
+        continue;
+      }
       const inherited = node.hasAttribute(INHERITED_SCALE);
       if (node.hasAttribute("scale") && !inherited) {
         continue;
@@ -572,30 +593,57 @@ export class ChartTree {
 
   private fitStep() {
     const { parentWidth, width, height, clipped, wide, high } = this.measureOverflow();
-    let ratio = 1;
-    if (wide) {
-      ratio = Math.min(ratio, parentWidth / width);
+    if (!wide && !high) {
+      return; // the overflow went away while the step waited
     }
-    if (high && height > 0) {
-      ratio = Math.min(ratio, (height - clipped) / height);
+    const room = { width: parentWidth, height: height - clipped };
+    const now = { factor: this.fitFactor, width, height };
+    const before = this.fitSample;
+    let next = Infinity;
+    let stuck = false;
+    for (const side of ["width", "height"] as const) {
+      if (side === "width" ? !wide : !high) {
+        continue;
+      }
+      // the size is a part that follows the factor plus a part that does not: a node with its own scale, an image
+      let fixed = 0;
+      let perFactor = now[side] / now.factor;
+      if (before && before.factor > now.factor) {
+        perFactor = (before[side] - now[side]) / (before.factor - now.factor);
+        fixed = now[side] - perFactor * now.factor;
+      }
+      if (perFactor <= 0 || fixed >= room[side]) {
+        stuck = true;
+        break;
+      }
+      next = Math.min(next, (room[side] - fixed) / perFactor);
     }
     // two digits, rounded down: the same input gives the same factor in every build
-    const next = Math.max(MIN_FIT_FACTOR, Math.floor(this.fitFactor * ratio * 100) / 100);
-    if (next < this.fitFactor) {
-      this.fitSteps++;
-      this.fitFactor = next;
-      this.applyScale();
-      this.recalculateLayout();
-    } else {
-      // nothing left to gain: report what is cut off
+    next = Math.floor(next * 100 + 1e-6) / 100;
+    if (stuck || next < MIN_FIT_FACTOR || !(next < this.fitFactor)) {
+      // no factor makes it fit: small nodes in a tree that is cut off anyway help nobody
       this.fitSteps = MAX_FIT_STEPS;
-      this.checkOverflow();
+      this.fitSample = undefined;
+      if (this.fitFactor !== 1) {
+        this.fitFactor = 1;
+        this.applyScale();
+        this.recalculateLayout();
+      } else {
+        this.checkOverflow();
+      }
+      return;
     }
+    this.fitSteps++;
+    this.fitSample = now;
+    this.fitFactor = next;
+    this.applyScale();
+    this.recalculateLayout();
   }
 
   private updateNodeRects() {
     if (!this.treeConfig || !this.gridContainer) {
       // no tree is drawn, so nothing is cut off
+      this.cancelFit();
       this.errors?.remove("WARN_overflow");
       return;
     }
@@ -624,9 +672,10 @@ export class ChartTree {
 
   /**
    * Two parents that share a child span rows that overlap, and each is centred
-   * in its rows. Tall parents then touch or cover each other. Such a pair is
-   * moved apart until the node spacing is between them. Left to right and
-   * right to left only: in the other directions such a parent keeps one column.
+   * in its rows. Tall parents then touch or cover each other. The nodes of
+   * such a level are moved apart until the node spacing is between them. Left
+   * to right and right to left only: in the other directions such a parent
+   * keeps one column.
    */
   private separateNodes() {
     const shifts = new Map<string, number>();
@@ -646,20 +695,12 @@ export class ChartTree {
       }
       for (const nodes of levels.values()) {
         nodes.sort((a, b) => boxes.get(a)!.top - boxes.get(b)!.top);
-        for (let i = 1; i < nodes.length; i++) {
-          const upper = this.layout.positions.get(nodes[i - 1])!;
-          const lower = this.layout.positions.get(nodes[i])!;
-          if (lower.gridRow >= upper.gridRow + upper.gridRowSpan) {
-            continue; // rows of their own: the grid keeps the spacing
+        const sized = nodes.map((nodeId) => boxes.get(nodeId)!);
+        separate(sized, spacing).forEach((shift, index) => {
+          if (Math.abs(shift) > 0.5) {
+            shifts.set(nodes[index], shift);
           }
-          const upperBox = boxes.get(nodes[i - 1])!;
-          const upperEnd = upperBox.top + (shifts.get(nodes[i - 1]) ?? 0) + upperBox.height;
-          const missing = upperEnd + spacing - boxes.get(nodes[i])!.top;
-          if (missing > 0.5) {
-            shifts.set(nodes[i - 1], (shifts.get(nodes[i - 1]) ?? 0) - missing / 2);
-            shifts.set(nodes[i], missing / 2);
-          }
-        }
+        });
       }
     }
     const same =

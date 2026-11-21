@@ -342,3 +342,39 @@ export function getActualGridRowSpan(baseRowSpan: number): number {
 export function getActualGridColumnSpan(baseColumnSpan: number): number {
   return getActualGridRowSpan(baseColumnSpan);
 }
+
+/**
+ * How far each box of a column moves so that `spacing` is between two
+ * neighbours. The boxes are sorted from top to bottom. A run of boxes that
+ * push each other stays centred where it was, as far as the box above it and
+ * the top of the tree allow. Boxes that have their distance do not move.
+ */
+export function separate(boxes: { top: number; height: number }[], spacing: number): number[] {
+  const shifts = boxes.map(() => 0);
+  let runStart = 0;
+  const centre = (from: number, to: number) => {
+    // the run was pushed down from its first box: move it back up by half of the last push
+    const back = shifts[to] / 2;
+    const above = from > 0 ? boxes[from - 1].top + shifts[from - 1] + boxes[from - 1].height + spacing : 0;
+    const allowed = Math.max(0, Math.min(back, boxes[from].top - above));
+    for (let i = from; i <= to; i++) {
+      shifts[i] -= allowed;
+    }
+  };
+  for (let i = 1; i < boxes.length; i++) {
+    const end = boxes[i - 1].top + shifts[i - 1] + boxes[i - 1].height;
+    const missing = end + spacing - boxes[i].top;
+    if (missing > 0.5) {
+      shifts[i] = missing;
+    } else {
+      if (shifts[i - 1] > 0) {
+        centre(runStart, i - 1);
+      }
+      runStart = i;
+    }
+  }
+  if (boxes.length > 0 && shifts[boxes.length - 1] > 0) {
+    centre(runStart, boxes.length - 1);
+  }
+  return shifts;
+}

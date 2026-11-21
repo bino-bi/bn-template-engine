@@ -3290,7 +3290,8 @@ export class TimeChart {
    * Null when it stays at the bottom.
    */
   private switchNamesRowY(entries: { from: number; to: number; text: string }[], leftAligned: boolean): number | null {
-    if (this.isVarianceChart() || this.isOnSameAxisSide() || entries.length === 0) {
+    // only for a switched series: the second row of a plain two-row chart stays where it was
+    if (this.isVarianceChart() || this.isOnSameAxisSide() || entries.length === 0 || this.switchRuns().length === 0) {
       return null;
     }
     const half = this.position.spacings.categoryWidth / 2;

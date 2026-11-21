@@ -167,14 +167,56 @@ describe("bn-tree scale auto", () => {
     expect(factor(page)).toBe(1);
   });
 
-  it("warns when the tree does not get smaller", async () => {
+  it("solves for the part of the tree that does not follow the factor", async () => {
     const page = await renderTree('scale="auto"');
-    await sizeTree(page, () => ({ width: 600, height: 100 }));
-    for (let i = 0; i < 6; i++) {
+    // 100 px of the width stay, 500 px follow the factor: 300 = 100 + 500 * 0.4
+    await sizeTree(page, () => ({ width: 100 + 500 * factor(page), height: 100 }));
+    for (let i = 0; i < 4; i++) {
       await settle(page);
     }
-    expect(factor(page)).toBe(0.2);
+    expect(factor(page)).toBe(0.4);
+    expect(overflowItem(page)).toBeUndefined();
+  });
+
+  it("goes back to 1 and warns when no factor makes the tree fit", async () => {
+    const page = await renderTree('scale="auto"');
+    await sizeTree(page, () => ({ width: 600, height: 100 }));
+    for (let i = 0; i < 4; i++) {
+      await settle(page);
+    }
+    expect(factor(page)).toBe(1);
+    expect(scaleOf(page, "roi")).toBe("1");
     expect(overflowItem(page)?.message).toContain("width (600px > 300px)");
+  });
+
+  it("fits anew when the tree changes", async () => {
+    const page = await renderTree('scale="auto"');
+    let wide = true;
+    await sizeTree(page, () => ({ width: (wide ? 600 : 200) * factor(page), height: 100 }));
+    await settle(page);
+    await settle(page);
+    expect(factor(page)).toBe(0.5);
+
+    wide = false;
+    page.root!.setAttribute("direction", "ttb");
+    await page.waitForChanges();
+    await settle(page);
+    expect(factor(page)).toBe(1);
+  });
+});
+
+describe("bn-tree in a node of a tree", () => {
+  const NESTED = `<div slot="roi"><bn-chart-time></bn-chart-time></div>
+    <div slot="ros"><bn-tree edges='[{"from":"a","to":"b"}]'>
+      <div slot="a"><bn-chart-time id="inner"></bn-chart-time></div><div slot="b">b</div>
+    </bn-tree></div>
+    <div slot="ct">ct</div>`;
+
+  it("hands the factor to the inner tree, which hands it to its nodes", async () => {
+    const page = await renderTree('scale="0.5"', EDGES, NESTED);
+    await page.waitForChanges();
+    expect(page.root!.querySelector('[slot="ros"] > bn-tree')!.getAttribute("scale")).toBe("0.5");
+    expect(page.root!.querySelector("#inner")!.getAttribute("scale")).toBe("0.5");
   });
 });
 
@@ -198,7 +240,7 @@ describe("bn-tree parents that share a child", () => {
   };
 
   it("moves two parents apart that touch", async () => {
-    const shifts = await shiftsFor('node-spacing="20"', { ros: 0, ct: 100, a: 0, b: 200, c: 400 }, 100);
+    const shifts = await shiftsFor('node-spacing="20"', { ros: 50, ct: 150, a: 0, b: 200, c: 400 }, 100);
     expect(shifts.get("ros")).toBe(-10);
     expect(shifts.get("ct")).toBe(10);
     // the children have rows of their own

@@ -1371,6 +1371,11 @@ export namespace Components {
           * @default ""
          */
         "tableName": string;
+        "titleTop"?: string;
+        /**
+          * @default false
+         */
+        "titleTopUnit": boolean;
         /**
           * @default null
          */
@@ -4198,6 +4203,11 @@ declare namespace LocalJSX {
           * @default ""
          */
         "tableName"?: string;
+        "titleTop"?: string;
+        /**
+          * @default false
+         */
+        "titleTopUnit"?: boolean;
         /**
           * @default null
          */
@@ -5525,6 +5535,8 @@ declare namespace LocalJSX {
         "scalingIndicator": number;
         "scenarioSwitch": boolean;
         "axisTitlePosition": string;
+        "titleTop": string;
+        "titleTopUnit": boolean;
         "varianceWaterfall": boolean;
         "referenceColumn": boolean;
         "syncedLeft": boolean;

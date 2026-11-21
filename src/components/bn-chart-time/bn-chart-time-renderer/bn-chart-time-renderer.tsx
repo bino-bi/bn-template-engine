@@ -181,6 +181,14 @@ export class BnChartTimeRenderer {
   @Prop()
   axisTitlePosition: string = "left";
 
+  /** @internal The chart title for a line above this segment, with `axis-title-position="top"` on the chart. Undefined: no line. */
+  @Prop()
+  titleTop?: string;
+
+  /** @internal Print the unit behind `titleTop`. */
+  @Prop()
+  titleTopUnit: boolean = false;
+
   /** @internal */
   @Prop()
   varianceWaterfall: boolean = false;
@@ -259,11 +267,8 @@ export class BnChartTimeRenderer {
           style={{ width: "0", height: "0", overflow: "hidden" }}
         />
 
-        {this.axisTitlePosition === "top" ? (
-          this.renderTitleTop()
-        ) : (
-          <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
-        )}
+        {this.titleTop !== undefined ? this.renderTitleTop() : null}
+        <div class={this.showMeasureScale ? "footer" : "footer-hide"}>{this.chart?.getFooter()}</div>
         {/* <svg ref={(el) => this.drawElement = el} id="drawCanvas" width={this.chart?.getAllocatedCanvasWidth()}
           height={this.chart?.getAllocatedCanvasHeight()}></svg> */}
         <div innerHTML={this.chart?.toString()}></div>
@@ -273,8 +278,9 @@ export class BnChartTimeRenderer {
 
   /** `axisTitlePosition: top`: the bold title and the unit in one line above the chart. */
   private renderTitleTop() {
-    const unit = this.showMeasureScale ? (this.chart?.getFooter().trim() ?? "") : "";
-    if (!this.chartTitle && !unit) {
+    const title = this.titleTop;
+    const unit = this.titleTopUnit ? (this.chart?.getFooter().trim() ?? "") : "";
+    if (!title && !unit) {
       return null;
     }
     const font = this.styles?.fontStyles;
@@ -287,8 +293,8 @@ export class BnChartTimeRenderer {
           paddingLeft: `${this.styles?.padding?.left ?? 0}px`,
         }}
       >
-        {this.chartTitle ? <span class="measure">{this.chartTitle}</span> : null}
-        {this.chartTitle && unit ? " " : null}
+        {title ? <span class="measure">{title}</span> : null}
+        {title && unit ? " " : null}
         {unit}
       </div>
     );
@@ -578,7 +584,7 @@ export class BnChartTimeRenderer {
     ).adapt({
       scenarios: this.scenarios,
       variances: this.variances,
-      title: this.axisTitlePosition === "top" ? "" : this.chartTitle,
+      title: this.chartTitle,
       hideAxisLabels: this.hideAxisLabels,
       pixelPerUnit: this.pixelPerUnit,
       pixelPerPercentage: this.pixelPerPercentage,
@@ -603,7 +609,7 @@ export class BnChartTimeRenderer {
       scalingIndicator: this.scalingIndicator,
       totals: this.totals,
       scenarioSwitch: this.scenarioSwitch,
-      axisTitlePosition: this.axisTitlePosition === "top" ? "none" : this.axisTitlePosition,
+      axisTitlePosition: this.axisTitlePosition,
       varianceWaterfall: this.varianceWaterfall,
       bridgeVariances: this.bridgeVariances,
       referenceColumn: this.referenceColumn,

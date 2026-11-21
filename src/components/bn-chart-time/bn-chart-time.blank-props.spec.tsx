@@ -251,3 +251,42 @@ describe("bn-chart-time: scenarios none", () => {
     ]);
   });
 });
+
+describe("bn-chart-time: axis-title-position top", () => {
+  const renderers = (page: SpecPage): Element[] =>
+    Array.from(page.root!.shadowRoot!.querySelectorAll("bn-chart-time-renderer"));
+
+  it("accepts top", async () => {
+    const page = await renderChart(`axis-title-position="top"`);
+    expect(errorIds(page)).not.toContain("WARN_axisTitlePosition");
+  });
+
+  it("gives the title to the uppermost segment and draws none at the axis of the base", async () => {
+    const page = await renderChart(
+      `axis-title-position="top" chart-title="Net sales" scenarios="ac1,pp1" variances="dac1_pp1_pos" show-measure-scale`,
+    );
+    const [base, variance] = renderers(page);
+
+    expect(base.getAttribute("axisTitlePosition")).toBe("none");
+    expect(base.hasAttribute("titleTop")).toBe(false);
+    // the tiny unit of the base is replaced by the unit in the title line
+    expect(base.hasAttribute("showMeasureScale")).toBe(false);
+    expect(variance.getAttribute("axisTitlePosition")).toBe("left");
+    expect(variance.getAttribute("titleTop")).toBe("Net sales");
+    expect(variance.hasAttribute("titleTopUnit")).toBe(true);
+  });
+
+  it("gives the title to the base when it is the only segment", async () => {
+    const page = await renderChart(`axis-title-position="top" chart-title="Net sales" scenarios="ac1"`);
+    const all = renderers(page);
+
+    expect(all).toHaveLength(1);
+    expect(all[0].getAttribute("titleTop")).toBe("Net sales");
+    expect(all[0].getAttribute("chartTitle") ?? "").toBe("");
+  });
+
+  it("passes no title line without top", async () => {
+    const page = await renderChart(`chart-title="Net sales" scenarios="ac1"`);
+    expect(renderers(page)[0].hasAttribute("titleTop")).toBe(false);
+  });
+});
