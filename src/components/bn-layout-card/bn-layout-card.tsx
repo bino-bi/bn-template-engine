@@ -57,7 +57,7 @@ export class LayoutCard {
   /**
    * Name of a registered component style (see `bn-component-style`) passed
    * through to the inner `<bn-card>` element as its `selected-style`
-   * attribute, and to the title and footer of the card. Its section `bn-layout-card` sets the font size of the title
+   * attribute, and to the title, footer and body of the card. Its section `bn-layout-card` sets the font size of the title
    * (`titleFontSize`, in px).
    */
   @Prop() selectedStyle?: string;
@@ -460,7 +460,7 @@ export class LayoutCard {
             ""
           )}
         </div>
-        <bn-body>
+        <bn-body selected-style={this.selectedStyle}>
           {/* data-bn-fit-content: tells auto-scaling components that heights
               inside this grid are content-driven and unusable as a scaling
               reference; the value is the grid's row count so they can fall

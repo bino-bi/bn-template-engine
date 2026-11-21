@@ -158,7 +158,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
-- `bn-layout-page`, `bn-layout-card`: the `selected-style` of a page or card now reaches its title, message and footer. Before, they used the `_default` style only, so for example a font set in the selected style did not apply to the title block.
+- `bn-layout-page`, `bn-layout-card`: the `selected-style` of a page or card now reaches its title, message, footer and body. Before, they used the `_default` style only, so for example a font set in the selected style did not apply to the title block, and the annotation lists and comments in the body took the font, size and colours of `_default`.
 - `bn-chart-bubble`: `bubble-scale-overflow` was reported for every bubble of a scaling group that hung out of its panel, also when the bubble was small and only stood near the edge. A bubble may leave the plot. The warning now names only bubbles that are wider or higher than their panel, where the scale of the group is too large.
 - `bn-chart-time` and the other charts with `varianceStyles`: a `neu` entry was only read when the style also had a `pp` key. It is read on its own now.
 - Charts with an automatic `scale`: a chart whose parent had no box at the time of a render got the font size `NaNpx`, drew in the default size of the browser and kept that. The same page could so come out in two forms. Seen with bubble charts that use a `bn-scaling-group`. The chart now waits for a parent with a width.

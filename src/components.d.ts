@@ -1697,7 +1697,7 @@ export namespace Components {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute, and to the title and footer of the card. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute, and to the title, footer and body of the card. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
          */
         "selectedStyle"?: string;
         /**
@@ -1843,7 +1843,7 @@ export namespace Components {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute, and to the title, message and footer of the page.
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute, and to the title, message, footer and body of the page.
          */
         "selectedStyle"?: string;
         /**
@@ -4599,7 +4599,7 @@ declare namespace LocalJSX {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute, and to the title and footer of the card. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-card>` element as its `selected-style` attribute, and to the title, footer and body of the card. Its section `bn-layout-card` sets the font size of the title (`titleFontSize`, in px).
          */
         "selectedStyle"?: string;
         /**
@@ -4745,7 +4745,7 @@ declare namespace LocalJSX {
          */
         "ruleset"?: string;
         /**
-          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute, and to the title, message and footer of the page.
+          * Name of a registered component style (see `bn-component-style`) passed through to the inner `<bn-page>` element as its `selected-style` attribute, and to the title, message, footer and body of the page.
          */
         "selectedStyle"?: string;
         /**
