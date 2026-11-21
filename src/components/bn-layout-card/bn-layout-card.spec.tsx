@@ -56,22 +56,22 @@ describe("bn-layout-card selected-style forwarding", () => {
     expect(inner.hasAttribute("selected-style")).toBe(false);
   });
 
-  it("forwards selected-style to the title and footer", async () => {
+  it("forwards selected-style to the title, footer and body", async () => {
     const page = await newSpecPage({
       components: [LayoutCard],
       template: () => <bn-layout-card selected-style="corporate-style"></bn-layout-card>,
     });
-    for (const tag of ["bn-title", "bn-footer"]) {
+    for (const tag of ["bn-title", "bn-footer", "bn-body"]) {
       expect(page.root.shadowRoot.querySelector(tag).getAttribute("selected-style")).toBe("corporate-style");
     }
   });
 
-  it("omits selected-style on the title and footer when not set", async () => {
+  it("omits selected-style on the title, footer and body when not set", async () => {
     const page = await newSpecPage({
       components: [LayoutCard],
       template: () => <bn-layout-card></bn-layout-card>,
     });
-    for (const tag of ["bn-title", "bn-footer"]) {
+    for (const tag of ["bn-title", "bn-footer", "bn-body"]) {
       expect(page.root.shadowRoot.querySelector(tag).hasAttribute("selected-style")).toBe(false);
     }
   });

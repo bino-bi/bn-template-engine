@@ -39,7 +39,7 @@ export class LayoutPage {
   /**
    * Name of a registered component style (see `bn-component-style`) passed
    * through to the inner `<bn-page>` element as its `selected-style`
-   * attribute, and to the title, message and footer of the page.
+   * attribute, and to the title, message, footer and body of the page.
    */
   @Prop() selectedStyle?: string;
 
@@ -495,7 +495,7 @@ export class LayoutPage {
             ) : null}
             {this.titleId ? <div class="page-id">{this.titleId}</div> : null}
           </div>
-          <bn-body>
+          <bn-body selected-style={this.selectedStyle}>
             {/* data-bn-fit-content: tells auto-scaling components that heights
               inside this grid are content-driven and unusable as a scaling
               reference; the value is the grid's row count so they can fall
