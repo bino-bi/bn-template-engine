@@ -57,7 +57,7 @@ export class LayoutCard {
   /**
    * Name of a registered component style (see `bn-component-style`) passed
    * through to the inner `<bn-card>` element as its `selected-style`
-   * attribute. Its section `bn-layout-card` sets the font size of the title
+   * attribute, and to the title and footer of the card. Its section `bn-layout-card` sets the font size of the title
    * (`titleFontSize`, in px).
    */
   @Prop() selectedStyle?: string;
@@ -439,6 +439,7 @@ export class LayoutCard {
       >
         <div class="cardtitle">
           <bn-title // @ts-ignore
+            selected-style={this.selectedStyle}
             i18n-namespace={this.i18nNamespace ?? this.titleNamespace}
             ruleset={this.titleProp("ruleset")}
             title-font-size={this.componentStyle(($) => $?.["bn-layout-card"]?.titleFontSize)}
@@ -472,7 +473,12 @@ export class LayoutCard {
             {this.getSlots(arrOfSlots)}
           </div>
         </bn-body>
-        <bn-footer text={this.footerText} page-number="0" display-page-number={"false"}></bn-footer>
+        <bn-footer
+          selected-style={this.selectedStyle}
+          text={this.footerText}
+          page-number="0"
+          display-page-number={"false"}
+        ></bn-footer>
       </bn-card>
     );
   }
