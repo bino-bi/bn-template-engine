@@ -16,3 +16,50 @@
   flex: 1 1 auto;
   min-width: 0;
 }
+
+// The title block of the page. With the message above it and no id it is the
+// title alone, as before.
+.page-header {
+  display: block;
+
+  &.message-beside,
+  &.with-id {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  &.with-id bn-title {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  &.message-beside {
+    border-bottom: 0.1em solid #ddd;
+    margin-bottom: 0.5em;
+
+    // one start for the message on every page
+    bn-title {
+      width: 30%;
+      flex: 0 0 30%;
+      margin-bottom: 0;
+    }
+
+    bn-message {
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 0;
+      border-bottom: none;
+      padding: 0.5em;
+      font-size: 1em;
+    }
+  }
+}
+
+.page-id {
+  flex: 0 0 auto;
+  padding: 0 0.15em 0 0.5em;
+  font-size: 3.6em;
+  font-weight: bold;
+  line-height: 1;
+}

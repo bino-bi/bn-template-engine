@@ -1782,6 +1782,11 @@ export namespace Components {
          */
         "messageImage": string;
         /**
+          * Where the message stands. - `top` (default): in a row of its own above the title block - `beside`: right of the title block, in one row with it
+          * @default "top"
+         */
+        "messagePosition": string;
+        /**
           * Message text displayed in the message row above the title. If empty, the message row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
           * @example <bn-layout-page message-text="Revenue <b>above plan</b><br />Q3 2026"></bn-layout-page>
           * @default ""
@@ -1867,6 +1872,11 @@ export namespace Components {
           * Start date displayed in the title date row. Accepts `yyyy-MM-dd` (e.g. `2024-01-01`) or ISO 8601 datetime (e.g. `2024-01-01T14:30:00Z`).
          */
         "titleDateStart"?: string;
+        /**
+          * A short id of the page, printed large at the top right of the title block, for example the number of a report page (`11A`). Empty: none.
+          * @default ""
+         */
+        "titleId": string;
         /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
@@ -4612,6 +4622,11 @@ declare namespace LocalJSX {
          */
         "messageImage"?: string;
         /**
+          * Where the message stands. - `top` (default): in a row of its own above the title block - `beside`: right of the title block, in one row with it
+          * @default "top"
+         */
+        "messagePosition"?: string;
+        /**
           * Message text displayed in the message row above the title. If empty, the message row is omitted.  Rendered as sanitized HTML, so inline markup is supported.
           * @example <bn-layout-page message-text="Revenue <b>above plan</b><br />Q3 2026"></bn-layout-page>
           * @default ""
@@ -4697,6 +4712,11 @@ declare namespace LocalJSX {
           * Start date displayed in the title date row. Accepts `yyyy-MM-dd` (e.g. `2024-01-01`) or ISO 8601 datetime (e.g. `2024-01-01T14:30:00Z`).
          */
         "titleDateStart"?: string;
+        /**
+          * A short id of the page, printed large at the top right of the title block, for example the number of a report page (`11A`). Empty: none.
+          * @default ""
+         */
+        "titleId"?: string;
         /**
           * Array of measure objects with `name` and `unit` displayed in the title. Passed as a JSON string. If all units are the same, redundant units are reduced and names concatenated. If empty, the measure row is omitted.
           * @example <bn-layout-page title-measures='[{"name":"Revenue","unit":"mEUR"}]'></bn-layout-page>
@@ -5653,6 +5673,8 @@ declare namespace LocalJSX {
         "selectedStyle": string;
         "ruleset": string;
         "messageText": string;
+        "messagePosition": string;
+        "titleId": string;
         "messageImage": string;
         "titleBusinessUnit": string;
         "titleScenarios": string;

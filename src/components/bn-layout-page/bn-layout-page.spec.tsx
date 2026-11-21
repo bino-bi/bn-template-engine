@@ -315,3 +315,42 @@ describe("bn-layout-page grid template", () => {
     expect(ids(page.root)).toEqual([]);
   });
 });
+
+describe("bn-layout-page title block", () => {
+  const render = (attrs: string) =>
+    newSpecPage({ components: [LayoutPage], html: `<bn-layout-page message-text="Hello" ${attrs}></bn-layout-page>` });
+  const order = (page: Awaited<ReturnType<typeof render>>): string[] =>
+    Array.from(page.root!.shadowRoot!.querySelector("bn-page")!.children).map((child) => child.tagName.toLowerCase());
+  const header = (page: Awaited<ReturnType<typeof render>>) => page.root!.shadowRoot!.querySelector(".page-header")!;
+
+  it("keeps the message in a row of its own above the title by default", async () => {
+    const page = await render("");
+    expect(order(page).slice(0, 2)).toEqual(["bn-message", "div"]);
+    expect(Array.from(header(page).children).map((child) => child.tagName.toLowerCase())).toEqual(["bn-title"]);
+    expect(header(page).classList.contains("message-beside")).toBe(false);
+    expect(header(page).classList.contains("with-id")).toBe(false);
+  });
+
+  it("puts the message right of the title with message-position beside", async () => {
+    const page = await render(`message-position="beside"`);
+    expect(order(page)[0]).toBe("div");
+    expect(Array.from(header(page).children).map((child) => child.tagName.toLowerCase())).toEqual([
+      "bn-title",
+      "bn-message",
+    ]);
+    expect(header(page).querySelector("bn-message")!.getAttribute("text")).toBe("Hello");
+  });
+
+  it("prints the id of the page at the end of the title block", async () => {
+    const page = await render(`title-id="11A"`);
+    expect(header(page).lastElementChild!.textContent).toBe("11A");
+    expect(header(page).classList.contains("with-id")).toBe(true);
+    // the message stays above
+    expect(order(page)[0]).toBe("bn-message");
+  });
+
+  it("warns about a position it does not know", async () => {
+    const page = await render(`message-position="left"`);
+    expect(page.root!.getAttribute("has-error") ?? "").toContain("WARN_messagePosition");
+  });
+});
