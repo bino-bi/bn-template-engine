@@ -78,7 +78,7 @@
     "@emotion/hash": "^0.9.2",
     "@svgdotjs/svg.js": "^3.2.5",
     "@types/luxon": "^3.7.1",
-    "alasql": "^4.17.0",
+    "alasql": "~4.22.2",
     "calculate-size": "^1.1.1",
     "fflate": "^0.8.2",
     "luxon": "^3.7.2",

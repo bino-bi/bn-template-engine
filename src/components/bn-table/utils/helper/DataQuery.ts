@@ -318,8 +318,9 @@ export class DataQuery {
         TableType.OPT === this.config.type || TableType.OPTNOTOTAL === this.config.type
           ? `, CASE WHEN MAX(transformOperator(operation)) = -1 THEN '-' ELSE '+' END as restOperation${restSigned}`
           : "";
+      // rowNr is not aggregated: alasql >= 4.18 returns the first rest row's number, which made the REST row a second element
       querys.push(
-        `SELECT ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, ${this.bind(String(rowGroupEntry.rowGroup ?? ""))} as restRowGroup, 'REST' as ${QueryColumnNames.CATEGORY}${restOperation} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
+        `SELECT NULL as ${QueryColumnNames.ROWNR}, 1 as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, 'NO_GROUP' as ${QueryColumnNames.ROWGROUP}, ${this.bind(String(rowGroupEntry.rowGroup ?? ""))} as restRowGroup, 'REST' as ${QueryColumnNames.CATEGORY}${restOperation} ${restScenarios.length > 0 ? ", " + restScenarios : ""} FROM` +
           ` (SELECT ROWNUM() AS ${QueryColumnNames.ROWNR}, ${querys.length} as  ${QueryColumnNames.ROWGROUPINDEX} , 'ENTRY' as ${QueryColumnNames.TYPE}, ${this.bind(String(rowGroupEntry.rowGroup || "NO_GROUP"))} as ${QueryColumnNames.ROWGROUP}, ${groups.select()} ${scenarios.length > 0 ? ",".concat(scenarios) : ""}${this.sortSelect} FROM ${this.fromExpr} ${queryWhereSection} GROUP BY ${groups} ORDER BY ${order[0]})` +
           ` t WHERE t.rowNr > ${this.config.limit}`,
       );
