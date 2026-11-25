@@ -14,6 +14,8 @@ export interface AnnotationPoint {
 
 /** One entry of the `items` attribute of `bn-annotation-layer`. */
 export interface AnnotationLayerItem {
+  /** Name of the annotation. Written to `data-bino-annotation` on its mark, so a host can tell which annotation a mark is. */
+  name?: string;
   /** Number on the mark. Absent when the annotation has none. */
   label?: string;
   mark?: "marker" | "frame" | "arrow" | "difference" | "pointer" | "bracket";
@@ -40,6 +42,8 @@ export interface AnnotationLayerItem {
 
 /** One entry of the `items` attribute of `bn-annotation-list`. */
 export interface AnnotationListItem {
+  /** Name of the annotation. Written to `data-bino-annotation` on its entry. */
+  name?: string;
   label?: string;
   title?: string;
   /** Inline HTML of the text. */
@@ -72,6 +76,7 @@ const text = (value: unknown): string | undefined =>
 export function parseLayerItems(json: string | undefined): AnnotationLayerItem[] | undefined {
   return parseItems<AnnotationLayerItem>(json)?.map((item) => ({
     ...item,
+    name: text(item.name),
     label: text(item.label),
     color: text(item.color),
     target: text(item.target) ?? "",
@@ -83,6 +88,7 @@ export function parseLayerItems(json: string | undefined): AnnotationLayerItem[]
 /** The `items` of a list. `undefined` when it is not a JSON array of objects. */
 export function parseListItems(json: string | undefined): AnnotationListItem[] | undefined {
   return parseItems<AnnotationListItem>(json)?.map((item) => ({
+    name: text(item.name),
     label: text(item.label),
     title: text(item.title),
     html: text(item.html),

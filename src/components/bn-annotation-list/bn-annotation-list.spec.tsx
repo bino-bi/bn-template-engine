@@ -94,4 +94,16 @@ describe("bn-annotation-list", () => {
     expect(entries()).toEqual([]);
     expect(JSON.parse(list.getAttribute("has-error")!)[0].id).toBe("ERR_items");
   });
+
+  it("writes the name of an entry to data-bino-annotation", async () => {
+    const { list } = await render(
+      JSON.stringify([
+        { name: "plan_2024", label: "1", title: "First" },
+        { label: "2", title: "Second" },
+      ]),
+    );
+    const entries = list.shadowRoot!.querySelectorAll("li");
+    expect(entries[0].getAttribute("data-bino-annotation")).toBe("plan_2024");
+    expect(entries[1].hasAttribute("data-bino-annotation")).toBe(false);
+  });
 });

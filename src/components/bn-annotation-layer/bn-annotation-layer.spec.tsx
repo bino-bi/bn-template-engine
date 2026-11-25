@@ -194,4 +194,71 @@ describe("bn-annotation-layer", () => {
 
     expect(JSON.parse(layer.getAttribute("has-error")!)[0].id).toBe("ERR_items");
   });
+
+  it("writes the name of an item to data-bino-annotation on its mark", async () => {
+    const { page, layer, release } = await setup([
+      { ...ITEMS[0], name: "plan_2024" },
+      { ...ITEMS[0], label: "4" },
+    ]);
+    release();
+
+    await until(page, () => marks(layer).length === 2);
+    const drawn = Array.from(layer.shadowRoot!.querySelectorAll(".mark"));
+    expect(drawn[0].getAttribute("data-bino-annotation")).toBe("plan_2024");
+    // an item without a name draws as before
+    expect(drawn[1].hasAttribute("data-bino-annotation")).toBe(false);
+  });
+
+  describe("names and clicks on each kind of mark", () => {
+    const badge = { cx: 5, cy: 5, r: 4, label: "1" };
+    const box = { x: 0, y: 0, width: 10, height: 10 };
+    const KINDS = [
+      { kind: "marker", badge },
+      { kind: "frame", x: 0, y: 0, width: 10, height: 10, rx: 2, ry: 2, badge },
+      { kind: "difference", lines: [], bar: box, text: { x: 0, y: 0, anchor: "start", value: "+1" }, badge },
+      { kind: "pointer", shape: "0,0 1,1 2,0", badge },
+      { kind: "bracket", path: "0,0 1,1", badge },
+      { kind: "arrow", x1: 0, y1: 0, x2: 20, y2: 20, head: "20,20 18,16 16,18", badge },
+    ];
+
+    /** A layer on its own, with the given marks drawn as if they had been placed. */
+    const drawn = async (interactive: boolean) => {
+      const page = await newSpecPage({
+        components: [AnnotationLayer],
+        html: `<bn-annotation-layer${interactive ? " interactive" : ""}></bn-annotation-layer>`,
+      });
+      // let the first placement (nothing to place) finish, then draw the test marks
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      page.rootInstance.marks = KINDS.map((mark) => ({ ...mark, name: `note_${mark.kind}` }));
+      await page.waitForChanges();
+      return page.root as HTMLElement;
+    };
+
+    it("puts the name on every kind of mark", async () => {
+      const layer = await drawn(false);
+      for (const { kind } of KINDS) {
+        const mark = layer.shadowRoot!.querySelector(`.mark.${kind}`);
+        expect(mark?.getAttribute("data-bino-annotation")).toBe(`note_${kind}`);
+      }
+    });
+
+    it("is not interactive by default and has no hit path on the arrow", async () => {
+      const layer = await drawn(false);
+      expect(layer.hasAttribute("interactive")).toBe(false);
+      expect(layer.shadowRoot!.querySelector(".arrow .hit")).toBeNull();
+    });
+
+    it("reflects interactive, and gives the arrow a wide transparent hit line", async () => {
+      const layer = await drawn(true);
+      expect(layer.hasAttribute("interactive")).toBe(true);
+      const hit = layer.shadowRoot!.querySelector(".arrow .hit") as SVGElement;
+      expect(hit).not.toBeNull();
+      expect(hit.getAttribute("x1")).toBe("0");
+      expect(hit.getAttribute("x2")).toBe("20");
+      expect(hit.style.stroke).toBe("transparent");
+      expect(Number(hit.style.strokeWidth)).toBeGreaterThan(1.5);
+      // only the arrow gets one: the other marks are filled shapes or have a badge to click
+      expect(layer.shadowRoot!.querySelectorAll(".hit").length).toBe(1);
+    });
+  });
 });

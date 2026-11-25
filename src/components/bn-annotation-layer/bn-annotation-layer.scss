@@ -16,6 +16,16 @@ svg {
   overflow: visible;
 }
 
+// only the marks take clicks: the layer stays click-through for the charts below
+:host([interactive]) .mark {
+  pointer-events: visiblePainted;
+  cursor: pointer;
+}
+
+:host([interactive]) .mark .hit {
+  pointer-events: stroke;
+}
+
 .badge-text {
   fill: #ffffff;
   font-weight: bold;

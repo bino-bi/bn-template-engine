@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Added
 
+- `bn-annotation-layer`, `bn-annotation-list`: an item may carry a `name`. It is written to `data-bino-annotation` on the mark (`g.mark`) and on the list entry (`li`), so a host can tell which annotation a mark belongs to, also when two annotations have the same target and point. Items without `name` render as before.
+- `bn-annotation-layer`: `interactive` lets the marks take clicks, with a pointer cursor. The layer itself stays click-through, so the charts below keep their hover. An arrow gets a transparent hit line along it, a few pixels wide. Default off.
+
 - `bn-table`: `bar-column-widths` sets the width of single bar columns by column, in the values of `bar-column-width`: `{"fc1": "w25", "dfc1_pp1_op": "w20"}`. The other columns keep `bar-column-width`. A long walk or a long variance bar gets the room it needs, so the one scale of `waterfall-scaling="unit"` can be larger.
 
 - `bn-chart-scatter`, `bn-chart-bubble`: a legend inside the plot moves out of the way. When a point, a bubble or a panel title is in the top right corner and the legend has no `align`, it takes the highest free place on the right edge of its panel, then on the left edge. With no free place, or with `align`, it stays in the corner.
