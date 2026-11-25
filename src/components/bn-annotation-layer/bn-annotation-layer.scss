@@ -26,6 +26,12 @@ svg {
   pointer-events: stroke;
 }
 
+// a frame or bracket without a number has no filled part: its whole outline area takes the click
+:host([interactive]) .mark.frame > rect,
+:host([interactive]) .mark.bracket > polyline {
+  pointer-events: all;
+}
+
 .badge-text {
   fill: #ffffff;
   font-weight: bold;

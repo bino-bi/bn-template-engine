@@ -316,6 +316,56 @@ test("marks: marker, frame and arrow sit on their elements", async () => {
   await assertFixturePlacement(page);
 });
 
+test("marks: interactive marks take clicks and carry their name, the layer stays click-through", async () => {
+  const items = [
+    { ...FIXTURE_ITEMS[0], name: "note_marker" },
+    { ...FIXTURE_ITEMS[2], name: "note_arrow", label: undefined },
+    { mark: "frame", name: "note_frame", target: "table", point: { category: "Software", scenario: "ac1" } },
+  ];
+  const page = await openDeep(DATA + pageOf(FIXTURE_SLOTS, items));
+  await until(
+    page,
+    () => document.querySelector("bn-annotation-layer").shadowRoot.querySelectorAll(".mark").length === 3,
+  );
+
+  /** The annotation name at the centre of each mark's first shape, and at a point of the layer with no mark. */
+  const hits = () =>
+    page.evaluate(() => {
+      const layer = document.querySelector("bn-annotation-layer");
+      const nameAt = (x, y) => {
+        const hit = layer.shadowRoot.elementFromPoint(x, y);
+        return hit?.closest?.("[data-bino-annotation]")?.getAttribute("data-bino-annotation") ?? null;
+      };
+      const out = {};
+      for (const mark of layer.shadowRoot.querySelectorAll(".mark")) {
+        const name = mark.getAttribute("data-bino-annotation");
+        // an arrow at the middle of its line, away from the head; the others at their circle or frame
+        const shape = mark.classList.contains("arrow")
+          ? mark.querySelector("line:not(.hit)")
+          : (mark.querySelector("circle") ?? mark.querySelector("rect"));
+        const r = shape.getBoundingClientRect();
+        out[name] = nameAt(r.left + r.width / 2, r.top + r.height / 2);
+      }
+      const page = layer.getBoundingClientRect();
+      out.empty = document.elementFromPoint(page.left + 2, page.bottom - 2)?.localName ?? null;
+      return out;
+    });
+
+  const off = await hits();
+  assert.equal(off.note_marker, null, JSON.stringify(off));
+  assert.equal(off.note_frame, null, JSON.stringify(off));
+
+  await page.$eval("bn-annotation-layer", (el) => el.setAttribute("interactive", ""));
+  await until(page, () => !!document.querySelector("bn-annotation-layer").shadowRoot.querySelector(".arrow .hit"));
+  const on = await hits();
+  assert.deepEqual(
+    { marker: on.note_marker, arrow: on.note_arrow, frame: on.note_frame },
+    { marker: "note_marker", arrow: "note_arrow", frame: "note_frame" },
+    JSON.stringify(on),
+  );
+  assert.notEqual(on.empty, "bn-annotation-layer", JSON.stringify(on));
+});
+
 test("marks: a rotated page has them on the same elements", async () => {
   const page = await openDeep(DATA + pageOf(FIXTURE_SLOTS, FIXTURE_ITEMS), 'render-orientation="portrait"');
   const turned = await page.$eval("bn-layout-page", (el) => el.shadowRoot.querySelector("bn-page").style.transform);
