@@ -24,6 +24,12 @@ import {
 } from "./utils/marks";
 import { isWholeComponent, matchPoint } from "./utils/matchPoint";
 
+/** A drawn mark and the name of the annotation it belongs to. */
+type NamedMark = DrawnMark & { name?: string };
+
+/** Half the width of the invisible line along an arrow that takes clicks in interactive mode. */
+const ARROW_HIT_WIDTH = 6;
+
 /** A component with a layout state of its own. */
 interface TargetElement extends HTMLElement {
   componentOnReady?: () => Promise<unknown>;
@@ -135,7 +141,8 @@ export class AnnotationLayer {
   @Element() private element: HTMLElement;
 
   /**
-   * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`.
+   * JSON array of the marks, each one `{ name?, label?, mark?, color?, target, point?, to?, toPoint? }`.
+   * `name` is written to `data-bino-annotation` on the mark.
    * `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a
    * `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw
    * data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`)
@@ -151,7 +158,14 @@ export class AnnotationLayer {
    */
   @Prop({ reflect: true }) selectedStyle?: string;
 
-  @State() private marks: DrawnMark[] = [];
+  /**
+   * Marks take pointer events: a host can click one and read its
+   * `data-bino-annotation`. The layer itself stays click-through, so the
+   * charts below keep their hover. Off by default.
+   */
+  @Prop({ reflect: true }) interactive = false;
+
+  @State() private marks: NamedMark[] = [];
 
   // @ts-ignore - Initialized by withHasError mixin
   private readonly errors: ErrorDispatcher;
@@ -393,7 +407,7 @@ export class AnnotationLayer {
     const em = parseFloat(getComputedStyle(this.svg).fontSize) || 13.3333;
     // the layout size: on a rotated page the screen box has the sides swapped
     const area = { width: this.element.clientWidth, height: this.element.clientHeight };
-    const marks: DrawnMark[] = [];
+    const marks: NamedMark[] = [];
     const problems: { item: AnnotationLayerItem; problem: string }[] = [];
 
     for (const item of this.parsedItems) {
@@ -416,7 +430,7 @@ export class AnnotationLayer {
             from: endOf(a),
             to: endOf(b),
           });
-          if (mark) marks.push(mark);
+          if (mark) marks.push({ ...mark, name: item.name });
           continue;
         }
         // the level of a sum: the top for positive values, and below it by the length of the negative ones.
@@ -427,7 +441,7 @@ export class AnnotationLayer {
           from: levelOf(a),
           to: levelOf(b),
         });
-        if (mark) marks.push(mark);
+        if (mark) marks.push({ ...mark, name: item.name });
         continue;
       }
       if (item.mark === "pointer" || item.mark === "bracket") {
@@ -453,7 +467,7 @@ export class AnnotationLayer {
               };
         };
         if (item.mark === "pointer") {
-          marks.push(buildPointer(item, endOf(a), em));
+          marks.push({ ...buildPointer(item, endOf(a), em), name: item.name });
           continue;
         }
         if (!a.horizontal) {
@@ -469,8 +483,8 @@ export class AnnotationLayer {
         const host = targets.get(item.target)!.getBoundingClientRect();
         const hostBox = toLocal({ x: host.left, y: host.top, width: host.width, height: host.height });
         const caption = item.text ?? (share != null ? `${Math.round(share * 100)}%` : undefined);
-        marks.push(
-          buildBracket(
+        marks.push({
+          ...buildBracket(
             item,
             toLocal(a.box),
             toLocal(b.box),
@@ -479,7 +493,8 @@ export class AnnotationLayer {
             caption,
             em,
           ),
-        );
+          name: item.name,
+        });
         continue;
       }
       const from = anchorOf(item.target, item.point);
@@ -522,7 +537,7 @@ export class AnnotationLayer {
         horizontal: start.horizontal,
       });
       if (mark) {
-        marks.push(mark);
+        marks.push({ ...mark, name: item.name });
       } else {
         problems.push({ item, problem: "an arrow needs two ends at different places" });
       }
@@ -662,21 +677,21 @@ export class AnnotationLayer {
     );
   }
 
-  private renderMark(mark: DrawnMark) {
+  private renderMark(mark: NamedMark) {
     const color = annotationColor(
       mark.color,
       this.componentStyle(($) => $["bn-annotation"]),
     );
     if (mark.kind === "marker") {
       return (
-        <g class="mark marker" data-label={mark.badge.label}>
+        <g class="mark marker" data-bino-annotation={mark.name} data-label={mark.badge.label}>
           {this.renderBadge(mark.badge, color)}
         </g>
       );
     }
     if (mark.kind === "frame") {
       return (
-        <g class="mark frame" data-label={mark.badge?.label}>
+        <g class="mark frame" data-bino-annotation={mark.name} data-label={mark.badge?.label}>
           <rect
             x={mark.x}
             y={mark.y}
@@ -701,7 +716,7 @@ export class AnnotationLayer {
         this.componentStyle(($) => $["bn-annotation"]),
       );
       return (
-        <g class="mark difference" data-label={mark.badge?.label}>
+        <g class="mark difference" data-bino-annotation={mark.name} data-label={mark.badge?.label}>
           {mark.lines.map((line) => (
             <line class="difference-line" x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2}></line>
           ))}
@@ -737,7 +752,7 @@ export class AnnotationLayer {
     }
     if (mark.kind === "pointer") {
       return (
-        <g class="mark pointer" data-label={mark.badge?.label}>
+        <g class="mark pointer" data-bino-annotation={mark.name} data-label={mark.badge?.label}>
           <polygon points={mark.shape} style={{ fill: color }}></polygon>
           {this.renderBadge(mark.badge, color)}
         </g>
@@ -745,7 +760,7 @@ export class AnnotationLayer {
     }
     if (mark.kind === "bracket") {
       return (
-        <g class="mark bracket" data-label={mark.badge?.label}>
+        <g class="mark bracket" data-bino-annotation={mark.name} data-label={mark.badge?.label}>
           <polyline points={mark.path} style={{ fill: "none", stroke: color, strokeWidth: "1.5" }}></polyline>
           {mark.frame ? (
             <rect
@@ -768,7 +783,17 @@ export class AnnotationLayer {
       );
     }
     return (
-      <g class="mark arrow" data-label={mark.badge?.label}>
+      <g class="mark arrow" data-bino-annotation={mark.name} data-label={mark.badge?.label}>
+        {this.interactive ? (
+          <line
+            class="hit"
+            x1={mark.x1}
+            y1={mark.y1}
+            x2={mark.x2}
+            y2={mark.y2}
+            style={{ stroke: "transparent", strokeWidth: `${ARROW_HIT_WIDTH * 2}` }}
+          ></line>
+        ) : null}
         <line x1={mark.x1} y1={mark.y1} x2={mark.x2} y2={mark.y2} style={{ stroke: color, strokeWidth: "1.5" }}></line>
         <polygon points={mark.head} style={{ fill: color }}></polygon>
         {this.renderBadge(mark.badge, color)}

@@ -17,10 +17,10 @@ The other entries keep their numbers: the list never counts again.
 
 ## Properties
 
-| Property        | Attribute        | Description                                                                                                                              | Type     | Default     |
-| --------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `items`         | `items`          | JSON array of the entries, each one `{ label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted.         | `string` | `undefined` |
-| `selectedStyle` | `selected-style` | Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colour of the circles. | `string` | `undefined` |
+| Property        | Attribute        | Description                                                                                                                                                                                       | Type     | Default     |
+| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `items`         | `items`          | JSON array of the entries, each one `{ name?, label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted. `name` is written to `data-bino-annotation` on the entry. | `string` | `undefined` |
+| `selectedStyle` | `selected-style` | Name of the component style to use (the `name` of a `<bn-component-style>`). Its section `bn-annotation` sets the colour of the circles.                                                          | `string` | `undefined` |
 
 
 ----------------------------------------------

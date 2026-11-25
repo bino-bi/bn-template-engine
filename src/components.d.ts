@@ -90,7 +90,12 @@ export namespace Components {
      */
     interface BnAnnotationLayer {
         /**
-          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points. Both ends must be data points then, and a `text` is not drawn.
+          * Marks take pointer events: a host can click one and read its `data-bino-annotation`. The layer itself stays click-through, so the charts below keep their hover. Off by default.
+          * @default false
+         */
+        "interactive": boolean;
+        /**
+          * JSON array of the marks, each one `{ name?, label?, mark?, color?, target, point?, to?, toPoint? }`. `name` is written to `data-bino-annotation` on the mark. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points. Both ends must be data points then, and a `text` is not drawn.
          */
         "items"?: string;
         /**
@@ -110,7 +115,7 @@ export namespace Components {
      */
     interface BnAnnotationList {
         /**
-          * JSON array of the entries, each one `{ label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted.
+          * JSON array of the entries, each one `{ name?, label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted. `name` is written to `data-bino-annotation` on the entry.
          */
         "items"?: string;
         /**
@@ -3043,7 +3048,12 @@ declare namespace LocalJSX {
      */
     interface BnAnnotationLayer {
         /**
-          * JSON array of the marks, each one `{ label?, mark?, color?, target, point?, to?, toPoint? }`. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points. Both ends must be data points then, and a `text` is not drawn.
+          * Marks take pointer events: a host can click one and read its `data-bino-annotation`. The layer itself stays click-through, so the charts below keep their hover. Off by default.
+          * @default false
+         */
+        "interactive"?: boolean;
+        /**
+          * JSON array of the marks, each one `{ name?, label?, mark?, color?, target, point?, to?, toPoint? }`. `name` is written to `data-bino-annotation` on the mark. `mark` is `marker` (default), `frame` or `arrow`. `target` and `to` name a `data-bino-annotation-target` on this page. `point` and `toPoint` hold raw data values (`rowGroup`, `category`, `subCategory`, `date`, `scenario`, `row`) and a `part` (`element`, `label`, `total`). Without a field they mean the component as a whole. A `frame` with `to` or `toPoint` is one oval around both data points. Both ends must be data points then, and a `text` is not drawn.
          */
         "items"?: string;
         /**
@@ -3063,7 +3073,7 @@ declare namespace LocalJSX {
      */
     interface BnAnnotationList {
         /**
-          * JSON array of the entries, each one `{ label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted.
+          * JSON array of the entries, each one `{ name?, label?, title?, html? }`. `html` is inline markup and is sanitized before it is inserted. `name` is written to `data-bino-annotation` on the entry.
          */
         "items"?: string;
         /**
@@ -5454,6 +5464,7 @@ declare namespace LocalJSX {
     interface BnAnnotationLayerAttributes {
         "items": string;
         "selectedStyle": string;
+        "interactive": boolean;
     }
     interface BnAnnotationListAttributes {
         "items": string;

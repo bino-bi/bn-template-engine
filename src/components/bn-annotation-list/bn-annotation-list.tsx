@@ -30,8 +30,9 @@ export class AnnotationList {
   @Element() private element: HTMLElement;
 
   /**
-   * JSON array of the entries, each one `{ label?, title?, html? }`. `html` is
-   * inline markup and is sanitized before it is inserted.
+   * JSON array of the entries, each one `{ name?, label?, title?, html? }`. `html` is
+   * inline markup and is sanitized before it is inserted. `name` is written to
+   * `data-bino-annotation` on the entry.
    */
   @Prop() items?: string;
 
@@ -87,7 +88,7 @@ export class AnnotationList {
       <Host>
         <ol>
           {(items ?? []).map((item) => (
-            <li>
+            <li data-bino-annotation={item.name}>
               {item.label != null && !unplaced.includes(item.label) ? (
                 <div class="badge" style={badgeStyle}>
                   <span>{item.label}</span>
